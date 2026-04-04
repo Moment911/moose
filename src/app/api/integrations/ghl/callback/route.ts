@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!)
+function getSupabase() {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -22,12 +24,12 @@ export async function GET(req: NextRequest) {
     const tokens = await tokenRes.json()
     const agencyId = state!
 
-    const { data: existing } = await supabase.from('crm_integrations').select('id').eq('agency_id', agencyId).eq('provider', 'gohighlevel').eq('location_id', tokens.locationId).maybeSingle()
+    const { data: existing } = await getSupabase().from('crm_integrations').select('id').eq('agency_id', agencyId).eq('provider', 'gohighlevel').eq('location_id', tokens.locationId).maybeSingle()
     const integrationData = { agency_id: agencyId, provider: 'gohighlevel', name: `GoHighLevel (${tokens.locationId})`, status: 'connected', access_token: tokens.access_token, refresh_token: tokens.refresh_token, token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(), location_id: tokens.locationId, company_id: tokens.companyId, updated_at: new Date().toISOString() }
     if (existing) {
-      await supabase.from('crm_integrations').update(integrationData).eq('id', existing.id)
+      await getSupabase().from('crm_integrations').update(integrationData).eq('id', existing.id)
     } else {
-      await supabase.from('crm_integrations').insert(integrationData)
+      await getSupabase().from('crm_integrations').insert(integrationData)
     }
     return NextResponse.redirect(`${appUrl}/integrations?connected=ghl`)
   } catch (err) {
