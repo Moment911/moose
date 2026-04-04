@@ -146,10 +146,6 @@ function SourceBadge({ realData }) {
     <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#e8f9fa', color:'#0e7490', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
       Live Google Data
     </span>
-  ) : (
-    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fbfc', color:ACCENT, border:`1px solid ${ACCENT}25`, display:'inline-flex', alignItems:'center', gap:4 }}>
-      AI Estimated
-    </span>
   )
 }
 
@@ -188,7 +184,7 @@ function ProvenancePanel({ lead }) {
             <div style={{ fontSize:13, color:'#4b5563', marginTop:5 }}>
               {lead._real_data ? 'Live data from Google Places API — verified business' :
                verified.length>=2 ? `${verified.length} data points verified locally` :
-               'Live Google data · Claude enriched'}
+               'Live Google · Claude enriched'}
               {mismatches.length>0 && ` · ${mismatches.length} flag${mismatches.length>1?'s':''} detected`}
             </div>
           </div>
