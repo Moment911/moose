@@ -146,7 +146,7 @@ function SourceBadge({ realData }) {
     <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#e8f9fa', color:'#0e7490', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
       Live Google Data
     </span>
-  )
+  ) : null
 }
 
 // ── Provenance panel ──────────────────────────────────────────────────────────
