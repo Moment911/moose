@@ -533,7 +533,7 @@ export default function ProposalBuilderPage() {
                 <div style={{ height:'0.5px', background:'#f3f4f6', margin:'14px 0' }}/>
 
                 <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Client link</div>
-                <div style={{ display:'flex', gap:6' }}>
+                <div style={{ display:'flex', gap:6 }}>
                   <div style={{ flex:1, fontSize:11, color:'#6b7280', background:'#f9fafb', padding:'7px 10px', borderRadius:8, border:'1px solid #f3f4f6', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     /p/{proposal.public_token?.slice(0,16)}…
                   </div>

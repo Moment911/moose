@@ -164,7 +164,7 @@ export default function ProposalsPage() {
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search proposals or clients…"
                 style={{ border:'none', outline:'none', fontSize:13, background:'transparent', flex:1, color:'#111' }}/>
             </div>
-            <div style={{ display:'flex', gap:6' }}>
+            <div style={{ display:'flex', gap:6 }}>
               {['all','draft','sent','viewed','accepted','agreement'].map(s => (
                 <button key={s} onClick={()=>setStatusFilter(s)}
                   style={{ padding:'7px 14px', borderRadius:20, border:`1.5px solid ${statusFilter===s?ACCENT:'#e5e7eb'}`, background:statusFilter===s?'#fff7f5':'#fff', color:statusFilter===s?ACCENT:'#6b7280', fontSize:12, fontWeight:statusFilter===s?700:500, cursor:'pointer', textTransform:'capitalize' }}>
