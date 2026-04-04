@@ -179,9 +179,9 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           location.pathname.startsWith('/employees') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><Users size={15} className={location.pathname.startsWith('/employees') ? 'text-brand-500' : ''} /> Team</Link>
 
-        <a href="/clients" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${location.pathname.startsWith('/clients') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
+        <Link to="/clients" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${location.pathname.startsWith('/clients') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
           <Users size={15} className={location.pathname.startsWith('/clients') ? 'text-orange-400' : ''} /> Clients
-        </a>
+        </Link>
 
         <Link to="/integrations" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/integrations' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -211,9 +211,9 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           <Link to="/seo/plugin" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/plugin' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
             <Puzzle size={14} className={location.pathname === '/seo/plugin' ? 'text-purple-400' : ''} /> WP Plugin
           </Link>
-          <a href="/wordpress" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname.startsWith('/wordpress') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
+          <Link to="/wordpress" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname.startsWith('/wordpress') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
             <Globe size={14} className={location.pathname.startsWith('/wordpress') ? 'text-orange-400' : ''} /> WordPress Sites
-          </a>
+          </Link>
           <Link to="/seo/connect" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/connect' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
             <Link2 size={14} className={location.pathname === '/seo/connect' ? 'text-blue-400' : ''} /> Connect Data
           </Link>

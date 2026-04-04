@@ -43,6 +43,7 @@ import SEOHubPage from '../views/seo/SEOHubPage'
 import SEOAuditPage from '../views/seo/SEOAuditPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
+import WordPressPage from '../views/WordPressPage'
 
 export default function App() {
   return (
@@ -94,6 +95,7 @@ export default function App() {
           <Route path="/seo/audit" element={<SEOAuditPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
+          <Route path="/wordpress" element={<WordPressPage />} />
         </Routes>
       </MobileMenuProvider>
       </AuthProvider>
