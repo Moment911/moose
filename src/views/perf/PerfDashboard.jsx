@@ -129,6 +129,7 @@ export default function PerfDashboard() {
   const [alerts,    setAlerts]    = useState([])
   const [execLog,   setExecLog]   = useState([])
   const [executing, setExecuting] = useState(null)
+  const [dbError,   setDbError]   = useState(null)
   const [pages,     setPages]     = useState([])
   const [tab,       setTab]       = useState('overview')
   const [loading,   setLoading]   = useState(true)
@@ -147,26 +148,35 @@ export default function PerfDashboard() {
 
   async function loadClientData() {
     setLoading(true)
-    const [
-      {data:snaps},{data:camps},{data:kws},
-      {data:recData},{data:alertData},{data:pagesData},{data:execLogData}
-    ] = await Promise.all([
-      supabase.from('perf_snapshots').select('*').eq('client_id',selClient)
-        .order('snapshot_date',{ascending:false}).limit(90),
-      supabase.from('perf_campaigns').select('*').eq('client_id',selClient),
-      supabase.from('perf_keywords').select('*').eq('client_id',selClient)
-        .order('cost',{ascending:false}).limit(100),
-      supabase.from('perf_recommendations').select('*').eq('client_id',selClient)
-        .eq('status','pending').order('est_impact_val',{ascending:false}).limit(20),
-      supabase.from('perf_alerts').select('*').eq('client_id',selClient)
-        .eq('acknowledged',false).order('created_at',{ascending:false}).limit(10),
-      supabase.from('perf_execution_log').select('*').eq('client_id',selClient)
-        .order('applied_at',{ascending:false}).limit(30),
-      supabase.from('perf_pages').select('*').eq('client_id',selClient)
-        .order('ai_score',{ascending:false}).limit(50),
-    ])
-    setSnapshots(snaps||[]); setCampaigns(camps||[]); setKeywords(kws||[])
-    setRecs(recData||[]); setAlerts(alertData||[]); setPages(pagesData||[]); setExecLog(execLogData||[])
+    try {
+      const [
+        {data:snaps,error:e1},{data:camps,error:e2},{data:kws,error:e3},
+        {data:recData,error:e4},{data:alertData,error:e5},{data:pagesData,error:e6},{data:execLogData,error:e7}
+      ] = await Promise.all([
+        supabase.from('perf_snapshots').select('*').eq('client_id',selClient)
+          .order('snapshot_date',{ascending:false}).limit(90),
+        supabase.from('perf_campaigns').select('*').eq('client_id',selClient),
+        supabase.from('perf_keywords').select('*').eq('client_id',selClient)
+          .order('cost',{ascending:false}).limit(100),
+        supabase.from('perf_recommendations').select('*').eq('client_id',selClient)
+          .eq('status','pending').order('est_impact_val',{ascending:false}).limit(20),
+        supabase.from('perf_alerts').select('*').eq('client_id',selClient)
+          .eq('acknowledged',false).order('created_at',{ascending:false}).limit(10),
+        supabase.from('perf_execution_log').select('*').eq('client_id',selClient)
+          .order('applied_at',{ascending:false}).limit(30),
+        supabase.from('perf_pages').select('*').eq('client_id',selClient)
+          .order('ai_score',{ascending:false}).limit(50),
+      ])
+      if (e1 || e2 || e3) {
+        // Tables don't exist yet — migration not run
+        setDbError('Performance tables not set up yet. Please run the database migration in Supabase.')
+      }
+      setSnapshots(snaps||[]); setCampaigns(camps||[]); setKeywords(kws||[])
+      setRecs(recData||[]); setAlerts(alertData||[]); setPages(pagesData||[]); setExecLog(execLogData||[])
+    } catch(err) {
+      console.error('loadClientData:', err)
+      setDbError('Failed to load data: ' + err.message)
+    }
     setLoading(false)
   }
 
@@ -305,7 +315,7 @@ export default function PerfDashboard() {
                   </button>
                 ))}
               </div>
-              <button onClick={()=>navigate('/perf/connect')}
+              <button onClick={()=>navigate('/integrations')}
                 style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:9,
                   border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',
                   color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
@@ -373,6 +383,24 @@ export default function PerfDashboard() {
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:80}}>
               <Loader2 size={28} color={RED} style={{animation:'spin 1s linear infinite'}}/>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          ) : dbError ? (
+            <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:16,padding:32,textAlign:'center',maxWidth:560,margin:'40px auto'}}>
+              <AlertCircle size={36} color={RED} style={{margin:'0 auto 14px',display:'block'}}/>
+              <div style={{fontSize:17,fontWeight:800,color:'#111',marginBottom:8}}>Database tables not ready</div>
+              <div style={{fontSize:14,color:'#374151',marginBottom:20,lineHeight:1.7}}>{dbError}</div>
+              <div style={{background:'#111',borderRadius:12,padding:'16px 20px',textAlign:'left',marginBottom:16}}>
+                <div style={{fontSize:12,color:'rgba(255,255,255,.5)',marginBottom:8,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>Steps to fix:</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,.8)',lineHeight:1.8}}>
+                  1. Go to <strong style={{color:'#5bc6d0'}}>Supabase → SQL Editor</strong><br/>
+                  2. Open the file: <code style={{background:'rgba(255,255,255,.1)',padding:'1px 6px',borderRadius:4}}>supabase/migrations/RUN_THIS_NOW_consolidated.sql</code><br/>
+                  3. Paste and run the entire file
+                </div>
+              </div>
+              <button onClick={()=>{setDbError(null);loadClientData()}}
+                style={{padding:'9px 22px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                Retry
+              </button>
             </div>
           ) : !selClient ? (
             <div style={{textAlign:'center',padding:60}}>
@@ -453,7 +481,7 @@ export default function PerfDashboard() {
                       <div style={{fontSize:15,color:'#374151',marginBottom:24,maxWidth:400,margin:'0 auto 24px'}}>
                         Connect {selectedClient?.name}'s Google Ads, Analytics, and Search Console accounts to start pulling data.
                       </div>
-                      <button onClick={()=>navigate('/perf/connect')}
+                      <button onClick={()=>navigate('/integrations')}
                         style={{padding:'12px 28px',borderRadius:12,border:'none',background:RED,
                           color:'#fff',fontSize:15,fontWeight:800,cursor:'pointer'}}>
                         Connect Google Accounts →
@@ -564,7 +592,7 @@ export default function PerfDashboard() {
                       <div style={{fontSize:17,fontWeight:900,color:'#111',marginBottom:4}}>Landing Page Intelligence</div>
                       <div style={{fontSize:14,color:'#374151'}}>{pages.length} pages scanned from sitemap · ranked by AI score</div>
                     </div>
-                    <button onClick={()=>navigate(`/perf/${selClient}/pages`)}
+                    <button onClick={()=>setTab('pages')}
                       style={{padding:'8px 18px',borderRadius:10,border:'none',background:RED,
                         color:'#fff',fontSize:13,fontWeight:800,cursor:'pointer'}}>
                       Scan Sitemap →
@@ -576,7 +604,7 @@ export default function PerfDashboard() {
                       <Globe size={40} color="#e5e7eb" style={{margin:'0 auto 16px',display:'block'}}/>
                       <div style={{fontSize:16,fontWeight:800,color:'#111',marginBottom:8}}>No pages scanned yet</div>
                       <div style={{fontSize:14,color:'#374151',marginBottom:20}}>Enter the sitemap URL to analyze all pages as potential landing pages</div>
-                      <button onClick={()=>navigate(`/perf/${selClient}/pages`)}
+                      <button onClick={()=>setTab('pages')}
                         style={{padding:'10px 24px',borderRadius:10,border:'none',background:RED,
                           color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
                         Scan Sitemap Now

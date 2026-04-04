@@ -455,18 +455,28 @@ export default function QAKnowledgePage() {
 
   async function loadKnowledge() {
     setLoading(true)
-    const data = await getAllKnowledge(aid)
-    setEntries(data)
+    try {
+      const data = await getAllKnowledge(aid)
+      setEntries(data || [])
+    } catch(err) {
+      console.warn('loadKnowledge:', err.message)
+      setEntries([])
+    }
     setLoading(false)
   }
 
   async function loadResolvedTickets() {
-    const { data } = await supabase.from('desk_tickets')
-      .select('*').eq('agency_id', aid)
-      .in('status', ['resolved','closed'])
-      .is('ai_summary', null)  // not yet in KB (simplified check)
-      .order('resolved_at', { ascending: false }).limit(20)
-    setTickets(data || [])
+    try {
+      const { data } = await supabase.from('desk_tickets')
+        .select('*').eq('agency_id', aid)
+        .in('status', ['resolved','closed'])
+        .is('ai_summary', null)
+        .order('resolved_at', { ascending: false }).limit(20)
+      setTickets(data || [])
+    } catch(err) {
+      console.warn('loadResolvedTickets:', err.message)
+      setTickets([])
+    }
   }
 
   async function deleteEntry(id) {

@@ -117,17 +117,23 @@ export default function DeskReportsPage() {
   const [timeLogs, setTimeLogs] = useState([])
   const [agents,   setAgents]   = useState([])
   const [range,    setRange]    = useState('30d')
+  const [loadError,setLoadError]= useState(null)
 
   useEffect(() => { load() }, [])
 
   async function load() {
     setLoading(true)
-    const [{ data:tt }, { data:tl }, { data:aa }] = await Promise.all([
-      supabase.from('desk_tickets').select('*').eq('agency_id', aid),
-      supabase.from('desk_time_logs').select('*'),
-      supabase.from('desk_agents').select('*').eq('agency_id', aid),
-    ])
-    setTickets(tt||[]); setTimeLogs(tl||[]); setAgents(aa||[])
+    try {
+      const [{ data:tt, error:e1 }, { data:tl }, { data:aa }] = await Promise.all([
+        supabase.from('desk_tickets').select('*').eq('agency_id', aid),
+        supabase.from('desk_time_logs').select('*'),
+        supabase.from('desk_agents').select('*').eq('agency_id', aid),
+      ])
+      if (e1) { setLoadError(e1.message); setLoading(false); return }
+      setTickets(tt||[]); setTimeLogs(tl||[]); setAgents(aa||[])
+    } catch(err) {
+      setLoadError(err.message)
+    }
     setLoading(false)
   }
 
@@ -265,6 +271,13 @@ export default function DeskReportsPage() {
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',padding:80}}>
               <Loader2 size={28} color={RED} style={{animation:'spin 1s linear infinite'}}/>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          ) : loadError ? (
+            <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:16,padding:32,textAlign:'center',maxWidth:480,margin:'40px auto'}}>
+              <AlertCircle size={32} color={RED} style={{margin:'0 auto 12px',display:'block'}}/>
+              <div style={{fontSize:16,fontWeight:800,color:'#111',marginBottom:6}}>Could not load report data</div>
+              <div style={{fontSize:14,color:'#374151',marginBottom:16}}>{loadError}</div>
+              <div style={{fontSize:13,color:'#374151'}}>Make sure the MooseDesk tables exist in Supabase (run the migration SQL).</div>
             </div>
           ) : (
             <>

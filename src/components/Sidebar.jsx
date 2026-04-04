@@ -244,6 +244,7 @@ export default function Sidebar() {
       <div style={{ padding:'10px 8px 0', flexShrink:0 }}>
         <SectionLabel label="Core"/>
         <NavLink to="/"            exact icon={LayoutGrid}    label="Project Hub"/>
+        <NavLink to="/clients"     startsWith icon={Users}    label="Clients"/>
         <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
         <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
         <NavLink to="/automations" icon={Workflow}            label="Automations"/>
@@ -263,7 +264,7 @@ export default function Sidebar() {
         <NavLink to="/desk"          startsWith icon={Inbox}        label="MooseDesk"/>
         <NavLink to="/desk/knowledge" startsWith icon={Brain}       label="Q&A Knowledge"/>
         <NavLink to="/desk/reports"  startsWith icon={BarChart2}    label="Desk Reports"/>
-        <NavLink to="/seo"           startsWith icon={TrendingUp}   label="SEO Hub"/>
+        <NavLink to="/seo"           startsWith icon={BarChart2}     label="SEO Hub"/>
       </div>
 
       {/* Agency section */}
