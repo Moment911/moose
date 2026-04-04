@@ -76,26 +76,9 @@ function SectionLabel({ label }) {
 function DevSection() {
   const [open, setOpen] = useState(false)
   const DEV_ITEMS = [
-    { to:'/social',    icon:Star,       label:'Social Planner' },
-    { to:'/payments',  icon:DollarSign, label:'Payments' },
-    { to:'/reporting', icon:BarChart2,  label:'Reporting' },
-    { to:'/marketing', icon:Megaphone,  label:'E-Marketing' },
-    { to:'/campaigns', icon:Megaphone,  label:'Campaigns' },
-    { to:'/contacts',  icon:Users,      label:'Contacts' },
-    { to:'/calendar',  icon:Calendar,   label:'Calendar' },
-    { to:'/tasks',     icon:CheckSquare,label:'Tasks' },
-    { to:'/messages',  icon:MessageSquare, label:'Messages' },
-    { to:'/revenue',   icon:DollarSign, label:'Revenue' },
-    { to:'/admin',     icon:Shield,     label:'Admin Portal' },
-    { to:'/seo/audit', icon:Zap,        label:'SEO Audit' },
-    { to:'/seo/plugin',icon:Puzzle,     label:'WP Plugin' },
-    { to:'/seo/connect',icon:Link2,     label:'Connect Data' },
-    { to:'/automations',icon:Zap,       label:'Automations' },
-    { to:'/templates', icon:BookOpen,   label:'Templates' },
-    { to:'/brand-guidelines',icon:Palette, label:'Brand Guidelines' },
-    { to:'/email-designer',icon:Mail,   label:'Email Designer' },
     { to:'/welcome',   icon:Globe,      label:'Marketing Site' },
     { to:'/signup',    icon:Plus,       label:'Agency Signup' },
+    { to:'/admin',     icon:Shield,     label:'Admin Portal' },
   ]
   return (
     <div className="mt-1">
@@ -220,17 +203,14 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         <NavLink to="/" exact icon={LayoutGrid} label="Project Hub" />
         <NavLink to="/clients" icon={Users} label="Clients" startsWith />
         <NavLink to="/reviews" icon={MessageSquare} label="Reviews" startsWith />
-        <NavLink to="/ai-agents" icon={Zap} label="AI Agents" startsWith />
-        <NavLink to="/integrations" icon={Plug} label="Integrations" />
 
         {/* ── SEO / INTELLIGENCE ── */}
         <SectionLabel label="Intelligence" />
         <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#f97316" />
-        <NavLink to="/seo" icon={TrendingUp} label="SEO Hub" />
-        <NavLink to="/wordpress" icon={Globe} label="WordPress Sites" startsWith />
 
         {/* ── AGENCY ── */}
         <SectionLabel label="Agency" />
+        <NavLink to="/integrations" icon={Plug} label="Integrations" />
         <NavLink to="/setup" icon={Settings} label="Setup & Connections" />
         <NavLink to="/agency-settings" icon={Shield} label="Agency Settings" />
         <NavLink to="/settings" icon={Settings} label="Settings" exact />

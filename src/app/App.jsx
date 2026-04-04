@@ -82,10 +82,6 @@ export default function App() {
           <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/clients/:clientId/persona" element={<ClientPersonaPage />} />
-          <Route path="/payments" element={<PaymentsPage />} />
-          <Route path="/ai-agents" element={<AIAgentsPage />} />
-          <Route path="/reporting" element={<ReportingPage />} />
-          <Route path="/social" element={<SocialPlannerPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
@@ -94,7 +90,6 @@ export default function App() {
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/marketing" element={<MarketingPage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/campaigns/builder" element={<CampaignBuilderPage />} />
           <Route path="/campaigns/builder/:campaignId" element={<CampaignBuilderPage />} />
