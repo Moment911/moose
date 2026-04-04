@@ -45,6 +45,8 @@ import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
 import WordPressPage from '../views/WordPressPage'
 import SettingsPage from '../views/SettingsPage'
+import ClientDetailPage from '../views/ClientDetailPage'
+import OnboardingPage from '../views/OnboardingPage'
 
 export default function App() {
   return (
@@ -55,6 +57,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/clients" element={<ClientsPage />} />
+          <Route path="/clients/:clientId" element={<ClientDetailPage />} />
+          <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />

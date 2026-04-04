@@ -271,6 +271,37 @@ export async function fireWebhook(project, event, data = {}) {
   await Promise.allSettled(promises)
 }
 
+// ─── Client Profiles ────────────────────────────────────────────────────────
+export const getClientProfile = (clientId) =>
+  supabase.from('client_profiles').select('*').eq('client_id', clientId).maybeSingle()
+
+export const upsertClientProfile = async (clientId, data) => {
+  const { data: existing } = await getClientProfile(clientId)
+  if (existing) {
+    return supabase.from('client_profiles').update({ ...data, updated_at: new Date().toISOString() }).eq('client_id', clientId).select().single()
+  }
+  return supabase.from('client_profiles').insert({ client_id: clientId, ...data }).select().single()
+}
+
+// ─── Onboarding Tokens ─────────────────────────────────────────────────────
+export const createOnboardingToken = (clientId, createdBy) =>
+  supabase.from('onboarding_tokens').insert({ client_id: clientId, created_by: createdBy }).select().single()
+
+export const getOnboardingToken = (token) =>
+  supabase.from('onboarding_tokens').select('*, clients(*)').eq('token', token).maybeSingle()
+
+export const markTokenUsed = (token) =>
+  supabase.from('onboarding_tokens').update({ used_at: new Date().toISOString() }).eq('token', token)
+
+export const uploadOnboardingFile = async (file, clientId) => {
+  const ext = file.name.split('.').pop()
+  const path = `onboarding/${clientId}/${Date.now()}.${ext}`
+  const { error } = await supabase.storage.from('review-files').upload(path, file, { upsert: false })
+  if (error) throw error
+  const { data: urlData } = supabase.storage.from('review-files').getPublicUrl(path)
+  return { url: urlData.publicUrl, path }
+}
+
 // ─── Email (via Supabase Edge Function) ──────────────────────────────────────
 export const sendEmailSummary = (payload) =>
   supabase.functions.invoke('send-email', { body: payload })
