@@ -3,7 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+let _supabase
+export const supabase = new Proxy({}, {
+  get(_, prop) {
+    if (!_supabase) {
+      _supabase = createClient(supabaseUrl, supabaseAnonKey)
+    }
+    return _supabase[prop]
+  }
+})
 
 // ─── Auth helpers ────────────────────────────────────────────────────────────
 export const signIn = (email, password) =>
