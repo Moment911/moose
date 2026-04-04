@@ -1,4 +1,4 @@
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
+const API_KEY = process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY
 const MODEL = 'claude-sonnet-4-20250514'
 const HEADERS = {
   'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 // OpenAI / GPT-4o service - optional, gracefully falls back if no key
-const API_KEY = import.meta.env.VITE_OPENAI_API_KEY
+const API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY
 
 export async function callChatGPT(prompt, options = {}) {
   if (!API_KEY) {
