@@ -94,7 +94,6 @@ function Section({ id, children, dark=false, style={} }) {
         {children}
       </div>
     </div>
-    </>
   )
 }
 
@@ -105,7 +104,6 @@ function SectionLabel({ text, light=false }) {
       <span style={{fontSize:11,fontWeight:800,color:light?'rgba(255,255,255,.5)':RED,
         textTransform:'uppercase',letterSpacing:'.1em'}}>{text}</span>
     </div>
-    </>
   )
 }
 
@@ -116,7 +114,6 @@ export default function ProspectReportPage() {
   const { agencyId } = useAuth()
 
   const lead    = location.state?.lead || null
-  const r       = report || lead?.ai_analysis || null  // resolved report data
   const allLeads = location.state?.allLeads || []
   const searchQuery = location.state?.query || ''
 
@@ -128,6 +125,9 @@ export default function ProspectReportPage() {
   const [savedReport, setSavedReport] = useState(null)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  // Resolved report: use live state or pre-analyzed lead data
+  const r = report || lead?.ai_analysis || null
 
   useEffect(() => { init() }, [])
 

@@ -231,7 +231,7 @@ export async function runLeadPipeline(lead, competitors, searchQuery, onProgress
         result.hours     = details.regularOpeningHours?.weekdayDescriptions?.join(', ') || ''
         result.types     = details.types || []
         result.editorial = details.editorialSummary?.text || ''
-        result.gmb_reviews = (details.reviews || []).slice(0,3).map((r:any) => ({
+        result.gmb_reviews = (details.reviews || []).slice(0,3).map((r) => ({
           rating: r.rating,
           text:   r.text?.text?.slice(0,200) || '',
           time:   r.relativePublishTimeDescription,
