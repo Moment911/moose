@@ -10,6 +10,7 @@ import {
 import { supabase, getProjectsByClientEmail, getFiles, getRounds, signOut } from '../lib/supabase'
 import { useAuth, getFirstName, getGreeting } from '../hooks/useAuth'
 import { triageTicket, logActivity, CATEGORIES } from '../lib/moosedesk'
+import { emailTicketCreated } from '../lib/deskEmail'
 import { formatDistanceToNow, differenceInDays, format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
 

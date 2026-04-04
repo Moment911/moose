@@ -9,6 +9,7 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { triageTicket, applyRoutingRules, logActivity, CATEGORIES } from '../../lib/moosedesk'
+import { emailTicketCreated } from '../../lib/deskEmail'
 import toast from 'react-hot-toast'
 
 const RED  = '#ea2729'
@@ -139,6 +140,9 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
         if (rule) await logActivity(ticket.id, {name:'MooseDesk AI',type:'ai'}, 'routed', 'Auto-routed by rule: ' + rule.name)
         await logActivity(ticket.id, {name:'MooseDesk AI',type:'ai'}, 'triaged', 'AI classified: ' + ai.category + ' / ' + ai.priority)
       } catch(e) { console.warn('AI triage failed:', e.message) }
+      // Send email notifications (fire and forget)
+      const finalTicket = (await supabase.from('desk_tickets').select('*').eq('id', ticket.id).single()).data || ticket
+      emailTicketCreated(finalTicket).catch(console.warn)
       toast.success("Ticket submitted! We'll get back to you shortly.")
       onCreated()
     } catch(e) { toast.error(e.message); setSubmitting(false) }

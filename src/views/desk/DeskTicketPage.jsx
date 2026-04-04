@@ -11,6 +11,7 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { logActivity, startTimer, stopTimer, learnFromTicket } from '../../lib/moosedesk'
+import { emailReplySent, emailTicketResolved } from '../../lib/deskEmail'
 import toast from 'react-hot-toast'
 
 const RED  = '#ea2729'
@@ -104,6 +105,9 @@ export default function DeskTicketPage() {
       }).eq('id',id)
       await logActivity(id,{name:firstName||'Agent',type:'agent'},
         'replied', internal?'Internal note added':'Reply sent to client')
+      // Email notification
+      const replyObj = { author_name:firstName||'Agent', author_type:'agent', body:reply, is_internal:internal }
+      emailReplySent(ticket, replyObj).catch(console.warn)
       setReply(''); load()
     }
     setSending(false)
@@ -140,6 +144,7 @@ export default function DeskTicketPage() {
     await updateField('status','resolved')
     await supabase.from('desk_tickets').update({resolved_at:new Date().toISOString()}).eq('id',id)
     if (resolution && agentMe) await learnFromTicket(ticket, resolution, aid)
+    emailTicketResolved(ticket).catch(console.warn)
     toast.success('Ticket resolved')
   }
 
