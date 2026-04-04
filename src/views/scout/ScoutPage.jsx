@@ -1,612 +1,498 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Target, Search, MapPin, ChevronDown, ChevronUp, Flame, Thermometer, Snowflake, Star, Globe, Eye, MousePointer, Plus, Check, X, Loader2, BarChart3, ExternalLink, Phone, Mail, Copy, Filter } from 'lucide-react'
+import {
+  Target, Search, MapPin, ChevronDown, ChevronUp, Star,
+  Globe, Plus, Check, X, Loader2, ExternalLink, Phone,
+  Mail, Copy, Filter, Zap, TrendingUp, AlertCircle,
+  BarChart2, Bookmark, BookmarkCheck, ArrowRight,
+  Building, Users, Wifi, WifiOff, Sparkles, RefreshCw
+} from 'lucide-react'
 import ScoutLayout from './ScoutLayout'
-import GeoDrillDown from '../../components/scout/GeoDrillDown'
 import { supabase } from '../../lib/supabase'
-import { generateScoutLeads } from '../../lib/ai'
+import { callClaude } from '../../lib/ai'
 import toast from 'react-hot-toast'
 
+const ACCENT = '#E8551A'
+
 const INDUSTRIES = [
-  { key: 'restaurant', label: 'Restaurant', emoji: '🍕' }, { key: 'law_firm', label: 'Law Firm', emoji: '⚖️' },
-  { key: 'dental', label: 'Dental', emoji: '🦷' }, { key: 'real_estate', label: 'Real Estate', emoji: '🏠' },
-  { key: 'gym', label: 'Gym / Fitness', emoji: '💪' }, { key: 'salon', label: 'Salon / Spa', emoji: '💅' },
-  { key: 'medical', label: 'Medical', emoji: '🏥' }, { key: 'auto_dealer', label: 'Auto Dealer', emoji: '🚗' },
-  { key: 'landscaping', label: 'Landscaping', emoji: '🌿' }, { key: 'childcare', label: 'Childcare', emoji: '👶' },
-  { key: 'veterinary', label: 'Veterinary', emoji: '🐾' }, { key: 'contractor', label: 'Contractor', emoji: '🏗️' },
-  { key: 'electrician', label: 'Electrician', emoji: '⚡' }, { key: 'plumber', label: 'Plumber', emoji: '🔧' },
-  { key: 'education', label: 'Education', emoji: '🎓' }, { key: 'pharmacy', label: 'Pharmacy', emoji: '💊' },
+  { key:'restaurant',  label:'Restaurant',    emoji:'🍕' },
+  { key:'law_firm',    label:'Law Firm',       emoji:'⚖️' },
+  { key:'dental',      label:'Dental',         emoji:'🦷' },
+  { key:'real_estate', label:'Real Estate',    emoji:'🏠' },
+  { key:'gym',         label:'Gym / Fitness',  emoji:'💪' },
+  { key:'salon',       label:'Salon / Spa',    emoji:'💅' },
+  { key:'medical',     label:'Medical',        emoji:'🏥' },
+  { key:'hvac',        label:'HVAC',           emoji:'❄️' },
+  { key:'plumber',     label:'Plumber',        emoji:'🔧' },
+  { key:'roofing',     label:'Roofing',        emoji:'🏗️' },
+  { key:'auto_dealer', label:'Auto Dealer',    emoji:'🚗' },
+  { key:'landscaping', label:'Landscaping',    emoji:'🌿' },
+  { key:'childcare',   label:'Childcare',      emoji:'👶' },
+  { key:'veterinary',  label:'Veterinary',     emoji:'🐾' },
+  { key:'electrician', label:'Electrician',    emoji:'⚡' },
+  { key:'contractor',  label:'Contractor',     emoji:'🏛️' },
 ]
 
-const POPULAR = ['Restaurants in Miami', 'Law Firms in NYC', 'Dental Offices in Chicago', 'Auto Dealers in LA', 'Salons in Dallas']
+const GAPS = [
+  'No Google Analytics',
+  'Inactive social media',
+  'Poor review management',
+  'Not running Google Ads',
+  'No Facebook presence',
+  'Google Business not optimized',
+  'No email marketing',
+  'Slow / outdated website',
+]
 
-function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f97316' : s >= 30 ? '#eab308' : '#3b82f6' }
-function tempLabel(s) { return s >= 75 ? { emoji: '🔥', label: 'Hot', color: 'text-red-500 bg-red-50' } : s >= 50 ? { emoji: '🟠', label: 'Warm', color: 'text-orange-500 bg-orange-50' } : s >= 30 ? { emoji: '🟡', label: 'Lukewarm', color: 'text-yellow-600 bg-yellow-50' } : { emoji: '🔵', label: 'Cold', color: 'text-blue-500 bg-blue-50' } }
+const QUICK_SEARCHES = [
+  { label:'Plumbers in Miami',         q:'Plumber',     loc:'Miami, FL' },
+  { label:'Dental offices in Chicago', q:'Dental',      loc:'Chicago, IL' },
+  { label:'Law firms in NYC',          q:'Law Firm',    loc:'New York, NY' },
+  { label:'Salons in LA',              q:'Salon',       loc:'Los Angeles, CA' },
+  { label:'HVAC in Dallas',            q:'HVAC',        loc:'Dallas, TX' },
+  { label:'Gyms in Houston',           q:'Gym',         loc:'Houston, TX' },
+]
 
-export default function ScoutPage() {
-  const navigate = useNavigate()
-  const [query, setQuery] = useState('')
-  const [location, setLocation] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [selectedIndustries, setSelectedIndustries] = useState([])
-  const [minScore, setMinScore] = useState(0)
-  const [gaps, setGaps] = useState([])
-  const [searching, setSearching] = useState(false)
-  const [pipeline, setPipeline] = useState([])
-  const [results, setResults] = useState([])
-  const [view, setView] = useState('grid')
-  const [selected, setSelected] = useState(new Set())
-  const [filterTemp, setFilterTemp] = useState([])
-  const [expandedId, setExpandedId] = useState(null)
-  const [geoSelection, setGeoSelection] = useState(null)
-  const [showGeo, setShowGeo] = useState(false)
+function scoreColor(s) {
+  return s >= 75 ? '#22c55e' : s >= 50 ? ACCENT : s >= 30 ? '#f59e0b' : '#3b82f6'
+}
+function scoreLabel(s) {
+  return s >= 75
+    ? { label:'Hot Lead',   color:'#dc2626', bg:'#fef2f2', icon:'🔥' }
+    : s >= 50
+    ? { label:'Warm',       color:ACCENT,    bg:'#fff7f5', icon:'🟠' }
+    : s >= 30
+    ? { label:'Lukewarm',   color:'#d97706', bg:'#fffbeb', icon:'🟡' }
+    : { label:'Cold',       color:'#3b82f6', bg:'#eff6ff', icon:'🔵' }
+}
 
-  function toggleIndustry(key) {
-    setSelectedIndustries(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key])
-  }
-
-  function toggleGap(g) { setGaps(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]) }
-
-  function viewCompanyProfile(lead) {
-    sessionStorage.setItem('scout_lead_' + lead.id, JSON.stringify(lead))
-    navigate(`/scout/company/${lead.id}`)
-  }
-
-  async function runSearch() {
-    const searchTerms = query || selectedIndustries.map(k => INDUSTRIES.find(i => i.key === k)?.label).filter(Boolean).join(', ')
-    // Build location from manual input or geo selection
-    const geoLoc = geoSelection?.cities?.slice(0, 3).join(', ') || geoSelection?.counties?.slice(0, 2).join(', ') || geoSelection?.states?.join(', ') || ''
-    const searchLocation = location || geoLoc
-    if (!searchTerms && !searchLocation) { toast.error('Enter a search term or location'); return }
-    setSearching(true); setResults([])
-
-    const steps = [
-      { name: 'Searching businesses', status: 'running' },
-      { name: 'Analyzing websites & tech', status: 'queued' },
-      { name: 'Checking reviews & GMB', status: 'queued' },
-      { name: 'Social media analysis', status: 'queued' },
-      { name: 'Calculating SCOUT scores', status: 'queued' },
-    ]
-    setPipeline([...steps])
-
-    // Generate mock leads using AI or fallback
-    let leads = []
-    try {
-      steps[0].status = 'complete'; steps[0].detail = 'Querying business databases...'; setPipeline([...steps])
-      await delay(800)
-
-      steps[1].status = 'running'; setPipeline([...steps])
-      const raw = await generateScoutLeads(searchTerms, searchLocation)
-      let cleaned = raw.trim()
-      if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-      if (!cleaned.startsWith('[')) cleaned = cleaned.slice(cleaned.indexOf('['))
-      if (!cleaned.endsWith(']')) cleaned = cleaned.slice(0, cleaned.lastIndexOf(']') + 1)
-      leads = JSON.parse(cleaned)
-    } catch (e) {
-      console.error('AI lead gen failed, using fallback:', e)
-      leads = generateFallbackLeads(searchTerms, searchLocation)
-    }
-
-    steps[1].status = 'complete'; steps[1].detail = `${leads.length} websites scanned`
-    steps[2].status = 'running'; setPipeline([...steps])
-    await delay(600)
-    steps[2].status = 'complete'; steps[3].status = 'running'; setPipeline([...steps])
-    await delay(500)
-    steps[3].status = 'complete'; steps[4].status = 'running'; setPipeline([...steps])
-    await delay(400)
-    steps[4].status = 'complete'; setPipeline([...steps])
-
-    // Assign IDs and temperatures
-    const scored = leads.map((l, i) => ({
-      id: 'sl_' + Date.now() + '_' + i,
-      ...l,
-      agency_likelihood_score: l.agency_likelihood_score || Math.floor(Math.random() * 60 + 30),
-      temperature: '',
-      review_sentiment: { positive: Math.floor(Math.random() * 30 + 60), neutral: Math.floor(Math.random() * 20 + 10), negative: Math.floor(Math.random() * 15) },
-    }))
-    scored.forEach(l => {
-      const s = l.agency_likelihood_score
-      l.temperature = s >= 75 ? 'hot' : s >= 50 ? 'warm' : s >= 30 ? 'lukewarm' : 'cold'
-    })
-
-    // Apply filters
-    let filtered = scored
-    if (minScore > 0) filtered = filtered.filter(l => l.agency_likelihood_score >= minScore)
-    if (gaps.length > 0) filtered = filtered.filter(l => gaps.some(g => (l.opportunities || []).some(o => o.toLowerCase().includes(g.toLowerCase()))))
-
-    setResults(filtered)
-    setSearching(false)
-
-    // Save search
-    try {
-      await supabase.from('scout_searches').insert({
-        name: `${searchTerms} in ${location || 'all locations'}`,
-        industries: selectedIndustries, keywords: searchTerms,
-        locations: [{ text: location }], result_count: filtered.length,
-        hot_count: filtered.filter(l => l.temperature === 'hot').length,
-        warm_count: filtered.filter(l => l.temperature === 'warm').length,
-      }).catch(() => {})
-    } catch {}
-  }
-
-  function toggleSelect(id) { setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n }) }
-
-  async function handleImportSelected() {
-    const toImport = results.filter(l => selected.has(l.id))
-    if (toImport.length === 0) { toast.error('No leads selected'); return }
-    let imported = 0
-    for (const lead of toImport) {
-      try {
-        await supabase.from('contacts').upsert({
-          email: lead.email, first_name: lead.business_name?.split(' ')[0] || '',
-          company: lead.business_name, phone: lead.phone, website: lead.website,
-          city: lead.city, state: lead.state, zip_code: lead.zip_code,
-          lead_source: 'SCOUT', lead_status: 'new', lifecycle_stage: 'lead',
-          tags: ['SCOUT Import', lead.temperature === 'hot' ? 'Hot Lead' : lead.temperature === 'warm' ? 'Warm Lead' : 'SCOUT Lead'],
-          status: 'subscribed',
-        }, { onConflict: 'email' })
-        imported++
-      } catch {}
-    }
-    toast.success(`Imported ${imported} leads to contacts!`)
-    setSelected(new Set())
-  }
-
-  const temps = {
-    hot: results.filter(l => l.temperature === 'hot').length,
-    warm: results.filter(l => l.temperature === 'warm').length,
-    lukewarm: results.filter(l => l.temperature === 'lukewarm').length,
-    cold: results.filter(l => l.temperature === 'cold').length,
-  }
-
-  const displayed = filterTemp.length > 0 ? results.filter(l => filterTemp.includes(l.temperature)) : results
-
-  // HERO / SEARCH STATE
-  if (!searching && results.length === 0) return (
-    <ScoutLayout>
-      {/* Header */}
-      <div className="h-14 bg-white border-b border-zinc-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
-        <span className="text-sm font-bold tracking-widest" style={{ color: '#18181b' }}>SCOUT</span>
-        <span className="text-xs text-zinc-400 ml-1">Sales Intelligence Platform</span>
+// ── Score ring ────────────────────────────────────────────────────────────────
+function ScoreRing({ score, size = 52 }) {
+  const r = (size / 2) - 5
+  const circ = 2 * Math.PI * r
+  const fill = (score / 100) * circ
+  const color = scoreColor(score)
+  return (
+    <div style={{ position:'relative', width:size, height:size, flexShrink:0 }}>
+      <svg width={size} height={size} style={{ transform:'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f3f4f6" strokeWidth={5}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5}
+          strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"/>
+      </svg>
+      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:size>44?14:11, fontWeight:900, color }}>
+        {score}
       </div>
-      <div className="flex-1 overflow-auto">
-        {/* Hero */}
-        <div className="px-8 py-16 text-center" style={{ background: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)' }}>
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Target size={36} className="text-orange-500" style={{ animation: 'pulse 3s infinite' }} />
+    </div>
+  )
+}
+
+// ── Lead card ─────────────────────────────────────────────────────────────────
+function LeadCard({ lead, onSave, onAddClient, saved, view }) {
+  const [expanded, setExpanded] = useState(false)
+  const temp = scoreLabel(lead.score || lead.scout_score || 50)
+  const score = lead.score || lead.scout_score || 50
+
+  function copy(text) { navigator.clipboard.writeText(text); toast.success('Copied!') }
+
+  if (view === 'list') return (
+    <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'14px 18px', display:'flex', alignItems:'center', gap:14, transition:'box-shadow .15s' }}
+      onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'}
+      onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+      <ScoreRing score={score} size={46}/>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
+          <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{lead.name}</span>
+          <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>
+        </div>
+        <div style={{ display:'flex', gap:12, fontSize:12, color:'#9ca3af', flexWrap:'wrap' }}>
+          {lead.address && <span>📍 {lead.address}</span>}
+          {lead.phone && <span>📞 {lead.phone}</span>}
+          {lead.rating && <span>⭐ {lead.rating} ({lead.review_count} reviews)</span>}
+        </div>
+        {lead.gaps?.length > 0 && (
+          <div style={{ display:'flex', gap:5, marginTop:6, flexWrap:'wrap' }}>
+            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
           </div>
-          <h1 className="text-4xl font-extrabold text-white mb-3">Find Your Next Client</h1>
-          <p className="text-zinc-400 text-base max-w-lg mx-auto mb-8">Discover businesses that need your services using AI-powered marketing intelligence</p>
+        )}
+      </div>
+      <div style={{ display:'flex', gap:7, flexShrink:0 }}>
+        {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" style={{ padding:'7px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', display:'flex', alignItems:'center' }}><Globe size={14}/></a>}
+        <button onClick={()=>onSave(lead)} style={{ padding:'7px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color: saved?ACCENT:'#9ca3af', cursor:'pointer' }}>{saved?<BookmarkCheck size={14}/>:<Bookmark size={14}/>}</button>
+        <button onClick={()=>onAddClient(lead)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}><Plus size={12}/> Add</button>
+      </div>
+    </div>
+  )
 
-          {/* Search bar */}
-          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div className="flex items-center">
-              <div className="flex-1 flex items-center gap-2 px-5 py-4">
-                <Search size={18} className="text-zinc-400 flex-shrink-0" />
-                <input className="flex-1 text-sm bg-transparent outline-none text-zinc-800 placeholder-slate-400" placeholder="Restaurant, Law Firm, Dental Office..."
-                  value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && runSearch()} />
-              </div>
-              <div className="w-px h-8 bg-zinc-200" />
-              <div className="flex items-center gap-2 px-5 py-4">
-                <MapPin size={16} className="text-zinc-400 flex-shrink-0" />
-                <input className="w-32 sm:w-40 text-sm bg-transparent outline-none text-zinc-800 placeholder-slate-400" placeholder="Miami, FL"
-                  value={location} onChange={e => setLocation(e.target.value)} onKeyDown={e => e.key === 'Enter' && runSearch()} />
-              </div>
-              <button onClick={runSearch} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 sm:px-8 py-4 text-sm transition-colors flex items-center gap-2">
-                Scout <Target size={14} />
-              </button>
-            </div>
-            {/* Geo toggle */}
-            <div className="border-t border-zinc-100">
-              <button onClick={() => setShowGeo(!showGeo)} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs text-zinc-500 hover:text-orange-600 hover:bg-zinc-50 transition-colors">
-                <MapPin size={12} /> {showGeo ? 'Hide location targeting' : 'Advanced location targeting (state, county, city, zip)'}
-                {geoSelection?.summary?.states > 0 && <span className="bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">{geoSelection.summary.states} states</span>}
-              </button>
-            </div>
+  return (
+    <div style={{ background:'#fff', borderRadius:16, border:`1.5px solid ${expanded ? ACCENT+'40' : '#e5e7eb'}`, overflow:'hidden', transition:'all .15s', cursor:'pointer' }}
+      onMouseEnter={e=>{ if(!expanded) e.currentTarget.style.boxShadow='0 6px 24px rgba(0,0,0,.1)' }}
+      onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}
+      onClick={()=>setExpanded(e=>!e)}>
+
+      {/* Score bar at top */}
+      <div style={{ height:3, background:`linear-gradient(90deg, ${scoreColor(score)}, ${scoreColor(score)}80)`, width:`${score}%` }}/>
+
+      <div style={{ padding:'18px 18px 14px' }}>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:12 }}>
+          {/* Score ring */}
+          <ScoreRing score={score}/>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:4, lineHeight:1.3 }}>{lead.name}</div>
+            <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>
           </div>
-
-          {/* GeoDrillDown */}
-          {showGeo && <div className="max-w-3xl mx-auto mt-4"><GeoDrillDown onChange={setGeoSelection} /></div>}
-
-          {/* Popular searches */}
-          {!showGeo && <div className="flex flex-wrap justify-center gap-2 mt-6">
-            {POPULAR.map(p => (
-              <button key={p} onClick={() => { const parts = p.split(' in '); setQuery(parts[0]); setLocation(parts[1] || ''); }}
-                className="text-xs px-3 py-1.5 rounded-full bg-white/10 text-zinc-300 hover:bg-white/20 transition-colors">{p}</button>
-            ))}
-          </div>}
+          <button onClick={e=>{e.stopPropagation();onSave(lead)}} style={{ padding:'6px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:saved?ACCENT:'#9ca3af', cursor:'pointer', flexShrink:0 }}>
+            {saved?<BookmarkCheck size={15}/>:<Bookmark size={15}/>}
+          </button>
         </div>
 
-        {/* Advanced filters */}
-        <div className="max-w-4xl mx-auto px-8 py-6">
-          <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 mb-4">
-            <Filter size={14} /> Advanced Filters {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
+        {/* Details */}
+        <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
+          {lead.address && <div style={{ fontSize:12, color:'#6b7280', display:'flex', gap:5, alignItems:'flex-start' }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.address}</div>}
+          {lead.phone && <div style={{ fontSize:12, color:'#6b7280', display:'flex', gap:5 }}><Phone size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.phone}</div>}
+          {lead.rating && <div style={{ fontSize:12, color:'#6b7280', display:'flex', gap:5 }}><Star size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.rating}★ · {lead.review_count} reviews</div>}
+          {lead.website && <div style={{ fontSize:12, color:'#3b82f6', display:'flex', gap:5 }}><Globe size={11} style={{ flexShrink:0, marginTop:1 }}/><a href={lead.website} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ color:'#3b82f6', textDecoration:'none', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{lead.website.replace(/^https?:\/\//, '')}</a></div>}
+        </div>
 
+        {/* Marketing gaps */}
+        {lead.gaps?.length > 0 && (
+          <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
+            {lead.gaps.map(g=>(
+              <span key={g} style={{ fontSize:10, fontWeight:600, padding:'3px 9px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>⚠ {g}</span>
+            ))}
+          </div>
+        )}
+
+        {/* Expanded detail */}
+        {expanded && lead.ai_summary && (
+          <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 13px', marginBottom:12, fontSize:12, color:'#374151', lineHeight:1.65, borderTop:'1px solid #f3f4f6' }}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{ fontSize:10, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>AI Opportunity Summary</div>
+            {lead.ai_summary}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display:'flex', gap:7 }} onClick={e=>e.stopPropagation()}>
+          {lead.phone && <button onClick={()=>copy(lead.phone)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151' }}><Phone size={11}/> Call</button>}
+          {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151', textDecoration:'none' }}><Globe size={11}/> Site</a>}
+          <button onClick={()=>onAddClient(lead)} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+            <Plus size={13}/> Add as Client
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function ScoutPage() {
+  const navigate = useNavigate()
+  const [query, setQuery]       = useState('')
+  const [location, setLocation] = useState('')
+  const [results, setResults]   = useState([])
+  const [searching, setSearching] = useState(false)
+  const [saved, setSaved]       = useState(new Set())
+  const [view, setView]         = useState('grid') // grid|list
+  const [filterScore, setFilterScore] = useState(0)
+  const [filterGaps, setFilterGaps]   = useState([])
+  const [showFilters, setShowFilters] = useState(false)
+  const [selectedIndustries, setSelectedIndustries] = useState([])
+  const [addedClients, setAddedClients] = useState(new Set())
+  const [sortBy, setSortBy]     = useState('score') // score|name|reviews
+  const [stats, setStats]       = useState(null)
+
+  const hasResults = results.length > 0
+
+  async function runSearch() {
+    const term = query.trim() || selectedIndustries.map(k=>INDUSTRIES.find(i=>i.key===k)?.label).filter(Boolean).join(', ')
+    if (!term && !location.trim()) { toast.error('Enter a business type or location'); return }
+    setSearching(true); setResults([])
+
+    try {
+      const prompt = `You are a B2B sales intelligence AI for a marketing agency. Generate 12 realistic local business leads for a marketing agency to prospect.
+
+Search: "${term}" in "${location || 'United States'}"
+${filterGaps.length ? `Must have these marketing gaps: ${filterGaps.join(', ')}` : ''}
+
+Return ONLY valid JSON array of 12 businesses. Each object:
+{
+  "id": "unique_id_${Date.now()}_N",
+  "name": "Real-sounding business name",
+  "address": "Street address, City, State ZIP",
+  "phone": "(XXX) XXX-XXXX",
+  "website": "https://www.businessname.com",
+  "email": "owner@businessname.com",
+  "rating": 3.2-4.9,
+  "review_count": 5-450,
+  "score": 25-95,
+  "temperature": "hot|warm|lukewarm|cold",
+  "years_in_business": 1-25,
+  "estimated_revenue": "$X00K-$XM",
+  "employee_count": "1-5|6-15|16-50|50+",
+  "gaps": ["2-5 specific marketing gaps this business has"],
+  "ai_summary": "2-3 sentence opportunity summary explaining WHY this business needs marketing help and what a quick win would be",
+  "gbp_claimed": true|false,
+  "has_website": true|false,
+  "social_active": true|false,
+  "running_ads": false
+}
+
+Make scores realistic: hot leads (75-95) have multiple clear marketing gaps. Vary temperature distribution: 2-3 hot, 4-5 warm, 3-4 lukewarm, 1-2 cold. Make business names, addresses, and details feel real and local.`
+
+      const raw = await callClaude(
+        'You generate realistic B2B sales intelligence data. Return ONLY valid JSON, no markdown, no preamble.',
+        prompt, 3000
+      )
+      const cleaned = raw.replace(/```json|```/g, '').trim()
+      const start = cleaned.indexOf('[')
+      const end   = cleaned.lastIndexOf(']') + 1
+      const leads = JSON.parse(cleaned.slice(start, end))
+      setResults(leads)
+      setStats({
+        total: leads.length,
+        hot:  leads.filter(l=>l.score>=75).length,
+        warm: leads.filter(l=>l.score>=50&&l.score<75).length,
+        avgScore: Math.round(leads.reduce((s,l)=>s+l.score,0)/leads.length),
+      })
+    } catch(e) {
+      console.error(e)
+      toast.error('Search failed — please try again')
+    }
+    setSearching(false)
+  }
+
+  function toggleSaved(lead) {
+    const next = new Set(saved)
+    if (next.has(lead.id)) { next.delete(lead.id); toast('Removed from saved') }
+    else { next.add(lead.id); toast.success('Saved to leads') }
+    setSaved(next)
+  }
+
+  async function addAsClient(lead) {
+    try {
+      const { data, error } = await supabase.from('clients').insert({
+        name: lead.name,
+        email: lead.email || '',
+        phone: lead.phone || '',
+        website: lead.website || '',
+        status: 'prospect',
+        industry: query || selectedIndustries[0] || 'Unknown',
+        notes: lead.ai_summary || '',
+      }).select().single()
+      if (error) throw error
+      setAddedClients(prev => new Set([...prev, lead.id]))
+      toast.success(`${lead.name} added as client!`)
+    } catch(e) {
+      toast.error('Failed to add client: ' + e.message)
+    }
+  }
+
+  const displayed = results
+    .filter(l => l.score >= filterScore)
+    .filter(l => filterGaps.length === 0 || filterGaps.some(g => l.gaps?.some(lg => lg.toLowerCase().includes(g.toLowerCase().split(' ').pop()))))
+    .sort((a,b) => sortBy === 'score' ? b.score-a.score : sortBy === 'reviews' ? b.review_count-a.review_count : a.name.localeCompare(b.name))
+
+  return (
+    <ScoutLayout>
+      <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
+
+        {/* ── Top bar ── */}
+        <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'12px 24px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
+          <Target size={18} color={ACCENT}/>
+          <span style={{ fontSize:15, fontWeight:800, color:'#111', letterSpacing:-.2 }}>Scout</span>
+          <span style={{ fontSize:12, color:'#9ca3af' }}>Sales Intelligence</span>
+          {hasResults && (
+            <>
+              <div style={{ marginLeft:'auto', display:'flex', gap:8, alignItems:'center' }}>
+                {/* Sort */}
+                <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ padding:'5px 10px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:12, cursor:'pointer', outline:'none', color:'#374151' }}>
+                  <option value="score">Sort: Score ↓</option>
+                  <option value="reviews">Sort: Reviews ↓</option>
+                  <option value="name">Sort: Name A–Z</option>
+                </select>
+                {/* View toggle */}
+                <div style={{ display:'flex', gap:2, background:'#f3f4f6', borderRadius:8, padding:3 }}>
+                  {[['grid','⊞'],['list','≡']].map(([v,icon])=>(
+                    <button key={v} onClick={()=>setView(v)} style={{ width:30, height:28, borderRadius:6, border:'none', background:view===v?'#fff':'transparent', fontSize:16, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:view===v?'0 1px 3px rgba(0,0,0,.1)':'none' }}>{icon}</button>
+                  ))}
+                </div>
+                {/* New search */}
+                <button onClick={()=>{ setResults([]); setStats(null) }} style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:12, cursor:'pointer', color:'#374151' }}>
+                  <RefreshCw size={12}/> New Search
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Search bar (always visible) ── */}
+        <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'12px 24px', flexShrink:0 }}>
+          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+            <div style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'10px 16px', transition:'border-color .15s' }}
+              onFocus={e=>e.currentTarget.style.borderColor=ACCENT} onBlur={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+              <Search size={16} color="#9ca3af" style={{ flexShrink:0 }}/>
+              <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
+                placeholder="Business type  e.g. Plumber, Dental, HVAC, Law Firm…"
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:14, color:'#111' }}/>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'10px 16px', width:220 }}>
+              <MapPin size={15} color="#9ca3af" style={{ flexShrink:0 }}/>
+              <input value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
+                placeholder="City, State"
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:14, color:'#111' }}/>
+            </div>
+            <button onClick={()=>setShowFilters(s=>!s)} style={{ display:'flex', alignItems:'center', gap:6, padding:'11px 16px', borderRadius:12, border:`1.5px solid ${showFilters?ACCENT:'#e5e7eb'}`, background:showFilters?'#fff7f5':'#fff', color:showFilters?ACCENT:'#374151', fontSize:13, cursor:'pointer', fontWeight:500 }}>
+              <Filter size={14}/> Filters
+              {(filterGaps.length>0||selectedIndustries.length>0||filterScore>0) && <span style={{ width:7, height:7, borderRadius:'50%', background:ACCENT, flexShrink:0 }}/>}
+            </button>
+            <button onClick={runSearch} disabled={searching}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'11px 24px', borderRadius:12, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', opacity:searching?.7:1, whiteSpace:'nowrap', boxShadow:`0 4px 16px ${ACCENT}45` }}>
+              {searching ? <Loader2 size={15} style={{ animation:'spin 1s linear infinite' }}/> : <Target size={15}/>}
+              {searching ? 'Scouting…' : 'Scout'}
+            </button>
+          </div>
+
+          {/* Filters panel */}
           {showFilters && (
-            <div className="space-y-4">
+            <div style={{ marginTop:14, padding:'16px', background:'#f9fafb', borderRadius:14, border:'1px solid #f3f4f6', display:'grid', gridTemplateColumns:'1fr 1fr 200px', gap:16 }}>
               {/* Industries */}
-              <div className="bg-white rounded-2xl border border-zinc-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                <h3 className="text-sm font-semibold text-zinc-800 mb-3">Industries</h3>
-                <div className="grid grid-cols-4 gap-2">
-                  {INDUSTRIES.map(ind => (
-                    <button key={ind.key} onClick={() => toggleIndustry(ind.key)}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-all ${selectedIndustries.includes(ind.key) ? 'bg-orange-50 border-orange-300 text-orange-700' : 'border-zinc-200 text-zinc-600 hover:border-zinc-300'}`}>
-                      <span>{ind.emoji}</span> {ind.label}
+              <div>
+                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Industry</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                  {INDUSTRIES.map(ind=>(
+                    <button key={ind.key} onClick={()=>setSelectedIndustries(prev=>prev.includes(ind.key)?prev.filter(k=>k!==ind.key):[...prev,ind.key])}
+                      style={{ fontSize:12, padding:'5px 10px', borderRadius:20, border:`1.5px solid ${selectedIndustries.includes(ind.key)?ACCENT:'#e5e7eb'}`, background:selectedIndustries.includes(ind.key)?'#fff7f5':'#fff', color:selectedIndustries.includes(ind.key)?ACCENT:'#374151', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                      {ind.emoji} {ind.label}
                     </button>
                   ))}
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Marketing Gaps */}
-                <div className="bg-white rounded-2xl border border-zinc-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                  <h3 className="text-sm font-semibold text-zinc-800 mb-3">Marketing Gaps to Find</h3>
-                  {['No analytics', 'Inactive social media', 'Poor review management', 'Not running ads', 'No CRM detected', 'No email marketing', 'GMB not optimized'].map(g => (
-                    <label key={g} className="flex items-center gap-2 py-1.5 cursor-pointer text-xs text-zinc-600 hover:text-zinc-800">
-                      <input type="checkbox" checked={gaps.includes(g)} onChange={() => toggleGap(g)} className="rounded border-zinc-300 text-orange-500 focus:ring-orange-400" /> {g}
+              {/* Gaps */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Marketing Gaps</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+                  {GAPS.map(g=>(
+                    <label key={g} style={{ display:'flex', alignItems:'center', gap:7, fontSize:12, color:'#374151', cursor:'pointer' }}>
+                      <div onClick={()=>setFilterGaps(prev=>prev.includes(g)?prev.filter(x=>x!==g):[...prev,g])}
+                        style={{ width:16, height:16, borderRadius:4, border:`2px solid ${filterGaps.includes(g)?ACCENT:'#d1d5db'}`, background:filterGaps.includes(g)?ACCENT:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, cursor:'pointer' }}>
+                        {filterGaps.includes(g)&&<Check size={10} color="#fff" strokeWidth={3}/>}
+                      </div>
+                      {g}
                     </label>
                   ))}
                 </div>
-
-                {/* Minimum Score */}
-                <div className="bg-white rounded-2xl border border-zinc-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                  <h3 className="text-sm font-semibold text-zinc-800 mb-3">Minimum SCOUT Score</h3>
-                  <div className="text-center mb-3"><span className="text-4xl font-bold" style={{ color: scoreColor(minScore) }}>{minScore}</span><span className="text-zinc-400 text-sm"> / 100</span></div>
-                  <input type="range" min={0} max={100} value={minScore} onChange={e => setMinScore(+e.target.value)}
-                    className="w-full accent-orange-500" />
-                  <div className="flex justify-between text-[10px] text-zinc-400 mt-1"><span>All</span><span>Hot leads only</span></div>
+              </div>
+              {/* Min score */}
+              <div>
+                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Min Scout Score</div>
+                <div style={{ textAlign:'center', marginBottom:8 }}>
+                  <span style={{ fontSize:36, fontWeight:900, color:scoreColor(filterScore) }}>{filterScore}</span>
+                  <span style={{ fontSize:13, color:'#9ca3af' }}> / 100</span>
+                </div>
+                <input type="range" min={0} max={90} step={5} value={filterScore} onChange={e=>setFilterScore(+e.target.value)} style={{ width:'100%', accentColor:ACCENT }}/>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, color:'#9ca3af', marginTop:2 }}>
+                  <span>All leads</span><span>Hot only</span>
                 </div>
               </div>
-
-              <button onClick={runSearch} className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #ea2729, #f97316)' }}>
-                <Target size={18} /> Start SCOUT Search
-              </button>
             </div>
           )}
         </div>
-      </div>
-    </ScoutLayout>
-  )
 
-  // SEARCHING / PIPELINE STATE
-  if (searching) return (
-    <ScoutLayout>
-      <div className="h-14 bg-white border-b border-zinc-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
-        <span className="text-sm font-bold tracking-widest" style={{ color: '#18181b' }}>SCOUT</span>
-        <span className="text-xs text-zinc-400 ml-2">Scouting {query || 'businesses'}{location ? ` in ${location}` : ''}...</span>
-      </div>
-      <div className="flex-1 overflow-auto p-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <Loader2 size={40} className="animate-spin text-orange-500 mx-auto mb-4" />
-            <h2 className="text-lg font-bold text-zinc-800">Analyzing businesses...</h2>
-          </div>
-          <div className="space-y-3">
-            {pipeline.map((step, i) => (
-              <div key={i} className={`flex items-center gap-3 px-5 py-4 rounded-xl border ${step.status === 'complete' ? 'bg-green-50 border-green-200' : step.status === 'running' ? 'bg-orange-50 border-orange-200' : 'bg-zinc-50 border-zinc-200'}`}>
-                {step.status === 'complete' && <Check size={18} className="text-green-500 flex-shrink-0" />}
-                {step.status === 'running' && <Loader2 size={18} className="animate-spin text-orange-500 flex-shrink-0" />}
-                {step.status === 'queued' && <div className="w-[18px] h-[18px] rounded-full border-2 border-zinc-300 flex-shrink-0" />}
-                <div className="flex-1">
-                  <p className={`text-sm font-medium ${step.status === 'queued' ? 'text-zinc-400' : 'text-zinc-700'}`}>{step.name}</p>
-                  {step.detail && <p className="text-xs text-zinc-500">{step.detail}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </ScoutLayout>
-  )
+        {/* ── Content area ── */}
+        <div style={{ flex:1, overflowY:'auto', padding:'20px 24px' }}>
 
-  // RESULTS STATE
-  return (
-    <ScoutLayout>
-      {/* Results header */}
-      <div className="h-14 bg-white border-b border-zinc-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
-        <span className="text-sm font-bold" style={{ color: '#18181b' }}>{results.length} leads found</span>
-        <div className="flex items-center gap-2 ml-3">
-          <span className="text-xs text-red-500">{temps.hot} 🔥</span>
-          <span className="text-xs text-orange-500">{temps.warm} 🟠</span>
-          <span className="text-xs text-yellow-600">{temps.lukewarm} 🟡</span>
-          <span className="text-xs text-blue-500">{temps.cold} 🔵</span>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex bg-zinc-100 rounded-lg p-0.5">
-            {['grid', 'list'].map(v => (
-              <button key={v} onClick={() => setView(v)} className={`text-xs px-3 py-1 rounded-md capitalize font-medium ${view === v ? 'bg-white text-zinc-800 shadow-sm' : 'text-zinc-500'}`}>{v}</button>
-            ))}
-          </div>
-          <button onClick={() => { setResults([]); setSearching(false) }} className="btn-secondary text-xs">New Search</button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-auto flex">
-        {/* Filter sidebar */}
-        <div className="w-56 bg-white border-r border-zinc-200 p-4 flex-shrink-0 overflow-y-auto">
-          <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-wider mb-3">Temperature</p>
-          <div className="space-y-1.5 mb-4">
-            {[{ key: 'hot', emoji: '🔥', label: 'Hot', count: temps.hot }, { key: 'warm', emoji: '🟠', label: 'Warm', count: temps.warm }, { key: 'lukewarm', emoji: '🟡', label: 'Lukewarm', count: temps.lukewarm }, { key: 'cold', emoji: '🔵', label: 'Cold', count: temps.cold }].map(t => (
-              <button key={t.key} onClick={() => setFilterTemp(prev => prev.includes(t.key) ? prev.filter(x => x !== t.key) : [...prev, t.key])}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${filterTemp.includes(t.key) ? 'bg-orange-50 border border-orange-300 text-orange-700' : 'border border-zinc-200 text-zinc-600 hover:border-zinc-300'}`}>
-                {t.emoji} {t.label} <span className="ml-auto text-zinc-400">{t.count}</span>
-              </button>
-            ))}
-          </div>
-          {filterTemp.length > 0 && <button onClick={() => setFilterTemp([])} className="text-[10px] text-zinc-400 hover:text-zinc-600 mb-4">Clear filters</button>}
-
-          <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Quick Filters</p>
-          <button onClick={() => setFilterTemp(['hot'])} className="w-full text-left text-xs text-zinc-600 hover:text-orange-600 py-1.5">Best opportunities</button>
-          <button onClick={() => setFilterTemp(['hot', 'warm'])} className="w-full text-left text-xs text-zinc-600 hover:text-orange-600 py-1.5">Hot + Warm only</button>
-        </div>
-
-        {/* Results grid/list */}
-        <div className="flex-1 overflow-auto p-6">
-          {view === 'grid' ? (
-            <div className="grid grid-cols-3 gap-4">
-              {displayed.map(lead => <LeadCard key={lead.id} lead={lead} selected={selected.has(lead.id)} onToggle={() => toggleSelect(lead.id)} onView={() => viewCompanyProfile(lead)} />)}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden">
-              <div className="grid grid-cols-[32px_60px_1fr_100px_100px_80px_80px_60px] gap-2 px-4 py-2.5 bg-zinc-50 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider border-b">
-                <div></div><div>Score</div><div>Business</div><div>City</div><div>Phone</div><div>Social</div><div>Reviews</div><div></div>
-              </div>
-              {displayed.map(lead => <LeadRow key={lead.id} lead={lead} selected={selected.has(lead.id)} onToggle={() => toggleSelect(lead.id)} expanded={expandedId === lead.id} onExpand={() => setExpandedId(expandedId === lead.id ? null : lead.id)} />)}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Selection bar */}
-      {selected.size > 0 && (
-        <div className="h-14 bg-zinc-900 border-t border-zinc-700 px-6 flex items-center gap-4 flex-shrink-0">
-          <span className="text-sm font-medium text-white">{selected.size} leads selected</span>
-          <button onClick={() => setSelected(new Set(displayed.map(l => l.id)))} className="text-xs text-zinc-400 hover:text-white">Select all {displayed.length}</button>
-          <button onClick={() => setSelected(new Set())} className="text-xs text-zinc-400 hover:text-white">Clear</button>
-          <div className="ml-auto flex gap-2">
-            <button onClick={handleImportSelected} className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-colors flex items-center gap-2"><Plus size={14} /> Import to Contacts</button>
-          </div>
-        </div>
-      )}
-
-      {/* Lead detail modal */}
-      {expandedId && view === 'grid' && (() => {
-        const lead = results.find(l => l.id === expandedId)
-        if (!lead) return null
-        return <LeadDetailModal lead={lead} onClose={() => setExpandedId(null)} onImport={() => { setSelected(new Set([lead.id])); handleImportSelected() }} />
-      })()}
-    </ScoutLayout>
-  )
-}
-
-// -- Lead Card Component --
-function LeadCard({ lead, selected, onToggle, onView }) {
-  const temp = tempLabel(lead.agency_likelihood_score)
-  const ts = lead.tech_stack || {}
-  const sm = lead.social_media || {}
-  const sent = lead.review_sentiment || { positive: 70, neutral: 20, negative: 10 }
-  return (
-    <div className={`bg-white rounded-2xl border overflow-hidden transition-all cursor-pointer hover:shadow-xl hover:-translate-y-0.5 ${selected ? 'border-orange-400 ring-2 ring-orange-200' : 'border-zinc-200'}`} onClick={onView}>
-      {/* Header */}
-      <div className="px-5 py-4 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #18181b, #27272a)' }}>
-        <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 text-sm font-bold flex items-center justify-center flex-shrink-0">
-          {(lead.business_name || '??')[0]}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white truncate">{lead.business_name}</p>
-          <p className="text-[10px] text-zinc-400">{lead.industry} &middot; {lead.city}, {lead.state}</p>
-        </div>
-        <div className="flex flex-col items-center flex-shrink-0">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ border: `3px solid ${scoreColor(lead.agency_likelihood_score)}` }}>
-            <span className="text-sm font-bold text-white">{lead.agency_likelihood_score}</span>
-          </div>
-          <span className={`text-[9px] font-semibold mt-1 ${temp.color.split(' ')[0]}`}>{temp.emoji} {temp.label}</span>
-        </div>
-      </div>
-      {/* Opportunities */}
-      {(lead.opportunities || []).length > 0 && (
-        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-orange-50 border-l-4 border-orange-400">
-          <p className="text-[10px] text-orange-700 truncate">💡 {(lead.opportunities || []).slice(0, 2).join(' · ')}</p>
-        </div>
-      )}
-      {/* Metrics */}
-      <div className="px-4 py-3 flex items-center gap-3 text-[10px] text-zinc-500">
-        <span className="flex items-center gap-1"><Star size={10} className="text-yellow-500" /> {lead.google_rating || '—'} ({lead.google_review_count || 0})</span>
-        <span className="flex items-center gap-1">{sm.last_post_days != null ? `📅 ${sm.last_post_days}d ago` : '—'}</span>
-      </div>
-      {/* Tech badges */}
-      <div className="px-4 pb-2 flex flex-wrap gap-1">
-        {ts.analytics ? <span className="text-[8px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">GA</span> : <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-100 text-red-600">No GA</span>}
-        {ts.pixel ? <span className="text-[8px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">Pixel</span> : <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-100 text-red-600">No Pixel</span>}
-        {ts.crm ? <span className="text-[8px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">CRM</span> : <span className="text-[8px] px-1.5 py-0.5 rounded bg-red-100 text-red-600">No CRM</span>}
-      </div>
-      {/* Social dots */}
-      <div className="px-4 pb-2 flex items-center gap-2 text-[10px] text-zinc-400">
-        <span className="flex items-center gap-1"><span className={`w-1.5 h-1.5 rounded-full ${sm.facebook_active ? 'bg-green-500' : 'bg-red-400'}`} /> FB</span>
-        <span className="flex items-center gap-1"><span className={`w-1.5 h-1.5 rounded-full ${sm.instagram_active ? 'bg-green-500' : 'bg-red-400'}`} /> IG</span>
-        <span className="flex items-center gap-1"><span className={`w-1.5 h-1.5 rounded-full ${sm.gmb_optimized ? 'bg-green-500' : 'bg-yellow-500'}`} /> GMB</span>
-      </div>
-      {/* Sentiment bar */}
-      <div className="px-4 pb-3">
-        <div className="flex h-1 rounded-full overflow-hidden">
-          <div className="bg-green-400" style={{ width: `${sent.positive}%` }} />
-          <div className="bg-zinc-300" style={{ width: `${sent.neutral}%` }} />
-          <div className="bg-red-400" style={{ width: `${sent.negative}%` }} />
-        </div>
-      </div>
-      {/* Footer */}
-      <div className="px-4 py-2.5 border-t border-zinc-100 flex items-center justify-between">
-        <label className="flex items-center gap-1.5 text-[10px] text-zinc-500 cursor-pointer" onClick={e => e.stopPropagation()}>
-          <input type="checkbox" checked={selected} onChange={onToggle} className="rounded border-zinc-300 text-orange-500" /> Select
-        </label>
-        <div className="flex gap-1">
-          {lead.email && <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(lead.email); toast.success('Email copied') }} className="text-zinc-400 hover:text-orange-500 p-1" title="Copy email"><Mail size={12} /></button>}
-          {lead.phone && <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(lead.phone); toast.success('Phone copied') }} className="text-zinc-400 hover:text-orange-500 p-1" title="Copy phone"><Phone size={12} /></button>}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// -- Lead Row Component --
-function LeadRow({ lead, selected, onToggle, expanded, onExpand }) {
-  const temp = tempLabel(lead.agency_likelihood_score)
-  const sm = lead.social_media || {}
-  return (
-    <>
-      <div className="grid grid-cols-[32px_60px_1fr_100px_100px_80px_80px_60px] gap-2 px-4 py-2.5 items-center border-b border-zinc-50 hover:bg-zinc-50 cursor-pointer" onClick={onExpand}>
-        <input type="checkbox" checked={selected} onChange={onToggle} onClick={e => e.stopPropagation()} className="rounded border-zinc-300 text-orange-500" />
-        <span className="text-xs font-bold px-2 py-0.5 rounded-full text-center" style={{ background: scoreColor(lead.agency_likelihood_score) + '20', color: scoreColor(lead.agency_likelihood_score) }}>{lead.agency_likelihood_score}</span>
-        <div className="min-w-0"><p className="text-sm font-medium text-zinc-800 truncate">{lead.business_name}</p><p className="text-[10px] text-zinc-400">{lead.industry}</p></div>
-        <span className="text-xs text-zinc-500">{lead.city}, {lead.state}</span>
-        <span className="text-xs text-zinc-500 truncate">{lead.phone || '—'}</span>
-        <div className="flex gap-1">
-          <span className={`w-2 h-2 rounded-full ${sm.facebook_active ? 'bg-green-500' : 'bg-red-400'}`} />
-          <span className={`w-2 h-2 rounded-full ${sm.instagram_active ? 'bg-green-500' : 'bg-red-400'}`} />
-          <span className={`w-2 h-2 rounded-full ${sm.gmb_optimized ? 'bg-green-500' : 'bg-yellow-500'}`} />
-        </div>
-        <span className="text-xs text-zinc-500 flex items-center gap-1"><Star size={10} className="text-yellow-500" /> {lead.google_rating || '—'}</span>
-        <span className={`text-[10px] font-semibold ${temp.color.split(' ')[0]}`}>{temp.emoji}</span>
-      </div>
-      {expanded && (
-        <div className="px-4 py-4 bg-zinc-50 border-b border-zinc-200">
-          <div className="grid grid-cols-3 gap-4">
-            <div><p className="text-[9px] text-zinc-400 uppercase font-semibold mb-1">Opportunities</p>{(lead.opportunities || []).map((o, i) => <p key={i} className="text-xs text-zinc-600">💡 {o}</p>)}</div>
-            <div><p className="text-[9px] text-zinc-400 uppercase font-semibold mb-1">Contact</p><p className="text-xs text-zinc-600">{lead.email || 'No email'}</p><p className="text-xs text-zinc-600">{lead.phone || 'No phone'}</p><p className="text-xs text-zinc-600">{lead.website || 'No website'}</p></div>
-            <div><p className="text-[9px] text-zinc-400 uppercase font-semibold mb-1">Reviews</p><p className="text-xs text-zinc-600">⭐ {lead.google_rating} ({lead.google_review_count} reviews)</p></div>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
-// -- Lead Detail Modal --
-function LeadDetailModal({ lead, onClose, onImport }) {
-  const temp = tempLabel(lead.agency_likelihood_score)
-  const ts = lead.tech_stack || {}
-  const sm = lead.social_media || {}
-  const sent = lead.review_sentiment || { positive: 70, neutral: 20, negative: 10 }
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="px-6 py-5 flex items-center gap-4" style={{ background: 'linear-gradient(135deg, #18181b, #27272a)' }}>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-white">{lead.business_name}</h2>
-            <p className="text-sm text-zinc-400">{lead.industry} &middot; {lead.city}, {lead.state} {lead.website && <>&middot; <a href={lead.website.startsWith('http') ? lead.website : 'https://' + lead.website} target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300">{lead.website} ↗</a></>}</p>
-          </div>
-          <div className="text-center flex-shrink-0">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto" style={{ border: `4px solid ${scoreColor(lead.agency_likelihood_score)}` }}>
-              <span className="text-2xl font-extrabold text-white">{lead.agency_likelihood_score}</span>
-            </div>
-            <span className={`text-xs font-semibold ${temp.color.split(' ')[0]}`}>{temp.emoji} {temp.label} Lead</span>
-          </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white ml-2"><X size={20} /></button>
-        </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          <div className="grid grid-cols-[1fr_300px] gap-6">
-            {/* Left */}
-            <div className="space-y-5">
-              {/* Opportunities */}
-              <div className="rounded-2xl p-5 border-2 border-orange-200 bg-orange-50">
-                <h3 className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2"><Target size={14} /> Opportunities for Moose</h3>
-                <div className="space-y-2">
-                  {(lead.opportunities || []).map((o, i) => (
-                    <div key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">{i + 1}.</span><p className="text-sm text-orange-900">{o}</p></div>
+          {/* Empty / hero state */}
+          {!searching && !hasResults && (
+            <div>
+              {/* Quick search chips */}
+              <div style={{ marginBottom:24 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10 }}>Quick Searches</div>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                  {QUICK_SEARCHES.map(qs=>(
+                    <button key={qs.label} onClick={()=>{ setQuery(qs.q); setLocation(qs.loc); setTimeout(runSearch, 100) }}
+                      style={{ fontSize:13, padding:'8px 16px', borderRadius:24, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151', fontWeight:500, display:'flex', alignItems:'center', gap:6, transition:'all .12s' }}
+                      onMouseEnter={e=>{ e.currentTarget.style.borderColor=ACCENT; e.currentTarget.style.color=ACCENT }}
+                      onMouseLeave={e=>{ e.currentTarget.style.borderColor='#e5e7eb'; e.currentTarget.style.color='#374151' }}>
+                      <Target size={11}/> {qs.label}
+                    </button>
                   ))}
                 </div>
               </div>
-              {/* Tech Stack */}
-              <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-                <h3 className="text-sm font-semibold text-zinc-800 mb-3">Tech Stack Detected</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {[{ key: 'analytics', label: 'Analytics' }, { key: 'cms', label: 'CMS' }, { key: 'crm', label: 'CRM' }, { key: 'pixel', label: 'FB Pixel' }, { key: 'chat', label: 'Live Chat' }, { key: 'email_tool', label: 'Email Tool' }].map(t => (
-                    <div key={t.key} className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-2 ${ts[t.key] ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                      {ts[t.key] ? <Check size={12} /> : <X size={12} />} {t.label}
-                    </div>
-                  ))}
+              {/* Hero */}
+              <div style={{ background:'linear-gradient(135deg,#18181b,#27272a)', borderRadius:20, padding:'48px 40px', textAlign:'center', marginBottom:20 }}>
+                <div style={{ width:64, height:64, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
+                  <Target size={32} color="#fff"/>
                 </div>
-              </div>
-              {/* Reviews */}
-              <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-                <h3 className="text-sm font-semibold text-zinc-800 mb-3">Reviews & Sentiment</h3>
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="text-center"><p className="text-3xl font-bold text-zinc-800">{lead.google_rating || '—'}</p><p className="text-xs text-zinc-400">⭐ {lead.google_review_count || 0} reviews</p></div>
-                  <div className="flex-1">
-                    <div className="flex h-2 rounded-full overflow-hidden"><div className="bg-green-400" style={{ width: `${sent.positive}%` }} /><div className="bg-zinc-300" style={{ width: `${sent.neutral}%` }} /><div className="bg-red-400" style={{ width: `${sent.negative}%` }} /></div>
-                    <div className="flex justify-between text-[10px] text-zinc-400 mt-1"><span>{sent.positive}% positive</span><span>{sent.negative}% negative</span></div>
-                  </div>
-                </div>
-              </div>
-              {/* Social */}
-              <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-                <h3 className="text-sm font-semibold text-zinc-800 mb-3">Social Media</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  {[{ label: 'Facebook', active: sm.facebook_active, detail: sm.facebook_followers ? `${sm.facebook_followers} followers` : '' },
-                    { label: 'Instagram', active: sm.instagram_active, detail: sm.last_post_days != null ? `Last post: ${sm.last_post_days}d ago` : '' },
-                    { label: 'GMB', active: sm.gmb_optimized, detail: sm.gmb_optimized ? 'Optimized' : 'Needs work' }].map(s => (
-                    <div key={s.label} className="text-center p-3 rounded-xl bg-zinc-50 border border-zinc-200">
-                      <span className={`inline-block w-2.5 h-2.5 rounded-full mb-1 ${s.active ? 'bg-green-500' : 'bg-red-400'}`} />
-                      <p className="text-xs font-medium text-zinc-700">{s.label}</p>
-                      <p className="text-[10px] text-zinc-400">{s.detail || (s.active ? 'Active' : 'Inactive')}</p>
+                <h2 style={{ fontSize:28, fontWeight:900, color:'#fff', marginBottom:10, letterSpacing:-.5 }}>Find your next client</h2>
+                <p style={{ fontSize:15, color:'#a1a1aa', lineHeight:1.65, maxWidth:480, margin:'0 auto 28px' }}>Scout uses AI to find local businesses with marketing gaps — weak online presence, no ad campaigns, poor reviews — and scores them so you know exactly who to call first.</p>
+                <div style={{ display:'flex', gap:20, justifyContent:'center' }}>
+                  {[['🔥','Hot leads scored 75+'],['⚠️','Marketing gaps identified'],['📞','Contact info included'],['➕','1-click add to clients']].map(([icon,label])=>(
+                    <div key={label} style={{ textAlign:'center' }}>
+                      <div style={{ fontSize:24, marginBottom:6 }}>{icon}</div>
+                      <div style={{ fontSize:11, color:'#52525b', maxWidth:90, lineHeight:1.3 }}>{label}</div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            {/* Right - action panel */}
-            <div className="space-y-4">
-              <button onClick={onImport} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"><Plus size={14} /> Import to Contacts</button>
-              <div className="bg-white rounded-2xl border border-zinc-200 p-4">
-                <h4 className="text-xs font-semibold text-zinc-600 uppercase mb-3">Contact Info</h4>
-                <div className="space-y-2">
-                  {lead.phone && <div className="flex items-center gap-2 text-sm text-zinc-700"><Phone size={13} className="text-zinc-400" /> {lead.phone} <button onClick={() => { navigator.clipboard.writeText(lead.phone); toast.success('Copied') }} className="text-zinc-300 hover:text-orange-500 ml-auto"><Copy size={11} /></button></div>}
-                  {lead.email && <div className="flex items-center gap-2 text-sm text-zinc-700"><Mail size={13} className="text-zinc-400" /> <span className="truncate">{lead.email}</span> <button onClick={() => { navigator.clipboard.writeText(lead.email); toast.success('Copied') }} className="text-zinc-300 hover:text-orange-500 ml-auto"><Copy size={11} /></button></div>}
-                  {lead.website && <div className="flex items-center gap-2 text-sm text-zinc-700"><Globe size={13} className="text-zinc-400" /> <a href={lead.website.startsWith('http') ? lead.website : 'https://' + lead.website} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline truncate">{lead.website}</a></div>}
-                  {lead.city && <div className="flex items-center gap-2 text-sm text-zinc-700"><MapPin size={13} className="text-zinc-400" /> {lead.city}, {lead.state} {lead.zip_code}</div>}
-                </div>
+          )}
+
+          {/* Searching state */}
+          {searching && (
+            <div style={{ textAlign:'center', padding:'60px 20px' }}>
+              <div style={{ width:64, height:64, borderRadius:'50%', background:'#fff7f5', border:`2px solid ${ACCENT}30`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', animation:'pulse 1.5s infinite' }}>
+                <Target size={28} color={ACCENT}/>
               </div>
-              <div className="bg-white rounded-2xl border border-zinc-200 p-4">
-                <h4 className="text-xs font-semibold text-zinc-600 uppercase mb-3">Score Breakdown</h4>
-                {[{ label: 'Social Media', val: sm.facebook_active || sm.instagram_active ? 25 : 5, max: 30 },
-                  { label: 'Website/Tech', val: Object.values(ts).filter(Boolean).length * 5, max: 30 },
-                  { label: 'Reviews', val: lead.google_rating ? Math.round(lead.google_rating * 4) : 5, max: 20 },
-                  { label: 'GMB Health', val: sm.gmb_optimized ? 12 : 3, max: 15 },
-                ].map(s => (
-                  <div key={s.label} className="mb-2"><div className="flex justify-between text-[10px] text-zinc-500 mb-0.5"><span>{s.label}</span><span>{s.val}/{s.max}</span></div><div className="h-1.5 bg-zinc-100 rounded-full"><div className="h-full rounded-full bg-orange-400" style={{ width: `${s.val / s.max * 100}%` }} /></div></div>
+              <div style={{ fontSize:18, fontWeight:700, color:'#111', marginBottom:8 }}>Scouting {query || 'businesses'}{location ? ` in ${location}` : ''}…</div>
+              <div style={{ fontSize:13, color:'#9ca3af' }}>Analyzing marketing gaps, review scores, online presence, and ad activity</div>
+            </div>
+          )}
+
+          {/* Results */}
+          {hasResults && (
+            <>
+              {/* Stats row */}
+              {stats && (
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:18 }}>
+                  {[
+                    { label:'Total Found',   value:stats.total,    color:'#111' },
+                    { label:'Hot Leads 🔥',  value:stats.hot,      color:'#dc2626' },
+                    { label:'Warm Leads',    value:stats.warm,     color:ACCENT },
+                    { label:'Avg Score',     value:stats.avgScore, color:scoreColor(stats.avgScore) },
+                  ].map(s=>(
+                    <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
+                      <div style={{ fontSize:24, fontWeight:900, color:s.color }}>{s.value}</div>
+                      <div style={{ fontSize:11, color:'#9ca3af', marginTop:2 }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Results grid/list */}
+              <div style={view === 'grid'
+                ? { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }
+                : { display:'flex', flexDirection:'column', gap:10 }}>
+                {displayed.map(lead=>(
+                  <LeadCard key={lead.id} lead={lead} view={view}
+                    saved={saved.has(lead.id)}
+                    onSave={toggleSaved}
+                    onAddClient={addAsClient}/>
                 ))}
               </div>
-            </div>
-          </div>
+
+              {displayed.length === 0 && (
+                <div style={{ textAlign:'center', padding:'40px', color:'#9ca3af' }}>
+                  <Filter size={32} style={{ margin:'0 auto 12px', opacity:.4 }}/>
+                  <div style={{ fontSize:14, fontWeight:600 }}>No leads match your current filters</div>
+                  <button onClick={()=>{ setFilterScore(0); setFilterGaps([]) }} style={{ marginTop:12, fontSize:12, color:ACCENT, background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Clear filters</button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
-    </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+    </ScoutLayout>
   )
-}
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)) }
-
-function generateFallbackLeads(searchTerms, loc) {
-  const names = ['Bella Vista', 'Summit Group', 'Harbor Point', 'Pacific Edge', 'Golden Gate', 'Blue Ridge', 'Silver Lake', 'Oak Street', 'Maple & Co', 'Pine Valley', 'Cedar Hill', 'Willow Creek', 'River Stone', 'Mountain View', 'Sunset Plaza', 'Coastal', 'Metro', 'Liberty']
-  const cities = loc ? [loc.split(',')[0].trim()] : ['Miami', 'Austin', 'Denver', 'Chicago', 'Portland', 'Seattle']
-  const states = loc && loc.includes(',') ? [loc.split(',')[1].trim()] : ['FL', 'TX', 'CO', 'IL', 'OR', 'WA']
-  return names.map((n, i) => ({
-    business_name: `${n} ${searchTerms?.split(' ')[0] || 'Business'}`,
-    industry: searchTerms || 'Local Business', website: `www.${n.toLowerCase().replace(/[^a-z]/g, '')}.com`,
-    phone: `(${300 + i}) 555-${String(1000 + i * 111).slice(0, 4)}`,
-    email: `info@${n.toLowerCase().replace(/[^a-z]/g, '')}.com`,
-    city: cities[i % cities.length], state: states[i % states.length], zip_code: String(10000 + i * 1111),
-    google_rating: +(3 + Math.random() * 2).toFixed(1), google_review_count: Math.floor(Math.random() * 200 + 10),
-    agency_likelihood_score: Math.floor(Math.random() * 70 + 20),
-    opportunities: ['No analytics tracking', 'Inactive social media', 'Poor review management', 'Not running paid ads'].slice(0, Math.floor(Math.random() * 3 + 1)),
-    tech_stack: { analytics: Math.random() > 0.5, cms: Math.random() > 0.3, crm: Math.random() > 0.7, pixel: Math.random() > 0.6, chat: Math.random() > 0.7, email_tool: Math.random() > 0.6 },
-    social_media: { facebook_active: Math.random() > 0.4, instagram_active: Math.random() > 0.5, gmb_optimized: Math.random() > 0.5, facebook_followers: Math.floor(Math.random() * 2000 + 100), last_post_days: Math.floor(Math.random() * 90) },
-  }))
 }
