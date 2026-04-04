@@ -1,13 +1,11 @@
-"use client";
+"use client"
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  LayoutGrid, Users, Plus, Search, ChevronRight,
-  ClipboardList, Target, Star, FolderOpen,
-  CheckCircle, Clock, AlertCircle, Mail, Phone,
-  Globe, ExternalLink, ArrowRight, Loader2,
-  FileText, MoreHorizontal, Pencil, Trash2,
-  Building, MapPin, TrendingUp, MessageSquare, FileSignature
+  Plus, Search, FolderOpen, ClipboardList, Target, Star,
+  ArrowRight, Loader2, MoreHorizontal, Pencil, Trash2,
+  FileSignature, Users, TrendingUp, MessageSquare,
+  CheckCircle, Clock, AlertCircle, ChevronRight, Zap
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase, getProjects, createProject, deleteProject, updateProject } from '../lib/supabase'
@@ -15,55 +13,28 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
+const RED  = '#ea2729'
 const TEAL = '#5bc6d0'
 
-// ── Status helpers ────────────────────────────────────────────────────────────
-function statusPill(status) {
-  const s = {
-    active:    { label: 'Active',     bg: '#f0fdf4', color: '#16a34a' },
-    prospect:  { label: 'Prospect',   bg: '#f0fbfc', color: ACCENT },
-    inactive:  { label: 'Inactive',   bg: '#f9fafb', color: '#4b5563' },
-    paused:    { label: 'Paused',     bg: '#fffbeb', color: '#d97706' },
-  }[status] || { label: status || 'Active', bg: '#f0fdf4', color: '#16a34a' }
-  return (
-    <span style={{ fontSize: 13, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: s.bg, color: s.color }}>
-      {s.label}
-    </span>
-  )
+const PROJECT_TYPE_COLORS = {
+  website:   RED,
+  social:    '#7c3aed',
+  email:     '#0891b2',
+  branding:  '#d97706',
+  video:     '#059669',
+  default:   '#6b7280',
 }
 
-function onboardingBadge(pct) {
-  if (pct >= 100) return { label: 'Complete', color: '#16a34a', bg: '#f0fdf4' }
-  if (pct >= 50)  return { label: `${pct}% done`, color: '#d97706', bg: '#fffbeb' }
-  return { label: 'Not started', color: '#4b5563', bg: '#f9fafb' }
+function getTypeColor(type) {
+  return PROJECT_TYPE_COLORS[type?.toLowerCase()] || PROJECT_TYPE_COLORS.default
 }
 
-// ── Client card in the left panel ─────────────────────────────────────────────
-function ClientCard({ client, active, onSelect }) {
-  const initial = (client.name || '?')[0].toUpperCase()
-  return (
-    <button onClick={() => onSelect(client)}
-      className="nav-link-animate" style={{ width: '100%', textAlign: 'left', padding: '11px 14px', border: 'none', borderLeft: `3px solid ${active ? ACCENT : 'transparent'}`, background: active ? '#f0fbfc' : '#fff', cursor: 'pointer', borderBottom: '1px solid #f9fafb', transition: 'all .15s' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 34, height: 34, borderRadius: 10, background: active ? ACCENT : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: active ? '#fff' : '#6b7280', flexShrink: 0 }}>
-          {initial}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.name}</div>
-          <div style={{ fontSize: 13, color: '#374151', marginTop: 1 }}>{client.industry || 'No industry set'}</div>
-        </div>
-        {active && <ChevronRight size={13} color={ACCENT} />}
-      </div>
-    </button>
-  )
-}
-
-// ── Project row ────────────────────────────────────────────────────────────────
-function ProjectRow({ project, onDelete, onRename, navigate }) {
+function ProjectCard({ project, onDelete, onRename, navigate }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
-  const [name, setName] = useState(project.name)
+  const [name, setName]         = useState(project.name)
+  const color = getTypeColor(project.project_type)
+  const daysOld = Math.round((Date.now() - new Date(project.created_at)) / 86400000)
 
   async function doRename() {
     if (!name.trim() || name === project.name) { setRenaming(false); return }
@@ -72,79 +43,97 @@ function ProjectRow({ project, onDelete, onRename, navigate }) {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid #f9fafb', cursor: 'pointer', transition: 'background .1s' }}
-      onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
-      onMouseLeave={e => e.currentTarget.style.background = ''}
-      onClick={() => navigate(`/project/${project.id}`)}>
-      <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <FolderOpen size={16} color="#6b7280" />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        {renaming ? (
-          <input value={name} onChange={e => setName(e.target.value)} onBlur={doRename}
-            onKeyDown={e => { if (e.key === 'Enter') doRename(); if (e.key === 'Escape') setRenaming(false) }}
-            autoFocus onClick={e => e.stopPropagation()}
-            style={{ fontSize: 15, fontWeight: 700, color: '#111', border: '1.5px solid ' + ACCENT, borderRadius: 7, padding: '2px 8px', outline: 'none', width: '100%' }} />
-        ) : (
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.name}</div>
-        )}
-        <div style={{ fontSize: 13, color: '#374151', marginTop: 1 }}>
-          {project.project_type || 'Project'} · {new Date(project.created_at).toLocaleDateString()}
-        </div>
-      </div>
-      <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <button onClick={e => { e.stopPropagation(); navigate(`/esign/${project.id}`) }}
-          style={{ padding: '5px 10px', borderRadius: 7, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: '#7c3aed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, marginRight: 4 }}>
-          <FileSignature size={12} /> Sign
-        </button>
-      </div>
-      <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-        <button onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
-          style={{ padding: 6, borderRadius: 7, border: 'none', background: 'none', cursor: 'pointer', color: '#374151' }}>
-          <MoreHorizontal size={15} />
-        </button>
-        {menuOpen && (
-          <div style={{ position: 'absolute', right: 0, top: '100%', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,.1)', zIndex: 50, minWidth: 140 }}>
-            <button onClick={() => { navigate(`/esign/${project.id}`); setMenuOpen(false) }}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 15, color: '#7c3aed' }}>
-              <FileSignature size={13} /> Proposal / Sign
-            </button>
-            <button onClick={() => { setRenaming(true); setMenuOpen(false) }}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 15, color: '#374151' }}>
-              <Pencil size={13} /> Rename
-            </button>
-            <button onClick={() => { onDelete(project.id); setMenuOpen(false) }}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 15, color: '#dc2626' }}>
-              <Trash2 size={13} /> Delete
-            </button>
+    <div className="card hover-lift" style={{ cursor:'pointer', overflow:'hidden' }}
+      onClick={() => !menuOpen && !renaming && navigate(`/project/${project.id}`)}>
+      {/* Color strip */}
+      <div style={{ height:3, background:color, borderRadius:'16px 16px 0 0', marginTop:-1, marginLeft:-1, marginRight:-1 }}/>
+      <div style={{ padding:'14px 16px' }}>
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:8 }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            {renaming ? (
+              <input autoFocus value={name}
+                onChange={e=>setName(e.target.value)}
+                onBlur={doRename}
+                onKeyDown={e=>{if(e.key==='Enter')doRename();if(e.key==='Escape')setRenaming(false)}}
+                onClick={e=>e.stopPropagation()}
+                className="input" style={{ fontSize:14, fontWeight:600, padding:'4px 8px' }}/>
+            ) : (
+              <div style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:700,
+                color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                {project.name}
+              </div>
+            )}
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:5 }}>
+              <span style={{ fontSize:11, fontWeight:600, color, padding:'2px 7px',
+                borderRadius:20, background:color+'15' }}>
+                {project.project_type || 'Project'}
+              </span>
+              <span style={{ fontSize:11, color:'var(--text-muted)' }}>
+                {daysOld === 0 ? 'Today' : daysOld === 1 ? 'Yesterday' : daysOld + 'd ago'}
+              </span>
+            </div>
           </div>
-        )}
+          <div style={{ position:'relative' }} onClick={e=>e.stopPropagation()}>
+            <button onClick={()=>setMenuOpen(o=>!o)}
+              style={{ padding:5, borderRadius:6, border:'none', background:'none',
+                cursor:'pointer', color:'var(--text-muted)' }}>
+              <MoreHorizontal size={14}/>
+            </button>
+            {menuOpen && (
+              <div className="card-sm" style={{ position:'absolute', right:0, top:'100%', zIndex:50,
+                minWidth:150, boxShadow:'0 8px 24px rgba(0,0,0,.1)', overflow:'hidden' }}>
+                <button onClick={()=>{navigate(`/esign/${project.id}`);setMenuOpen(false)}}
+                  className="btn-ghost" style={{ width:'100%', justifyContent:'flex-start', padding:'9px 14px', borderRadius:0, fontSize:13, gap:8 }}>
+                  <FileSignature size={12}/> Proposal / Sign
+                </button>
+                <button onClick={()=>{setRenaming(true);setMenuOpen(false)}}
+                  className="btn-ghost" style={{ width:'100%', justifyContent:'flex-start', padding:'9px 14px', borderRadius:0, fontSize:13, gap:8 }}>
+                  <Pencil size={12}/> Rename
+                </button>
+                <div className="divider"/>
+                <button onClick={()=>{onDelete(project.id);setMenuOpen(false)}}
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px',
+                    border:'none', background:'none', cursor:'pointer', fontSize:13, color:RED }}>
+                  <Trash2 size={12}/> Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// Main Project Hub
-// ══════════════════════════════════════════════════════════════════════════════
+function QuickStatPill({ icon:Icon, label, value, color }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px',
+      background:'rgba(255,255,255,.06)', borderRadius:8, border:'1px solid rgba(255,255,255,.08)' }}>
+      <Icon size={12} color={color || 'rgba(255,255,255,.4)'}/>
+      <span style={{ fontSize:12, color:'rgba(255,255,255,.45)' }}>{label}</span>
+      <span style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{value}</span>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
-  const navigate   = useNavigate()
+  const navigate = useNavigate()
   const { clientId: urlClientId } = useParams()
-  const { agencyId, firstName, greeting, agencyName } = useAuth()
+  const { agencyId, firstName, agencyName } = useAuth()
   const { clients, selectedClient, selectClient } = useClient()
 
-  const [tab, setTab]           = useState('projects')   // projects | onboarding | research | reviews
-  const [projects, setProjects] = useState([])
-  const [reviews, setReviews]   = useState([])
-  const [onboarding, setOnboarding] = useState(null)     // onboarding_tokens row
-  const [profile, setProfile]   = useState(null)         // client_profiles row
-  const [loadingProjects, setLoadingProjects] = useState(false)
-  const [search, setSearch]     = useState('')
-  const [newProjectName, setNewProjectName] = useState('')
-  const [addingProject, setAddingProject]   = useState(false)
-  const [refresh, setRefresh]   = useState(0)
+  const [tab,            setTab]            = useState('projects')
+  const [projects,       setProjects]       = useState([])
+  const [reviews,        setReviews]        = useState([])
+  const [onboarding,     setOnboarding]     = useState(null)
+  const [profile,        setProfile]        = useState(null)
+  const [loading,        setLoading]        = useState(false)
+  const [search,         setSearch]         = useState('')
+  const [newProjName,    setNewProjName]    = useState('')
+  const [adding,         setAdding]         = useState(false)
+  const [showAddForm,    setShowAddForm]    = useState(false)
+  const [refresh,        setRefresh]        = useState(0)
 
-  // Sync URL → selected client
   useEffect(() => {
     if (urlClientId && clients.length > 0) {
       const c = clients.find(x => x.id === urlClientId)
@@ -152,388 +141,330 @@ export default function DashboardPage() {
     }
   }, [urlClientId, clients])
 
-  // Load client data whenever selected client changes
   useEffect(() => {
     if (!selectedClient) return
     setTab('projects')
-    loadClientData(selectedClient.id)
+    load(selectedClient.id)
   }, [selectedClient?.id, refresh])
 
-  async function loadClientData(clientId) {
-    setLoadingProjects(true)
-    const [{ data: proj }, { data: tok }, { data: prof }, { data: rev }] = await Promise.all([
+  async function load(clientId) {
+    setLoading(true)
+    const [{ data:proj }, { data:tok }, { data:prof }, { data:rev }] = await Promise.all([
       getProjects(clientId),
-      supabase.from('onboarding_tokens').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(1),
-      supabase.from('client_profiles').select('*').eq('client_id', clientId).single(),
-      supabase.from('moose_review_queue').select('*').eq('client_id', clientId).order('reviewed_at', { ascending: false }).limit(20),
+      supabase.from('onboarding_tokens').select('*').eq('client_id',clientId).order('created_at',{ascending:false}).limit(1),
+      supabase.from('client_profiles').select('*').eq('client_id',clientId).single(),
+      supabase.from('moose_review_queue').select('*').eq('client_id',clientId).order('reviewed_at',{ascending:false}).limit(20),
     ])
-    setProjects(proj || [])
-    setOnboarding(tok?.[0] || null)
-    setProfile(prof || null)
-    setReviews(rev || [])
-    setLoadingProjects(false)
+    setProjects(proj||[]); setOnboarding(tok?.[0]||null)
+    setProfile(prof||null); setReviews(rev||[])
+    setLoading(false)
   }
 
   async function addProject() {
-    if (!newProjectName.trim() || !selectedClient) return
-    setAddingProject(true)
-    const { data, error } = await createProject(selectedClient.id, newProjectName.trim())
-    if (error) { toast.error('Failed to create project'); setAddingProject(false); return }
+    if (!newProjName.trim() || !selectedClient) return
+    setAdding(true)
+    const { data, error } = await createProject(selectedClient.id, newProjName.trim())
+    if (error) { toast.error('Failed to create project'); setAdding(false); return }
     toast.success('Project created')
-    setNewProjectName('')
-    setAddingProject(false)
-    setRefresh(r => r + 1)
+    setNewProjName(''); setAdding(false); setShowAddForm(false)
+    setRefresh(r=>r+1)
     navigate(`/project/${data.id}`)
   }
 
   async function deleteProj(id) {
-    if (!confirm('Delete this project and all its files?')) return
-    await deleteProject(id)
-    toast.success('Deleted')
-    setRefresh(r => r + 1)
+    if (!confirm('Delete this project?')) return
+    await deleteProject(id); toast.success('Deleted'); setRefresh(r=>r+1)
   }
 
   async function renameProj(id, name) {
-    await updateProject(id, { name })
-    toast.success('Renamed')
-    setRefresh(r => r + 1)
+    await updateProject(id,{name}); toast.success('Renamed'); setRefresh(r=>r+1)
   }
 
-  async function sendOnboardingLink() {
-    if (!selectedClient) return
-    const link = onboarding
-      ? `${window.location.origin}/onboard/${onboarding.token}`
-      : null
-    if (!link) { toast.error('No onboarding token — go to the client page to generate one'); return }
-    navigator.clipboard.writeText(link)
-    toast.success('Onboarding link copied!')
-  }
-
-  const filteredProjects = projects.filter(p =>
-    !search || p.name.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const onboardPct = profile
-    ? Math.min(100, Math.round(Object.keys(profile).filter(k => profile[k] && !['id','client_id','agency_id','created_at','updated_at'].includes(k)).length / 20 * 100))
-    : onboarding?.used_at ? 80 : 0
+  const filtered = projects.filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()))
 
   const TABS = [
-    { id: 'projects',   label: 'Projects',   icon: FolderOpen,    count: projects.length },
-    { id: 'onboarding', label: 'Onboarding', icon: ClipboardList, count: null },
-    { id: 'research',   label: 'Research',   icon: Target,        count: null },
-    { id: 'reviews',    label: 'Reviews',    icon: Star,          count: reviews.length || null },
+    { id:'projects',   label:'Projects',   count:projects.length },
+    { id:'onboarding', label:'Onboarding', count:null },
+    { id:'reviews',    label:'Reviews',    count:reviews.length||null },
   ]
 
+  const greetingHour = new Date().getHours()
+  const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 17 ? 'Good afternoon' : 'Good evening'
+
   return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f4f4f5', overflow: 'hidden' }}>
-      <Sidebar activeClientId={selectedClient?.id} />
+    <div className="page-shell">
+      <Sidebar/>
+      <div className="page-content">
 
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-
-        {/* ── Greeting bar ── */}
-        <div style={{ position:'absolute', top:0, left:240, right:0, zIndex:5, background:'#000', padding:'14px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
-          <div>
-            <div style={{ fontSize:22, fontWeight:900, color:'#fff', letterSpacing:-0.3 }}>{greeting}</div>
-            <div style={{ fontSize:15, color:'rgba(255,255,255,.45)', marginTop:2 }}>{agencyName ? `${agencyName} · ` : ''}{new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })}</div>
-          </div>
-          <div style={{ display:'flex', gap:10 }}>
-            <div style={{ textAlign:'right' }}>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,.4)' }}>Total clients</div>
-              <div style={{ fontSize:22, fontWeight:900, color:'#ea2729' }}>{clients.length}</div>
-            </div>
-          </div>
-        </div>
-        {/* ── Left: Client list ── */}
-        <div style={{ width: 240, flexShrink: 0, background: '#fff', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#111', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-              Clients ({clients.length})
-            </div>
-            <button onClick={() => navigate('/clients')}
-              style={{ padding: '4px 10px', borderRadius: 7, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: ACCENT, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Plus size={11} /> Add
-            </button>
-          </div>
-
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {clients.length === 0 ? (
-              <div style={{ padding: '24px 16px', textAlign: 'center' }}>
-                <Users size={28} color="#e5e7eb" style={{ margin: '0 auto 10px' }} />
-                <div style={{ fontSize: 15, color: '#374151', marginBottom: 10 }}>No clients yet</div>
-                <button onClick={() => navigate('/clients')}
-                  style={{ fontSize: 14, padding: '7px 14px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
-                  Add first client
-                </button>
+        {/* ── Dark header ─────────────────────────────────────────── */}
+        <div className="page-header" style={{ padding:'0 28px' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+            paddingTop:18, paddingBottom:14, borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+            <div>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:24, fontWeight:800,
+                color:'#fff', letterSpacing:'-.02em', lineHeight:1 }}>
+                {greeting}{firstName ? `, ${firstName}` : ''}.
               </div>
-            ) : clients.map(c => (
-              <ClientCard key={c.id} client={c}
-                active={selectedClient?.id === c.id}
-                onSelect={client => { selectClient(client); navigate(`/client/${client.id}`) }} />
-            ))}
+              <div style={{ fontSize:13, color:'rgba(255,255,255,.35)', marginTop:4 }}>
+                {agencyName && <span>{agencyName} · </span>}
+                {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <QuickStatPill icon={Users}       label="Clients"  value={clients.length}  color={TEAL}/>
+              <QuickStatPill icon={FolderOpen}  label="Projects" value={projects.length} color={RED}/>
+              <button className="btn btn-primary" onClick={()=>navigate('/clients')}
+                style={{ marginLeft:8 }}>
+                <Plus size={13}/> New Client
+              </button>
+            </div>
           </div>
+
+          {/* Client selector strip */}
+          {clients.length > 0 && (
+            <div style={{ display:'flex', gap:6, padding:'12px 0', overflowX:'auto',
+              scrollbarWidth:'none' }}>
+              {clients.map(c => {
+                const active = selectedClient?.id === c.id
+                const initials = c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+                return (
+                  <button key={c.id} onClick={()=>{selectClient(c);navigate(`/client/${c.id}`)}}
+                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px',
+                      borderRadius:20, border:'1px solid',
+                      borderColor: active ? RED : 'rgba(255,255,255,.1)',
+                      background: active ? RED : 'rgba(255,255,255,.05)',
+                      color: active ? '#fff' : 'rgba(255,255,255,.55)',
+                      cursor:'pointer', fontSize:13, fontWeight: active?600:400,
+                      whiteSpace:'nowrap', flexShrink:0, transition:'all .15s' }}>
+                    <div style={{ width:18, height:18, borderRadius:4,
+                      background: active?'rgba(255,255,255,.2)':'rgba(255,255,255,.08)',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:8, fontWeight:800, color:active?'#fff':'rgba(255,255,255,.4)' }}>
+                      {initials}
+                    </div>
+                    {c.name}
+                    {active && <ChevronRight size={10}/>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Tabs (only show when client selected) */}
+          {selectedClient && (
+            <div className="tab-bar">
+              {TABS.map(t => (
+                <button key={t.id} className={`tab-item${tab===t.id?' active':''}`}
+                  onClick={()=>setTab(t.id)}>
+                  {t.label}
+                  {t.count > 0 && <span className="tab-count">{t.count}</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* ── Right: Client workspace ── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
+        {/* ── Body ──────────────────────────────────────────────────── */}
+        <div className="page-body">
           {!selectedClient ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
-              <LayoutGrid size={40} color="#e5e7eb" />
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#374151', fontWeight:700 }}>Select a client to open their workspace</div>
-              <button onClick={() => navigate('/clients')} style={{ fontSize: 15, padding: '9px 20px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7 }}>
-                <Plus size={14} /> Add your first client
+            <div className="empty-state" style={{ marginTop:60 }}>
+              <div className="empty-state-icon">
+                <Users size={22} color="var(--text-muted)"/>
+              </div>
+              <div className="empty-state-title">Select a client to get started</div>
+              <div className="empty-state-body">
+                Choose a client from the header bar above, or add your first client to begin managing their projects.
+              </div>
+              <button className="btn btn-primary" onClick={()=>navigate('/clients')}>
+                <Plus size={13}/> Add your first client
               </button>
+            </div>
+          ) : loading ? (
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:80 }}>
+              <Loader2 size={24} color={RED} style={{ animation:'spin 1s linear infinite' }}/>
+              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             </div>
           ) : (
             <>
-              {/* Client header */}
-              <div style={{ background: '#18181b', padding: '16px 24px', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 900, color: '#fff', flexShrink: 0 }}>
-                    {(selectedClient.name || '?')[0].toUpperCase()}
+              {/* ── Client context bar ─────────────────────────── */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+                <div>
+                  <div style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:800,
+                    color:'var(--text-primary)', letterSpacing:'-.02em' }}>
+                    {selectedClient.name}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
-                      <h1 style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: 0 }}>{selectedClient.name}</h1>
-                      {statusPill(selectedClient.status)}
-                      {(() => { const b = onboardingBadge(onboardPct); return <span style={{ fontSize: 13, fontWeight: 700, padding: '2px 9px', borderRadius: 20, background: b.bg, color: b.color }}>{b.label}</span> })()}
-                    </div>
-                    <div style={{ display: 'flex', gap: 16, fontSize: 14, color: '#71717a' }}>
-                      {selectedClient.industry && <span>{selectedClient.industry}</span>}
-                      {selectedClient.phone   && <span>{selectedClient.phone}</span>}
-                      {selectedClient.website && <a href={selectedClient.website} target="_blank" rel="noreferrer" style={{ color: '#71717a', display: 'flex', alignItems: 'center', gap: 4 }}>{selectedClient.website.replace(/^https?:\/\//,'').slice(0,30)} <ExternalLink size={10}/></a>}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => navigate(`/clients/${selectedClient.id}`)}
-                      style={{ padding: '7px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,.15)', background: 'transparent', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-                      View Profile
-                    </button>
-                    <button onClick={sendOnboardingLink}
-                      style={{ padding: '7px 14px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Mail size={12} /> Send Onboarding Link
-                    </button>
+                  <div style={{ fontSize:13, color:'var(--text-muted)', marginTop:2 }}>
+                    {selectedClient.industry || 'No industry'} · {selectedClient.status || 'Active'}
                   </div>
                 </div>
-
-                {/* Tabs */}
-                <div style={{ display: 'flex', gap: 2, marginTop: 14 }}>
-                  {TABS.map(t => {
-                    const Icon = t.icon
-                    return (
-                      <button key={t.id} onClick={() => setTab(t.id)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: tab === t.id ? '#fff' : 'rgba(255,255,255,.08)', color: tab === t.id ? '#111' : '#a1a1aa', fontSize: 15, fontWeight: tab === t.id ? 700 : 500, cursor: 'pointer', transition: 'all .15s' }}>
-                        <Icon size={13} />
-                        {t.label}
-                        {t.count != null && t.count > 0 && (
-                          <span style={{ fontSize: 13, fontWeight: 800, background: tab === t.id ? ACCENT : 'rgba(255,255,255,.2)', color: '#fff', padding: '1px 6px', borderRadius: 20 }}>{t.count}</span>
-                        )}
-                      </button>
-                    )
-                  })}
+                <div style={{ display:'flex', gap:8 }}>
+                  <button className="btn btn-secondary" onClick={()=>navigate(`/perf/${selectedClient.id}`)}>
+                    <TrendingUp size={13}/> Performance
+                  </button>
+                  <button className="btn btn-secondary" onClick={()=>navigate(`/clients/${selectedClient.id}`)}>
+                    View Profile <ArrowRight size={13}/>
+                  </button>
                 </div>
               </div>
 
-              {/* Tab content */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }} className="animate-fade-up">
-
-                {/* ── PROJECTS TAB ── */}
-                {tab === 'projects' && (
-                  <div>
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center' }}>
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 14px' }}>
-                        <Search size={14} color="#9ca3af" />
-                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search projects…"
-                          style={{ border: 'none', outline: 'none', fontSize: 15, background: 'transparent', flex: 1, color: '#111' }} />
-                      </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && addProject()}
-                          placeholder="New project name…"
-                          style={{ padding: '8px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none', color: '#111', width: 200 }} />
-                        <button onClick={addProject} disabled={addingProject || !newProjectName.trim()}
-                          style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: !newProjectName.trim() ? .5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {addingProject ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={13} />}
-                          Add Project
-                        </button>
+              {/* ── PROJECTS TAB ───────────────────────────────── */}
+              {tab === 'projects' && (
+                <div>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+                    <div style={{ display:'flex', gap:8, flex:1 }}>
+                      <div style={{ position:'relative', flex:1, maxWidth:320 }}>
+                        <Search size={13} style={{ position:'absolute', left:11, top:'50%',
+                          transform:'translateY(-50%)', color:'var(--text-muted)' }}/>
+                        <input value={search} onChange={e=>setSearch(e.target.value)}
+                          className="input" placeholder="Search projects…"
+                          style={{ paddingLeft:32, fontSize:13 }}/>
                       </div>
                     </div>
-
-                    {loadingProjects ? (
-                      <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} color={ACCENT} style={{ animation: 'spin 1s linear infinite', margin: '0 auto' }} /></div>
-                    ) : filteredProjects.length === 0 ? (
-                      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '48px 24px', textAlign: 'center' }}>
-                        <FolderOpen size={36} color="#e5e7eb" style={{ margin: '0 auto 14px' }} />
-                        <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>No projects yet for {selectedClient.name}</div>
-                        <div style={{ fontSize: 15, color: '#374151', marginBottom: 16 }}>Create a project to start managing deliverables, files, and client feedback.</div>
-                        <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)}
-                          placeholder="Name your first project…"
-                          style={{ display: 'block', width: '100%', maxWidth: 280, margin: '0 auto 10px', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none' }} />
-                        <button onClick={addProject} disabled={!newProjectName.trim()}
-                          style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: !newProjectName.trim() ? .5 : 1 }}>
-                          Create Project
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                        {filteredProjects.map(p => (
-                          <ProjectRow key={p.id} project={p} navigate={navigate}
-                            onDelete={deleteProj} onRename={renameProj} />
-                        ))}
-                      </div>
-                    )}
+                    <button className="btn btn-primary" onClick={()=>setShowAddForm(s=>!s)}>
+                      <Plus size={13}/> New Project
+                    </button>
                   </div>
-                )}
 
-                {/* ── ONBOARDING TAB ── */}
-                {tab === 'onboarding' && (
-                  <div>
-                    <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
-                      <div style={{ flex: 1, background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#111', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Onboarding status</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                          <div style={{ flex: 1, height: 8, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${onboardPct}%`, background: onboardPct >= 100 ? '#16a34a' : ACCENT, borderRadius: 4, transition: 'width .4s' }} />
-                          </div>
-                          <span style={{ fontSize: 15, fontWeight: 800, color: onboardPct >= 100 ? '#16a34a' : ACCENT }}>{onboardPct}%</span>
+                  {showAddForm && (
+                    <div className="card-sm" style={{ padding:'14px 16px', marginBottom:16,
+                      display:'flex', gap:8, alignItems:'center',
+                      borderLeft:`3px solid ${RED}`, borderRadius:'0 var(--radius-md) var(--radius-md) 0',
+                      animation:'fadeUp .2s ease both' }}>
+                      <input value={newProjName} onChange={e=>setNewProjName(e.target.value)}
+                        onKeyDown={e=>{if(e.key==='Enter')addProject();if(e.key==='Escape')setShowAddForm(false)}}
+                        className="input" placeholder="Project name…"
+                        style={{ flex:1, fontSize:14 }} autoFocus/>
+                      <button className="btn btn-primary" onClick={addProject} disabled={adding}>
+                        {adding ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : 'Create'}
+                      </button>
+                      <button className="btn btn-ghost" onClick={()=>setShowAddForm(false)}>Cancel</button>
+                    </div>
+                  )}
+
+                  {filtered.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-state-icon"><FolderOpen size={22} color="var(--text-muted)"/></div>
+                      <div className="empty-state-title">
+                        {search ? 'No projects match that search' : 'No projects yet'}
+                      </div>
+                      <div className="empty-state-body">
+                        {search ? 'Try a different keyword' : `Create the first project for ${selectedClient.name}`}
+                      </div>
+                      {!search && (
+                        <button className="btn btn-primary" onClick={()=>setShowAddForm(true)}>
+                          <Plus size={13}/> Create Project
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:12 }}>
+                      {filtered.map((p,i) => (
+                        <div key={p.id} className="animate-fade-up" style={{ animationDelay:`${i*.04}s` }}>
+                          <ProjectCard project={p} onDelete={deleteProj} onRename={renameProj} navigate={navigate}/>
                         </div>
-                        {onboarding ? (
-                          <div style={{ fontSize: 14, color: '#374151' }}>
-                            Form sent {new Date(onboarding.created_at).toLocaleDateString()}
-                            {onboarding.used_at && <> · Completed {new Date(onboarding.used_at).toLocaleDateString()}</>}
-                          </div>
-                        ) : (
-                          <div style={{ fontSize: 14, color: '#374151' }}>No onboarding form sent yet</div>
-                        )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── ONBOARDING TAB ─────────────────────────────── */}
+              {tab === 'onboarding' && (
+                <div>
+                  <div className="card" style={{ padding:24, marginBottom:16 }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+                      <div>
+                        <div className="section-eyebrow">Client onboarding</div>
+                        <div className="section-title">{selectedClient.name}</div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <button onClick={sendOnboardingLink}
-                          style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <Mail size={14} /> Copy Onboarding Link
+                      {onboarding && (
+                        <button className="btn btn-secondary" onClick={()=>{
+                          const link = `${window.location.origin}/onboard/${onboarding.token}`
+                          navigator.clipboard.writeText(link)
+                          toast.success('Link copied!')
+                        }}>
+                          Copy Onboarding Link
                         </button>
-                        <button onClick={() => navigate(`/clients/${selectedClient.id}`)}
-                          style={{ padding: '12px 20px', borderRadius: 12, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <ClipboardList size={14} /> View Full Onboarding
-                        </button>
+                      )}
+                    </div>
+
+                    {/* Progress bar */}
+                    <div style={{ marginBottom:20 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                        <span style={{ fontSize:13, color:'var(--text-secondary)', fontWeight:600 }}>Profile completion</span>
+                        <span style={{ fontSize:13, fontWeight:700, color:RED }}>{onboarding?.used_at ? '80%' : '0%'}</span>
+                      </div>
+                      <div style={{ height:6, background:'var(--border)', borderRadius:3, overflow:'hidden' }}>
+                        <div style={{ height:'100%', width:onboarding?.used_at?'80%':'0%',
+                          background:`linear-gradient(90deg,${RED},#f87171)`,
+                          borderRadius:3, transition:'width .8s ease' }}/>
                       </div>
                     </div>
 
-                    {/* Profile data preview */}
-                    {profile && (
-                      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px' }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 14 }}>Client profile data</div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
-                          {[
-                            ['Business type', profile.business_type],
-                            ['Year founded', profile.year_founded],
-                            ['Target area', profile.service_area],
-                            ['Monthly budget', profile.monthly_ad_budget],
-                            ['Current CRM', profile.crm_platform],
-                            ['Email platform', profile.email_platform],
-                            ['Google rating', profile.google_rating],
-                            ['Review count', profile.review_count],
-                          ].filter(([, v]) => v).map(([label, val]) => (
-                            <div key={label}>
-                              <div style={{ fontSize: 13, color: '#4b5563', marginBottom: 2 }}>{label}</div>
-                              <div style={{ fontSize: 15, color: '#111', fontWeight: 600 }}>{val}</div>
-                            </div>
-                          ))}
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                      {[
+                        { label:'Link sent', done:!!onboarding },
+                        { label:'Form completed', done:!!onboarding?.used_at },
+                        { label:'Profile built', done:!!profile },
+                        { label:'Projects created', done:projects.length>0 },
+                      ].map(step => (
+                        <div key={step.label} style={{ display:'flex', alignItems:'center', gap:10,
+                          padding:'12px 14px', borderRadius:'var(--radius-md)',
+                          background: step.done?'#f0fdf4':'var(--surface-2)',
+                          border:`1px solid ${step.done?'#bbf7d0':'var(--border)'}` }}>
+                          <CheckCircle size={16} color={step.done?'#16a34a':'#d1d5db'}/>
+                          <span style={{ fontSize:14, fontWeight:600,
+                            color:step.done?'#15803d':'var(--text-secondary)' }}>{step.label}</span>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* ── RESEARCH TAB ── */}
-                {tab === 'research' && (
-                  <div>
-                    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>Scout intelligence for {selectedClient.name}</div>
-                      <div style={{ fontSize: 15, color: '#374151', marginBottom: 14 }}>
-                        Use Scout to research {selectedClient.name}'s competitive landscape, find similar businesses in their market, or analyze their industry.
-                      </div>
-                      <div style={{ display: 'flex', gap: 10 }}>
-                        <button onClick={() => navigate(`/scout?q=${encodeURIComponent(selectedClient.industry || '')}&loc=${encodeURIComponent(selectedClient.city || '')}&mode=competitor`)}
-                          style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <Target size={13} /> Competitor Analysis
-                        </button>
-                        <button onClick={() => navigate(`/scout?q=${encodeURIComponent(selectedClient.industry || '')}&loc=${encodeURIComponent(selectedClient.city || '')}&mode=market`)}
-                          style={{ padding: '9px 18px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <TrendingUp size={13} /> Market Research
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Client info for research context */}
-                    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px' }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 12 }}>Client context</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px' }}>
-                        {[
-                          ['Industry', selectedClient.industry],
-                          ['Website', selectedClient.website],
-                          ['Phone', selectedClient.phone],
-                          ['Email', selectedClient.email],
-                        ].map(([label, val]) => (
-                          <div key={label}>
-                            <div style={{ fontSize: 13, color: '#4b5563', marginBottom: 2 }}>{label}</div>
-                            <div style={{ fontSize: 15, color: val ? '#111' : '#d1d5db', fontWeight: val ? 500 : 400 }}>{val || 'Not set'}</div>
-                          </div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* ── REVIEWS TAB ── */}
-                {tab === 'reviews' && (
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                      <div style={{ fontSize: 15, color: '#374151' }}>{reviews.length} reviews for {selectedClient.name}</div>
-                      <button onClick={() => navigate('/reviews')}
-                        style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Star size={13} /> Open Reviews Module <ArrowRight size={12} />
+              {/* ── REVIEWS TAB ──────────────────────────────────── */}
+              {tab === 'reviews' && (
+                <div>
+                  {reviews.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-state-icon"><Star size={22} color="var(--text-muted)"/></div>
+                      <div className="empty-state-title">No reviews yet</div>
+                      <div className="empty-state-body">Reviews from Google, Facebook, and Yelp will appear here once connected.</div>
+                      <button className="btn btn-primary" onClick={()=>navigate('/reviews')}>
+                        Manage Reviews <ArrowRight size={13}/>
                       </button>
                     </div>
-
-                    {reviews.length === 0 ? (
-                      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '40px 24px', textAlign: 'center' }}>
-                        <Star size={32} color="#e5e7eb" style={{ margin: '0 auto 12px' }} />
-                        <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>No reviews yet</div>
-                        <div style={{ fontSize: 15, color: '#4b5563', marginBottom: 14 }}>Reviews will appear here once loaded from Google, Yelp, or Facebook.</div>
-                        <button onClick={() => navigate('/reviews')} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
-                          Go to Reviews Module
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {reviews.map(r => (
-                          <div key={r.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '14px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                              <span style={{ fontSize: 14, fontWeight: 700, color: '#374151', background: '#f3f4f6', padding: '2px 8px', borderRadius: 20, textTransform: 'capitalize' }}>{r.platform}</span>
-                              <span style={{ fontSize: 15, color: '#f59e0b' }}>{'★'.repeat(r.star_rating || 5)}</span>
-                              <span style={{ fontSize: 14, color: '#4b5563', marginLeft: 'auto' }}>{r.reviewer_name}</span>
-                              <span style={{ fontSize: 13, color: '#374151' }}>{r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString() : ''}</span>
-                            </div>
-                            <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{r.review_text}</div>
-                            {r.response_text && (
-                              <div style={{ marginTop: 8, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, fontSize: 14, color: '#374151', borderLeft: `3px solid ${ACCENT}` }}>
-                                <strong style={{ color: '#374151' }}>Response:</strong> {r.response_text}
+                  ) : (
+                    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                      {reviews.map(r => (
+                        <div key={r.id} className="card card-sm" style={{ padding:'14px 18px' }}>
+                          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:14, fontWeight:600, color:'var(--text-primary)', marginBottom:4 }}>
+                                {r.author_name || 'Anonymous'}
                               </div>
-                            )}
+                              <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6 }}>
+                                {r.review_text?.slice(0,200)}{(r.review_text?.length||0)>200?'…':''}
+                              </div>
+                            </div>
+                            <div style={{ display:'flex', gap:2, flexShrink:0 }}>
+                              {[1,2,3,4,5].map(s=>(
+                                <Star key={s} size={12} fill={s<=(r.star_rating||0)?'#f59e0b':'none'}
+                                  color={s<=(r.star_rating||0)?'#f59e0b':'#d1d5db'}/>
+                              ))}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-              </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
     </div>
   )
 }

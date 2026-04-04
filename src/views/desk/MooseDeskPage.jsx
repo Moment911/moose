@@ -154,7 +154,7 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
       display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
       <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:560,
         maxHeight:'90vh',overflow:'auto',boxShadow:'0 32px 80px rgba(0,0,0,.25)'}}>
-        <div style={{background:BLACK,borderRadius:'20px 20px 0 0',padding:'22px 28px'}}>
+        <div style={{background:'var(--off-black)',borderRadius:'20px 20px 0 0',padding:'22px 28px'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:36,height:36,borderRadius:10,background:RED,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -275,10 +275,10 @@ export default function MooseDeskPage() {
   ]
 
   return (
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f4f4f5'}}>
+    <div style={{}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{background:BLACK,padding:'18px 28px 0',flexShrink:0}}>
+        <div style={{background:'var(--off-black)',padding:'18px 28px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <div>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
