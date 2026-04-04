@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Mail, Phone, MapPin, Building2, Globe, Linkedin, Twitter, Instagram, Facebook, Edit2, Trash2, Tag, Plus, X, Send, Eye, MousePointer, Ban, FileText, Clock, Check, ExternalLink } from 'lucide-react'
+import { ChevronLeft, Mail, Phone, MapPin, Building2, Globe, Link2, Share2, Camera, Globe, Edit2, Trash2, Tag, Plus, X, Send, Eye, MousePointer, Ban, FileText, Clock, Check, ExternalLink } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { TagAutocomplete } from '../components/contacts/TagManager'
 import { supabase } from '../lib/supabase'
@@ -201,8 +201,8 @@ export default function ContactProfilePage() {
                     { label: 'City', key: 'city', icon: MapPin },
                     { label: 'State', key: 'state' },
                     { label: 'Country', key: 'country' },
-                    { label: 'LinkedIn', key: 'linkedin_url', icon: Linkedin },
-                    { label: 'Twitter', key: 'twitter_handle', icon: Twitter },
+                    { label: 'LinkedIn', key: 'linkedin_url', icon: Link2 },
+                    { label: 'Share2', key: 'twitter_handle', icon: Share2 },
                     { label: 'Lead Source', key: 'lead_source' },
                     { label: 'Lead Status', key: 'lead_status' },
                     { label: 'Lifecycle', key: 'lifecycle_stage' },
