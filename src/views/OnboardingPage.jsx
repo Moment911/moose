@@ -667,7 +667,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               <span style={{ fontSize: 11, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Moose AI</span>
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }} style={{display:"inline-flex",alignItems:"center",gap:6}}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
             <h1 style={{ fontSize: 38, fontWeight: 900, color: '#fff', margin: '0 0 14px', letterSpacing: -0.5 }}>
               Welcome, <span style={{ color: ACCENT }}>{tokenData?.clients?.name || 'there'}</span>! 🎉
             </h1>
