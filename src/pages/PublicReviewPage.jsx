@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, getAnnotations, getFiles, createAnnotation, updateAnnotation, deleteAnnotation, logActivity, getRounds, fireWebhook } from '../lib/supabase'

@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Target, Bookmark, Play, Trash2, Clock, Flame } from 'lucide-react'

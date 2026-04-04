@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Link2, Search, BarChart2, DollarSign, MapPin, Check, AlertTriangle, ChevronLeft, Loader2, ExternalLink, Shield } from 'lucide-react'

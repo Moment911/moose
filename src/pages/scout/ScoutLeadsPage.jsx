@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Target, Search, Star, Mail, Phone, Trash2, RefreshCw, Filter, ExternalLink } from 'lucide-react'

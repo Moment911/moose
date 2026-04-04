@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Plus, Copy, Eye, Layout, Mail, Star, FileText, X } from 'lucide-react'

@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft, Users, CheckSquare, Clock, AlertTriangle, Wand2, Copy, Send, Mail, Loader2 } from 'lucide-react'

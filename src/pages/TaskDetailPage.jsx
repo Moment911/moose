@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Check, Trash2, Calendar, Flag, User, MessageSquare, Send, UserPlus, X, Paperclip, Clock, ArrowUpRight } from 'lucide-react'

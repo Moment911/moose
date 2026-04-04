@@ -1,3 +1,4 @@
+"use client";
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, MessageSquare, CheckSquare, Calendar, Megaphone, DollarSign, Users, Plug, Shield, Target, X, LogOut, ChevronRight, ListFilter, BookUser, List, Tag, Send, Zap, FileText, TrendingUp, Link2, Puzzle } from 'lucide-react'
 import { signOut } from '../../lib/supabase'

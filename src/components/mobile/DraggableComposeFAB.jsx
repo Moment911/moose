@@ -1,3 +1,4 @@
+"use client";
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { PenSquare } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
