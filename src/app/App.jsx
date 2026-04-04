@@ -59,6 +59,7 @@ export default function App() {
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
+          <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />
