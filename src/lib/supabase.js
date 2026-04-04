@@ -325,3 +325,16 @@ export const claimProspectReport = (id, { name, email, phone, company, prospect_
     prospect_id, claimed_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }).eq('id', id).select().single()
+
+// ─── Scout Search History ─────────────────────────────────────────────────────
+export const saveScoutSearch = (data) =>
+  supabase.from('scout_searches').insert(data).select().single()
+
+export const getScoutSearches = (agencyId) =>
+  supabase.from('scout_searches').select('*')
+    .eq('agency_id', agencyId)
+    .order('created_at', { ascending: false })
+    .limit(200)
+
+export const getScoutSearch = (id) =>
+  supabase.from('scout_searches').select('*').eq('id', id).single()

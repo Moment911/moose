@@ -159,8 +159,10 @@ export default function ProspectReportPage() {
   const { agencyId } = useAuth()
 
   const leadFromState = location.state?.lead || null
-  const allLeads      = location.state?.allLeads || []
-  const searchQuery   = location.state?.query || ''
+  const allLeads       = location.state?.allLeads || []
+  const searchQuery    = location.state?.query || ''
+  const searchId       = location.state?.searchId || null
+  const searchLocation = location.state?.searchLocation || ''
 
   const [agency,       setAgency]       = useState(null)
   const [enrichedLead, setEnrichedLead] = useState(null)  // lead with full pipeline data
@@ -269,6 +271,9 @@ export default function ProspectReportPage() {
         google_rating:    lead.rating  || null,
         google_reviews:   lead.review_count || null,
         place_id:         lead.place_id || null,
+        search_id:        searchId,
+        search_query:     searchQuery,
+        search_location:  searchLocation,
         lead_data:        lead,           // full enriched lead with website_analysis
         ai_analysis:      report || {},   // full Claude analysis
         revenue_data:     lead.revenue || {},

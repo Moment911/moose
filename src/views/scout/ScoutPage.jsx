@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'
 import { useAuth } from '../../hooks/useAuth'
-import { supabase } from '../../lib/supabase'
+import { supabase, saveScoutSearch } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
 import { runLeadPipeline } from '../../lib/scoutPipeline'
@@ -387,11 +387,11 @@ function MarketSummaryCard({ results, query, location }) {
 // Main Scout Page
 // ══════════════════════════════════════════════════════════════════════════════
 export default function ScoutPage() {
-  const { agencyId, firstName } = useAuth()
+  const { agencyId } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode]         = useState('prospect')
-  const [query, setQuery]       = useState('')
-  const [location, setLocation] = useState('')
+  const [query, setQuery]       = useState(() => routeLocation.state?.replayQuery || '')
+  const [location, setLocation] = useState(() => routeLocation.state?.replayLocation || '')
   const [results, setResults]   = useState([])
   const [searching, setSearching] = useState(false)
   const [saved, setSaved]       = useState(new Set())
@@ -406,6 +406,7 @@ export default function ScoutPage() {
   const [dataSource, setDataSource] = useState(null) // 'google'|'ai'|'mixed'
   const [searchError, setSearchError] = useState(null)
   const [pipelineProgress, setPipelineProgress] = useState(null)
+  const [currentSearchId, setCurrentSearchId] = useState(null)
   const [selectedLead, setSelectedLead] = useState(null)
 
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
@@ -511,17 +512,38 @@ export default function ScoutPage() {
 
     // ── STEP 4: Final enrichment + display ───────────────────────────────────
     const enriched = enrichLeads(leads, loc)
-    setResults(enriched)
-    setDataSource(source)
-    setStats({
+    const finalStats = {
       total:    enriched.length,
       hot:      enriched.filter(l=>l.score>=75).length,
       warm:     enriched.filter(l=>l.score>=50&&l.score<75).length,
       avgScore: Math.round(enriched.reduce((s,l)=>s+l.score,0)/enriched.length),
       verified: enriched.filter(l=>l._verified>=2||l._real_data).length,
       realData: enriched.filter(l=>l._real_data).length,
-    })
+    }
+    setResults(enriched)
+    setDataSource(source)
+    setStats(finalStats)
     setSearching(false)
+
+    // ── Auto-save search to history ───────────────────────────────────────────
+    try {
+      const { data: savedSearch } = await saveScoutSearch({
+        agency_id:    agencyId || '00000000-0000-0000-0000-000000000099',
+        query:        term,
+        location:     loc,
+        mode:         mode,
+        result_count: enriched.length,
+        results:      enriched.map(l => ({
+          id: l.id, name: l.name, address: l.address, phone: l.phone,
+          website: l.website, rating: l.rating, review_count: l.review_count,
+          score: l.score, temperature: l.temperature, gaps: l.gaps,
+          ai_summary: l.ai_summary, place_id: l.place_id, _real_data: l._real_data,
+        })),
+        stats:       finalStats,
+        data_source: source,
+      })
+      if (savedSearch) setCurrentSearchId(savedSearch.id)
+    } catch(e) { console.warn('Search history save failed:', e.message) }
 
     // ── Run full pipeline on top 3 leads in background ────────────────────────
     const topLeads = enriched.slice(0, 3)
@@ -807,7 +829,7 @@ export default function ScoutPage() {
                   <LeadCard key={lead.id} lead={lead} mode={mode} view={view}
                     saved={saved.has(lead.id)}
                     onSave={toggleSaved}
-                    onAddClient={addAsClient} onReport={(lead)=>navigate('/scout/report', {state:{lead, allLeads:results, query}})}/>
+                    onAddClient={addAsClient} onReport={(lead)=>navigate('/scout/report', {state:{lead, allLeads:results, query, searchId:currentSearchId, searchLocation:location}})}/>
                 ))}
               </div>
               {displayed.length===0 && (
