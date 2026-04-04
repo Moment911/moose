@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS crm_sync_log (
   created_at    timestamptz DEFAULT now()
 );
 
--- 8. ADD agency_id TO EXISTING TABLES (safe — uses IF NOT EXISTS)
+-- 8. ADD agency_id TO EXISTING TABLES
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS agency_id uuid REFERENCES agencies(id) ON DELETE CASCADE;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS ghl_contact_id text;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS ghl_location_id text;
@@ -198,12 +198,12 @@ CREATE TABLE IF NOT EXISTS client_change_history (
 );
 
 -- 12. INDEXES
-CREATE INDEX IF NOT EXISTS idx_agency_members_user   ON agency_members(user_id);
-CREATE INDEX IF NOT EXISTS idx_agency_members_agency ON agency_members(agency_id);
-CREATE INDEX IF NOT EXISTS idx_clients_agency         ON clients(agency_id);
+CREATE INDEX IF NOT EXISTS idx_agency_members_user    ON agency_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_agency_members_agency  ON agency_members(agency_id);
+CREATE INDEX IF NOT EXISTS idx_clients_agency          ON clients(agency_id);
 CREATE INDEX IF NOT EXISTS idx_crm_integrations_agency ON crm_integrations(agency_id);
 CREATE INDEX IF NOT EXISTS idx_crm_sync_log_integration ON crm_sync_log(integration_id);
-CREATE INDEX IF NOT EXISTS idx_review_widget_embed_key ON review_widget_settings(embed_key);
+CREATE INDEX IF NOT EXISTS idx_review_widget_embed_key  ON review_widget_settings(embed_key);
 CREATE INDEX IF NOT EXISTS idx_client_change_history_client ON client_change_history(client_id);
 
 -- 13. HELPER FUNCTION
@@ -211,9 +211,7 @@ CREATE OR REPLACE FUNCTION get_user_agency_id()
 RETURNS uuid LANGUAGE sql STABLE AS $$
   SELECT agency_id FROM agency_members
   WHERE user_id = auth.uid()
-  ORDER BY created_at ASC LIMIT 1;
+  ORDER BY invited_at ASC LIMIT 1;
 $$;
 
--- ══════════════════════════════════════════════════════════════════════════════
--- DONE! All tables created. You can now use /signup to create your agency.
--- ══════════════════════════════════════════════════════════════════════════════
+-- DONE! All tables created.
