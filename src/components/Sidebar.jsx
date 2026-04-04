@@ -1,361 +1,309 @@
-"use client";
-"use client";
+"use client"
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Plus, Mail, FileSignature, Cpu, Clock, Inbox, Brain, BarChart2, TrendingUp, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
-import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
+import {
+  LayoutGrid, Users, FileSignature, Clock, Inbox, Brain,
+  BarChart2, TrendingUp, Target, Plug, Settings, Shield,
+  Cpu, Workflow, MessageSquare, ChevronRight, ChevronDown,
+  LogOut, Plus, Folder, FolderOpen, Trash2, Edit2,
+  MoreHorizontal, HelpCircle, Star, Zap
+} from 'lucide-react'
+import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
 import toast from 'react-hot-toast'
 
-const HELP_ITEMS = [
-  { q: 'How do I create a project?', a: 'Expand a client in the sidebar, click "New project", pick a type, and set revision rounds.' },
-  { q: 'How do clients leave feedback?', a: 'Set the project to Public or Password in Access settings, copy the review link, and send it to your client.' },
-  { q: 'How do revision rounds work?', a: 'Clients add comments, then click "Submit Changes". Each submission counts as one round. You set the max rounds per project.' },
-  { q: 'How do I use the Design Canvas?', a: 'Open a project and click "New Canvas". Drag components, draw freehand, upload images. Press L for layers, G for grid.' },
-  { q: 'How do I use the Email Designer?', a: 'Open a project and click "New Email". Add blocks (header, text, image, button), edit properties, then export as HTML.' },
-  { q: 'How do I mark changes as done?', a: 'Go to the Rounds tab in your project, click "Done" on a round, then "Notify" to email the client.' },
-  { q: 'What is the AI Assistant?', a: 'Open any file review and click the wand icon. It can summarize feedback, suggest copy, recommend layout changes, and more.' },
-  { q: 'How do I manage team access?', a: 'Go to the Team tab in any project. Add members by email with roles: Admin, Staff, Client, or Viewer.' },
-]
+const RED  = '#ea2729'
+const TEAL = '#5bc6d0'
 
-function SidebarHelp() {
-  const [open, setOpen] = useState(false)
-  const [openQ, setOpenQ] = useState(null)
-  return (
-    <>
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 hover:text-gray-200 text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition-colors w-full" style={{ color:"rgba(255,255,255,.45)", fontSize:14 }}>
-        <HelpCircle size={13} /> Help & FAQ
-      </button>
-      {open && (
-        <div className="mx-1 mb-1 bg-white/5 rounded-lg overflow-hidden">
-          <div className="px-3 py-2 border-b border-white/5">
-            <p style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,.3)", textTransform:"uppercase", letterSpacing:".08em", display:"flex", alignItems:"center", gap:4 }}><BookOpen size={9} /> How to use</p>
-          </div>
-          <div className="max-h-52 overflow-y-auto">
-            {HELP_ITEMS.map((item, i) => (
-              <div key={i}>
-                <button onClick={() => setOpenQ(openQ === i ? null : i)} className="w-full text-left px-3 py-2 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-between" style={{ fontSize:14, color:"rgba(255,255,255,.6)", background:"none", border:"none", cursor:"pointer" }}>
-                  <span>{item.q}</span>
-                  <ChevronRight size={9} className={`transition-transform ${openQ === i ? 'rotate-90' : ''}`} style={{ color:"rgba(255,255,255,.3)" }} />
-                </button>
-                {openQ === i && <p style={{ padding:"0 12px 10px", fontSize:14, color:"rgba(255,255,255,.5)", lineHeight:1.65 }}>{item.a}</p>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
-
-// ── Sidebar nav helpers ────────────────────────────────────────────────────────
-function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor }) {
+/* ── Nav link ──────────────────────────────────────────────────── */
+function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, indent }) {
   const location = useLocation()
   const active = exact
     ? location.pathname === to
     : startsWith
     ? location.pathname.startsWith(to)
     : location.pathname === to
+
   return (
-    <Link to={to} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 nav-link-animate ${
-      active ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-    }`}>
-      <Icon size={15} className={active ? 'text-orange-400' : ''} />
-      <span>{label}</span>
-      {badge && <span style={{ marginLeft:'auto', fontSize:12, background: badgeColor||'#5bc6d0', color:'#fff', padding:'1px 6px', borderRadius:20, fontWeight:800, letterSpacing:'.04em' }}>{badge}</span>}
+    <Link to={to} style={{
+      display: 'flex', alignItems: 'center', gap: 9,
+      padding: indent ? '6px 12px 6px 28px' : '7px 12px',
+      borderRadius: 8, textDecoration: 'none',
+      background: active ? 'rgba(234,39,41,.12)' : 'transparent',
+      color: active ? '#fff' : 'rgba(255,255,255,.5)',
+      fontSize: 13, fontWeight: active ? 600 : 400,
+      transition: 'all .12s ease',
+      position: 'relative',
+    }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,.8)'; if (!active) e.currentTarget.style.background = 'rgba(255,255,255,.05)' }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,.5)'; if (!active) e.currentTarget.style.background = 'transparent' }}>
+      {active && (
+        <span style={{ position:'absolute', left:0, top:'50%', transform:'translateY(-50%)',
+          width:2.5, height:16, background:RED, borderRadius:4 }}/>
+      )}
+      <Icon size={14} style={{ flexShrink:0, color: active ? RED : 'inherit', opacity: active?1:.7 }}/>
+      <span style={{ flex:1 }}>{label}</span>
+      {badge && (
+        <span style={{ fontSize:9, fontWeight:800, padding:'2px 6px', borderRadius:20,
+          background: badgeColor || TEAL, color:'#fff', letterSpacing:'.06em' }}>
+          {badge}
+        </span>
+      )}
     </Link>
   )
 }
 
+/* ── Section label ─────────────────────────────────────────────── */
 function SectionLabel({ label }) {
-  return <p style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,.3)", textTransform:"uppercase", letterSpacing:".09em", padding:"12px 12px 4px" }}>{label}</p>
-}
-
-function DevSection() {
-  const [open, setOpen] = useState(false)
-  const DEV_ITEMS = [
-    { to:'/welcome',   icon:Globe,      label:'Marketing Site' },
-    { to:'/signup',    icon:Plus,       label:'Agency Signup' },
-    { to:'/admin',     icon:Shield,     label:'Admin Portal' },
-  ]
   return (
-    <div className="mt-1">
-      <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors hover:bg-white/5" style={{ fontSize:14, color:"rgba(255,255,255,.4)", border:"none", background:"none", cursor:"pointer" }}>
-        <BookOpen size={14} />
-        <span className="text-sm font-semibold tracking-wider uppercase">Dev / Preview</span>
-        <ChevronRight size={11} style={{ marginLeft:'auto', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition:'transform .2s' }} />
-      </button>
-      {open && (
-        <div className="ml-2 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
-          {DEV_ITEMS.map(item => (
-            <Link key={item.to} to={item.to}
-              style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 10px", borderRadius:8, fontSize:14, color:"rgba(255,255,255,.45)", textDecoration:"none", transition:"all .15s" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,.45)"}>
-              <item.icon size={12} />
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      )}
+    <div style={{ padding:'16px 12px 5px', fontSize:9, fontWeight:700,
+      color:'rgba(255,255,255,.22)', textTransform:'uppercase', letterSpacing:'.12em' }}>
+      {label}
     </div>
   )
 }
 
-export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) {
-  const { agencyId, firstName, initials, greeting, agencyName, isOwner } = useAuth()
-  const [clients, setClients] = useState([])
-  const [projects, setProjects] = useState({})
-  const [expanded, setExpanded] = useState({})
-  const [newClientName, setNewClientName] = useState('')
-  const [newClientEmail, setNewClientEmail] = useState('')
-  const [showNewClient, setShowNewClient] = useState(false)
-  const [newProjectClientId, setNewProjectClientId] = useState(null)
-  const [editingClient, setEditingClient] = useState(null)
-  const [editClientName, setEditClientName] = useState('')
-  const [editingProject, setEditingProject] = useState(null)
-  const [editProjectName, setEditProjectName] = useState('')
-  const [contextMenu, setContextMenu] = useState(null) // { type, id, x, y }
-  const navigate = useNavigate()
-  const location = useLocation()
+/* ── Client + project tree ─────────────────────────────────────── */
+function ClientTree({ clients, onNewProject }) {
+  const navigate    = useNavigate()
+  const location    = useLocation()
+  const [expanded, setExpanded]   = useState({})
+  const [projects, setProjects]   = useState({})
+  const [menuOpen, setMenuOpen]   = useState(null)
+  const [renaming, setRenaming]   = useState(null)
+  const [renameVal, setRenameVal] = useState('')
 
-  useEffect(() => { loadClients() }, [onRefresh])
-  useEffect(() => { function close() { setContextMenu(null) }; window.addEventListener('click', close); return () => window.removeEventListener('click', close) }, [])
-
-  async function loadClients() {
-    const { data } = await getClients(agencyId)
-    if (data) {
-      setClients(data)
-      if (activeClientId) { setExpanded(e => ({ ...e, [activeClientId]: true })); loadProjects(activeClientId) }
+  async function toggleClient(client) {
+    const id = client.id
+    setExpanded(e => ({ ...e, [id]: !e[id] }))
+    if (!projects[id]) {
+      const { data } = await getProjects(id)
+      setProjects(p => ({ ...p, [id]: data || [] }))
     }
   }
 
-  async function loadProjects(clientId) {
-    const { data } = await getProjects(clientId)
-    if (data) setProjects(p => ({ ...p, [clientId]: data }))
+  async function deleteProj(clientId, projId) {
+    if (!confirm('Delete this project?')) return
+    await deleteProject(projId)
+    setProjects(p => ({ ...p, [clientId]: (p[clientId]||[]).filter(x=>x.id!==projId) }))
+    toast.success('Deleted')
   }
 
-  function toggleClient(clientId) {
-    const next = !expanded[clientId]
-    setExpanded(e => ({ ...e, [clientId]: next }))
-    if (next && !projects[clientId]) loadProjects(clientId)
-  }
-
-  async function handleAddClient(e) {
-    e.preventDefault()
-    if (!newClientName.trim()) return
-    const { data, error } = await createClient_(newClientName.trim(), newClientEmail.trim(), agencyId)
-    if (error) { toast.error('Failed to create client'); return }
-    toast.success('Client created!')
-    setNewClientName(''); setNewClientEmail(''); setShowNewClient(false)
-    loadClients(); navigate(`/client/${data.id}`)
-  }
-
-  async function handleRenameClient(e) {
-    e.preventDefault()
-    if (!editClientName.trim()) return
-    await updateClient(editingClient, { name: editClientName.trim() })
-    toast.success('Client renamed'); setEditingClient(null); loadClients()
-  }
-
-  async function handleDeleteClient(id) {
-    const c = clients.find(x => x.id === id)
-    if (!confirm(`Delete client "${c?.name}" and ALL their projects? This cannot be undone.`)) return
-    await deleteClient(id)
-    toast.success('Client deleted'); loadClients()
-    if (activeClientId === id) navigate('/')
-  }
-
-  async function handleRenameProject(e) {
-    e.preventDefault()
-    if (!editProjectName.trim()) return
-    const { data } = await updateProject(editingProject, { name: editProjectName.trim() })
-    toast.success('Project renamed'); setEditingProject(null)
-    if (data) loadProjects(data.client_id)
-  }
-
-  async function handleDeleteProject(id, clientId) {
-    if (!confirm('Delete this project and all its files?')) return
-    await deleteProject(id)
-    toast.success('Project deleted'); loadProjects(clientId)
-    if (activeProjectId === id) navigate(`/client/${clientId}`)
-  }
-
-  async function handleSignOut() { await signOut(); navigate('/login') }
-
-  function handleContextMenu(e, type, id) {
-    e.preventDefault(); e.stopPropagation()
-    setContextMenu({ type, id, x: e.clientX, y: e.clientY })
+  async function renameProj(clientId, proj) {
+    if (!renameVal.trim() || renameVal===proj.name) { setRenaming(null); return }
+    await updateProject(proj.id, { name: renameVal.trim() })
+    setProjects(p => ({ ...p, [clientId]: (p[clientId]||[]).map(x=>x.id===proj.id?{...x,name:renameVal.trim()}:x) }))
+    setRenaming(null)
+    toast.success('Renamed')
   }
 
   return (
-    <aside className="hidden md:flex w-56 flex-col h-full flex-shrink-0" style={{ background: '#18181b' }}>
+    <div style={{ flex:1, overflowY:'auto', paddingBottom:8 }}>
+      <SectionLabel label="Clients"/>
+      {clients.map(client => {
+        const isEx = expanded[client.id]
+        const projs = projects[client.id] || []
+        const initials = client.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+        return (
+          <div key={client.id}>
+            <button onClick={() => toggleClient(client)}
+              style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'7px 12px',
+                background:'none', border:'none', cursor:'pointer', borderRadius:8,
+                color: isEx ? '#fff' : 'rgba(255,255,255,.55)',
+                transition:'all .12s' }}
+              onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,.05)';e.currentTarget.style.color='rgba(255,255,255,.8)'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color=isEx?'#fff':'rgba(255,255,255,.55)'}}>
+              <div style={{ width:22, height:22, borderRadius:6, background: isEx?RED:'rgba(255,255,255,.08)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:9, fontWeight:800, color: isEx?'#fff':'rgba(255,255,255,.4)', flexShrink:0 }}>
+                {initials}
+              </div>
+              <span style={{ flex:1, fontSize:13, fontWeight: isEx?600:400, textAlign:'left',
+                overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {client.name}
+              </span>
+              <ChevronRight size={11} style={{ flexShrink:0, opacity:.4,
+                transform: isEx?'rotate(90deg)':'none', transition:'transform .15s' }}/>
+            </button>
+
+            {isEx && (
+              <div style={{ paddingLeft:8 }}>
+                {projs.map(proj => (
+                  <div key={proj.id} style={{ position:'relative', display:'flex', alignItems:'center' }}>
+                    {renaming===proj.id ? (
+                      <input autoFocus value={renameVal}
+                        onChange={e=>setRenameVal(e.target.value)}
+                        onBlur={()=>renameProj(client.id,proj)}
+                        onKeyDown={e=>{if(e.key==='Enter')renameProj(client.id,proj);if(e.key==='Escape')setRenaming(null)}}
+                        style={{ flex:1, margin:'2px 6px', padding:'4px 8px', fontSize:12,
+                          background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.15)',
+                          borderRadius:6, color:'#fff', outline:'none' }}/>
+                    ) : (
+                      <button onClick={()=>navigate(`/project/${proj.id}`)}
+                        style={{ flex:1, display:'flex', alignItems:'center', gap:7, padding:'5px 6px 5px 20px',
+                          background: location.pathname===`/project/${proj.id}`?'rgba(234,39,41,.1)':'none',
+                          border:'none', cursor:'pointer', borderRadius:7, textAlign:'left',
+                          color: location.pathname===`/project/${proj.id}`?'#fff':'rgba(255,255,255,.45)',
+                          transition:'all .1s', fontSize:12 }}
+                        onMouseEnter={e=>{e.currentTarget.style.background='rgba(255,255,255,.05)';e.currentTarget.style.color='rgba(255,255,255,.75)'}}
+                        onMouseLeave={e=>{e.currentTarget.style.background=location.pathname===`/project/${proj.id}`?'rgba(234,39,41,.1)':'none';e.currentTarget.style.color=location.pathname===`/project/${proj.id}`?'#fff':'rgba(255,255,255,.45)'}}>
+                        <Folder size={11} style={{ flexShrink:0, opacity:.5 }}/>
+                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
+                          {proj.name}
+                        </span>
+                      </button>
+                    )}
+                    <button onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===proj.id?null:proj.id)}}
+                      style={{ padding:'3px 5px', background:'none', border:'none', cursor:'pointer',
+                        color:'rgba(255,255,255,.25)', borderRadius:5, flexShrink:0, marginRight:4 }}
+                      onMouseEnter={e=>e.currentTarget.style.color='rgba(255,255,255,.6)'}
+                      onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,.25)'}>
+                      <MoreHorizontal size={11}/>
+                    </button>
+                    {menuOpen===proj.id && (
+                      <div style={{ position:'absolute', right:4, top:'100%', zIndex:99,
+                        background:'#1a1a1a', border:'1px solid rgba(255,255,255,.1)',
+                        borderRadius:10, boxShadow:'0 8px 24px rgba(0,0,0,.4)', minWidth:140, overflow:'hidden' }}>
+                        <button onClick={()=>{setRenaming(proj.id);setRenameVal(proj.name);setMenuOpen(null)}}
+                          style={{ width:'100%', padding:'9px 14px', border:'none', background:'none',
+                            cursor:'pointer', color:'rgba(255,255,255,.7)', fontSize:13, textAlign:'left',
+                            display:'flex', alignItems:'center', gap:8 }}
+                          onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.05)'}
+                          onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                          <Edit2 size={12}/> Rename
+                        </button>
+                        <button onClick={()=>{deleteProj(client.id,proj.id);setMenuOpen(null)}}
+                          style={{ width:'100%', padding:'9px 14px', border:'none', background:'none',
+                            cursor:'pointer', color:'#f87171', fontSize:13, textAlign:'left',
+                            display:'flex', alignItems:'center', gap:8 }}
+                          onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.05)'}
+                          onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                          <Trash2 size={12}/> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <button onClick={()=>onNewProject(client)}
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:6, padding:'5px 6px 5px 20px',
+                    background:'none', border:'none', cursor:'pointer', borderRadius:7,
+                    color:'rgba(255,255,255,.25)', fontSize:12, transition:'color .1s' }}
+                  onMouseEnter={e=>e.currentTarget.style.color='rgba(255,255,255,.6)'}
+                  onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,.25)'}>
+                  <Plus size={11}/> New project
+                </button>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+export default function Sidebar() {
+  const navigate = useNavigate()
+  const { firstName, agencyName, signOut: authSignOut } = useAuth()
+  const [clients, setClients]         = useState([])
+  const [newProjClient, setNewProjClient] = useState(null)
+
+  useEffect(() => {
+    getClients().then(({ data }) => setClients(data || []))
+  }, [])
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/login')
+  }
+
+  return (
+    <div className="sidebar-root">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-white/10">
-        <img src="/moose-logo-white.svg" alt="Moose AI" style={{height:32,width:'auto',display:'block',marginBottom:2}}/>
-        <div style={{ fontSize:13, color:"rgba(255,255,255,.35)", marginTop:1 }}>Marketing Platform</div>
+      <div style={{ padding:'18px 16px 12px', borderBottom:'1px solid rgba(255,255,255,.06)', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ width:30, height:30, borderRadius:8, background:RED,
+            display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <Zap size={15} color="#fff" fill="#fff"/>
+          </div>
+          <div>
+            <div style={{ fontFamily:'var(--font-display)', fontSize:16, fontWeight:800,
+              color:'#fff', letterSpacing:'-.01em', lineHeight:1 }}>
+              MOOSE
+            </div>
+            <div style={{ fontSize:9, color:'rgba(255,255,255,.3)', fontWeight:600,
+              letterSpacing:'.1em', textTransform:'uppercase', marginTop:2 }}>
+              {agencyName || 'Agency Platform'}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+      {/* Core nav */}
+      <div style={{ padding:'10px 8px 0', flexShrink:0 }}>
+        <SectionLabel label="Core"/>
+        <NavLink to="/"            exact icon={LayoutGrid}    label="Project Hub"/>
+        <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
+        <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
+        <NavLink to="/automations" icon={Workflow}            label="Automations"/>
+      </div>
 
-        {/* ── CORE ── */}
-        {/* ── User greeting ── */}
-        <div style={{ margin:'0 8px 14px', padding:'12px 14px', borderRadius:12, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.08)' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:36, height:36, borderRadius:'50%', background:'#ea2729', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#fff', flexShrink:0 }}>
-              {initials}
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:14, fontWeight:800, color:'#fff', lineHeight:1.2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                {firstName || 'Welcome'}
-              </div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.45)', marginTop:2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                {agencyName || 'Your Agency'}
-              </div>
-            </div>
+      {/* Client tree */}
+      <div style={{ flex:1, overflowY:'auto', padding:'0 8px', minHeight:0 }}>
+        <ClientTree clients={clients} onNewProject={setNewProjClient}/>
+      </div>
+
+      {/* Intelligence section */}
+      <div style={{ padding:'0 8px', flexShrink:0, borderTop:'1px solid rgba(255,255,255,.06)' }}>
+        <SectionLabel label="Intelligence"/>
+        <NavLink to="/perf"          startsWith icon={TrendingUp}   label="Performance"  badge="AI" badgeColor={RED}/>
+        <NavLink to="/scout"         startsWith icon={Target}       label="Scout"        badge="NEW" badgeColor={TEAL}/>
+        <NavLink to="/scout/history" startsWith icon={Clock}        label="Scout History"/>
+        <NavLink to="/desk"          startsWith icon={Inbox}        label="MooseDesk"/>
+        <NavLink to="/desk/knowledge" startsWith icon={Brain}       label="Q&A Knowledge"/>
+        <NavLink to="/desk/reports"  startsWith icon={BarChart2}    label="Desk Reports"/>
+        <NavLink to="/seo"           startsWith icon={TrendingUp}   label="SEO Hub"/>
+      </div>
+
+      {/* Agency section */}
+      <div style={{ padding:'0 8px 8px', flexShrink:0, borderTop:'1px solid rgba(255,255,255,.06)' }}>
+        <SectionLabel label="Agency"/>
+        <NavLink to="/integrations" icon={Plug}     label="Integrations"/>
+        <NavLink to="/platform"     startsWith icon={Cpu} label="Platform Admin"/>
+        <NavLink to="/settings"     exact icon={Settings} label="Settings"/>
+      </div>
+
+      {/* User footer */}
+      <div style={{ padding:'10px 12px', borderTop:'1px solid rgba(255,255,255,.06)', flexShrink:0,
+        display:'flex', alignItems:'center', gap:10 }}>
+        <div style={{ width:28, height:28, borderRadius:8, background:RED,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:11, fontWeight:800, color:'#fff', flexShrink:0 }}>
+          {(firstName||'A')[0].toUpperCase()}
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,.85)',
+            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            {firstName || 'Account'}
           </div>
         </div>
-        <NavLink to="/" exact icon={LayoutGrid} label="Project Hub" />
-        <NavLink to="/clients" icon={Users} label="Clients" startsWith />
-        <NavLink to="/reviews" icon={MessageSquare} label="Reviews" startsWith />
-        <NavLink to="/proposals" icon={FileSignature} label="Proposals" startsWith />
-        <NavLink to="/automations" icon={Workflow} label="Automations" />
-
-        {/* ── SEO / INTELLIGENCE ── */}
-        <SectionLabel label="Intelligence" />
-        <NavLink to="/perf" icon={TrendingUp} label="Performance" startsWith badge="NEW" badgeColor="#ea2729" />
-        <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#5bc6d0" />
-        <NavLink to="/scout/history" icon={Clock} label="Scout History" startsWith />
-        <NavLink to="/desk" icon={Inbox} label="MooseDesk" startsWith />
-        <NavLink to="/desk/knowledge" icon={Brain} label="Q&A Knowledge" startsWith />
-        <NavLink to="/desk/reports" icon={BarChart2} label="Desk Reports" startsWith />
-        <NavLink to="/seo" icon={TrendingUp} label="SEO Hub" startsWith />
-
-        {/* ── AGENCY ── */}
-        <SectionLabel label="Agency" />
-        <NavLink to="/integrations" icon={Plug} label="Integrations" />
-        <NavLink to="/setup" icon={Settings} label="Setup & Connections" />
-        <NavLink to="/agency-settings" icon={Shield} label="Agency Settings" />
-        <NavLink to="/settings" icon={Settings} label="Settings" exact />
-        <NavLink to="/platform" icon={Cpu} label="Platform Admin" startsWith />
-
-        {/* ── DEV / COMING SOON ── */}
-        <DevSection />
-
-        {/* ── CLIENT LIST ── */}
-        <div className="pt-3 pb-1">
-          <div className="flex items-center justify-between px-3 mb-1">
-            <span className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider">Clients</span>
-            <button onClick={() => setShowNewClient(v => !v)} className="text-gray-300 hover:text-white transition-colors" title="Add client"><Plus size={13} /></button>
-          </div>
-
-          {showNewClient && (
-            <form onSubmit={handleAddClient} className="mx-2 mb-2 p-2.5 bg-white/10 rounded-lg space-y-1.5">
-              <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-gray-500"
-                placeholder="Client name" value={newClientName} onChange={e => setNewClientName(e.target.value)} autoFocus />
-              <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-gray-500"
-                placeholder="Client email (optional)" type="email" value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
-              <div className="flex gap-1.5">
-                <button type="submit" className="flex-1 bg-brand-500 text-white text-sm py-1 rounded font-medium hover:bg-brand-600 transition-colors">Add</button>
-                <button type="button" onClick={() => setShowNewClient(false)} className="flex-1 bg-white/10 text-gray-300 text-sm py-1 rounded hover:bg-white/20 transition-colors">Cancel</button>
-              </div>
-            </form>
-          )}
-
-          {clients.map(client => (
-            <div key={client.id}>
-              {editingClient === client.id ? (
-                <form onSubmit={handleRenameClient} className="mx-2 mb-1">
-                  <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    value={editClientName} onChange={e => setEditClientName(e.target.value)} autoFocus
-                    onBlur={() => setEditingClient(null)} onKeyDown={e => e.key === 'Escape' && setEditingClient(null)} />
-                </form>
-              ) : (
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-colors group ${
-                  activeClientId === client.id ? 'bg-white/10 text-white font-medium' : 'text-gray-200 hover:text-white hover:bg-white/5'
-                }`} onClick={() => { toggleClient(client.id); navigate(`/client/${client.id}`) }}
-                  onContextMenu={e => handleContextMenu(e, 'client', client.id)}>
-                  {expanded[client.id] ? <FolderOpen size={13} className={`flex-shrink-0 ${activeClientId === client.id ? 'text-brand-500' : 'text-gray-400'}`} /> : <Folder size={13} className="flex-shrink-0 text-gray-400" />}
-                  <span className="text-sm flex-1 truncate">{client.name}</span>
-                  <button onClick={e => { e.stopPropagation(); handleContextMenu(e, 'client', client.id) }}
-                    className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-white transition-all p-0.5"><MoreHorizontal size={12} /></button>
-                </div>
-              )}
-
-              {expanded[client.id] && (
-                <div className="ml-3 pl-3 border-l border-white/10 mb-1">
-                  {(projects[client.id] || []).map(proj => (
-                    editingProject === proj.id ? (
-                      <form key={proj.id} onSubmit={handleRenameProject} className="mb-1">
-                        <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
-                          value={editProjectName} onChange={e => setEditProjectName(e.target.value)} autoFocus
-                          onBlur={() => setEditingProject(null)} onKeyDown={e => e.key === 'Escape' && setEditingProject(null)} />
-                      </form>
-                    ) : (
-                      <div key={proj.id} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm transition-colors group/proj cursor-pointer ${
-                        activeProjectId === proj.id ? 'bg-brand-500/20 text-brand-400 font-medium' : 'text-gray-300 hover:text-white hover:bg-white/5'
-                      }`} onClick={() => navigate(`/project/${proj.id}`)}
-                        onContextMenu={e => handleContextMenu(e, 'project', proj.id)}>
-                        <span className="truncate flex-1">{proj.name}</span>
-                        <button onClick={e => { e.stopPropagation(); handleContextMenu(e, 'project', proj.id) }}
-                          className="opacity-0 group-hover/proj:opacity-100 text-gray-500 hover:text-white transition-all p-0.5"><MoreHorizontal size={10} /></button>
-                      </div>
-                    )
-                  ))}
-                  <Link to={`/client/${client.id}/brand`}
-                    className="flex items-center gap-1.5 px-2 py-1 text-sm text-gray-400 hover:text-gray-200 transition-colors w-full">
-                    <Palette size={11} /> Brand Guidelines
-                  </Link>
-                  <button onClick={() => setNewProjectClientId(client.id)}
-                    className="flex items-center gap-1.5 px-2 py-1 text-sm text-gray-400 hover:text-gray-200 transition-colors w-full">
-                    <Plus size={11} /> New project
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </nav>
-
-      <div className="border-t border-white/10 p-2 space-y-0.5">
-        <SidebarHelp />
-        <button onClick={handleSignOut} className="flex items-center gap-2 hover:text-gray-200 text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition-colors w-full" style={{ color:"rgba(255,255,255,.45)", fontSize:14 }}>
-          <LogOut size={13} /> Sign out
+        <button onClick={handleSignOut}
+          style={{ padding:5, background:'none', border:'none', cursor:'pointer',
+            color:'rgba(255,255,255,.25)', borderRadius:6, transition:'color .1s' }}
+          onMouseEnter={e=>e.currentTarget.style.color='rgba(255,255,255,.6)'}
+          onMouseLeave={e=>e.currentTarget.style.color='rgba(255,255,255,.25)'}>
+          <LogOut size={13}/>
         </button>
       </div>
 
-      {/* Context menu */}
-      {contextMenu && (
-        <div className="fixed z-50 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 min-w-[160px]"
-          style={{ left: contextMenu.x, top: contextMenu.y }} onClick={e => e.stopPropagation()}>
-          {contextMenu.type === 'client' && (
-            <>
-              <button onClick={() => { setEditingClient(contextMenu.id); setEditClientName(clients.find(c => c.id === contextMenu.id)?.name || ''); setContextMenu(null) }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Edit2 size={13} /> Rename Client</button>
-              <button onClick={() => { handleDeleteClient(contextMenu.id); setContextMenu(null) }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"><Trash2 size={13} /> Delete Client</button>
-            </>
-          )}
-          {contextMenu.type === 'project' && (() => {
-            const proj = Object.values(projects).flat().find(p => p.id === contextMenu.id)
-            return (
-              <>
-                <button onClick={() => { setEditingProject(contextMenu.id); setEditProjectName(proj?.name || ''); setContextMenu(null) }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Edit2 size={13} /> Rename Project</button>
-                <button onClick={() => { handleDeleteProject(contextMenu.id, proj?.client_id); setContextMenu(null) }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"><Trash2 size={13} /> Delete Project</button>
-              </>
-            )
-          })()}
-        </div>
+      {newProjClient && (
+        <NewProjectModal
+          client={newProjClient}
+          onClose={()=>setNewProjClient(null)}
+          onCreated={()=>setNewProjClient(null)}
+        />
       )}
-
-      {newProjectClientId && (
-        <NewProjectModal clientId={newProjectClientId} clientName={clients.find(c => c.id === newProjectClientId)?.name || ''}
-          onClose={() => setNewProjectClientId(null)}
-          onCreated={(data) => { setNewProjectClientId(null); loadProjects(data.client_id); navigate(`/project/${data.id}`) }} />
-      )}
-    </aside>
+    </div>
   )
 }
