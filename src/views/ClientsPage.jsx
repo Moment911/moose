@@ -36,7 +36,14 @@ export default function ClientsPage() {
     e.preventDefault()
     if (!form.name.trim()) { toast.error('Name is required'); return }
     const { data, error } = await createClient_(form.name.trim(), form.email.trim(), agencyId)
-    if (error) { toast.error(error.message); return }
+    if (error) {
+      if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
+        toast.error('Setup required: Run the SQL seed file in Supabase to create your agency record first. See supabase/migrations/20260411_fix_fk_and_seed.sql')
+      } else {
+        toast.error(error.message)
+      }
+      return
+    }
     toast.success('Client created')
     setForm({ name: '', email: '', phone: '', website: '' })
     setShowAdd(false)
@@ -48,7 +55,14 @@ export default function ClientsPage() {
       name: form.name.trim(),
       email: form.email.trim(),
     })
-    if (error) { toast.error(error.message); return }
+    if (error) {
+      if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
+        toast.error('Setup required: Run the SQL seed file in Supabase to create your agency record first. See supabase/migrations/20260411_fix_fk_and_seed.sql')
+      } else {
+        toast.error(error.message)
+      }
+      return
+    }
     toast.success('Client updated')
     setEditingId(null)
     setForm({ name: '', email: '', phone: '', website: '' })
@@ -58,7 +72,14 @@ export default function ClientsPage() {
   async function handleDelete(id, name) {
     if (!confirm(`Delete "${name}" and all their projects?`)) return
     const { error } = await deleteClient(id)
-    if (error) { toast.error(error.message); return }
+    if (error) {
+      if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
+        toast.error('Setup required: Run the SQL seed file in Supabase to create your agency record first. See supabase/migrations/20260411_fix_fk_and_seed.sql')
+      } else {
+        toast.error(error.message)
+      }
+      return
+    }
     toast.success('Client deleted')
     loadClients()
   }

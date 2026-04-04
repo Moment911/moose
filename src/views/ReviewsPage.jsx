@@ -397,15 +397,10 @@ export default function ReviewsPage() {
 
   const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
-  useEffect(() => { init() }, [])
-
-  async function init() {
-    const aid = agencyId || '00000000-0000-0000-0000-000000000099'
-    loadClients(aid)
-  }
-
-  async function loadClients(aId) {
-  }
+  // Auto-load data when global selected client changes (from sidebar click or context)
+  useEffect(() => {
+    if (selectedClient) loadClientData(selectedClient)
+  }, [selectedClient?.id])
 
   async function loadClientData(client) {
     setSelectedClient(client)  // update global context
