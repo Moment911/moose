@@ -177,6 +177,10 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           location.pathname.startsWith('/social') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><Star size={15} className={location.pathname.startsWith('/social') ? 'text-brand-500' : ''} /> Social Planner</Link>
 
+        <Link to="/reviews" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname.startsWith('/reviews') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><MessageSquare size={15} className={location.pathname.startsWith('/reviews') ? 'text-brand-500' : ''} /> Reviews</Link>
+
         <Link to="/payments" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname.startsWith('/payments') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><DollarSign size={15} className={location.pathname.startsWith('/payments') ? 'text-brand-500' : ''} /> Payments</Link>

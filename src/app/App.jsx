@@ -58,6 +58,7 @@ import PaymentsPage from '../views/PaymentsPage'
 import AIAgentsPage from '../views/AIAgentsPage'
 import ReportingPage from '../views/ReportingPage'
 import SocialPlannerPage from '../views/SocialPlannerPage'
+import ReviewsPage from '../views/ReviewsPage'
 
 export default function App() {
   return (
@@ -81,6 +82,7 @@ export default function App() {
           <Route path="/ai-agents" element={<AIAgentsPage />} />
           <Route path="/reporting" element={<ReportingPage />} />
           <Route path="/social" element={<SocialPlannerPage />} />
+          <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />
