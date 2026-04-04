@@ -137,15 +137,17 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
     <aside className="hidden md:flex w-56 flex-col h-full flex-shrink-0" style={{ background: '#18181b' }}>
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-brand-500 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-              <path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+        <div style={{display:'flex',alignItems:'center',gap:9}}>
+          <div style={{width:30,height:30,borderRadius:8,background:'#E8551A',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <path d="M10 2C7 2 5 4 5 7c0 1.5.7 2.8 1.8 3.6L6 17h8l-.8-6.4C14.3 9.8 15 8.5 15 7c0-3-2-5-5-5z" fill="white"/>
+              <circle cx="8" cy="7" r="1.2" fill="#E8551A"/>
+              <circle cx="12" cy="7" r="1.2" fill="#E8551A"/>
             </svg>
           </div>
           <div>
-            <div className="text-white text-sm font-semibold leading-none">Lucy</div>
-            <div className="text-gray-500 text-[10px] mt-0.5">by Moose</div>
+            <div className="text-white text-sm font-semibold leading-none">Moose AI</div>
+            <div className="text-gray-500 text-[10px] mt-0.5">Marketing Platform</div>
           </div>
         </div>
       </div>
@@ -201,7 +203,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
             <span className="font-semibold tracking-wider text-xs">SCOUT</span>
             <span className="ml-auto text-[8px] bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none">NEW</span>
           </Link>
-          <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 mt-2 mb-1">LucySEO</p>
+          <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 mt-2 mb-1">SEO</p>
           <Link to="/seo" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
             <TrendingUp size={14} className={location.pathname === '/seo' ? 'text-green-400' : ''} /> Dashboard
           </Link>

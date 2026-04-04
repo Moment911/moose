@@ -116,7 +116,7 @@ export default function SEOPluginPage() {
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
               <Puzzle size={48} className="text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No Sites Connected</h3>
-              <p className="text-sm text-gray-400 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Lucy.</p>
+              <p className="text-sm text-gray-400 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Moose AI.</p>
               <div className="bg-gray-50 rounded-xl p-4 max-w-md mx-auto text-left mb-6">
                 <p className="text-xs font-semibold text-gray-600 mb-2">Setup Steps:</p>
                 {['Install HyperLocal SEO Pro on WordPress', 'Go to WordPress → HyperLocal SEO → Agency Connect', 'Generate API key and copy it', 'Click "Connect Site" and paste the key'].map((s, i) => (

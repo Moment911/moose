@@ -196,7 +196,7 @@ export default function SEOConnectPage() {
               {!hasAnyConnection && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                   <div className="flex items-center gap-2 justify-center mb-3 text-xs text-green-600">
-                    <Shield size={14} /> Read-only access — Lucy cannot modify your Google accounts
+                    <Shield size={14} /> Read-only access — Moose AI cannot modify your Google accounts
                   </div>
                   <button onClick={startGoogleOAuth} disabled={connecting}
                     className="inline-flex items-center gap-3 px-8 py-3 rounded-xl text-white font-semibold text-base transition-all hover:shadow-lg disabled:opacity-50"
@@ -215,7 +215,7 @@ export default function SEOConnectPage() {
                   <Check size={32} className="text-green-500 mx-auto mb-3" />
                   <h3 className="text-base font-semibold text-green-800 mb-1">Connected Successfully!</h3>
                   <p className="text-sm text-green-600 mb-4">Search Console and Analytics are now linked.</p>
-                  <button onClick={() => navigate('/seo')} className="btn-primary text-sm">Go to LucySEO Dashboard →</button>
+                  <button onClick={() => navigate('/seo')} className="btn-primary text-sm">Go to Moose SEO Dashboard →</button>
                 </div>
               )}
 

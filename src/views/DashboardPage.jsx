@@ -216,7 +216,7 @@ export default function DashboardPage() {
           {!selectedClient && clients.length === 0 && (
             <div className="text-center py-24 bg-white rounded-2xl border border-gray-200">
               <FolderOpen size={32} strokeWidth={1.5} className="text-brand-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Lucy</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Moose AI</h2>
               <p className="text-gray-500 text-sm max-w-md mx-auto">Create your first client using the sidebar to get started.</p>
             </div>
           )}

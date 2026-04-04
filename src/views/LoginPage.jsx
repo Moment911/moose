@@ -36,7 +36,7 @@ export default function LoginPage() {
                 <path d="M14.5 14.5l1 1 2-2" stroke="#ea2729" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="text-white font-semibold text-lg tracking-tight">Lucy</span>
+            <span className="text-white font-semibold text-lg tracking-tight">Moose AI</span>
           </div>
           <p className="text-gray-400 text-sm">Design feedback made simple</p>
         </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
           </form>
         </div>
         <p className="text-center text-gray-500 text-xs mt-6">
-          Lucy by Moose &middot; <a href="/privacy" target="_blank" style={{ color: '#9ca3af', textDecoration: 'underline' }}>Privacy Policy</a>
+          Moose AI &middot; <a href="/privacy" target="_blank" style={{ color: '#9ca3af', textDecoration: 'underline' }}>Privacy Policy</a>
         </p>
       </div>
     </div>
