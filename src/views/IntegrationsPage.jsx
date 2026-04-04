@@ -1,174 +1,371 @@
 "use client";
 import { useState, useEffect } from 'react'
-import { MessageSquare, Mail, Zap, Calendar, Phone, Cloud, HardDrive, Plug, Check, X, ExternalLink, Settings } from 'lucide-react'
-import Sidebar from '../components/Sidebar'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
+import { getGHLOAuthURL, CRMAdapter, mooseClientToGHLContact } from '../lib/ghl'
+import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
+import {
+  Link2, Check, X, RefreshCw, ExternalLink, Copy, Zap,
+  AlertTriangle, Settings, Activity, ArrowRight, Loader2,
+  ChevronRight, Globe, Shield, Database, Webhook
+} from 'lucide-react'
 
-const INTEGRATIONS = [
-  { key: 'resend', name: 'Resend (Email)', desc: 'Send emails to clients and team. Powered by Supabase Edge Functions.', icon: Mail, status: 'connected', fields: [] },
-  { key: 'supabase', name: 'Supabase', desc: 'Database, auth, storage, and realtime. The backbone of Moose.', icon: Cloud, status: 'connected', fields: [] },
-  { key: 'vercel', name: 'Vercel', desc: 'Hosting and deployment. Auto-deploys from GitHub.', icon: Zap, status: 'connected', fields: [] },
-  { key: 'slack', name: 'Slack', desc: 'Post notifications to Slack channels when events happen.', icon: MessageSquare, fields: [
-    { key: 'webhook_url', label: 'Incoming Webhook URL', placeholder: 'https://hooks.slack.com/services/...' },
-    { key: 'channel', label: 'Default Channel', placeholder: '#design-reviews' },
-  ], events: ['comment_added', 'round_submitted', 'annotation_resolved', 'file_uploaded'] },
-  { key: 'zapier', name: 'Zapier / Make / n8n', desc: 'Connect to 5000+ apps via webhook. Also works with Make.com, n8n, and Go High Level.', icon: Zap, fields: [
-    { key: 'webhook_url', label: 'Webhook URL', placeholder: 'https://hooks.zapier.com/...' },
-  ], events: ['comment_added', 'round_submitted', 'annotation_resolved'] },
-  { key: 'google_calendar', name: 'Google Calendar', desc: 'Sync calendar events with Google Calendar.', icon: Calendar, fields: [], comingSoon: false, note: 'Export iCal from Calendar page to sync with Google Calendar' },
-  { key: 'twilio', name: 'Twilio SMS', desc: 'Send SMS notifications to clients and team members.', icon: Phone, fields: [
-    { key: 'account_sid', label: 'Account SID', placeholder: 'AC...' },
-    { key: 'auth_token', label: 'Auth Token', placeholder: 'Token...' },
-    { key: 'phone_number', label: 'From Phone Number', placeholder: '+1234567890' },
-  ]},
-  { key: 'google_drive', name: 'Google Drive', desc: 'Attach files from Google Drive to tasks and projects.', icon: HardDrive, comingSoon: true },
-  { key: 'dropbox', name: 'Dropbox', desc: 'Attach files from Dropbox to tasks.', icon: HardDrive, comingSoon: true },
-  { key: 'hubspot', name: 'HubSpot CRM', desc: 'Sync clients as contacts in HubSpot.', icon: Plug, comingSoon: true },
-  { key: 'stripe', name: 'Stripe', desc: 'Accept payments and send invoices.', icon: Plug, comingSoon: true },
-  { key: 'figma', name: 'Figma', desc: 'Import designs directly from Figma.', icon: Plug, comingSoon: true },
-  { key: 'notion', name: 'Notion', desc: 'Sync tasks and projects with Notion.', icon: Plug, comingSoon: true },
+const ACCENT = '#E8551A'
+
+const PROVIDERS = [
+  {
+    id: 'gohighlevel', name: 'GoHighLevel', shortName: 'GHL',
+    logo: '🟡', color: '#f59e0b',
+    desc: 'Sync contacts, opportunities, conversations, appointments, and custom fields. Webhooks for real-time updates.',
+    features: ['Contacts sync (bi-directional)', 'Opportunities → Client status', 'Webhook events (50+ types)', 'Custom field mapping', 'SMS/Email via GHL', 'Calendar appointments'],
+    docsUrl: 'https://marketplace.gohighlevel.com/docs/',
+    category: 'CRM',
+  },
+  {
+    id: 'hubspot', name: 'HubSpot', shortName: 'HubSpot',
+    logo: '🟠', color: '#ff7a59',
+    desc: 'Sync contacts, deals, companies, and notes. Map Moose client profiles to HubSpot properties.',
+    features: ['Contacts & Companies sync', 'Deals pipeline sync', 'Custom properties mapping', 'Timeline events', 'Notes & activities', 'Workflows trigger'],
+    docsUrl: 'https://developers.hubspot.com/docs/api/overview',
+    category: 'CRM', comingSoon: true,
+  },
+  {
+    id: 'salesforce', name: 'Salesforce', shortName: 'SF',
+    logo: '🔵', color: '#0ea5e9',
+    desc: 'Enterprise-grade sync with Salesforce CRM. Leads, contacts, accounts, and opportunities.',
+    features: ['Leads & Contacts sync', 'Accounts mapping', 'Opportunities sync', 'Custom objects', 'Apex triggers support', 'SOQL query integration'],
+    docsUrl: 'https://developer.salesforce.com/docs/apis',
+    category: 'CRM', comingSoon: true,
+  },
+  {
+    id: 'zapier', name: 'Zapier', shortName: 'Zapier',
+    logo: '⚡', color: '#ff4a00',
+    desc: 'Connect Moose AI to 6,000+ apps via Zapier. Trigger zaps on client events, onboarding completion, and more.',
+    features: ['Trigger: Client created', 'Trigger: Onboarding submitted', 'Trigger: Persona generated', 'Action: Create client', 'Action: Update status', 'Works with any Zapier app'],
+    docsUrl: 'https://zapier.com/developer/documentation',
+    category: 'Automation', comingSoon: true,
+  },
+  {
+    id: 'make', name: 'Make (Integromat)', shortName: 'Make',
+    logo: '🟣', color: '#6d28d9',
+    desc: 'Visual workflow automation connecting Moose AI to hundreds of apps with advanced logic.',
+    features: ['Visual scenario builder', 'Real-time webhooks', 'Data transformation', 'Error handling', 'Schedule triggers', 'Custom HTTP modules'],
+    docsUrl: 'https://www.make.com/en/api-documentation',
+    category: 'Automation', comingSoon: true,
+  },
+  {
+    id: 'webhook', name: 'Custom Webhook', shortName: 'Webhook',
+    logo: '🔗', color: '#10b981',
+    desc: 'Send real-time event notifications to any URL. Works with any platform that accepts webhooks.',
+    features: ['All Moose events supported', 'HMAC signature verification', 'Retry on failure (3x)', 'Custom headers support', 'Test webhook tool', 'Event filtering'],
+    category: 'Custom',
+  },
+  {
+    id: 'rest_api', name: 'REST API', shortName: 'API',
+    logo: '📡', color: '#3b82f6',
+    desc: "Full programmatic access to all your agency's Moose data. Build your own integrations.",
+    features: ['All agency data endpoints', 'Client CRUD', 'Onboarding data', 'Persona data', 'JWT authentication', 'Rate limit: 1000 req/min'],
+    category: 'Custom',
+  },
 ]
 
+function StatusBadge({ status }) {
+  const cfg = {
+    connected:    { color: '#16a34a', bg: '#f0fdf4', label: '● Connected' },
+    disconnected: { color: '#9ca3af', bg: '#f3f4f6', label: '○ Not Connected' },
+    error:        { color: '#dc2626', bg: '#fef2f2', label: '⚠ Error' },
+    syncing:      { color: '#d97706', bg: '#fffbeb', label: '↻ Syncing' },
+  }
+  const c = cfg[status] || cfg.disconnected
+  return <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: c.bg, color: c.color }}>{c.label}</span>
+}
+
+function SyncLog({ logs }) {
+  if (!logs?.length) return <div style={{ fontSize: 13, color: '#9ca3af', padding: '20px 0', textAlign: 'center' }}>No sync activity yet</div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      {logs.map(log => (
+        <div key={log.id} style={{ display: 'flex', gap: 12, padding: '8px 0', borderBottom: '1px solid #f9fafb', alignItems: 'center' }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: log.status === 'success' ? '#22c55e' : '#ef4444', flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{log.action} {log.entity_type} · {log.entity_id?.slice(0, 12)}…</div>
+            {log.error_msg && <div style={{ fontSize: 11, color: '#dc2626' }}>{log.error_msg}</div>}
+          </div>
+          <div style={{ fontSize: 10, color: '#9ca3af' }}>{log.direction}</div>
+          <div style={{ fontSize: 10, color: '#9ca3af' }}>{new Date(log.created_at).toLocaleTimeString()}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function IntegrationsPage() {
-  const [settings, setSettings] = useState({})
-  const [editing, setEditing] = useState(null)
-  const [formConfig, setFormConfig] = useState({})
+  const { user } = useAuth()
+  const [agency, setAgency] = useState(null)
+  const [integrations, setIntegrations] = useState([])
+  const [syncLogs, setSyncLogs] = useState([])
+  const [selected, setSelected] = useState(null)
+  const [syncing, setSyncing] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [apiKey, setApiKey] = useState(null)
+  const [showApiKey, setShowApiKey] = useState(false)
+  const [webhookUrl, setWebhookUrl] = useState('')
 
-  useEffect(() => { loadSettings() }, [])
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
-  async function loadSettings() {
-    try {
-      const { data } = await supabase.from('integration_settings').select('*')
-      const map = {}; (data || []).forEach(s => { map[s.integration_name] = s }); setSettings(map)
-    } catch {}
-  }
+  useEffect(() => { loadData() }, [])
 
-  async function saveSettings(key) {
-    const existing = settings[key]
-    if (existing) {
-      await supabase.from('integration_settings').update({ config: formConfig, enabled: true, updated_at: new Date().toISOString() }).eq('id', existing.id)
-    } else {
-      await supabase.from('integration_settings').insert({ integration_name: key, config: formConfig, enabled: true, connected_at: new Date().toISOString() })
+  // Check for OAuth callback result
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('connected') === 'ghl') {
+      toast.success('GoHighLevel connected successfully! 🎉')
+      window.history.replaceState({}, '', '/integrations')
+      loadData()
     }
-    toast.success('Settings saved'); setEditing(null); loadSettings()
+    if (params.get('error')) {
+      toast.error(`Connection failed: ${params.get('error')}`)
+      window.history.replaceState({}, '', '/integrations')
+    }
+  }, [])
+
+  async function loadData() {
+    setLoading(true)
+    const { data: memberData } = await supabase.from('agency_members').select('agency_id').eq('user_id', user?.id).single()
+    if (!memberData) { setLoading(false); return }
+    const agencyId = memberData.agency_id
+    const [{ data: ag }, { data: ints }, { data: logs }] = await Promise.all([
+      supabase.from('agencies').select('*').eq('id', agencyId).single(),
+      supabase.from('crm_integrations').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false }),
+      supabase.from('crm_sync_log').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false }).limit(50),
+    ])
+    setAgency(ag); setIntegrations(ints || []); setSyncLogs(logs || [])
+    setLoading(false)
   }
 
-  async function disconnect(key) {
-    const existing = settings[key]
-    if (existing) await supabase.from('integration_settings').update({ enabled: false }).eq('id', existing.id)
-    toast.success('Disconnected'); loadSettings()
+  function connectGHL() {
+    if (!agency) return
+    const ghlClientId = process.env.NEXT_PUBLIC_GHL_CLIENT_ID || 'YOUR_GHL_CLIENT_ID'
+    const redirectUri = `${appUrl}/api/integrations/ghl/callback`
+    const url = getGHLOAuthURL(ghlClientId, redirectUri)
+    // Pass agency_id as state parameter for the OAuth callback
+    window.location.href = `${url}&state=${agency.id}`
   }
 
-  function openEdit(int) {
-    setEditing(int.key)
-    setFormConfig(settings[int.key]?.config || {})
+  async function syncAllClients(integrationId) {
+    setSyncing(integrationId)
+    const integration = integrations.find(i => i.id === integrationId)
+    if (!integration) return
+
+    try {
+      const { data: clients } = await supabase.from('clients').select('*, client_profiles(*)').eq('agency_id', agency.id).limit(50)
+      if (!clients) { setSyncing(null); return }
+
+      const adapter = new CRMAdapter(integration.provider, { access_token: integration.access_token, location_id: integration.location_id })
+      let pushed = 0, errors = 0
+
+      for (const client of clients) {
+        try {
+          const profile = client.client_profiles?.[0] || {}
+          const payload = mooseClientToGHLContact(client, profile)
+          
+          if (client.ghl_contact_id) {
+            await adapter.updateContact(client.ghl_contact_id, client, profile)
+          } else {
+            const result = await adapter.createContact(client, profile)
+            const externalId = result.contact?.id || result.id
+            if (externalId) {
+              await supabase.from('clients').update({ ghl_contact_id: externalId, ghl_location_id: integration.location_id }).eq('id', client.id)
+            }
+          }
+          pushed++
+        } catch (e) {
+          errors++
+          await supabase.from('crm_sync_log').insert({ integration_id: integrationId, agency_id: agency.id, client_id: client.id, direction: 'push', entity_type: 'contact', action: 'update', status: 'error', error_msg: e.message })
+        }
+      }
+
+      await supabase.from('crm_integrations').update({ last_sync_at: new Date().toISOString(), total_synced: (integration.total_synced || 0) + pushed }).eq('id', integrationId)
+      toast.success(`Sync complete: ${pushed} pushed, ${errors} errors`)
+      loadData()
+    } catch (e) {
+      toast.error(`Sync failed: ${e.message}`)
+    }
+    setSyncing(null)
   }
+
+  async function disconnect(integrationId) {
+    if (!confirm('Disconnect this integration? Client links will be preserved but no new syncs will occur.')) return
+    await supabase.from('crm_integrations').update({ status: 'disconnected', access_token: null, refresh_token: null }).eq('id', integrationId)
+    toast.success('Integration disconnected'); loadData()
+  }
+
+  function getIntegration(providerId) {
+    return integrations.find(i => i.provider === providerId)
+  }
+
+  if (loading) return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 size={28} color={ACCENT} style={{ animation: 'spin 1s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f4f5' }}>
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-white">
-        <div style={{ background: '#231f20' }} className="px-8 py-6">
-          <h1 className="text-2xl font-bold text-white">Integrations</h1>
-          <p className="text-sm text-gray-400 mt-1">Connect Moose to your favorite tools</p>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Header */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 28px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ flex: 1 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 800, color: '#111', margin: 0 }}>Integrations</h1>
+            <p style={{ fontSize: 12, color: '#9ca3af', margin: '3px 0 0' }}>Connect Moose AI to your CRM, automation tools, and custom systems</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <span style={{ fontSize: 12, color: '#9ca3af', padding: '6px 14px', borderRadius: 9, background: '#f3f4f6' }}>
+              Webhook URL: <code style={{ fontFamily: 'monospace', color: '#374151' }}>{appUrl}/api/webhooks/ghl</code>
+            </span>
+          </div>
         </div>
 
-        <div className="px-8 py-6">
-          {/* Connected */}
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Connected</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
-            {INTEGRATIONS.filter(i => i.status === 'connected' || settings[i.key]?.enabled).map(int => {
-              const I = int.icon
-              return (
-                <div key={int.key} className="card p-5 relative">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0"><I size={18} strokeWidth={1.5} className="text-green-600" /></div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-gray-900">{int.name}</h3>
-                        <span className="text-[9px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full font-medium">Connected</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">{int.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 0, height: 'calc(100vh - 65px)' }}>
+          {/* Main */}
+          <div style={{ overflowY: 'auto', padding: '22px 28px' }}>
 
-          {/* Configurable */}
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Available</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
-            {INTEGRATIONS.filter(i => !i.comingSoon && i.status !== 'connected' && !settings[i.key]?.enabled && i.fields?.length > 0).map(int => {
-              const I = int.icon; const isEditing = editing === int.key
-              return (
-                <div key={int.key} className="card p-5">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0"><I size={18} strokeWidth={1.5} className="text-gray-500" /></div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900">{int.name}</h3>
-                      <p className="text-xs text-gray-500 mt-1">{int.desc}</p>
-                    </div>
+            {/* GHL featured integration */}
+            <div style={{ background: 'linear-gradient(135deg,#18181b,#1f1f1f)', borderRadius: 18, padding: '24px 28px', marginBottom: 24, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, #f59e0b15 0%, transparent 70%)' }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, position: 'relative', zIndex: 1 }}>
+                <div style={{ fontSize: 44 }}>🟡</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>GoHighLevel</div>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#f59e0b', background: '#f59e0b20', border: '1px solid #f59e0b40', borderRadius: 20, padding: '2px 10px' }}>RECOMMENDED</span>
+                    {getIntegration('gohighlevel') && <StatusBadge status={getIntegration('gohighlevel').status} />}
                   </div>
-                  {isEditing ? (
-                    <div className="space-y-2 mt-3">
-                      {int.fields.map(f => (
-                        <div key={f.key}>
-                          <label className="text-[10px] text-gray-500 block mb-0.5">{f.label}</label>
-                          <input className="input text-xs" placeholder={f.placeholder} value={formConfig[f.key] || ''} onChange={e => setFormConfig(prev => ({ ...prev, [f.key]: e.target.value }))} />
+                  <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6, marginBottom: 16, maxWidth: 580 }}>
+                    Full bi-directional sync between Moose AI and GHL. Contacts, opportunities, conversations, appointments, and custom fields. Real-time webhooks for 50+ event types.
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
+                    {['Contacts sync', 'Opportunities', 'Webhooks (50+ events)', 'Custom fields', 'SMS/Email send', 'Calendar sync'].map(f => (
+                      <span key={f} style={{ fontSize: 12, fontWeight: 600, color: '#a1a1aa', background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 20, padding: '3px 11px', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Check size={10} color="#22c55e" strokeWidth={3} /> {f}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {getIntegration('gohighlevel')?.status === 'connected' ? (
+                      <>
+                        <button onClick={() => syncAllClients(getIntegration('gohighlevel').id)} disabled={syncing === getIntegration('gohighlevel').id}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 9, border: 'none', background: '#f59e0b', color: '#000', fontSize: 13, fontWeight: 700, cursor: 'pointer', opacity: syncing ? .7 : 1 }}>
+                          {syncing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} />}
+                          {syncing ? 'Syncing…' : 'Sync All Clients Now'}
+                        </button>
+                        <button onClick={() => disconnect(getIntegration('gohighlevel').id)}
+                          style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,.15)', background: 'transparent', color: '#a1a1aa', fontSize: 13, cursor: 'pointer' }}>
+                          Disconnect
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={connectGHL}
+                        style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 9, border: 'none', background: '#f59e0b', color: '#000', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}>
+                        Connect GoHighLevel <ArrowRight size={15} />
+                      </button>
+                    )}
+                    <a href="https://marketplace.gohighlevel.com/docs/" target="_blank" rel="noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: 9, border: '1px solid rgba(255,255,255,.15)', background: 'transparent', color: '#a1a1aa', fontSize: 13, textDecoration: 'none' }}>
+                      <ExternalLink size={12} /> Docs
+                    </a>
+                  </div>
+                  {getIntegration('gohighlevel')?.status === 'connected' && (
+                    <div style={{ marginTop: 14, display: 'flex', gap: 16, fontSize: 12, color: '#52525b' }}>
+                      <span>Location: <strong style={{ color: '#a1a1aa' }}>{getIntegration('gohighlevel').location_id}</strong></span>
+                      <span>Last sync: <strong style={{ color: '#a1a1aa' }}>{getIntegration('gohighlevel').last_sync_at ? new Date(getIntegration('gohighlevel').last_sync_at).toLocaleString() : 'Never'}</strong></span>
+                      <span>Total synced: <strong style={{ color: '#22c55e' }}>{getIntegration('gohighlevel').total_synced || 0}</strong></span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Setup guide for GHL */}
+            {!getIntegration('gohighlevel') && (
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 24 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 14 }}>📋 How to connect GoHighLevel</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+                  {[
+                    { n: '1', title: 'Create GHL App', desc: 'Go to marketplace.gohighlevel.com → My Apps → Create App', icon: '🏪' },
+                    { n: '2', title: 'Set Redirect URI', desc: `Add ${appUrl}/api/integrations/ghl/callback to your app`, icon: '🔗' },
+                    { n: '3', title: 'Add Webhook URL', desc: `Set ${appUrl}/api/webhooks/ghl in GHL app Webhooks section`, icon: '📡' },
+                    { n: '4', title: 'Click Connect', desc: 'Click Connect GoHighLevel above to authorize via OAuth 2.0', icon: '✅' },
+                  ].map(s => (
+                    <div key={s.n} style={{ background: '#f9fafb', borderRadius: 12, padding: '14px', border: '1px solid #f3f4f6', textAlign: 'center' }}>
+                      <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 5 }}>{s.title}</div>
+                      <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5 }}>{s.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Other integrations grid */}
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>More Integrations</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 14 }}>
+              {PROVIDERS.filter(p => p.id !== 'gohighlevel').map(provider => {
+                const integration = getIntegration(provider.id)
+                return (
+                  <div key={provider.id} style={{ background: '#fff', borderRadius: 16, border: `1px solid ${integration?.status === 'connected' ? provider.color + '40' : '#e5e7eb'}`, padding: '20px 20px', opacity: provider.comingSoon ? .65 : 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                      <span style={{ fontSize: 32 }}>{provider.logo}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 15, fontWeight: 800, color: '#111' }}>{provider.name}</span>
+                          {provider.comingSoon && <span style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af', background: '#f3f4f6', borderRadius: 20, padding: '1px 7px' }}>SOON</span>}
+                          {integration && <StatusBadge status={integration.status} />}
+                        </div>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', background: '#f3f4f6', borderRadius: 20, padding: '2px 8px' }}>{provider.category}</span>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.55, marginBottom: 14 }}>{provider.desc}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+                      {provider.features.slice(0, 3).map(f => (
+                        <div key={f} style={{ display: 'flex', gap: 7, fontSize: 12, color: '#374151' }}>
+                          <Check size={12} color={provider.color} strokeWidth={3} style={{ flexShrink: 0, marginTop: 1 }} /> {f}
                         </div>
                       ))}
-                      {int.events && (
-                        <div>
-                          <label className="text-[10px] text-gray-500 block mb-1">Events</label>
-                          <div className="space-y-1">
-                            {int.events.map(ev => (
-                              <label key={ev} className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                                <input type="checkbox" checked={formConfig[`event_${ev}`] !== false} onChange={e => setFormConfig(prev => ({ ...prev, [`event_${ev}`]: e.target.checked }))} className="w-3.5 h-3.5 rounded border-gray-300 text-brand-500" />
-                                {ev.replace(/_/g, ' ')}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={() => saveSettings(int.key)} className="btn-primary text-xs">Connect</button>
-                        <button onClick={() => setEditing(null)} className="btn-secondary text-xs">Cancel</button>
-                      </div>
                     </div>
-                  ) : (
-                    <button onClick={() => openEdit(int)} className="btn-secondary text-xs mt-2 w-full justify-center"><Settings size={12} /> Configure</button>
-                  )}
-                  {int.note && <p className="text-[10px] text-gray-400 mt-2">{int.note}</p>}
-                </div>
-              )
-            })}
+                    <button disabled={provider.comingSoon || (provider.id === 'rest_api')}
+                      onClick={() => provider.id === 'gohighlevel' ? connectGHL() : null}
+                      style={{ width: '100%', padding: '10px', borderRadius: 10, border: `1.5px solid ${provider.comingSoon ? '#e5e7eb' : provider.color}`, background: provider.comingSoon ? '#f9fafb' : '#fff', color: provider.comingSoon ? '#9ca3af' : provider.color, fontSize: 13, fontWeight: 700, cursor: provider.comingSoon ? 'not-allowed' : 'pointer' }}>
+                      {provider.comingSoon ? 'Coming Soon' : integration?.status === 'connected' ? '✓ Connected' : `Connect ${provider.shortName}`}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
-          {/* Coming Soon */}
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Coming Soon</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {INTEGRATIONS.filter(i => i.comingSoon).map(int => {
-              const I = int.icon
-              return (
-                <div key={int.key} className="card p-5 opacity-60">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0"><I size={18} strokeWidth={1.5} className="text-gray-400" /></div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-gray-700">{int.name}</h3>
-                        <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">Coming Soon</span>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1">{int.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+          {/* Right — sync log */}
+          <div style={{ borderLeft: '1px solid #e5e7eb', background: '#fff', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+            <div style={{ padding: '16px 18px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Activity size={14} color={ACCENT} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>Sync Activity</span>
+              <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>{syncLogs.length} events</span>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px' }}>
+              <SyncLog logs={syncLogs} />
+            </div>
           </div>
         </div>
-      </main>
+      </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }
