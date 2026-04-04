@@ -181,21 +181,6 @@ function TicketRow({ ticket }) {
   )
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-function getFirstName(user) {
-  if (!user) return ''
-  const meta = user.user_metadata
-  if (meta?.full_name) return meta.full_name.split(' ')[0]
-  if (meta?.name)      return meta.name.split(' ')[0]
-  return user.email?.split('@')[0] || ''
-}
-
-function getGreeting(name) {
-  const h = new Date().getHours()
-  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
-  return name ? g + ', ' + name + '!' : g + '!'
-}
-
 export default function ClientDashboardPage() {
   const { user } = useAuth()
   const firstName = getFirstName(user)
