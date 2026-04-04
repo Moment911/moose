@@ -188,7 +188,7 @@ function ProvenancePanel({ lead }) {
             <div style={{ fontSize:13, color:'#4b5563', marginTop:5 }}>
               {lead._real_data ? 'Live data from Google Places API — verified business' :
                verified.length>=2 ? `${verified.length} data points verified locally` :
-               'AI-generated — verify before outreach'}
+               'Live Google data · Claude enriched'}
               {mismatches.length>0 && ` · ${mismatches.length} flag${mismatches.length>1?'s':''} detected`}
             </div>
           </div>
@@ -416,9 +416,6 @@ export default function ScoutPage() {
   const [selectedLead, setSelectedLead] = useState(null)
 
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
-  const googleKeyAvailable = hasGoogleKey()
-
-
   async function runSearch() {
     const term = query.trim() || selectedIndustries.map(k=>INDUSTRIES.find(i=>i.key===k)?.label).filter(Boolean).join(', ')
     if (!term && !location.trim()) { toast.error('Enter a business type or location'); return }
@@ -429,7 +426,6 @@ export default function ScoutPage() {
     let source = 'ai'
 
     // ── STEP 1: Fetch real business data from Google Places ─────────────────
-    console.log('[Scout] Google key available:', hasGoogleKey())
     if (hasGoogleKey()) {
       try {
         const { leads: googleLeads, error: googleError } = await scoutWithPlaces(term, loc, { maxResults: 20 })
@@ -446,50 +442,11 @@ export default function ScoutPage() {
       }
     }
 
-    // ── STEP 2: If no Google data, generate AI leads ────────────────────────
+    // ── STEP 2: No results = hard stop, show clear error ────────────────────
     if (leads.length === 0) {
-      try {
-        const modeExtra = mode === 'competitor'
-          ? 'COMPETITOR ANALYSIS MODE: show strengths and weaknesses. For gaps show what they do well AND where they fall short.'
-          : mode === 'market'
-          ? 'MARKET RESEARCH MODE: focus on saturation, opportunity gaps, pricing signals, trends.'
-          : ''
-        const modeLabel = mode === 'prospect' ? 'Find new agency clients' : mode === 'competitor' ? 'Competitor analysis' : 'Market research'
-        const gapFilter = filterGaps.length ? 'Must include gaps: ' + filterGaps.join(', ') + '.' : ''
-
-        const prompt = 'Generate 12 realistic ' + term + ' businesses in ' + loc + ' for a marketing agency prospect list. ' +
-          'IMPORTANT: Every business MUST be a ' + term + '. No other business types. ' +
-          'Mode: ' + modeLabel + '. ' + gapFilter + ' ' + modeExtra + ' ' +
-          'Return ONLY a JSON array. No markdown. Each object must have: ' +
-          'id(string), name(string - must be a ' + term + ' business name), address(realistic street address in ' + loc + '), phone(string), website(string), email(string), ' +
-          'rating(number 1-5), review_count(integer), score(integer 0-100), ' +
-          'temperature(string: hot or warm or lukewarm or cold), ' +
-          'years_in_business(integer), estimated_revenue(string), employee_count(string), ' +
-          'gaps(array of 2-4 short strings, no apostrophes), ' +
-          'ai_summary(string - one plain sentence, no internal quotes), ' +
-          'gbp_claimed(boolean), has_website(boolean), social_active(boolean), running_ads(boolean). ' +
-          'Score hot=75-95 warm=50-74 lukewarm=25-49 cold=0-24. Mix: 2 hot, 4 warm, 4 lukewarm, 2 cold.'
-
-        const raw = await callClaude(
-          'Return a raw JSON array only. Start with [ end with ]. No markdown no backticks no text before or after.',
-          prompt, 4000
-        )
-        let cleaned = raw.replace(/```json|```/g, '').trim()
-        const s = cleaned.indexOf('['), e = cleaned.lastIndexOf(']')
-        if (s === -1 || e === -1) throw new Error('No JSON array in AI response')
-        cleaned = cleaned.slice(s, e + 1)
-        try { leads = JSON.parse(cleaned) }
-        catch(_) { leads = JSON.parse(cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }
-        source = 'ai'
-        console.log('[Scout] Using AI fallback data:', leads.length, 'results')
-      } catch(e) {
-        console.error('AI search failed:', e)
-        setSearchError(e.message?.includes('API key') || e.message?.includes('not set')
-          ? 'Search requires NEXT_PUBLIC_ANTHROPIC_API_KEY in Vercel environment variables.'
-          : 'Search failed: ' + e.message)
-        setSearching(false)
-        return
-      }
+      setSearchError('No businesses found for "' + term + '" in ' + loc + '. Try a broader search term or different location.')
+      setSearching(false)
+      return
     }
 
     // ── STEP 3: Claude intelligence layer — runs on ALL leads (Google + AI) ──
@@ -771,21 +728,7 @@ export default function ScoutPage() {
                   ))}
                 </div>
               </div>
-              {/* Data source info */}
-              <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'20px 24px', marginBottom:20, display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-                <div>
-                  <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8 }}>Live Google Places Data</div>
-                  <div style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>
-                    {googleKeyAvailable
-                      ? 'Google Places API connected — results will show real businesses with verified ratings, reviews, phone numbers, and websites.'
-                      : 'Google Places API key not configured. Add NEXT_PUBLIC_GOOGLE_PLACES_KEY to Vercel for real business data.'}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8 }}>AI Fallback</div>
-                  <div style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>When Google Places is unavailable, Claude AI generates market-calibrated leads with ZIP/area code cross-referencing and data confidence scoring.</div>
-                </div>
-              </div>
+              {/* Data source info - only show if no real data */}
               {/* Hero */}
               <div style={{ background:'linear-gradient(135deg,#18181b,#27272a)', borderRadius:20, padding:'40px', textAlign:'center' }}>
                 <div style={{ width:64, height:64, borderRadius:'50%', background:modeConfig.color, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28 }}>
@@ -822,14 +765,12 @@ export default function ScoutPage() {
                 </div>
               )}
               {/* Data source banner */}}
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: (dataSource==='mixed'||dataSource==='google')?'#e8f9fa':'#f9fafb', border:`1px solid ${(dataSource==='mixed'||dataSource==='google')?TEAL+'60':ACCENT+'30'}` }}>
-                <Database size={14} color={(dataSource==='mixed'||dataSource==='google')?TEAL:ACCENT}/>
-                <span style={{ fontSize:15, fontWeight:700, color:(dataSource==='mixed'||dataSource==='google')?'#0e7490':'#374151' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background:'#e8f9fa', border:`1px solid ${TEAL}60` }}>
+                <Database size={14} color={TEAL}/>
+                <span style={{ fontSize:15, fontWeight:700, color:'#0e7490' }}>
                   {dataSource === 'mixed'
-                    ? `${stats?.realData||0} verified from Google Places · Claude intelligence applied to all ${results.length}`
-                    : dataSource === 'google'
-                    ? `${results.length} live businesses from Google Maps · AI enrichment in progress`
-                    : `AI-generated leads · cross-referenced against local business data`}
+                    ? `${stats?.realData||0} real businesses from Google Maps · Claude intelligence applied`
+                    : `${results.length} real businesses from Google Maps`}
                 </span>
                 <span style={{ marginLeft:'auto', fontSize:13, color:'#4b5563' }}>{results.length} results for "{query}" in {location}</span>
               </div>
