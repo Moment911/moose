@@ -134,7 +134,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
   }
 
   return (
-    <aside className="hidden md:flex w-56 flex-col h-full flex-shrink-0" style={{ background: '#231f20' }}>
+    <aside className="hidden md:flex w-56 flex-col h-full flex-shrink-0" style={{ background: '#18181b' }}>
       {/* Logo */}
       <div className="px-4 py-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
