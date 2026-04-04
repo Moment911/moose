@@ -543,7 +543,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     if (!msg) return null;
     return (
       <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
-        <img src="/momenta-logo-white.svg" alt="Momenta" style={{ height: 22, opacity: .85 }} />
+        <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 22, opacity: .85 }} />
         <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 500 }}>{msg(firstName)}</span>
       </div>
@@ -554,7 +554,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   const Header = () => (
     <div style={{ background: '#18181b', padding: '0 24px', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 2px 16px rgba(0,0,0,.3)' }}>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, height: 62 }}>
-        <img src="/momenta-logo-white.svg" alt="Momenta" style={{ height: 26 }} />
+        <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 26 }} />
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 12, color: '#52525b', fontWeight: 500 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
@@ -648,7 +648,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,.07)' }}>
           <div style={{ background: 'linear-gradient(160deg,#18181b,#27272a)', padding: '52px 48px', textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-            <img src="/momenta-logo-white.svg" alt="Momenta" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
+            <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 28 }}>
               <span style={{ fontSize: 11, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Moose AI</span>

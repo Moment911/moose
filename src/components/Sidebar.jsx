@@ -136,20 +136,9 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
   return (
     <aside className="hidden md:flex w-56 flex-col h-full flex-shrink-0" style={{ background: '#18181b' }}>
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-white/10">
-        <div style={{display:'flex',alignItems:'center',gap:9}}>
-          <div style={{width:30,height:30,borderRadius:8,background:'#E8551A',display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2C7 2 5 4 5 7c0 1.5.7 2.8 1.8 3.6L6 17h8l-.8-6.4C14.3 9.8 15 8.5 15 7c0-3-2-5-5-5z" fill="white"/>
-              <circle cx="8" cy="7" r="1.2" fill="#E8551A"/>
-              <circle cx="12" cy="7" r="1.2" fill="#E8551A"/>
-            </svg>
-          </div>
-          <div>
-            <div className="text-white text-sm font-semibold leading-none">Moose AI</div>
-            <div className="text-gray-500 text-[10px] mt-0.5">Marketing Platform</div>
-          </div>
-        </div>
+      <div className="px-4 py-4 border-b border-white/10">
+        <img src="/moose-logo-white.svg" alt="Moose AI" style={{height:32,width:'auto',display:'block',marginBottom:2}}/>
+        <div className="text-gray-500 text-[10px]">Marketing Platform</div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
