@@ -5,7 +5,7 @@ import {
   ChevronLeft, Building2, Globe, Phone, Mail, MapPin, Users, Calendar,
   DollarSign, Hash, Share2, Camera, AtSign, Briefcase, Video,
   Server, Palette, Target, UserPlus, Link2, Copy, Check, X, Plus, Trash2,
-  ExternalLink, Shield, CreditCard, Crown
+  ExternalLink, Shield, CreditCard, Crown, Eye, EyeOff, Lock, Sparkles
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import {
@@ -15,6 +15,8 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
+const ACCENT = '#E8551A'
+
 const TABS = [
   { key: 'overview', label: 'Overview' },
   { key: 'social', label: 'Social Media' },
@@ -23,6 +25,7 @@ const TABS = [
   { key: 'google', label: 'Google' },
   { key: 'marketing', label: 'Marketing' },
   { key: 'contacts', label: 'Contacts' },
+  { key: 'profile', label: '📋 Full Profile' },
   { key: 'onboarding', label: 'Onboarding' },
   { key: 'access', label: '🔑 Access Checklist' },
   { key: 'persona', label: '✨ AI Persona' },
@@ -39,6 +42,62 @@ const INDUSTRIES = [
   'Education', 'Non-Profit', 'Manufacturing', 'Automotive',
   'Beauty / Wellness', 'Legal', 'Entertainment', 'Other',
 ]
+
+
+// ── Masked password field ─────────────────────────────────────────────────────
+function MaskedPw({ value }) {
+  const [show, setShow] = useState(false)
+  if (!value) return <span style={{ color: '#9ca3af', fontSize: 13 }}>—</span>
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ fontFamily: show ? 'inherit' : 'monospace', fontSize: 13, color: '#111', letterSpacing: show ? 'normal' : '0.15em' }}>
+        {show ? value : '••••••••••••'}
+      </span>
+      <button onClick={() => setShow(s => !s)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 2 }}>
+        {show ? <EyeOff size={13} /> : <Eye size={13} />}
+      </button>
+      <button onClick={() => { navigator.clipboard.writeText(value); toast.success('Copied!') }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 2 }}>
+        <Copy size={13} />
+      </button>
+    </div>
+  )
+}
+
+function DataRow({ label, value, masked, link, mono }) {
+  if (!value && value !== 0) return null
+  return (
+    <div style={{ display: 'flex', gap: 16, padding: '10px 0', borderBottom: '1px solid #f9fafb', alignItems: 'flex-start' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', minWidth: 180, textTransform: 'uppercase', letterSpacing: '.04em', paddingTop: 1 }}>{label}</div>
+      <div style={{ flex: 1 }}>
+        {masked ? <MaskedPw value={value} /> : link ? (
+          <a href={value} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: '#E8551A', display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none', fontWeight: 500 }}>
+            {value.length > 50 ? value.slice(0, 50) + '…' : value} <ExternalLink size={11} />
+          </a>
+        ) : (
+          <span style={{ fontSize: 13, color: '#111', fontFamily: mono ? 'monospace' : 'inherit', lineHeight: 1.5 }}>
+            {Array.isArray(value) ? value.join(', ') : String(value)}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DataSection({ title, icon: Icon, color = '#E8551A', children }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 18 }}>
+      <div style={{ padding: '14px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 10, background: color + '06' }}>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={14} color={color} />
+        </div>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{title}</span>
+      </div>
+      <div style={{ padding: '8px 20px 14px' }}>{children}</div>
+    </div>
+  )
+}
 
 export default function ClientDetailPage() {
   const { clientId } = useParams()
@@ -590,6 +649,181 @@ export default function ClientDetailPage() {
     marketing: <MarketingTab />,
     contacts: <ContactsTab />,
     onboarding: <OnboardingTab />,
+    profile: (() => {
+      const p = profile || {}
+      const contact = p.contact || {}
+      const products = p.products_services || {}
+      const customers = p.customers || {}
+      const competitors = p.competitors || {}
+      const geo = p.geography || {}
+      const brand = p.brand || {}
+      const social = p.social || {}
+      const hosting = p.hosting || {}
+      const cms = p.cms || {}
+      const tracking = p.tracking || {}
+      const marketing = p.marketing || {}
+      const goals = p.goals || {}
+      const persona = p.ai_persona ? (typeof p.ai_persona === 'string' ? (() => { try { return JSON.parse(p.ai_persona) } catch { return {} } })() : p.ai_persona) : {}
+
+      return (
+        <div style={{ maxWidth: 900 }}>
+          {!p.business_name && !p.description && (
+            <div style={{ background: '#f9fafb', borderRadius: 14, border: '1.5px dashed #e5e7eb', padding: 40, textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
+              <div style={{ fontSize: 13, color: '#9ca3af' }}>Generate an onboarding link from the Onboarding tab and send it to your client to fill out.</div>
+            </div>
+          )}
+
+          <DataSection title="Business Identity" icon={Building2} color="#3b82f6">
+            <DataRow label="Business Name" value={p.business_name} />
+            <DataRow label="Legal Name" value={p.legal_name} />
+            <DataRow label="EIN" value={p.ein} mono />
+            <DataRow label="Industry" value={p.industry} />
+            <DataRow label="Business Type" value={p.business_type} />
+            <DataRow label="Year Founded" value={p.year_founded} />
+            <DataRow label="Employees" value={p.num_employees} />
+            <DataRow label="Annual Revenue" value={p.annual_revenue} />
+            <DataRow label="Website" value={p.website} link />
+            <DataRow label="Description" value={p.description} />
+            <DataRow label="Address" value={[p.address?.street, p.address?.city, p.address?.state, p.address?.zip].filter(Boolean).join(', ')} />
+          </DataSection>
+
+          <DataSection title="Primary Contact" icon={Users} color="#8b5cf6">
+            <DataRow label="Name" value={[contact.first_name, contact.last_name].filter(Boolean).join(' ')} />
+            <DataRow label="Title" value={contact.title} />
+            <DataRow label="Email" value={contact.email} />
+            <DataRow label="Phone" value={contact.phone} />
+          </DataSection>
+
+          <DataSection title="Products & Services" icon={ShoppingBag} color={ACCENT}>
+            <DataRow label="Description" value={products.description} />
+            <DataRow label="Top Services" value={products.top_services} />
+            <DataRow label="Pricing Model" value={products.pricing_model} />
+            <DataRow label="Avg Transaction" value={products.avg_transaction ? "$" + products.avg_transaction : null} />
+            <DataRow label="Avg Project Value" value={products.avg_project ? "$" + products.avg_project : null} />
+            <DataRow label="Visits / Year" value={products.visits_per_year} />
+            <DataRow label="Client LTV" value={products.ltv ? "$" + products.ltv : null} />
+            <DataRow label="Seasonal Notes" value={products.seasonal_notes} />
+          </DataSection>
+
+          <DataSection title="Ideal Customers" icon={Target} color="#10b981">
+            <DataRow label="Customer Types" value={customers.types} />
+            <DataRow label="Ideal Customer" value={customers.ideal_desc} />
+            <DataRow label="Age Range" value={customers.age} />
+            <DataRow label="Gender Split" value={customers.gender} />
+            <DataRow label="Income Level" value={customers.income} />
+            <DataRow label="Pain Points" value={customers.pain_points} />
+            <DataRow label="Customer Goals" value={customers.goals} />
+            <DataRow label="Lifestyle / Behavior" value={customers.lifestyle} />
+          </DataSection>
+
+          <DataSection title="Competitive Landscape" icon={Target} color="#ef4444">
+            <DataRow label="Why Choose Them" value={competitors.why_choose} />
+            <DataRow label="Unique Value Prop" value={competitors.uvp} />
+            {(competitors.list || []).filter(c => c.name).map((comp, i) => (
+              <div key={i} style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 6 }}>#{i+1} {comp.name} {comp.url && <a href={comp.url.startsWith('http') ? comp.url : 'https://' + comp.url} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', fontSize: 12, marginLeft: 8 }}>↗</a>}</div>
+                {comp.strengths && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><strong style={{ color: '#dc2626' }}>Strengths:</strong> {comp.strengths}</div>}
+                {comp.weaknesses && <div style={{ fontSize: 12, color: '#374151' }}><strong style={{ color: '#16a34a' }}>Weaknesses:</strong> {comp.weaknesses}</div>}
+              </div>
+            ))}
+          </DataSection>
+
+          <DataSection title="Target Geography" icon={MapPin} color="#3b82f6">
+            <DataRow label="Primary Market" value={[geo.primary_city, geo.primary_state].filter(Boolean).join(', ')} />
+            <DataRow label="Service Radius" value={geo.radius} />
+            <DataRow label="Target Cities" value={Array.isArray(geo.target_cities) ? geo.target_cities.join(', ') : geo.target_cities} />
+            <DataRow label="Notes" value={geo.notes} />
+          </DataSection>
+
+          <DataSection title="Brand Identity" icon={Palette} color="#f59e0b">
+            <DataRow label="Primary Color" value={brand.primary_color} />
+            <DataRow label="Accent Color" value={brand.accent_color} />
+            <DataRow label="Fonts" value={brand.fonts} />
+            <DataRow label="Tagline" value={brand.tagline} />
+            <DataRow label="Tone / Personality" value={brand.tone} />
+            <DataRow label="Logo URL" value={brand.logo_url} link />
+            <DataRow label="Assets Folder" value={brand.assets_url} link />
+            <DataRow label="Brand DO's" value={brand.dos} />
+            <DataRow label="Brand DON'Ts" value={brand.donts} />
+          </DataSection>
+
+          <DataSection title="Social Media" icon={Globe} color="#ec4899">
+            <DataRow label="Facebook" value={social.facebook} link />
+            <DataRow label="Instagram" value={social.instagram} link />
+            <DataRow label="Google Business" value={social.google_biz} link />
+            <DataRow label="Yelp" value={social.yelp} link />
+            <DataRow label="LinkedIn" value={social.linkedin} link />
+            <DataRow label="TikTok" value={social.tiktok} link />
+            <DataRow label="YouTube" value={social.youtube} link />
+            <DataRow label="Twitter / X" value={social.twitter} link />
+            <DataRow label="Facebook Followers" value={social.fb_followers} />
+            <DataRow label="Instagram Followers" value={social.ig_followers} />
+            <DataRow label="Google Rating" value={social.google_rating ? social.google_rating + "★" : null} />
+            <DataRow label="Google Reviews" value={social.google_reviews} />
+          </DataSection>
+
+          <DataSection title="Website & Hosting" icon={Server} color="#6b7280">
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: '8px 12px', display: 'flex', gap: 7, marginBottom: 12, alignItems: 'center' }}>
+              <Lock size={12} color="#dc2626" />
+              <span style={{ fontSize: 12, color: '#991b1b', fontWeight: 600 }}>Credentials are encrypted — click 👁 to reveal and 📋 to copy</span>
+            </div>
+            <DataRow label="Hosting Provider" value={hosting.provider} />
+            <DataRow label="Hosting URL" value={hosting.url} link />
+            <DataRow label="Hosting Login" value={hosting.login} />
+            <DataRow label="Hosting Password" value={hosting.password} masked />
+            <DataRow label="Domain Registrar" value={hosting.domain_registrar} />
+            <DataRow label="Domain Expiry" value={hosting.domain_expiry} />
+            <DataRow label="CMS Platform" value={cms.platform} />
+            <DataRow label="CMS URL" value={cms.url} link />
+            <DataRow label="CMS Username" value={cms.username} />
+            <DataRow label="CMS Password" value={cms.password} masked />
+            <DataRow label="GA4 ID" value={tracking.ga4_id} mono />
+            <DataRow label="GTM ID" value={tracking.gtm_id} mono />
+            <DataRow label="Facebook Pixel" value={tracking.fb_pixel} mono />
+            <DataRow label="Google Ads ID" value={tracking.google_ads_id} mono />
+          </DataSection>
+
+          <DataSection title="Marketing & Goals" icon={TrendingUp} color={ACCENT}>
+            <DataRow label="Monthly Ad Budget" value={marketing.monthly_budget} />
+            <DataRow label="Ad Platforms" value={Array.isArray(marketing.platforms) ? marketing.platforms.join(', ') : marketing.platforms} />
+            <DataRow label="Current SEO Agency" value={marketing.seo_agency} />
+            <DataRow label="Email Platform" value={marketing.email_platform} />
+            <DataRow label="Email List Size" value={marketing.email_list} />
+            <DataRow label="What Worked" value={marketing.what_worked} />
+            <DataRow label="What Didn't Work" value={marketing.what_didnt} />
+            <DataRow label="Primary Goal" value={goals.primary} />
+            <DataRow label="Secondary Goals" value={Array.isArray(goals.secondary) ? goals.secondary.join(', ') : goals.secondary} />
+            <DataRow label="Target Leads/Mo" value={goals.leads_per_month} />
+            <DataRow label="Timeline" value={goals.timeline} />
+            <DataRow label="Agency Budget" value={goals.budget} />
+            <DataRow label="Success Metrics" value={goals.metrics} />
+            <DataRow label="Additional Notes" value={goals.notes} />
+          </DataSection>
+
+          {persona.persona_name && (
+            <DataSection title={`AI Persona: "${persona.persona_name}"`} icon={Sparkles} color="#8b5cf6">
+              <DataRow label="Tagline" value={persona.tagline} />
+              <DataRow label="Age Range" value={persona.age_range} />
+              <DataRow label="Gender" value={persona.gender} />
+              <DataRow label="Income" value={persona.income} />
+              <DataRow label="Location Type" value={persona.location_type} />
+              <DataRow label="Psychographic Profile" value={persona.psychographic_summary} />
+              <DataRow label="Search Triggers" value={persona.triggers} />
+              <DataRow label="Fears / Objections" value={persona.fears} />
+              <DataRow label="Decision Factors" value={persona.decision_factors} />
+              <DataRow label="Google Keywords" value={persona.google_keywords} />
+              <DataRow label="Facebook Interests" value={persona.facebook_interests} />
+              <DataRow label="Ad Headlines" value={persona.ad_headline_angles} />
+              <DataRow label="Trust Signals" value={persona.trust_signals} />
+              <DataRow label="Best Channels" value={persona.best_channels} />
+              <DataRow label="Persona Approved" value={p.persona_approved ? "✓ Approved by client" : "Pending review"} />
+              <DataRow label="Client Feedback" value={p.persona_notes} />
+            </DataSection>
+          )}
+        </div>
+      )
+    })(),
     persona: (
       <Section title="AI Marketing Persona" description="AI-generated ideal customer profile, ad targeting, messaging playbook, and channel recommendations.">
         <a href={`/clients/${clientId}/persona`}
