@@ -10,6 +10,7 @@ import {
   BarChart, Eye, Database
 } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'
+import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
@@ -386,6 +387,7 @@ function MarketSummaryCard({ results, query, location }) {
 // Main Scout Page
 // ══════════════════════════════════════════════════════════════════════════════
 export default function ScoutPage() {
+  const { agencyId } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode]         = useState('prospect')
   const [query, setQuery]       = useState('')
@@ -540,6 +542,7 @@ Be specific about why each business needs marketing help based on their likely s
         status:   lead.status || 'prospect',
         industry: query || selectedIndustries[0] || '',
         notes:    lead.ai_summary || '',
+        agency_id: agencyId || null,
       }).select().single()
       if (error) throw error
       setAddedClients(prev=>new Set([...prev, lead.id]))

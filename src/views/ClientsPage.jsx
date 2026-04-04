@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Trash2, Edit2, MoreHorizontal, Folder, Mail, Phone, Globe, X } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import { useAuth } from '../hooks/useAuth'
 import { getClients, createClient_, updateClient, deleteClient, getProjects } from '../lib/supabase'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
 export default function ClientsPage() {
+  const { agencyId } = useAuth()
   const navigate = useNavigate()
   const [clients, setClients] = useState([])
   const [projects, setProjects] = useState({})
@@ -20,7 +22,7 @@ export default function ClientsPage() {
   useEffect(() => { loadClients() }, [])
 
   async function loadClients() {
-    const { data } = await getClients()
+    const { data } = await getClients(agencyId)
     setClients(data || [])
     const projMap = {}
     for (const c of (data || [])) {
@@ -33,7 +35,7 @@ export default function ClientsPage() {
   async function handleAdd(e) {
     e.preventDefault()
     if (!form.name.trim()) { toast.error('Name is required'); return }
-    const { data, error } = await createClient_(form.name.trim(), form.email.trim())
+    const { data, error } = await createClient_(form.name.trim(), form.email.trim(), agencyId)
     if (error) { toast.error(error.message); return }
     toast.success('Client created')
     setForm({ name: '', email: '', phone: '', website: '' })

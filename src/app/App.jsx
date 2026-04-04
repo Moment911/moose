@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
 import { AuthProvider } from '../hooks/useAuth'
+import { ClientProvider } from '../context/ClientContext'
 
 import LoginPage from '../views/LoginPage'
 import ClientsPage from '../views/ClientsPage'
@@ -65,6 +66,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+      <ClientProvider>
       <MobileMenuProvider>
         <Toaster position="top-right" />
         <Routes>
@@ -130,6 +132,7 @@ export default function App() {
           <Route path="/wordpress" element={<WordPressPage />} />
         </Routes>
       </MobileMenuProvider>
+      </ClientProvider>
       </AuthProvider>
     </BrowserRouter>
   )

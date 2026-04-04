@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Plus, Mail, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
+import { useClient } from '../context/ClientContext'
+import { useAuth } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
 import toast from 'react-hot-toast'
 
@@ -120,6 +122,7 @@ function DevSection() {
 }
 
 export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) {
+  const { agencyId } = useAuth()
   const [clients, setClients] = useState([])
   const [projects, setProjects] = useState({})
   const [expanded, setExpanded] = useState({})
@@ -139,7 +142,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
   useEffect(() => { function close() { setContextMenu(null) }; window.addEventListener('click', close); return () => window.removeEventListener('click', close) }, [])
 
   async function loadClients() {
-    const { data } = await getClients()
+    const { data } = await getClients(agencyId)
     if (data) {
       setClients(data)
       if (activeClientId) { setExpanded(e => ({ ...e, [activeClientId]: true })); loadProjects(activeClientId) }
@@ -160,7 +163,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
   async function handleAddClient(e) {
     e.preventDefault()
     if (!newClientName.trim()) return
-    const { data, error } = await createClient_(newClientName.trim(), newClientEmail.trim())
+    const { data, error } = await createClient_(newClientName.trim(), newClientEmail.trim(), agencyId)
     if (error) { toast.error('Failed to create client'); return }
     toast.success('Client created!')
     setNewClientName(''); setNewClientEmail(''); setShowNewClient(false)

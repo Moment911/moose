@@ -22,11 +22,13 @@ export const signOut = () => supabase.auth.signOut()
 export const getSession = () => supabase.auth.getSession()
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
-export const getClients = () =>
-  supabase.from('clients').select('*').order('name')
+export const getClients = (agencyId = null) => {
+  const q = supabase.from('clients').select('*').order('name')
+  return agencyId ? q.eq('agency_id', agencyId) : q
+}
 
-export const createClient_ = (name, email) =>
-  supabase.from('clients').insert({ name, email }).select().single()
+export const createClient_ = (name, email, agencyId = null) =>
+  supabase.from('clients').insert({ name, email, ...(agencyId ? { agency_id: agencyId } : {}) }).select().single()
 
 export const updateClient = (id, data) =>
   supabase.from('clients').update(data).eq('id', id).select().single()

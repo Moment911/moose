@@ -10,6 +10,7 @@ import {
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
 const ACCENT = '#E8551A'
@@ -353,7 +354,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function AIAgentsPage() {
   const { user, agencyId } = useAuth()
-  const [clients, setClients] = useState([])
+  const { clients } = useClient()
   const [selectedClient, setSelectedClient] = useState(null)
   const [agentStatus, setAgentStatus] = useState({}) // { agentId: boolean }
   const [loading, setLoading] = useState(true)

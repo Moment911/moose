@@ -6,6 +6,7 @@ import { Plus, FolderOpen, FileImage, Clock, MessageSquare, Trash2, Edit2, Globe
 import Sidebar from '../components/Sidebar'
 import OnboardingTip from '../components/OnboardingTip'
 import NotificationBell from '../components/NotificationBell'
+import { useAuth } from '../hooks/useAuth'
 import { getClients, getProjects, getFiles, deleteProject, updateProject, getRounds, getClientActivity } from '../lib/supabase'
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -54,6 +55,7 @@ function getProjectStatus(rounds, maxRounds) {
 }
 
 export default function DashboardPage() {
+  const { agencyId } = useAuth()
   const { clientId } = useParams()
   const navigate = useNavigate()
   const [clients, setClients] = useState([])
@@ -76,7 +78,7 @@ export default function DashboardPage() {
     else if (!clientId && clients.length > 0) { setSelectedClient(clients[0]); loadProjects(clients[0].id) }
   }, [clientId, clients])
 
-  async function loadClients() { const { data } = await getClients(); setClients(data || []) }
+  async function loadClients() { const { data } = await getClients(agencyId); setClients(data || []) }
   async function loadProjects(cId) {
     const { data } = await getProjects(cId); setProjects(data || [])
     if (data) { for (const p of data) { loadProjectFiles(p.id); loadProjectRounds(p.id) } }

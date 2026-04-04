@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react'
 import { Plus, Search, Globe, Wifi, WifiOff, Trash2, Copy, MoreHorizontal, RefreshCw, X, ExternalLink } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
 export default function WordPressPage() {
+  const { agencyId } = useAuth()
   const [sites, setSites] = useState([])
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
@@ -19,7 +21,7 @@ export default function WordPressPage() {
   async function load() {
     const [{ data: s }, { data: c }] = await Promise.all([
       supabase.from('moose_wp_sites').select('*, clients(name)').order('created_at', { ascending: false }),
-      supabase.from('clients').select('id, name').order('name'),
+      supabase.from('clients').select('id, name').eq('agency_id', agencyId || '00000000-0000-0000-0000-000000000099').order('name'),
     ])
     setSites(s || [])
     setClients(c || [])

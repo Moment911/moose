@@ -10,6 +10,7 @@ import {
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useClient } from '../context/ClientContext'
 import { callClaude } from '../lib/ai'
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -382,8 +383,7 @@ window._mooseReviews = {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function ReviewsPage() {
   const { user, agencyId } = useAuth()
-  const [clients, setClients] = useState([])
-  const [selectedClient, setSelectedClient] = useState(null)
+  const { clients, selectedClient, selectClient: setSelectedClient } = useClient()
   const [reviews, setReviews] = useState([])
   const [widgetSettings, setWidgetSettings] = useState(null)
   const [clientProfile, setClientProfile] = useState(null)
@@ -409,8 +409,8 @@ export default function ReviewsPage() {
     setClients(data || [])
   }
 
-  async function selectClient(client) {
-    setSelectedClient(client)
+  async function loadClientData(client) {
+    setSelectedClient(client)  // update global context
     setLoading(true)
     const [{ data: revs }, { data: widget }, { data: prof }] = await Promise.all([
       supabase.from('moose_review_queue').select('*').eq('client_id', client.id).order('reviewed_at', { ascending:false }),
@@ -515,7 +515,7 @@ export default function ReviewsPage() {
         </div>
         <div style={{ flex:1, overflowY:'auto' }}>
           {clients.map(c=>(
-            <div key={c.id} onClick={()=>selectClient(c)}
+            <div key={c.id} onClick={()=>loadClientData(c)}
               style={{ padding:'11px 16px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#fff7f5':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
               <div style={{ fontSize:13, fontWeight:600, color:'#111' }}>{c.name}</div>
               <div style={{ fontSize:11, color:'#9ca3af' }}>{c.industry}</div>
