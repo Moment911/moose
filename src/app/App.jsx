@@ -47,6 +47,9 @@ import WordPressPage from '../views/WordPressPage'
 import SettingsPage from '../views/SettingsPage'
 import ClientDetailPage from '../views/ClientDetailPage'
 import OnboardingPage from '../views/OnboardingPage'
+import MarketingSitePage from '../views/MarketingSitePage'
+import AgencySignupPage from '../views/AgencySignupPage'
+import AgencySettingsPage from '../views/AgencySettingsPage'
 import AccountAccessPage from '../views/AccountAccessPage'
 import ClientAccessFormPage from '../views/ClientAccessFormPage'
 import ClientPersonaPage from '../views/ClientPersonaPage'
@@ -63,6 +66,9 @@ export default function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/welcome" element={<MarketingSitePage />} />
+          <Route path="/signup" element={<AgencySignupPage />} />
+          <Route path="/agency-settings" element={<AgencySettingsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />

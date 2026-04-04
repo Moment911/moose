@@ -209,6 +209,10 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           location.pathname === '/settings' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><Settings size={15} className={location.pathname === '/settings' ? 'text-brand-500' : ''} /> Settings</Link>
 
+        <Link to="/agency-settings" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname === '/agency-settings' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><Building size={15} className={location.pathname === '/agency-settings' ? 'text-brand-500' : ''} /> Agency</Link>
+
         <Link to="/admin" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/admin' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><Shield size={15} className={location.pathname === '/admin' ? 'text-brand-500' : ''} /> Admin</Link>
