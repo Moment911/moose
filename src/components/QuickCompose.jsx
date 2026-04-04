@@ -27,7 +27,7 @@ export default function QuickCompose() {
       }).select().single()
       if (convo) {
         await supabase.from('messages').insert({ conversation_id: convo.id, body: body.trim(), sender_email: user.email, sender_name: user.email.split('@')[0], sender_type: 'agency' })
-        if (sendAsEmail) await sendEmailSummary({ type: 'message', to: to.trim(), subject: subject.trim() || 'Message from Momenta Marketing', message: body.trim(), sender: user.email.split('@')[0] })
+        if (sendAsEmail) await sendEmailSummary({ type: 'message', to: to.trim(), subject: subject.trim() || 'Message from Moose', message: body.trim(), sender: user.email.split('@')[0] })
       }
       toast.success(`Sent to ${to.trim()}`); setOpen(false); setTo(''); setSubject(''); setBody('')
     } catch { toast.error('Failed to send') }

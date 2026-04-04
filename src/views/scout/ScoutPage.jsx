@@ -517,7 +517,7 @@ function LeadDetailModal({ lead, onClose, onImport }) {
             <div className="space-y-5">
               {/* Opportunities */}
               <div className="rounded-2xl p-5 border-2 border-orange-200 bg-orange-50">
-                <h3 className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2"><Target size={14} /> Opportunities for Momenta Marketing</h3>
+                <h3 className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2"><Target size={14} /> Opportunities for Moose</h3>
                 <div className="space-y-2">
                   {(lead.opportunities || []).map((o, i) => (
                     <div key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">{i + 1}.</span><p className="text-sm text-orange-900">{o}</p></div>

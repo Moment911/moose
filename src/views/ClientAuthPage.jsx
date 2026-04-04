@@ -32,7 +32,7 @@ export default function ClientAuthPage() {
           </div>
           <div>
             <h1 className="font-bold text-gray-900">Client Portal</h1>
-            <p className="text-xs text-gray-500">Momenta Marketing</p>
+            <p className="text-xs text-gray-500">Moose</p>
           </div>
         </div>
 

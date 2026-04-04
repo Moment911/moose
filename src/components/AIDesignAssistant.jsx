@@ -21,7 +21,7 @@ export default function AIDesignAssistant({ projectName, projectType, annotation
 
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight) }, [messages])
 
-  const systemPrompt = `You are a senior design consultant for Momenta Marketing, a creative design agency. You're helping with a ${projectType || 'design'} project called "${projectName || 'Untitled'}".
+  const systemPrompt = `You are a senior design consultant for Moose, a creative design agency. You're helping with a ${projectType || 'design'} project called "${projectName || 'Untitled'}".
 
 Current client feedback/annotations:
 ${(annotations || []).slice(0, 30).map(a => `- [${a.type}] ${a.author || 'Client'}: "${a.text || 'no text'}" (${a.resolved ? 'resolved' : 'open'})`).join('\n') || 'No annotations yet.'}
@@ -79,7 +79,7 @@ Be concise, actionable, and professional. Format responses with markdown headers
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0" style={{ background: '#231f20' }}>
         <div className="flex items-center gap-2">
-          <Wand2 size={16} className="text-momenta-400" />
+          <Wand2 size={16} className="text-brand-400" />
           <span className="text-sm font-semibold text-white">AI Design Assistant</span>
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={16} /></button>
@@ -89,12 +89,12 @@ Be concise, actionable, and professional. Format responses with markdown headers
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <div className="text-center py-8">
-            <Wand2 size={32} className="text-momenta-300 mx-auto mb-3" />
+            <Wand2 size={32} className="text-brand-300 mx-auto mb-3" />
             <p className="text-sm text-gray-500 mb-4">Ask me anything about your design project</p>
             <div className="flex flex-wrap gap-1.5 justify-center">
               {SUGGESTED_PROMPTS.map(p => (
                 <button key={p} onClick={() => handleSend(p)}
-                  className="text-xs px-3 py-1.5 rounded-full bg-momenta-50 text-momenta-700 hover:bg-momenta-100 transition-colors border border-momenta-200">
+                  className="text-xs px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors border border-brand-200">
                   {p}
                 </button>
               ))}
@@ -135,7 +135,7 @@ Be concise, actionable, and professional. Format responses with markdown headers
       {/* Input */}
       <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0">
         <div className="flex gap-2">
-          <input className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-momenta-400 focus:border-transparent"
+          <input className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
             placeholder="Ask about design, copy, colors..." value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }} disabled={loading} />
           <button onClick={() => handleSend()} disabled={loading || !input.trim()}

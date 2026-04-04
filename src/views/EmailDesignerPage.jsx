@@ -11,14 +11,14 @@ import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
 const BLOCK_TYPES = [
-  { type: 'header', label: 'Header', icon: Mail, defaults: { logoText: 'Momenta Marketing', tagline: 'Design That Moves', bgColor: '#231f20', textColor: '#ffffff' } },
+  { type: 'header', label: 'Header', icon: Mail, defaults: { logoText: 'Moose', tagline: 'Design That Moves', bgColor: '#231f20', textColor: '#ffffff' } },
   { type: 'text', label: 'Text', icon: Type, defaults: { content: 'Write your content here. Click to edit this text block.', fontSize: 16, textColor: '#333333', bgColor: '#ffffff', align: 'left', padding: 24 } },
   { type: 'image', label: 'Image', icon: ImageIcon, defaults: { src: '', alt: 'Image', caption: '', bgColor: '#ffffff', padding: 16 } },
   { type: 'button', label: 'Button', icon: MousePointer, defaults: { text: 'Learn More', url: '#', btnColor: '#ea2729', textColor: '#ffffff', bgColor: '#ffffff', align: 'center', padding: 24, borderRadius: 8 } },
   { type: 'divider', label: 'Divider', icon: Minus, defaults: { color: '#e5e7eb', thickness: 1, bgColor: '#ffffff', padding: 16 } },
   { type: 'spacer', label: 'Spacer', icon: Square, defaults: { height: 32, bgColor: '#ffffff' } },
   { type: 'twocol', label: '2 Columns', icon: Columns, defaults: { leftContent: 'Left column content', rightContent: 'Right column content', bgColor: '#ffffff', textColor: '#333333', padding: 24 } },
-  { type: 'footer', label: 'Footer', icon: FileText, defaults: { text: '\u00a9 2026 Momenta Marketing. All rights reserved.', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
+  { type: 'footer', label: 'Footer', icon: FileText, defaults: { text: '\u00a9 2026 Moose. All rights reserved.', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
 ]
 
 function generateHtml(blocks, subject) {
@@ -278,9 +278,9 @@ export default function EmailDesignerPage() {
               <p className="text-[10px] font-semibold text-gray-500 uppercase mb-3">Email Designer</p>
               <p className="text-xs text-gray-400 leading-relaxed">Click a block in the email to edit it. Use the left panel to add new blocks. Reorder with arrow buttons.</p>
               <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[10px] text-gray-500">Momenta Red: #ea2729</span></div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-momenta-500" /><span className="text-[10px] text-gray-500">Momenta Teal: #59c6d0</span></div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: '#231f20' }} /><span className="text-[10px] text-gray-500">Momenta Dark: #231f20</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[10px] text-gray-500">Moose Red: #ea2729</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[10px] text-gray-500">Moose Teal: #59c6d0</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: '#231f20' }} /><span className="text-[10px] text-gray-500">Moose Dark: #231f20</span></div>
               </div>
             </div>
           )}

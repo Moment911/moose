@@ -88,19 +88,19 @@ export default function CalendarPage() {
   }
 
   function exportIcal() {
-    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Momenta Review//EN']
+    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Moose//EN']
     events.forEach(ev => {
       lines.push('BEGIN:VEVENT')
       lines.push(`DTSTART:${format(new Date(ev.start_at), "yyyyMMdd'T'HHmmss")}`)
       if (ev.end_at) lines.push(`DTEND:${format(new Date(ev.end_at), "yyyyMMdd'T'HHmmss")}`)
       lines.push(`SUMMARY:${ev.title}`)
       if (ev.description) lines.push(`DESCRIPTION:${ev.description.replace(/\n/g, '\\n')}`)
-      lines.push(`UID:${ev.id}@momenta-review`)
+      lines.push(`UID:${ev.id}@moose`)
       lines.push('END:VEVENT')
     })
     lines.push('END:VCALENDAR')
     const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' })
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'momenta-calendar.ics'; a.click()
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'moose-calendar.ics'; a.click()
     toast.success('Calendar exported!')
   }
 

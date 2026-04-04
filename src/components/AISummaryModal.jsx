@@ -66,17 +66,17 @@ ${context}`
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2"><Wand2 size={18} className="text-momenta-500" /><h2 className="font-semibold text-gray-900">AI Feedback Summary</h2></div>
+          <div className="flex items-center gap-2"><Wand2 size={18} className="text-brand-500" /><h2 className="font-semibold text-gray-900">AI Feedback Summary</h2></div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {!loaded && !loading && (
             <div className="text-center py-12">
-              <Wand2 size={40} className="text-momenta-300 mx-auto mb-4" />
+              <Wand2 size={40} className="text-brand-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Summarize with AI</h3>
               <p className="text-sm text-gray-500 mb-6">Claude will analyze {annotations.length} annotation{annotations.length !== 1 ? 's' : ''} and create a prioritized action plan.</p>
-              <button onClick={generate} className="bg-gradient-to-r from-momenta-500 to-brand-500 text-white font-medium px-6 py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center gap-2 mx-auto">
+              <button onClick={generate} className="bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium px-6 py-2.5 rounded-xl hover:opacity-90 transition-opacity flex items-center gap-2 mx-auto">
                 <Wand2 size={15} /> Generate Summary
               </button>
             </div>
@@ -84,7 +84,7 @@ ${context}`
 
           {loading && (
             <div className="text-center py-16">
-              <Loader2 size={32} className="text-momenta-500 mx-auto mb-4 animate-spin" />
+              <Loader2 size={32} className="text-brand-500 mx-auto mb-4 animate-spin" />
               <p className="text-sm text-gray-500">Analyzing feedback...</p>
             </div>
           )}

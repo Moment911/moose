@@ -56,7 +56,7 @@ export default function EmployeePage() {
         ? `Write a professional daily work summary for this team member. Include what was accomplished today, what's in progress, and any blockers. Keep it concise (3-4 paragraphs). Format with bullet points where appropriate.`
         : `Write a professional weekly work summary for this team member. Summarize the week's accomplishments, progress on ongoing work, upcoming deadlines, and areas needing attention. Include metrics where possible. Format professionally with sections.`
 
-      const result = await callClaude('You are a professional project manager writing work summaries for a design agency called Momenta Marketing.', `${prompt}\n\nContext:\n${context}`, 1500)
+      const result = await callClaude('You are a professional project manager writing work summaries for a design agency called Moose.', `${prompt}\n\nContext:\n${context}`, 1500)
       setAiSummary(result)
     } catch { setAiSummary('AI summary unavailable. Set VITE_ANTHROPIC_API_KEY in Vercel environment variables.') }
     setAiLoading(false)

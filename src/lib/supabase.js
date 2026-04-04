@@ -266,7 +266,7 @@ export async function fireWebhook(project, event, data = {}) {
       : event === 'annotation_resolved'
       ? `*Comment resolved* on ${project.name} by ${data.author}`
       : `*${event}* on ${project.name}`
-    promises.push(fetch(project.slack_webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, blocks: [{ type: 'section', text: { type: 'mrkdwn', text } }, { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: 'View in Momenta Review' }, url: payload.review_url }] }] }) }).catch(() => {}))
+    promises.push(fetch(project.slack_webhook_url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, blocks: [{ type: 'section', text: { type: 'mrkdwn', text } }, { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: 'View in Moose' }, url: payload.review_url }] }] }) }).catch(() => {}))
   }
   await Promise.allSettled(promises)
 }

@@ -145,7 +145,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           </div>
           <div>
             <div className="text-white text-sm font-semibold leading-none">Lucy</div>
-            <div className="text-gray-500 text-[10px] mt-0.5">by Momenta</div>
+            <div className="text-gray-500 text-[10px] mt-0.5">by Moose</div>
           </div>
         </div>
       </div>

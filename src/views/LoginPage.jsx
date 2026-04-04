@@ -50,7 +50,7 @@ export default function LoginPage() {
               <input
                 className="input"
                 type="email"
-                placeholder="you@momentamarketing.com"
+                placeholder="you@moose.ai"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
@@ -82,7 +82,7 @@ export default function LoginPage() {
           </form>
         </div>
         <p className="text-center text-gray-500 text-xs mt-6">
-          Lucy by Momenta Marketing &middot; <a href="/privacy" target="_blank" style={{ color: '#9ca3af', textDecoration: 'underline' }}>Privacy Policy</a>
+          Lucy by Moose &middot; <a href="/privacy" target="_blank" style={{ color: '#9ca3af', textDecoration: 'underline' }}>Privacy Policy</a>
         </p>
       </div>
     </div>

@@ -9,7 +9,7 @@ export default function SendDesignModal({ project, files, direction = 'to-client
   const [to, setTo] = useState(isToClient ? (project?.client_email || '') : '')
   const [subject, setSubject] = useState(isToClient ? `New design ready for review \u2014 ${project?.name || ''}` : `Feedback from client \u2014 ${project?.name || ''}`)
   const [message, setMessage] = useState(isToClient
-    ? `Hi,\n\nWe have new designs ready for your review on the ${project?.name || ''} project.\n\nPlease click the link below to view the designs and leave your feedback.\n\nBest regards,\nMomenta Marketing`
+    ? `Hi,\n\nWe have new designs ready for your review on the ${project?.name || ''} project.\n\nPlease click the link below to view the designs and leave your feedback.\n\nBest regards,\nMoose`
     : `Hi,\n\nI've completed my review of the ${project?.name || ''} project.\n\nPlease see my comments and feedback on the review link.\n\nThank you!`)
   const [includeLink, setIncludeLink] = useState(true)
   const [selectedFiles, setSelectedFiles] = useState(files?.map(f => f.id) || [])

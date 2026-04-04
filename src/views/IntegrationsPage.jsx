@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 
 const INTEGRATIONS = [
   { key: 'resend', name: 'Resend (Email)', desc: 'Send emails to clients and team. Powered by Supabase Edge Functions.', icon: Mail, status: 'connected', fields: [] },
-  { key: 'supabase', name: 'Supabase', desc: 'Database, auth, storage, and realtime. The backbone of Momenta Review.', icon: Cloud, status: 'connected', fields: [] },
+  { key: 'supabase', name: 'Supabase', desc: 'Database, auth, storage, and realtime. The backbone of Moose.', icon: Cloud, status: 'connected', fields: [] },
   { key: 'vercel', name: 'Vercel', desc: 'Hosting and deployment. Auto-deploys from GitHub.', icon: Zap, status: 'connected', fields: [] },
   { key: 'slack', name: 'Slack', desc: 'Post notifications to Slack channels when events happen.', icon: MessageSquare, fields: [
     { key: 'webhook_url', label: 'Incoming Webhook URL', placeholder: 'https://hooks.slack.com/services/...' },
@@ -71,7 +71,7 @@ export default function IntegrationsPage() {
       <main className="flex-1 overflow-y-auto bg-white">
         <div style={{ background: '#231f20' }} className="px-8 py-6">
           <h1 className="text-2xl font-bold text-white">Integrations</h1>
-          <p className="text-sm text-gray-400 mt-1">Connect Momenta Review to your favorite tools</p>
+          <p className="text-sm text-gray-400 mt-1">Connect Moose to your favorite tools</p>
         </div>
 
         <div className="px-8 py-6">

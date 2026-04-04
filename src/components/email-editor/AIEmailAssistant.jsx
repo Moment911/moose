@@ -137,7 +137,7 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0" style={{ background: '#231f20' }}>
           <div className="flex items-center gap-2">
-            <Sparkles size={16} className="text-momenta-400" />
+            <Sparkles size={16} className="text-brand-400" />
             <span className="text-sm font-semibold text-white">AI Email Designer</span>
           </div>
           <button onClick={handleClose} className="text-gray-400 hover:text-white"><X size={16} /></button>

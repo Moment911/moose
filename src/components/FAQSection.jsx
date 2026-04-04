@@ -10,7 +10,7 @@ export default function FAQSection({ items, title = 'Frequently Asked Questions'
   return (
     <div className={compact ? '' : 'mt-6'}>
       <h3 className={`flex items-center gap-2 mb-3 ${compact ? 'text-xs font-semibold text-gray-500 uppercase tracking-wide' : 'text-sm font-semibold text-gray-900'}`}>
-        <HelpCircle size={compact ? 12 : 14} className={compact ? 'text-gray-400' : 'text-momenta-500'} />
+        <HelpCircle size={compact ? 12 : 14} className={compact ? 'text-gray-400' : 'text-brand-500'} />
         {title}
       </h3>
       <div className={compact ? 'space-y-0.5' : 'card divide-y divide-gray-100 overflow-hidden'}>
@@ -49,6 +49,6 @@ export const CLIENT_FAQ = [
   { question: 'How do I leave feedback?', answer: 'Enter your name in the sidebar, select a tool (pin, circle, arrow, or box), then click on the design where you want to comment. Type your note and press Enter to save.' },
   { question: 'What tools are available?', answer: 'Pin: place a comment marker. Circle: highlight an area. Arrow: point to something. Box: draw a rectangle around a region. All annotations can have text comments attached.' },
   { question: 'How do I submit my changes?', answer: 'After adding all your comments, click the red "SUBMIT CHANGES" button at the bottom of the sidebar. This sends your feedback to the design team as a completed revision round.' },
-  { question: 'How many revision rounds do I get?', answer: 'Your project has a set number of revision rounds (shown in the top bar). Each time you submit feedback counts as one round. Contact Momenta Marketing if you need additional revisions.' },
+  { question: 'How many revision rounds do I get?', answer: 'Your project has a set number of revision rounds (shown in the top bar). Each time you submit feedback counts as one round. Contact Moose if you need additional revisions.' },
   { question: 'Can I edit a comment after placing it?', answer: 'Yes! Click on any annotation you placed to open the edit bubble. You can change the text, then click Send to update it.' },
 ]

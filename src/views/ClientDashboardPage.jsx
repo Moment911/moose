@@ -54,7 +54,7 @@ export default function ClientDashboardPage() {
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </div>
             <div>
-              <div className="text-sm font-semibold">Momenta Marketing</div>
+              <div className="text-sm font-semibold">Moose</div>
               <div className="text-[10px] text-gray-400">Client Portal</div>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function ClientDashboardPage() {
           <div className="text-center py-20 card p-8">
             <FileImage size={48} className="text-gray-300 mx-auto mb-4" />
             <h2 className="text-lg font-medium text-gray-700 mb-2">No projects found</h2>
-            <p className="text-sm text-gray-500">No projects are linked to {user?.email}. Contact Momenta Marketing if you believe this is an error.</p>
+            <p className="text-sm text-gray-500">No projects are linked to {user?.email}. Contact Moose if you believe this is an error.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

@@ -11,56 +11,56 @@ const TEMPLATES = [
     name: 'Welcome Email', desc: 'Warm welcome for new clients', category: 'Onboarding',
     preview: { header: '#231f20', hero: '#ea2729', body: true, cta: true, footer: true },
     blocks: [
-      { type: 'header', data: { logoText: 'Momenta Marketing', tagline: 'Welcome aboard!', bgColor: '#231f20', textColor: '#ffffff' } },
-      { type: 'hero', data: { heading: 'Welcome to Momenta Marketing!', subtext: "We're thrilled to have you as a client.", btnText: 'View Your Project', btnUrl: '#', bgColor: '#ea2729', textColor: '#ffffff', btnColor: '#ffffff' } },
+      { type: 'header', data: { logoText: 'Moose', tagline: 'Welcome aboard!', bgColor: '#231f20', textColor: '#ffffff' } },
+      { type: 'hero', data: { heading: 'Welcome to Moose!', subtext: "We're thrilled to have you as a client.", btnText: 'View Your Project', btnUrl: '#', bgColor: '#ea2729', textColor: '#ffffff', btnColor: '#ffffff' } },
       { type: 'text', data: { content: "Hi {{first_name}},\n\nThank you for choosing us. Here's what to expect next.", fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 24 } },
       { type: 'button', data: { text: 'View Your Dashboard', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 24, borderRadius: 8 } },
-      { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+      { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
     ]
   },
   {
     name: 'Design Ready', desc: 'Notify client designs are ready for review', category: 'Notifications',
     preview: { header: '#231f20', body: true, cta: true, footer: true },
     blocks: [
-      { type: 'header', data: { logoText: 'Momenta Marketing', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
+      { type: 'header', data: { logoText: 'Moose', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
       { type: 'heading', data: { content: 'Your Designs Are Ready!', fontSize: 28, textColor: '#1a1a1a', bgColor: '#fff', align: 'center', padding: 32, fontWeight: 700 } },
       { type: 'text', data: { content: "Great news! Your latest designs are ready for review. Click below to view and leave feedback.", fontSize: 16, textColor: '#555', bgColor: '#fff', align: 'left', padding: 24 } },
       { type: 'button', data: { text: 'Review Designs Now', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 32, borderRadius: 8 } },
-      { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+      { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
     ]
   },
   {
     name: 'Monthly Newsletter', desc: 'Multi-section newsletter template', category: 'Newsletter',
     preview: { header: '#231f20', hero: '#1a1a2e', body: true, cols: true, cta: true, footer: true },
     blocks: [
-      { type: 'header', data: { logoText: 'Momenta Marketing', tagline: 'Monthly Newsletter', bgColor: '#231f20', textColor: '#ffffff' } },
+      { type: 'header', data: { logoText: 'Moose', tagline: 'Monthly Newsletter', bgColor: '#231f20', textColor: '#ffffff' } },
       { type: 'hero', data: { heading: "What We've Been Working On", subtext: 'A look at our latest projects and tips', btnText: 'Read More', btnUrl: '#', bgColor: '#1a1a2e', textColor: '#fff', btnColor: '#ea2729' } },
       { type: 'text', data: { content: 'Featured Project\n\nThis month we completed a full website redesign for Acme Corp.', fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 24 } },
       { type: 'divider', data: { color: '#e5e7eb', thickness: 1, bgColor: '#fff', padding: 16 } },
       { type: 'twocol', data: { leftContent: 'Design Tip\n\nWhite space is breathing room for content.', rightContent: 'Quick Stat\n\n73% of users judge a company by their website.', bgColor: '#f9fafb', textColor: '#555', padding: 24 } },
       { type: 'button', data: { text: 'Visit Our Portfolio', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 24, borderRadius: 8 } },
-      { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+      { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
     ]
   },
   {
     name: 'Feedback Request', desc: 'Ask clients for project feedback', category: 'Follow-up',
     preview: { body: true, cta: true, footer: true },
     blocks: [
-      { type: 'text', data: { content: "Hi {{first_name}},\n\nI wanted to check in on the project. Do you have any additional feedback on the designs?\n\nBest,\nThe Momenta Team", fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 32 } },
+      { type: 'text', data: { content: "Hi {{first_name}},\n\nI wanted to check in on the project. Do you have any additional feedback on the designs?\n\nBest,\nThe Moose Team", fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 32 } },
       { type: 'button', data: { text: 'Leave Feedback', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 24, borderRadius: 8 } },
-      { type: 'footer', data: { text: 'Momenta Marketing', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+      { type: 'footer', data: { text: 'Moose', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
     ]
   },
   {
     name: 'Project Complete', desc: 'Notify that project is finalized', category: 'Notifications',
     preview: { header: '#231f20', body: true, quote: true, cta: true, footer: true },
     blocks: [
-      { type: 'header', data: { logoText: 'Momenta Marketing', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
+      { type: 'header', data: { logoText: 'Moose', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
       { type: 'heading', data: { content: 'Your Project is Complete!', fontSize: 28, textColor: '#1a1a1a', bgColor: '#fff', align: 'center', padding: 32, fontWeight: 700 } },
       { type: 'text', data: { content: "Hi {{first_name}},\n\nWe're excited to let you know that your project has been finalized. All deliverables are ready for download.", fontSize: 16, textColor: '#555', bgColor: '#fff', align: 'left', padding: 24 } },
-      { type: 'quote', data: { text: '"Working with Momenta was an incredible experience. The designs exceeded our expectations."', author: 'Happy Client', bgColor: '#f9fafb', textColor: '#374151', padding: 32 } },
+      { type: 'quote', data: { text: '"Working with Moose was an incredible experience. The designs exceeded our expectations."', author: 'Happy Client', bgColor: '#f9fafb', textColor: '#374151', padding: 32 } },
       { type: 'button', data: { text: 'Download Files', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 24, borderRadius: 8 } },
-      { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+      { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
     ]
   },
   {
@@ -113,7 +113,7 @@ export default function TemplatesPage() {
                 {/* Mini preview */}
                 <div className="h-48 bg-gray-50 p-4 border-b border-gray-100 overflow-hidden">
                   <div className="mx-auto bg-white rounded-lg shadow-sm overflow-hidden" style={{ width: '100%', maxWidth: 240 }}>
-                    {tpl.preview.header && <div style={{ background: tpl.preview.header, padding: '8px 12px', textAlign: 'center' }}><p style={{ margin: 0, color: '#fff', fontSize: 10, fontWeight: 700 }}>Momenta</p></div>}
+                    {tpl.preview.header && <div style={{ background: tpl.preview.header, padding: '8px 12px', textAlign: 'center' }}><p style={{ margin: 0, color: '#fff', fontSize: 10, fontWeight: 700 }}>Moose</p></div>}
                     {tpl.preview.hero && <div style={{ background: tpl.preview.hero, padding: '12px', textAlign: 'center' }}><p style={{ margin: 0, color: '#fff', fontSize: 11, fontWeight: 700 }}>Headline Here</p></div>}
                     {tpl.preview.body && <div style={{ padding: '8px 12px' }}><div className="h-1.5 bg-gray-200 rounded-full mb-1.5 w-full" /><div className="h-1.5 bg-gray-200 rounded-full mb-1.5 w-4/5" /><div className="h-1.5 bg-gray-200 rounded-full w-3/5" /></div>}
                     {tpl.preview.quote && <div style={{ padding: '6px 12px', borderLeft: '3px solid #ea2729', margin: '4px 12px', background: '#f9fafb' }}><div className="h-1 bg-gray-200 rounded-full w-full" /></div>}

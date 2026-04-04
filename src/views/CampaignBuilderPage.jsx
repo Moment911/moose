@@ -14,8 +14,8 @@ import { generateSubjectLines } from '../lib/ai'
 import toast from 'react-hot-toast'
 
 const BLOCK_TYPES = [
-  { type: 'header', label: 'Header', icon: Layout, cat: 'Structure', defaults: { logoText: 'Momenta Marketing', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
-  { type: 'footer', label: 'Footer', icon: FileText, cat: 'Structure', defaults: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
+  { type: 'header', label: 'Header', icon: Layout, cat: 'Structure', defaults: { logoText: 'Moose', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
+  { type: 'footer', label: 'Footer', icon: FileText, cat: 'Structure', defaults: { text: '\u00a9 2026 Moose', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
   { type: 'text', label: 'Text', icon: Type, cat: 'Content', defaults: { content: 'Write your content here...', fontSize: 16, textColor: '#333333', bgColor: '#ffffff', align: 'left', padding: 24 } },
   { type: 'heading', label: 'Heading', icon: Type, cat: 'Content', defaults: { content: 'Your Headline Here', fontSize: 32, textColor: '#1a1a1a', bgColor: '#ffffff', align: 'center', padding: 32, fontWeight: 700 } },
   { type: 'image', label: 'Image', icon: ImageIcon, cat: 'Content', defaults: { src: '', alt: '', bgColor: '#ffffff', padding: 16 } },
@@ -30,32 +30,32 @@ const BLOCK_TYPES = [
 
 const TEMPLATES = [
   { name: 'Welcome Email', desc: 'Warm welcome for new clients', blocks: [
-    { type: 'header', data: { logoText: 'Momenta Marketing', tagline: 'Welcome aboard!', bgColor: '#231f20', textColor: '#ffffff' } },
-    { type: 'hero', data: { heading: 'Welcome to Momenta Marketing!', subtext: "We're thrilled to have you as a client. Here's what happens next.", btnText: 'View Your Project', btnUrl: '#', bgColor: '#ea2729', textColor: '#ffffff', btnColor: '#ffffff' } },
-    { type: 'text', data: { content: "Hi {{first_name}},\n\nThank you for choosing Momenta Marketing. We can't wait to bring your vision to life.\n\nHere's what to expect:\n\n1. We'll send you a design review link\n2. Leave your feedback directly on the designs\n3. We'll implement your changes\n\nSimple as that!", fontSize: 16, textColor: '#333333', bgColor: '#ffffff', align: 'left', padding: 24 } },
+    { type: 'header', data: { logoText: 'Moose', tagline: 'Welcome aboard!', bgColor: '#231f20', textColor: '#ffffff' } },
+    { type: 'hero', data: { heading: 'Welcome to Moose!', subtext: "We're thrilled to have you as a client. Here's what happens next.", btnText: 'View Your Project', btnUrl: '#', bgColor: '#ea2729', textColor: '#ffffff', btnColor: '#ffffff' } },
+    { type: 'text', data: { content: "Hi {{first_name}},\n\nThank you for choosing Moose. We can't wait to bring your vision to life.\n\nHere's what to expect:\n\n1. We'll send you a design review link\n2. Leave your feedback directly on the designs\n3. We'll implement your changes\n\nSimple as that!", fontSize: 16, textColor: '#333333', bgColor: '#ffffff', align: 'left', padding: 24 } },
     { type: 'button', data: { text: 'View Your Dashboard', url: '#', btnColor: '#ea2729', textColor: '#ffffff', bgColor: '#ffffff', align: 'center', padding: 24, borderRadius: 8 } },
-    { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
+    { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
   ]},
   { name: 'Design Ready', desc: 'Notify client designs are ready', blocks: [
-    { type: 'header', data: { logoText: 'Momenta Marketing', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
+    { type: 'header', data: { logoText: 'Moose', tagline: '', bgColor: '#231f20', textColor: '#ffffff' } },
     { type: 'heading', data: { content: 'Your Designs Are Ready! \ud83c\udfa8', fontSize: 28, textColor: '#1a1a1a', bgColor: '#ffffff', align: 'center', padding: 32, fontWeight: 700 } },
     { type: 'text', data: { content: 'Hi {{first_name}},\n\nGreat news! Your latest designs are ready for review. Click below to view them and leave your feedback.\n\nRemember, you can:\n\u2022 Click anywhere to leave a comment\n\u2022 Use the pin tool for specific feedback\n\u2022 Submit when you\'re done', fontSize: 16, textColor: '#555', bgColor: '#ffffff', align: 'left', padding: 24 } },
     { type: 'button', data: { text: 'Review Designs Now', url: '#', btnColor: '#ea2729', textColor: '#ffffff', bgColor: '#ffffff', align: 'center', padding: 32, borderRadius: 8 } },
-    { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
+    { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999999', padding: 24 } },
   ]},
   { name: 'Monthly Newsletter', desc: 'Multi-section newsletter', blocks: [
-    { type: 'header', data: { logoText: 'Momenta Marketing', tagline: 'Monthly Newsletter', bgColor: '#231f20', textColor: '#ffffff' } },
+    { type: 'header', data: { logoText: 'Moose', tagline: 'Monthly Newsletter', bgColor: '#231f20', textColor: '#ffffff' } },
     { type: 'hero', data: { heading: 'What We\'ve Been Working On', subtext: 'A look at our latest projects, tips, and updates', btnText: 'Read More', btnUrl: '#', bgColor: '#1a1a2e', textColor: '#ffffff', btnColor: '#ea2729' } },
     { type: 'text', data: { content: 'Featured Project\n\nThis month we completed a full website redesign for Acme Corp, transforming their online presence with a modern, conversion-focused design.', fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 24 } },
     { type: 'divider', data: { color: '#e5e7eb', thickness: 1, bgColor: '#ffffff', padding: 16 } },
     { type: 'twocol', data: { leftContent: 'Design Tip\n\nWhite space isn\'t empty space \u2014 it\'s breathing room for your content.', rightContent: 'Quick Stat\n\n73% of users judge a company by their website design.', bgColor: '#f9fafb', textColor: '#555', padding: 24 } },
     { type: 'button', data: { text: 'Visit Our Portfolio', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 24, borderRadius: 8 } },
-    { type: 'footer', data: { text: '\u00a9 2026 Momenta Marketing', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+    { type: 'footer', data: { text: '\u00a9 2026 Moose', links: 'Unsubscribe | View in browser', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
   ]},
   { name: 'Feedback Request', desc: 'Simple feedback ask', blocks: [
-    { type: 'text', data: { content: 'Hi {{first_name}},\n\nI hope you\'re doing well! I wanted to check in on the project.\n\nDo you have any additional feedback on the designs we sent over? We want to make sure everything is perfect before we finalize.\n\nLet me know if you have any questions.\n\nBest,\nThe Momenta Team', fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 32 } },
+    { type: 'text', data: { content: 'Hi {{first_name}},\n\nI hope you\'re doing well! I wanted to check in on the project.\n\nDo you have any additional feedback on the designs we sent over? We want to make sure everything is perfect before we finalize.\n\nLet me know if you have any questions.\n\nBest,\nThe Moose Team', fontSize: 16, textColor: '#333', bgColor: '#fff', align: 'left', padding: 32 } },
     { type: 'button', data: { text: 'Leave Feedback', url: '#', btnColor: '#ea2729', textColor: '#fff', bgColor: '#fff', align: 'center', padding: 24, borderRadius: 8 } },
-    { type: 'footer', data: { text: 'Momenta Marketing', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
+    { type: 'footer', data: { text: 'Moose', links: 'Unsubscribe', bgColor: '#f5f5f5', textColor: '#999', padding: 24 } },
   ]},
   { name: 'Blank', desc: 'Start from scratch', blocks: [] },
 ]
@@ -86,7 +86,7 @@ export default function CampaignBuilderPage() {
   const [step, setStep] = useState(1)
   const [lists, setLists] = useState([])
   const [contacts, setContacts] = useState([])
-  const [campaign, setCampaign] = useState({ name: '', subject: '', preview_text: '', from_name: 'Momenta Marketing', from_email: '', list_id: '', status: 'draft' })
+  const [campaign, setCampaign] = useState({ name: '', subject: '', preview_text: '', from_name: 'Moose', from_email: '', list_id: '', status: 'draft' })
   const [blocks, setBlocks] = useState([
     { id: 'b1', type: 'header', data: { ...BLOCK_TYPES.find(t => t.type === 'header').defaults } },
     { id: 'b2', type: 'text', data: { ...BLOCK_TYPES.find(t => t.type === 'text').defaults, content: 'Hi {{first_name}},\n\nWe have exciting news to share with you!' } },

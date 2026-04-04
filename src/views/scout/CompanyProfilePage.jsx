@@ -295,7 +295,7 @@ export default function CompanyProfilePage() {
                 {(lead.opportunities || []).map((opp, i) => (
                   <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <p className="text-sm font-medium text-slate-800">{i + 1}. {opp}</p>
-                    <p className="text-xs text-slate-500 mt-1">This represents a service opportunity for Momenta Marketing.</p>
+                    <p className="text-xs text-slate-500 mt-1">This represents a service opportunity for Moose.</p>
                   </div>
                 ))}
               </div>

@@ -117,7 +117,7 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
       {/* Header */}
       <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Code size={14} className="text-momenta-400" />
+          <Code size={14} className="text-brand-400" />
           <span className="text-sm font-semibold">Personalization</span>
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={14} /></button>
@@ -169,11 +169,11 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
         <div className="px-4 py-3 border-t border-white/10 mt-2">
           <p className="text-[9px] text-gray-500 uppercase font-semibold mb-1.5">Fallback Values</p>
           <p className="text-[10px] text-gray-400 leading-relaxed">
-            Use <code className="bg-white/10 px-1 rounded text-momenta-300">{'{{first_name|Friend}}'}</code> to show "Friend" when name is empty.
+            Use <code className="bg-white/10 px-1 rounded text-brand-300">{'{{first_name|Friend}}'}</code> to show "Friend" when name is empty.
           </p>
           <p className="text-[9px] text-gray-500 mt-2 uppercase font-semibold mb-1.5">Conditionals</p>
           <p className="text-[10px] text-gray-400 leading-relaxed">
-            <code className="bg-white/10 px-1 rounded text-momenta-300">{'{{#if company}}At {{company}}{{/if}}'}</code>
+            <code className="bg-white/10 px-1 rounded text-brand-300">{'{{#if company}}At {{company}}{{/if}}'}</code>
           </p>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
       {/* Preview with contact */}
       <div className="px-3 py-2.5 border-t border-white/10 flex-shrink-0">
         <p className="text-[9px] text-gray-500 uppercase font-semibold mb-1">Preview with:</p>
-        <select className="w-full text-xs bg-white/10 border-0 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-momenta-400"
+        <select className="w-full text-xs bg-white/10 border-0 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
           value={previewContact?.id || ''} onChange={e => setPreviewContact(contacts.find(c => c.id === e.target.value) || null)}>
           <option value="">Example values</option>
           {contacts.slice(0, 20).map(c => <option key={c.id} value={c.id}>{c.first_name ? `${c.first_name} ${c.last_name || ''}` : c.email}</option>)}

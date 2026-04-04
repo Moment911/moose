@@ -1,10 +1,10 @@
 "use client";
 export default function PrivacyPolicyPage() {
   const lastUpdated = 'April 2, 2026'
-  const companyName = 'Momenta Marketing LLC'
+  const companyName = 'Moose AI LLC'
   const appName = 'Lucy'
-  const email = 'privacy@momentamktg.com'
-  const website = 'momentamktg.com'
+  const email = 'privacy@moose.ai'
+  const website = 'moose.ai'
   const address = 'Boca Raton, Florida, United States'
 
   return (
@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <svg width={32} height={32} viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="#E8551A"/><path d="M12 10L12 30L28 30L28 26L16 26L16 10Z" fill="white"/><circle cx="28" cy="14" r="4" fill="white" opacity="0.6"/></svg>
-          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Lucy</p><p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>by Momenta Marketing</p></div>
+          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Lucy</p><p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>by Moose</p></div>
         </div>
         <a href="/" style={{ fontSize: 14, color: '#E8551A', fontWeight: 600, textDecoration: 'none' }}>← Back to App</a>
       </div>

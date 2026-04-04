@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Momenta",
-  description: "Momenta Review Platform",
+  title: "Moose",
+  description: "Moose AI Platform",
 };
 
 export default function RootLayout({
