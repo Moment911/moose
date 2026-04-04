@@ -127,6 +127,8 @@ export default function PerfDashboard() {
   const [keywords,  setKeywords]  = useState([])
   const [recs,      setRecs]      = useState([])
   const [alerts,    setAlerts]    = useState([])
+  const [execLog,   setExecLog]   = useState([])
+  const [executing, setExecuting] = useState(null)
   const [pages,     setPages]     = useState([])
   const [tab,       setTab]       = useState('overview')
   const [loading,   setLoading]   = useState(true)
@@ -147,7 +149,7 @@ export default function PerfDashboard() {
     setLoading(true)
     const [
       {data:snaps},{data:camps},{data:kws},
-      {data:recData},{data:alertData},{data:pagesData}
+      {data:recData},{data:alertData},{data:pagesData},{data:execLogData}
     ] = await Promise.all([
       supabase.from('perf_snapshots').select('*').eq('client_id',selClient)
         .order('snapshot_date',{ascending:false}).limit(90),
@@ -158,11 +160,13 @@ export default function PerfDashboard() {
         .eq('status','pending').order('est_impact_val',{ascending:false}).limit(20),
       supabase.from('perf_alerts').select('*').eq('client_id',selClient)
         .eq('acknowledged',false).order('created_at',{ascending:false}).limit(10),
+      supabase.from('perf_execution_log').select('*').eq('client_id',selClient)
+        .order('applied_at',{ascending:false}).limit(30),
       supabase.from('perf_pages').select('*').eq('client_id',selClient)
         .order('ai_score',{ascending:false}).limit(50),
     ])
     setSnapshots(snaps||[]); setCampaigns(camps||[]); setKeywords(kws||[])
-    setRecs(recData||[]); setAlerts(alertData||[]); setPages(pagesData||[])
+    setRecs(recData||[]); setAlerts(alertData||[]); setPages(pagesData||[]); setExecLog(execLogData||[])
     setLoading(false)
   }
 
@@ -185,11 +189,30 @@ export default function PerfDashboard() {
   }
 
   async function applyRec(rec) {
-    await supabase.from('perf_recommendations').update({
-      status:'applied', applied_at:new Date().toISOString()
-    }).eq('id',rec.id)
-    setRecs(prev=>prev.filter(r=>r.id!==rec.id))
-    toast.success('Recommendation applied — update pushed to Google Ads')
+    setExecuting(rec.id)
+    toast.loading('Executing recommendation…', {id:'exec-'+rec.id})
+    try {
+      const res = await fetch('/api/perf/execute', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({recId:rec.id, clientId:selClient, agencyId:aid, agentName:'Agency'})
+      })
+      const data = await res.json()
+      if (data.success) {
+        if (data.dry_run) {
+          toast.success('Marked as applied (advisory mode — connect Google Ads for auto-push)', {id:'exec-'+rec.id})
+        } else {
+          toast.success('Applied to Google Ads: ' + data.detail, {id:'exec-'+rec.id})
+        }
+        setRecs(prev=>prev.filter(r=>r.id!==rec.id))
+        loadClientData()
+      } else {
+        toast.error('Failed: ' + (data.error||data.detail||'Unknown error'), {id:'exec-'+rec.id})
+      }
+    } catch(e) {
+      toast.error('Execution failed: ' + e.message, {id:'exec-'+rec.id})
+    }
+    setExecuting(null)
   }
 
   async function dismissRec(id) {
@@ -237,6 +260,7 @@ export default function PerfDashboard() {
     {key:'keywords',  label:'Keywords',  count:keywords.length},
     {key:'pages',     label:'Landing Pages', count:pages.length},
     {key:'recs',      label:'AI Recommendations', count:recs.length, alert:recs.filter(r=>r.priority==='high').length>0},
+    {key:'history',   label:'Change History',       count:execLog.length},
   ]
 
   const selectedClient = clients.find(c=>c.id===selClient)
@@ -286,6 +310,18 @@ export default function PerfDashboard() {
                   border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',
                   color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <Settings size={13}/> Connect
+              </button>
+              <button onClick={async()=>{
+                const email = prompt('Send report to email:')
+                if(!email) return
+                toast.loading('Generating report…',{id:'rpt'})
+                const res = await fetch('/api/perf/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:selClient,agencyId:aid,recipientEmail:email,period:range})})
+                const d = await res.json()
+                d.sent ? toast.success('Report sent to '+email,{id:'rpt'}) : toast.error(d.error||'Failed',{id:'rpt'})
+              }} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 14px',borderRadius:9,
+                border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',
+                color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                Email Report
               </button>
               <button onClick={runSync} disabled={syncing}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'7px 16px',borderRadius:9,
@@ -662,6 +698,55 @@ export default function PerfDashboard() {
                           </div>
                         )
                       })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── CHANGE HISTORY ── */}
+              {tab==='history' && (
+                <div>
+                  <div style={{fontSize:17,fontWeight:900,color:'#111',marginBottom:4}}>Change History</div>
+                  <div style={{fontSize:14,color:'#374151',marginBottom:16}}>{execLog.length} changes applied · full audit trail with rollback data</div>
+                  {execLog.length===0 ? (
+                    <div style={{textAlign:'center',padding:60,background:'#fff',borderRadius:16,border:'1px solid #e5e7eb'}}>
+                      <CheckCircle size={40} color="#e5e7eb" style={{margin:'0 auto 16px',display:'block'}}/>
+                      <div style={{fontSize:16,fontWeight:800,color:'#111',marginBottom:6}}>No changes yet</div>
+                      <div style={{fontSize:14,color:'#374151'}}>When you apply recommendations, they appear here with full rollback data</div>
+                    </div>
+                  ) : (
+                    <div style={{background:'#fff',borderRadius:16,border:'1px solid #e5e7eb',overflow:'hidden'}}>
+                      <table style={{width:'100%',borderCollapse:'collapse'}}>
+                        <thead><tr style={{background:'#f9fafb'}}>
+                          {['Change','Applied by','Date','Status','Detail'].map(h=>(
+                            <th key={h} style={{padding:'11px 16px',fontSize:11,fontWeight:800,color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
+                          ))}
+                        </tr></thead>
+                        <tbody>
+                          {execLog.map((log,i)=>(
+                            <tr key={log.id} style={{borderBottom:i<execLog.length-1?'1px solid #f9fafb':'none'}}>
+                              <td style={{padding:'13px 16px'}}>
+                                <div style={{fontSize:14,fontWeight:700,color:'#111'}}>{log.rec_title}</div>
+                                <div style={{fontSize:11,color:'#9ca3af',textTransform:'capitalize'}}>{log.rec_type?.replace(/_/g,' ')}</div>
+                              </td>
+                              <td style={{padding:'13px 16px',fontSize:13,color:'#374151'}}>{log.applied_by||'Agency'}</td>
+                              <td style={{padding:'13px 16px',fontSize:13,color:'#9ca3af',whiteSpace:'nowrap'}}>
+                                {new Date(log.applied_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+                              </td>
+                              <td style={{padding:'13px 16px'}}>
+                                <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                                  background:log.status==='success'?'#f0fdf4':log.status==='failed'?'#fef2f2':'#f9fafb',
+                                  color:log.status==='success'?GREEN:log.status==='failed'?RED:'#374151'}}>
+                                  {log.dry_run?'Advisory':log.status}
+                                </span>
+                              </td>
+                              <td style={{padding:'13px 16px',fontSize:13,color:'#374151',maxWidth:280}}>
+                                <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{log.detail}</div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>

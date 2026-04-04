@@ -265,3 +265,26 @@ CREATE POLICY "perf_pages_all"        ON perf_pages           FOR ALL USING (tru
 CREATE POLICY "perf_recs_all"         ON perf_recommendations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "perf_snapshots_all"    ON perf_snapshots       FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "perf_alerts_all"       ON perf_alerts          FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Execution log — every approved change, rollback data, who did it ──────────
+CREATE TABLE IF NOT EXISTS perf_execution_log (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rec_id        uuid REFERENCES perf_recommendations(id) ON DELETE SET NULL,
+  client_id     uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id     uuid,
+  rec_type      text,
+  rec_title     text,
+  status        text DEFAULT 'success',   -- success | failed | rolled_back
+  detail        text,
+  error         text,
+  rollback_data jsonb DEFAULT '{}',       -- enough info to reverse the change
+  dry_run       boolean DEFAULT false,
+  applied_by    text,
+  applied_at    timestamptz DEFAULT now(),
+  rolled_back_at timestamptz,
+  rolled_back_by text
+);
+
+ALTER TABLE perf_execution_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "perf_log_all" ON perf_execution_log FOR ALL USING (true) WITH CHECK (true);
+CREATE INDEX IF NOT EXISTS idx_perf_log_client ON perf_execution_log(client_id, applied_at DESC);

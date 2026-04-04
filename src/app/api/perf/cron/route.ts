@@ -57,6 +57,18 @@ export async function GET(req: NextRequest) {
       results.push({ clientId: conn.client_id, status: 'error', error: e.message })
     }
 
+    // Send weekly report every Monday
+    const isMonday = new Date().getDay() === 1
+    if (isMonday) {
+      try {
+        await fetch(`${baseUrl}/api/perf/report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId: conn.client_id, period: '7d' }),
+        })
+      } catch {}
+    }
+
     // Rate limit: 2 second gap between clients
     await new Promise(r => setTimeout(r, 2000))
   }
