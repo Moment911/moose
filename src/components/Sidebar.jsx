@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Plus, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2 } from 'lucide-react'
+import { Plus, Mail, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import NewProjectModal from './NewProjectModal'
 import toast from 'react-hot-toast'
@@ -45,6 +45,77 @@ function SidebarHelp() {
         </div>
       )}
     </>
+  )
+}
+
+
+// ── Sidebar nav helpers ────────────────────────────────────────────────────────
+function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor }) {
+  const location = useLocation()
+  const active = exact
+    ? location.pathname === to
+    : startsWith
+    ? location.pathname.startsWith(to)
+    : location.pathname === to
+  return (
+    <Link to={to} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+      active ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+    }`}>
+      <Icon size={15} className={active ? 'text-orange-400' : ''} />
+      <span>{label}</span>
+      {badge && <span style={{ marginLeft:'auto', fontSize:8, background: badgeColor||'#f97316', color:'#fff', padding:'1px 6px', borderRadius:20, fontWeight:800, letterSpacing:'.04em' }}>{badge}</span>}
+    </Link>
+  )
+}
+
+function SectionLabel({ label }) {
+  return <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 pt-3 pb-1">{label}</p>
+}
+
+function DevSection() {
+  const [open, setOpen] = useState(false)
+  const DEV_ITEMS = [
+    { to:'/social',    icon:Star,       label:'Social Planner' },
+    { to:'/payments',  icon:DollarSign, label:'Payments' },
+    { to:'/reporting', icon:BarChart2,  label:'Reporting' },
+    { to:'/marketing', icon:Megaphone,  label:'E-Marketing' },
+    { to:'/campaigns', icon:Megaphone,  label:'Campaigns' },
+    { to:'/contacts',  icon:Users,      label:'Contacts' },
+    { to:'/calendar',  icon:Calendar,   label:'Calendar' },
+    { to:'/tasks',     icon:CheckSquare,label:'Tasks' },
+    { to:'/messages',  icon:MessageSquare, label:'Messages' },
+    { to:'/revenue',   icon:DollarSign, label:'Revenue' },
+    { to:'/admin',     icon:Shield,     label:'Admin Portal' },
+    { to:'/seo/audit', icon:Zap,        label:'SEO Audit' },
+    { to:'/seo/plugin',icon:Puzzle,     label:'WP Plugin' },
+    { to:'/seo/connect',icon:Link2,     label:'Connect Data' },
+    { to:'/automations',icon:Zap,       label:'Automations' },
+    { to:'/templates', icon:BookOpen,   label:'Templates' },
+    { to:'/brand-guidelines',icon:Palette, label:'Brand Guidelines' },
+    { to:'/email-designer',icon:Mail,   label:'Email Designer' },
+    { to:'/welcome',   icon:Globe,      label:'Marketing Site' },
+    { to:'/signup',    icon:Plus,       label:'Agency Signup' },
+  ]
+  return (
+    <div className="mt-1">
+      <button onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-gray-500 hover:text-gray-300 hover:bg-white/5">
+        <BookOpen size={14} />
+        <span className="text-xs font-semibold tracking-wider uppercase">Dev / Preview</span>
+        <ChevronRight size={11} style={{ marginLeft:'auto', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition:'transform .2s' }} />
+      </button>
+      {open && (
+        <div className="ml-2 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
+          {DEV_ITEMS.map(item => (
+            <Link key={item.to} to={item.to}
+              className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-xs text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors">
+              <item.icon size={12} />
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -142,106 +213,29 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        <Link to="/" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><LayoutGrid size={15} className={location.pathname === '/' ? 'text-brand-500' : ''} /> Project Hub</Link>
 
-        <Link to="/messages" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/messages' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><MessageSquare size={15} className={location.pathname === '/messages' ? 'text-brand-500' : ''} /> Messages</Link>
+        {/* ── CORE ── */}
+        <NavLink to="/" exact icon={LayoutGrid} label="Project Hub" />
+        <NavLink to="/clients" icon={Users} label="Clients" startsWith />
+        <NavLink to="/reviews" icon={MessageSquare} label="Reviews" startsWith />
+        <NavLink to="/ai-agents" icon={Zap} label="AI Agents" startsWith />
+        <NavLink to="/integrations" icon={Plug} label="Integrations" />
 
-        <Link to="/tasks" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/tasks' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><CheckSquare size={15} className={location.pathname === '/tasks' ? 'text-brand-500' : ''} /> Tasks</Link>
+        {/* ── SEO / INTELLIGENCE ── */}
+        <SectionLabel label="Intelligence" />
+        <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#f97316" />
+        <NavLink to="/seo" icon={TrendingUp} label="SEO Hub" />
+        <NavLink to="/wordpress" icon={Globe} label="WordPress Sites" startsWith />
 
-        <Link to="/calendar" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/calendar' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Calendar size={15} className={location.pathname === '/calendar' ? 'text-brand-500' : ''} /> Calendar</Link>
+        {/* ── AGENCY ── */}
+        <SectionLabel label="Agency" />
+        <NavLink to="/agency-settings" icon={Shield} label="Agency Settings" />
+        <NavLink to="/settings" icon={Settings} label="Settings" exact />
 
-        <Link to="/marketing" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/marketing') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Megaphone size={15} className={location.pathname.startsWith('/marketing') ? 'text-brand-500' : ''} /> E-Marketing</Link>
+        {/* ── DEV / COMING SOON ── */}
+        <DevSection />
 
-        <Link to="/social" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/social') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Star size={15} className={location.pathname.startsWith('/social') ? 'text-brand-500' : ''} /> Social Planner</Link>
-
-        <Link to="/reviews" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/reviews') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><MessageSquare size={15} className={location.pathname.startsWith('/reviews') ? 'text-brand-500' : ''} /> Reviews</Link>
-
-        <Link to="/payments" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/payments') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><DollarSign size={15} className={location.pathname.startsWith('/payments') ? 'text-brand-500' : ''} /> Payments</Link>
-
-        <Link to="/ai-agents" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/ai-agents') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Zap size={15} className={location.pathname.startsWith('/ai-agents') ? 'text-brand-500' : ''} /> AI Agents</Link>
-
-        <Link to="/reporting" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/reporting') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><BarChart2 size={15} className={location.pathname.startsWith('/reporting') ? 'text-brand-500' : ''} /> Reporting</Link>
-
-        <Link to="/revenue" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/revenue' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><DollarSign size={15} className={location.pathname === '/revenue' ? 'text-brand-500' : ''} /> Revenue</Link>
-
-        <Link to="/employees" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname.startsWith('/employees') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Users size={15} className={location.pathname.startsWith('/employees') ? 'text-brand-500' : ''} /> Team</Link>
-
-        <Link to="/clients" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${location.pathname.startsWith('/clients') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-          <Users size={15} className={location.pathname.startsWith('/clients') ? 'text-orange-400' : ''} /> Clients
-        </Link>
-
-        <Link to="/integrations" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/integrations' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Plug size={15} className={location.pathname === '/integrations' ? 'text-brand-500' : ''} /> Integrations</Link>
-
-        <Link to="/settings" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/settings' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Settings size={15} className={location.pathname === '/settings' ? 'text-brand-500' : ''} /> Settings</Link>
-
-        <Link to="/integrations" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/integrations' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Link2 size={15} className={location.pathname === '/integrations' ? 'text-brand-500' : ''} /> Integrations</Link>
-
-        <Link to="/agency-settings" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/agency-settings' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Globe size={15} className={location.pathname === '/agency-settings' ? 'text-brand-500' : ''} /> Agency</Link>
-
-        <Link to="/admin" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === '/admin' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><Shield size={15} className={location.pathname === '/admin' ? 'text-brand-500' : ''} /> Admin</Link>
-
-        {/* SCOUT */}
-        <div className="mt-2 pt-2 border-t border-white/10">
-          <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 mb-1">Intelligence</p>
-          <Link to="/scout" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-            location.pathname.startsWith('/scout') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-          }`}>
-            <Target size={15} className={location.pathname.startsWith('/scout') ? 'text-orange-500' : ''} />
-            <span className="font-semibold tracking-wider text-xs">SCOUT</span>
-            <span className="ml-auto text-[8px] bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none">NEW</span>
-          </Link>
-          <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 mt-2 mb-1">SEO</p>
-          <Link to="/seo" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <TrendingUp size={14} className={location.pathname === '/seo' ? 'text-green-400' : ''} /> SEO Hub
-          </Link>
-          <Link to="/seo/audit" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/audit' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <Zap size={14} className={location.pathname === '/seo/audit' ? 'text-yellow-400' : ''} /> URL Audit
-          </Link>
-          <Link to="/seo/plugin" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/plugin' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <Puzzle size={14} className={location.pathname === '/seo/plugin' ? 'text-purple-400' : ''} /> WP Plugin
-          </Link>
-          <Link to="/wordpress" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname.startsWith('/wordpress') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <Globe size={14} className={location.pathname.startsWith('/wordpress') ? 'text-orange-400' : ''} /> WordPress Sites
-          </Link>
-          <Link to="/seo/connect" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/connect' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <Link2 size={14} className={location.pathname === '/seo/connect' ? 'text-blue-400' : ''} /> Connect Data
-          </Link>
-        </div>
-
+        {/* ── CLIENT LIST ── */}
         <div className="pt-3 pb-1">
           <div className="flex items-center justify-between px-3 mb-1">
             <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Clients</span>
