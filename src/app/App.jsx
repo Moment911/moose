@@ -41,6 +41,7 @@ import MooseDeskPage from '../views/desk/MooseDeskPage'
 import DeskTicketPage from '../views/desk/DeskTicketPage'
 import DeskSettingsPage from '../views/desk/DeskSettingsPage'
 import DeskAnalyticsPage from '../views/desk/DeskAnalyticsPage'
+import QAKnowledgePage from '../views/desk/QAKnowledgePage'
 import ProspectReportPage from '../views/scout/ProspectReportPage'
 import PublicReportPage from '../views/scout/PublicReportPage'
 import ScoutLeadsPage from '../views/scout/ScoutLeadsPage'
@@ -140,6 +141,7 @@ export default function App() {
           <Route path="/desk/ticket/:id" element={<DeskTicketPage />} />
           <Route path="/desk/settings" element={<DeskSettingsPage />} />
           <Route path="/desk/analytics" element={<DeskAnalyticsPage />} />
+          <Route path="/desk/knowledge" element={<QAKnowledgePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/scout/settings" element={<SettingsPage />} />
           <Route path="/seo" element={<SEOHubPage />} />

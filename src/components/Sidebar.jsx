@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Plus, Mail, FileSignature, Cpu, Clock, Inbox, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
+import { Plus, Mail, FileSignature, Cpu, Clock, Inbox, Brain, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
@@ -227,6 +227,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#5bc6d0" />
         <NavLink to="/scout/history" icon={Clock} label="Scout History" startsWith />
         <NavLink to="/desk" icon={Inbox} label="MooseDesk" startsWith />
+        <NavLink to="/desk/knowledge" icon={Brain} label="Q&A Knowledge" startsWith />
         <NavLink to="/seo" icon={TrendingUp} label="SEO Hub" startsWith />
 
         {/* ── AGENCY ── */}

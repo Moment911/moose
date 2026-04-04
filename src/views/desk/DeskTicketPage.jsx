@@ -12,6 +12,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { logActivity, startTimer, stopTimer, learnFromTicket } from '../../lib/moosedesk'
 import { emailReplySent, emailTicketResolved } from '../../lib/deskEmail'
+import { learnFromResolvedTicket } from '../../lib/qaKnowledge'
 import toast from 'react-hot-toast'
 
 const RED  = '#ea2729'
@@ -143,9 +144,13 @@ export default function DeskTicketPage() {
   async function resolveTicket(resolution) {
     await updateField('status','resolved')
     await supabase.from('desk_tickets').update({resolved_at:new Date().toISOString()}).eq('id',id)
-    if (resolution && agentMe) await learnFromTicket(ticket, resolution, aid)
+    // Auto-learn from full ticket thread
+    try {
+      const { data: allReplies } = await supabase.from('desk_replies').select('*').eq('ticket_id',id).order('created_at')
+      learnFromResolvedTicket(ticket, allReplies||[], aid).catch(console.warn)
+    } catch(e) { console.warn('Auto-learn failed:', e.message) }
     emailTicketResolved(ticket).catch(console.warn)
-    toast.success('Ticket resolved')
+    toast.success('Ticket resolved — AI will extract a Q&A entry automatically')
   }
 
   function copyAISuggestion() {
