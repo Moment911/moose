@@ -5,6 +5,7 @@ import { MobileMenuProvider } from '../context/MobileMenuContext'
 import { AuthProvider } from '../hooks/useAuth'
 
 import LoginPage from '../views/LoginPage'
+import ClientsPage from '../views/ClientsPage'
 import DashboardPage from '../views/DashboardPage'
 import ProjectPage from '../views/ProjectPage'
 import MessagesPage from '../views/MessagesPage'
@@ -51,6 +52,7 @@ export default function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/clients" element={<ClientsPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />
