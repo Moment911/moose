@@ -173,6 +173,22 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           location.pathname.startsWith('/marketing') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><Megaphone size={15} className={location.pathname.startsWith('/marketing') ? 'text-brand-500' : ''} /> E-Marketing</Link>
 
+        <Link to="/social" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname.startsWith('/social') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><Star size={15} className={location.pathname.startsWith('/social') ? 'text-brand-500' : ''} /> Social Planner</Link>
+
+        <Link to="/payments" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname.startsWith('/payments') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><DollarSign size={15} className={location.pathname.startsWith('/payments') ? 'text-brand-500' : ''} /> Payments</Link>
+
+        <Link to="/ai-agents" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname.startsWith('/ai-agents') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><Zap size={15} className={location.pathname.startsWith('/ai-agents') ? 'text-brand-500' : ''} /> AI Agents</Link>
+
+        <Link to="/reporting" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname.startsWith('/reporting') ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><BarChart2 size={15} className={location.pathname.startsWith('/reporting') ? 'text-brand-500' : ''} /> Reporting</Link>
+
         <Link to="/revenue" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/revenue' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><DollarSign size={15} className={location.pathname === '/revenue' ? 'text-brand-500' : ''} /> Revenue</Link>

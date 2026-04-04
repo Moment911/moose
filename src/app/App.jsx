@@ -50,6 +50,10 @@ import OnboardingPage from '../views/OnboardingPage'
 import AccountAccessPage from '../views/AccountAccessPage'
 import ClientAccessFormPage from '../views/ClientAccessFormPage'
 import ClientPersonaPage from '../views/ClientPersonaPage'
+import PaymentsPage from '../views/PaymentsPage'
+import AIAgentsPage from '../views/AIAgentsPage'
+import ReportingPage from '../views/ReportingPage'
+import SocialPlannerPage from '../views/SocialPlannerPage'
 
 export default function App() {
   return (
@@ -66,6 +70,10 @@ export default function App() {
           <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/clients/:clientId/persona" element={<ClientPersonaPage />} />
+          <Route path="/payments" element={<PaymentsPage />} />
+          <Route path="/ai-agents" element={<AIAgentsPage />} />
+          <Route path="/reporting" element={<ReportingPage />} />
+          <Route path="/social" element={<SocialPlannerPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />
