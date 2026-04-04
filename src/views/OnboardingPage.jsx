@@ -8,10 +8,24 @@ import {
   ChevronRight, ChevronLeft, Check, Eye, EyeOff, Sparkles,
   Copy, ExternalLink, CheckCircle, Loader2, AlertCircle,
   RefreshCw, ThumbsUp, ThumbsDown, Edit3, Lock, Info,
-  Star, Building, Users, Target, DollarSign, Globe,
-  Palette, TrendingUp, Shield, Zap, Phone, Mail,
-  MapPin, ShoppingBag, BarChart2, Award, MessageSquare
+  Star, Building, Building2, Users, User, Target, DollarSign, Globe,
+  Palette, TrendingUp, Shield, Zap, Phone, Mail, X,
+  MapPin, ShoppingBag, BarChart2, Award, MessageSquare,
+  Package, Share2, Key, Save, Tag, Search, Megaphone,
+  Briefcase, Smartphone, Clock
 } from 'lucide-react';
+
+
+// Icon name → Lucide component map for STEPS array
+const ICON_MAP = {
+  Sparkles, User, Building2, Package, Users, BarChart2,
+  MapPin, Palette, Share2, Globe, Key, TrendingUp,
+  DollarSign, CheckCircle, Clock, Shield, Save, Target, Zap
+}
+function StepIcon({ name, size=14, color }) {
+  const I = ICON_MAP[name]
+  return I ? <I size={size} color={color}/> : null
+}
 
 const ACCENT = '#E8551A';
 
@@ -161,7 +175,7 @@ function TagInput({ value, onChange, placeholder, color = ACCENT }) {
 }
 
 // AI Assist button + suggestion box
-function AIAssist({ prompt, onResult, label = '🤖 AI Suggest', small }) {
+function AIAssist({ prompt, onResult, label = 'AI Suggest', small }) {
   const [loading, setLoading] = useState(false);
   async function run() {
     setLoading(true);
@@ -192,7 +206,7 @@ function SugBox({ text, onAccept, onDismiss, onEdit }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <Sparkles size={14} color={ACCENT} />
         <span style={{ fontSize: 12, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Suggestion</span>
-        <button type="button" onClick={onDismiss} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}>✕</button>
+        <button type="button" onClick={onDismiss} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}><X size={14}/></button>
       </div>
       {editing ? (
         <textarea value={editVal} onChange={e => setEditVal(e.target.value)} rows={4}
@@ -231,7 +245,7 @@ function AccessGuide({ platform, icon, steps, link, linkLabel }) {
     <div style={{ background: '#f9fafb', borderRadius: 14, border: '1px solid #e5e7eb', marginBottom: 12, overflow: 'hidden' }}>
       <button type="button" onClick={() => setOpen(o => !o)}
         style={{ width: '100%', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-        <span style={{ fontSize: 22 }}>{icon}</span>
+        <div style={{width:36,height:36,borderRadius:9,background:ACCENT+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><StepIcon name={icon} size={18} color={ACCENT}/></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{platform}</div>
           <div style={{ fontSize: 12, color: '#9ca3af' }}>Click to see how to add us</div>
@@ -261,37 +275,37 @@ function AccessGuide({ platform, icon, steps, link, linkLabel }) {
 
 // ── Steps config ──────────────────────────────────────────────────────────────
 const STEPS = [
-  { id: 'welcome',     icon: '👋', label: 'Welcome' },
-  { id: 'you',         icon: '🧑', label: 'About You' },
-  { id: 'business',    icon: '🏢', label: 'Your Business' },
-  { id: 'products',    icon: '🛍️', label: 'Products & Services' },
-  { id: 'customers',   icon: '👥', label: 'Your Customers' },
-  { id: 'competitors', icon: '🥊', label: 'Competition' },
-  { id: 'geography',   icon: '📍', label: 'Target Markets' },
-  { id: 'brand',       icon: '🎨', label: 'Brand & Voice' },
-  { id: 'social',      icon: '📱', label: 'Social Media' },
-  { id: 'tech',        icon: '🌐', label: 'Website & Tech' },
-  { id: 'access',      icon: '🔑', label: 'Give Us Access' },
-  { id: 'marketing',   icon: '📢', label: 'Marketing History' },
-  { id: 'revenue',     icon: '💰', label: 'Revenue & Goals' },
-  { id: 'persona',     icon: '🤖', label: 'Your Persona' },
-  { id: 'done',        icon: '🎉', label: 'All Done!' },
+  { id: 'welcome',     icon: 'Sparkles',   label: 'Welcome' },
+  { id: 'you',         icon: 'User',       label: 'About You' },
+  { id: 'business',    icon: 'Building2',  label: 'Your Business' },
+  { id: 'products',    icon: 'Package',    label: 'Products & Services' },
+  { id: 'customers',   icon: 'Users',      label: 'Your Customers' },
+  { id: 'competitors', icon: 'BarChart2',  label: 'Competition' },
+  { id: 'geography',   icon: 'MapPin',     label: 'Target Markets' },
+  { id: 'brand',       icon: 'Palette',    label: 'Brand & Voice' },
+  { id: 'social',      icon: 'Share2',     label: 'Social Media' },
+  { id: 'tech',        icon: 'Globe',      label: 'Website & Tech' },
+  { id: 'access',      icon: 'Key',        label: 'Give Us Access' },
+  { id: 'marketing',   icon: 'TrendingUp', label: 'Marketing History' },
+  { id: 'revenue',     icon: 'DollarSign', label: 'Revenue & Goals' },
+  { id: 'persona',     icon: 'Sparkles',   label: 'Your Persona' },
+  { id: 'done',        icon: 'CheckCircle', label: 'All Done!' },
 ];
 
 const ENCOURAGEMENT = {
   1:  n => n ? `Hi ${n}! Let's start with the basics about your business.` : `Let's start with your business basics.`,
-  2:  n => n ? `Great to meet you, ${n}! 🙌 Tell us about your business.` : `Now let's learn about your business.`,
+  2:  n => n ? `Great to meet you, ${n}! Tell us about your business.` : `Now let's learn about your business.`,
   3:  n => n ? `Nice work, ${n}! Now the exciting part — your products and services.` : `Tell us about what you sell.`,
-  4:  n => n ? `This is gold, ${n}! 💡 Understanding your customers drives everything.` : `Let's understand your ideal customers.`,
-  5:  n => n ? `Halfway there, ${n}! 💪 Knowing your competition helps us position you to WIN.` : `Let's map your competitive landscape.`,
-  6:  n => n ? `You're on fire, ${n}! 🔥 Now let's pin down your target markets.` : `Where do you want to grow?`,
-  7:  n => n ? `Beautiful, ${n}! 🎨 Let's capture your brand identity.` : `Your brand identity drives all design work.`,
-  8:  n => n ? `Keep it coming, ${n}! 📱 Link all your social profiles.` : `Connect your social media profiles.`,
+  4:  n => n ? `Understanding your customers drives everything.` : `Let's understand your ideal customers.`,
+  5:  n => n ? `Halfway there, ${n}! Knowing your competition helps us position you to WIN.` : `Let's map your competitive landscape.`,
+  6:  n => n ? `Now let's pin down your target markets.` : `Where do you want to grow?`,
+  7:  n => n ? `Let's capture your brand identity.` : `Your brand identity drives all design work.`,
+  8:  n => n ? `Link all your social profiles.` : `Connect your social media profiles.`,
   9:  n => n ? `Almost there, ${n}! Your tech stack is critical for tracking ROI.` : `Help us understand your website and tech.`,
-  10: n => n ? `The most important step, ${n}! 🔑 Giving us access lets us actually start working.` : `Give us access to your platforms.`,
+  10: n => n ? `Giving us access lets us actually start working.` : `Give us access to your platforms.`,
   11: n => n ? `So close, ${n}! Tell us what you've tried before — it saves a lot of money.` : `Your marketing history is super valuable.`,
-  12: n => n ? `Last big step, ${n}! 💰 Goals and revenue data let us build the right strategy.` : `Goals and revenue data shape everything.`,
-  13: n => n ? `Magic time, ${n}! 🤖 Let's see what our AI says about your ideal customer.` : `Let's review your AI-generated persona.`,
+  12: n => n ? `Goals and revenue data let us build the right strategy.` : `Goals and revenue data shape everything.`,
+  13: n => n ? `Let's see what our AI says about your ideal customer.` : `Let's review your AI-generated persona.`,
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -558,7 +572,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 12, color: '#52525b', fontWeight: 500 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
-        {firstName && <span style={{ fontSize: 13, color: '#a1a1aa' }}>Hi <strong style={{ color: '#fff' }}>{firstName}</strong> 👋</span>}
+        {firstName && <span style={{ fontSize: 13, color: '#a1a1aa' }}>Hi <strong style={{ color: '#fff' }}>{firstName}</strong> </span>}
       </div>
       {step > 0 && step < STEPS.length - 1 && (
         <div style={{ maxWidth: 820, margin: '0 auto', paddingBottom: 10 }}>
@@ -600,7 +614,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <CheckCircle size={44} color="#22c55e" />
           </div>
           <h2 style={{ fontSize: 28, fontWeight: 900, color: '#111', marginBottom: 10 }}>
-            {firstName ? `Amazing work, ${firstName}! 🎉` : 'All done! 🎉'}
+            {firstName ? `Amazing work, ${firstName}!` : 'All done!'}
           </h2>
           <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.7, marginBottom: 24 }}>
             {firstName ? `Thank you for taking the time, ${firstName}. ` : ''}Your agency now has everything they need to build a powerful marketing strategy. We'll be in touch very soon!
@@ -633,7 +647,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           <button type="button" onClick={submit} disabled={saving}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: '#22c55e', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', opacity: saving ? .7 : 1, boxShadow: '0 6px 20px rgba(34,197,94,.4)' }}>
             {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
-            {saving ? 'Submitting…' : 'Submit & Finish ✓'}
+            {saving ? 'Submitting…' : 'Submit & Finish'}
           </button>
         )}
       </div>
@@ -653,7 +667,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               <span style={{ fontSize: 11, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
               <span style={{ fontSize: 11, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Moose AI</span>
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }}>✦ Client Onboarding</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }} style={{display:"inline-flex",alignItems:"center",gap:6}}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
             <h1 style={{ fontSize: 38, fontWeight: 900, color: '#fff', margin: '0 0 14px', letterSpacing: -0.5 }}>
               Welcome, <span style={{ color: ACCENT }}>{tokenData?.clients?.name || 'there'}</span>! 🎉
             </h1>
@@ -662,7 +676,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             </p>
             <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: '20px 24px', maxWidth: 500, margin: '0 auto', textAlign: 'left' }}>
               <div style={{ display: 'flex', gap: 14 }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20 }}>🤝</div>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20 }}></div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>A note from our team</div>
                   <div style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.65 }}>
@@ -678,15 +692,15 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 18 }}>What we'll cover together</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 32 }}>
               {[
-                { emoji: '⏱️', title: '20–30 minutes', desc: 'Work at your own pace — saves automatically' },
-                { emoji: '🤖', title: 'AI-assisted', desc: 'Stuck? Hit AI Suggest for instant ideas' },
-                { emoji: '🔒', title: '100% secure', desc: 'Passwords encrypted, only your agency sees this' },
-                { emoji: '💾', title: 'Auto-saved', desc: 'Close and come back anytime' },
-                { emoji: '🎯', title: 'Drives strategy', desc: 'Every answer shapes your campaigns' },
-                { emoji: '🚀', title: 'Launches faster', desc: 'Complete this today, we start sooner' },
+                { icon: 'Clock', title: '20–30 minutes', desc: 'Work at your own pace — saves automatically' },
+                { icon: 'Sparkles', title: 'AI-assisted', desc: 'Stuck? Hit AI Suggest for instant ideas' },
+                { icon: 'Shield', title: '100% secure', desc: 'Passwords encrypted, only your agency sees this' },
+                { icon: 'Save', title: 'Auto-saved', desc: 'Close and come back anytime' },
+                { icon: 'Target', title: 'Drives strategy', desc: 'Every answer shapes your campaigns' },
+                { icon: 'Zap', title: 'Launches faster', desc: 'Complete this today, we start sooner' },
               ].map(item => (
                 <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '16px 18px', border: '1px solid #f3f4f6' }}>
-                  <div style={{ fontSize: 24, marginBottom: 8 }}>{item.emoji}</div>
+                  <div style={{ marginBottom: 8 }}><StepIcon name={item.icon} size={24} color={ACCENT}/></div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>{item.title}</div>
                   <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>{item.desc}</div>
                 </div>
@@ -695,14 +709,14 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
               {STEPS.slice(1, -1).map(s => (
                 <span key={s.id} style={{ fontSize: 13, fontWeight: 500, padding: '6px 14px', borderRadius: 20, background: '#fff', border: '1.5px solid #e5e7eb', color: '#374151' }}>
-                  {s.icon} {s.label}
+                  <StepIcon name={s.icon} size={13} color='#6b7280'/> {s.label}
                 </span>
               ))}
             </div>
             <div style={{ background: '#fff7f5', border: `1px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 12 }}>
               <Sparkles size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
               <div style={{ fontSize: 14, color: '#92400e', lineHeight: 1.65 }}>
-                <strong>Pro tip:</strong> Look for the <span style={{ color: ACCENT, fontWeight: 800 }}>🤖 AI Suggest</span> buttons throughout. They generate smart suggestions based on your industry that you can tweak — no staring at a blank field.
+                <strong>Pro tip:</strong> Look for the <span style={{ color: ACCENT, fontWeight: 800 }}>AI Suggest</span> buttons throughout. They generate smart suggestions based on your industry that you can tweak — no staring at a blank field.
               </div>
             </div>
             <button type="button" onClick={() => setStep(1)}
@@ -734,7 +748,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         {step === 1 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🧑</span> About You</div>
+              <div style={T.stepTag}>About You</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>First, who are we working with?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>We'll personalise this whole experience using your name. Takes 30 seconds.</p>
             </div>
@@ -744,7 +758,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                   <FocusInput large value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="John" autoFocus />
                   {form.first_name.trim() && (
                     <div style={{ marginTop: 10, padding: '10px 16px', background: '#fff7f5', borderRadius: 10, border: `1px solid ${ACCENT}25`, display: 'flex', alignItems: 'center', gap: 9, animation: 'fadeIn .3s ease' }}>
-                      <span style={{ fontSize: 20 }}>👋</span>
+                      <span style={{ fontSize: 20 }}></span>
                       <span style={{ fontSize: 15, color: '#374151', fontWeight: 500 }}>Hi <strong style={{ color: ACCENT }}>{form.first_name.trim().split(' ')[0]}</strong>! Great to meet you.</span>
                     </div>
                   )}
@@ -770,7 +784,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         {step === 2 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🏢</span> Your Business</div>
+              <div style={T.stepTag}>Your Business</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Tell us about your business</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>This information lives at the foundation of everything we build for you.</p>
             </div>
@@ -820,7 +834,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               <F label="Business Description" hint="In 2–4 sentences: what do you do, who do you serve, and what makes you special? This becomes the foundation of all your marketing copy." span2>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                   <AIAssist prompt={`${CTX}. Write a compelling 3-4 sentence business description that explains what they do, who they serve, and their core value proposition. Make it sound human and authentic, not generic.`}
-                    onResult={v => setSug('business_description', v)} label="🤖 AI Write This" />
+                    onResult={v => setSug('business_description', v)} label="AI Write This" />
                 </div>
                 <FocusTextarea rows={5} value={form.business_description} onChange={e => set('business_description', e.target.value)}
                   placeholder="We're Miami's most trusted family-owned plumbing company, serving homeowners and businesses since 2012. We specialize in emergency repairs, water heater installation, and whole-home repiping. What sets us apart is our 1-hour response guarantee and upfront pricing — no surprises, ever." />
@@ -834,19 +848,19 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         {step === 3 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🛍️</span> Products & Services</div>
+              <div style={T.stepTag}>Products & Services</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>What do you sell?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Be as detailed as possible — the more specific you are, the better we can target people who actually want what you offer.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox color={ACCENT}>
-                💡 <strong>Pro tip from a marketing veteran:</strong> Most businesses underestimate the power of getting granular here. Don't just say "plumbing" — tell us "emergency pipe bursts, tankless water heater installs, sewer line replacements, bathroom remodels." Each specific service is a keyword opportunity worth thousands in ad spend.
+                <strong>Pro tip from a marketing veteran:</strong> Most businesses underestimate the power of getting granular here. Don't just say "plumbing" — tell us "emergency pipe bursts, tankless water heater installs, sewer line replacements, bathroom remodels." Each specific service is a keyword opportunity worth thousands in ad spend.
               </InfoBox>
 
               <F label="Describe ALL your products and services in detail" hint="Don't hold back — list every service, product, package, or program you offer. The more specific the better." span2>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                   <AIAssist prompt={`${CTX}. List all likely products and services this type of business offers, organized by category. Be specific and comprehensive — include emergency services, specialized services, packages, maintenance plans, etc. Format as a detailed list.`}
-                    onResult={v => setSug('products_services', v)} label="🤖 Help Me List Everything" />
+                    onResult={v => setSug('products_services', v)} label="AI Help Me List" />
                 </div>
                 <FocusTextarea rows={8} value={form.products_services} onChange={e => set('products_services', e.target.value)}
                   placeholder="Service 1: Emergency plumbing (leaks, burst pipes, no hot water) — available 24/7
@@ -895,13 +909,13 @@ Product: Water filtration systems — sale and installation..." />
         {step === 4 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>👥</span> Your Ideal Customers</div>
+              <div style={T.stepTag}>Your Ideal Customers</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Who are your best customers?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>This drives ALL targeting decisions — ad audiences, keyword selection, content topics, even the words we use in your ads.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox color="#8b5cf6">
-                🎯 <strong>Why this matters so much:</strong> Knowing your ideal customer is the difference between a $50 lead and a $5 lead on Google Ads. The more specifically you describe them, the tighter our targeting — and the lower your cost per lead.
+                <strong>Why this matters so much:</strong> Knowing your ideal customer is the difference between a $50 lead and a $5 lead on Google Ads. The more specifically you describe them, the tighter our targeting — and the lower your cost per lead.
               </InfoBox>
 
               <F label="Who are your typical customers? Select all that apply">
@@ -913,7 +927,7 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="Describe your ideal / best customer in detail" hint="Think about your top 3 clients. What do they have in common? What's their situation when they call you?">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. Describe the ideal customer for this business in 5-6 sentences. Include: demographics, psychographics, what situation triggers them to seek this service, what they care about most when choosing a provider, and any specific characteristics that make them a great customer.`}
-                      onResult={v => setSug('ideal_customer_desc', v)} label="🤖 Build Customer Profile" />
+                      onResult={v => setSug('ideal_customer_desc', v)} label="AI Build Profile" />
                   </div>
                   <FocusTextarea rows={5} value={form.ideal_customer_desc} onChange={e => set('ideal_customer_desc', e.target.value)}
                     placeholder="My best customers are homeowners aged 35-55 in Coral Gables and Pinecrest who own their home, earn $100K+, and care deeply about quality over price. They find us through Google when they have an emergency, or through neighbor referrals. They're busy professionals who value quick response times and want the job done right the first time. They become repeat customers and refer their neighbors." />
@@ -940,7 +954,7 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="What are your customers' biggest pain points / frustrations?" hint="What keeps them up at night? What problem are they desperately trying to solve?">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. List the top 5 specific, emotional pain points that drive customers to urgently seek this type of service. Be vivid and specific — what are they worried about, frustrated by, or stressed over? Format as bullet points.`}
-                      onResult={v => setSug('customer_pain_points', v)} label="🤖 Suggest Pain Points" />
+                      onResult={v => setSug('customer_pain_points', v)} label="AI Suggest" />
                   </div>
                   <FocusTextarea rows={4} value={form.customer_pain_points} onChange={e => set('customer_pain_points', e.target.value)}
                     placeholder="• Burst pipe flooding their home at 2am — pure panic
@@ -962,7 +976,7 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="Where do your customers spend time online? What's their lifestyle like?" hint="This helps us target them on the right platforms at the right time">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. Describe the online behavior and lifestyle of ideal customers for this business. Include: which social platforms they use, when they're online, what content they engage with, Nextdoor/neighborhood groups, Facebook groups, and anything relevant for targeting on Google, Meta, and other ad platforms.`}
-                      onResult={v => setSug('customer_lifestyle', v)} label="🤖 Describe Lifestyle" />
+                      onResult={v => setSug('customer_lifestyle', v)} label="AI Describe" />
                   </div>
                   <FocusTextarea rows={3} value={form.customer_lifestyle} onChange={e => set('customer_lifestyle', e.target.value)}
                     placeholder="Active on Facebook and Nextdoor, Google things when they have a problem, belong to neighborhood Facebook groups, read local news sites, watch YouTube tutorials, commute 30+ minutes, busy parents…" />
@@ -977,7 +991,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 5 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🥊</span> Your Competition</div>
+              <div style={T.stepTag}>Your Competition</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Who are you competing against?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Knowing your competitors lets us outrank them on Google, outbid them on ads, and position you to win every time.</p>
             </div>
@@ -1010,12 +1024,12 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="Why should someone choose YOU over all of them?" hint="Be specific — what do you genuinely do better? Avoid generic answers like 'great service'">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. List 5 specific, concrete reasons why a customer should choose this business over typical competitors in this industry. Avoid generic claims — think: certifications, guarantees, response times, local reputation, specializations, technology, unique processes. Format as bullet points.`}
-                      onResult={v => setSug('why_choose_you', v)} label="🤖 Suggest Differentiators" />
+                      onResult={v => setSug('why_choose_you', v)} label="AI Suggest" />
                   </div>
                   <FocusTextarea rows={5} value={form.why_choose_you} onChange={e => set('why_choose_you', e.target.value)}
                     placeholder="• 1-hour response guarantee — in writing
 • Only licensed master plumber in the county
-• 4.9★ Google rating (247 reviews)
+• 4.9-star Google rating (247 reviews)
 • Upfront pricing — you approve before we start
 • 5-year warranty on all work (competitors offer 1 year)" />
                   <SugBox text={aiSugs.why_choose_you} onAccept={v => acceptSug('why_choose_you', v)} onDismiss={() => clearSug('why_choose_you')} />
@@ -1026,7 +1040,7 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="Your Unique Value Proposition (UVP)" hint="One sentence that captures WHY you're the obvious choice">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. Write 3 different one-sentence Unique Value Propositions (UVPs) for this business. Each should be specific, bold, and customer-benefit focused — something a customer would immediately respond to. Format: numbered list.`}
-                      onResult={v => setSug('unique_value_prop', v)} label="🤖 Generate UVP Options" />
+                      onResult={v => setSug('unique_value_prop', v)} label="AI Generate" />
                   </div>
                   <FocusInput value={form.unique_value_prop} onChange={e => set('unique_value_prop', e.target.value)} large
                     placeholder="e.g. 'Miami's highest-rated plumber — guaranteed 1-hour response or your service call is FREE'" />
@@ -1041,7 +1055,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 6 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>📍</span> Target Markets</div>
+              <div style={T.stepTag}>Target Markets</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Where do you want to grow?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Your geographic targeting determines where we spend every dollar of your ad budget. Let's be surgical about it.</p>
             </div>
@@ -1065,7 +1079,7 @@ Product: Water filtration systems — sale and installation..." />
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. List 12-15 specific cities, towns, and neighborhoods within reasonable service distance. Include a mix of cities AND specific neighborhoods. Focus on areas with the right demographics for this business. Just the location names, comma-separated.`}
                       onResult={v => { const cities = v.split(',').map(c => c.trim()).filter(Boolean); set('target_cities', [...new Set([...form.target_cities, ...cities])]); toast.success(`Added ${cities.length} locations`); }}
-                      label="🤖 Suggest Target Areas" />
+                      label="AI Suggest" />
                   </div>
                   <TagInput value={form.target_cities} onChange={v => set('target_cities', v)} placeholder="e.g. Coral Gables, Pinecrest, Coconut Grove…" color="#3b82f6" />
                 </F>
@@ -1084,7 +1098,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 7 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🎨</span> Brand & Voice</div>
+              <div style={T.stepTag}>Brand & Voice</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Your brand identity</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Your visual identity and brand voice keep every campaign looking and sounding consistent.</p>
             </div>
@@ -1142,20 +1156,20 @@ Product: Water filtration systems — sale and installation..." />
         {step === 8 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>📱</span> Social Media</div>
+              <div style={T.stepTag}>Social Media</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Your social profiles</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Link everything so we can audit your presence, check what's working, and manage your accounts.</p>
             </div>
             <div style={T.cardBody}>
               {[
-                { label: '📘 Facebook Page URL', k: 'facebook_url', placeholder: 'https://facebook.com/yourpage' },
-                { label: '📸 Instagram URL', k: 'instagram_url', placeholder: 'https://instagram.com/yourhandle' },
-                { label: '📍 Google Business Profile URL', k: 'google_biz_url', placeholder: 'https://maps.google.com/...' },
-                { label: '⭐ Yelp Business URL', k: 'yelp_url', placeholder: 'https://yelp.com/biz/your-business' },
-                { label: '💼 LinkedIn Company URL', k: 'linkedin_url', placeholder: 'https://linkedin.com/company/...' },
-                { label: '🎵 TikTok URL', k: 'tiktok_url', placeholder: 'https://tiktok.com/@yourhandle' },
+                { label: 'Facebook Page URL', k: 'facebook_url', placeholder: 'https://facebook.com/yourpage' },
+                { label: 'Instagram URL', k: 'instagram_url', placeholder: 'https://instagram.com/yourhandle' },
+                { label: 'Google Business Profile URL', k: 'google_biz_url', placeholder: 'https://maps.google.com/...' },
+                { label: 'Yelp Business URL', k: 'yelp_url', placeholder: 'https://yelp.com/biz/your-business' },
+                { label: 'LinkedIn Company URL', k: 'linkedin_url', placeholder: 'https://linkedin.com/company/...' },
+                { label: 'TikTok URL', k: 'tiktok_url', placeholder: 'https://tiktok.com/@yourhandle' },
                 { label: '▶️ YouTube Channel URL', k: 'youtube_url', placeholder: 'https://youtube.com/@yourchannel' },
-                { label: '🐦 Twitter / X URL', k: 'twitter_url', placeholder: 'https://twitter.com/yourhandle' },
+                { label: 'Twitter / X URL', k: 'twitter_url', placeholder: 'https://twitter.com/yourhandle' },
               ].map(s => (
                 <F key={s.k} label={s.label}>
                   <div style={{ display: 'flex', gap: 10 }}>
@@ -1181,7 +1195,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 9 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🌐</span> Website & Tech Stack</div>
+              <div style={T.stepTag}>Website & Tech Stack</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Your website and technology</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Understanding your tech stack lets us set up proper tracking, avoid duplicate work, and move fast.</p>
             </div>
@@ -1227,7 +1241,7 @@ Product: Water filtration systems — sale and installation..." />
                   <SecurePwField value={form.cms_password} onChange={v => set('cms_password', v)} />
                 </F>
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 16, paddingTop: 20, borderTop: '1px solid #f3f4f6' }}>📊 Tracking & Analytics</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 16, paddingTop: 20, borderTop: '1px solid #f3f4f6' }}>Tracking & Analytics</div>
               <div style={T.grid2}>
                 <F label="Google Analytics 4 ID" hint="Starts with G-"><FocusInput value={form.ga4_id} onChange={e => set('ga4_id', e.target.value)} placeholder="G-XXXXXXXXXX" /></F>
                 <F label="Google Tag Manager ID" hint="Starts with GTM-"><FocusInput value={form.gtm_id} onChange={e => set('gtm_id', e.target.value)} placeholder="GTM-XXXXXXX" /></F>
@@ -1242,7 +1256,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 10 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🔑</span> Give Us Access</div>
+              <div style={T.stepTag}>Give Us Access</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Platform access — how to add us</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>
                 This is the most important step — without access, we can't actually do the work. Click each platform below for step-by-step instructions with direct links.
@@ -1257,11 +1271,11 @@ Product: Water filtration systems — sale and installation..." />
                 </div>
               </div>
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 14 }}>📊 Analytics & Tracking</div>
-              <AccessGuide platform="Google Analytics 4 (GA4) — Admin Access" icon="📊"
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 14 }}>Analytics & Tracking</div>
+              <AccessGuide platform="Google Analytics 4 (GA4) — Admin Access" icon="BarChart2"
                 steps={[
                   'Go to analytics.google.com and log in',
-                  'Click the gear icon ⚙️ (Admin) in the bottom left',
+                  'Click the gear icon (Admin) in the bottom left',
                   'Under "Account", click "Account Access Management"',
                   'Click the blue + button in the top right',
                   'Enter: admin@momentamktg.com',
@@ -1269,7 +1283,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click Add'
                 ]}
                 link="https://support.google.com/analytics/answer/9305587" linkLabel="View Google's Instructions" />
-              <AccessGuide platform="Google Search Console — Owner Access" icon="🔍"
+              <AccessGuide platform="Google Search Console — Owner Access" icon="Search"
                 steps={[
                   'Go to search.google.com/search-console and log in',
                   'Click Settings (gear icon) in the top right',
@@ -1280,7 +1294,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click Add'
                 ]}
                 link="https://support.google.com/webmasters/answer/2453966" linkLabel="View Official Instructions" />
-              <AccessGuide platform="Google Tag Manager — Admin Access" icon="🏷️"
+              <AccessGuide platform="Google Tag Manager — Admin Access" icon="Tag"
                 steps={[
                   'Go to tagmanager.google.com and log in',
                   'Click "Admin" in the top navigation',
@@ -1293,8 +1307,8 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/tagmanager/answer/6107011" linkLabel="View GTM Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>📍 Google Business Profile</div>
-              <AccessGuide platform="Google Business Profile — Owner Access" icon="📍"
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Google Business Profile</div>
+              <AccessGuide platform="Google Business Profile — Owner Access" icon="MapPin"
                 steps={[
                   'Go to business.google.com and log in',
                   'Select your business location',
@@ -1307,8 +1321,8 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/business/answer/3403100" linkLabel="Google's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>📢 Meta (Facebook & Instagram)</div>
-              <AccessGuide platform="Meta Business Manager — Add as Partner" icon="📘"
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Meta (Facebook & Instagram)</div>
+              <AccessGuide platform="Meta Business Manager — Add as Partner" icon="Facebook"
                 steps={[
                   'Go to business.facebook.com and log in to your Business Manager',
                   'Click "Settings" (gear icon, top left)',
@@ -1319,7 +1333,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click "Save Changes"'
                 ]}
                 link="https://www.facebook.com/business/help/1717412048538897" linkLabel="Meta's Official Instructions" />
-              <AccessGuide platform="Facebook Page Admin — Direct Page Access" icon="👤"
+              <AccessGuide platform="Facebook Page Admin — Direct Page Access" icon="User"
                 steps={[
                   'Go to your Facebook Page (not Business Manager)',
                   'Click "Settings" in the top right of your Page',
@@ -1330,20 +1344,20 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://www.facebook.com/help/187316341316803" linkLabel="Facebook's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>💰 Google Ads</div>
-              <AccessGuide platform="Google Ads — Link to Our Manager Account" icon="💰"
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Google Ads</div>
+              <AccessGuide platform="Google Ads — Link to Our Manager Account" icon="DollarSign"
                 steps={[
                   'Log in to your Google Ads account at ads.google.com',
-                  'Click the tools icon 🔧 and select "Account Access"',
+                  'Click the tools icon and select "Account Access"',
                   'OR: Find your Customer ID (top right — format: XXX-XXX-XXXX)',
                   'Email your Customer ID to admin@momentamktg.com',
                   'We\'ll send you a link request from our Manager Account',
-                  'In your Google Ads account → click the notification bell 🔔',
+                  'In your Google Ads account → click the notification bell',
                   'Click the request and "Accept" to grant Manager access'
                 ]}
                 link="https://support.google.com/google-ads/answer/7459601" linkLabel="Google Ads Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>📺 YouTube</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>YouTubeTube</div>
               <AccessGuide platform="YouTube Channel — Manager Access" icon="▶️"
                 steps={[
                   'Go to studio.youtube.com and log in',
@@ -1356,8 +1370,8 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/youtube/answer/9481328" linkLabel="YouTube's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>📍 Other Platforms</div>
-              <AccessGuide platform="Yelp Business Account" icon="⭐"
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Otherer Platforms</div>
+              <AccessGuide platform="Yelp Business Account" icon="Star"
                 steps={[
                   'Go to biz.yelp.com and log in',
                   'Click your business name in the top navigation',
@@ -1368,7 +1382,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click "Send Invitation"'
                 ]}
                 link="https://biz.yelp.com/support/users" linkLabel="Yelp Business Instructions" />
-              <AccessGuide platform="Microsoft Bing Places" icon="🔵"
+              <AccessGuide platform="Microsoft Bing Places" icon="Globe"
                 steps={[
                   'Go to bingplaces.com and log in (or create account)',
                   'Claim your business if not done already',
@@ -1384,13 +1398,13 @@ Product: Water filtration systems — sale and installation..." />
         {step === 11 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>📢</span> Marketing History</div>
+              <div style={T.stepTag}>Marketing History</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>What have you tried before?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>This prevents us from repeating mistakes and helps us double down on what's actually worked. Be brutally honest.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox color="#f59e0b">
-                ⚠️ <strong>Real talk:</strong> We've seen clients waste $50K on tactics that had already failed them. Knowing your history is how we avoid that. Nothing you say here is wrong — every piece of data is useful.
+                <strong>Real talk:</strong> We've seen clients waste $50K on tactics that had already failed them. Knowing your history is how we avoid that. Nothing you say here is wrong — every piece of data is useful.
               </InfoBox>
               <F label="Monthly advertising spend (what are you currently spending on ads?)" hint="Include ALL platforms — Google, Facebook, Yelp, etc. combined">
                 <FocusSelect value={form.monthly_ad_budget} onChange={e => set('monthly_ad_budget', e.target.value)} placeholder="— Select —"
@@ -1434,7 +1448,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 12 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>💰</span> Goals & Success Metrics</div>
+              <div style={T.stepTag}>Goals & Success Metrics</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>What does winning look like?</h2>
               <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Every campaign, every dollar, every optimization we make is pointed at these goals. Be ambitious but realistic.</p>
             </div>
@@ -1466,7 +1480,7 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="How will YOU measure success? What KPIs matter to you?" hint="These become the numbers we track and report on every month">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. Suggest 4-5 specific, measurable KPIs (Key Performance Indicators) this business should track to measure marketing success. Include: cost per lead, phone call volume, keyword rankings, ROAS if running ads, review growth rate. Make them specific with realistic target values.`}
-                      onResult={v => setSug('success_metrics', v)} label="🤖 Suggest KPIs" />
+                      onResult={v => setSug('success_metrics', v)} label="Suggest KPIs" />
                   </div>
                   <FocusTextarea rows={4} value={form.success_metrics} onChange={e => set('success_metrics', e.target.value)}
                     placeholder="• 50+ inbound calls per month from Google\n• Cost per lead under $65\n• Rank top 3 for 'plumber miami' and 5 other keywords\n• 10 new Google reviews per month\n• 4x ROAS on Google Ads" />
@@ -1487,7 +1501,7 @@ Product: Water filtration systems — sale and installation..." />
         {step === 13 && (
           <div style={T.card}>
             <div style={T.cardHead}>
-              <div style={T.stepTag}><span>🤖</span> AI Persona Review</div>
+              <div style={T.stepTag}>AI Persona Review</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>
                 {personaResult ? `Meet "${personaResult.persona_name}"` : 'Let\'s build your ideal customer persona'}
               </h2>
@@ -1500,7 +1514,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardBody}>
               {!personaResult && !personaLoading && (
                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#fff7f5', border: `2px solid ${ACCENT}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 36 }}>🤖</div>
+                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#fff7f5', border: `2px solid ${ACCENT}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 36 }}></div>
                   <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 10 }}>Ready to generate your persona</h3>
                   <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 24, maxWidth: 440, margin: '0 auto 24px', lineHeight: 1.6 }}>
                     We'll analyze everything you've told us and build a detailed profile of your ideal customer — including demographics, psychology, ad targeting, and messaging that resonates with them.
@@ -1525,7 +1539,7 @@ Product: Water filtration systems — sale and installation..." />
                   {/* Persona card */}
                   <div style={{ background: 'linear-gradient(135deg,#18181b,#27272a)', borderRadius: 18, padding: '28px 30px', marginBottom: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
-                      <div style={{ width: 64, height: 64, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>👤</div>
+                      <div style={{ width: 64, height: 64, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}></div>
                       <div>
                         <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 6 }}>"{personaResult.persona_name}"</div>
                         <div style={{ fontSize: 15, color: '#a1a1aa', lineHeight: 1.65 }}>{personaResult.tagline}</div>
@@ -1549,17 +1563,17 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.psychographic_summary && (
                     <div style={{ background: '#f9fafb', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>🧠 Psychographic Profile</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}> Psychographic Profile</div>
                       <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75 }}>{personaResult.psychographic_summary}</div>
                     </div>
                   )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
                     {[
-                      { label: '⚡ Search Triggers', items: personaResult.triggers, color: ACCENT },
-                      { label: '😰 Fears & Objections', items: personaResult.fears, color: '#ef4444' },
-                      { label: '✅ Decision Factors', items: personaResult.decision_factors, color: '#10b981' },
-                      { label: '🛡️ Trust Signals That Work', items: personaResult.trust_signals, color: '#3b82f6' },
+                      { label: 'Search Triggers', items: personaResult.triggers, color: ACCENT },
+                      { label: 'Fears & Objections', items: personaResult.fears, color: '#ef4444' },
+                      { label: 'Decision Factors', items: personaResult.decision_factors, color: '#10b981' },
+                      { label: 'Trust Signals That Work', items: personaResult.trust_signals, color: '#3b82f6' },
                     ].map(g => g.items?.length > 0 && (
                       <div key={g.label} style={{ background: '#f9fafb', borderRadius: 14, padding: '16px 18px', border: '1px solid #f3f4f6' }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 10 }}>{g.label}</div>
@@ -1575,7 +1589,7 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.google_keywords?.length > 0 && (
                     <div style={{ background: '#eff6ff', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8', marginBottom: 10 }}>📍 Google Keywords They Search</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8', marginBottom: 10 }}>Google Keywords They Search</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {personaResult.google_keywords.map(k => (
                           <span key={k} style={{ fontSize: 13, fontWeight: 600, padding: '5px 13px', borderRadius: 20, background: '#fff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>{k}</span>
@@ -1586,7 +1600,7 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.ad_headline_angles?.length > 0 && (
                     <div style={{ background: '#fff7f5', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>🎯 Ad Headlines That Stop Them Scrolling</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>Ad Headlines That Stop Them Scrolling</div>
                       {personaResult.ad_headline_angles.map((h, i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '10px 14px', background: '#fff', borderRadius: 10, border: `1px solid ${ACCENT}20`, alignItems: 'center' }}>
                           <span style={{ fontSize: 12, fontWeight: 800, color: '#9ca3af', flexShrink: 0 }}>H{i + 1}</span>
@@ -1604,7 +1618,7 @@ Product: Water filtration systems — sale and installation..." />
                     </div>
                     <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
                       <button type="button"
-                        onClick={() => { setPersonaFeedback('approved'); set('persona_approved', true); toast.success('Great! Persona approved. ✓'); }}
+                        onClick={() => { setPersonaFeedback('approved'); set('persona_approved', true); toast.success('Great! Persona approved.'); }}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', borderRadius: 12, border: personaFeedback === 'approved' ? '2px solid #16a34a' : '2px solid #e5e7eb', background: personaFeedback === 'approved' ? '#f0fdf4' : '#fff', color: personaFeedback === 'approved' ? '#16a34a' : '#374151', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
                         <ThumbsUp size={16} /> Yes, this is spot on!
                       </button>
@@ -1656,13 +1670,13 @@ Product: Water filtration systems — sale and installation..." />
             <div style={{ padding: '36px 48px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
                 {[
-                  { emoji: '📊', title: 'Strategy Built', desc: 'Your data informs every campaign we run' },
-                  { emoji: '🎯', title: 'Persona Created', desc: 'Ideal customer profile locked in' },
-                  { emoji: '📍', title: 'Markets Mapped', desc: 'Geographic targeting is set' },
-                  { emoji: '🔑', title: 'Access Ready', desc: 'We can start auditing immediately' },
+                  { icon: 'BarChart2', title: 'Strategy Built', desc: 'Your data informs every campaign we run' },
+                  { icon: 'Target', title: 'Persona Created', desc: 'Ideal customer profile locked in' },
+                  { icon: 'MapPin', title: 'Markets Mapped', desc: 'Geographic targeting is set' },
+                  { icon: 'Key', title: 'Access Ready', desc: 'We can start auditing immediately' },
                 ].map(item => (
                   <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '18px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 26 }}>{item.emoji}</span>
+                    <span style={{ fontSize: 26 }}><StepIcon name={item.icon} size={22} color={ACCENT}/></span>
                     <div><div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{item.title}</div><div style={{ fontSize: 12, color: '#9ca3af', marginTop: 3 }}>{item.desc}</div></div>
                   </div>
                 ))}
