@@ -67,20 +67,37 @@ function MaskedPw({ value }) {
 }
 
 function DataRow({ label, value, masked, link, mono }) {
-  if (!value && value !== 0) return null
+  if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) return null
+  const displayVal = Array.isArray(value) ? value.join(', ') : String(value)
   return (
-    <div style={{ display: 'flex', gap: 16, padding: '10px 0', borderBottom: '1px solid #f9fafb', alignItems: 'flex-start' }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', minWidth: 180, textTransform: 'uppercase', letterSpacing: '.04em', paddingTop: 1 }}>{label}</div>
-      <div style={{ flex: 1 }}>
-        {masked ? <MaskedPw value={value} /> : link ? (
-          <a href={value} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: '#E8551A', display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none', fontWeight: 500 }}>
-            {value.length > 50 ? value.slice(0, 50) + '…' : value} <ExternalLink size={11} />
+    <div style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5 }}>{label}</div>
+      <div>
+        {masked ? <MaskedPw value={displayVal} /> : link && value ? (
+          <a href={value.startsWith('http') ? value : 'https://' + value} target="_blank" rel="noreferrer"
+            style={{ fontSize: 15, color: '#E8551A', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 600, wordBreak: 'break-all' }}>
+            {displayVal.length > 60 ? displayVal.slice(0, 60) + '…' : displayVal} <ExternalLink size={13} />
           </a>
         ) : (
-          <span style={{ fontSize: 13, color: '#111', fontFamily: mono ? 'monospace' : 'inherit', lineHeight: 1.5 }}>
-            {Array.isArray(value) ? value.join(', ') : String(value)}
-          </span>
+          <div style={{ fontSize: 15, color: '#111', fontFamily: mono ? 'monospace' : 'inherit', lineHeight: 1.65, fontWeight: 500, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
+            {displayVal}
+          </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function DataPills({ label, value, color = '#E8551A' }) {
+  const arr = Array.isArray(value) ? value : (value || '').split(',').map(s => s.trim()).filter(Boolean)
+  if (!arr.length) return null
+  return (
+    <div style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 8 }}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+        {arr.map((item, i) => (
+          <span key={i} style={{ fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20, background: color + '15', color, border: `1px solid ${color}30` }}>{item}</span>
+        ))}
       </div>
     </div>
   )
@@ -88,14 +105,14 @@ function DataRow({ label, value, masked, link, mono }) {
 
 function DataSection({ title, icon: Icon, color = '#E8551A', children }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 18 }}>
-      <div style={{ padding: '14px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 10, background: color + '06' }}>
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Icon size={14} color={color} />
+    <div style={{ background: '#fff', borderRadius: 16, border: `1.5px solid ${color}25`, overflow: 'hidden', marginBottom: 20 }}>
+      <div style={{ padding: '16px 22px', borderBottom: `1.5px solid ${color}20`, display: 'flex', alignItems: 'center', gap: 12, background: `linear-gradient(135deg, ${color}08, transparent)` }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon size={17} color={color} />
         </div>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{title}</span>
+        <span style={{ fontSize: 16, fontWeight: 800, color: '#111', letterSpacing: -0.2 }}>{title}</span>
       </div>
-      <div style={{ padding: '8px 20px 14px' }}>{children}</div>
+      <div style={{ padding: '4px 22px 16px' }}>{children}</div>
     </div>
   )
 }
@@ -106,7 +123,7 @@ export default function ClientDetailPage() {
 
   const [client, setClient] = useState(null)
   const [profile, setProfile] = useState({})
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('profile')
   const [loading, setLoading] = useState(true)
   const [projects, setProjects] = useState([])
   const [tokens, setTokens] = useState([])
@@ -664,14 +681,31 @@ export default function ClientDetailPage() {
       const tracking = p.tracking || {}
       const marketing = p.marketing || {}
       const goals = p.goals || {}
-      const persona = p.ai_persona ? (typeof p.ai_persona === 'string' ? (() => { try { return JSON.parse(p.ai_persona) } catch { return {} } })() : p.ai_persona) : {}
+      const parsePersona = (raw) => {
+        if (!raw) return {}
+        try { return typeof raw === 'string' ? JSON.parse(raw) : raw } catch { return {} }
+      }
+      const persona = parsePersona(p.ai_persona)
 
       return (
         <div style={{ maxWidth: 900 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div>
+              <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: 0 }}>Client Intelligence Profile</h2>
+              <p style={{ fontSize: 13, color: '#9ca3af', margin: '4px 0 0' }}>All data submitted via client onboarding form</p>
+            </div>
+            <button onClick={() => window.location.reload()}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151', fontWeight: 500 }}>
+              ↻ Refresh
+            </button>
+          </div>
           {!p.business_name && !p.description && (
-            <div style={{ background: '#f9fafb', borderRadius: 14, border: '1.5px dashed #e5e7eb', padding: 40, textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
-              <div style={{ fontSize: 13, color: '#9ca3af' }}>Generate an onboarding link from the Onboarding tab and send it to your client to fill out.</div>
+            <div style={{ background: '#fff7f5', borderRadius: 14, border: `1.5px dashed #E8551A40`, padding: 40, textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
+              <div style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
+                Go to the <strong>Onboarding</strong> tab to generate a link, then send it to your client to fill out. All their data will appear here automatically once submitted.
+              </div>
             </div>
           )}
 
@@ -698,7 +732,7 @@ export default function ClientDetailPage() {
 
           <DataSection title="Products & Services" icon={ShoppingBag} color={ACCENT}>
             <DataRow label="Description" value={products.description} />
-            <DataRow label="Top Services" value={products.top_services} />
+            <DataPills label="Top Services" value={products.top_services} color="#E8551A" />
             <DataRow label="Pricing Model" value={products.pricing_model} />
             <DataRow label="Avg Transaction" value={products.avg_transaction ? "$" + products.avg_transaction : null} />
             <DataRow label="Avg Project Value" value={products.avg_project ? "$" + products.avg_project : null} />
@@ -708,7 +742,7 @@ export default function ClientDetailPage() {
           </DataSection>
 
           <DataSection title="Ideal Customers" icon={Target} color="#10b981">
-            <DataRow label="Customer Types" value={customers.types} />
+            <DataPills label="Customer Types" value={customers.types} color="#10b981" />
             <DataRow label="Ideal Customer" value={customers.ideal_desc} />
             <DataRow label="Age Range" value={customers.age} />
             <DataRow label="Gender Split" value={customers.gender} />
@@ -733,7 +767,7 @@ export default function ClientDetailPage() {
           <DataSection title="Target Geography" icon={MapPin} color="#3b82f6">
             <DataRow label="Primary Market" value={[geo.primary_city, geo.primary_state].filter(Boolean).join(', ')} />
             <DataRow label="Service Radius" value={geo.radius} />
-            <DataRow label="Target Cities" value={Array.isArray(geo.target_cities) ? geo.target_cities.join(', ') : geo.target_cities} />
+            <DataPills label="Target Cities" value={geo.target_cities} color="#3b82f6" />
             <DataRow label="Notes" value={geo.notes} />
           </DataSection>
 
@@ -787,14 +821,14 @@ export default function ClientDetailPage() {
 
           <DataSection title="Marketing & Goals" icon={TrendingUp} color={ACCENT}>
             <DataRow label="Monthly Ad Budget" value={marketing.monthly_budget} />
-            <DataRow label="Ad Platforms" value={Array.isArray(marketing.platforms) ? marketing.platforms.join(', ') : marketing.platforms} />
+            <DataPills label="Ad Platforms" value={marketing.platforms} color="#3b82f6" />
             <DataRow label="Current SEO Agency" value={marketing.seo_agency} />
             <DataRow label="Email Platform" value={marketing.email_platform} />
             <DataRow label="Email List Size" value={marketing.email_list} />
             <DataRow label="What Worked" value={marketing.what_worked} />
             <DataRow label="What Didn't Work" value={marketing.what_didnt} />
             <DataRow label="Primary Goal" value={goals.primary} />
-            <DataRow label="Secondary Goals" value={Array.isArray(goals.secondary) ? goals.secondary.join(', ') : goals.secondary} />
+            <DataPills label="Secondary Goals" value={goals.secondary} color="#8b5cf6" />
             <DataRow label="Target Leads/Mo" value={goals.leads_per_month} />
             <DataRow label="Timeline" value={goals.timeline} />
             <DataRow label="Agency Budget" value={goals.budget} />
@@ -813,11 +847,11 @@ export default function ClientDetailPage() {
               <DataRow label="Search Triggers" value={persona.triggers} />
               <DataRow label="Fears / Objections" value={persona.fears} />
               <DataRow label="Decision Factors" value={persona.decision_factors} />
-              <DataRow label="Google Keywords" value={persona.google_keywords} />
-              <DataRow label="Facebook Interests" value={persona.facebook_interests} />
+              <DataPills label="Google Keywords" value={persona.google_keywords} color="#3b82f6" />
+              <DataPills label="Facebook Interests" value={persona.facebook_interests} color="#8b5cf6" />
               <DataRow label="Ad Headlines" value={persona.ad_headline_angles} />
-              <DataRow label="Trust Signals" value={persona.trust_signals} />
-              <DataRow label="Best Channels" value={persona.best_channels} />
+              <DataPills label="Trust Signals" value={persona.trust_signals} color="#10b981" />
+              <DataPills label="Best Channels" value={persona.best_channels} color="#f59e0b" />
               <DataRow label="Persona Approved" value={p.persona_approved ? "✓ Approved by client" : "Pending review"} />
               <DataRow label="Client Feedback" value={p.persona_notes} />
             </DataSection>

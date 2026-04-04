@@ -75,3 +75,22 @@ CREATE TABLE IF NOT EXISTS client_change_history (
 );
 CREATE INDEX IF NOT EXISTS idx_client_change_history_client_id ON client_change_history(client_id);
 CREATE INDEX IF NOT EXISTS idx_client_change_history_type ON client_change_history(client_id, change_type);
+
+-- ── Expand client_profiles with all onboarding fields ────────────────────────
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS business_name text;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS business_type text;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS year_founded text;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS num_employees text;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS annual_revenue text;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS description text;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS contact jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS products_services jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS customers jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS competitors jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS geography jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS cms jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS tracking jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS goals jsonb DEFAULT '{}';
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS ai_persona jsonb;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS persona_approved boolean DEFAULT false;
+ALTER TABLE client_profiles ADD COLUMN IF NOT EXISTS persona_notes text;
