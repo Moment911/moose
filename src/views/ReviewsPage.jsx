@@ -381,7 +381,7 @@ window._mooseReviews = {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function ReviewsPage() {
-  const { user } = useAuth()
+  const { user, agencyId } = useAuth()
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState(null)
   const [reviews, setReviews] = useState([])
@@ -401,8 +401,10 @@ export default function ReviewsPage() {
   useEffect(() => { init() }, [])
 
   async function init() {
-    const { data: m } = await supabase.from('agency_members').select('agency_id').eq('user_id', user?.id).single()
-    if (m) { setAgencyId(m.agency_id); loadClients(m.agency_id) }
+    // Use agencyId from auth context (works in bypass mode too)
+    const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+    setAgencyId(aid)
+    loadClients(aid)
   }
 
   async function loadClients(aId) {

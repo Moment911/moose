@@ -352,7 +352,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function AIAgentsPage() {
-  const { user } = useAuth()
+  const { user, agencyId } = useAuth()
   const [clients, setClients] = useState([])
   const [selectedClient, setSelectedClient] = useState(null)
   const [agentStatus, setAgentStatus] = useState({}) // { agentId: boolean }
@@ -363,10 +363,9 @@ export default function AIAgentsPage() {
   useEffect(() => { init() }, [])
 
   async function init() {
-    const { data: m } = await supabase.from('agency_members').select('agency_id').eq('user_id', user?.id).single()
-    if (!m) { setLoading(false); return }
-    setAgencyId(m.agency_id)
-    const { data: cls } = await supabase.from('clients').select('id,name,industry').eq('agency_id', m.agency_id).order('name')
+    const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+    setAgencyId(aid)
+    const { data: cls } = await supabase.from('clients').select('id,name,industry').eq('agency_id', aid).order('name')
     setClients(cls || [])
     setLoading(false)
     // Default: first client

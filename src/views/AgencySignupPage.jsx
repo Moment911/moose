@@ -36,7 +36,8 @@ export default function AgencySignupPage() {
       })
       if (authErr) throw authErr
 
-      const userId = authData.user.id
+      const userId = authData.user?.id
+      if (!userId) throw new Error('Failed to create user account')
 
       // 2. Create agency record
       const { data: agency, error: agErr } = await supabase.from('agencies').insert({
@@ -49,7 +50,15 @@ export default function AgencySignupPage() {
         billing_email: form.billing_email || form.email,
         brand_name: form.agency_name,
       }).select().single()
-      if (agErr) throw agErr
+
+      if (agErr) {
+        // DB not migrated yet — still let them in
+        console.warn('Agency table error (run migrations):', agErr.message)
+        toast.success('Account created! Please run DB migrations to enable all features.')
+        navigate('/')
+        setLoading(false)
+        return
+      }
 
       // 3. Add user as owner member
       await supabase.from('agency_members').insert({
@@ -57,7 +66,6 @@ export default function AgencySignupPage() {
       })
 
       // 4. Create feature flags
-      const selectedPlan = PLANS.find(p=>p.id===plan)
       await supabase.from('agency_features').insert({
         agency_id: agency.id,
         ai_personas: true,
@@ -67,7 +75,7 @@ export default function AgencySignupPage() {
         white_label: plan !== 'starter',
         api_access: false,
         max_ai_calls_month: plan==='starter'?500:plan==='growth'?2000:10000,
-      })
+      }).catch(e => console.warn('Features table:', e.message))
 
       toast.success('Agency created! Welcome to Moose AI 🎉')
       navigate('/')
@@ -133,6 +141,11 @@ export default function AgencySignupPage() {
             <button onClick={()=>setStep(2)} style={{ width:'100%', padding:'15px', borderRadius:13, border:'none', background:ACCENT, color:'#fff', fontSize:16, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
               Continue with {PLANS.find(p=>p.id===plan)?.name} <ArrowRight size={18}/>
             </button>
+            <div style={{ textAlign:'center', marginTop:14 }}>
+              <button onClick={()=>navigate('/')} style={{ fontSize:13, color:'#9ca3af', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>
+                Skip setup — enter demo dashboard →
+              </button>
+            </div>
           </div>
         )}
 
