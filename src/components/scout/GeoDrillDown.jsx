@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from 'react'
 import { Search, X, Check, MapPin, ChevronRight, Building2, Navigation, Loader2, Users } from 'lucide-react'
-import { US_STATES, fetchCounties, fetchCities, formatPop, METRO_AREAS, REGIONS, validateZips } from '../../data/usGeoData'
+import { US_STATES, fetchCounties, fetchCities, formatPop, METRO_AREAS, REGIONS, loadStateGeo, lookupZips } from '../../data/usGeoData'
 import toast from 'react-hot-toast'
 
 export default function GeoDrillDown({ onChange, className }) {
@@ -25,10 +25,9 @@ export default function GeoDrillDown({ onChange, className }) {
   useEffect(() => {
     if (selectedStates.length === 0) { setCounties([]); setSelectedCounties([]); return }
     setLoadingCounties(true)
-    Promise.all(selectedStates.map(sc => {
-      const st = US_STATES.find(s => s.code === sc)
-      return st ? fetchCounties(st.fips).then(cs => cs.map(c => ({ ...c, stateCode: sc }))) : Promise.resolve([])
-    })).then(results => {
+    Promise.all(selectedStates.map(sc =>
+      fetchCounties(sc)
+    )).then(results => {
       setCounties(results.flat())
       setLoadingCounties(false)
     })
@@ -38,10 +37,9 @@ export default function GeoDrillDown({ onChange, className }) {
   useEffect(() => {
     if (selectedStates.length === 0) { setCities([]); return }
     setLoadingCities(true)
-    Promise.all(selectedStates.map(sc => {
-      const st = US_STATES.find(s => s.code === sc)
-      return st ? fetchCities(st.fips).then(cs => cs.map(c => ({ ...c, stateCode: sc }))) : Promise.resolve([])
-    })).then(results => {
+    Promise.all(selectedStates.map(sc =>
+      fetchCities(sc)
+    )).then(results => {
       setCities(results.flat())
       setLoadingCities(false)
     })
@@ -69,14 +67,14 @@ export default function GeoDrillDown({ onChange, className }) {
   }
 
   function toggleCounty(county) {
-    setSelectedCounties(prev => prev.some(c => c.fips === county.fips && c.stateFips === county.stateFips)
-      ? prev.filter(c => !(c.fips === county.fips && c.stateFips === county.stateFips))
+    setSelectedCounties(prev => prev.some(c => c.name === county.name && c.stateCode === county.stateCode)
+      ? prev.filter(c => !(c.name === county.name && c.stateCode === county.stateCode))
       : [...prev, county])
   }
 
   function toggleCity(city) {
-    setSelectedCities(prev => prev.some(c => c.fips === city.fips && c.stateFips === city.stateFips)
-      ? prev.filter(c => !(c.fips === city.fips && c.stateFips === city.stateFips))
+    setSelectedCities(prev => prev.some(c => c.name === city.name && c.stateCode === city.stateCode)
+      ? prev.filter(c => !(c.name === city.name && c.stateCode === city.stateCode))
       : [...prev, city])
   }
 
@@ -122,7 +120,7 @@ export default function GeoDrillDown({ onChange, className }) {
   const filteredStates = US_STATES.filter(s => !stateSearch || s.name.toLowerCase().includes(stateSearch.toLowerCase()) || s.code.toLowerCase().includes(stateSearch.toLowerCase()))
   const filteredCounties = counties.filter(c => !countySearch || c.name.toLowerCase().includes(countySearch.toLowerCase()))
   const filteredCitiesResult = (selectedCounties.length > 0
-    ? cities.filter(c => selectedCounties.some(sc => sc.stateCode === c.stateCode))
+    ? cities.filter(c => selectedCounties.some(sc => sc.name === c.county && sc.stateCode === c.stateCode))
     : cities
   ).filter(c => !citySearch || c.name.toLowerCase().includes(citySearch.toLowerCase()))
 
@@ -212,10 +210,10 @@ export default function GeoDrillDown({ onChange, className }) {
                 ) : (
                   <div className="space-y-0.5 max-h-[280px] overflow-auto">
                     {filteredCounties.map(c => (
-                      <button key={`${c.stateFips}-${c.fips}`} onClick={() => toggleCounty(c)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCounties.some(sc => sc.fips === c.fips && sc.stateFips === c.stateFips) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCounties.some(sc => sc.fips === c.fips && sc.stateFips === c.stateFips) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
-                          {selectedCounties.some(sc => sc.fips === c.fips && sc.stateFips === c.stateFips) && <Check size={10} className="text-white" />}
+                      <button key={`${c.stateCode}-${c.name}`} onClick={() => toggleCounty(c)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
+                          {selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) && <Check size={10} className="text-white" />}
                         </div>
                         <span className="flex-1">{c.name}</span>
                         <span className="text-[9px] bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded">{c.stateCode}</span>
@@ -251,13 +249,13 @@ export default function GeoDrillDown({ onChange, className }) {
                 ) : (
                   <div className="space-y-0.5 max-h-[280px] overflow-auto">
                     {filteredCitiesResult.map(c => (
-                      <button key={`${c.stateFips}-${c.fips}`} onClick={() => toggleCity(c)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCities.some(sc => sc.fips === c.fips && sc.stateFips === c.stateFips) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCities.some(sc => sc.fips === c.fips && sc.stateFips === c.stateFips) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
-                          {selectedCities.some(sc => sc.fips === c.fips && sc.stateFips === c.stateFips) && <Check size={10} className="text-white" />}
+                      <button key={`${c.stateCode}-${c.name}`} onClick={() => toggleCity(c)}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
+                          {selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) && <Check size={10} className="text-white" />}
                         </div>
                         <span className="flex-1">{c.name}</span>
-                        <span className="text-[10px] text-zinc-400">{formatPop(c.population)}</span>
+                        
                         <span className="text-[9px] bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded">{c.stateCode}</span>
                       </button>
                     ))}
