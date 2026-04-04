@@ -276,7 +276,7 @@ export default function PerfDashboard() {
   const selectedClient = clients.find(c=>c.id===selClient)
 
   return (
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f4f4f5'}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
@@ -289,7 +289,7 @@ export default function PerfDashboard() {
                 <TrendingUp size={17} color="#fff"/>
               </div>
               <div>
-                <h1 style={{fontSize:20,fontWeight:900,color:'#fff',margin:0,letterSpacing:-0.3}}>
+                <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:'#fff',margin:0,letterSpacing:'-.03em'}}>
                   Performance Marketing
                 </h1>
                 <p style={{fontSize:13,color:'rgba(255,255,255,.4)',margin:0}}>

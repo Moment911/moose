@@ -1,470 +1,366 @@
-"use client"
+"use client";
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Search, FolderOpen, ClipboardList, Target, Star,
-  ArrowRight, Loader2, MoreHorizontal, Pencil, Trash2,
-  FileSignature, Users, TrendingUp, MessageSquare,
-  CheckCircle, Clock, AlertCircle, ChevronRight, Zap
+  Plus, ChevronRight, Target, Star, TrendingUp,
+  Inbox, Brain, ArrowUpRight, Zap, Users,
+  Clock, CheckCircle, AlertCircle, Loader2,
+  BarChart2, FileSignature
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
-import { supabase, getProjects, createProject, deleteProject, updateProject } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
-import { useClient } from '../context/ClientContext'
+import { supabase, getProjects } from '../lib/supabase'
+import { useAuth, getFirstName, getGreeting } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const R = '#ea2729'
+const T = '#5bc6d0'
 
-const PROJECT_TYPE_COLORS = {
-  website:   RED,
-  social:    '#7c3aed',
-  email:     '#0891b2',
-  branding:  '#d97706',
-  video:     '#059669',
-  default:   '#6b7280',
+const STATUS_COLOR = {
+  active:   R,
+  prospect: T,
+  inactive: '#6b7280',
+  paused:   '#f59e0b',
 }
 
-function getTypeColor(type) {
-  return PROJECT_TYPE_COLORS[type?.toLowerCase()] || PROJECT_TYPE_COLORS.default
-}
-
-function ProjectCard({ project, onDelete, onRename, navigate }) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [renaming, setRenaming] = useState(false)
-  const [name, setName]         = useState(project.name)
-  const color = getTypeColor(project.project_type)
-  const daysOld = Math.round((Date.now() - new Date(project.created_at)) / 86400000)
-
-  async function doRename() {
-    if (!name.trim() || name === project.name) { setRenaming(false); return }
-    await onRename(project.id, name.trim())
-    setRenaming(false)
-  }
-
+/* ── Stat card ── */
+function Stat({ label, value, sub, color=R, icon:Icon, onClick }) {
   return (
-    <div className="card hover-lift" style={{ cursor:'pointer', overflow:'hidden' }}
-      onClick={() => !menuOpen && !renaming && navigate(`/project/${project.id}`)}>
-      {/* Color strip */}
-      <div style={{ height:3, background:color, borderRadius:'16px 16px 0 0', marginTop:-1, marginLeft:-1, marginRight:-1 }}/>
-      <div style={{ padding:'14px 16px' }}>
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:8 }}>
-          <div style={{ flex:1, minWidth:0 }}>
-            {renaming ? (
-              <input autoFocus value={name}
-                onChange={e=>setName(e.target.value)}
-                onBlur={doRename}
-                onKeyDown={e=>{if(e.key==='Enter')doRename();if(e.key==='Escape')setRenaming(false)}}
-                onClick={e=>e.stopPropagation()}
-                className="input" style={{ fontSize:14, fontWeight:600, padding:'4px 8px' }}/>
-            ) : (
-              <div style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:700,
-                color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                {project.name}
-              </div>
-            )}
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:5 }}>
-              <span style={{ fontSize:11, fontWeight:600, color, padding:'2px 7px',
-                borderRadius:20, background:color+'15' }}>
-                {project.project_type || 'Project'}
-              </span>
-              <span style={{ fontSize:11, color:'var(--text-muted)' }}>
-                {daysOld === 0 ? 'Today' : daysOld === 1 ? 'Yesterday' : daysOld + 'd ago'}
-              </span>
-            </div>
-          </div>
-          <div style={{ position:'relative' }} onClick={e=>e.stopPropagation()}>
-            <button onClick={()=>setMenuOpen(o=>!o)}
-              style={{ padding:5, borderRadius:6, border:'none', background:'none',
-                cursor:'pointer', color:'var(--text-muted)' }}>
-              <MoreHorizontal size={14}/>
-            </button>
-            {menuOpen && (
-              <div className="card-sm" style={{ position:'absolute', right:0, top:'100%', zIndex:50,
-                minWidth:150, boxShadow:'0 8px 24px rgba(0,0,0,.1)', overflow:'hidden' }}>
-                <button onClick={()=>{navigate(`/esign/${project.id}`);setMenuOpen(false)}}
-                  className="btn-ghost" style={{ width:'100%', justifyContent:'flex-start', padding:'9px 14px', borderRadius:0, fontSize:13, gap:8 }}>
-                  <FileSignature size={12}/> Proposal / Sign
-                </button>
-                <button onClick={()=>{setRenaming(true);setMenuOpen(false)}}
-                  className="btn-ghost" style={{ width:'100%', justifyContent:'flex-start', padding:'9px 14px', borderRadius:0, fontSize:13, gap:8 }}>
-                  <Pencil size={12}/> Rename
-                </button>
-                <div className="divider"/>
-                <button onClick={()=>{onDelete(project.id);setMenuOpen(false)}}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px',
-                    border:'none', background:'none', cursor:'pointer', fontSize:13, color:RED }}>
-                  <Trash2 size={12}/> Delete
-                </button>
-              </div>
-            )}
-          </div>
+    <div onClick={onClick} style={{
+      background:'#fff',borderRadius:14,padding:'20px 22px',
+      border:'1px solid #ececea',cursor:onClick?'pointer':'default',
+      transition:'all .18s ease',position:'relative',overflow:'hidden',
+    }}
+      onMouseEnter={e=>{ if(onClick){e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 28px rgba(0,0,0,.08)'}}}
+      onMouseLeave={e=>{ if(onClick){e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}}>
+      <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:color,opacity:.7}}/>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}}>
+        <span style={{fontSize:11,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.08em'}}>
+          {label}
+        </span>
+        <div style={{width:30,height:30,borderRadius:8,background:color+'12',
+          display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <Icon size={14} color={color}/>
         </div>
       </div>
+      <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,fontWeight:800,
+        color:'#0a0a0a',lineHeight:1,letterSpacing:'-.03em',marginBottom:4}}>
+        {value}
+      </div>
+      {sub && <div style={{fontSize:12,color:'#9a9a96'}}>{sub}</div>}
     </div>
   )
 }
 
-function QuickStatPill({ icon:Icon, label, value, color }) {
+/* ── Quick action card ── */
+function QuickAction({ icon:Icon, label, desc, color, to, onClick }) {
+  const navigate = useNavigate()
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px',
-      background:'rgba(255,255,255,.06)', borderRadius:8, border:'1px solid rgba(255,255,255,.08)' }}>
-      <Icon size={12} color={color || 'rgba(255,255,255,.4)'}/>
-      <span style={{ fontSize:12, color:'rgba(255,255,255,.45)' }}>{label}</span>
-      <span style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{value}</span>
+    <div onClick={onClick||(()=>navigate(to))} style={{
+      display:'flex',alignItems:'center',gap:14,padding:'14px 16px',
+      background:'#fff',borderRadius:12,border:'1px solid #ececea',
+      cursor:'pointer',transition:'all .15s ease',
+    }}
+      onMouseEnter={e=>{e.currentTarget.style.borderColor=color;e.currentTarget.style.transform='translateX(3px)'}}
+      onMouseLeave={e=>{e.currentTarget.style.borderColor='#ececea';e.currentTarget.style.transform='none'}}>
+      <div style={{width:38,height:38,borderRadius:10,background:color+'15',flexShrink:0,
+        display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <Icon size={17} color={color}/>
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:14,fontWeight:700,color:'#0a0a0a',marginBottom:1}}>{label}</div>
+        <div style={{fontSize:12,color:'#9a9a96',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{desc}</div>
+      </div>
+      <ArrowUpRight size={14} color="#d0d0cc"/>
+    </div>
+  )
+}
+
+/* ── Project card ── */
+function ProjectCard({ project, client, onClick }) {
+  const statusColor = STATUS_COLOR[client?.status] || '#6b7280'
+  const pct = project.revision_round > 0
+    ? Math.min(100, Math.round((project.revision_round / 3) * 100)) : 0
+
+  return (
+    <div onClick={onClick} style={{
+      background:'#fff',borderRadius:14,border:'1px solid #ececea',
+      padding:'16px 18px',cursor:'pointer',transition:'all .18s ease',
+      borderLeft:`3px solid ${statusColor}`,
+    }}
+      onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.07)'}}
+      onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700,
+            color:'#0a0a0a',marginBottom:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+            {project.name}
+          </div>
+          <div style={{fontSize:12,color:'#9a9a96'}}>{client?.name||'—'}</div>
+        </div>
+        <span style={{fontSize:10,fontWeight:800,padding:'3px 8px',borderRadius:20,flexShrink:0,
+          background:statusColor+'15',color:statusColor,textTransform:'uppercase',letterSpacing:'.07em'}}>
+          {client?.status||'active'}
+        </span>
+      </div>
+      {/* Progress bar */}
+      <div style={{height:3,background:'#f2f2f0',borderRadius:2,overflow:'hidden',marginBottom:10}}>
+        <div style={{height:'100%',width:pct+'%',background:`linear-gradient(90deg,${statusColor},${statusColor}cc)`,
+          borderRadius:2,transition:'width .5s ease'}}/>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:16}}>
+        {[
+          {icon:Clock,val:project.revision_round||0,label:'rounds'},
+          {icon:AlertCircle,val:project.open_comments||0,label:'comments'},
+        ].map((m,i)=>(
+          <div key={i} style={{display:'flex',alignItems:'center',gap:5}}>
+            <m.icon size={11} color="#9a9a96"/>
+            <span style={{fontSize:12,fontWeight:600,color:'#5a5a58'}}>{m.val} {m.label}</span>
+          </div>
+        ))}
+        {project.due_date && (
+          <div style={{marginLeft:'auto',fontSize:11,color:'#9a9a96'}}>
+            Due {new Date(project.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { clientId: urlClientId } = useParams()
-  const { agencyId, firstName, agencyName } = useAuth()
-  const { clients, selectedClient, selectClient } = useClient()
+  const { user, firstName, agencyId } = useAuth()
+  const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
-  const [tab,            setTab]            = useState('projects')
-  const [projects,       setProjects]       = useState([])
-  const [reviews,        setReviews]        = useState([])
-  const [onboarding,     setOnboarding]     = useState(null)
-  const [profile,        setProfile]        = useState(null)
-  const [loading,        setLoading]        = useState(false)
-  const [search,         setSearch]         = useState('')
-  const [newProjName,    setNewProjName]    = useState('')
-  const [adding,         setAdding]         = useState(false)
-  const [showAddForm,    setShowAddForm]    = useState(false)
-  const [refresh,        setRefresh]        = useState(0)
+  const [projects,  setProjects]  = useState([])
+  const [clients,   setClients]   = useState([])
+  const [tickets,   setTickets]   = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [filter,    setFilter]    = useState('all')
 
-  useEffect(() => {
-    if (urlClientId && clients.length > 0) {
-      const c = clients.find(x => x.id === urlClientId)
-      if (c) selectClient(c)
-    }
-  }, [urlClientId, clients])
+  const greeting = getGreeting(firstName)
+  const hour     = new Date().getHours()
 
-  useEffect(() => {
-    if (!selectedClient) return
-    setTab('projects')
-    load(selectedClient.id)
-  }, [selectedClient?.id, refresh])
+  useEffect(()=>{ load() },[aid])
 
-  async function load(clientId) {
+  async function load() {
     setLoading(true)
-    const [{ data:proj }, { data:tok }, { data:prof }, { data:rev }] = await Promise.all([
-      getProjects(clientId),
-      supabase.from('onboarding_tokens').select('*').eq('client_id',clientId).order('created_at',{ascending:false}).limit(1),
-      supabase.from('client_profiles').select('*').eq('client_id',clientId).single(),
-      supabase.from('moose_review_queue').select('*').eq('client_id',clientId).order('reviewed_at',{ascending:false}).limit(20),
-    ])
-    setProjects(proj||[]); setOnboarding(tok?.[0]||null)
-    setProfile(prof||null); setReviews(rev||[])
+    try {
+      const [
+        {data:cl},{data:pr},{data:tk}
+      ] = await Promise.all([
+        supabase.from('clients').select('*').eq('agency_id',aid).order('name').limit(50),
+        supabase.from('projects').select('*').eq('agency_id',aid).order('updated_at',{ascending:false}).limit(30),
+        supabase.from('desk_tickets').select('id,status,priority,subject,created_at')
+          .eq('agency_id',aid).in('status',['new','open','in_progress']).limit(5)
+          .order('created_at',{ascending:false}).catch(()=>({data:[]})),
+      ])
+      setClients(cl||[])
+      setProjects(pr||[])
+      setTickets(tk?.data||[])
+    } catch(e) {
+      console.warn(e)
+    }
     setLoading(false)
   }
 
-  async function addProject() {
-    if (!newProjName.trim() || !selectedClient) return
-    setAdding(true)
-    const { data, error } = await createProject(selectedClient.id, newProjName.trim())
-    if (error) { toast.error('Failed to create project'); setAdding(false); return }
-    toast.success('Project created')
-    setNewProjName(''); setAdding(false); setShowAddForm(false)
-    setRefresh(r=>r+1)
-    navigate(`/project/${data.id}`)
+  const clientMap = Object.fromEntries((clients||[]).map(c=>[c.id,c]))
+  const activeProjects = projects.filter(p=>p.status!=='archived')
+  const filtered = filter==='all' ? activeProjects
+    : activeProjects.filter(p=>(clientMap[p.client_id]?.status||'active')===filter)
+
+  const stats = {
+    clients:  clients.length,
+    active:   clients.filter(c=>c.status==='active').length,
+    projects: activeProjects.length,
+    tickets:  tickets.length,
   }
-
-  async function deleteProj(id) {
-    if (!confirm('Delete this project?')) return
-    await deleteProject(id); toast.success('Deleted'); setRefresh(r=>r+1)
-  }
-
-  async function renameProj(id, name) {
-    await updateProject(id,{name}); toast.success('Renamed'); setRefresh(r=>r+1)
-  }
-
-  const filtered = projects.filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()))
-
-  const TABS = [
-    { id:'projects',   label:'Projects',   count:projects.length },
-    { id:'onboarding', label:'Onboarding', count:null },
-    { id:'reviews',    label:'Reviews',    count:reviews.length||null },
-  ]
-
-  const greetingHour = new Date().getHours()
-  const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="page-shell">
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',
+      fontFamily:"'DM Sans',sans-serif"}}>
       <Sidebar/>
-      <div className="page-content">
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
-        {/* ── Dark header ─────────────────────────────────────────── */}
-        <div className="page-header" style={{ padding:'0 28px' }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-            paddingTop:18, paddingBottom:14, borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+        {/* Header */}
+        <div style={{background:'#0a0a0a',padding:'0 32px',flexShrink:0}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
+            padding:'20px 0 0'}}>
             <div>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:24, fontWeight:800,
-                color:'#fff', letterSpacing:'-.02em', lineHeight:1 }}>
-                {greeting}{firstName ? `, ${firstName}` : ''}.
-              </div>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,.35)', marginTop:4 }}>
-                {agencyName && <span>{agencyName} · </span>}
+              <div style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.3)',
+                textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>
                 {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
               </div>
+              <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:26,fontWeight:800,
+                color:'#fff',margin:0,letterSpacing:'-.03em',lineHeight:1}}>
+                {greeting}
+              </h1>
             </div>
-            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <QuickStatPill icon={Users}       label="Clients"  value={clients.length}  color={TEAL}/>
-              <QuickStatPill icon={FolderOpen}  label="Projects" value={projects.length} color={RED}/>
-              <button className="btn btn-primary" onClick={()=>navigate('/clients')}
-                style={{ marginLeft:8 }}>
-                <Plus size={13}/> New Client
-              </button>
-            </div>
+            <button onClick={()=>navigate('/clients')}
+              style={{display:'flex',alignItems:'center',gap:8,padding:'10px 20px',
+                borderRadius:10,border:'none',background:R,color:'#fff',
+                fontSize:14,fontWeight:700,cursor:'pointer',letterSpacing:'-.01em',
+                boxShadow:`0 4px 14px ${R}40`}}>
+              <Plus size={15}/> New Project
+            </button>
           </div>
 
-          {/* Client selector strip */}
-          {clients.length > 0 && (
-            <div style={{ display:'flex', gap:6, padding:'12px 0', overflowX:'auto',
-              scrollbarWidth:'none' }}>
-              {clients.map(c => {
-                const active = selectedClient?.id === c.id
-                const initials = c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
-                return (
-                  <button key={c.id} onClick={()=>{selectClient(c);navigate(`/client/${c.id}`)}}
-                    style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px',
-                      borderRadius:20, border:'1px solid',
-                      borderColor: active ? RED : 'rgba(255,255,255,.1)',
-                      background: active ? RED : 'rgba(255,255,255,.05)',
-                      color: active ? '#fff' : 'rgba(255,255,255,.55)',
-                      cursor:'pointer', fontSize:13, fontWeight: active?600:400,
-                      whiteSpace:'nowrap', flexShrink:0, transition:'all .15s' }}>
-                    <div style={{ width:18, height:18, borderRadius:4,
-                      background: active?'rgba(255,255,255,.2)':'rgba(255,255,255,.08)',
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:8, fontWeight:800, color:active?'#fff':'rgba(255,255,255,.4)' }}>
-                      {initials}
-                    </div>
-                    {c.name}
-                    {active && <ChevronRight size={10}/>}
-                  </button>
-                )
-              })}
-            </div>
-          )}
+          {/* Stats strip */}
+          <div style={{display:'flex',gap:32,padding:'18px 0 0',
+            borderBottom:'1px solid rgba(255,255,255,.06)',marginTop:4}}>
+            {[
+              {label:'Total clients', value:stats.clients, color:'rgba(255,255,255,.9)'},
+              {label:'Active',        value:stats.active,  color:T},
+              {label:'Projects',      value:stats.projects,color:'rgba(255,255,255,.9)'},
+              {label:'Open tickets',  value:stats.tickets, color:stats.tickets>0?R:'rgba(255,255,255,.9)'},
+            ].map(s=>(
+              <div key={s.label} style={{paddingBottom:16}}>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,
+                  color:s.color,lineHeight:1}}>{s.value}</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,.3)',marginTop:3}}>{s.label}</div>
+              </div>
+            ))}
+          </div>
 
-          {/* Tabs (only show when client selected) */}
-          {selectedClient && (
-            <div className="tab-bar">
-              {TABS.map(t => (
-                <button key={t.id} className={`tab-item${tab===t.id?' active':''}`}
-                  onClick={()=>setTab(t.id)}>
-                  {t.label}
-                  {t.count > 0 && <span className="tab-count">{t.count}</span>}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Filter tabs */}
+          <div style={{display:'flex',gap:0,marginTop:0}}>
+            {[
+              {key:'all',     label:'All Projects'},
+              {key:'active',  label:'Active'},
+              {key:'prospect',label:'Prospects'},
+              {key:'paused',  label:'Paused'},
+            ].map(f=>(
+              <button key={f.key} onClick={()=>setFilter(f.key)}
+                style={{padding:'12px 18px',border:'none',background:'transparent',
+                  borderBottom:`2.5px solid ${filter===f.key?R:'transparent'}`,
+                  color:filter===f.key?'#fff':'rgba(255,255,255,.38)',
+                  fontSize:13,fontWeight:filter===f.key?700:500,cursor:'pointer',
+                  transition:'all .15s',letterSpacing:'-.01em'}}>
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* ── Body ──────────────────────────────────────────────────── */}
-        <div className="page-body">
-          {!selectedClient ? (
-            <div className="empty-state" style={{ marginTop:60 }}>
-              <div className="empty-state-icon">
-                <Users size={22} color="var(--text-muted)"/>
+        {/* Body */}
+        <div style={{flex:1,overflowY:'auto',padding:'28px 32px',display:'grid',
+          gridTemplateColumns:'1fr 300px',gap:24,alignItems:'start'}}>
+
+          {/* Main: projects */}
+          <div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:17,fontWeight:800,
+                color:'#0a0a0a',letterSpacing:'-.02em'}}>
+                {filtered.length} project{filtered.length!==1?'s':''}
               </div>
-              <div className="empty-state-title">Select a client to get started</div>
-              <div className="empty-state-body">
-                Choose a client from the header bar above, or add your first client to begin managing their projects.
-              </div>
-              <button className="btn btn-primary" onClick={()=>navigate('/clients')}>
-                <Plus size={13}/> Add your first client
-              </button>
             </div>
-          ) : loading ? (
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:80 }}>
-              <Loader2 size={24} color={RED} style={{ animation:'spin 1s linear infinite' }}/>
-              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            </div>
-          ) : (
-            <>
-              {/* ── Client context bar ─────────────────────────── */}
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-                <div>
-                  <div style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:800,
-                    color:'var(--text-primary)', letterSpacing:'-.02em' }}>
-                    {selectedClient.name}
-                  </div>
-                  <div style={{ fontSize:13, color:'var(--text-muted)', marginTop:2 }}>
-                    {selectedClient.industry || 'No industry'} · {selectedClient.status || 'Active'}
-                  </div>
+
+            {loading ? (
+              <div style={{display:'flex',justifyContent:'center',padding:60}}>
+                <Loader2 size={24} color={R} style={{animation:'spin 1s linear infinite'}}/>
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div style={{textAlign:'center',padding:'60px 24px',background:'#fff',
+                borderRadius:16,border:'1px solid #ececea'}}>
+                <div style={{width:52,height:52,borderRadius:14,background:'#f2f2f0',
+                  display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+                  <Zap size={22} color="#d0d0cc"/>
                 </div>
-                <div style={{ display:'flex', gap:8 }}>
-                  <button className="btn btn-secondary" onClick={()=>navigate(`/perf/${selectedClient.id}`)}>
-                    <TrendingUp size={13}/> Performance
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,
+                  color:'#0a0a0a',marginBottom:8,letterSpacing:'-.02em'}}>
+                  No projects yet
+                </div>
+                <div style={{fontSize:14,color:'#9a9a96',marginBottom:20}}>
+                  Add a client and create your first project to get started
+                </div>
+                <button onClick={()=>navigate('/clients')}
+                  style={{padding:'10px 22px',borderRadius:10,border:'none',
+                    background:R,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                  Add Client
+                </button>
+              </div>
+            ) : (
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {filtered.map(p=>(
+                  <ProjectCard
+                    key={p.id}
+                    project={p}
+                    client={clientMap[p.client_id]}
+                    onClick={()=>navigate(`/project/${p.id}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right: stats + quick actions + tickets */}
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+
+            {/* KPI cards */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <Stat label="Clients"   value={stats.clients}  icon={Users}    color={R}   onClick={()=>navigate('/clients')}/>
+              <Stat label="Projects"  value={stats.projects} icon={BarChart2} color={T}   onClick={()=>navigate('/clients')}/>
+            </div>
+
+            {/* Quick actions */}
+            <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',
+              overflow:'hidden'}}>
+              <div style={{padding:'14px 18px',borderBottom:'1px solid #f2f2f0',
+                display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div style={{fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:800,
+                  color:'#0a0a0a',letterSpacing:'-.02em'}}>Quick Actions</div>
+              </div>
+              <div style={{padding:'10px 10px',display:'flex',flexDirection:'column',gap:6}}>
+                <QuickAction icon={Target}       label="Scout Leads"      desc="Find new prospects"         color={T}  to="/scout"/>
+                <QuickAction icon={TrendingUp}   label="Performance"      desc="Ad intelligence + AI recs"  color={R}  to="/perf"/>
+                <QuickAction icon={Inbox}        label="Support Desk"     desc="Tickets & knowledge base"   color="#7c3aed" to="/desk"/>
+                <QuickAction icon={FileSignature} label="New Proposal"    desc="Build a proposal"           color="#f59e0b" to="/proposals"/>
+                <QuickAction icon={Star}         label="Reviews"          desc="Manage reviews & responses" color="#16a34a" to="/reviews"/>
+              </div>
+            </div>
+
+            {/* Open tickets */}
+            {tickets.length > 0 && (
+              <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',
+                overflow:'hidden'}}>
+                <div style={{padding:'14px 18px',borderBottom:'1px solid #f2f2f0',
+                  display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:800,
+                    color:'#0a0a0a',letterSpacing:'-.02em'}}>Open Tickets</div>
+                  <button onClick={()=>navigate('/desk')}
+                    style={{fontSize:12,fontWeight:700,color:R,background:'none',border:'none',
+                      cursor:'pointer',display:'flex',alignItems:'center',gap:3}}>
+                    View all <ChevronRight size={12}/>
                   </button>
-                  <button className="btn btn-secondary" onClick={()=>navigate(`/clients/${selectedClient.id}`)}>
-                    View Profile <ArrowRight size={13}/>
-                  </button>
+                </div>
+                <div style={{padding:'8px 10px',display:'flex',flexDirection:'column',gap:4}}>
+                  {tickets.map(tk=>(
+                    <div key={tk.id} onClick={()=>navigate(`/desk/ticket/${tk.id}`)}
+                      style={{padding:'9px 12px',borderRadius:9,cursor:'pointer',
+                        display:'flex',alignItems:'center',gap:10,
+                        transition:'background .12s'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='#f8f8f6'}
+                      onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                      <div style={{width:6,height:6,borderRadius:'50%',flexShrink:0,
+                        background:tk.priority==='urgent'?R:tk.priority==='high'?'#f59e0b':T}}/>
+                      <span style={{fontSize:13,color:'#0a0a0a',overflow:'hidden',
+                        textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>
+                        {tk.subject}
+                      </span>
+                      <span style={{fontSize:10,color:'#9a9a96',flexShrink:0,
+                        background:'#f2f2f0',padding:'2px 7px',borderRadius:20,fontWeight:600,
+                        textTransform:'capitalize'}}>
+                        {tk.status.replace('_',' ')}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              {/* ── PROJECTS TAB ───────────────────────────────── */}
-              {tab === 'projects' && (
-                <div>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                    <div style={{ display:'flex', gap:8, flex:1 }}>
-                      <div style={{ position:'relative', flex:1, maxWidth:320 }}>
-                        <Search size={13} style={{ position:'absolute', left:11, top:'50%',
-                          transform:'translateY(-50%)', color:'var(--text-muted)' }}/>
-                        <input value={search} onChange={e=>setSearch(e.target.value)}
-                          className="input" placeholder="Search projects…"
-                          style={{ paddingLeft:32, fontSize:13 }}/>
-                      </div>
-                    </div>
-                    <button className="btn btn-primary" onClick={()=>setShowAddForm(s=>!s)}>
-                      <Plus size={13}/> New Project
-                    </button>
-                  </div>
-
-                  {showAddForm && (
-                    <div className="card-sm" style={{ padding:'14px 16px', marginBottom:16,
-                      display:'flex', gap:8, alignItems:'center',
-                      borderLeft:`3px solid ${RED}`, borderRadius:'0 var(--radius-md) var(--radius-md) 0',
-                      animation:'fadeUp .2s ease both' }}>
-                      <input value={newProjName} onChange={e=>setNewProjName(e.target.value)}
-                        onKeyDown={e=>{if(e.key==='Enter')addProject();if(e.key==='Escape')setShowAddForm(false)}}
-                        className="input" placeholder="Project name…"
-                        style={{ flex:1, fontSize:14 }} autoFocus/>
-                      <button className="btn btn-primary" onClick={addProject} disabled={adding}>
-                        {adding ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : 'Create'}
-                      </button>
-                      <button className="btn btn-ghost" onClick={()=>setShowAddForm(false)}>Cancel</button>
-                    </div>
-                  )}
-
-                  {filtered.length === 0 ? (
-                    <div className="empty-state">
-                      <div className="empty-state-icon"><FolderOpen size={22} color="var(--text-muted)"/></div>
-                      <div className="empty-state-title">
-                        {search ? 'No projects match that search' : 'No projects yet'}
-                      </div>
-                      <div className="empty-state-body">
-                        {search ? 'Try a different keyword' : `Create the first project for ${selectedClient.name}`}
-                      </div>
-                      {!search && (
-                        <button className="btn btn-primary" onClick={()=>setShowAddForm(true)}>
-                          <Plus size={13}/> Create Project
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:12 }}>
-                      {filtered.map((p,i) => (
-                        <div key={p.id} className="animate-fade-up" style={{ animationDelay:`${i*.04}s` }}>
-                          <ProjectCard project={p} onDelete={deleteProj} onRename={renameProj} navigate={navigate}/>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── ONBOARDING TAB ─────────────────────────────── */}
-              {tab === 'onboarding' && (
-                <div>
-                  <div className="card" style={{ padding:24, marginBottom:16 }}>
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-                      <div>
-                        <div className="section-eyebrow">Client onboarding</div>
-                        <div className="section-title">{selectedClient.name}</div>
-                      </div>
-                      {onboarding && (
-                        <button className="btn btn-secondary" onClick={()=>{
-                          const link = `${window.location.origin}/onboard/${onboarding.token}`
-                          navigator.clipboard.writeText(link)
-                          toast.success('Link copied!')
-                        }}>
-                          Copy Onboarding Link
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Progress bar */}
-                    <div style={{ marginBottom:20 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-                        <span style={{ fontSize:13, color:'var(--text-secondary)', fontWeight:600 }}>Profile completion</span>
-                        <span style={{ fontSize:13, fontWeight:700, color:RED }}>{onboarding?.used_at ? '80%' : '0%'}</span>
-                      </div>
-                      <div style={{ height:6, background:'var(--border)', borderRadius:3, overflow:'hidden' }}>
-                        <div style={{ height:'100%', width:onboarding?.used_at?'80%':'0%',
-                          background:`linear-gradient(90deg,${RED},#f87171)`,
-                          borderRadius:3, transition:'width .8s ease' }}/>
-                      </div>
-                    </div>
-
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                      {[
-                        { label:'Link sent', done:!!onboarding },
-                        { label:'Form completed', done:!!onboarding?.used_at },
-                        { label:'Profile built', done:!!profile },
-                        { label:'Projects created', done:projects.length>0 },
-                      ].map(step => (
-                        <div key={step.label} style={{ display:'flex', alignItems:'center', gap:10,
-                          padding:'12px 14px', borderRadius:'var(--radius-md)',
-                          background: step.done?'#f0fdf4':'var(--surface-2)',
-                          border:`1px solid ${step.done?'#bbf7d0':'var(--border)'}` }}>
-                          <CheckCircle size={16} color={step.done?'#16a34a':'#d1d5db'}/>
-                          <span style={{ fontSize:14, fontWeight:600,
-                            color:step.done?'#15803d':'var(--text-secondary)' }}>{step.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── REVIEWS TAB ──────────────────────────────────── */}
-              {tab === 'reviews' && (
-                <div>
-                  {reviews.length === 0 ? (
-                    <div className="empty-state">
-                      <div className="empty-state-icon"><Star size={22} color="var(--text-muted)"/></div>
-                      <div className="empty-state-title">No reviews yet</div>
-                      <div className="empty-state-body">Reviews from Google, Facebook, and Yelp will appear here once connected.</div>
-                      <button className="btn btn-primary" onClick={()=>navigate('/reviews')}>
-                        Manage Reviews <ArrowRight size={13}/>
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                      {reviews.map(r => (
-                        <div key={r.id} className="card card-sm" style={{ padding:'14px 18px' }}>
-                          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12 }}>
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:14, fontWeight:600, color:'var(--text-primary)', marginBottom:4 }}>
-                                {r.author_name || 'Anonymous'}
-                              </div>
-                              <div style={{ fontSize:13, color:'var(--text-secondary)', lineHeight:1.6 }}>
-                                {r.review_text?.slice(0,200)}{(r.review_text?.length||0)>200?'…':''}
-                              </div>
-                            </div>
-                            <div style={{ display:'flex', gap:2, flexShrink:0 }}>
-                              {[1,2,3,4,5].map(s=>(
-                                <Star key={s} size={12} fill={s<=(r.star_rating||0)?'#f59e0b':'none'}
-                                  color={s<=(r.star_rating||0)?'#f59e0b':'#d1d5db'}/>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
     </div>
   )
 }

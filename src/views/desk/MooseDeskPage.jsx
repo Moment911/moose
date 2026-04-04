@@ -12,7 +12,7 @@ import { triageTicket, applyRoutingRules, logActivity, CATEGORIES } from '../../
 import { emailTicketCreated } from '../../lib/deskEmail'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
+const RED = '#ea2729'
 const TEAL = '#5bc6d0'
 const BLACK = '#0a0a0a'
 
@@ -42,7 +42,7 @@ function TicketCard({ ticket, onClick, agents }) {
   const ageStr = age < 1 ? 'Just now' : age < 24 ? age + 'h ago' : Math.round(age/24) + 'd ago'
   return (
     <div onClick={() => onClick(ticket)} style={{
-      background:'#fff', borderRadius:14, border:'1px solid #e5e7eb',
+      background:'#fff', borderRadius:14, border:'1px solid #ececea',
       padding:'16px 18px', cursor:'pointer', transition:'all .15s',
       borderLeft:'3px solid ' + pr.color,
     }}
@@ -63,7 +63,7 @@ function TicketCard({ ticket, onClick, agents }) {
             <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:st.bg,color:st.color}}>{st.label}</span>
             <span style={{fontSize:12,color:'#374151'}}>{ticket.submitter_name}</span>
             {ticket.ai_category && (
-              <span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#f3f4f6',color:'#374151',textTransform:'capitalize'}}>
+              <span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#f2f2f0',color:'#374151',textTransform:'capitalize'}}>
                 {ticket.ai_category.replace(/_/g,' ')}
               </span>
             )}
@@ -79,7 +79,7 @@ function TicketCard({ ticket, onClick, agents }) {
               {agent.name[0].toUpperCase()}
             </div>
           ) : (
-            <div style={{width:32,height:32,borderRadius:'50%',background:'#f3f4f6',
+            <div style={{width:32,height:32,borderRadius:'50%',background:'#f2f2f0',
               display:'flex',alignItems:'center',justifyContent:'center'}}>
               <User size={14} color="#9ca3af"/>
             </div>
@@ -109,7 +109,7 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
   })
   const [submitting, setSubmitting] = useState(false)
   const [triaging, setTriaging]     = useState(false)
-  const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1.5px solid #e5e7eb',
+  const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1px solid #ececea',
     fontSize:14, outline:'none', color:'#111', boxSizing:'border-box', fontFamily:'inherit' }
 
   async function submit() {
@@ -285,7 +285,7 @@ export default function MooseDeskPage() {
                 <div style={{width:34,height:34,borderRadius:10,background:RED,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Inbox size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontSize:22,fontWeight:900,color:'#fff',margin:0,letterSpacing:-0.3}}>MooseDesk</h1>
+                <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>MooseDesk</h1>
                 <span style={{fontSize:11,fontWeight:800,color:TEAL,background:TEAL+'20',padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>AI-Powered</span>
               </div>
               <p style={{fontSize:14,color:'rgba(255,255,255,.4)',margin:0}}>
@@ -346,7 +346,7 @@ export default function MooseDeskPage() {
         </div>
         <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'12px 28px',
           flexShrink:0,display:'flex',gap:10,alignItems:'center'}}>
-          <div style={{display:'flex',alignItems:'center',gap:8,background:'#f4f4f5',
+          <div style={{display:'flex',alignItems:'center',gap:8,background:'#f2f2f0',
             borderRadius:10,padding:'8px 14px',flex:1,maxWidth:400}}>
             <Search size={14} color="#9ca3af"/>
             <input value={filterQ} onChange={e=>setFilterQ(e.target.value)}
@@ -355,7 +355,7 @@ export default function MooseDeskPage() {
           </div>
           <button onClick={load}
             style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',
-              borderRadius:10,border:'1.5px solid #e5e7eb',background:'#fff',
+              borderRadius:10,border:'1px solid #ececea',background:'#fff',
               fontSize:13,fontWeight:700,cursor:'pointer',color:'#374151'}}>
             <RefreshCw size={13}/> Refresh
           </button>

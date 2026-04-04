@@ -1,90 +1,123 @@
 "use client";
-"use client";
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signIn } from '../lib/supabase'
+import { Zap, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const R = '#ea2729'
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading,  setLoading]  = useState(false)
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
     const { error } = await signIn(email, password)
-    if (error) {
-      toast.error(error.message)
-      setLoading(false)
-    } else {
-      navigate('/')
-    }
+    if (error) { toast.error(error.message); setLoading(false); return }
+    navigate('/')
+  }
+
+  const INP = {
+    width:'100%',padding:'12px 16px',
+    background:'rgba(255,255,255,.06)',
+    border:'1px solid rgba(255,255,255,.1)',
+    borderRadius:10,fontSize:15,color:'#fff',
+    outline:'none',fontFamily:"'DM Sans',sans-serif",
+    transition:'border-color .15s',
+    boxSizing:'border-box',
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div style={{
+      minHeight:'100vh',background:'#0a0a0a',
+      display:'flex',alignItems:'center',justifyContent:'center',
+      fontFamily:"'DM Sans',sans-serif",
+      padding:24,
+    }}>
+      {/* Background grid */}
+      <div style={{position:'fixed',inset:0,opacity:.04,
+        backgroundImage:'linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px)',
+        backgroundSize:'60px 60px',pointerEvents:'none'}}/>
+
+      <div style={{width:'100%',maxWidth:400,position:'relative',zIndex:1}}>
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                <circle cx="15.5" cy="14.5" r="3.5" fill="white" fillOpacity="0.9"/>
-                <path d="M14.5 14.5l1 1 2-2" stroke="#ea2729" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <span className="text-white font-semibold text-lg tracking-tight">Moose AI</span>
+        <div style={{textAlign:'center',marginBottom:40}}>
+          <div style={{width:52,height:52,borderRadius:14,background:R,
+            display:'flex',alignItems:'center',justifyContent:'center',
+            margin:'0 auto 16px',boxShadow:`0 8px 24px ${R}50`}}>
+            <Zap size={24} color="#fff" strokeWidth={2.5}/>
           </div>
-          <p className="text-gray-700 text-sm">Design feedback made simple</p>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,
+            color:'#fff',letterSpacing:'-.04em',lineHeight:1,marginBottom:8}}>
+            Moose AI
+          </div>
+          <div style={{fontSize:14,color:'rgba(255,255,255,.4)'}}>
+            Sign in to your agency platform
+          </div>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h1 className="text-xl font-semibold text-gray-900 mb-6">Sign in to your account</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form card */}
+        <div style={{background:'rgba(255,255,255,.04)',borderRadius:18,
+          border:'1px solid rgba(255,255,255,.08)',padding:'32px 28px',
+          backdropFilter:'blur(20px)'}}>
+          <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:16}}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label style={{display:'block',fontSize:12,fontWeight:700,
+                color:'rgba(255,255,255,.5)',textTransform:'uppercase',
+                letterSpacing:'.08em',marginBottom:8}}>
+                Email
+              </label>
               <input
-                className="input"
-                type="email"
-                placeholder="you@moose.ai"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
+                type="email" value={email} required
+                onChange={e=>setEmail(e.target.value)}
+                placeholder="you@agency.com"
+                style={INP}
+                onFocus={e=>e.target.style.borderColor='rgba(234,39,41,.6)'}
+                onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label style={{display:'block',fontSize:12,fontWeight:700,
+                color:'rgba(255,255,255,.5)',textTransform:'uppercase',
+                letterSpacing:'.08em',marginBottom:8}}>
+                Password
+              </label>
               <input
-                className="input"
-                type="password"
+                type="password" value={password} required
+                onChange={e=>setPassword(e.target.value)}
                 placeholder="••••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
+                style={INP}
+                onFocus={e=>e.target.style.borderColor='rgba(234,39,41,.6)'}
+                onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full justify-center py-2.5"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Signing in…
-                </span>
-              ) : 'Sign in'}
+            <button type="submit" disabled={loading}
+              style={{marginTop:8,padding:'13px',borderRadius:12,border:'none',
+                background:loading?'#333':R,color:'#fff',fontSize:15,fontWeight:700,
+                cursor:loading?'not-allowed':'pointer',
+                display:'flex',alignItems:'center',justifyContent:'center',gap:8,
+                boxShadow:loading?'none':`0 4px 16px ${R}40`,
+                transition:'all .2s',fontFamily:"'DM Sans',sans-serif"}}>
+              {loading
+                ? <><Loader2 size={16} style={{animation:'spin 1s linear infinite'}}/> Signing in…</>
+                : 'Sign In'}
             </button>
           </form>
         </div>
-        <p className="text-center text-gray-700 text-sm mt-6">
-          Moose AI &middot; <a href="/privacy" target="_blank" style={{ color: '#4b5563', textDecoration: 'underline' }}>Privacy Policy</a>
-        </p>
+
+        <div style={{textAlign:'center',marginTop:20,fontSize:13,color:'rgba(255,255,255,.25)'}}>
+          Need access? Contact your agency administrator
+        </div>
       </div>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg) } }
+        input::placeholder { color: rgba(255,255,255,.25) !important }
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 100px #111 inset !important; -webkit-text-fill-color: #fff !important; }
+      `}</style>
     </div>
   )
 }

@@ -16,7 +16,7 @@ import {
 } from '../../lib/qaKnowledge'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
+const RED = '#ea2729'
 const TEAL  = '#5bc6d0'
 const BLACK = '#0a0a0a'
 
@@ -83,7 +83,7 @@ function AskInterface({ agencyId }) {
   return (
     <div style={{marginBottom:32}}>
       {/* Search bar */}
-      <div style={{background:'#fff',borderRadius:16,border:'1.5px solid #e5e7eb',
+      <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',
         padding:'4px 4px 4px 20px',display:'flex',alignItems:'center',gap:8,
         boxShadow:'0 4px 24px rgba(0,0,0,.06)'}}>
         <Brain size={18} color={TEAL} style={{flexShrink:0}}/>
@@ -107,7 +107,7 @@ function AskInterface({ agencyId }) {
 
       {/* Progress */}
       {searching && (
-        <div style={{marginTop:16,background:BLACK,borderRadius:14,padding:'18px 22px'}}>
+        <div style={{marginTop:16,background:'#0a0a0a',borderRadius:14,padding:'18px 22px'}}>
           <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
             <Sparkles size={15} color={TEAL} style={{animation:'spin 2s linear infinite'}}/>
             <div style={{fontSize:14,fontWeight:700,color:TEAL}}>{progress || 'Thinking…'}</div>
@@ -122,12 +122,12 @@ function AskInterface({ agencyId }) {
 
       {/* Answer */}
       {result && !searching && (
-        <div style={{marginTop:16,background:'#fff',borderRadius:16,
-          border:'1px solid #e5e7eb',overflow:'hidden',
+        <div style={{marginTop:16,background:'#fff',borderRadius:14,
+          border:'1px solid #ececea',overflow:'hidden',
           boxShadow:'0 4px 24px rgba(0,0,0,.06)'}}>
 
           {/* Short answer hero */}
-          <div style={{background:BLACK,padding:'22px 26px'}}>
+          <div style={{background:'#0a0a0a',padding:'22px 26px'}}>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
               <Brain size={15} color={TEAL}/>
               <span style={{fontSize:12,fontWeight:800,color:TEAL,textTransform:'uppercase',letterSpacing:'.08em'}}>AI Answer</span>
@@ -153,7 +153,7 @@ function AskInterface({ agencyId }) {
                   {result.web_sources.slice(0,4).map((s,i)=>(
                     <a key={i} href={s.url} target="_blank" rel="noreferrer"
                       style={{display:'flex',alignItems:'flex-start',gap:8,padding:'10px 12px',
-                        borderRadius:10,background:'#f9fafb',border:'1px solid #f3f4f6',
+                        borderRadius:10,background:'#f8f8f6',border:'1px solid #f3f4f6',
                         textDecoration:'none',transition:'all .15s'}}
                       onMouseEnter={e=>e.currentTarget.style.background='#f0fbfc'}
                       onMouseLeave={e=>e.currentTarget.style.background='#f9fafb'}>
@@ -198,7 +198,7 @@ function AskInterface({ agencyId }) {
             <div style={{display:'flex',gap:8}}>
               {result.tags?.map((tag,i)=>(
                 <span key={i} style={{fontSize:12,fontWeight:600,padding:'3px 10px',borderRadius:20,
-                  background:'#f3f4f6',color:'#374151'}}>#{tag}</span>
+                  background:'#f2f2f0',color:'#374151'}}>#{tag}</span>
               ))}
             </div>
             <div style={{display:'flex',gap:8}}>
@@ -230,7 +230,7 @@ function KnowledgeCard({ entry, onEdit, onDelete, onToggleVerified, onTogglePubl
   const src = SOURCE_CFG[entry.source] || SOURCE_CFG.manual
 
   return (
-    <div style={{background:'#fff',borderRadius:14,border:'1px solid #e5e7eb',
+    <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',
       marginBottom:10,overflow:'hidden',
       borderLeft:`3px solid ${entry.is_verified?'#16a34a':entry.source==='ticket'?'#7c3aed':entry.source==='web_search'?TEAL:'#e5e7eb'}`}}>
 
@@ -257,7 +257,7 @@ function KnowledgeCard({ entry, onEdit, onDelete, onToggleVerified, onTogglePubl
             <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
               background:src.bg,color:src.color}}>{src.label}</span>
             <span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:20,
-              background:'#f3f4f6',color:'#374151',textTransform:'capitalize'}}>
+              background:'#f2f2f0',color:'#374151',textTransform:'capitalize'}}>
               {entry.category}
             </span>
             {entry.is_verified && (
@@ -291,7 +291,7 @@ function KnowledgeCard({ entry, onEdit, onDelete, onToggleVerified, onTogglePubl
           </button>
           <button onClick={e=>{e.stopPropagation();onEdit(entry)}}
             style={{padding:'5px',borderRadius:7,border:'none',cursor:'pointer',
-              background:'#f3f4f6',color:'#374151'}}>
+              background:'#f2f2f0',color:'#374151'}}>
             <Edit2 size={14}/>
           </button>
           <button onClick={e=>{e.stopPropagation();onDelete(entry.id)}}
@@ -339,7 +339,7 @@ function EntryModal({ entry, agencyId, onSave, onClose }) {
     source:       entry?.source || 'manual',
   })
   const [saving, setSaving] = useState(false)
-  const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1.5px solid #e5e7eb',
+  const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1px solid #ececea',
     fontSize:14, outline:'none', color:'#111', boxSizing:'border-box', fontFamily:'inherit', background:'#fff' }
 
   async function save() {
@@ -367,7 +367,7 @@ function EntryModal({ entry, agencyId, onSave, onClose }) {
       justifyContent:'center',padding:20}}>
       <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:640,
         maxHeight:'92vh',overflow:'auto',boxShadow:'0 32px 80px rgba(0,0,0,.25)'}}>
-        <div style={{background:BLACK,borderRadius:'20px 20px 0 0',padding:'20px 26px',
+        <div style={{background:'#0a0a0a',borderRadius:'20px 20px 0 0',padding:'20px 26px',
           display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{fontSize:17,fontWeight:900,color:'#fff'}}>
             {entry?.id ? 'Edit Entry' : 'Add Knowledge Entry'}
@@ -541,7 +541,7 @@ export default function QAKnowledgePage() {
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
         {/* Header */}
-        <div style={{background:BLACK,padding:'18px 28px 0',flexShrink:0}}>
+        <div style={{background:'#0a0a0a',padding:'18px 28px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <div>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
@@ -549,7 +549,7 @@ export default function QAKnowledgePage() {
                   display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Brain size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontSize:22,fontWeight:900,color:'#fff',margin:0,letterSpacing:-0.3}}>
+                <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>
                   Q&A Knowledge Base
                 </h1>
                 <span style={{fontSize:11,fontWeight:800,color:TEAL,background:TEAL+'20',
@@ -609,7 +609,7 @@ export default function QAKnowledgePage() {
         {tab === 'browse' && (
           <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',
             padding:'12px 28px',flexShrink:0,display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
-            <div style={{display:'flex',alignItems:'center',gap:8,background:'#f4f4f5',
+            <div style={{display:'flex',alignItems:'center',gap:8,background:'#f2f2f0',
               borderRadius:10,padding:'8px 14px',flex:1,maxWidth:360}}>
               <Search size={14} color="#9ca3af"/>
               <input value={filterQ} onChange={e=>setFilterQ(e.target.value)}
@@ -720,7 +720,7 @@ export default function QAKnowledgePage() {
               ) : (
                 tickets.map(ticket=>(
                   <div key={ticket.id} style={{background:'#fff',borderRadius:14,
-                    border:'1px solid #e5e7eb',padding:'16px 20px',marginBottom:10,
+                    border:'1px solid #ececea',padding:'16px 20px',marginBottom:10,
                     display:'flex',alignItems:'flex-start',gap:14}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
