@@ -61,6 +61,9 @@ import AIAgentsPage from '../views/AIAgentsPage'
 import ReportingPage from '../views/ReportingPage'
 import SocialPlannerPage from '../views/SocialPlannerPage'
 import ReviewsPage from '../views/ReviewsPage'
+import ProposalsPage from '../views/ProposalsPage'
+import ProposalBuilderPage from '../views/ProposalBuilderPage'
+import ProposalPublicPage from '../views/ProposalPublicPage'
 
 export default function App() {
   return (
@@ -83,6 +86,9 @@ export default function App() {
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/clients/:clientId/persona" element={<ClientPersonaPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
+          <Route path="/proposals" element={<ProposalsPage />} />
+          <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
+          <Route path="/p/:token" element={<ProposalPublicPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />

@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Plus, Mail, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow, FileSignature } from 'lucide-react'
+import { Plus, Mail, FileSignature, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
@@ -203,6 +203,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         <NavLink to="/" exact icon={LayoutGrid} label="Project Hub" />
         <NavLink to="/clients" icon={Users} label="Clients" startsWith />
         <NavLink to="/reviews" icon={MessageSquare} label="Reviews" startsWith />
+        <NavLink to="/proposals" icon={FileSignature} label="Proposals" startsWith />
         <NavLink to="/automations" icon={Workflow} label="Automations" />
 
         {/* ── SEO / INTELLIGENCE ── */}
