@@ -95,7 +95,7 @@ function ROICalc({ hotLeads, warmLeads }) {
       </div>
       <div className="flex flex-col justify-center">
         <p className="text-sm text-slate-400">Potential Revenue</p>
-        <p className="text-2xl font-bold text-green-600">${total.toLocaleString()}</p>
+        <p className="text-2xl font-black text-green-600">${total.toLocaleString()}</p>
         <p className="text-[13px] text-slate-400">{hotLeads} hot leads at {winRate * 2}% &middot; {warmLeads} warm at {winRate}%</p>
       </div>
     </div>

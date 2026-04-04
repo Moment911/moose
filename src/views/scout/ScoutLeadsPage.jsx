@@ -55,7 +55,7 @@ export default function ScoutLeadsPage() {
             { label: 'Contacted', value: stats.contacted, color: '#22c55e' },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-              <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</p>
+              <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
               <p className="text-sm text-slate-500">{s.label}</p>
             </div>
           ))}

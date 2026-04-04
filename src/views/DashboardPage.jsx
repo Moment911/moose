@@ -279,7 +279,7 @@ export default function DashboardPage() {
           {!selectedClient ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
               <LayoutGrid size={40} color="#e5e7eb" />
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#374151', fontWeight:700 }}>Select a client to open their workspace</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#374151', fontWeight:700 }}>Select a client to open their workspace</div>
               <button onClick={() => navigate('/clients')} style={{ fontSize: 15, padding: '9px 20px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7 }}>
                 <Plus size={14} /> Add your first client
               </button>

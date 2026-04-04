@@ -51,7 +51,7 @@ export default function ReportingPage() {
         <div style={{ padding:'0 24px 24px' }}>
           <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:32, textAlign:'center', minHeight:360, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
             <BarChart2 size={48} color="#e5e7eb" strokeWidth={1} style={{ marginBottom:16 }}/>
-            <div style={{ fontSize:16, fontWeight:700, color:'#374151', marginBottom:6 }}>
+            <div style={{ fontSize:16, fontWeight:800, color:'#374151', marginBottom:6 }}>
               {REPORTS.find(r=>r.id===active)?.label} — {period}
             </div>
             <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>

@@ -106,7 +106,7 @@ export default function CompanyProfilePage() {
         <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-white"><ChevronLeft size={18} /></button>
         {logoUrl && <img src={logoUrl} alt="" className="w-12 h-12 rounded-xl bg-white p-1 object-contain flex-shrink-0" onError={e => e.target.style.display = 'none'} />}
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{lead.business_name}</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white truncate">{lead.business_name}</h1>
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-sm text-slate-400">{lead.industry}</span>
             <span className="text-sm text-slate-500">&middot;</span>
@@ -214,7 +214,7 @@ export default function CompanyProfilePage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <h4 className="text-sm font-semibold text-slate-600 uppercase mb-2">Google Reviews</h4>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl font-bold text-slate-800">{lead.google_rating || '—'}</span>
+                  <span className="text-2xl font-black text-slate-800">{lead.google_rating || '—'}</span>
                   <div><div className="flex">{[1,2,3,4,5].map(i => <Star key={i} size={12} className={i <= Math.round(lead.google_rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-slate-200'} />)}</div><p className="text-[13px] text-slate-400">{lead.google_review_count || 0} reviews</p></div>
                 </div>
                 <div className="flex h-1.5 rounded-full overflow-hidden"><div className="bg-green-400" style={{ width: `${sent.positive}%` }} /><div className="bg-slate-300" style={{ width: `${sent.neutral}%` }} /><div className="bg-red-400" style={{ width: `${sent.negative}%` }} /></div>
@@ -304,9 +304,9 @@ export default function CompanyProfilePage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <h3 className="text-sm font-semibold text-slate-800 mb-2">Estimated Deal Value</h3>
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div><p className="text-lg font-bold text-slate-800">$1,500</p><p className="text-[13px] text-slate-400">Min/month</p></div>
-                <div><p className="text-lg font-bold text-orange-500">$4,500</p><p className="text-[13px] text-slate-400">Typical/month</p></div>
-                <div><p className="text-lg font-bold text-green-600">$54,000</p><p className="text-[13px] text-slate-400">Annual value</p></div>
+                <div><p className="text-lg font-extrabold text-slate-800">$1,500</p><p className="text-[13px] text-slate-400">Min/month</p></div>
+                <div><p className="text-lg font-extrabold text-orange-500">$4,500</p><p className="text-[13px] text-slate-400">Typical/month</p></div>
+                <div><p className="text-lg font-extrabold text-green-600">$54,000</p><p className="text-[13px] text-slate-400">Annual value</p></div>
               </div>
             </div>
           </div>

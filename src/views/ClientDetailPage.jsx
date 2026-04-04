@@ -259,7 +259,7 @@ export default function ClientDetailPage() {
     return (
       <div className="card p-6 mb-6">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
           {description && <p className="text-sm text-gray-700 mt-1">{description}</p>}
         </div>
         {children}
@@ -892,7 +892,7 @@ export default function ClientDetailPage() {
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
+              <h1 className="text-2xl font-black text-gray-900">{client.name}</h1>
               <div className="flex items-center gap-3 mt-1">
                 {client.email && <span className="text-sm text-gray-700 flex items-center gap-1"><Mail className="w-3 h-3" /> {client.email}</span>}
                 {profile.industry && <span className="text-sm bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">{profile.industry}</span>}

@@ -91,7 +91,7 @@ export default function SEOHubPage() {
         <div className="px-4 md:px-8 py-4 md:py-6 border-b border-gray-200 bg-white">
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <div className="flex-1">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2"><TrendingUp size={22} className="text-green-500" /> SEO & AEO Hub</h1>
+              <h1 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2"><TrendingUp size={22} className="text-green-500" /> SEO & AEO Hub</h1>
               <p className="text-sm text-gray-700 mt-0.5">Intelligence across all channels</p>
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -130,7 +130,7 @@ export default function SEOHubPage() {
             {!selected ? (
               <div className="flex flex-col items-center justify-center py-20 text-center px-4">
                 <TrendingUp size={48} className="text-gray-600 mb-4" />
-                <h2 className="text-lg font-semibold text-gray-700 mb-2">Select a Client</h2>
+                <h2 className="text-lg font-bold text-gray-700 mb-2">Select a Client</h2>
                 <p className="text-sm text-gray-700">Choose a client to view their SEO intelligence</p>
               </div>
             ) : (
@@ -181,7 +181,7 @@ export default function SEOHubPage() {
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-gray-800">AI Analysis</h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-2xl font-bold" style={{ color: (analysis.overallScore || 0) >= 70 ? '#22c55e' : (analysis.overallScore || 0) >= 50 ? '#f59e0b' : '#ef4444' }}>{analysis.overallScore || '—'}</span>
+                              <span className="text-2xl font-black" style={{ color: (analysis.overallScore || 0) >= 70 ? '#22c55e' : (analysis.overallScore || 0) >= 50 ? '#f59e0b' : '#ef4444' }}>{analysis.overallScore || '—'}</span>
                               <span className="text-sm text-gray-700">/ 100</span>
                             </div>
                           </div>
@@ -379,7 +379,7 @@ export default function SEOHubPage() {
 function StatMini({ label, value }) {
   return (
     <div className="bg-gray-50 rounded-lg p-3">
-      <p className="text-lg font-bold text-gray-800">{value}</p>
+      <p className="text-lg font-extrabold text-gray-800">{value}</p>
       <p className="text-[13px] text-gray-700 font-medium">{label}</p>
     </div>
   )

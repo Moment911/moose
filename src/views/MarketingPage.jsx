@@ -33,7 +33,7 @@ export default function MarketingPage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto" style={{ background: '#F8F9FC' }}>
         <div className="px-4 md:px-8 py-4 md:py-6">
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Email Marketing</h1>
+          <h1 className="text-xl md:text-2xl font-black text-gray-900 mb-4 md:mb-6">Email Marketing</h1>
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">

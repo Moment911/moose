@@ -92,7 +92,7 @@ export default function ESignaturePage() {
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#231f20' }}><Pen size={18} className="text-white" /></div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">E-Signature \u2014 Round {round?.round_number}</h1>
+              <h1 className="text-lg font-extrabold text-gray-900">E-Signature \u2014 Round {round?.round_number}</h1>
               <p className="text-sm text-gray-700">{project?.name} {round?.submitted_at && `\u00b7 Submitted ${format(new Date(round.submitted_at), 'MMM d yyyy')}`}</p>
             </div>
           </div>
@@ -117,14 +117,14 @@ export default function ESignaturePage() {
           {existingSig ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><Check size={28} className="text-green-500" /></div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">Round Signed</h2>
+              <h2 className="text-lg font-extrabold text-gray-900 mb-2">Round Signed</h2>
               <p className="text-sm text-gray-700">Signed by {existingSig.signer_name} on {format(new Date(existingSig.signed_at), 'MMM d yyyy h:mm a')}</p>
               {existingSig.signature_data && <img src={existingSig.signature_data} alt="Signature" className="mx-auto mt-4 border border-gray-200 rounded-lg" style={{ maxWidth: 300 }} />}
             </div>
           ) : submitted ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><Check size={28} className="text-green-500" /></div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">Signature Submitted</h2>
+              <h2 className="text-lg font-extrabold text-gray-900 mb-2">Signature Submitted</h2>
               <p className="text-sm text-gray-700">Thank you! Moose has been notified.</p>
             </div>
           ) : (

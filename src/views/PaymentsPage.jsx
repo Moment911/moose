@@ -60,7 +60,7 @@ export default function PaymentsPage() {
                 <div style={{ width:28, height:28, borderRadius:7, background:s.color+'15', display:'flex', alignItems:'center', justifyContent:'center' }}><s.icon size={13} color={s.color}/></div>
                 <span style={{ fontSize:13, color:'#4b5563' }}>{s.label}</span>
               </div>
-              <div style={{ fontSize:22, fontWeight:800, color:s.color }}>{s.value}</div>
+              <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
             </div>
           ))}
         </div>

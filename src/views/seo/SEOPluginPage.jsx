@@ -91,7 +91,7 @@ export default function SEOPluginPage() {
         <div className="px-4 md:px-8 py-4 md:py-6">
           <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2"><Puzzle size={22} className="text-purple-500" /> WordPress Plugin</h1>
+              <h1 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2"><Puzzle size={22} className="text-purple-500" /> WordPress Plugin</h1>
               <p className="text-sm text-gray-700 mt-0.5">Connect WordPress sites with HyperLocal SEO Pro</p>
             </div>
             <button onClick={() => setAdding(true)} className="btn-primary text-sm"><Plus size={14} /> Connect Site</button>
@@ -117,7 +117,7 @@ export default function SEOPluginPage() {
           {sites.length === 0 && !adding && (
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
               <Puzzle size={48} className="text-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Sites Connected</h3>
+              <h3 className="text-lg font-bold text-gray-700 mb-2">No Sites Connected</h3>
               <p className="text-sm text-gray-700 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Moose AI.</p>
               <div className="bg-gray-50 rounded-xl p-4 max-w-md mx-auto text-left mb-6">
                 <p className="text-sm font-semibold text-gray-600 mb-2">Setup Steps:</p>

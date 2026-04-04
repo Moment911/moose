@@ -70,7 +70,7 @@ export default function EmployeePage() {
         <Sidebar />
         <main className="flex-1 overflow-y-auto bg-white">
           <div style={{ background: "#231f20" }} className="hidden md:block px-8 py-6">
-            <h1 className="text-2xl font-bold text-white">Team</h1>
+            <h1 className="text-2xl font-black text-white">Team</h1>
             <p className="text-sm text-gray-700 mt-1">{staff.length} team member{staff.length !== 1 ? 's' : ''}</p>
           </div>
           <div className="px-4 md:px-8 py-4 md:py-6">
@@ -117,9 +117,9 @@ export default function EmployeePage() {
         <div style={{ background: "#231f20" }} className="hidden md:block px-8 py-6">
           <button onClick={() => navigate('/employees')} className="text-gray-700 hover:text-white text-sm flex items-center gap-1 mb-2"><ChevronLeft size={14} /> Team</button>
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-brand-500 text-white text-xl font-bold flex items-center justify-center">{(selectedStaff.name || selectedStaff.email)[0].toUpperCase()}</div>
+            <div className="w-14 h-14 rounded-2xl bg-brand-500 text-white text-xl font-extrabold flex items-center justify-center">{(selectedStaff.name || selectedStaff.email)[0].toUpperCase()}</div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{selectedStaff.name || selectedStaff.email}</h1>
+              <h1 className="text-2xl font-black text-white">{selectedStaff.name || selectedStaff.email}</h1>
               <div className="flex items-center gap-3 mt-1">
                 <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[selectedStaff.role] || ROLES_CLS.viewer}`}>{selectedStaff.role}</span>
                 <span className="text-sm text-gray-700">{selectedStaff.email}</span>
@@ -139,7 +139,7 @@ export default function EmployeePage() {
             ].map(s => { const I = s.icon; return (
               <div key={s.label} className="card p-4">
                 <I size={16} strokeWidth={1.5} className="text-brand-500 mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                <p className="text-2xl font-black text-gray-900">{s.value}</p>
                 <p className="text-sm text-gray-700">{s.label}</p>
               </div>
             )})}

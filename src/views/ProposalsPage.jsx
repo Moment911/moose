@@ -39,7 +39,7 @@ function fmt(n) { return n ? `$${Number(n).toLocaleString()}` : '—' }
 
 export default function ProposalsPage() {
   const navigate = useNavigate()
-  const { agencyId } = useAuth()
+  const { agencyId, firstName } = useAuth()
   const { clients } = useClient()
   const [proposals, setProposals] = useState([])
   const [loading, setLoading]     = useState(true)
@@ -122,7 +122,7 @@ export default function ProposalsPage() {
           {/* Header */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
-              <h1 style={{ fontSize:22, fontWeight:800, color:'#111', marginBottom:4 }}>Proposals & Agreements</h1>
+              <h1 style={{ fontSize:22, fontWeight:900, color:'#111', marginBottom:4 }}>{firstName ? `${firstName}'s Proposals` : 'Proposals & Agreements'}</h1>
               <p style={{ fontSize:15, color:'#4b5563' }}>Build proposals, convert to agreements, collect e-signatures</p>
             </div>
             <div style={{ display:'flex', gap:10 }}>
@@ -152,7 +152,7 @@ export default function ProposalsPage() {
                     <I size={16} color={s.color}/>
                     <span style={{ fontSize:14, color:'#4b5563' }}>{s.label}</span>
                   </div>
-                  <div style={{ fontSize:24, fontWeight:800, color:'#111' }}>{s.value}</div>
+                  <div style={{ fontSize:24, fontWeight:900, color:'#111' }}>{s.value}</div>
                 </div>
               )
             })}
@@ -181,7 +181,7 @@ export default function ProposalsPage() {
           ) : filtered.length === 0 ? (
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'64px 24px', textAlign:'center' }}>
               <FileText size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
-              <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:6 }}>
+              <div style={{ fontSize:16, fontWeight:800, color:'#111', marginBottom:6 }}>
                 {proposals.length === 0 ? 'No proposals yet' : 'No proposals match your filters'}
               </div>
               <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>

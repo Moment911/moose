@@ -126,7 +126,7 @@ export default function ContactsPage() {
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => navigate('/marketing')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div className="flex-1">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Contacts</h1>
+              <h1 className="text-xl md:text-2xl font-black text-gray-900">Contacts</h1>
               <p className="text-sm text-gray-700 mt-0.5">{contacts.length} total &middot; {contacts.filter(c => c.status === 'subscribed').length} subscribed</p>
             </div>
             <div className="flex flex-wrap gap-2">

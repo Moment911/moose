@@ -523,7 +523,7 @@ export default function ReviewsPage() {
         {!selectedClient ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#4b5563' }}>
             <Star size={48} strokeWidth={1}/>
-            <div style={{ fontSize:16, fontWeight:700 }}>Select a client to manage their reviews</div>
+            <div style={{ fontSize:16, fontWeight:800 }}>Select a client to manage their reviews</div>
           </div>
         ) : loading ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%' }}>

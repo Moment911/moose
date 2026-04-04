@@ -134,7 +134,7 @@ export default function SEOAuditPage() {
         <div className="px-4 md:px-8 py-4 md:py-6">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2">
               <Zap size={22} className="text-yellow-500" /> URL Audit & Client Pitch
               <span className="text-[13px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">Moose SEO</span>
             </h1>
@@ -184,7 +184,7 @@ export default function SEOAuditPage() {
                 <div className="flex flex-col md:flex-row gap-5 items-start">
                   <div className="flex-1">
                     <p className="text-sm text-gray-700 mb-1">{audit.businessName} &middot; {new Date(audit.generatedAt).toLocaleDateString()}</p>
-                    <h2 className="text-lg md:text-xl font-bold text-white mb-2">{audit.pitchHeadline}</h2>
+                    <h2 className="text-lg md:text-xl font-extrabold text-white mb-2">{audit.pitchHeadline}</h2>
                     <p className="text-sm text-gray-600 leading-relaxed mb-3">{audit.executiveSummary}</p>
                     {audit.urgencyFactors.slice(0, 2).map((u, i) => (
                       <span key={i} className="inline-flex items-center gap-1 bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1 text-sm text-red-300 mr-2 mb-1"><AlertTriangle size={11} /> {u}</span>
@@ -198,7 +198,7 @@ export default function SEOAuditPage() {
                         <span className="text-[13px] text-gray-700">/ 100</span>
                       </div>
                     </div>
-                    <p className="text-lg font-bold mt-2" style={{ color: scoreColor(audit.overallScore) }}>Grade {audit.grade}</p>
+                    <p className="text-lg font-extrabold mt-2" style={{ color: scoreColor(audit.overallScore) }}>Grade {audit.grade}</p>
                     <p className="text-sm text-gray-700">{audit.issues.filter(i => i.severity === 'critical').length} critical &middot; {audit.issues.filter(i => i.severity === 'warning').length} warnings</p>
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export default function SEOAuditPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                       {[{ k: 'technical', l: 'Technical', i: Shield }, { k: 'content', l: 'Content', i: FileText }, { k: 'performance', l: 'Speed', i: Zap }, { k: 'local', l: 'Local', i: Target }, { k: 'mobile', l: 'Mobile', i: Smartphone }, { k: 'aeo', l: 'AEO', i: BarChart2 }, { k: 'backlinks', l: 'Links', i: Link2 }, { k: 'gmb', l: 'GMB', i: Star }].map(c => {
                         const s = audit.scores[c.k] || 0; const I = c.i
-                        return <div key={c.k} className="bg-gray-50 rounded-xl p-3 border border-gray-100"><div className="flex items-center justify-between mb-1"><I size={14} style={{ color: scoreColor(s) }} /><span className="text-lg font-bold" style={{ color: scoreColor(s) }}>{s}</span></div><p className="text-[13px] text-gray-600 font-medium">{c.l}</p><div className="h-1 bg-gray-200 rounded-full mt-1.5"><div className="h-full rounded-full" style={{ width: `${s}%`, background: scoreColor(s) }} /></div></div>
+                        return <div key={c.k} className="bg-gray-50 rounded-xl p-3 border border-gray-100"><div className="flex items-center justify-between mb-1"><I size={14} style={{ color: scoreColor(s) }} /><span className="text-lg font-extrabold" style={{ color: scoreColor(s) }}>{s}</span></div><p className="text-[13px] text-gray-600 font-medium">{c.l}</p><div className="h-1 bg-gray-200 rounded-full mt-1.5"><div className="h-full rounded-full" style={{ width: `${s}%`, background: scoreColor(s) }} /></div></div>
                       })}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -268,7 +268,7 @@ export default function SEOAuditPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {[{ l: 'FCP', v: audit.pageSpeed.fcp }, { l: 'LCP', v: audit.pageSpeed.lcp }, { l: 'CLS', v: audit.pageSpeed.cls }, { l: 'TBT', v: audit.pageSpeed.tbt }].map(m => (
                         <div key={m.l} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                          <p className="text-lg font-bold text-gray-800">{m.v}</p>
+                          <p className="text-lg font-extrabold text-gray-800">{m.v}</p>
                           <p className="text-[13px] text-gray-700">{m.l}</p>
                         </div>
                       ))}
@@ -297,7 +297,7 @@ export default function SEOAuditPage() {
                       <div key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 mb-2"><div><p className="text-sm font-medium text-gray-800">{k.keyword}</p><p className="text-[13px] text-gray-700">{k.intent} &middot; {k.opportunity}</p></div><span className={`text-[13px] px-2 py-0.5 rounded-full font-semibold ${k.difficulty === 'low' ? 'bg-green-100 text-green-700' : k.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{k.difficulty}</span></div>
                     ))}</div>}
                     {audit.contentGaps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Content Gaps</p>{audit.contentGaps.map((g, i) => <p key={i} className="text-sm text-orange-700 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg px-3 py-2 mb-1">{g}</p>)}</div>}
-                    {audit.trafficOpp && <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 text-center mt-4"><TrendingUp size={24} className="text-brand-500 mx-auto mb-2" /><p className="text-lg font-bold text-brand-600">{audit.trafficOpp}</p><p className="text-sm text-brand-400">Estimated additional traffic if issues fixed</p></div>}
+                    {audit.trafficOpp && <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 text-center mt-4"><TrendingUp size={24} className="text-brand-500 mx-auto mb-2" /><p className="text-lg font-extrabold text-brand-600">{audit.trafficOpp}</p><p className="text-sm text-brand-400">Estimated additional traffic if issues fixed</p></div>}
                   </div>
                 )}
               </div>

@@ -470,7 +470,7 @@ function FAQ() {
             <div key={i} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
               <button onClick={() => setOpen(open===i?null:i)}
                 style={{ width:'100%', padding:'20px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'none', border:'none', cursor:'pointer', textAlign:'left', gap:16 }}>
-                <span style={{ fontSize:16, fontWeight:700, color:'#111', lineHeight:1.4 }}>{faq.q}</span>
+                <span style={{ fontSize:16, fontWeight:800, color:'#111', lineHeight:1.4 }}>{faq.q}</span>
                 <ChevronDown size={18} color="#9ca3af" style={{ transform:open===i?'rotate(180deg)':'rotate(0)', transition:'transform .2s', flexShrink:0 }}/>
               </button>
               {open===i && (

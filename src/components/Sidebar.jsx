@@ -24,22 +24,22 @@ function SidebarHelp() {
   const [openQ, setOpenQ] = useState(null)
   return (
     <>
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors w-full">
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 hover:text-gray-200 text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition-colors w-full" style={{ color:"rgba(255,255,255,.45)", fontSize:14 }}>
         <HelpCircle size={13} /> Help & FAQ
       </button>
       {open && (
         <div className="mx-1 mb-1 bg-white/5 rounded-lg overflow-hidden">
           <div className="px-3 py-2 border-b border-white/5">
-            <p className="text-[12px] text-gray-400 uppercase font-semibold tracking-wider flex items-center gap-1"><BookOpen size={9} /> How to use</p>
+            <p style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,.3)", textTransform:"uppercase", letterSpacing:".08em", display:"flex", alignItems:"center", gap:4 }}><BookOpen size={9} /> How to use</p>
           </div>
           <div className="max-h-52 overflow-y-auto">
             {HELP_ITEMS.map((item, i) => (
               <div key={i}>
-                <button onClick={() => setOpenQ(openQ === i ? null : i)} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-between">
+                <button onClick={() => setOpenQ(openQ === i ? null : i)} className="w-full text-left px-3 py-2 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-between" style={{ fontSize:14, color:"rgba(255,255,255,.6)", background:"none", border:"none", cursor:"pointer" }}>
                   <span>{item.q}</span>
-                  <ChevronRight size={9} className={`text-gray-500 transition-transform ${openQ === i ? 'rotate-90' : ''}`} />
+                  <ChevronRight size={9} className={`transition-transform ${openQ === i ? 'rotate-90' : ''}`} style={{ color:"rgba(255,255,255,.3)" }} />
                 </button>
-                {openQ === i && <p className="px-3 pb-2 text-[13px] text-gray-400 leading-relaxed">{item.a}</p>}
+                {openQ === i && <p style={{ padding:"0 12px 10px", fontSize:14, color:"rgba(255,255,255,.5)", lineHeight:1.65 }}>{item.a}</p>}
               </div>
             ))}
           </div>
@@ -70,7 +70,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor }
 }
 
 function SectionLabel({ label }) {
-  return <p className="text-[12px] text-gray-500 uppercase font-semibold tracking-wider px-3 pt-3 pb-1">{label}</p>
+  return <p style={{ fontSize:11, fontWeight:800, color:"rgba(255,255,255,.3)", textTransform:"uppercase", letterSpacing:".09em", padding:"12px 12px 4px" }}>{label}</p>
 }
 
 function DevSection() {
@@ -83,7 +83,7 @@ function DevSection() {
   return (
     <div className="mt-1">
       <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-gray-500 hover:text-gray-300 hover:bg-white/5">
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors hover:bg-white/5" style={{ fontSize:14, color:"rgba(255,255,255,.4)", border:"none", background:"none", cursor:"pointer" }}>
         <BookOpen size={14} />
         <span className="text-sm font-semibold tracking-wider uppercase">Dev / Preview</span>
         <ChevronRight size={11} style={{ marginLeft:'auto', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition:'transform .2s' }} />
@@ -92,7 +92,7 @@ function DevSection() {
         <div className="ml-2 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
           {DEV_ITEMS.map(item => (
             <Link key={item.to} to={item.to}
-              className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors">
+              style={{ display:"flex", alignItems:"center", gap:10, padding:"7px 10px", borderRadius:8, fontSize:14, color:"rgba(255,255,255,.45)", textDecoration:"none", transition:"all .15s" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,.45)"}>
               <item.icon size={12} />
               {item.label}
             </Link>
@@ -194,7 +194,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
       {/* Logo */}
       <div className="px-4 py-4 border-b border-white/10">
         <img src="/moose-logo-white.svg" alt="Moose AI" style={{height:32,width:'auto',display:'block',marginBottom:2}}/>
-        <div className="text-gray-500 text-[13px]">Marketing Platform</div>
+        <div style={{ fontSize:13, color:"rgba(255,255,255,.35)", marginTop:1 }}>Marketing Platform</div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
@@ -314,7 +314,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
 
       <div className="border-t border-white/10 p-2 space-y-0.5">
         <SidebarHelp />
-        <button onClick={handleSignOut} className="flex items-center gap-2 text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors w-full">
+        <button onClick={handleSignOut} className="flex items-center gap-2 hover:text-gray-200 text-sm px-3 py-2 rounded-lg hover:bg-white/5 transition-colors w-full" style={{ color:"rgba(255,255,255,.45)", fontSize:14 }}>
           <LogOut size={13} /> Sign out
         </button>
       </div>

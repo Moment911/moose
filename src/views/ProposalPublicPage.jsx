@@ -94,7 +94,7 @@ export default function ProposalPublicPage() {
           <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,.35)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
             {proposal.type==='agreement'?'Service Agreement':proposal.type==='sow'?'Statement of Work':'Proposal'}
           </div>
-          <h1 style={{ fontSize:26, fontWeight:900, color:'#fff', marginBottom:8 }}>{proposal.title}</h1>
+          <h1 style={{ fontSize:30, fontWeight:900, color:'#fff', marginBottom:8, letterSpacing:-0.5 }}>{proposal.title}</h1>
           {proposal.clients?.name && <div style={{ fontSize:15, color:'rgba(255,255,255,.45)' }}>Prepared for {proposal.clients.name}</div>}
           {proposal.valid_until && <div style={{ fontSize:15, color:'rgba(255,255,255,.3)', marginTop:4 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
         </div>
@@ -172,7 +172,7 @@ export default function ProposalPublicPage() {
             </div>
           ) : (
             <>
-              <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:4, display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ fontSize:16, fontWeight:800, color:'#111', marginBottom:4, display:'flex', alignItems:'center', gap:8 }}>
                 <Shield size={16} color={ACCENT}/> Sign & Accept
               </div>
               <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>By signing, you accept this proposal and its terms.</div>

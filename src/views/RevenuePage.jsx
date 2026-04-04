@@ -67,7 +67,7 @@ export default function RevenuePage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-white">
         <div style={{ background: '#231f20' }} className="px-4 md:px-8 py-4 md:py-6">
-          <h1 className="text-2xl font-bold text-white">Revenue</h1>
+          <h1 className="text-2xl font-black text-white">Revenue</h1>
           <p className="text-sm text-gray-700 mt-1">Track income across all clients and projects</p>
         </div>
 

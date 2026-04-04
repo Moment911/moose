@@ -152,7 +152,7 @@ export default function TaskDetailPage() {
           {/* Left — Task details */}
           <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">
             {/* Title */}
-            <input className="w-full text-2xl font-bold text-gray-900 border-none focus:outline-none mb-4" value={task.title}
+            <input className="w-full text-2xl font-black text-gray-900 border-none focus:outline-none mb-4" value={task.title}
               onChange={e => setTask(prev => ({ ...prev, title: e.target.value }))}
               onBlur={() => update({ title: task.title })} />
 

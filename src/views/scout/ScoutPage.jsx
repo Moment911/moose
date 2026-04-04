@@ -388,7 +388,7 @@ function MarketSummaryCard({ results, query, location }) {
 // Main Scout Page
 // ══════════════════════════════════════════════════════════════════════════════
 export default function ScoutPage() {
-  const { agencyId } = useAuth()
+  const { agencyId, firstName } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode]         = useState('prospect')
   const [query, setQuery]       = useState('')
@@ -739,7 +739,7 @@ Be specific about why each business needs marketing help based on their likely s
               <div style={{ width:64, height:64, borderRadius:'50%', background:modeConfig.color+'15', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', animation:'pulse 1.5s infinite' }}>
                 <modeConfig.icon size={28} color={modeConfig.color}/>
               </div>
-              <div style={{ fontSize:18, fontWeight:700, color:'#111', marginBottom:8 }}>
+              <div style={{ fontSize:18, fontWeight:800, color:'#111', marginBottom:8 }}>
                 {mode==='competitor'?'Analyzing competitors':'Scouting'} {query||'businesses'}{location?` in ${location}`:''}…
               </div>
               <div style={{ fontSize:15, color:'#4b5563' }}>

@@ -562,7 +562,7 @@ export default function ProjectPage() {
                   <div key={round.id} className="card overflow-hidden">
                     <div className="p-5 flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setExpandedRound(isExpanded ? null : round.round_number)}>
                       <div className="w-12 h-12 bg-brand-100 text-brand-700 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
-                        <span className="text-[13px] font-semibold uppercase leading-none">Round</span><span className="text-lg font-bold leading-tight">{round.round_number}</span>
+                        <span className="text-[13px] font-semibold uppercase leading-none">Round</span><span className="text-lg font-extrabold leading-tight">{round.round_number}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2"><span className="text-sm font-medium text-gray-900">Submitted by {round.submitted_by}</span>

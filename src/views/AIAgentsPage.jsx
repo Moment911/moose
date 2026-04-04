@@ -465,7 +465,7 @@ export default function AIAgentsPage() {
         {!selectedClient ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#4b5563' }}>
             <Zap size={48} strokeWidth={1}/>
-            <div style={{ fontSize:16, fontWeight:700 }}>Select a client to configure their AI agents</div>
+            <div style={{ fontSize:16, fontWeight:800 }}>Select a client to configure their AI agents</div>
           </div>
         ) : (
           <div>

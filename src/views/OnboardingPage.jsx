@@ -600,7 +600,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f4f5' }}>
       <div style={{ textAlign: 'center', maxWidth: 420, padding: 40 }}>
         <AlertCircle size={52} color="#ef4444" style={{ margin: '0 auto 16px' }} />
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#111', marginBottom: 10 }}>Link Not Found</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#111', marginBottom: 10 }}>Link Not Found</h2>
         <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>This onboarding link is invalid or has expired. Contact your agency for a new link.</p>
       </div>
     </div>
@@ -1242,7 +1242,7 @@ Product: Water filtration systems — sale and installation..." />
                   <SecurePwField value={form.cms_password} onChange={v => set('cms_password', v)} />
                 </F>
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 16, paddingTop: 20, borderTop: '1px solid #f3f4f6' }}>Tracking & Analytics</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', marginBottom: 16, paddingTop: 20, borderTop: '1px solid #f3f4f6' }}>Tracking & Analytics</div>
               <div style={T.grid2}>
                 <F label="Google Analytics 4 ID" hint="Starts with G-"><FocusInput value={form.ga4_id} onChange={e => set('ga4_id', e.target.value)} placeholder="G-XXXXXXXXXX" /></F>
                 <F label="Google Tag Manager ID" hint="Starts with GTM-"><FocusInput value={form.gtm_id} onChange={e => set('gtm_id', e.target.value)} placeholder="GTM-XXXXXXX" /></F>
@@ -1272,7 +1272,7 @@ Product: Water filtration systems — sale and installation..." />
                 </div>
               </div>
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 14 }}>Analytics & Tracking</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', marginBottom: 14 }}>Analytics & Tracking</div>
               <AccessGuide platform="Google Analytics 4 (GA4) — Admin Access" icon="BarChart2"
                 steps={[
                   'Go to analytics.google.com and log in',
@@ -1308,7 +1308,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/tagmanager/answer/6107011" linkLabel="View GTM Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Google Business Profile</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>Google Business Profile</div>
               <AccessGuide platform="Google Business Profile — Owner Access" icon="MapPin"
                 steps={[
                   'Go to business.google.com and log in',
@@ -1322,7 +1322,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/business/answer/3403100" linkLabel="Google's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Meta (Facebook & Instagram)</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>Meta (Facebook & Instagram)</div>
               <AccessGuide platform="Meta Business Manager — Add as Partner" icon="Facebook"
                 steps={[
                   'Go to business.facebook.com and log in to your Business Manager',
@@ -1345,7 +1345,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://www.facebook.com/help/187316341316803" linkLabel="Facebook's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Google Ads</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>Google Ads</div>
               <AccessGuide platform="Google Ads — Link to Our Manager Account" icon="DollarSign"
                 steps={[
                   'Log in to your Google Ads account at ads.google.com',
@@ -1358,7 +1358,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/google-ads/answer/7459601" linkLabel="Google Ads Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>YouTubeTube</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>YouTubeTube</div>
               <AccessGuide platform="YouTube Channel — Manager Access" icon="▶️"
                 steps={[
                   'Go to studio.youtube.com and log in',
@@ -1371,7 +1371,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/youtube/answer/9481328" linkLabel="YouTube's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: '24px 0 14px' }}>Otherer Platforms</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>Otherer Platforms</div>
               <AccessGuide platform="Yelp Business Account" icon="Star"
                 steps={[
                   'Go to biz.yelp.com and log in',
@@ -1530,7 +1530,7 @@ Product: Water filtration systems — sale and installation..." />
               {personaLoading && (
                 <div style={{ textAlign: 'center', padding: '48px 20px' }}>
                   <Loader2 size={48} color={ACCENT} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 8 }}>Building your persona…</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#111', marginBottom: 8 }}>Building your persona…</div>
                   <div style={{ fontSize: 15, color: '#4b5563' }}>Analyzing your responses, industry data, and competitive landscape</div>
                 </div>
               )}

@@ -108,9 +108,9 @@ export default function ContactProfilePage() {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate('/marketing/contacts')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
-            <div className="w-16 h-16 rounded-2xl bg-brand-500 text-white text-xl font-bold flex items-center justify-center flex-shrink-0">{initials}</div>
+            <div className="w-16 h-16 rounded-2xl bg-brand-500 text-white text-xl font-extrabold flex items-center justify-center flex-shrink-0">{initials}</div>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900">{contact.first_name ? `${contact.prefix || ''} ${contact.first_name} ${contact.last_name || ''}`.trim() : contact.email}</h1>
+              <h1 className="text-xl font-extrabold text-gray-900">{contact.first_name ? `${contact.prefix || ''} ${contact.first_name} ${contact.last_name || ''}`.trim() : contact.email}</h1>
               <p className="text-sm text-gray-700">{[contact.job_title, contact.company].filter(Boolean).join(' at ') || contact.email}</p>
               <div className="flex items-center gap-3 mt-1">
                 <span className={`text-[13px] px-2 py-0.5 rounded-full font-medium ${contact.status === 'subscribed' ? 'bg-green-50 text-green-700' : contact.status === 'unsubscribed' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-700'}`}>{contact.status || 'subscribed'}</span>

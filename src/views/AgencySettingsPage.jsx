@@ -27,7 +27,7 @@ const PLAN_DETAILS = {
 }
 
 export default function AgencySettingsPage() {
-  const { user, agencyId } = useAuth()
+  const { user, agencyId, firstName, greeting, agencyName } = useAuth()
   const [tab, setTab] = useState('general')
   const [agency, setAgency] = useState(null)
   const [members, setMembers] = useState([])

@@ -149,7 +149,7 @@ export default function TasksPage() {
         {/* Header */}
         <div className="h-14 bg-white border-b border-gray-200 px-6 flex items-center gap-4 flex-shrink-0">
           {projectId && <button onClick={() => navigate(`/project/${projectId}`)} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={16} /></button>}
-          <h1 className="text-lg font-semibold text-gray-900">Tasks</h1>
+          <h1 className="text-lg font-bold text-gray-900">Tasks</h1>
 
           {/* Client → Project selector */}
           <select className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-400" value={selectedClient} onChange={e => { setSelectedClient(e.target.value); setSelectedProject('all') }}>
@@ -286,7 +286,7 @@ export default function TasksPage() {
               </div>
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
                 {/* Title */}
-                <input className="w-full text-lg font-semibold text-gray-900 border-none focus:outline-none" value={selectedTask.title}
+                <input className="w-full text-lg font-bold text-gray-900 border-none focus:outline-none" value={selectedTask.title}
                   onChange={e => setSelectedTask(prev => ({ ...prev, title: e.target.value }))}
                   onBlur={() => handleUpdateTask(selectedTask.id, { title: selectedTask.title })} />
 

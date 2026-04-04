@@ -70,7 +70,7 @@ export default function WordPressPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">WordPress Sites</h1>
+              <h1 className="text-2xl font-black text-gray-900">WordPress Sites</h1>
               <p className="text-sm text-gray-700 mt-1">{sites.length} connected sites</p>
             </div>
             <button onClick={() => { setShowAdd(true); setForm({ site_name: '', site_url: '', client_id: '' }) }}
@@ -92,7 +92,7 @@ export default function WordPressPage() {
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setShowAdd(false)}>
               <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Add WordPress Site</h2>
+                  <h2 className="text-lg font-bold">Add WordPress Site</h2>
                   <button onClick={() => setShowAdd(false)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
                 </div>
                 <form onSubmit={handleAdd}>

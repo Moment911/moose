@@ -445,7 +445,7 @@ export default function SettingsPage() {
           <div style={{ marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
               <Settings size={20} color="#111" />
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111', margin: 0 }}>Settings</h1>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: 0 }}>Settings</h1>
             </div>
             <p style={{ fontSize: 15, color: '#4b5563', margin: 0 }}>Configure your Moose AI platform and API connections</p>
           </div>

@@ -136,7 +136,7 @@ export default function SEOConnectPage() {
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate('/seo')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Connect Data Sources</h1>
+              <h1 className="text-xl md:text-2xl font-black text-gray-900">Connect Data Sources</h1>
               <p className="text-sm text-gray-700 mt-0.5">Link Google services to analyze SEO performance</p>
             </div>
           </div>

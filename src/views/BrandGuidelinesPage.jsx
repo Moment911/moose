@@ -172,7 +172,7 @@ export default function BrandGuidelinesPage() {
             {/* COLORS */}
             <section id="brand-colors">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><Palette size={20} strokeWidth={1.5} className="text-brand-500" /> Color Palette</h2>
+                <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2"><Palette size={20} strokeWidth={1.5} className="text-brand-500" /> Color Palette</h2>
                 <button onClick={() => setShowAddColor(true)} className="btn-secondary text-sm"><Plus size={12} /> Add Color</button>
               </div>
 
@@ -223,7 +223,7 @@ export default function BrandGuidelinesPage() {
             {/* TYPOGRAPHY */}
             <section id="brand-typography">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><Type size={20} strokeWidth={1.5} className="text-brand-500" /> Typography</h2>
+                <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2"><Type size={20} strokeWidth={1.5} className="text-brand-500" /> Typography</h2>
                 <button onClick={() => setShowAddFont(true)} className="btn-secondary text-sm"><Plus size={12} /> Add Font</button>
               </div>
 
@@ -246,7 +246,7 @@ export default function BrandGuidelinesPage() {
                     <div key={i} className="card p-6 group hover:shadow-lg transition-all">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{f.name}</h3>
+                          <h3 className="text-lg font-bold text-gray-900">{f.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[13px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{f.category}</span>
                             <span className="text-sm text-gray-700">{f.usage}</span>
@@ -275,7 +275,7 @@ export default function BrandGuidelinesPage() {
             {/* LOGOS */}
             <section id="brand-logos">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><ImageIcon size={20} strokeWidth={1.5} className="text-brand-500" /> Logo Library</h2>
+                <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2"><ImageIcon size={20} strokeWidth={1.5} className="text-brand-500" /> Logo Library</h2>
                 <button onClick={() => logoInputRef.current?.click()} className="btn-secondary text-sm"><Upload size={12} /> Upload Logo</button>
                 <input ref={logoInputRef} type="file" accept="image/*,.svg,.pdf" className="hidden" onChange={handleLogoUpload} />
               </div>
@@ -310,7 +310,7 @@ export default function BrandGuidelinesPage() {
 
             {/* VOICE & TONE */}
             <section id="brand-voice">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-4"><MessageSquare size={20} strokeWidth={1.5} className="text-brand-500" /> Voice & Tone</h2>
+              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 mb-4"><MessageSquare size={20} strokeWidth={1.5} className="text-brand-500" /> Voice & Tone</h2>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="card p-5">
@@ -351,11 +351,11 @@ export default function BrandGuidelinesPage() {
 
             {/* BRAND STORY */}
             <section id="brand-story">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-4"><BookOpen size={20} strokeWidth={1.5} className="text-brand-500" /> Brand Story</h2>
+              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2 mb-4"><BookOpen size={20} strokeWidth={1.5} className="text-brand-500" /> Brand Story</h2>
 
               <div className="card p-5 mb-4">
                 <label className="text-sm font-semibold text-gray-900 mb-2 block">Tagline</label>
-                <input className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-2 py-1" placeholder="Your brand tagline..."
+                <input className="w-full text-2xl font-black text-gray-900 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-2 py-1" placeholder="Your brand tagline..."
                   value={brand?.tagline || ''} onChange={e => autoSave({ tagline: e.target.value })}
                   style={{ fontFamily: (brand?.fonts || [])[0]?.name ? `'${brand.fonts[0].name}', sans-serif` : 'Inter, sans-serif' }} />
               </div>

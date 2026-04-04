@@ -122,7 +122,7 @@ export default function CalendarPage() {
       <div className="flex-1 flex flex-col overflow-hidden bg-white">
         {/* Header */}
         <div className="h-14 bg-white border-b border-gray-200 px-6 flex items-center gap-4 flex-shrink-0">
-          <h1 className="text-lg font-semibold text-gray-900">Calendar</h1>
+          <h1 className="text-lg font-bold text-gray-900">Calendar</h1>
           <div className="flex items-center gap-2 ml-4">
             <button onClick={() => setCurrentDate(v => view === 'month' ? subMonths(v, 1) : addDays(v, -7))} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-700"><ChevronLeft size={16} /></button>
             <span className="text-sm font-semibold text-gray-900 min-w-[160px] text-center">{view === 'month' ? format(currentDate, 'MMMM yyyy') : `Week of ${format(weekStart, 'MMM d')}`}</span>

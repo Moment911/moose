@@ -30,7 +30,7 @@ function StatCard({ label, value, color, sub }) {
   return (
     <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
       <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>{label}</div>
-      <div style={{ fontSize:22, fontWeight:800, color:color||'#111' }}>{value}</div>
+      <div style={{ fontSize:22, fontWeight:900, color:color||'#111' }}>{value}</div>
       {sub&&<div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>{sub}</div>}
     </div>
   )
@@ -115,7 +115,7 @@ Return ONLY valid JSON with these keys:
           <button onClick={()=>navigate(`/clients/${clientId}`)} style={{ background:'none', border:'none', cursor:'pointer', color:'#4b5563' }}><ChevronLeft size={17}/></button>
           <div style={{ width:36, height:36, borderRadius:9, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:15 }}>{client?.name?.[0]}</div>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:16, fontWeight:700, color:'#111' }}>{client?.name}</div>
+            <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{client?.name}</div>
             <div style={{ fontSize:13, color:'#4b5563' }}>Client Persona & Marketing Intelligence</div>
           </div>
           <button onClick={generatePersona} disabled={generating}
@@ -130,7 +130,7 @@ Return ONLY valid JSON with these keys:
           {!persona&&!profile&&(
             <div style={{ background:'#fff', borderRadius:14, border:'1.5px dashed #e5e7eb', padding:48, textAlign:'center', marginBottom:20 }}>
               <Users size={44} color="#e5e7eb" strokeWidth={1} style={{ margin:'0 auto 14px' }}/>
-              <div style={{ fontSize:17, fontWeight:700, color:'#374151', marginBottom:7 }}>No persona data yet</div>
+              <div style={{ fontSize:17, fontWeight:800, color:'#374151', marginBottom:7 }}>No persona data yet</div>
               <div style={{ fontSize:15, color:'#4b5563', marginBottom:20, maxWidth:420, margin:'0 auto 20px' }}>Send the client their onboarding link so they fill in their business info. Then click Generate AI Persona above to create a full marketing intelligence brief.</div>
               <button onClick={generatePersona} disabled={generating} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 22px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                 <Sparkles size={14}/> Generate Anyway

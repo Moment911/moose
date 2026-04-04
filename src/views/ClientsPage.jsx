@@ -45,7 +45,7 @@ function SortIcon({ field, sortKey, sortDir }) {
 
 export default function ClientsPage() {
   const navigate = useNavigate()
-  const { agencyId } = useAuth()
+  const { agencyId, firstName } = useAuth()
   const { refreshClients } = useClient()
 
   const [clients, setClients]   = useState([])
@@ -159,7 +159,7 @@ export default function ClientsPage() {
           {/* Header */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
-              <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>Clients</h1>
+              <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>{firstName ? `${firstName}'s Clients` : 'Clients'}</h1>
               <p style={{ fontSize:15, color:'#4b5563', margin:'4px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
@@ -273,7 +273,7 @@ export default function ClientsPage() {
           ) : filtered.length === 0 ? (
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'64px 24px', textAlign:'center' }}>
               <Users size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
-              <div style={{ fontSize:17, fontWeight:700, color:'#111', marginBottom:6 }}>
+              <div style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:6 }}>
                 {clients.length === 0 ? 'No clients yet' : 'No clients match your filters'}
               </div>
               <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>

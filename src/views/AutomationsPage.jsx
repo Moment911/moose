@@ -75,7 +75,7 @@ export default function AutomationsPage() {
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate('/marketing')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">Automations</h1>
+              <h1 className="text-2xl font-black text-gray-900">Automations</h1>
               <p className="text-sm text-gray-700 mt-0.5">Set up email workflows triggered by events</p>
             </div>
             <button onClick={() => setShowCreate(true)} className="btn-primary text-sm"><Plus size={13} /> New Automation</button>
