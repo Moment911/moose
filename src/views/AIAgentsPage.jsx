@@ -354,27 +354,26 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function AIAgentsPage() {
   const { user, agencyId } = useAuth()
-  const { clients } = useClient()
-  const [selectedClient, setSelectedClient] = useState(null)
+  const { clients, selectedClient, selectClient } = useClient()
   const [agentStatus, setAgentStatus] = useState({}) // { agentId: boolean }
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('autopilot') // autopilot|standalone|activity
 
   useEffect(() => { init() }, [])
+  
+  // Auto-select first client when context loads clients
+  useEffect(() => {
+    if (clients?.length > 0 && !selectedClient) {
+      handleSelectClient(clients[0])
+    }
+  }, [clients])
 
   async function init() {
-    const aid = agencyId || '00000000-0000-0000-0000-000000000099'
-    const { data: cls } = await supabase.from('clients').select('id,name,industry').eq('agency_id', aid).order('name')
-    setClients(cls || [])
     setLoading(false)
-    // Default: first client
-    if (cls?.length) selectClient(cls[0])
   }
 
-  function selectClient(client) {
-    setSelectedClient(client)
-    // Load agent status from DB (stored in client record or separate table)
-    // For now: load from localStorage as mock
+  function handleSelectClient(client) {
+    selectClient(client) // update global context
     const saved = localStorage.getItem(`agent-status-${client.id}`)
     setAgentStatus(saved ? JSON.parse(saved) : {})
   }
@@ -382,7 +381,7 @@ export default function AIAgentsPage() {
   function toggleAgent(agentId, val) {
     const next = { ...agentStatus, [agentId]: val }
     setAgentStatus(next)
-    if (selectedClient) localStorage.setItem(`agent-status-${selectedClient.id}`, JSON.stringify(next))
+    if (selectedClient?.id) localStorage.setItem(`agent-status-${selectedClient.id}`, JSON.stringify(next))
     const agent = AGENTS.find(a => a.id === agentId)
     toast.success(val ? `✅ ${agent?.name} activated` : `⏸ ${agent?.name} paused`)
   }
@@ -391,7 +390,7 @@ export default function AIAgentsPage() {
     const next = {}
     AGENTS.forEach(a => next[a.id] = true)
     setAgentStatus(next)
-    if (selectedClient) localStorage.setItem(`agent-status-${selectedClient.id}`, JSON.stringify(next))
+    if (selectedClient?.id) localStorage.setItem(`agent-status-${selectedClient.id}`, JSON.stringify(next))
     toast.success('🚀 All 6 Autopilot agents activated!')
   }
 
@@ -447,7 +446,7 @@ export default function AIAgentsPage() {
             const status = saved ? JSON.parse(saved) : {}
             const count = Object.values(status).filter(Boolean).length
             return (
-              <div key={c.id} onClick={() => selectClient(c)}
+              <div key={c.id} onClick={() => handleSelectClient(c)}
                 style={{ padding:'11px 14px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#fff7f5':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'#111' }}>{c.name}</div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Link2, Search, BarChart2, DollarSign, MapPin, Check, AlertTriangle, ChevronLeft, Loader2, ExternalLink, Shield } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -29,6 +30,7 @@ const SERVICES = [
 ]
 
 export default function SEOConnectPage() {
+  const { agencyId } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [clients, setClients] = useState([])
@@ -58,7 +60,7 @@ export default function SEOConnectPage() {
   }, [searchParams])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('*').order('name')
+    const { data } = await supabase.from('clients').select('*').eq('agency_id', agencyId || '').order('name')
     setClients(data || [])
   }
 

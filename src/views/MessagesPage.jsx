@@ -10,6 +10,7 @@ import toast from 'react-hot-toast'
 const TYPE_COLORS = { client: '#ea2729', internal: '#3b82f6', project: '#22c55e' }
 
 export default function MessagesPage() {
+  const { agencyId } = useAuth()
   const { user } = useAuth()
   const [conversations, setConversations] = useState([])
   const [selectedConvo, setSelectedConvo] = useState(null)
@@ -47,7 +48,7 @@ export default function MessagesPage() {
     setLoading(false)
   }
 
-  async function loadClients() { const { data } = await getClients(); setClients(data || []) }
+  async function loadClients() { const { data } = await getClients(agencyId); setClients(data || []) }
 
   async function loadMessages(convoId) {
     const { data } = await supabase.from('messages').select('*').eq('conversation_id', convoId).order('created_at')

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Puzzle, Globe, Check, RefreshCw, ExternalLink, FileText, Zap, BarChart2, Link2, Send, Plus, Trash2, Loader2, TrendingUp, X } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -17,6 +18,7 @@ const QUICK_ACTIONS = [
 ]
 
 export default function SEOPluginPage() {
+  const { agencyId } = useAuth()
   const [sites, setSites] = useState([])
   const [selected, setSelected] = useState(null)
   const [clients, setClients] = useState([])
@@ -38,7 +40,7 @@ export default function SEOPluginPage() {
   }
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id, name').order('name')
+    const { data } = await supabase.from('clients').select('id, name').eq('agency_id', agencyId || '').order('name')
     setClients(data || [])
   }
 

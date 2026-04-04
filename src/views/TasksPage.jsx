@@ -29,6 +29,7 @@ const PRIORITIES = [
 ]
 
 export default function TasksPage() {
+  const { agencyId } = useAuth()
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -51,7 +52,7 @@ export default function TasksPage() {
   useEffect(() => { loadTasks() }, [selectedProject])
 
   async function loadProjects() {
-    const { data: cl } = await supabase.from('clients').select('*').order('name')
+    const { data: cl } = await supabase.from('clients').select('*').eq('agency_id', agencyId || '').order('name')
     setClients(cl || [])
     const allProjs = []
     for (const c of (cl || [])) {

@@ -405,8 +405,6 @@ export default function ReviewsPage() {
   }
 
   async function loadClients(aId) {
-    const { data } = await supabase.from('clients').select('id,name,industry').eq('agency_id', aId).order('name')
-    setClients(data || [])
   }
 
   async function loadClientData(client) {
@@ -445,7 +443,7 @@ export default function ReviewsPage() {
     ]
     await supabase.from('moose_review_queue').insert(samples.map(r=>({ ...r, client_id: selectedClient.id, agency_id: agencyId })))
     toast.success('Sample reviews added!')
-    selectClient(selectedClient)
+    if (selectedClient) loadClientData(selectedClient)
   }
 
   async function handleApprove(reviewId) {

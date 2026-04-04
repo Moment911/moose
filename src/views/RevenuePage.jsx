@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
 export default function RevenuePage() {
+  const { agencyId } = useAuth()
   const [records, setRecords] = useState([])
   const [clients, setClients] = useState([])
   const [projects, setProjects] = useState([])
@@ -20,7 +21,7 @@ export default function RevenuePage() {
   async function loadAll() {
     const { data: r } = await supabase.from('revenue_records').select('*, clients(name), projects(name)').order('created_at', { ascending: false })
     setRecords(r || [])
-    const { data: c } = await getClients(); setClients(c || [])
+    const { data: c } = await getClients(agencyId); setClients(c || [])
     const projs = []
     for (const cl of (c || [])) { const { data } = await supabase.from('projects').select('*').eq('client_id', cl.id); projs.push(...(data || []).map(p => ({ ...p, clientName: cl.name }))) }
     setProjects(projs)

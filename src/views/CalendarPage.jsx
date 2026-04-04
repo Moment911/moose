@@ -16,6 +16,7 @@ const EVENT_TYPES = [
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ea2729', '#8b5cf6', '#06b6d4', '#ec4899', '#231f20']
 
 export default function CalendarPage() {
+  const { agencyId } = useAuth()
   const { user } = useAuth()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents] = useState([])
@@ -41,7 +42,7 @@ export default function CalendarPage() {
   }
 
   async function loadProjects() {
-    const { data: cl } = await supabase.from('clients').select('*').order('name')
+    const { data: cl } = await supabase.from('clients').select('*').eq('agency_id', agencyId || '').order('name')
     setClients(cl || [])
     const projs = []
     for (const c of (cl || [])) { const { data } = await supabase.from('projects').select('*').eq('client_id', c.id); projs.push(...(data || []).map(p => ({ ...p, clientName: c.name }))) }
