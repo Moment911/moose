@@ -9,6 +9,7 @@ import {
   ArrowRight, Pen, Shield, ToggleLeft, ToggleRight
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import AIThinkingBox from '../components/AIThinkingBox'
 import { supabase } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import { useAuth } from '../hooks/useAuth'
@@ -62,6 +63,11 @@ function AITextarea({ value, onChange, placeholder, rows=4, clientContext='', fi
         style={{ width:'100%', padding:'12px 14px', paddingBottom:40, borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', fontFamily:'inherit', color:'#111', background:'#fff', lineHeight:1.65, boxSizing:'border-box' }}
         onFocus={e=>e.target.style.borderColor=ACCENT}
         onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+      {generating && (
+        <div style={{ position:'absolute', bottom:44, left:8, right:8 }}>
+          <AIThinkingBox active={generating} task='proposal' inline/>
+        </div>
+      )}
       <div style={{ position:'absolute', bottom:8, right:10, display:'flex', gap:6 }}>
         {!value?.trim() ? (
           <button onClick={generateFresh} disabled={generating}
@@ -150,7 +156,7 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
               <button onClick={aiDeliverables} disabled={generatingDeliverables}
                 style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
                 {generatingDeliverables?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>}
-                AI Generate
+                {generatingDeliverables?'Working…':'AI Generate'}
               </button>
             </div>
             {deliverables.map((d, i) => (
@@ -162,6 +168,11 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
                   style={{ border:'none', background:'none', cursor:'pointer', color:'#fca5a5', padding:2 }}><X size={11}/></button>
               </div>
             ))}
+            {generatingDeliverables && (
+              <div style={{ marginTop:8 }}>
+                <AIThinkingBox active={generatingDeliverables} task='proposal' label='Generating deliverables' inline/>
+              </div>
+            )}
             <button onClick={()=>onChange({...section,deliverables:[...deliverables,'']})}
               style={{ display:'flex', alignItems:'center', gap:6, fontSize:14, color:ACCENT, border:'none', background:'none', cursor:'pointer', marginTop:4, padding:'3px 0' }}>
               <Plus size={11}/> Add deliverable
@@ -447,7 +458,7 @@ export default function ProposalBuilderPage() {
             placeholder="Proposal title…"/>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             <span style={{ fontSize:14, color:'#4b5563', display:'flex', alignItems:'center', gap:5 }}>
-              {saving ? <><Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/> Saving…</> : <><Check size={11} color="#16a34a"/> Saved</>}
+              {saving ? <AIThinkingBox active={saving} task='proposal' label='Saving' inline dark/> : <><Check size={11} color="#16a34a"/> Saved</>}
             </span>
           </div>
           {/* Panel switcher */}

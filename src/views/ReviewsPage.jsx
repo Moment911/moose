@@ -8,6 +8,7 @@ import {
   Sliders, Zap, ArrowRight
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import AIThinkingBox from '../components/AIThinkingBox'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
@@ -151,7 +152,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
             <button onClick={generateResponse} disabled={generating}
               style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
               {generating ? <Loader2 size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Sparkles size={11}/>}
-              {generating ? 'Generating…' : response ? 'Regenerate' : '🤖 AI Write Response'}
+              {generating ? 'Writing…' : response ? 'Regenerate' : 'AI Write Response'}
             </button>
             {review.response_posted_at && <span style={{ fontSize:13, color:'#16a34a', fontWeight:700 }}>✓ Posted {format(new Date(review.response_posted_at), 'MMM d')}</span>}
           </div>

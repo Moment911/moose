@@ -735,16 +735,10 @@ Be specific about why each business needs marketing help based on their likely s
 
           {/* Searching */}
           {searching && (
-            <div style={{ textAlign:'center', padding:'60px 20px' }}>
-              <div style={{ width:64, height:64, borderRadius:'50%', background:modeConfig.color+'15', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', animation:'pulse 1.5s infinite' }}>
-                <modeConfig.icon size={28} color={modeConfig.color}/>
-              </div>
-              <div style={{ fontSize:18, fontWeight:800, color:'#111', marginBottom:8 }}>
-                {mode==='competitor'?'Analyzing competitors':'Scouting'} {query||'businesses'}{location?` in ${location}`:''}…
-              </div>
-              <div style={{ fontSize:15, color:'#4b5563' }}>
-                {dataSource==='google'?'Pulling live data from Google Maps…':'Analyzing marketing gaps, review scores, and online presence…'}
-              </div>
+            <div style={{ padding:'32px 20px' }}>
+              <AIThinkingBox active={searching} task='scout'
+                label={mode==='competitor'?'Analyzing competitors':mode==='market'?'Researching market':'Scouting leads'}
+              />
             </div>
           )}
 

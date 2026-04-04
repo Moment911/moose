@@ -9,6 +9,7 @@ import {
   DollarSign, BarChart2, Lock, Database, Building2
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import AIThinkingBox from '../components/AIThinkingBox'
 import { supabase } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import { useAuth } from '../hooks/useAuth'
@@ -51,10 +52,11 @@ function TemplateField({ label, value, onChange, rows=6, aiContext='' }) {
         {value?.trim() && (
           <button onClick={aiEnhance} disabled={generating}
             style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
-            {generating?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>} AI Enhance
+            {generating?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>} {generating?'Enhancing…':'AI Enhance'}
           </button>
         )}
       </div>
+      {generating && <div style={{marginBottom:8}}><AIThinkingBox active={generating} task='proposal' inline/></div>}
       <textarea value={value||''} onChange={e=>onChange(e.target.value)} rows={rows}
         style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:14, fontFamily:'inherit', lineHeight:1.65, outline:'none', resize:'vertical', color:'#111', boxSizing:'border-box' }}
         onFocus={e=>e.target.style.borderColor=ACCENT}

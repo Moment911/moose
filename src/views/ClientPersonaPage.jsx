@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import AIThinkingBox from '../components/AIThinkingBox'
 import { ChevronLeft, Sparkles, Loader2, Users, DollarSign, Target, MapPin, BarChart2, Zap, Globe, TrendingUp, Award, Copy, RefreshCw, ShieldCheck } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
@@ -121,7 +122,7 @@ Return ONLY valid JSON with these keys:
           <button onClick={generatePersona} disabled={generating}
             style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
             {generating?<Loader2 size={13} style={{ animation:'spin 1s linear infinite' }}/>:<Sparkles size={13}/>}
-            {generating?'Generating…':persona?'Regenerate AI Persona':'Generate AI Persona'}
+            {generating?'Building your persona…':persona?'Regenerate AI Persona':'Generate AI Persona'}
           </button>
         </div>
 

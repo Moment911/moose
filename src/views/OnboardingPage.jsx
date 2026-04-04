@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getOnboardingToken, upsertClientProfile, markTokenUsed } from '../lib/supabase';
 import { callClaude } from '../lib/ai';
+import AIThinkingBox from '../components/AIThinkingBox'
 import toast, { Toaster } from 'react-hot-toast';
 import {
   ChevronRight, ChevronLeft, Check, Eye, EyeOff, Sparkles,
@@ -190,11 +191,14 @@ function AIAssist({ prompt, onResult, label = 'AI Suggest', small }) {
     setLoading(false);
   }
   return (
-    <button type="button" onClick={run} disabled={loading}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: small ? '6px 12px' : '9px 18px', borderRadius: 10, border: `2px solid ${ACCENT}`, background: '#f0fbfc', color: ACCENT, fontSize: small ? 12 : 14, fontWeight: 700, cursor: 'pointer', opacity: loading ? .7 : 1, whiteSpace: 'nowrap' }}>
-      {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
-      {loading ? 'Thinking…' : label}
-    </button>
+    <div style={{ display:'inline-flex', flexDirection:'column', gap:6, alignItems:'flex-start' }}>
+      <button type="button" onClick={run} disabled={loading}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: small ? '6px 12px' : '9px 18px', borderRadius: 10, border: `2px solid ${ACCENT}`, background: loading?'#f9fafb':'#f0fbfc', color: ACCENT, fontSize: small ? 12 : 14, fontWeight: 700, cursor: loading?'default':'pointer', opacity: loading ? .7 : 1, whiteSpace: 'nowrap' }}>
+        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
+        {loading ? 'Working…' : label}
+      </button>
+      {loading && <AIThinkingBox active={loading} task='onboarding' inline/>}
+    </div>
   );
 }
 

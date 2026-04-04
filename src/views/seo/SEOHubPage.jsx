@@ -9,6 +9,7 @@ import {
   ExternalLink, Activity, ChevronRight, Zap, Shield
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import AIThinkingBox from '../../components/AIThinkingBox'
 import { supabase } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import { useAuth } from '../../hooks/useAuth'
@@ -303,6 +304,12 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                   </div>
                 ) : (
                   <>
+                    {/* AI Thinking Box — shown during any generation */}
+                    {generating && (
+                      <div style={{ marginBottom:20 }}>
+                        <AIThinkingBox active={generating} task='analysis' label='Generating AI analysis'/>
+                      </div>
+                    )}
                     {/* ── OVERVIEW ── */}
                     {tab === 'overview' && (
                       <div className="animate-fade-up">
