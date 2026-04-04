@@ -43,6 +43,7 @@ import DeskSettingsPage from '../views/desk/DeskSettingsPage'
 import DeskAnalyticsPage from '../views/desk/DeskAnalyticsPage'
 import QAKnowledgePage from '../views/desk/QAKnowledgePage'
 import DeskReportsPage from '../views/desk/DeskReportsPage'
+import PerfDashboard from '../views/perf/PerfDashboard'
 import ProspectReportPage from '../views/scout/ProspectReportPage'
 import PublicReportPage from '../views/scout/PublicReportPage'
 import ScoutLeadsPage from '../views/scout/ScoutLeadsPage'
@@ -144,6 +145,8 @@ export default function App() {
           <Route path="/desk/analytics" element={<DeskAnalyticsPage />} />
           <Route path="/desk/reports" element={<DeskReportsPage />} />
           <Route path="/desk/knowledge" element={<QAKnowledgePage />} />
+          <Route path="/perf" element={<PerfDashboard />} />
+          <Route path="/perf/:clientId" element={<PerfDashboard />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/scout/settings" element={<SettingsPage />} />
           <Route path="/seo" element={<SEOHubPage />} />
