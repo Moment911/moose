@@ -10,7 +10,7 @@ import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
 const STATUSES = [
-  { key: 'todo', label: 'To Do', color: '#9ca3af' },
+  { key: 'todo', label: 'To Do', color: '#4b5563' },
   { key: 'acknowledged', label: 'Acknowledged', color: '#3b82f6' },
   { key: 'in_progress', label: 'In Progress', color: '#f59e0b' },
   { key: 'more_info', label: 'More Info Needed', color: '#8b5cf6' },
@@ -124,7 +124,7 @@ export default function TaskDetailPage() {
 
   if (loading) return <div className="flex h-screen"><Sidebar /><div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></div>
 
-  if (!task) return <div className="flex h-screen"><Sidebar /><div className="flex-1 flex items-center justify-center text-gray-400">Task not found</div></div>
+  if (!task) return <div className="flex h-screen"><Sidebar /><div className="flex-1 flex items-center justify-center text-gray-700">Task not found</div></div>
 
   const status = STATUSES.find(s => s.key === task.status) || STATUSES[0]
   const priority = PRIORITIES.find(p => p.key === task.priority) || PRIORITIES[0]
@@ -135,16 +135,16 @@ export default function TaskDetailPage() {
       <div className="flex-1 flex flex-col overflow-hidden bg-white">
         {/* Header */}
         <div className="h-14 bg-white border-b border-gray-200 px-6 flex items-center gap-3 flex-shrink-0">
-          <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></button>
+          <button onClick={() => navigate(-1)} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 text-sm">
-              {project?.clients?.name && <span className="text-gray-400">{project.clients.name}</span>}
-              {project?.name && <><span className="text-gray-300">/</span><span className="text-gray-400">{project.name}</span></>}
-              <span className="text-gray-300">/</span>
+              {project?.clients?.name && <span className="text-gray-700">{project.clients.name}</span>}
+              {project?.name && <><span className="text-gray-600">/</span><span className="text-gray-700">{project.name}</span></>}
+              <span className="text-gray-600">/</span>
               <span className="font-semibold text-gray-900 truncate">{task.title}</span>
             </div>
           </div>
-          <button onClick={handleDelete} className="text-gray-400 hover:text-brand-500 p-1.5 rounded-lg hover:bg-brand-50"><Trash2 size={15} strokeWidth={1.5} /></button>
+          <button onClick={handleDelete} className="text-gray-700 hover:text-brand-500 p-1.5 rounded-lg hover:bg-brand-50"><Trash2 size={15} strokeWidth={1.5} /></button>
         </div>
 
         {/* Two column layout */}
@@ -178,11 +178,11 @@ export default function TaskDetailPage() {
             {/* Fields grid */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">Due Date</label>
+                <label className="text-sm text-gray-700 mb-1 block">Due Date</label>
                 <input className="input text-sm" type="date" value={task.due_date || ''} onChange={e => update({ due_date: e.target.value || null })} />
               </div>
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">Project</label>
+                <label className="text-sm text-gray-700 mb-1 block">Project</label>
                 <div className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 flex items-center gap-2">
                   {project?.name || 'Unassigned'}
                   {project?.id && <button onClick={() => navigate(`/project/${project.id}`)} className="text-brand-500 hover:text-brand-700 ml-auto"><ArrowUpRight size={13} /></button>}
@@ -192,7 +192,7 @@ export default function TaskDetailPage() {
 
             {/* Description */}
             <div className="mb-6">
-              <label className="text-sm text-gray-500 mb-1 block">Description</label>
+              <label className="text-sm text-gray-700 mb-1 block">Description</label>
               <textarea className="input text-sm resize-none w-full" rows={5} placeholder="Add a detailed description..."
                 value={task.description || ''} onChange={e => setTask(prev => ({ ...prev, description: e.target.value }))}
                 onBlur={() => update({ description: task.description })} />
@@ -200,13 +200,13 @@ export default function TaskDetailPage() {
 
             {/* Assignees */}
             <div className="mb-6">
-              <label className="text-sm text-gray-500 mb-2 block">Assignees</label>
+              <label className="text-sm text-gray-700 mb-2 block">Assignees</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {(task.assignees || []).map((a, i) => (
                   <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-full pl-1 pr-2.5 py-1">
                     <div className="w-6 h-6 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center">{(a.name || a.email || '?')[0].toUpperCase()}</div>
                     <span className="text-sm text-gray-700">{a.name || a.email}</span>
-                    <button onClick={() => removeAssignee(a.email)} className="text-gray-400 hover:text-brand-500"><X size={12} /></button>
+                    <button onClick={() => removeAssignee(a.email)} className="text-gray-700 hover:text-brand-500"><X size={12} /></button>
                   </div>
                 ))}
               </div>
@@ -224,27 +224,27 @@ export default function TaskDetailPage() {
 
             {/* Attachments */}
             <div className="mb-6">
-              <label className="text-sm text-gray-500 mb-2 block flex items-center gap-1"><Paperclip size={11} /> Attachments ({attachments.length})</label>
+              <label className="text-sm text-gray-700 mb-2 block flex items-center gap-1"><Paperclip size={11} /> Attachments ({attachments.length})</label>
               <div className="space-y-2 mb-2">
                 {attachments.map(a => (
                   <div key={a.id} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
-                    {a.type?.startsWith('image/') ? <img src={a.url} alt="" className="w-10 h-10 rounded object-cover" /> : <Paperclip size={16} className="text-gray-400" />}
+                    {a.type?.startsWith('image/') ? <img src={a.url} alt="" className="w-10 h-10 rounded object-cover" /> : <Paperclip size={16} className="text-gray-700" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-700 truncate">{a.name}</p>
-                      <p className="text-[13px] text-gray-400">{a.size ? `${(a.size / 1024).toFixed(0)} KB` : ''} {a.uploaded_at && format(new Date(a.uploaded_at), 'MMM d')}</p>
+                      <p className="text-[13px] text-gray-700">{a.size ? `${(a.size / 1024).toFixed(0)} KB` : ''} {a.uploaded_at && format(new Date(a.uploaded_at), 'MMM d')}</p>
                     </div>
                     <a href={a.url} target="_blank" rel="noreferrer" className="text-brand-500 hover:text-brand-700 text-sm">Open</a>
                   </div>
                 ))}
               </div>
-              <label className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 cursor-pointer bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200 hover:border-gray-300">
+              <label className="inline-flex items-center gap-1.5 text-sm text-gray-700 hover:text-gray-700 cursor-pointer bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200 hover:border-gray-300">
                 <Paperclip size={13} /> Upload file
                 <input type="file" className="hidden" onChange={handleUploadAttachment} />
               </label>
             </div>
 
             {/* Meta */}
-            <div className="border-t border-gray-100 pt-4 text-sm text-gray-400 space-y-1">
+            <div className="border-t border-gray-100 pt-4 text-sm text-gray-700 space-y-1">
               <p className="flex items-center gap-1"><Clock size={11} /> Created {task.created_at && formatDistanceToNow(new Date(task.created_at), { addSuffix: true })} by {task.created_by || 'Unknown'}</p>
               {task.completed_at && <p className="flex items-center gap-1"><Check size={11} /> Completed {format(new Date(task.completed_at), 'MMM d yyyy h:mm a')}</p>}
             </div>
@@ -256,13 +256,13 @@ export default function TaskDetailPage() {
               <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><MessageSquare size={14} strokeWidth={1.5} /> Comments</h3>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-              {comments.length === 0 && <p className="text-sm text-gray-400 text-center py-8">No comments yet</p>}
+              {comments.length === 0 && <p className="text-sm text-gray-700 text-center py-8">No comments yet</p>}
               {comments.map(c => (
                 <div key={c.id} className="bg-white rounded-xl p-3 border border-gray-100">
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-[13px] font-bold flex items-center justify-center">{(c.author_name || '?')[0].toUpperCase()}</div>
                     <span className="text-sm font-medium text-gray-800">{c.author_name}</span>
-                    <span className="text-[13px] text-gray-400 ml-auto">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                    <span className="text-[13px] text-gray-700 ml-auto">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: renderMentions(c.text) }} />
                 </div>
@@ -276,10 +276,10 @@ export default function TaskDetailPage() {
                     <button key={s.id} onClick={() => insertMention(s)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left">
                       <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
                       <span className="text-gray-800">{s.name || s.email}</span>
-                      <span className="text-sm text-gray-400 ml-auto">{s.role}</span>
+                      <span className="text-sm text-gray-700 ml-auto">{s.role}</span>
                     </button>
                   ))}
-                  {staffMembers.filter(s => !mentionQuery || (s.name || s.email).toLowerCase().includes(mentionQuery)).length === 0 && <p className="px-3 py-2 text-sm text-gray-400">No matches</p>}
+                  {staffMembers.filter(s => !mentionQuery || (s.name || s.email).toLowerCase().includes(mentionQuery)).length === 0 && <p className="px-3 py-2 text-sm text-gray-700">No matches</p>}
                 </div>
               )}
               <div className="flex gap-2">

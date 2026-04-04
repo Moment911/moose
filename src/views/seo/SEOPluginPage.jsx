@@ -92,7 +92,7 @@ export default function SEOPluginPage() {
           <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2"><Puzzle size={22} className="text-purple-500" /> WordPress Plugin</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Connect WordPress sites with HyperLocal SEO Pro</p>
+              <p className="text-sm text-gray-700 mt-0.5">Connect WordPress sites with HyperLocal SEO Pro</p>
             </div>
             <button onClick={() => setAdding(true)} className="btn-primary text-sm"><Plus size={14} /> Connect Site</button>
           </div>
@@ -102,9 +102,9 @@ export default function SEOPluginPage() {
             <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Connect WordPress Site</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                <div><label className="text-sm text-gray-500 block mb-1">Site URL *</label><input className="input text-sm" placeholder="https://clientsite.com" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} /></div>
-                <div><label className="text-sm text-gray-500 block mb-1">Plugin API Key *</label><input className="input text-sm" type="password" placeholder="From WP → HyperLocal SEO → Agency" value={form.apiKey} onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))} /></div>
-                <div><label className="text-sm text-gray-500 block mb-1">Client</label><select className="input text-sm" value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}><option value="">— None —</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                <div><label className="text-sm text-gray-700 block mb-1">Site URL *</label><input className="input text-sm" placeholder="https://clientsite.com" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-700 block mb-1">Plugin API Key *</label><input className="input text-sm" type="password" placeholder="From WP → HyperLocal SEO → Agency" value={form.apiKey} onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-700 block mb-1">Client</label><select className="input text-sm" value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}><option value="">— None —</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
               </div>
               <div className="flex gap-2">
                 <button onClick={connectSite} disabled={testing} className="btn-primary text-sm">{testing ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />} {testing ? 'Connecting...' : 'Test & Connect'}</button>
@@ -116,9 +116,9 @@ export default function SEOPluginPage() {
           {/* No sites */}
           {sites.length === 0 && !adding && (
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
-              <Puzzle size={48} className="text-gray-300 mx-auto mb-4" />
+              <Puzzle size={48} className="text-gray-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No Sites Connected</h3>
-              <p className="text-sm text-gray-400 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Moose AI.</p>
+              <p className="text-sm text-gray-700 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Moose AI.</p>
               <div className="bg-gray-50 rounded-xl p-4 max-w-md mx-auto text-left mb-6">
                 <p className="text-sm font-semibold text-gray-600 mb-2">Setup Steps:</p>
                 {['Install HyperLocal SEO Pro on WordPress', 'Go to WordPress → HyperLocal SEO → Agency Connect', 'Generate API key and copy it', 'Click "Connect Site" and paste the key'].map((s, i) => (
@@ -140,10 +140,10 @@ export default function SEOPluginPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{site.site_name || site.url}</p>
-                        <p className="text-[13px] text-gray-400">{site.clients?.name || 'No client'}</p>
-                        <div className="flex items-center gap-1 mt-1"><div className={`w-1.5 h-1.5 rounded-full ${site.connected ? 'bg-green-500' : 'bg-red-400'}`} /><span className="text-[13px] text-gray-400">{site.connected ? 'Connected' : 'Offline'}</span></div>
+                        <p className="text-[13px] text-gray-700">{site.clients?.name || 'No client'}</p>
+                        <div className="flex items-center gap-1 mt-1"><div className={`w-1.5 h-1.5 rounded-full ${site.connected ? 'bg-green-500' : 'bg-red-400'}`} /><span className="text-[13px] text-gray-700">{site.connected ? 'Connected' : 'Offline'}</span></div>
                       </div>
-                      <button onClick={e => { e.stopPropagation(); deleteSite(site.id) }} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={12} /></button>
+                      <button onClick={e => { e.stopPropagation(); deleteSite(site.id) }} className="text-gray-600 hover:text-red-500 p-1"><Trash2 size={12} /></button>
                     </div>
                   </div>
                 ))}
@@ -163,13 +163,13 @@ export default function SEOPluginPage() {
                   {/* Tabs */}
                   <div className="flex overflow-x-auto bg-white rounded-t-xl border border-gray-200 border-b-0" style={{ scrollbarWidth: 'none' }}>
                     {['actions', 'generate', 'data'].map(t => (
-                      <button key={t} onClick={() => setTab(t)} className={`flex-shrink-0 px-4 py-3 text-sm font-medium capitalize ${tab === t ? 'text-brand-500 border-b-2 border-brand-500' : 'text-gray-500 border-b-2 border-transparent'}`}>{t}</button>
+                      <button key={t} onClick={() => setTab(t)} className={`flex-shrink-0 px-4 py-3 text-sm font-medium capitalize ${tab === t ? 'text-brand-500 border-b-2 border-brand-500' : 'text-gray-700 border-b-2 border-transparent'}`}>{t}</button>
                     ))}
                   </div>
                   <div className="bg-white rounded-b-xl border border-gray-200 border-t-0 p-4">
                     {tab === 'actions' && (
                       <div>
-                        <p className="text-sm text-gray-500 mb-3">Trigger plugin actions on <strong>{selected.site_name}</strong></p>
+                        <p className="text-sm text-gray-700 mb-3">Trigger plugin actions on <strong>{selected.site_name}</strong></p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {QUICK_ACTIONS.map(a => {
                             const I = a.icon
@@ -179,7 +179,7 @@ export default function SEOPluginPage() {
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: a.color + '20' }}>
                                   {activeAction === a.key ? <Loader2 size={16} className="animate-spin" style={{ color: a.color }} /> : <I size={16} style={{ color: a.color }} />}
                                 </div>
-                                <div><p className="text-sm font-medium text-gray-800">{a.label}</p><p className="text-[13px] text-gray-400">{a.desc}</p></div>
+                                <div><p className="text-sm font-medium text-gray-800">{a.label}</p><p className="text-[13px] text-gray-700">{a.desc}</p></div>
                               </button>
                             )
                           })}
@@ -194,15 +194,15 @@ export default function SEOPluginPage() {
                     )}
                     {tab === 'generate' && (
                       <div className="text-center py-8">
-                        <FileText size={32} className="text-gray-300 mx-auto mb-3" />
-                        <p className="text-sm text-gray-500 mb-4">Generate AI-powered pages directly on the WordPress site.</p>
+                        <FileText size={32} className="text-gray-600 mx-auto mb-3" />
+                        <p className="text-sm text-gray-700 mb-4">Generate AI-powered pages directly on the WordPress site.</p>
                         <button onClick={() => triggerAction('generateBatch')} disabled={!!activeAction} className="btn-primary text-sm"><Zap size={14} /> Generate Pages</button>
                       </div>
                     )}
                     {tab === 'data' && (
                       <div className="text-center py-8">
-                        <BarChart2 size={32} className="text-gray-300 mx-auto mb-3" />
-                        <p className="text-sm text-gray-500 mb-4">Sync rankings and analytics from the plugin.</p>
+                        <BarChart2 size={32} className="text-gray-600 mx-auto mb-3" />
+                        <p className="text-sm text-gray-700 mb-4">Sync rankings and analytics from the plugin.</p>
                         <button onClick={() => triggerAction('syncGSC')} disabled={!!activeAction} className="btn-primary text-sm"><RefreshCw size={14} /> Sync Data</button>
                       </div>
                     )}

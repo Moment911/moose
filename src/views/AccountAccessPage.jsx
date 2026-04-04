@@ -18,7 +18,7 @@ function PwField({ value, onChange }) {
   return (
     <div style={{ position:'relative' }}>
       <input type={show?'text':'password'} value={value||''} onChange={e=>onChange(e.target.value)} style={{ ...INP, paddingRight:36 }} />
-      <button onClick={()=>setShow(s=>!s)} style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}>
+      <button onClick={()=>setShow(s=>!s)} style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#4b5563' }}>
         {show?<EyeOff size={13}/>:<Eye size={13}/>}
       </button>
     </div>
@@ -39,8 +39,8 @@ function ActivityEntry({ entry }) {
           <strong style={{ color }}>{isStaff?`Staff: ${entry.changed_by}`:isClient?'Client':entry.changed_by}</strong>{' '}
           {isStaff?`verified: ${itemLabel}`:isClient?`completed: ${itemLabel}`:(entry.description||'')}
         </div>
-        {entry.staff_note&&<div style={{ fontSize:13, color:'#6b7280', fontStyle:'italic' }}>"{entry.staff_note}"</div>}
-        <div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>{entry.created_at?formatDistanceToNow(new Date(entry.created_at),{addSuffix:true}):'—'}</div>
+        {entry.staff_note&&<div style={{ fontSize:13, color:'#374151', fontStyle:'italic' }}>"{entry.staff_note}"</div>}
+        <div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>{entry.created_at?formatDistanceToNow(new Date(entry.created_at),{addSuffix:true}):'—'}</div>
       </div>
       {entry.created_at&&(Date.now()-new Date(entry.created_at).getTime())<30000&&(
         <div style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', flexShrink:0, marginTop:8, animation:'pulse 1.5s infinite' }}/>
@@ -71,7 +71,7 @@ function StaffVerification({ clientId, itemId, itemLabel, user, verifications, o
           <ShieldCheck size={14} color="#16a34a"/>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:14, fontWeight:700, color:'#16a34a' }}>✓ Verified by {latest.changed_by}</div>
-            <div style={{ fontSize:13, color:'#9ca3af' }}>{latest.created_at?format(new Date(latest.created_at),'MMM d, yyyy h:mm a'):''}{latest.staff_note?` · "${latest.staff_note}"`:''}</div>
+            <div style={{ fontSize:13, color:'#4b5563' }}>{latest.created_at?format(new Date(latest.created_at),'MMM d, yyyy h:mm a'):''}{latest.staff_note?` · "${latest.staff_note}"`:''}</div>
           </div>
           <button onClick={()=>setShowForm(v=>!v)} style={{ fontSize:13, padding:'2px 7px', borderRadius:6, border:'1px solid #bbf7d0', background:'#fff', cursor:'pointer', color:'#16a34a' }}>Re-verify</button>
         </div>
@@ -112,13 +112,13 @@ function AccessItem({ item, data, onChange, agencyEmail, expanded, onToggle, cli
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             <span style={{ fontSize:15, fontWeight:700, color:status==='complete'?'#9ca3af':'#111', textDecoration:status==='complete'?'line-through':'' }}>{item.label}</span>
-            <span style={{ fontSize:13, padding:'1px 5px', borderRadius:6, background:'#f3f4f6', color:'#6b7280' }}>{typeCfg.icon}</span>
+            <span style={{ fontSize:13, padding:'1px 5px', borderRadius:6, background:'#f3f4f6', color:'#374151' }}>{typeCfg.icon}</span>
             {isVerified&&<ShieldCheck size={12} color="#16a34a"/>}
             {d.client_completed_at&&<span style={{ fontSize:12, background:'#e8f9fa', color:'#0e7490', padding:'1px 5px', borderRadius:6, fontWeight:700 }}>CLIENT ✓</span>}
           </div>
-          {clientAct.length>0&&<div style={{ fontSize:13, color:'#9ca3af' }}>Client updated {formatDistanceToNow(new Date(clientAct[0].created_at),{addSuffix:true})}</div>}
+          {clientAct.length>0&&<div style={{ fontSize:13, color:'#4b5563' }}>Client updated {formatDistanceToNow(new Date(clientAct[0].created_at),{addSuffix:true})}</div>}
         </div>
-        <div style={{ fontSize:13, color:'#9ca3af' }}>{item.access_level}</div>
+        <div style={{ fontSize:13, color:'#4b5563' }}>{item.access_level}</div>
         <div><span style={{ fontSize:13, fontWeight:700, padding:'2px 6px', borderRadius:8, background:priority.bg, color:priority.color, border:`1px solid ${priority.border}` }}>{item.priority.toUpperCase()}</span></div>
         <div onClick={e=>e.stopPropagation()}>
           <select value={status} onChange={e=>set('status',e.target.value)} style={{ ...INP, fontSize:13, padding:'3px 6px', background:statusCfg.bg, color:statusCfg.color, fontWeight:700, border:'none', cursor:'pointer' }}>
@@ -141,33 +141,33 @@ function AccessItem({ item, data, onChange, agencyEmail, expanded, onToggle, cli
             <div style={{ background:'#f0fbfc', border:`1px solid ${ACCENT}30`, borderRadius:9, padding:'8px 12px', marginBottom:10, fontSize:14, color:'#92400e', display:'flex', gap:8 }}>
               <span style={{ fontWeight:700 }}>Agency Email:</span>
               <code style={{ background:'rgba(0,0,0,.06)', padding:'1px 7px', borderRadius:5, fontWeight:700 }}>{agencyEmail}</code>
-              <span style={{ color:'#9ca3af' }}>Role: {item.access_level}</span>
+              <span style={{ color:'#4b5563' }}>Role: {item.access_level}</span>
             </div>
           )}
           {/* Client-submitted data */}
           {(d.login_url||d.username||d.file_link||d.account_id||d.client_notes)&&(
             <div style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:9, padding:'10px 14px', marginBottom:10 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:7 }}>📥 Client Submitted</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:7 }}>📥 Client Submitted</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                 {[['Login URL',d.login_url,false],['Username',d.username,false],['Password',d.password,true],['File Link',d.file_link,false],['Account ID',d.account_id,false],['Client Notes',d.client_notes,false]].filter(([,v])=>v).map(([label,val,pw])=>(
                   <div key={label}>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', marginBottom:2, textTransform:'uppercase' }}>{label}</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', marginBottom:2, textTransform:'uppercase' }}>{label}</div>
                     {pw?<PwField value={val} onChange={v=>set('password',v)}/>:(
                       <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                         <span style={{ fontSize:14, color:'#111', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{val}</span>
-                        <button onClick={()=>{navigator.clipboard.writeText(val);toast.success('Copied')}} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af', padding:1 }}><Copy size={10}/></button>
+                        <button onClick={()=>{navigator.clipboard.writeText(val);toast.success('Copied')}} style={{ background:'none', border:'none', cursor:'pointer', color:'#4b5563', padding:1 }}><Copy size={10}/></button>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-              {d.client_completed_at&&<div style={{ fontSize:13, color:'#9ca3af', marginTop:6 }}>Completed: {format(new Date(d.client_completed_at),'MMM d, yyyy h:mm a')}</div>}
+              {d.client_completed_at&&<div style={{ fontSize:13, color:'#4b5563', marginTop:6 }}>Completed: {format(new Date(d.client_completed_at),'MMM d, yyyy h:mm a')}</div>}
             </div>
           )}
           {/* Agency fields */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:9, marginBottom:10 }}>
-            {item.type==='credentials'&&!d.login_url&&<><div><label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', display:'block', marginBottom:3, textTransform:'uppercase' }}>Login URL</label><input value={d.login_url||''} onChange={e=>set('login_url',e.target.value)} style={INP}/></div><div><label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', display:'block', marginBottom:3, textTransform:'uppercase' }}>Username</label><input value={d.username||''} onChange={e=>set('username',e.target.value)} style={INP}/></div><div style={{ gridColumn:'1/-1' }}><label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', display:'block', marginBottom:3, textTransform:'uppercase' }}>Password</label><PwField value={d.password||''} onChange={v=>set('password',v)}/></div></>}
-            <div style={{ gridColumn:'1/-1' }}><label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', display:'block', marginBottom:3, textTransform:'uppercase' }}>Internal Notes</label><input value={d.notes||''} onChange={e=>set('notes',e.target.value)} placeholder="Any caveats or notes…" style={INP}/></div>
+            {item.type==='credentials'&&!d.login_url&&<><div><label style={{ fontSize:13, fontWeight:700, color:'#4b5563', display:'block', marginBottom:3, textTransform:'uppercase' }}>Login URL</label><input value={d.login_url||''} onChange={e=>set('login_url',e.target.value)} style={INP}/></div><div><label style={{ fontSize:13, fontWeight:700, color:'#4b5563', display:'block', marginBottom:3, textTransform:'uppercase' }}>Username</label><input value={d.username||''} onChange={e=>set('username',e.target.value)} style={INP}/></div><div style={{ gridColumn:'1/-1' }}><label style={{ fontSize:13, fontWeight:700, color:'#4b5563', display:'block', marginBottom:3, textTransform:'uppercase' }}>Password</label><PwField value={d.password||''} onChange={v=>set('password',v)}/></div></>}
+            <div style={{ gridColumn:'1/-1' }}><label style={{ fontSize:13, fontWeight:700, color:'#4b5563', display:'block', marginBottom:3, textTransform:'uppercase' }}>Internal Notes</label><input value={d.notes||''} onChange={e=>set('notes',e.target.value)} placeholder="Any caveats or notes…" style={INP}/></div>
           </div>
           <StaffVerification clientId={clientId} itemId={item.id} itemLabel={item.label} user={user} verifications={verifications} onVerify={v=>{ set('staff_verified',true); set('staff_verified_by',v.changed_by); set('staff_verified_at',v.created_at) }}/>
         </div>
@@ -259,9 +259,9 @@ export default function AccountAccessPage() {
       <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0, overflow:'hidden' }}>
         {/* Header */}
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'11px 20px', display:'flex', alignItems:'center', gap:11, flexShrink:0 }}>
-          <button onClick={()=>navigate('/clients')} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}><ChevronLeft size={17}/></button>
+          <button onClick={()=>navigate('/clients')} style={{ background:'none', border:'none', cursor:'pointer', color:'#4b5563' }}><ChevronLeft size={17}/></button>
           <div style={{ width:34, height:34, borderRadius:8, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:15 }}>{client?.name?.[0]||'?'}</div>
-          <div style={{ flex:1 }}><div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{client?.name}</div><div style={{ fontSize:13, color:'#9ca3af' }}>Account Access Checklist · {complete}/{total} complete · {verified} verified</div></div>
+          <div style={{ flex:1 }}><div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{client?.name}</div><div style={{ fontSize:13, color:'#4b5563' }}>Account Access Checklist · {complete}/{total} complete · {verified} verified</div></div>
           <div style={{ display:'flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:20, background:isLive?'#f0fdf4':'#f3f4f6', border:isLive?'1px solid #bbf7d0':'1px solid #e5e7eb' }}>
             <div style={{ width:6, height:6, borderRadius:'50%', background:isLive?'#22c55e':'#d1d5db', animation:isLive?'pulse 1.5s infinite':'none' }}/>
             <span style={{ fontSize:13, fontWeight:700, color:isLive?'#16a34a':'#9ca3af' }}>{isLive?'Live':'Offline'}</span>
@@ -282,7 +282,7 @@ export default function AccountAccessPage() {
           {[{label:'Complete',value:complete,color:'#16a34a'},{label:'Verified',value:verified,color:'#10b981'},{label:'High Pending',value:highPending,color:'#dc2626'}].map(s=>(
             <div key={s.label} style={{ display:'flex', gap:6, alignItems:'center', padding:'4px 10px', borderRadius:8, background:'#f9fafb' }}>
               <div style={{ fontSize:16, fontWeight:800, color:s.color }}>{s.value}</div>
-              <div style={{ fontSize:13, color:'#9ca3af' }}>{s.label}</div>
+              <div style={{ fontSize:13, color:'#4b5563' }}>{s.label}</div>
             </div>
           ))}
           <div style={{ marginLeft:'auto', display:'flex', gap:7 }}>
@@ -306,12 +306,12 @@ export default function AccountAccessPage() {
                 <div key={section.id} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:14 }}>
                   <div style={{ padding:'11px 14px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:10, background:`${section.color}06` }}>
                     <span style={{ fontSize:18 }}>{section.icon}</span>
-                    <div style={{ flex:1 }}><div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{section.label}</div><div style={{ fontSize:13, color:'#9ca3af' }}>{done}/{section.items.length} complete</div></div>
+                    <div style={{ flex:1 }}><div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{section.label}</div><div style={{ fontSize:13, color:'#4b5563' }}>{done}/{section.items.length} complete</div></div>
                     <div style={{ width:70 }}><div style={{ height:4, background:'#f3f4f6', borderRadius:2, overflow:'hidden' }}><div style={{ height:'100%', width:`${pct2}%`, background:pct2===100?'#16a34a':section.color, borderRadius:2 }}/></div></div>
                     <div style={{ fontSize:15, fontWeight:700, color:pct2===100?'#16a34a':section.color, minWidth:32, textAlign:'right' }}>{pct2}%</div>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'26px 1fr 110px 90px 120px 110px 28px', gap:0, padding:'5px 14px', background:'#f8f9fa', borderBottom:'1px solid #e5e7eb' }}>
-                    {['','Platform','Access Level','Priority','Status','Verified By',''].map((h,i)=><div key={i} style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.04em' }}>{h}</div>)}
+                    {['','Platform','Access Level','Priority','Status','Verified By',''].map((h,i)=><div key={i} style={{ fontSize:12, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.04em' }}>{h}</div>)}
                   </div>
                   {filteredItems.map(item=>(
                     <AccessItem key={item.id} item={item} data={accessData[item.id]} onChange={data=>handleItemChange(item.id,data)} agencyEmail={agencyEmail} expanded={expandedId===item.id} onToggle={()=>setExpandedId(prev=>prev===item.id?null:item.id)} clientId={clientId} user={user} history={liveActivity}/>
@@ -327,10 +327,10 @@ export default function AccountAccessPage() {
               <div style={{ padding:'12px 14px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:7 }}>
                 <div style={{ width:7, height:7, borderRadius:'50%', background:isLive?'#22c55e':'#d1d5db', animation:isLive?'pulse 1.5s infinite':'none' }}/>
                 <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>Live Activity</span>
-                <span style={{ fontSize:13, color:'#9ca3af', marginLeft:'auto' }}>{liveActivity.length} events</span>
+                <span style={{ fontSize:13, color:'#4b5563', marginLeft:'auto' }}>{liveActivity.length} events</span>
               </div>
               {liveActivity.length===0?(
-                <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, color:'#9ca3af', padding:20, textAlign:'center' }}>
+                <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, color:'#4b5563', padding:20, textAlign:'center' }}>
                   <Radio size={26} strokeWidth={1}/>
                   <div style={{ fontSize:14, fontWeight:700 }}>Waiting for activity</div>
                   <div style={{ fontSize:13 }}>Client actions appear here in real time</div>

@@ -55,27 +55,27 @@ export default function ClientDashboardPage() {
             </div>
             <div>
               <div className="text-sm font-semibold">Moose</div>
-              <div className="text-[13px] text-gray-400">Client Portal</div>
+              <div className="text-[13px] text-gray-700">Client Portal</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">{user?.email}</span>
-            <button onClick={handleSignOut} className="text-sm text-gray-400 hover:text-white flex items-center gap-1"><LogOut size={12} /> Sign out</button>
+            <span className="text-sm text-gray-700">{user?.email}</span>
+            <button onClick={handleSignOut} className="text-sm text-gray-700 hover:text-white flex items-center gap-1"><LogOut size={12} /> Sign out</button>
           </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Your Projects</h1>
-        <p className="text-sm text-gray-500 mb-8">Review designs, leave feedback, and track revision rounds.</p>
+        <p className="text-sm text-gray-700 mb-8">Review designs, leave feedback, and track revision rounds.</p>
 
         {loading ? (
           <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : projects.length === 0 ? (
           <div className="text-center py-20 card p-8">
-            <FileImage size={48} className="text-gray-300 mx-auto mb-4" />
+            <FileImage size={48} className="text-gray-600 mx-auto mb-4" />
             <h2 className="text-lg font-medium text-gray-700 mb-2">No projects found</h2>
-            <p className="text-sm text-gray-500">No projects are linked to {user?.email}. Contact Moose if you believe this is an error.</p>
+            <p className="text-sm text-gray-700">No projects are linked to {user?.email}. Contact Moose if you believe this is an error.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -95,7 +95,7 @@ export default function ClientDashboardPage() {
                         <TypeIcon type={project.project_type || 'other'} size={24} />
                         <div>
                           <h3 className="font-semibold text-gray-900">{project.name}</h3>
-                          <p className="text-sm text-gray-500">{project.clients?.name}</p>
+                          <p className="text-sm text-gray-700">{project.clients?.name}</p>
                         </div>
                       </div>
                       {isComplete && <span className="text-sm bg-green-50 text-green-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1"><CheckCircle size={10} /> Complete</span>}
@@ -103,7 +103,7 @@ export default function ClientDashboardPage() {
 
                     {/* Progress */}
                     <div className="mb-3">
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+                      <div className="flex items-center justify-between text-sm text-gray-700 mb-1">
                         <span>Round {Math.min(roundsUsed + 1, maxRounds)} of {maxRounds}</span>
                         <span>{Math.round((roundsUsed / maxRounds) * 100)}%</span>
                       </div>
@@ -113,7 +113,7 @@ export default function ClientDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3 flex-wrap mb-4">
-                      <span className="text-sm text-gray-500 flex items-center gap-1"><FileImage size={10} /> {pd.files.length} files</span>
+                      <span className="text-sm text-gray-700 flex items-center gap-1"><FileImage size={10} /> {pd.files.length} files</span>
                       {openComments > 0 && <span className="text-sm text-amber-600 font-medium flex items-center gap-1"><MessageSquare size={10} /> {openComments} open</span>}
                       {due && <span className={`text-sm px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${due.cls}`}>
                         {due.urgent ? <AlertTriangle size={9} /> : <Calendar size={9} />} {due.label}
@@ -124,10 +124,10 @@ export default function ClientDashboardPage() {
                       <div className="flex gap-2 mb-4">
                         {pd.files.slice(0, 4).map(f => (
                           <a key={f.id} href={`/review/${f.public_token}`} className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-brand-300 transition-all">
-                            {f.type?.startsWith('image/') ? <img src={f.url} alt="" className="w-full h-full object-cover" /> : <FileImage size={16} className="text-gray-400" />}
+                            {f.type?.startsWith('image/') ? <img src={f.url} alt="" className="w-full h-full object-cover" /> : <FileImage size={16} className="text-gray-700" />}
                           </a>
                         ))}
-                        {pd.files.length > 4 && <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-sm text-gray-500">+{pd.files.length - 4}</div>}
+                        {pd.files.length > 4 && <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-sm text-gray-700">+{pd.files.length - 4}</div>}
                       </div>
                     )}
                   </div>
@@ -138,9 +138,9 @@ export default function ClientDashboardPage() {
                         Review Now <ExternalLink size={12} />
                       </a>
                     ) : (
-                      <span className="text-sm text-gray-400">No files to review yet</span>
+                      <span className="text-sm text-gray-700">No files to review yet</span>
                     )}
-                    <span className="text-[13px] text-gray-400">{formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}</span>
+                    <span className="text-[13px] text-gray-700">{formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}</span>
                   </div>
                 </div>
               )

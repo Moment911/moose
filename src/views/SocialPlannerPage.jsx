@@ -17,7 +17,7 @@ const POSTS = [
   { id:4, client:'Sunrise HVAC',  platform:'google',   content:'Spring HVAC tune-up special — $89 for a full system check. Schedule online or call (305) 555-0100.', status:'draft',     date:'Apr 8', likes:0, reach:0 },
   { id:5, client:'LexGroup Law',  platform:'linkedin', content:'Understanding your rights in a slip-and-fall case. Our attorneys break down what evidence matters most.', status:'scheduled', date:'Apr 6', likes:0, reach:0 },
 ]
-const STATUS = { published:{label:'Published',color:'#16a34a',bg:'#f0fdf4'}, scheduled:{label:'Scheduled',color:'#3b82f6',bg:'#eff6ff'}, draft:{label:'Draft',color:'#6b7280',bg:'#f3f4f6'} }
+const STATUS = { published:{label:'Published',color:'#16a34a',bg:'#f0fdf4'}, scheduled:{label:'Scheduled',color:'#3b82f6',bg:'#eff6ff'}, draft:{label:'Draft',color:'#374151',bg:'#f3f4f6'} }
 const VIEWS = ['Grid','Calendar','List']
 
 export default function SocialPlannerPage() {
@@ -29,7 +29,7 @@ export default function SocialPlannerPage() {
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'16px 24px', display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ flex:1 }}><h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin:0 }}>Social Planner</h1><p style={{ fontSize:14, color:'#9ca3af', margin:0 }}>Schedule and manage social posts across all clients</p></div>
+          <div style={{ flex:1 }}><h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin:0 }}>Social Planner</h1><p style={{ fontSize:14, color:'#4b5563', margin:0 }}>Schedule and manage social posts across all clients</p></div>
           <div style={{ display:'flex', gap:4, background:'#f3f4f6', borderRadius:8, padding:3 }}>
             {VIEWS.map(v=><button key={v} onClick={()=>setView(v)} style={{ padding:'5px 12px', borderRadius:6, border:'none', background:view===v?'#fff':'transparent', color:view===v?'#111':'#6b7280', fontSize:14, fontWeight:view===v?700:500, cursor:'pointer', boxShadow:view===v?'0 1px 3px rgba(0,0,0,.1)':'none' }}>{v}</button>)}
           </div>
@@ -61,19 +61,19 @@ export default function SocialPlannerPage() {
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
                     <span style={{ fontSize:15 }}>{plat?.icon}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:'#9ca3af' }}>{post.client}</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:'#4b5563' }}>{post.client}</span>
                     <div style={{ marginLeft:'auto' }}><span style={{ fontSize:13, fontWeight:700, padding:'2px 7px', borderRadius:20, background:s.bg, color:s.color }}>{s.label}</span></div>
                   </div>
                   <p style={{ fontSize:15, color:'#374151', lineHeight:1.6, marginBottom:12 }}>{post.content.slice(0,120)}{post.content.length>120?'…':''}</p>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:10, borderTop:'1px solid #f3f4f6' }}>
                     <div style={{ display:'flex', gap:12 }}>
-                      <span style={{ fontSize:13, color:'#9ca3af', display:'flex', alignItems:'center', gap:3 }}><Clock size={10}/> {post.date}</span>
-                      {post.likes>0&&<span style={{ fontSize:13, color:'#9ca3af' }}>❤️ {post.likes}</span>}
-                      {post.reach>0&&<span style={{ fontSize:13, color:'#9ca3af' }}>👁 {post.reach.toLocaleString()}</span>}
+                      <span style={{ fontSize:13, color:'#4b5563', display:'flex', alignItems:'center', gap:3 }}><Clock size={10}/> {post.date}</span>
+                      {post.likes>0&&<span style={{ fontSize:13, color:'#4b5563' }}>❤️ {post.likes}</span>}
+                      {post.reach>0&&<span style={{ fontSize:13, color:'#4b5563' }}>👁 {post.reach.toLocaleString()}</span>}
                     </div>
                     <div style={{ display:'flex', gap:5 }}>
-                      <button style={{ padding:'4px', borderRadius:6, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}><Eye size={13}/></button>
-                      <button style={{ padding:'4px', borderRadius:6, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}><Edit2 size={13}/></button>
+                      <button style={{ padding:'4px', borderRadius:6, border:'none', background:'none', cursor:'pointer', color:'#4b5563' }}><Eye size={13}/></button>
+                      <button style={{ padding:'4px', borderRadius:6, border:'none', background:'none', cursor:'pointer', color:'#4b5563' }}><Edit2 size={13}/></button>
                       <button style={{ padding:'4px', borderRadius:6, border:'none', background:'none', cursor:'pointer', color:'#ef4444' }}><Trash2 size={13}/></button>
                     </div>
                   </div>

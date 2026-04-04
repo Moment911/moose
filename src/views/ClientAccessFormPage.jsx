@@ -23,7 +23,7 @@ function PwField({ value, onChange }) {
   return (
     <div style={{ position:'relative' }}>
       <input type={show?'text':'password'} value={value||''} onChange={e=>onChange(e.target.value)} placeholder="Password / API key" style={{ ...INP, paddingRight:44 }}/>
-      <button onClick={()=>setShow(s=>!s)} type="button" style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}>
+      <button onClick={()=>setShow(s=>!s)} type="button" style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#4b5563' }}>
         {show?<EyeOff size={15}/>:<Eye size={15}/>}
       </button>
     </div>
@@ -45,16 +45,16 @@ function ItemCard({ item, data, onChange, agencyEmail }) {
     <div style={{ borderRadius:14, border:done?'2px solid #22c55e':'1.5px solid #e5e7eb', background:done?'#f0fdf4':na?'#f9fafb':'#fff', marginBottom:12, overflow:'hidden' }}>
       <div style={{ padding:'14px 18px', display:'flex', alignItems:'center', gap:12, cursor:'pointer' }} onClick={()=>!done&&!na&&setExpanded(e=>!e)}>
         <div style={{ width:34, height:34, borderRadius:'50%', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background:done?'#22c55e':na?'#f3f4f6':'#f9fafb', border:done?'none':na?'2px solid #d1d5db':'2px solid #e5e7eb' }}>
-          {done?<Check size={16} color="#fff" strokeWidth={3}/>:na?<span style={{ fontSize:13, fontWeight:700, color:'#9ca3af' }}>N/A</span>:<span style={{ fontSize:15, color:'#9ca3af' }}>○</span>}
+          {done?<Check size={16} color="#fff" strokeWidth={3}/>:na?<span style={{ fontSize:13, fontWeight:700, color:'#4b5563' }}>N/A</span>:<span style={{ fontSize:15, color:'#4b5563' }}>○</span>}
         </div>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:15, fontWeight:700, color:done||na?'#9ca3af':'#111', textDecoration:done?'line-through':'' }}>{item.label}</div>
-          <div style={{ fontSize:13, color:'#9ca3af', marginTop:2, display:'flex', gap:7 }}>
+          <div style={{ fontSize:13, color:'#4b5563', marginTop:2, display:'flex', gap:7 }}>
             <span style={{ background:'#f3f4f6', padding:'1px 7px', borderRadius:10, fontWeight:600 }}>{item.priority==='high'?'🔴 Required':item.priority==='mid'?'🟡 Important':'⚪ Optional'}</span>
             {done&&<span style={{ color:'#22c55e', fontWeight:700 }}>✓ Submitted</span>}
           </div>
         </div>
-        {(done||na)&&<button onClick={e=>{e.stopPropagation();set('status','not_started');setExpanded(true)}} style={{ fontSize:13, color:'#9ca3af', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Edit</button>}
+        {(done||na)&&<button onClick={e=>{e.stopPropagation();set('status','not_started');setExpanded(true)}} style={{ fontSize:13, color:'#4b5563', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Edit</button>}
         {!done&&!na&&<ChevronRight size={16} color="#9ca3af" style={{ transform:expanded?'rotate(90deg)':'rotate(0)', transition:'transform .2s', flexShrink:0 }}/>}
       </div>
 
@@ -70,7 +70,7 @@ function ItemCard({ item, data, onChange, agencyEmail }) {
               <div style={{ background:'#f0fbfc', border:`1px solid ${ACCENT}30`, borderRadius:9, padding:'9px 13px', marginBottom:12, fontSize:15, color:'#92400e', display:'flex', gap:7, alignItems:'center' }}>
                 <span style={{ fontWeight:700 }}>Agency Email to Invite:</span>
                 <code style={{ background:'rgba(0,0,0,.06)', padding:'2px 8px', borderRadius:5, fontWeight:700 }}>{agencyEmail}</code>
-                <span style={{ color:'#9ca3af', fontSize:13 }}>Role: {item.access_level}</span>
+                <span style={{ color:'#4b5563', fontSize:13 }}>Role: {item.access_level}</span>
               </div>
             )}
             {item.type==='credentials'&&(
@@ -94,7 +94,7 @@ function ItemCard({ item, data, onChange, agencyEmail }) {
             <div style={{ marginBottom:14 }}><label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Notes for your agency (optional)</label><input value={d.client_notes||''} onChange={e=>set('client_notes',e.target.value)} placeholder="Anything your agency should know…" style={INP}/></div>
             <div style={{ display:'flex', gap:9 }}>
               <button onClick={markDone} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'12px 0', borderRadius:10, border:'none', background:'#22c55e', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}><Check size={15} strokeWidth={3}/> Mark as Done</button>
-              <button onClick={markNA} style={{ padding:'12px 16px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, cursor:'pointer', color:'#9ca3af' }}>Not Applicable</button>
+              <button onClick={markNA} style={{ padding:'12px 16px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, cursor:'pointer', color:'#4b5563' }}>Not Applicable</button>
             </div>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function ClientAccessFormPage() {
   if (loading) return <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f4f4f5' }}><Loader2 size={32} color={ACCENT} style={{ animation:'spin 1s linear infinite' }}/><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>
   if (!client) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f4f4f5' }}>
-      <div style={{ textAlign:'center', padding:40 }}><AlertCircle size={48} color="#ef4444" style={{ margin:'0 auto 14px' }}/><div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Link Not Found</div><div style={{ fontSize:15, color:'#9ca3af' }}>This link may be invalid or expired. Contact your agency for a new one.</div></div>
+      <div style={{ textAlign:'center', padding:40 }}><AlertCircle size={48} color="#ef4444" style={{ margin:'0 auto 14px' }}/><div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Link Not Found</div><div style={{ fontSize:15, color:'#4b5563' }}>This link may be invalid or expired. Contact your agency for a new one.</div></div>
     </div>
   )
 
@@ -154,7 +154,7 @@ export default function ClientAccessFormPage() {
         <div style={{ maxWidth:720, margin:'0 auto', display:'flex', alignItems:'center', gap:14, height:58 }}>
           <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height:24, width:'auto' }}/>
           <div style={{ width:1, height:20, background:'rgba(255,255,255,.15)' }}/>
-          <div style={{ fontSize:14, color:'#a1a1aa' }}>Account Access Setup</div>
+          <div style={{ fontSize:14, color:'#4b5563' }}>Account Access Setup</div>
           <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
             {saved&&<span style={{ fontSize:13, color:'#22c55e', display:'flex', alignItems:'center', gap:4 }}><Check size={11} strokeWidth={3}/> Saved</span>}
             <span style={{ fontSize:14, color:'#71717a' }}>For: <strong style={{ color:'#fff' }}>{client.name}</strong></span>
@@ -175,11 +175,11 @@ export default function ClientAccessFormPage() {
         {pct===0&&(
           <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'26px 30px', marginBottom:20 }}>
             <div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Welcome, {client.name}! 🔑</div>
-            <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.7, marginBottom:18 }}>To launch your marketing campaigns, we need access to your business accounts. Takes about 15–20 minutes and saves automatically as you go.</p>
+            <p style={{ fontSize:15, color:'#374151', lineHeight:1.7, marginBottom:18 }}>To launch your marketing campaigns, we need access to your business accounts. Takes about 15–20 minutes and saves automatically as you go.</p>
             <div style={{ background:'#f0fbfc', border:`1px solid ${ACCENT}25`, borderRadius:10, padding:'11px 14px', fontSize:15, color:'#92400e' }}>🔴 <strong>Required items</strong> are needed for launch · 🟡 Important · ⚪ Optional</div>
           </div>
         )}
-        {pct===100&&<div style={{ background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:14, padding:'24px', marginBottom:20, textAlign:'center' }}><CheckCircle size={40} color="#22c55e" style={{ margin:'0 auto 10px' }}/><div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:5 }}>All done! 🎉</div><div style={{ fontSize:15, color:'#6b7280' }}>Your agency has been notified and will verify each item shortly.</div></div>}
+        {pct===100&&<div style={{ background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:14, padding:'24px', marginBottom:20, textAlign:'center' }}><CheckCircle size={40} color="#22c55e" style={{ margin:'0 auto 10px' }}/><div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:5 }}>All done! 🎉</div><div style={{ fontSize:15, color:'#374151' }}>Your agency has been notified and will verify each item shortly.</div></div>}
 
         {/* Section tabs */}
         <div style={{ display:'flex', gap:8, marginBottom:18, overflowX:'auto', paddingBottom:4 }}>
@@ -192,7 +192,7 @@ export default function ClientAccessFormPage() {
                 <span style={{ fontSize:18 }}>{s.icon}</span>
                 <span style={{ fontSize:13, fontWeight:700, color:active?ACCENT:'#374151', textAlign:'center', lineHeight:1.3 }}>{s.label}</span>
                 <div style={{ height:3, width:36, background:'#f3f4f6', borderRadius:2, overflow:'hidden' }}><div style={{ height:'100%', width:`${pct2}%`, background:pct2===100?'#22c55e':s.color, borderRadius:2 }}/></div>
-                <span style={{ fontSize:12, color:'#9ca3af' }}>{done2}/{s.items.length}</span>
+                <span style={{ fontSize:12, color:'#4b5563' }}>{done2}/{s.items.length}</span>
               </button>
             )
           })}
@@ -202,7 +202,7 @@ export default function ClientAccessFormPage() {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:14 }}>
               <span style={{ fontSize:24 }}>{section.icon}</span>
-              <div><div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{section.label}</div><div style={{ fontSize:13, color:'#9ca3af' }}>{section.items.filter(i=>accessData[i.id]?.status==='complete').length} of {section.items.length} complete</div></div>
+              <div><div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{section.label}</div><div style={{ fontSize:13, color:'#4b5563' }}>{section.items.filter(i=>accessData[i.id]?.status==='complete').length} of {section.items.length} complete</div></div>
             </div>
             {section.items.map(item=><ItemCard key={item.id} item={item} data={accessData[item.id]} onChange={data=>handleItemChange(item.id,data)} agencyEmail={agencyEmail}/>)}
           </div>

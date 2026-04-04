@@ -128,7 +128,7 @@ function ScoreRing({ score, size=52 }) {
 
 function ConfidenceBadge({ lead, small }) {
   const conf = lead._confidence || 60
-  const lbl  = lead._confLabel  || { label:'Unverified', color:'#9ca3af', bg:'#f3f4f6' }
+  const lbl  = lead._confLabel  || { label:'Unverified', color:'#4b5563', bg:'#f3f4f6' }
   return (
     <div style={{ display:'inline-flex', alignItems:'center', gap:5, padding:small?'2px 7px':'3px 9px', borderRadius:20, background:lbl.bg, border:`1px solid ${lbl.color}25` }}>
       <Shield size={small?9:10} color={lbl.color}/>
@@ -156,7 +156,7 @@ function ProvenancePanel({ lead }) {
   const [open, setOpen] = useState(false)
   if (!lead._provenance) return null
   const conf     = lead._confidence || 60
-  const confLabel = lead._confLabel || { label:'Unverified', color:'#9ca3af', bg:'#f3f4f6' }
+  const confLabel = lead._confLabel || { label:'Unverified', color:'#4b5563', bg:'#f3f4f6' }
   const verified  = lead._provenance.filter(p => p.status==='verified')
   const mismatches = lead._provenance.filter(p => p.status==='mismatch')
   const statusIcon  = { verified:'✓', estimated:'·', mismatch:'!', not_found:'-', generated:'·', not_checked:'-', unknown:'?' }
@@ -177,13 +177,13 @@ function ProvenancePanel({ lead }) {
         <div style={{ marginTop:12, background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6', overflow:'hidden' }}>
           <div style={{ padding:'12px 14px', borderBottom:'1px solid #f3f4f6' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-              <span style={{ fontSize:13, fontWeight:700, color:'#6b7280' }}>Overall Data Confidence</span>
+              <span style={{ fontSize:13, fontWeight:700, color:'#374151' }}>Overall Data Confidence</span>
               <span style={{ fontSize:13, fontWeight:800, color:confLabel.color }}>{conf}%</span>
             </div>
             <div style={{ height:6, background:'#e5e7eb', borderRadius:3, overflow:'hidden' }}>
               <div style={{ height:'100%', width:`${conf}%`, background:confLabel.color, borderRadius:3 }}/>
             </div>
-            <div style={{ fontSize:13, color:'#9ca3af', marginTop:5 }}>
+            <div style={{ fontSize:13, color:'#4b5563', marginTop:5 }}>
               {lead._real_data ? 'Live data from Google Places API — verified business' :
                verified.length>=2 ? `${verified.length} data points verified locally` :
                'AI-generated — verify before outreach'}
@@ -206,9 +206,9 @@ function ProvenancePanel({ lead }) {
                   <span style={{ fontSize:12, fontWeight:800, color:statusColor[p.status], background:statusColor[p.status]+'15', padding:'1px 7px', borderRadius:20, textTransform:'uppercase' }}>
                     {statusIcon[p.status]} {p.status.replace('_',' ')}
                   </span>
-                  {p.confidence && <span style={{ fontSize:13, color:'#9ca3af', marginLeft:'auto' }}>{p.confidence}%</span>}
+                  {p.confidence && <span style={{ fontSize:13, color:'#4b5563', marginLeft:'auto' }}>{p.confidence}%</span>}
                 </div>
-                <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.5 }}>{p.detail}</div>
+                <div style={{ fontSize:13, color:'#374151', lineHeight:1.5 }}>{p.detail}</div>
                 {p.upgrade && <div style={{ fontSize:13, color:ACCENT, marginTop:3, fontStyle:'italic' }}>{p.upgrade}</div>}
               </div>
             </div>
@@ -252,7 +252,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
           <SourceBadge realData={lead._real_data}/>
           <ConfidenceBadge lead={lead} small/>
         </div>
-        <div style={{ display:'flex', gap:12, fontSize:14, color:'#9ca3af', flexWrap:'wrap' }}>
+        <div style={{ display:'flex', gap:12, fontSize:14, color:'#4b5563', flexWrap:'wrap' }}>
           {lead.address && <span>{lead.address}</span>}
           {lead.phone   && <span>{lead.phone}</span>}
           {lead.rating  > 0 && <span>⭐ {lead.rating} ({lead.review_count} reviews)</span>}
@@ -299,9 +299,9 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
           )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
-          {lead.address && <div style={{ fontSize:14, color:'#6b7280', display:'flex', gap:5 }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.address}</div>}
-          {lead.phone   && <div style={{ fontSize:14, color:'#6b7280', display:'flex', gap:5 }}><Phone size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.phone}</div>}
-          {lead.rating>0 && <div style={{ fontSize:14, color:'#6b7280', display:'flex', gap:5 }}>
+          {lead.address && <div style={{ fontSize:14, color:'#374151', display:'flex', gap:5 }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.address}</div>}
+          {lead.phone   && <div style={{ fontSize:14, color:'#374151', display:'flex', gap:5 }}><Phone size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.phone}</div>}
+          {lead.rating>0 && <div style={{ fontSize:14, color:'#374151', display:'flex', gap:5 }}>
             <Star size={11} style={{ flexShrink:0, marginTop:1 }}/>
             {lead.rating}★ · {lead.review_count.toLocaleString()} reviews
             {lead.review_count < 50 && <span style={{ color:ACCENT, fontWeight:700 }}> — low volume opportunity</span>}
@@ -320,7 +320,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
         )}
         {expanded && lead.ai_summary && (
           <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 13px', marginBottom:12, fontSize:14, color:'#374151', lineHeight:1.65, borderTop:'1px solid #f3f4f6' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>
               {isCompetitor ? 'Competitive Intelligence' : isMarket ? 'Market Insight' : 'AI Opportunity Analysis'}
             </div>
             {lead.ai_summary}
@@ -568,14 +568,14 @@ Be specific about why each business needs marketing help based on their likely s
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'12px 24px', display:'flex', alignItems:'center', gap:12, flexShrink:0, zIndex:10 }}>
           <Target size={18} color={modeConfig.color}/>
           <span style={{ fontSize:15, fontWeight:800, color:'#111' }}>Scout</span>
-          <span style={{ fontSize:14, color:'#9ca3af' }}>·</span>
+          <span style={{ fontSize:14, color:'#4b5563' }}>·</span>
           {/* Mode tabs */}
           <div style={{ display:'flex', gap:2, background:'#f3f4f6', borderRadius:10, padding:3 }}>
             {SEARCH_MODES.map(m=>(
               <button key={m.id} onClick={()=>{ setMode(m.id); setResults([]); setStats(null) }}
                 style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:8, border:'none', background:mode===m.id?'#fff':'transparent', cursor:'pointer', boxShadow:mode===m.id?'0 1px 3px rgba(0,0,0,.1)':'none', transition:'all .15s' }}>
                 <span style={{ fontSize:15 }}></span>
-                <span style={{ fontSize:14, fontWeight:mode===m.id?700:500, color:mode===m.id?m.color:'#6b7280', whiteSpace:'nowrap' }}>{m.label}</span>
+                <span style={{ fontSize:14, fontWeight:mode===m.id?700:500, color:mode===m.id?m.color:'#374151', whiteSpace:'nowrap' }}>{m.label}</span>
               </button>
             ))}
           </div>
@@ -639,7 +639,7 @@ Be specific about why each business needs marketing help based on their likely s
           {showFilters && (
             <div style={{ marginTop:14, padding:'16px', background:'#f9fafb', borderRadius:14, border:'1px solid #f3f4f6', display:'grid', gridTemplateColumns:'1fr 1fr 200px', gap:16 }}>
               <div>
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Industry</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Industry</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                   {INDUSTRIES.map(ind=>(
                     <button key={ind.key} onClick={()=>setSelectedIndustries(prev=>prev.includes(ind.key)?prev.filter(k=>k!==ind.key):[...prev,ind.key])}
@@ -650,7 +650,7 @@ Be specific about why each business needs marketing help based on their likely s
                 </div>
               </div>
               <div>
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Marketing Gaps</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Marketing Gaps</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
                   {GAPS.map(g=>(
                     <label key={g} style={{ display:'flex', alignItems:'center', gap:7, fontSize:14, color:'#374151', cursor:'pointer' }}>
@@ -664,10 +664,10 @@ Be specific about why each business needs marketing help based on their likely s
                 </div>
               </div>
               <div>
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Min Score</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Min Score</div>
                 <div style={{ textAlign:'center', marginBottom:8 }}>
                   <span style={{ fontSize:36, fontWeight:900, color:scoreColor(filterScore) }}>{filterScore}</span>
-                  <span style={{ fontSize:15, color:'#9ca3af' }}>/100</span>
+                  <span style={{ fontSize:15, color:'#4b5563' }}>/100</span>
                 </div>
                 <input type="range" min={0} max={90} step={5} value={filterScore} onChange={e=>setFilterScore(+e.target.value)} style={{ width:'100%', accentColor:modeConfig.color }}/>
               </div>
@@ -685,7 +685,7 @@ Be specific about why each business needs marketing help based on their likely s
               <div>
                 <div style={{ fontSize:15, fontWeight:700, color:'#991b1b', marginBottom:4 }}>Search Failed</div>
                 <div style={{ fontSize:15, color:'#991b1b' }}>{searchError}</div>
-                <div style={{ fontSize:14, color:'#9ca3af', marginTop:6 }}>
+                <div style={{ fontSize:14, color:'#4b5563', marginTop:6 }}>
                   To fix: Go to Vercel → Settings → Environment Variables → Add <code>NEXT_PUBLIC_ANTHROPIC_API_KEY</code>
                 </div>
               </div>
@@ -696,7 +696,7 @@ Be specific about why each business needs marketing help based on their likely s
           {!searching && !hasResults && !searchError && (
             <div>
               <div style={{ marginBottom:24 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10 }}>Quick Searches</div>
+                <div style={{ fontSize:14, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10 }}>Quick Searches</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                   {(QUICK_SEARCHES[mode]||QUICK_SEARCHES.prospect).map(qs=>(
                     <button key={qs.label} onClick={()=>{ setQuery(qs.q); setLocation(qs.loc); setTimeout(runSearch,100) }}
@@ -712,7 +712,7 @@ Be specific about why each business needs marketing help based on their likely s
               <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'20px 24px', marginBottom:20, display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                 <div>
                   <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8 }}>Live Google Places Data</div>
-                  <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>
+                  <div style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>
                     {googleKeyAvailable
                       ? 'Google Places API connected — results will show real businesses with verified ratings, reviews, phone numbers, and websites.'
                       : 'Google Places API key not configured. Add NEXT_PUBLIC_GOOGLE_PLACES_KEY to Vercel for real business data.'}
@@ -720,7 +720,7 @@ Be specific about why each business needs marketing help based on their likely s
                 </div>
                 <div>
                   <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8 }}>AI Fallback</div>
-                  <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>When Google Places is unavailable, Claude AI generates market-calibrated leads with ZIP/area code cross-referencing and data confidence scoring.</div>
+                  <div style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>When Google Places is unavailable, Claude AI generates market-calibrated leads with ZIP/area code cross-referencing and data confidence scoring.</div>
                 </div>
               </div>
               {/* Hero */}
@@ -728,7 +728,7 @@ Be specific about why each business needs marketing help based on their likely s
                 <div style={{ width:64, height:64, borderRadius:'50%', background:modeConfig.color, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28 }}>
                   </div>
                 <h2 style={{ fontSize:26, fontWeight:900, color:'#fff', marginBottom:10, letterSpacing:-.5 }}>{modeConfig.label}</h2>
-                <p style={{ fontSize:15, color:'#a1a1aa', lineHeight:1.65, maxWidth:500, margin:'0 auto' }}>{modeConfig.desc}</p>
+                <p style={{ fontSize:15, color:'#4b5563', lineHeight:1.65, maxWidth:500, margin:'0 auto' }}>{modeConfig.desc}</p>
               </div>
             </div>
           )}
@@ -742,7 +742,7 @@ Be specific about why each business needs marketing help based on their likely s
               <div style={{ fontSize:18, fontWeight:700, color:'#111', marginBottom:8 }}>
                 {mode==='competitor'?'Analyzing competitors':'Scouting'} {query||'businesses'}{location?` in ${location}`:''}…
               </div>
-              <div style={{ fontSize:15, color:'#9ca3af' }}>
+              <div style={{ fontSize:15, color:'#4b5563' }}>
                 {dataSource==='google'?'Pulling live data from Google Maps…':'Analyzing marketing gaps, review scores, and online presence…'}
               </div>
             </div>
@@ -759,7 +759,7 @@ Be specific about why each business needs marketing help based on their likely s
                     ? `${stats.realData} live businesses from Google Places · ${results.length-stats.realData} AI-estimated`
                     : `AI-generated leads · cross-referenced against USPS ZIP + NANP area codes`}
                 </span>
-                <span style={{ marginLeft:'auto', fontSize:13, color:'#9ca3af' }}>{results.length} results for "{query}" in {location}</span>
+                <span style={{ marginLeft:'auto', fontSize:13, color:'#4b5563' }}>{results.length} results for "{query}" in {location}</span>
               </div>
 
               {/* Market summary (market mode only) */}
@@ -777,7 +777,7 @@ Be specific about why each business needs marketing help based on their likely s
                   ].map(s=>(
                     <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
                       <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-                      <div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -805,7 +805,7 @@ Be specific about why each business needs marketing help based on their likely s
                 ))}
               </div>
               {displayed.length===0 && (
-                <div style={{ textAlign:'center', padding:'40px', color:'#9ca3af' }}>
+                <div style={{ textAlign:'center', padding:'40px', color:'#4b5563' }}>
                   <Filter size={32} style={{ margin:'0 auto 12px', opacity:.4 }}/>
                   <div style={{ fontSize:15, fontWeight:700 }}>No leads match filters</div>
                   <button onClick={()=>{setFilterScore(0);setFilterGaps([])}} style={{ marginTop:12, fontSize:14, color:ACCENT, background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Clear filters</button>

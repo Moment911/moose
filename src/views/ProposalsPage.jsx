@@ -17,7 +17,7 @@ const ACCENT = '#ea2729'
 const TEAL = '#5bc6d0'
 
 const STATUS_CONFIG = {
-  draft:     { label: 'Draft',     color: '#9ca3af', bg: '#f9fafb', icon: Edit },
+  draft:     { label: 'Draft',     color: '#4b5563', bg: '#f9fafb', icon: Edit },
   sent:      { label: 'Sent',      color: '#3b82f6', bg: '#eff6ff', icon: Send },
   viewed:    { label: 'Viewed',    color: '#d97706', bg: '#fffbeb', icon: Eye },
   accepted:  { label: 'Accepted',  color: '#0e7490', bg: '#e8f9fa', icon: CheckCircle },
@@ -123,7 +123,7 @@ export default function ProposalsPage() {
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
               <h1 style={{ fontSize:22, fontWeight:800, color:'#111', marginBottom:4 }}>Proposals & Agreements</h1>
-              <p style={{ fontSize:15, color:'#9ca3af' }}>Build proposals, convert to agreements, collect e-signatures</p>
+              <p style={{ fontSize:15, color:'#4b5563' }}>Build proposals, convert to agreements, collect e-signatures</p>
             </div>
             <div style={{ display:'flex', gap:10 }}>
               <button onClick={() => navigate('/proposals/modules')}
@@ -140,7 +140,7 @@ export default function ProposalsPage() {
           {/* Stats */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:24 }}>
             {[
-              { label:'Total proposals', value:stats.total, icon:FileText, color:'#6b7280' },
+              { label:'Total proposals', value:stats.total, icon:FileText, color:'#374151' },
               { label:'Awaiting response', value:stats.sent, icon:Clock, color:'#3b82f6' },
               { label:'Accepted', value:stats.accepted, icon:CheckCircle, color:'#16a34a' },
               { label:'Closed revenue', value:fmt(stats.value), icon:DollarSign, color:ACCENT },
@@ -150,7 +150,7 @@ export default function ProposalsPage() {
                 <div key={s.label} className="animate-fade-up hover-lift" style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                     <I size={16} color={s.color}/>
-                    <span style={{ fontSize:14, color:'#9ca3af' }}>{s.label}</span>
+                    <span style={{ fontSize:14, color:'#4b5563' }}>{s.label}</span>
                   </div>
                   <div style={{ fontSize:24, fontWeight:800, color:'#111' }}>{s.value}</div>
                 </div>
@@ -177,14 +177,14 @@ export default function ProposalsPage() {
 
           {/* List */}
           {loading ? (
-            <div style={{ textAlign:'center', padding:60, color:'#9ca3af' }}>Loading…</div>
+            <div style={{ textAlign:'center', padding:60, color:'#4b5563' }}>Loading…</div>
           ) : filtered.length === 0 ? (
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'64px 24px', textAlign:'center' }}>
               <FileText size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
               <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:6 }}>
                 {proposals.length === 0 ? 'No proposals yet' : 'No proposals match your filters'}
               </div>
-              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>
+              <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>
                 {proposals.length === 0 ? 'Create your first proposal using your service library or from scratch.' : 'Try adjusting your search or filter.'}
               </div>
               {proposals.length === 0 && (
@@ -212,10 +212,10 @@ export default function ProposalsPage() {
                     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:3 }}>
                       <span style={{ fontSize:15, fontWeight:700, color:'#111', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:340 }}>{p.title}</span>
                       <StatusPill status={p.status}/>
-                      <span style={{ fontSize:13, color:'#9ca3af', background:'#f3f4f6', padding:'2px 8px', borderRadius:20, textTransform:'capitalize' }}>{p.type}</span>
+                      <span style={{ fontSize:13, color:'#4b5563', background:'#f3f4f6', padding:'2px 8px', borderRadius:20, textTransform:'capitalize' }}>{p.type}</span>
                     </div>
-                    <div style={{ fontSize:14, color:'#9ca3af' }}>
-                      {p.clients?.name ? <span style={{ color:'#6b7280' }}>{p.clients.name}</span> : <span style={{ color:'#d1d5db' }}>No client selected</span>}
+                    <div style={{ fontSize:14, color:'#4b5563' }}>
+                      {p.clients?.name ? <span style={{ color:'#374151' }}>{p.clients.name}</span> : <span style={{ color:'#d1d5db' }}>No client selected</span>}
                       {p.clients?.industry && <> · {p.clients.industry}</>}
                       {p.valid_until && <> · Valid until {new Date(p.valid_until).toLocaleDateString()}</>}
                     </div>
@@ -224,13 +224,13 @@ export default function ProposalsPage() {
                   {/* Value */}
                   <div style={{ textAlign:'right', flexShrink:0 }}>
                     <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>{fmt(p.total_value)}</div>
-                    <div style={{ fontSize:13, color:'#9ca3af' }}>{new Date(p.updated_at).toLocaleDateString()}</div>
+                    <div style={{ fontSize:13, color:'#4b5563' }}>{new Date(p.updated_at).toLocaleDateString()}</div>
                   </div>
 
                   {/* Menu */}
                   <div style={{ position:'relative' }} onClick={e=>e.stopPropagation()}>
                     <button onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===p.id?null:p.id)}}
-                      style={{ padding:7, borderRadius:8, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}>
+                      style={{ padding:7, borderRadius:8, border:'none', background:'none', cursor:'pointer', color:'#4b5563' }}>
                       <MoreHorizontal size={16}/>
                     </button>
                     {menuOpen===p.id && (

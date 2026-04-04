@@ -147,15 +147,15 @@ export default function BrandGuidelinesPage() {
         {/* Section nav */}
         <div className="w-52 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0">
           <div className="px-4 py-5 border-b border-gray-200">
-            <button onClick={() => navigate(`/client/${clientId}`)} className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 mb-2"><ChevronLeft size={12} /> Back</button>
+            <button onClick={() => navigate(`/client/${clientId}`)} className="text-sm text-gray-700 hover:text-gray-700 flex items-center gap-1 mb-2"><ChevronLeft size={12} /> Back</button>
             <h2 className="text-base font-bold text-gray-900">{client?.name}</h2>
-            <p className="text-[13px] text-gray-400 mt-0.5">Brand Guidelines</p>
+            <p className="text-[13px] text-gray-700 mt-0.5">Brand Guidelines</p>
           </div>
           <nav className="flex-1 py-3 px-2">
             {SECTIONS.map(s => { const I = s.icon; return (
               <button key={s.id} onClick={() => { setActiveSection(s.id); document.getElementById(`brand-${s.id}`)?.scrollIntoView({ behavior: 'smooth' }) }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5 ${activeSection === s.id ? 'bg-white text-gray-900 shadow-sm border border-gray-200 font-medium' : 'text-gray-600 hover:bg-white hover:text-gray-900'}`}>
-                <I size={14} strokeWidth={1.5} className={activeSection === s.id ? 'text-brand-500' : 'text-gray-400'} /> {s.label}
+                <I size={14} strokeWidth={1.5} className={activeSection === s.id ? 'text-brand-500' : 'text-gray-700'} /> {s.label}
               </button>
             )})}
           </nav>
@@ -180,8 +180,8 @@ export default function BrandGuidelinesPage() {
                 <div className="card p-5 mb-4">
                   <div className="flex gap-4 items-end">
                     <div className="w-32"><ColorPicker value={newColor} onChange={setNewColor} label="Color" /></div>
-                    <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Name</label><input className="input text-sm" placeholder="Brand Orange" value={newColorName} onChange={e => setNewColorName(e.target.value)} /></div>
-                    <div className="w-32"><label className="text-sm text-gray-500 block mb-1">Category</label><select className="input text-sm" value={newColorCat} onChange={e => setNewColorCat(e.target.value)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+                    <div className="flex-1"><label className="text-sm text-gray-700 block mb-1">Name</label><input className="input text-sm" placeholder="Brand Orange" value={newColorName} onChange={e => setNewColorName(e.target.value)} /></div>
+                    <div className="w-32"><label className="text-sm text-gray-700 block mb-1">Category</label><select className="input text-sm" value={newColorCat} onChange={e => setNewColorCat(e.target.value)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
                     <button onClick={addColor} className="btn-primary text-sm h-[38px]">Add</button>
                     <button onClick={() => setShowAddColor(false)} className="btn-secondary text-sm h-[38px]">Cancel</button>
                   </div>
@@ -208,7 +208,7 @@ export default function BrandGuidelinesPage() {
                           <span className="text-sm font-semibold text-gray-900">{c.name}</span>
                           <span className="text-[12px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">{c.category}</span>
                         </div>
-                        <div className="space-y-0.5 text-[13px] text-gray-400 font-mono">
+                        <div className="space-y-0.5 text-[13px] text-gray-700 font-mono">
                           <div className="flex justify-between"><span>RGB</span><span className="cursor-pointer hover:text-gray-700" onClick={() => copyText(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`, `rgb-${i}`)}>{rgb.r}, {rgb.g}, {rgb.b} {copied === `rgb-${i}` ? '✓' : ''}</span></div>
                           <div className="flex justify-between"><span>CMYK</span><span>{cmyk.c}, {cmyk.m}, {cmyk.y}, {cmyk.k}</span></div>
                         </div>
@@ -216,7 +216,7 @@ export default function BrandGuidelinesPage() {
                     </div>
                   )
                 })}
-                {(brand?.primary_colors || []).length === 0 && <div className="col-span-3 py-12 text-center text-sm text-gray-400">No colors yet. Click "Add Color" to start building your palette.</div>}
+                {(brand?.primary_colors || []).length === 0 && <div className="col-span-3 py-12 text-center text-sm text-gray-700">No colors yet. Click "Add Color" to start building your palette.</div>}
               </div>
             </section>
 
@@ -230,9 +230,9 @@ export default function BrandGuidelinesPage() {
               {showAddFont && (
                 <div className="card p-5 mb-4">
                   <div className="flex gap-3 items-end">
-                    <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Font Name (Google Fonts)</label><input className="input text-sm" value={newFontName} onChange={e => setNewFontName(e.target.value)} /></div>
-                    <div className="w-28"><label className="text-sm text-gray-500 block mb-1">Category</label><select className="input text-sm" value={newFontCat} onChange={e => setNewFontCat(e.target.value)}><option>Primary</option><option>Secondary</option><option>Monospace</option></select></div>
-                    <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Usage</label><input className="input text-sm" value={newFontUsage} onChange={e => setNewFontUsage(e.target.value)} /></div>
+                    <div className="flex-1"><label className="text-sm text-gray-700 block mb-1">Font Name (Google Fonts)</label><input className="input text-sm" value={newFontName} onChange={e => setNewFontName(e.target.value)} /></div>
+                    <div className="w-28"><label className="text-sm text-gray-700 block mb-1">Category</label><select className="input text-sm" value={newFontCat} onChange={e => setNewFontCat(e.target.value)}><option>Primary</option><option>Secondary</option><option>Monospace</option></select></div>
+                    <div className="flex-1"><label className="text-sm text-gray-700 block mb-1">Usage</label><input className="input text-sm" value={newFontUsage} onChange={e => setNewFontUsage(e.target.value)} /></div>
                     <button onClick={addFont} className="btn-primary text-sm h-[38px]">Add</button>
                     <button onClick={() => setShowAddFont(false)} className="btn-secondary text-sm h-[38px]">Cancel</button>
                   </div>
@@ -249,26 +249,26 @@ export default function BrandGuidelinesPage() {
                           <h3 className="text-lg font-semibold text-gray-900">{f.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[13px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{f.category}</span>
-                            <span className="text-sm text-gray-400">{f.usage}</span>
+                            <span className="text-sm text-gray-700">{f.usage}</span>
                           </div>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                          <button onClick={() => { copyText(`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(f.name)}:wght@400;700&display=swap');`, 'css'); toast.success('CSS import copied!') }} className="text-sm text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100"><Copy size={12} /></button>
-                          <button onClick={() => deleteFont(i)} className="text-sm text-gray-400 hover:text-brand-500 p-1 rounded hover:bg-brand-50"><Trash2 size={12} /></button>
+                          <button onClick={() => { copyText(`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(f.name)}:wght@400;700&display=swap');`, 'css'); toast.success('CSS import copied!') }} className="text-sm text-gray-700 hover:text-gray-700 p-1 rounded hover:bg-gray-100"><Copy size={12} /></button>
+                          <button onClick={() => deleteFont(i)} className="text-sm text-gray-700 hover:text-brand-500 p-1 rounded hover:bg-brand-50"><Trash2 size={12} /></button>
                         </div>
                       </div>
                       <div style={{ fontFamily: `'${f.name}', sans-serif` }}>
                         <p className="text-5xl text-gray-900 mb-2" style={{ fontWeight: 700 }}>Aa Bb Cc</p>
                         <p className="text-xl text-gray-600 mb-2">The quick brown fox jumps over the lazy dog</p>
-                        <p className="text-sm text-gray-400 font-mono tracking-wider">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</p>
+                        <p className="text-sm text-gray-700 font-mono tracking-wider">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</p>
                       </div>
-                      <div className="flex gap-3 mt-4 text-sm text-gray-400">
-                        {[100, 300, 400, 500, 700, 900].map(w => <span key={w} style={{ fontFamily: `'${f.name}'`, fontWeight: w }}>Aa <span className="text-[12px] text-gray-300">{w}</span></span>)}
+                      <div className="flex gap-3 mt-4 text-sm text-gray-700">
+                        {[100, 300, 400, 500, 700, 900].map(w => <span key={w} style={{ fontFamily: `'${f.name}'`, fontWeight: w }}>Aa <span className="text-[12px] text-gray-600">{w}</span></span>)}
                       </div>
                     </div>
                   )
                 })}
-                {(brand?.fonts || []).length === 0 && <div className="py-12 text-center text-sm text-gray-400">No fonts added. Click "Add Font" to add Google Fonts.</div>}
+                {(brand?.fonts || []).length === 0 && <div className="py-12 text-center text-sm text-gray-700">No fonts added. Click "Add Font" to add Google Fonts.</div>}
               </div>
             </section>
 
@@ -289,20 +289,20 @@ export default function BrandGuidelinesPage() {
                     <div className="p-3 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-900 truncate">{logo.name}</p>
-                        <p className="text-[12px] text-gray-400">{logo.type} &middot; {logo.size ? `${(logo.size / 1024).toFixed(0)} KB` : ''}</p>
+                        <p className="text-[12px] text-gray-700">{logo.type} &middot; {logo.size ? `${(logo.size / 1024).toFixed(0)} KB` : ''}</p>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                        <a href={logo.url} download className="p-1.5 rounded hover:bg-gray-100 text-gray-400"><Download size={12} /></a>
-                        <button onClick={() => deleteLogo(i)} className="p-1.5 rounded hover:bg-brand-50 text-gray-400 hover:text-brand-500"><Trash2 size={12} /></button>
+                        <a href={logo.url} download className="p-1.5 rounded hover:bg-gray-100 text-gray-700"><Download size={12} /></a>
+                        <button onClick={() => deleteLogo(i)} className="p-1.5 rounded hover:bg-brand-50 text-gray-700 hover:text-brand-500"><Trash2 size={12} /></button>
                       </div>
                     </div>
                   </div>
                 ))}
                 {(brand?.logo_files || []).length === 0 && (
                   <div className="col-span-3 py-12 text-center border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300" onClick={() => logoInputRef.current?.click()}>
-                    <Upload size={24} strokeWidth={1.5} className="text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-400">Drag & drop logos here or click to upload</p>
-                    <p className="text-sm text-gray-300 mt-1">SVG, PNG, PDF, EPS</p>
+                    <Upload size={24} strokeWidth={1.5} className="text-gray-600 mx-auto mb-2" />
+                    <p className="text-sm text-gray-700">Drag & drop logos here or click to upload</p>
+                    <p className="text-sm text-gray-600 mt-1">SVG, PNG, PDF, EPS</p>
                   </div>
                 )}
               </div>
@@ -320,7 +320,7 @@ export default function BrandGuidelinesPage() {
                       <div key={i} className="flex items-center gap-2 group">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
                         <input className="flex-1 text-sm text-gray-700 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-1 py-0.5" value={item} onChange={e => updateDo(i, e.target.value)} />
-                        <button onClick={() => removeDo(i)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-brand-500"><X size={11} /></button>
+                        <button onClick={() => removeDo(i)} className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-brand-500"><X size={11} /></button>
                       </div>
                     ))}
                   </div>
@@ -334,7 +334,7 @@ export default function BrandGuidelinesPage() {
                       <div key={i} className="flex items-center gap-2 group">
                         <div className="w-1.5 h-1.5 bg-brand-500 rounded-full flex-shrink-0" />
                         <input className="flex-1 text-sm text-gray-700 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-1 py-0.5" value={item} onChange={e => updateDont(i, e.target.value)} />
-                        <button onClick={() => removeDont(i)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-brand-500"><X size={11} /></button>
+                        <button onClick={() => removeDont(i)} className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-brand-500"><X size={11} /></button>
                       </div>
                     ))}
                   </div>

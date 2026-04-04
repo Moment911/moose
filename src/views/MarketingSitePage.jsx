@@ -201,7 +201,7 @@ function HowItWorks() {
           <h2 style={{ fontSize:'clamp(32px,5vw,52px)', fontWeight:900, color:'#111', margin:'16px 0 20px', letterSpacing:-1 }}>
             Up and running in one afternoon
           </h2>
-          <p style={{ fontSize:18, color:'#6b7280', maxWidth:560, margin:'0 auto' }}>
+          <p style={{ fontSize:18, color:'#374151', maxWidth:560, margin:'0 auto' }}>
             No engineers needed. No long onboarding. Your first client can be set up today.
           </p>
         </div>
@@ -216,7 +216,7 @@ function HowItWorks() {
                   <div style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:900, color:'#fff' }}>{s.n}</div>
                 </div>
                 <h3 style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8, lineHeight:1.3 }}>{s.title}</h3>
-                <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>{s.desc}</p>
+                <p style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>{s.desc}</p>
               </div>
             ))}
           </div>
@@ -268,7 +268,7 @@ function Features() {
           <h2 style={{ fontSize:'clamp(32px,5vw,52px)', fontWeight:900, color:'#111', margin:'16px 0 20px', letterSpacing:-1 }}>
             Built for agencies who want to scale
           </h2>
-          <p style={{ fontSize:18, color:'#6b7280', maxWidth:540, margin:'0 auto' }}>
+          <p style={{ fontSize:18, color:'#374151', maxWidth:540, margin:'0 auto' }}>
             Every tool your team needs to deliver world-class marketing without the overhead of a 20-person agency.
           </p>
         </div>
@@ -279,7 +279,7 @@ function Features() {
               onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none' }}>
               <div style={{ fontSize:36, marginBottom:16 }}>{f.icon}</div>
               <h3 style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:10, letterSpacing:-.3 }}>{f.title}</h3>
-              <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.65, marginBottom:18 }}>{f.desc}</p>
+              <p style={{ fontSize:15, color:'#374151', lineHeight:1.65, marginBottom:18 }}>{f.desc}</p>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {f.bullets.map(b => (
                   <div key={b} style={{ display:'flex', gap:10, fontSize:15, color:'#374151' }}>
@@ -305,7 +305,7 @@ function Pricing() {
     {
       name:'Starter', price: annual?247:297, period:'mo',
       desc:'Perfect for solo consultants and small agencies just getting started.',
-      color:'#6b7280',
+      color:'#374151',
       seats:3, clients:25,
       features:['3 team seats','Up to 25 clients','Smart onboarding forms','AI persona builder','Client intelligence dashboard','Account access checklist','Email support'],
       cta:'Start Free Trial',
@@ -432,7 +432,7 @@ function Testimonials() {
                 <div style={{ width:40, height:40, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, color:'#fff' }}>{t.avatar}</div>
                 <div>
                   <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{t.name}</div>
-                  <div style={{ fontSize:14, color:'#9ca3af' }}>{t.role}</div>
+                  <div style={{ fontSize:14, color:'#4b5563' }}>{t.role}</div>
                 </div>
               </div>
             </div>

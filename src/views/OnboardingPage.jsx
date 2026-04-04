@@ -40,7 +40,7 @@ const T = {
   },
   inpFocus: { borderColor: ACCENT },
   lbl: { fontSize: 15, fontWeight: 700, color: '#1f2937', display: 'block', marginBottom: 8 },
-  hint: { fontSize: 15, color: '#6b7280', lineHeight: 1.6, marginBottom: 14, display: 'block' },
+  hint: { fontSize: 15, color: '#374151', lineHeight: 1.6, marginBottom: 14, display: 'block' },
   card: { background: '#fff', borderRadius: 20, border: '1px solid #e5e7eb', marginBottom: 20, overflow: 'hidden' },
   cardHead: { padding: '22px 28px', borderBottom: '1px solid #f3f4f6' },
   cardBody: { padding: '24px 28px' },
@@ -104,15 +104,15 @@ function SecurePwField({ value, onChange, placeholder }) {
         style={{ ...T.inp, ...(focused ? T.inpFocus : {}), paddingRight: 50, fontFamily: show ? 'inherit' : 'monospace', letterSpacing: show ? 'normal' : '0.1em' }} />
       <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 6 }}>
         {value && <button type="button" onClick={() => { navigator.clipboard.writeText(value); toast.success('Copied!'); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 2 }}><Copy size={14} /></button>}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 2 }}><Copy size={14} /></button>}
         <button type="button" onClick={() => setShow(s => !s)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 2 }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 2 }}>
           {show ? <EyeOff size={14} /> : <Eye size={14} />}
         </button>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
         <Lock size={11} color="#9ca3af" />
-        <span style={{ fontSize: 13, color: '#9ca3af' }}>Encrypted & stored securely — only your agency team can see this</span>
+        <span style={{ fontSize: 13, color: '#4b5563' }}>Encrypted & stored securely — only your agency team can see this</span>
       </div>
     </div>
   );
@@ -207,7 +207,7 @@ function SugBox({ text, onAccept, onDismiss, onEdit }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <Sparkles size={14} color={ACCENT} />
         <span style={{ fontSize: 14, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Suggestion</span>
-        <button type="button" onClick={onDismiss} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}><X size={14}/></button>
+        <button type="button" onClick={onDismiss} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 0 }}><X size={14}/></button>
       </div>
       {editing ? (
         <textarea value={editVal} onChange={e => setEditVal(e.target.value)} rows={4}
@@ -249,9 +249,9 @@ function AccessGuide({ platform, icon, steps, link, linkLabel }) {
         <div style={{width:36,height:36,borderRadius:9,background:ACCENT+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><StepIcon name={icon} size={18} color={ACCENT}/></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{platform}</div>
-          <div style={{ fontSize: 14, color: '#9ca3af' }}>Click to see how to add us</div>
+          <div style={{ fontSize: 14, color: '#4b5563' }}>Click to see how to add us</div>
         </div>
-        <span style={{ fontSize: 20, color: '#9ca3af', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform .2s' }}>›</span>
+        <span style={{ fontSize: 20, color: '#4b5563', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform .2s' }}>›</span>
       </button>
       {open && (
         <div style={{ padding: '0 20px 20px', borderTop: '1px solid #e5e7eb' }}>
@@ -573,7 +573,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 14, color: '#52525b', fontWeight: 600 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
-        {firstName && <span style={{ fontSize: 15, color: '#a1a1aa' }}>Hi <strong style={{ color: '#fff' }}>{firstName}</strong> </span>}
+        {firstName && <span style={{ fontSize: 15, color: '#4b5563' }}>Hi <strong style={{ color: '#fff' }}>{firstName}</strong> </span>}
       </div>
       {step > 0 && step < STEPS.length - 1 && (
         <div style={{ maxWidth: 820, margin: '0 auto', paddingBottom: 10 }}>
@@ -601,7 +601,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <div style={{ textAlign: 'center', maxWidth: 420, padding: 40 }}>
         <AlertCircle size={52} color="#ef4444" style={{ margin: '0 auto 16px' }} />
         <h2 style={{ fontSize: 24, fontWeight: 800, color: '#111', marginBottom: 10 }}>Link Not Found</h2>
-        <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.6 }}>This onboarding link is invalid or has expired. Contact your agency for a new link.</p>
+        <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>This onboarding link is invalid or has expired. Contact your agency for a new link.</p>
       </div>
     </div>
   );
@@ -617,12 +617,12 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           <h2 style={{ fontSize: 28, fontWeight: 900, color: '#111', marginBottom: 10 }}>
             {firstName ? `Amazing work, ${firstName}!` : 'All done!'}
           </h2>
-          <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.7, marginBottom: 24 }}>
+          <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.7, marginBottom: 24 }}>
             {firstName ? `Thank you for taking the time, ${firstName}. ` : ''}Your agency now has everything they need to build a powerful marketing strategy. We'll be in touch very soon!
           </p>
           <div style={{ background: '#f9fafb', borderRadius: 12, padding: '16px 20px', display: 'inline-block' }}>
             <div style={{ fontSize: 15, color: '#374151' }}>Submitted for: <strong>{biz}</strong></div>
-            <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 4 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div style={{ fontSize: 14, color: '#4b5563', marginTop: 4 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
           </div>
         </div>
       </div>
@@ -638,7 +638,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 24px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: step === 0 ? 'not-allowed' : 'pointer', color: '#374151', opacity: step === 0 ? .4 : 1, fontWeight: 700 }}>
           <ChevronLeft size={16} /> Back
         </button>
-        <span style={{ fontSize: 15, color: '#9ca3af' }}>Step {step} of {STEPS.length - 2}</span>
+        <span style={{ fontSize: 15, color: '#4b5563' }}>Step {step} of {STEPS.length - 2}</span>
         {!isLast ? (
           <button type="button" onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: `0 6px 20px ${ACCENT}40` }}>
@@ -672,7 +672,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <h1 style={{ fontSize: 38, fontWeight: 900, color: '#fff', margin: '0 0 14px', letterSpacing: -0.5 }}>
               Welcome, <span style={{ color: ACCENT }}>{tokenData?.clients?.name || 'there'}</span>! 🎉
             </h1>
-            <p style={{ fontSize: 17, color: '#a1a1aa', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 30px' }}>
+            <p style={{ fontSize: 17, color: '#4b5563', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 30px' }}>
               We're genuinely excited to work with you. This form takes <strong style={{ color: '#fff' }}>20–30 minutes</strong> and gives us everything we need to market your business effectively from day one.
             </p>
             <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: '20px 24px', maxWidth: 500, margin: '0 auto', textAlign: 'left' }}>
@@ -680,7 +680,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20 }}></div>
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>A note from our team</div>
-                  <div style={{ fontSize: 15, color: '#a1a1aa', lineHeight: 1.65 }}>
+                  <div style={{ fontSize: 15, color: '#4b5563', lineHeight: 1.65 }}>
                     "The more detail you give us, the more precisely we can target your ideal customers — and the faster we see real results. Our AI will help you along the way."
                   </div>
                   <div style={{ fontSize: 14, color: '#52525b', marginTop: 8, fontStyle: 'italic' }}>— The Momenta Team</div>
@@ -690,7 +690,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           </div>
 
           <div style={{ padding: '40px 48px' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 18 }}>What we'll cover together</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 18 }}>What we'll cover together</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 32 }}>
               {[
                 { icon: 'Clock', title: '20–30 minutes', desc: 'Work at your own pace — saves automatically' },
@@ -703,7 +703,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '16px 18px', border: '1px solid #f3f4f6' }}>
                   <div style={{ marginBottom: 8 }}><StepIcon name={item.icon} size={24} color={ACCENT}/></div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 4 }}>{item.title}</div>
-                  <div style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.4 }}>{item.desc}</div>
+                  <div style={{ fontSize: 14, color: '#4b5563', lineHeight: 1.4 }}>{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -724,7 +724,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               style={{ width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 16, padding: '18px 0', fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, boxShadow: `0 8px 28px ${ACCENT}45` }}>
               Let's Build Your Marketing Profile <ChevronRight size={20} />
             </button>
-            <div style={{ textAlign: 'center', fontSize: 14, color: '#9ca3af', marginTop: 12 }}>
+            <div style={{ textAlign: 'center', fontSize: 14, color: '#4b5563', marginTop: 12 }}>
               20–30 minutes · Auto-saved · No account needed
             </div>
           </div>
@@ -751,7 +751,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={T.cardHead}>
               <div style={T.stepTag}>About You</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>First, who are we working with?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>We'll personalise this whole experience using your name. Takes 30 seconds.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>We'll personalise this whole experience using your name. Takes 30 seconds.</p>
             </div>
             <div style={T.cardBody}>
               <div style={{ ...T.grid2, marginBottom: 20 }}>
@@ -787,7 +787,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={T.cardHead}>
               <div style={T.stepTag}>Your Business</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Tell us about your business</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>This information lives at the foundation of everything we build for you.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>This information lives at the foundation of everything we build for you.</p>
             </div>
             <div style={T.cardBody}>
               <div style={{ ...T.grid2, marginBottom: 20 }}>
@@ -851,7 +851,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={T.cardHead}>
               <div style={T.stepTag}>Products & Services</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>What do you sell?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Be as detailed as possible — the more specific you are, the better we can target people who actually want what you offer.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Be as detailed as possible — the more specific you are, the better we can target people who actually want what you offer.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox color={ACCENT}>
@@ -912,7 +912,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Your Ideal Customers</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Who are your best customers?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>This drives ALL targeting decisions — ad audiences, keyword selection, content topics, even the words we use in your ads.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>This drives ALL targeting decisions — ad audiences, keyword selection, content topics, even the words we use in your ads.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox color="#8b5cf6">
@@ -994,7 +994,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Your Competition</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Who are you competing against?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Knowing your competitors lets us outrank them on Google, outbid them on ads, and position you to win every time.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Knowing your competitors lets us outrank them on Google, outbid them on ads, and position you to win every time.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox>
@@ -1003,7 +1003,7 @@ Product: Water filtration systems — sale and installation..." />
 
               {form.competitors.map((comp, i) => (
                 <div key={i} style={{ background: '#f9fafb', borderRadius: 16, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Competitor #{i + 1}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Competitor #{i + 1}</div>
                   <div style={{ ...T.grid2, gap: 14 }}>
                     <F label="Business Name">
                       <FocusInput value={comp.name} onChange={e => setComp(i, 'name', e.target.value)} placeholder="Rival Plumbing Co." />
@@ -1058,7 +1058,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Target Markets</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Where do you want to grow?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Your geographic targeting determines where we spend every dollar of your ad budget. Let's be surgical about it.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Your geographic targeting determines where we spend every dollar of your ad budget. Let's be surgical about it.</p>
             </div>
             <div style={T.cardBody}>
               <div style={T.grid2}>
@@ -1101,7 +1101,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Brand & Voice</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Your brand identity</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Your visual identity and brand voice keep every campaign looking and sounding consistent.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Your visual identity and brand voice keep every campaign looking and sounding consistent.</p>
             </div>
             <div style={T.cardBody}>
               <div style={T.grid2}>
@@ -1159,7 +1159,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Social Media</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Your social profiles</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Link everything so we can audit your presence, check what's working, and manage your accounts.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Link everything so we can audit your presence, check what's working, and manage your accounts.</p>
             </div>
             <div style={T.cardBody}>
               {[
@@ -1198,7 +1198,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Website & Tech Stack</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Your website and technology</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Understanding your tech stack lets us set up proper tracking, avoid duplicate work, and move fast.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Understanding your tech stack lets us set up proper tracking, avoid duplicate work, and move fast.</p>
             </div>
             <div style={T.cardBody}>
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '14px 18px', display: 'flex', gap: 12, marginBottom: 24 }}>
@@ -1259,7 +1259,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Give Us Access</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Platform access — how to add us</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>
                 This is the most important step — without access, we can't actually do the work. Click each platform below for step-by-step instructions with direct links.
               </p>
             </div>
@@ -1401,7 +1401,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Marketing History</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>What have you tried before?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>This prevents us from repeating mistakes and helps us double down on what's actually worked. Be brutally honest.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>This prevents us from repeating mistakes and helps us double down on what's actually worked. Be brutally honest.</p>
             </div>
             <div style={T.cardBody}>
               <InfoBox color="#f59e0b">
@@ -1451,7 +1451,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardHead}>
               <div style={T.stepTag}>Goals & Success Metrics</div>
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>What does winning look like?</h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>Every campaign, every dollar, every optimization we make is pointed at these goals. Be ambitious but realistic.</p>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Every campaign, every dollar, every optimization we make is pointed at these goals. Be ambitious but realistic.</p>
             </div>
             <div style={T.cardBody}>
               <F label="Primary marketing goal" hint="If you could only have ONE thing, what would it be?">
@@ -1506,7 +1506,7 @@ Product: Water filtration systems — sale and installation..." />
               <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>
                 {personaResult ? `Meet "${personaResult.persona_name}"` : 'Let\'s build your ideal customer persona'}
               </h2>
-              <p style={{ fontSize: 16, color: '#6b7280', margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>
                 {personaResult
                   ? 'Our AI built this persona based on everything you\'ve told us. Read it carefully — does it sound right? Your feedback makes it more accurate.'
                   : 'Based on everything you\'ve told us, our AI will build a detailed profile of your ideal customer. This persona drives all your ad targeting, content, and messaging.'}
@@ -1517,7 +1517,7 @@ Product: Water filtration systems — sale and installation..." />
                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                   <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#f0fbfc', border: `2px solid ${ACCENT}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 36 }}></div>
                   <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 10 }}>Ready to generate your persona</h3>
-                  <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 24, maxWidth: 440, margin: '0 auto 24px', lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 15, color: '#374151', marginBottom: 24, maxWidth: 440, margin: '0 auto 24px', lineHeight: 1.6 }}>
                     We'll analyze everything you've told us and build a detailed profile of your ideal customer — including demographics, psychology, ad targeting, and messaging that resonates with them.
                   </p>
                   <button type="button" onClick={generatePersona}
@@ -1531,7 +1531,7 @@ Product: Water filtration systems — sale and installation..." />
                 <div style={{ textAlign: 'center', padding: '48px 20px' }}>
                   <Loader2 size={48} color={ACCENT} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 8 }}>Building your persona…</div>
-                  <div style={{ fontSize: 15, color: '#9ca3af' }}>Analyzing your responses, industry data, and competitive landscape</div>
+                  <div style={{ fontSize: 15, color: '#4b5563' }}>Analyzing your responses, industry data, and competitive landscape</div>
                 </div>
               )}
 
@@ -1543,7 +1543,7 @@ Product: Water filtration systems — sale and installation..." />
                       <div style={{ width: 64, height: 64, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}></div>
                       <div>
                         <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 6 }}>"{personaResult.persona_name}"</div>
-                        <div style={{ fontSize: 15, color: '#a1a1aa', lineHeight: 1.65 }}>{personaResult.tagline}</div>
+                        <div style={{ fontSize: 15, color: '#4b5563', lineHeight: 1.65 }}>{personaResult.tagline}</div>
                       </div>
                     </div>
                   </div>
@@ -1556,7 +1556,7 @@ Product: Water filtration systems — sale and installation..." />
                       { label: 'Location Type', value: personaResult.location_type },
                     ].map(d => d.value && (
                       <div key={d.label} style={{ background: '#f9fafb', borderRadius: 12, padding: '14px 16px', border: '1px solid #f3f4f6' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{d.label}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{d.label}</div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{d.value}</div>
                       </div>
                     ))}
@@ -1564,7 +1564,7 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.psychographic_summary && (
                     <div style={{ background: '#f9fafb', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}> Psychographic Profile</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}> Psychographic Profile</div>
                       <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75 }}>{personaResult.psychographic_summary}</div>
                     </div>
                   )}
@@ -1604,7 +1604,7 @@ Product: Water filtration systems — sale and installation..." />
                       <div style={{ fontSize: 15, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>Ad Headlines That Stop Them Scrolling</div>
                       {personaResult.ad_headline_angles.map((h, i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '10px 14px', background: '#fff', borderRadius: 10, border: `1px solid ${ACCENT}20`, alignItems: 'center' }}>
-                          <span style={{ fontSize: 14, fontWeight: 800, color: '#9ca3af', flexShrink: 0 }}>H{i + 1}</span>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: '#4b5563', flexShrink: 0 }}>H{i + 1}</span>
                           <span style={{ fontSize: 15, color: '#374151', flex: 1 }}>{h}</span>
                         </div>
                       ))}
@@ -1678,7 +1678,7 @@ Product: Water filtration systems — sale and installation..." />
                 ].map(item => (
                   <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '18px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                     <span style={{ fontSize: 26 }}><StepIcon name={item.icon} size={22} color={ACCENT}/></span>
-                    <div><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{item.title}</div><div style={{ fontSize: 14, color: '#9ca3af', marginTop: 3 }}>{item.desc}</div></div>
+                    <div><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{item.title}</div><div style={{ fontSize: 14, color: '#4b5563', marginTop: 3 }}>{item.desc}</div></div>
                   </div>
                 ))}
               </div>

@@ -86,27 +86,27 @@ export default function ESignaturePage() {
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
       <div className="max-w-2xl mx-auto py-8 px-4">
-        <Link to={`/project/${projectId}`} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-6"><ChevronLeft size={14} /> Back to project</Link>
+        <Link to={`/project/${projectId}`} className="text-sm text-gray-700 hover:text-gray-700 flex items-center gap-1 mb-6"><ChevronLeft size={14} /> Back to project</Link>
 
         <div className="card p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#231f20' }}><Pen size={18} className="text-white" /></div>
             <div>
               <h1 className="text-lg font-bold text-gray-900">E-Signature \u2014 Round {round?.round_number}</h1>
-              <p className="text-sm text-gray-500">{project?.name} {round?.submitted_at && `\u00b7 Submitted ${format(new Date(round.submitted_at), 'MMM d yyyy')}`}</p>
+              <p className="text-sm text-gray-700">{project?.name} {round?.submitted_at && `\u00b7 Submitted ${format(new Date(round.submitted_at), 'MMM d yyyy')}`}</p>
             </div>
           </div>
 
           {/* Round summary */}
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Feedback Summary</h3>
-            {grouped.length === 0 ? <p className="text-sm text-gray-400">No annotations in this round</p> : (
+            <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3">Feedback Summary</h3>
+            {grouped.length === 0 ? <p className="text-sm text-gray-700">No annotations in this round</p> : (
               <div className="space-y-3">
                 {grouped.map(({ file, anns }) => (
                   <div key={file.id}>
                     <p className="text-sm font-medium text-gray-700 flex items-center gap-1 mb-1"><FileText size={11} /> {file.name} ({anns.length})</p>
                     <div className="space-y-1 ml-4">
-                      {anns.map(a => <p key={a.id} className="text-sm text-gray-500">\u2022 {a.text || '(no text)'} \u2014 <span className="text-gray-400">{a.author}</span></p>)}
+                      {anns.map(a => <p key={a.id} className="text-sm text-gray-700">\u2022 {a.text || '(no text)'} \u2014 <span className="text-gray-700">{a.author}</span></p>)}
                     </div>
                   </div>
                 ))}
@@ -118,14 +118,14 @@ export default function ESignaturePage() {
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><Check size={28} className="text-green-500" /></div>
               <h2 className="text-lg font-bold text-gray-900 mb-2">Round Signed</h2>
-              <p className="text-sm text-gray-500">Signed by {existingSig.signer_name} on {format(new Date(existingSig.signed_at), 'MMM d yyyy h:mm a')}</p>
+              <p className="text-sm text-gray-700">Signed by {existingSig.signer_name} on {format(new Date(existingSig.signed_at), 'MMM d yyyy h:mm a')}</p>
               {existingSig.signature_data && <img src={existingSig.signature_data} alt="Signature" className="mx-auto mt-4 border border-gray-200 rounded-lg" style={{ maxWidth: 300 }} />}
             </div>
           ) : submitted ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><Check size={28} className="text-green-500" /></div>
               <h2 className="text-lg font-bold text-gray-900 mb-2">Signature Submitted</h2>
-              <p className="text-sm text-gray-500">Thank you! Moose has been notified.</p>
+              <p className="text-sm text-gray-700">Thank you! Moose has been notified.</p>
             </div>
           ) : (
             <>
@@ -138,9 +138,9 @@ export default function ESignaturePage() {
                     onTouchStart={e => { e.preventDefault(); handleCanvasMouseDown(e.touches[0]) }}
                     onTouchMove={e => { e.preventDefault(); handleCanvasMouseMove(e.touches[0]) }}
                     onTouchEnd={handleCanvasMouseUp} />
-                  <button onClick={clearSignature} className="absolute top-2 right-2 text-sm text-gray-400 hover:text-gray-600">Clear</button>
+                  <button onClick={clearSignature} className="absolute top-2 right-2 text-sm text-gray-700 hover:text-gray-600">Clear</button>
                 </div>
-                <p className="text-[13px] text-gray-400 mt-1">Draw your signature above using your mouse or finger</p>
+                <p className="text-[13px] text-gray-700 mt-1">Draw your signature above using your mouse or finger</p>
               </div>
 
               <div className="mb-4">
@@ -149,7 +149,7 @@ export default function ESignaturePage() {
               </div>
 
               <div className="mb-4">
-                <p className="text-sm text-gray-500 mb-2">Date: {format(new Date(), 'MMMM d, yyyy')}</p>
+                <p className="text-sm text-gray-700 mb-2">Date: {format(new Date(), 'MMMM d, yyyy')}</p>
               </div>
 
               <label className="flex items-start gap-3 mb-6 cursor-pointer">

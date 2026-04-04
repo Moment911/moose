@@ -126,8 +126,8 @@ export default function EmailDesignerPage() {
         onClick={() => setSelectedId(b.id)}>
         {children}
         <div className={`absolute top-1 right-1 flex gap-0.5 ${isSel ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
-          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, -1) }} className="w-5 h-5 bg-white shadow rounded text-gray-500 hover:text-gray-800 flex items-center justify-center"><ArrowUp size={10} /></button>
-          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, 1) }} className="w-5 h-5 bg-white shadow rounded text-gray-500 hover:text-gray-800 flex items-center justify-center"><ArrowDown size={10} /></button>
+          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, -1) }} className="w-5 h-5 bg-white shadow rounded text-gray-700 hover:text-gray-800 flex items-center justify-center"><ArrowUp size={10} /></button>
+          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, 1) }} className="w-5 h-5 bg-white shadow rounded text-gray-700 hover:text-gray-800 flex items-center justify-center"><ArrowDown size={10} /></button>
           <button onClick={e => { e.stopPropagation(); deleteBlock(b.id) }} className="w-5 h-5 bg-white shadow rounded text-red-400 hover:text-red-600 flex items-center justify-center"><Trash2 size={10} /></button>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function EmailDesignerPage() {
 
     if (b.type === 'header') return wrap(<div style={{ background: d.bgColor, padding: '32px 40px', textAlign: 'center' }}><h1 style={{ margin: 0, color: d.textColor, fontSize: 28, fontWeight: 700 }}>{d.logoText}</h1>{d.tagline && <p style={{ margin: '8px 0 0', color: d.textColor, opacity: 0.7, fontSize: 15 }}>{d.tagline}</p>}</div>)
     if (b.type === 'text') return wrap(<div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: d.align }}><p style={{ margin: 0, color: d.textColor, fontSize: d.fontSize, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{d.content}</p></div>)
-    if (b.type === 'image') return wrap(<div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: 'center' }}>{d.src ? <img src={d.src} alt={d.alt} style={{ maxWidth: '100%', borderRadius: 4 }} /> : <div style={{ background: '#f3f4f6', height: 200, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 15 }}>Click to add image</div>}{d.caption && <p style={{ margin: '8px 0 0', color: '#999', fontSize: 14 }}>{d.caption}</p>}</div>)
+    if (b.type === 'image') return wrap(<div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: 'center' }}>{d.src ? <img src={d.src} alt={d.alt} style={{ maxWidth: '100%', borderRadius: 4 }} /> : <div style={{ background: '#f3f4f6', height: 200, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4b5563', fontSize: 15 }}>Click to add image</div>}{d.caption && <p style={{ margin: '8px 0 0', color: '#999', fontSize: 14 }}>{d.caption}</p>}</div>)
     if (b.type === 'button') return wrap(<div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: d.align }}><a style={{ display: 'inline-block', background: d.btnColor, color: d.textColor, padding: '14px 32px', borderRadius: d.borderRadius, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>{d.text}</a></div>)
     if (b.type === 'divider') return wrap(<div style={{ background: d.bgColor, padding: `${d.padding}px 40px` }}><hr style={{ border: 'none', borderTop: `${d.thickness}px solid ${d.color}`, margin: 0 }} /></div>)
     if (b.type === 'spacer') return wrap(<div style={{ background: d.bgColor, height: d.height }} />)
@@ -152,11 +152,11 @@ export default function EmailDesignerPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-5 py-3 flex items-center gap-3 flex-shrink-0">
-          <Link to={`/project/${projectId}`} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></Link>
+          <Link to={`/project/${projectId}`} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></Link>
           <Mail size={15} className="text-brand-500" />
           <input className="text-sm font-medium text-gray-900 bg-transparent border-none focus:outline-none" value={name} onChange={e => setName(e.target.value)} placeholder="Email name..." />
           <div className="w-px h-5 bg-gray-200" />
-          <input className="text-sm text-gray-500 bg-transparent border-none focus:outline-none flex-1" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject line..." />
+          <input className="text-sm text-gray-700 bg-transparent border-none focus:outline-none flex-1" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Subject line..." />
           <div className="ml-auto flex items-center gap-2">
             <button onClick={() => setShowPreview(!showPreview)} className={`btn-secondary text-sm ${showPreview ? 'bg-brand-50 text-brand-700 border-brand-300' : ''}`}><Eye size={13} /> Preview</button>
             <button onClick={handleSave} disabled={saving} className="btn-secondary text-sm"><Save size={13} /> Save</button>
@@ -168,17 +168,17 @@ export default function EmailDesignerPage() {
         <div className="flex flex-1 overflow-hidden">
           {/* Block palette */}
           <div className="w-48 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0 p-3">
-            <p className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide mb-2">Add Block</p>
+            <p className="text-[13px] font-semibold text-gray-700 uppercase tracking-wide mb-2">Add Block</p>
             <div className="space-y-0.5">
               {BLOCK_TYPES.map(bt => { const I = bt.icon; return (
                 <button key={bt.type} onClick={() => addBlock(bt.type)}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                  <I size={14} className="text-gray-400 flex-shrink-0" /> {bt.label}
+                  <I size={14} className="text-gray-700 flex-shrink-0" /> {bt.label}
                 </button>
               )})}
             </div>
             <div className="mt-4 pt-3 border-t border-gray-100">
-              <p className="text-[13px] text-gray-400 leading-relaxed">Click a block to add it below the selected block. Drag arrows to reorder.</p>
+              <p className="text-[13px] text-gray-700 leading-relaxed">Click a block to add it below the selected block. Drag arrows to reorder.</p>
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export default function EmailDesignerPage() {
               {blocks.length === 0 && (
                 <div className="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-200">
                   <Mail size={40} className="text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Add blocks from the left panel to build your email</p>
+                  <p className="text-sm text-gray-700">Add blocks from the left panel to build your email</p>
                 </div>
               )}
               <div className="bg-white rounded-xl overflow-hidden shadow-lg">
@@ -212,7 +212,7 @@ export default function EmailDesignerPage() {
           {/* Properties panel */}
           {sel ? (
             <div style={{ width: panelWidth }} className="bg-white border-l border-gray-200 p-4 overflow-y-auto flex-shrink-0">
-              <p className="text-[13px] font-semibold text-gray-500 uppercase mb-3">{BLOCK_TYPES.find(t => t.type === sel.type)?.label} Properties</p>
+              <p className="text-[13px] font-semibold text-gray-700 uppercase mb-3">{BLOCK_TYPES.find(t => t.type === sel.type)?.label} Properties</p>
               <div className="space-y-3">
                 {sel.type === 'header' && (<>
                   <Field label="Logo Text" value={sel.data.logoText} onChange={v => updateBlock(sel.id, { logoText: v })} />
@@ -221,7 +221,7 @@ export default function EmailDesignerPage() {
                   <ColorField label="Text Color" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
                 </>)}
                 {sel.type === 'text' && (<>
-                  <div><label className="text-[13px] text-gray-500 mb-1 block">Content</label>
+                  <div><label className="text-[13px] text-gray-700 mb-1 block">Content</label>
                     <textarea className="input text-sm py-1 resize-none" rows={4} value={sel.data.content} onChange={e => updateBlock(sel.id, { content: e.target.value })} /></div>
                   <NumberField label="Font Size" value={sel.data.fontSize} onChange={v => updateBlock(sel.id, { fontSize: v })} min={10} max={36} />
                   <SelectField label="Align" value={sel.data.align} options={['left', 'center', 'right']} onChange={v => updateBlock(sel.id, { align: v })} />
@@ -252,9 +252,9 @@ export default function EmailDesignerPage() {
                   <NumberField label="Height" value={sel.data.height} onChange={v => updateBlock(sel.id, { height: v })} min={8} max={96} />
                 </>)}
                 {sel.type === 'twocol' && (<>
-                  <div><label className="text-[13px] text-gray-500 mb-1 block">Left Column</label>
+                  <div><label className="text-[13px] text-gray-700 mb-1 block">Left Column</label>
                     <textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.leftContent} onChange={e => updateBlock(sel.id, { leftContent: e.target.value })} /></div>
-                  <div><label className="text-[13px] text-gray-500 mb-1 block">Right Column</label>
+                  <div><label className="text-[13px] text-gray-700 mb-1 block">Right Column</label>
                     <textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.rightContent} onChange={e => updateBlock(sel.id, { rightContent: e.target.value })} /></div>
                   <ColorField label="Text Color" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
                   <ColorField label="Background" value={sel.data.bgColor} onChange={v => updateBlock(sel.id, { bgColor: v })} />
@@ -270,17 +270,17 @@ export default function EmailDesignerPage() {
             </div>
           ) : showPreview ? (
             <div style={{ width: panelWidth }} className="bg-white border-l border-gray-200 flex-shrink-0 overflow-hidden">
-              <div className="p-3 border-b border-gray-100"><p className="text-[13px] font-semibold text-gray-500 uppercase">HTML Preview</p></div>
+              <div className="p-3 border-b border-gray-100"><p className="text-[13px] font-semibold text-gray-700 uppercase">HTML Preview</p></div>
               <iframe srcDoc={generateHtml(blocks, subject)} className="w-full h-full border-none" title="Email Preview" style={{ transform: 'scale(0.4)', transformOrigin: 'top left', width: '250%', height: '250%' }} />
             </div>
           ) : (
             <div style={{ width: panelWidth }} className="bg-white border-l border-gray-200 p-4 flex-shrink-0">
-              <p className="text-[13px] font-semibold text-gray-500 uppercase mb-3">Email Designer</p>
-              <p className="text-sm text-gray-400 leading-relaxed">Click a block in the email to edit it. Use the left panel to add new blocks. Reorder with arrow buttons.</p>
+              <p className="text-[13px] font-semibold text-gray-700 uppercase mb-3">Email Designer</p>
+              <p className="text-sm text-gray-700 leading-relaxed">Click a block in the email to edit it. Use the left panel to add new blocks. Reorder with arrow buttons.</p>
               <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[13px] text-gray-500">Moose Red: #ea2729</span></div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[13px] text-gray-500">Moose Teal: #59c6d0</span></div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: '#231f20' }} /><span className="text-[13px] text-gray-500">Moose Dark: #231f20</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[13px] text-gray-700">Moose Red: #ea2729</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-brand-500" /><span className="text-[13px] text-gray-700">Moose Teal: #59c6d0</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ background: '#231f20' }} /><span className="text-[13px] text-gray-700">Moose Dark: #231f20</span></div>
               </div>
             </div>
           )}
@@ -291,12 +291,12 @@ export default function EmailDesignerPage() {
 }
 
 function Field({ label, value, onChange }) {
-  return <div><label className="text-[13px] text-gray-500 mb-1 block">{label}</label>
+  return <div><label className="text-[13px] text-gray-700 mb-1 block">{label}</label>
     <input className="input text-sm py-1" value={value || ''} onChange={e => onChange(e.target.value)} /></div>
 }
 
 function NumberField({ label, value, onChange, min = 0, max = 999 }) {
-  return <div><label className="text-[13px] text-gray-500 mb-1 block">{label}</label>
+  return <div><label className="text-[13px] text-gray-700 mb-1 block">{label}</label>
     <input className="input text-sm py-1" type="number" min={min} max={max} value={value} onChange={e => onChange(+e.target.value)} /></div>
 }
 
@@ -305,7 +305,7 @@ function ColorField({ label, value, onChange }) {
 }
 
 function SelectField({ label, value, options, onChange }) {
-  return <div><label className="text-[13px] text-gray-500 mb-1 block">{label}</label>
+  return <div><label className="text-[13px] text-gray-700 mb-1 block">{label}</label>
     <select className="input text-sm py-1" value={value} onChange={e => onChange(e.target.value)}>
       {options.map(o => <option key={o} value={o}>{o}</option>)}</select></div>
 }

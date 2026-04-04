@@ -74,7 +74,7 @@ export default function ProposalPublicPage() {
   }
 
   if (loading) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh' }}><Loader2 size={28} color={ACCENT} style={{ animation:'spin 1s linear infinite' }}/></div>
-  if (!proposal) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:16, color:'#9ca3af' }}>Proposal not found.</div>
+  if (!proposal) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:16, color:'#4b5563' }}>Proposal not found.</div>
 
   const totalMonthly = sections.filter(s=>s.price_type==='monthly').reduce((sum,s)=>sum+(s.price||0),0)
   const totalOneTime = sections.filter(s=>s.price_type==='one_time').reduce((sum,s)=>sum+(s.price||0),0)
@@ -103,20 +103,20 @@ export default function ProposalPublicPage() {
         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'36px 40px', marginBottom:20 }}>
           {proposal.intro && (
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
               <div style={{ fontSize:15, color:'#374151', lineHeight:1.85, whiteSpace:'pre-wrap' }}>{proposal.intro}</div>
             </div>
           )}
           {proposal.executive_summary && (
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Overview</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Overview</div>
               <div style={{ fontSize:15, color:'#374151', lineHeight:1.85, whiteSpace:'pre-wrap' }}>{proposal.executive_summary}</div>
             </div>
           )}
 
           {sections.length > 0 && (
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services Included</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services Included</div>
               {sections.map((sec, i) => {
                 const delivs = typeof sec.deliverables==='string' ? JSON.parse(sec.deliverables||'[]') : (sec.deliverables||[])
                 return (
@@ -125,16 +125,16 @@ export default function ProposalPublicPage() {
                       <h3 style={{ fontSize:16, fontWeight:800, color:'#111' }}>{sec.title}</h3>
                       <div>
                         {sec.price>0&&<span style={{ fontSize:16, fontWeight:800, color:ACCENT }}>${Number(sec.price).toLocaleString()} {PRICE_LABELS[sec.price_type]}</span>}
-                        {sec.is_optional&&<div style={{ fontSize:13, color:'#9ca3af' }}>Optional</div>}
+                        {sec.is_optional&&<div style={{ fontSize:13, color:'#4b5563' }}>Optional</div>}
                       </div>
                     </div>
-                    {sec.content&&<div style={{ fontSize:15, color:'#6b7280', lineHeight:1.75, marginBottom:10 }}>{sec.content}</div>}
+                    {sec.content&&<div style={{ fontSize:15, color:'#374151', lineHeight:1.75, marginBottom:10 }}>{sec.content}</div>}
                     {delivs.filter(d=>d).map((d,j)=>(
                       <div key={j} style={{ display:'flex', alignItems:'center', gap:8, fontSize:15, color:'#374151', marginBottom:5 }}>
                         <Check size={12} color={ACCENT} style={{ flexShrink:0 }}/>{d}
                       </div>
                     ))}
-                    {sec.timeline&&<div style={{ fontSize:14, color:'#9ca3af', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/>{sec.timeline}</div>}
+                    {sec.timeline&&<div style={{ fontSize:14, color:'#4b5563', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/>{sec.timeline}</div>}
                   </div>
                 )
               })}
@@ -143,7 +143,7 @@ export default function ProposalPublicPage() {
 
           {(totalMonthly>0||totalOneTime>0) && (
             <div style={{ background:'#f9fafb', borderRadius:12, padding:'18px 22px', marginBottom:28 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Your Investment</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Your Investment</div>
               {totalMonthly>0&&<div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#111', marginBottom:6 }}><span>Monthly retainer</span><span style={{ fontWeight:800 }}>${totalMonthly.toLocaleString()}/mo</span></div>}
               {totalOneTime>0&&<div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#111' }}><span>One-time setup</span><span style={{ fontWeight:800 }}>${totalOneTime.toLocaleString()}</span></div>}
             </div>
@@ -151,8 +151,8 @@ export default function ProposalPublicPage() {
 
           {proposal.terms&&(
             <div>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
-              <div style={{ fontSize:14, color:'#9ca3af', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
+              <div style={{ fontSize:14, color:'#4b5563', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
             </div>
           )}
         </div>
@@ -165,7 +165,7 @@ export default function ProposalPublicPage() {
                 <CheckCircle size={32} color="#16a34a"/>
               </div>
               <h2 style={{ fontSize:22, fontWeight:900, color:'#111', marginBottom:6 }}>Proposal Accepted</h2>
-              <p style={{ fontSize:15, color:'#6b7280' }}>
+              <p style={{ fontSize:15, color:'#374151' }}>
                 {existingSig ? `Signed by ${existingSig.signer_name}` : 'Your signature has been saved.'}
                 {existingSig?.signed_at ? ` on ${new Date(existingSig.signed_at).toLocaleDateString()}` : ''}
               </p>
@@ -175,7 +175,7 @@ export default function ProposalPublicPage() {
               <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:4, display:'flex', alignItems:'center', gap:8 }}>
                 <Shield size={16} color={ACCENT}/> Sign & Accept
               </div>
-              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>By signing, you accept this proposal and its terms.</div>
+              <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>By signing, you accept this proposal and its terms.</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
                 {[['Full name *', signerName, setSignerName,'Your legal name'],['Title', signerTitle, setSignerTitle,'Your title'],['Email', signerEmail, setSignerEmail,'your@email.com']].slice(0,2).map(([label,val,set,ph])=>(
                   <div key={label}>
@@ -196,9 +196,9 @@ export default function ProposalPublicPage() {
                   <canvas ref={canvasRef} width={700} height={140} style={{ width:'100%', cursor:'crosshair', display:'block' }}
                     onMouseDown={start} onMouseMove={move} onMouseUp={()=>setDrawing(false)} onMouseLeave={()=>setDrawing(false)}
                     onTouchStart={start} onTouchMove={move} onTouchEnd={()=>setDrawing(false)}/>
-                  <button onClick={clear} style={{ position:'absolute', top:8, right:10, fontSize:13, color:'#9ca3af', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
+                  <button onClick={clear} style={{ position:'absolute', top:8, right:10, fontSize:13, color:'#4b5563', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
                 </div>
-                <div style={{ fontSize:13, color:'#9ca3af', marginTop:4 }}>Draw your signature above</div>
+                <div style={{ fontSize:13, color:'#4b5563', marginTop:4 }}>Draw your signature above</div>
               </div>
               <label style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:16, cursor:'pointer', fontSize:15, color:'#374151', lineHeight:1.6 }}>
                 <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{ marginTop:3, flexShrink:0 }}/>

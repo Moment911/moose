@@ -92,7 +92,7 @@ export default function SEOHubPage() {
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <div className="flex-1">
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2"><TrendingUp size={22} className="text-green-500" /> SEO & AEO Hub</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Intelligence across all channels</p>
+              <p className="text-sm text-gray-700 mt-0.5">Intelligence across all channels</p>
             </div>
             <div className="flex gap-2 flex-wrap">
               <button onClick={() => navigate('/seo/connect')} className="btn-secondary text-sm"><Link2 size={13} /> Connect Data</button>
@@ -107,7 +107,7 @@ export default function SEOHubPage() {
           {/* Client selector */}
           <div className="md:w-56 bg-white md:border-r border-b md:border-b-0 border-gray-200 flex-shrink-0">
             <div className="p-3">
-              <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Clients</p>
+              <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-2 px-1">Clients</p>
               <div className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
                 {clients.map(c => {
                   const conns = c.connections || {}
@@ -121,7 +121,7 @@ export default function SEOHubPage() {
                   )
                 })}
               </div>
-              {clients.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No clients yet</p>}
+              {clients.length === 0 && <p className="text-sm text-gray-700 text-center py-4">No clients yet</p>}
             </div>
           </div>
 
@@ -129,9 +129,9 @@ export default function SEOHubPage() {
           <div className="flex-1 overflow-auto">
             {!selected ? (
               <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-                <TrendingUp size={48} className="text-gray-300 mb-4" />
+                <TrendingUp size={48} className="text-gray-600 mb-4" />
                 <h2 className="text-lg font-semibold text-gray-700 mb-2">Select a Client</h2>
-                <p className="text-sm text-gray-400">Choose a client to view their SEO intelligence</p>
+                <p className="text-sm text-gray-700">Choose a client to view their SEO intelligence</p>
               </div>
             ) : (
               <>
@@ -140,7 +140,7 @@ export default function SEOHubPage() {
                   {TABS.map(t => {
                     const I = t.icon
                     return <button key={t.key} onClick={() => setTab(t.key)}
-                      className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${tab === t.key ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                      className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${tab === t.key ? 'border-green-500 text-green-600' : 'border-transparent text-gray-700 hover:text-gray-700'}`}>
                       <I size={14} /> {t.label}
                     </button>
                   })}
@@ -163,7 +163,7 @@ export default function SEOHubPage() {
                                   <I size={16} style={{ color: p.color }} />
                                   <span className="text-sm font-medium text-gray-800">{p.label}</span>
                                 </div>
-                                <p className="text-[13px] text-gray-400 mb-2">{p.desc}</p>
+                                <p className="text-[13px] text-gray-700 mb-2">{p.desc}</p>
                                 {conn?.connected ? (
                                   <span className="text-[13px] font-semibold text-green-600 flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Connected</span>
                                 ) : (
@@ -182,19 +182,19 @@ export default function SEOHubPage() {
                             <h3 className="text-sm font-semibold text-gray-800">AI Analysis</h3>
                             <div className="flex items-center gap-2">
                               <span className="text-2xl font-bold" style={{ color: (analysis.overallScore || 0) >= 70 ? '#22c55e' : (analysis.overallScore || 0) >= 50 ? '#f59e0b' : '#ef4444' }}>{analysis.overallScore || '—'}</span>
-                              <span className="text-sm text-gray-400">/ 100</span>
+                              <span className="text-sm text-gray-700">/ 100</span>
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 mb-4">{analysis.executiveSummary}</p>
                           {analysis.opportunities && (
                             <div className="space-y-2">
-                              <p className="text-sm font-semibold text-gray-500 uppercase">Top Opportunities</p>
+                              <p className="text-sm font-semibold text-gray-700 uppercase">Top Opportunities</p>
                               {(analysis.opportunities || []).slice(0, 5).map((opp, i) => (
                                 <div key={i} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
                                   <span className="text-sm font-bold text-green-600 mt-0.5">{i + 1}</span>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-800">{opp.title || opp}</p>
-                                    {opp.description && <p className="text-sm text-gray-500 mt-0.5">{opp.description}</p>}
+                                    {opp.description && <p className="text-sm text-gray-700 mt-0.5">{opp.description}</p>}
                                   </div>
                                   {opp.impact && <span className={`text-[12px] px-2 py-0.5 rounded-full font-medium ${opp.impact === 'high' ? 'bg-red-100 text-red-700' : opp.impact === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>{opp.impact}</span>}
                                 </div>
@@ -219,15 +219,15 @@ export default function SEOHubPage() {
                           </div>
                           <div style={{ overflowX: 'auto' }}>
                             <table className="w-full text-sm" style={{ minWidth: 500 }}>
-                              <thead><tr className="border-b border-gray-100 text-gray-500"><th className="text-left py-2 font-medium">Keyword</th><th className="text-right py-2 font-medium">Pos</th><th className="text-right py-2 font-medium">Vol</th><th className="text-right py-2 font-medium">Clicks</th><th className="text-right py-2 font-medium">CTR</th></tr></thead>
+                              <thead><tr className="border-b border-gray-100 text-gray-700"><th className="text-left py-2 font-medium">Keyword</th><th className="text-right py-2 font-medium">Pos</th><th className="text-right py-2 font-medium">Vol</th><th className="text-right py-2 font-medium">Clicks</th><th className="text-right py-2 font-medium">CTR</th></tr></thead>
                               <tbody>
                                 {keywords.slice(0, 10).map((k, i) => (
                                   <tr key={i} className="border-b border-gray-50">
                                     <td className="py-2 text-gray-800 font-medium">{k.keyword}</td>
                                     <td className="py-2 text-right"><PositionBadge pos={k.current_position} prev={k.previous_position} /></td>
-                                    <td className="py-2 text-right text-gray-500">{k.search_volume || '—'}</td>
-                                    <td className="py-2 text-right text-gray-500">{k.clicks || 0}</td>
-                                    <td className="py-2 text-right text-gray-500">{k.ctr ? `${(k.ctr * 100).toFixed(1)}%` : '—'}</td>
+                                    <td className="py-2 text-right text-gray-700">{k.search_volume || '—'}</td>
+                                    <td className="py-2 text-right text-gray-700">{k.clicks || 0}</td>
+                                    <td className="py-2 text-right text-gray-700">{k.ctr ? `${(k.ctr * 100).toFixed(1)}%` : '—'}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -242,8 +242,8 @@ export default function SEOHubPage() {
                           <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Reports</h3>
                           {reports.map(r => (
                             <div key={r.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                              <FileText size={14} className="text-gray-400" />
-                              <div className="flex-1 min-w-0"><p className="text-sm text-gray-700 truncate">{r.title || r.report_type}</p><p className="text-[13px] text-gray-400">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p></div>
+                              <FileText size={14} className="text-gray-700" />
+                              <div className="flex-1 min-w-0"><p className="text-sm text-gray-700 truncate">{r.title || r.report_type}</p><p className="text-[13px] text-gray-700">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p></div>
                               <span className={`text-[12px] px-2 py-0.5 rounded-full font-medium ${r.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
                             </div>
                           ))}
@@ -252,9 +252,9 @@ export default function SEOHubPage() {
 
                       {!analysis && keywords.length === 0 && (
                         <div className="text-center py-16">
-                          <Sparkles size={40} className="text-gray-300 mx-auto mb-4" />
+                          <Sparkles size={40} className="text-gray-600 mx-auto mb-4" />
                           <h3 className="text-base font-semibold text-gray-700 mb-2">Ready to Analyze</h3>
-                          <p className="text-sm text-gray-400 mb-4 max-w-md mx-auto">Connect data sources or run an AI analysis to see SEO intelligence for {selectedClient?.name}</p>
+                          <p className="text-sm text-gray-700 mb-4 max-w-md mx-auto">Connect data sources or run an AI analysis to see SEO intelligence for {selectedClient?.name}</p>
                           <div className="flex gap-2 justify-center">
                             <button onClick={() => navigate('/seo/connect')} className="btn-secondary text-sm"><Link2 size={14} /> Connect Data</button>
                             <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-sm"><Sparkles size={14} /> Run AI Analysis</button>
@@ -273,22 +273,22 @@ export default function SEOHubPage() {
                       </div>
                       {keywords.length === 0 ? (
                         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                          <Search size={32} className="text-gray-300 mx-auto mb-3" />
-                          <p className="text-sm text-gray-500">No keywords tracked yet. Connect Search Console or add keywords manually.</p>
+                          <Search size={32} className="text-gray-600 mx-auto mb-3" />
+                          <p className="text-sm text-gray-700">No keywords tracked yet. Connect Search Console or add keywords manually.</p>
                         </div>
                       ) : (
                         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ overflowX: 'auto' }}>
                           <table className="w-full text-sm" style={{ minWidth: 600 }}>
-                            <thead><tr className="bg-gray-50 border-b text-gray-500"><th className="text-left px-4 py-2.5 font-semibold">Keyword</th><th className="text-right px-3 py-2.5 font-semibold">Position</th><th className="text-right px-3 py-2.5 font-semibold">Volume</th><th className="text-right px-3 py-2.5 font-semibold">Impressions</th><th className="text-right px-3 py-2.5 font-semibold">Clicks</th><th className="text-right px-3 py-2.5 font-semibold">CTR</th></tr></thead>
+                            <thead><tr className="bg-gray-50 border-b text-gray-700"><th className="text-left px-4 py-2.5 font-semibold">Keyword</th><th className="text-right px-3 py-2.5 font-semibold">Position</th><th className="text-right px-3 py-2.5 font-semibold">Volume</th><th className="text-right px-3 py-2.5 font-semibold">Impressions</th><th className="text-right px-3 py-2.5 font-semibold">Clicks</th><th className="text-right px-3 py-2.5 font-semibold">CTR</th></tr></thead>
                             <tbody>
                               {keywords.map((k, i) => (
                                 <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                                   <td className="px-4 py-2.5 font-medium text-gray-800">{k.keyword}</td>
                                   <td className="px-3 py-2.5 text-right"><PositionBadge pos={k.current_position} prev={k.previous_position} /></td>
-                                  <td className="px-3 py-2.5 text-right text-gray-500">{k.search_volume || '—'}</td>
-                                  <td className="px-3 py-2.5 text-right text-gray-500">{k.impressions || 0}</td>
-                                  <td className="px-3 py-2.5 text-right text-gray-500">{k.clicks || 0}</td>
-                                  <td className="px-3 py-2.5 text-right text-gray-500">{k.ctr ? `${(k.ctr * 100).toFixed(1)}%` : '—'}</td>
+                                  <td className="px-3 py-2.5 text-right text-gray-700">{k.search_volume || '—'}</td>
+                                  <td className="px-3 py-2.5 text-right text-gray-700">{k.impressions || 0}</td>
+                                  <td className="px-3 py-2.5 text-right text-gray-700">{k.clicks || 0}</td>
+                                  <td className="px-3 py-2.5 text-right text-gray-700">{k.ctr ? `${(k.ctr * 100).toFixed(1)}%` : '—'}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -301,9 +301,9 @@ export default function SEOHubPage() {
                   {/* PPC TAB */}
                   {tab === 'ppc' && (
                     <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                      <DollarSign size={32} className="text-gray-300 mx-auto mb-3" />
+                      <DollarSign size={32} className="text-gray-600 mx-auto mb-3" />
                       <h3 className="text-base font-semibold text-gray-700 mb-2">PPC Intelligence</h3>
-                      <p className="text-sm text-gray-400 mb-4">Connect Google Ads to analyze campaign performance, find wasted spend, and optimize budgets.</p>
+                      <p className="text-sm text-gray-700 mb-4">Connect Google Ads to analyze campaign performance, find wasted spend, and optimize budgets.</p>
                       <button onClick={() => navigate('/seo/connect')} className="btn-primary text-sm"><Link2 size={14} /> Connect Google Ads</button>
                     </div>
                   )}
@@ -311,9 +311,9 @@ export default function SEOHubPage() {
                   {/* GMB TAB */}
                   {tab === 'gmb' && (
                     <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                      <MapPin size={32} className="text-gray-300 mx-auto mb-3" />
+                      <MapPin size={32} className="text-gray-600 mx-auto mb-3" />
                       <h3 className="text-base font-semibold text-gray-700 mb-2">Google Business Profile</h3>
-                      <p className="text-sm text-gray-400 mb-4">Connect GBP to monitor reviews, optimize your listing, and track local performance.</p>
+                      <p className="text-sm text-gray-700 mb-4">Connect GBP to monitor reviews, optimize your listing, and track local performance.</p>
                       <button onClick={() => navigate('/seo/connect')} className="btn-primary text-sm"><Link2 size={14} /> Connect GBP</button>
                     </div>
                   )}
@@ -321,9 +321,9 @@ export default function SEOHubPage() {
                   {/* CONTENT TAB */}
                   {tab === 'content' && (
                     <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                      <FileText size={32} className="text-gray-300 mx-auto mb-3" />
+                      <FileText size={32} className="text-gray-600 mx-auto mb-3" />
                       <h3 className="text-base font-semibold text-gray-700 mb-2">SEO Content Studio</h3>
-                      <p className="text-sm text-gray-400 mb-4">Generate AI-powered blog posts, location pages, GMB posts, and FAQ content optimized for search.</p>
+                      <p className="text-sm text-gray-700 mb-4">Generate AI-powered blog posts, location pages, GMB posts, and FAQ content optimized for search.</p>
                       <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-sm"><Sparkles size={14} /> Generate Content</button>
                     </div>
                   )}
@@ -331,9 +331,9 @@ export default function SEOHubPage() {
                   {/* AEO TAB */}
                   {tab === 'aeo' && (
                     <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                      <Sparkles size={32} className="text-gray-300 mx-auto mb-3" />
+                      <Sparkles size={32} className="text-gray-600 mx-auto mb-3" />
                       <h3 className="text-base font-semibold text-gray-700 mb-2">Answer Engine Optimization</h3>
-                      <p className="text-sm text-gray-400 mb-4 max-w-md mx-auto">Optimize for AI answer engines (Google AI Overviews, ChatGPT, Perplexity), voice search, and featured snippets.</p>
+                      <p className="text-sm text-gray-700 mb-4 max-w-md mx-auto">Optimize for AI answer engines (Google AI Overviews, ChatGPT, Perplexity), voice search, and featured snippets.</p>
                       <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-sm"><Sparkles size={14} /> Analyze AEO Readiness</button>
                     </div>
                   )}
@@ -347,8 +347,8 @@ export default function SEOHubPage() {
                       </div>
                       {reports.length === 0 ? (
                         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                          <FileText size={32} className="text-gray-300 mx-auto mb-3" />
-                          <p className="text-sm text-gray-400">No reports yet. Generate your first SEO report.</p>
+                          <FileText size={32} className="text-gray-600 mx-auto mb-3" />
+                          <p className="text-sm text-gray-700">No reports yet. Generate your first SEO report.</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -357,7 +357,7 @@ export default function SEOHubPage() {
                               <FileText size={18} className="text-green-500 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-800">{r.title || r.report_type}</p>
-                                <p className="text-sm text-gray-400">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p>
+                                <p className="text-sm text-gray-700">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p>
                               </div>
                               <span className={`text-[12px] px-2 py-0.5 rounded-full font-medium ${r.shared_with_client ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{r.shared_with_client ? 'Shared' : r.status}</span>
                             </div>
@@ -380,20 +380,20 @@ function StatMini({ label, value }) {
   return (
     <div className="bg-gray-50 rounded-lg p-3">
       <p className="text-lg font-bold text-gray-800">{value}</p>
-      <p className="text-[13px] text-gray-500 font-medium">{label}</p>
+      <p className="text-[13px] text-gray-700 font-medium">{label}</p>
     </div>
   )
 }
 
 function PositionBadge({ pos, prev }) {
-  if (!pos) return <span className="text-gray-400">—</span>
+  if (!pos) return <span className="text-gray-700">—</span>
   const diff = prev ? prev - pos : 0
   return (
     <span className="inline-flex items-center gap-1">
-      <span className={`font-bold ${pos <= 3 ? 'text-green-600' : pos <= 10 ? 'text-blue-600' : pos <= 20 ? 'text-yellow-600' : 'text-gray-500'}`}>{Math.round(pos * 10) / 10}</span>
+      <span className={`font-bold ${pos <= 3 ? 'text-green-600' : pos <= 10 ? 'text-blue-600' : pos <= 20 ? 'text-yellow-600' : 'text-gray-700'}`}>{Math.round(pos * 10) / 10}</span>
       {diff > 0 && <ArrowUp size={10} className="text-green-500" />}
       {diff < 0 && <ArrowDown size={10} className="text-red-500" />}
-      {diff === 0 && prev && <Minus size={10} className="text-gray-400" />}
+      {diff === 0 && prev && <Minus size={10} className="text-gray-700" />}
     </span>
   )
 }

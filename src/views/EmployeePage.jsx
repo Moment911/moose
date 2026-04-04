@@ -71,14 +71,14 @@ export default function EmployeePage() {
         <main className="flex-1 overflow-y-auto bg-white">
           <div style={{ background: "#231f20" }} className="hidden md:block px-8 py-6">
             <h1 className="text-2xl font-bold text-white">Team</h1>
-            <p className="text-sm text-gray-400 mt-1">{staff.length} team member{staff.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-gray-700 mt-1">{staff.length} team member{staff.length !== 1 ? 's' : ''}</p>
           </div>
           <div className="px-4 md:px-8 py-4 md:py-6">
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-              <div className="grid grid-cols-[1fr_180px_100px_100px_80px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider border-b">
+              <div className="grid grid-cols-[1fr_180px_100px_100px_80px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-700 uppercase tracking-wider border-b">
                 <div>Name</div><div>Email</div><div>Role</div><div>Clients</div><div>Status</div>
               </div>
-              {staff.length === 0 && <div className="py-16 text-center text-sm text-gray-400">No team members yet. Add them in Admin Portal.</div>}
+              {staff.length === 0 && <div className="py-16 text-center text-sm text-gray-700">No team members yet. Add them in Admin Portal.</div>}
               {staff.map(s => {
                 const clientCount = access.filter(a => a.staff_id === s.id && a.can_view).length
                 return (
@@ -88,10 +88,10 @@ export default function EmployeePage() {
                       <div className="w-8 h-8 rounded-full bg-brand-500 text-white text-sm font-bold flex items-center justify-center">{(s.name || s.email || '?')[0].toUpperCase()}</div>
                       <span className="text-sm font-medium text-gray-900">{s.name || s.email}</span>
                     </div>
-                    <div className="text-sm text-gray-500 truncate">{s.email}</div>
+                    <div className="text-sm text-gray-700 truncate">{s.email}</div>
                     <div><span className={`text-sm px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[s.role] || ROLES_CLS.viewer}`}>{s.role}</span></div>
-                    <div className="text-sm text-gray-500">{clientCount} client{clientCount !== 1 ? 's' : ''}</div>
-                    <div><span className={`text-sm px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{s.active ? 'Active' : 'Off'}</span></div>
+                    <div className="text-sm text-gray-700">{clientCount} client{clientCount !== 1 ? 's' : ''}</div>
+                    <div><span className={`text-sm px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{s.active ? 'Active' : 'Off'}</span></div>
                   </div>
                 )
               })}
@@ -115,14 +115,14 @@ export default function EmployeePage() {
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-white">
         <div style={{ background: "#231f20" }} className="hidden md:block px-8 py-6">
-          <button onClick={() => navigate('/employees')} className="text-gray-400 hover:text-white text-sm flex items-center gap-1 mb-2"><ChevronLeft size={14} /> Team</button>
+          <button onClick={() => navigate('/employees')} className="text-gray-700 hover:text-white text-sm flex items-center gap-1 mb-2"><ChevronLeft size={14} /> Team</button>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-brand-500 text-white text-xl font-bold flex items-center justify-center">{(selectedStaff.name || selectedStaff.email)[0].toUpperCase()}</div>
             <div>
               <h1 className="text-2xl font-bold text-white">{selectedStaff.name || selectedStaff.email}</h1>
               <div className="flex items-center gap-3 mt-1">
                 <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[selectedStaff.role] || ROLES_CLS.viewer}`}>{selectedStaff.role}</span>
-                <span className="text-sm text-gray-400">{selectedStaff.email}</span>
+                <span className="text-sm text-gray-700">{selectedStaff.email}</span>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function EmployeePage() {
               <div key={s.label} className="card p-4">
                 <I size={16} strokeWidth={1.5} className="text-brand-500 mb-2" />
                 <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
+                <p className="text-sm text-gray-700">{s.label}</p>
               </div>
             )})}
           </div>
@@ -150,17 +150,17 @@ export default function EmployeePage() {
             <div>
               <h2 className="text-sm font-semibold text-gray-900 mb-3">Assigned Tasks ({tasks.length})</h2>
               <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100 overflow-hidden max-h-[400px] overflow-y-auto">
-                {tasks.length === 0 && <div className="py-8 text-center text-sm text-gray-400">No tasks assigned</div>}
+                {tasks.length === 0 && <div className="py-8 text-center text-sm text-gray-700">No tasks assigned</div>}
                 {tasks.map(t => (
                   <div key={t.id} className="px-4 py-3 hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/task/${t.id}`)}>
                     <div className="flex items-center gap-2">
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${t.completed ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
                         {t.completed && <CheckSquare size={8} className="text-white" />}
                       </div>
-                      <span className={`text-sm flex-1 ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>{t.title}</span>
-                      {t.due_date && <span className={`text-[13px] ${overdueTasks.includes(t) ? 'text-brand-500 font-medium' : 'text-gray-400'}`}>{format(new Date(t.due_date), 'MMM d')}</span>}
+                      <span className={`text-sm flex-1 ${t.completed ? 'line-through text-gray-700' : 'text-gray-900'}`}>{t.title}</span>
+                      {t.due_date && <span className={`text-[13px] ${overdueTasks.includes(t) ? 'text-brand-500 font-medium' : 'text-gray-700'}`}>{format(new Date(t.due_date), 'MMM d')}</span>}
                     </div>
-                    {t.projects?.name && <p className="text-[13px] text-gray-400 ml-6 mt-0.5">{t.projects.clients?.name} / {t.projects.name}</p>}
+                    {t.projects?.name && <p className="text-[13px] text-gray-700 ml-6 mt-0.5">{t.projects.clients?.name} / {t.projects.name}</p>}
                   </div>
                 ))}
               </div>
@@ -171,10 +171,10 @@ export default function EmployeePage() {
                 {staffClients.map(c => (
                   <div key={c.id} className="card px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm" onClick={() => navigate(`/client/${c.id}`)}>
                     <span className="text-sm font-medium text-gray-900">{c.name}</span>
-                    <span className="text-sm text-gray-400">{c.email}</span>
+                    <span className="text-sm text-gray-700">{c.email}</span>
                   </div>
                 ))}
-                {staffClients.length === 0 && <p className="text-sm text-gray-400">No clients assigned</p>}
+                {staffClients.length === 0 && <p className="text-sm text-gray-700">No clients assigned</p>}
               </div>
             </div>
 
@@ -193,7 +193,7 @@ export default function EmployeePage() {
                   </button>
                 </div>
 
-                {aiLoading && <div className="text-center py-8"><Loader2 size={24} className="text-brand-500 animate-spin mx-auto mb-2" /><p className="text-sm text-gray-400">Generating summary...</p></div>}
+                {aiLoading && <div className="text-center py-8"><Loader2 size={24} className="text-brand-500 animate-spin mx-auto mb-2" /><p className="text-sm text-gray-700">Generating summary...</p></div>}
 
                 {aiSummary && !aiLoading && (
                   <div>
@@ -205,7 +205,7 @@ export default function EmployeePage() {
                   </div>
                 )}
 
-                {!aiSummary && !aiLoading && <p className="text-sm text-gray-400 text-center py-6">Click a button above to generate an AI work summary for {selectedStaff.name || 'this team member'}.</p>}
+                {!aiSummary && !aiLoading && <p className="text-sm text-gray-700 text-center py-6">Click a button above to generate an AI work summary for {selectedStaff.name || 'this team member'}.</p>}
               </div>
             </div>
           </div>

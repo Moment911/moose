@@ -264,8 +264,8 @@ function ConnectionCard({ conn, onSetup }) {
                 </span>
             }
           </div>
-          <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.5 }}>{conn.desc}</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 3 }}>{conn.free}</div>
+          <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.5 }}>{conn.desc}</div>
+          <div style={{ fontSize: 13, color: '#4b5563', marginTop: 3 }}>{conn.free}</div>
         </div>
       </div>
 
@@ -276,7 +276,7 @@ function ConnectionCard({ conn, onSetup }) {
         </code>
         <button
           onClick={() => { navigator.clipboard.writeText(conn.env); toast.success('Copied!') }}
-          style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#6b7280' }}
+          style={{ padding: '3px 8px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#374151' }}
         >
           <Copy size={10} /> Copy
         </button>
@@ -336,18 +336,18 @@ function SetupGuide({ conn, onClose }) {
             </div>
             <div>
               <div style={{ fontSize: 17, fontWeight: 800, color: '#111' }}>Connect {conn.name}</div>
-              <div style={{ fontSize: 14, color: '#9ca3af' }}>{conn.free}</div>
+              <div style={{ fontSize: 14, color: '#4b5563' }}>{conn.free}</div>
             </div>
-            <button onClick={onClose} style={{ marginLeft: 'auto', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: '#6b7280' }}>
+            <button onClick={onClose} style={{ marginLeft: 'auto', padding: 8, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: '#374151' }}>
               <Check size={14} />
             </button>
           </div>
-          <p style={{ fontSize: 15, color: '#6b7280', lineHeight: 1.6 }}>{conn.desc}</p>
+          <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{conn.desc}</p>
         </div>
 
         {/* Steps */}
         <div style={{ padding: '20px 24px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>
             Setup Steps
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
@@ -391,7 +391,7 @@ function SetupGuide({ conn, onClose }) {
               <ExternalLink size={14} /> Open Vercel
             </a>
           </div>
-          <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', marginTop: 10 }}>
+          <div style={{ fontSize: 13, color: '#4b5563', textAlign: 'center', marginTop: 10 }}>
             Both open in a new tab — come back and click Test when done
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function SettingsPage() {
               <Settings size={20} color="#111" />
               <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111', margin: 0 }}>Settings</h1>
             </div>
-            <p style={{ fontSize: 15, color: '#9ca3af', margin: 0 }}>Configure your Moose AI platform and API connections</p>
+            <p style={{ fontSize: 15, color: '#4b5563', margin: 0 }}>Configure your Moose AI platform and API connections</p>
           </div>
 
           {/* Tabs */}
@@ -504,9 +504,9 @@ export default function SettingsPage() {
               {/* Cards by group */}
               {Object.entries(byGroup).map(([group, conns]) => (
                 <div key={group} style={{ marginBottom: 28 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                     {group}
-                    <span style={{ fontSize: 13, background: '#f3f4f6', color: '#6b7280', padding: '1px 8px', borderRadius: 20, fontWeight: 700, textTransform: 'none', letterSpacing: 0 }}>
+                    <span style={{ fontSize: 13, background: '#f3f4f6', color: '#374151', padding: '1px 8px', borderRadius: 20, fontWeight: 700, textTransform: 'none', letterSpacing: 0 }}>
                       {conns.filter(c => !!process.env[c.env]).length}/{conns.length} connected
                     </span>
                     {group === 'Core — Required' && conns.some(c => !process.env[c.env]) && (
@@ -533,7 +533,7 @@ export default function SettingsPage() {
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#111', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <Sliders size={16} color={ACCENT} /> Scout Score Weights
                   </div>
-                  <div style={{ fontSize: 15, color: '#6b7280' }}>Adjust how each factor contributes to the lead score</div>
+                  <div style={{ fontSize: 15, color: '#374151' }}>Adjust how each factor contributes to the lead score</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: totalWeight === 100 ? '#16a34a' : '#dc2626' }}>
@@ -541,7 +541,7 @@ export default function SettingsPage() {
                     {totalWeight !== 100 && <span style={{ fontSize: 13, marginLeft: 6, color: '#dc2626' }}>(must equal 100%)</span>}
                   </span>
                   <button onClick={() => { setWeights({ ...WEIGHT_DEFAULTS }); toast.success('Reset to defaults') }}
-                    style={{ padding: '6px 14px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 14, cursor: 'pointer', color: '#6b7280' }}>
+                    style={{ padding: '6px 14px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 14, cursor: 'pointer', color: '#374151' }}>
                     Reset defaults
                   </button>
                 </div>
@@ -552,7 +552,7 @@ export default function SettingsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{w.label}</div>
-                        <div style={{ fontSize: 14, color: '#9ca3af' }}>{w.desc}</div>
+                        <div style={{ fontSize: 14, color: '#4b5563' }}>{w.desc}</div>
                       </div>
                       <span style={{ fontSize: 18, fontWeight: 900, color: ACCENT, minWidth: 48, textAlign: 'right' }}>{weights[w.key]}%</span>
                     </div>
@@ -569,7 +569,7 @@ export default function SettingsPage() {
           {tab === 'notifications' && (
             <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '24px' }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#111', marginBottom: 4 }}>Notification Preferences</div>
-              <div style={{ fontSize: 15, color: '#6b7280', marginBottom: 20 }}>Choose what you want to be alerted about</div>
+              <div style={{ fontSize: 15, color: '#374151', marginBottom: 20 }}>Choose what you want to be alerted about</div>
               {[
                 { label: 'New negative reviews', desc: 'When a 1 or 2-star review comes in for any client', default: true },
                 { label: 'Hot Scout leads found', desc: 'When a search returns leads scored 75+', default: true },
@@ -581,7 +581,7 @@ export default function SettingsPage() {
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: i < 5 ? '1px solid #f3f4f6' : 'none' }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{n.label}</div>
-                    <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 2 }}>{n.desc}</div>
+                    <div style={{ fontSize: 14, color: '#4b5563', marginTop: 2 }}>{n.desc}</div>
                   </div>
                   <label style={{ position: 'relative', width: 44, height: 24, cursor: 'pointer', flexShrink: 0 }}>
                     <input type="checkbox" defaultChecked={n.default} style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }} />
@@ -599,7 +599,7 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '24px' }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#111', marginBottom: 4 }}>Security Settings</div>
-                <div style={{ fontSize: 15, color: '#6b7280', marginBottom: 20 }}>Authentication and access controls for your agency</div>
+                <div style={{ fontSize: 15, color: '#374151', marginBottom: 20 }}>Authentication and access controls for your agency</div>
                 {[
                   { label: 'Two-factor authentication', desc: 'Require 2FA for all team members', icon: Shield, action: 'Configure', href: null },
                   { label: 'Team access management', desc: 'Manage roles, permissions, and seat assignments', icon: Users, action: 'Manage team', href: '/agency-settings' },
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{item.label}</div>
-                        <div style={{ fontSize: 14, color: '#9ca3af' }}>{item.desc}</div>
+                        <div style={{ fontSize: 14, color: '#4b5563' }}>{item.desc}</div>
                       </div>
                       {item.href && item.href.startsWith('http') ? (
                         <a href={item.href} target="_blank" rel="noreferrer"

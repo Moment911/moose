@@ -38,7 +38,7 @@ export default function LoginPage() {
             </div>
             <span className="text-white font-semibold text-lg tracking-tight">Moose AI</span>
           </div>
-          <p className="text-gray-400 text-sm">Design feedback made simple</p>
+          <p className="text-gray-700 text-sm">Design feedback made simple</p>
         </div>
 
         {/* Card */}
@@ -81,8 +81,8 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-        <p className="text-center text-gray-500 text-sm mt-6">
-          Moose AI &middot; <a href="/privacy" target="_blank" style={{ color: '#9ca3af', textDecoration: 'underline' }}>Privacy Policy</a>
+        <p className="text-center text-gray-700 text-sm mt-6">
+          Moose AI &middot; <a href="/privacy" target="_blank" style={{ color: '#4b5563', textDecoration: 'underline' }}>Privacy Policy</a>
         </p>
       </div>
     </div>

@@ -71,7 +71,7 @@ export default function WordPressPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">WordPress Sites</h1>
-              <p className="text-sm text-gray-500 mt-1">{sites.length} connected sites</p>
+              <p className="text-sm text-gray-700 mt-1">{sites.length} connected sites</p>
             </div>
             <button onClick={() => { setShowAdd(true); setForm({ site_name: '', site_url: '', client_id: '' }) }}
               className="btn-primary">
@@ -81,7 +81,7 @@ export default function WordPressPage() {
 
           {/* Search */}
           <div className="relative mb-6">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700" />
             <input type="text" placeholder="Search sites..." value={search}
               onChange={e => setSearch(e.target.value)}
               className="input pl-9" />
@@ -93,7 +93,7 @@ export default function WordPressPage() {
               <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold">Add WordPress Site</h2>
-                  <button onClick={() => setShowAdd(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+                  <button onClick={() => setShowAdd(false)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
                 </div>
                 <form onSubmit={handleAdd}>
                   <div className="space-y-3">
@@ -123,11 +123,11 @@ export default function WordPressPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Site</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Client</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">License Key</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Last Ping</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-700">Site</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-700">Client</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-700">Status</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-700">License Key</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-700">Last Ping</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -136,11 +136,11 @@ export default function WordPressPage() {
                   <tr key={site.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Globe size={14} className="text-gray-400" />
+                        <Globe size={14} className="text-gray-700" />
                         <div>
                           <p className="font-medium text-gray-900">{site.site_name}</p>
                           <a href={site.site_url} target="_blank" rel="noopener noreferrer"
-                            className="text-sm text-gray-400 hover:text-brand-500 flex items-center gap-1">
+                            className="text-sm text-gray-700 hover:text-brand-500 flex items-center gap-1">
                             {site.site_url} <ExternalLink size={10} />
                           </a>
                         </div>
@@ -153,7 +153,7 @@ export default function WordPressPage() {
                           <Wifi size={12} /> Connected
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-gray-400 text-sm font-medium">
+                        <span className="inline-flex items-center gap-1 text-gray-700 text-sm font-medium">
                           <WifiOff size={12} /> Pending
                         </span>
                       )}
@@ -164,19 +164,19 @@ export default function WordPressPage() {
                           {site.license_key}
                         </code>
                         <button onClick={() => copyKey(site.license_key)}
-                          className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600">
+                          className="p-1 hover:bg-gray-100 rounded text-gray-700 hover:text-gray-600">
                           <Copy size={12} />
                         </button>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-700">
                       {site.last_ping ? formatDistanceToNow(new Date(site.last_ping), { addSuffix: true }) : 'Never'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="relative">
                         <button onClick={() => setMenuOpen(menuOpen === site.id ? null : site.id)}
                           className="p-1 rounded hover:bg-gray-100">
-                          <MoreHorizontal size={16} className="text-gray-400" />
+                          <MoreHorizontal size={16} className="text-gray-700" />
                         </button>
                         {menuOpen === site.id && (
                           <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 w-36">
@@ -197,7 +197,7 @@ export default function WordPressPage() {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div className="text-center py-16 text-gray-400">
+              <div className="text-center py-16 text-gray-700">
                 {search ? 'No sites match your search' : 'No WordPress sites yet — add your first one above'}
               </div>
             )}
@@ -209,7 +209,7 @@ export default function WordPressPage() {
               {sites.filter(s => s.connected).map(site => (
                 <div key={site.id} className="card p-4">
                   <p className="font-medium text-sm text-gray-900">{site.site_name}</p>
-                  <div className="mt-2 space-y-1 text-sm text-gray-500">
+                  <div className="mt-2 space-y-1 text-sm text-gray-700">
                     {site.wp_version && <p>WordPress {site.wp_version}</p>}
                     {site.plugin_version && <p>Moose Plugin v{site.plugin_version}</p>}
                   </div>

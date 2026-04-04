@@ -113,7 +113,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
             {isNegative && <span style={{ fontSize:13, fontWeight:800, color:'#dc2626', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:20, padding:'2px 8px' }}>⚠ NEEDS ATTENTION</span>}
           </div>
           <StarRow rating={review.star_rating} />
-          <div style={{ fontSize:14, color:'#9ca3af', marginTop:4 }}>
+          <div style={{ fontSize:14, color:'#4b5563', marginTop:4 }}>
             {review.reviewed_at ? formatDistanceToNow(new Date(review.reviewed_at), { addSuffix:true }) : 'Recently'}
             {review.review_url && <a href={review.review_url} target="_blank" rel="noreferrer" style={{ marginLeft:10, color:cfg.color, fontSize:13 }}>View on {cfg.label} ↗</a>}
           </div>
@@ -130,7 +130,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
           <button onClick={()=>onFeature(review.id, !review.is_featured)} style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', color: review.is_featured?'#f59e0b':'#9ca3af' }}>
             <Star size={13} fill={review.is_featured?'#f59e0b':'none'}/>
           </button>
-          <button onClick={()=>setExpanded(e=>!e)} style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#6b7280' }}>
+          <button onClick={()=>setExpanded(e=>!e)} style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151' }}>
             <MessageSquare size={13}/>
           </button>
         </div>
@@ -159,7 +159,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
             placeholder="Write a response, or click AI Write Response to generate one in your brand voice…"
             style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', lineHeight:1.65, color:'#111', background:'#fff', fontFamily:'inherit', boxSizing:'border-box' }}/>
           <div style={{ display:'flex', gap:8, marginTop:8, justifyContent:'flex-end' }}>
-            <span style={{ fontSize:13, color:'#9ca3af', marginRight:'auto', alignSelf:'center' }}>{response.length}/150 chars recommended</span>
+            <span style={{ fontSize:13, color:'#4b5563', marginRight:'auto', alignSelf:'center' }}>{response.length}/150 chars recommended</span>
             <button onClick={()=>{ navigator.clipboard.writeText(response); toast.success('Copied — paste in '+cfg.label) }}
               style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5 }}>
               <Copy size={11}/> Copy
@@ -210,7 +210,7 @@ window._mooseReviews = {
         </div>
         {/* Master ON/OFF toggle — payment gate */}
         <div>
-          <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5, textAlign:'center' }}>Widget {settings.widget_enabled?'ON':'OFF'}</div>
+          <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5, textAlign:'center' }}>Widget {settings.widget_enabled?'ON':'OFF'}</div>
           <div onClick={() => onChange('widget_enabled', !settings.widget_enabled)}
             style={{ width:56, height:28, borderRadius:14, background:settings.widget_enabled?'#16a34a':'#d1d5db', cursor:'pointer', position:'relative', transition:'background .2s' }}>
             <div style={{ position:'absolute', top:4, left:settings.widget_enabled?30:4, width:20, height:20, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 4px rgba(0,0,0,.2)' }}/>
@@ -309,7 +309,7 @@ window._mooseReviews = {
                   </button>
                 ))}
               </div>
-              <div style={{ fontSize:13, color:'#9ca3af', marginTop:8 }}>
+              <div style={{ fontSize:13, color:'#4b5563', marginTop:8 }}>
                 Only reviews with {settings.min_stars}+ stars will appear on the website. Recommended: 4+
               </div>
             </div>
@@ -332,7 +332,7 @@ window._mooseReviews = {
                     }}
                       style={{ flex:1, padding:'10px', borderRadius:10, border:`2px solid ${active?cfg.color:'#e5e7eb'}`, background:active?cfg.bg:'#fff', cursor:'pointer' }}>
                       <div style={{ fontSize:20, marginBottom:4 }}>{cfg.icon}</div>
-                      <div style={{ fontSize:14, fontWeight:700, color:active?cfg.color:'#9ca3af' }}>{cfg.label}</div>
+                      <div style={{ fontSize:14, fontWeight:700, color:active?cfg.color:'#4b5563' }}>{cfg.label}</div>
                     </button>
                   )
                 })}
@@ -505,14 +505,14 @@ export default function ReviewsPage() {
       <div style={{ width:240, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0 }}>
         <div style={{ padding:'16px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:10 }}>Reviews</div>
-          <div style={{ fontSize:13, color:'#9ca3af' }}>{clients.length} clients</div>
+          <div style={{ fontSize:13, color:'#4b5563' }}>{clients.length} clients</div>
         </div>
         <div style={{ flex:1, overflowY:'auto' }}>
           {clients.map(c=>(
             <div key={c.id} onClick={()=>loadClientData(c)}
               style={{ padding:'11px 16px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#f0fbfc':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
               <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
-              <div style={{ fontSize:13, color:'#9ca3af' }}>{c.industry}</div>
+              <div style={{ fontSize:13, color:'#4b5563' }}>{c.industry}</div>
             </div>
           ))}
         </div>
@@ -521,7 +521,7 @@ export default function ReviewsPage() {
       {/* Main */}
       <div style={{ flex:1, overflowY:'auto' }}>
         {!selectedClient ? (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#9ca3af' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#4b5563' }}>
             <Star size={48} strokeWidth={1}/>
             <div style={{ fontSize:16, fontWeight:700 }}>Select a client to manage their reviews</div>
           </div>
@@ -535,7 +535,7 @@ export default function ReviewsPage() {
             <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 24px', display:'flex', alignItems:'center', gap:14, position:'sticky', top:0, zIndex:10 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>{selectedClient.name}</div>
-                <div style={{ fontSize:14, color:'#9ca3af' }}>{reviews.length} total reviews · {avgRating}★ average</div>
+                <div style={{ fontSize:14, color:'#4b5563' }}>{reviews.length} total reviews · {avgRating}★ average</div>
               </div>
               <div style={{ display:'flex', gap:8 }}>
                 {reviews.length===0 && <button onClick={addSampleReviews} style={{ padding:'7px 14px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}>+ Add Sample Reviews</button>}
@@ -559,7 +559,7 @@ export default function ReviewsPage() {
                   ].map(s=>(
                     <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
                       <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-                      <div style={{ fontSize:13, color:'#9ca3af', marginTop:3 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'#4b5563', marginTop:3 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -576,7 +576,7 @@ export default function ReviewsPage() {
                 {/* Filters */}
                 <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
                   <div style={{ position:'relative' }}>
-                    <Search size={12} style={{ position:'absolute', left:9, top:'50%', transform:'translateY(-50%)', color:'#9ca3af' }}/>
+                    <Search size={12} style={{ position:'absolute', left:9, top:'50%', transform:'translateY(-50%)', color:'#4b5563' }}/>
                     <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search reviews…" style={{ padding:'7px 10px 7px 26px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', width:180 }}/>
                   </div>
                   <select value={filterPlatform} onChange={e=>setFilterPlatform(e.target.value)} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, cursor:'pointer', outline:'none' }}>
@@ -599,7 +599,7 @@ export default function ReviewsPage() {
 
                 {/* Review list */}
                 {filtered.length===0 ? (
-                  <div style={{ textAlign:'center', padding:'48px 20px', color:'#9ca3af' }}>
+                  <div style={{ textAlign:'center', padding:'48px 20px', color:'#4b5563' }}>
                     <Star size={40} strokeWidth={1} style={{ margin:'0 auto 12px' }}/>
                     <div style={{ fontSize:15, fontWeight:700 }}>No reviews match your filters</div>
                     <div style={{ fontSize:15, marginTop:6 }}>Reviews from Google, Yelp, and Facebook will appear here automatically once connected</div>
@@ -616,7 +616,7 @@ export default function ReviewsPage() {
               {showWidget && widgetSettings && (
                 <div style={{ borderLeft:'1px solid #e5e7eb', background:'#f9fafb', overflowY:'auto', padding:'20px 20px' }}>
                   <WidgetSettings settings={widgetSettings} onChange={updateWidgetSetting} clientName={selectedClient.name} appUrl={appUrl}/>
-                  {savingSettings && <div style={{ fontSize:13, color:'#9ca3af', textAlign:'center', marginTop:10 }}>↻ Auto-saving…</div>}
+                  {savingSettings && <div style={{ fontSize:13, color:'#4b5563', textAlign:'center', marginTop:10 }}>↻ Auto-saving…</div>}
                 </div>
               )}
             </div>

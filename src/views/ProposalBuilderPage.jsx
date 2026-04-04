@@ -124,10 +124,10 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
             ${Number(section.price).toLocaleString()} {PRICE_LABELS[section.price_type]||''}
           </span>
         )}
-        {section.is_optional && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', fontWeight:700 }}>Optional</span>}
+        {section.is_optional && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f3f4f6', color:'#374151', fontWeight:700 }}>Optional</span>}
         <div style={{ display:'flex', gap:4 }} onClick={e=>e.stopPropagation()}>
-          {index > 0     && <button onClick={()=>onMoveUp(index)}   style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}><ChevronUp size={13}/></button>}
-          {index < total-1 && <button onClick={()=>onMoveDown(index)} style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}><ChevronDown size={13}/></button>}
+          {index > 0     && <button onClick={()=>onMoveUp(index)}   style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#4b5563' }}><ChevronUp size={13}/></button>}
+          {index < total-1 && <button onClick={()=>onMoveDown(index)} style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#4b5563' }}><ChevronDown size={13}/></button>}
           <button onClick={()=>onDelete(index)} style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#fca5a5' }}><Trash2 size={13}/></button>
         </div>
         {expanded ? <ChevronUp size={13} color="#9ca3af"/> : <ChevronDown size={13} color="#9ca3af"/>}
@@ -137,7 +137,7 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
         <div style={{ padding:'0 16px 16px', borderTop:'1px solid #f9fafb' }}>
           {/* Description */}
           <div style={{ marginTop:12, marginBottom:12 }}>
-            <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>Description</label>
+            <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>Description</label>
             <AITextarea value={section.content} onChange={v=>onChange({...section,content:v})}
               placeholder="Describe what this service includes and the value it delivers…"
               rows={3} clientContext={clientContext} fieldName={section.title + ' service description'}/>
@@ -146,7 +146,7 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
           {/* Deliverables */}
           <div style={{ marginBottom:12 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em' }}>Deliverables</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em' }}>Deliverables</label>
               <button onClick={aiDeliverables} disabled={generatingDeliverables}
                 style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
                 {generatingDeliverables?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>}
@@ -171,29 +171,29 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
           {/* Pricing row */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 130px 160px auto', gap:10, alignItems:'end' }}>
             <div>
-              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Timeline</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Timeline</label>
               <input value={section.timeline||''} onChange={e=>onChange({...section,timeline:e.target.value})}
                 placeholder="e.g. 4–6 weeks, Ongoing"
                 style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111' }}/>
             </div>
             <div>
-              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Price</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Price</label>
               <div style={{ position:'relative' }}>
-                <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:15, color:'#9ca3af' }}>$</span>
+                <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:15, color:'#4b5563' }}>$</span>
                 <input type="number" value={section.price||''} onChange={e=>onChange({...section,price:+e.target.value})}
                   placeholder="0"
                   style={{ width:'100%', padding:'8px 12px 8px 24px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111' }}/>
               </div>
             </div>
             <div>
-              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Billing type</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Billing type</label>
               <select value={section.price_type||'monthly'} onChange={e=>onChange({...section,price_type:e.target.value})}
                 style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', background:'#fff' }}>
                 {Object.entries(PRICE_LABELS).map(([k,v])=><option key={k} value={k}>{k.charAt(0).toUpperCase()+k.slice(1).replace('_',' ')} {v}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Optional</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Optional</label>
               <button onClick={()=>onChange({...section,is_optional:!section.is_optional})}
                 style={{ padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:section.is_optional?ACCENT:'#9ca3af', display:'flex', alignItems:'center', gap:5, fontSize:14 }}>
                 {section.is_optional?<ToggleRight size={15} color={ACCENT}/>:<ToggleLeft size={15}/>}
@@ -221,7 +221,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
         <div style={{ padding:'20px 20px 14px', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
             <h3 style={{ fontSize:17, fontWeight:800, color:'#111' }}>Add from Service Library</h3>
-            <button onClick={onClose} style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:4 }}><X size={18}/></button>
+            <button onClick={onClose} style={{ border:'none', background:'none', cursor:'pointer', color:'#4b5563', padding:4 }}><X size={18}/></button>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8, background:'#f9fafb', borderRadius:10, padding:'8px 14px', border:'1.5px solid #e5e7eb' }}>
             <Edit3 size={14} color="#9ca3af"/>
@@ -235,7 +235,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
             if (!items.length) return null
             return (
               <div key={cat} style={{ marginBottom:18 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 }}>
                   {cat.replace('_',' ')}
                 </div>
                 {items.map(m => (
@@ -245,12 +245,12 @@ function ModulePicker({ modules, onAdd, onClose }) {
                     onClick={()=>{ onAdd(m); onClose() }}>
                     <div style={{ flex:1 }}>
                       <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:2 }}>{m.name}</div>
-                      <div style={{ fontSize:14, color:'#9ca3af', lineHeight:1.5 }}>{m.description?.slice(0,80)}{m.description?.length>80?'…':''}</div>
+                      <div style={{ fontSize:14, color:'#4b5563', lineHeight:1.5 }}>{m.description?.slice(0,80)}{m.description?.length>80?'…':''}</div>
                     </div>
                     {m.price > 0 && (
                       <div style={{ textAlign:'right', flexShrink:0 }}>
                         <div style={{ fontSize:15, fontWeight:800, color:ACCENT }}>${Number(m.price).toLocaleString()}</div>
-                        <div style={{ fontSize:13, color:'#9ca3af' }}>{PRICE_LABELS[m.price_type]||''}</div>
+                        <div style={{ fontSize:13, color:'#4b5563' }}>{PRICE_LABELS[m.price_type]||''}</div>
                       </div>
                     )}
                     <Plus size={16} color={ACCENT}/>
@@ -438,7 +438,7 @@ export default function ProposalBuilderPage() {
         {/* Top bar */}
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'10px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
           <button onClick={()=>navigate('/proposals')}
-            style={{ display:'flex', alignItems:'center', gap:5, border:'none', background:'none', cursor:'pointer', color:'#6b7280', fontSize:15 }}>
+            style={{ display:'flex', alignItems:'center', gap:5, border:'none', background:'none', cursor:'pointer', color:'#374151', fontSize:15 }}>
             <ChevronLeft size={15}/> Proposals
           </button>
           <div style={{ width:'1px', height:16, background:'#e5e7eb' }}/>
@@ -446,7 +446,7 @@ export default function ProposalBuilderPage() {
             style={{ fontSize:15, fontWeight:700, color:'#111', border:'none', outline:'none', flex:1, background:'transparent' }}
             placeholder="Proposal title…"/>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:14, color:'#9ca3af', display:'flex', alignItems:'center', gap:5 }}>
+            <span style={{ fontSize:14, color:'#4b5563', display:'flex', alignItems:'center', gap:5 }}>
               {saving ? <><Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/> Saving…</> : <><Check size={11} color="#16a34a"/> Saved</>}
             </span>
           </div>
@@ -488,7 +488,7 @@ export default function ProposalBuilderPage() {
             <>
               {/* Left: settings */}
               <div style={{ width:280, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', overflowY:'auto', padding:'18px 16px' }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Proposal Settings</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Proposal Settings</div>
 
                 <div style={{ marginBottom:14 }}>
                   <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Client</label>
@@ -508,7 +508,7 @@ export default function ProposalBuilderPage() {
                 <div style={{ height:'0.5px', background:'#f3f4f6', margin:'14px 0' }}/>
 
                 {/* Pricing summary */}
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Pricing Summary</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Pricing Summary</div>
                 {totalMonthly > 0 && (
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151', marginBottom:6 }}>
                     <span>Monthly recurring</span>
@@ -522,7 +522,7 @@ export default function ProposalBuilderPage() {
                   </div>
                 )}
                 {sections.filter(s=>s.is_optional&&s.price>0).length > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#9ca3af', marginBottom:6 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#4b5563', marginBottom:6 }}>
                     <span>Optional add-ons</span>
                     <span>${sections.filter(s=>s.is_optional).reduce((sum,s)=>sum+(s.price||0),0).toLocaleString()}</span>
                   </div>
@@ -533,9 +533,9 @@ export default function ProposalBuilderPage() {
 
                 <div style={{ height:'0.5px', background:'#f3f4f6', margin:'14px 0' }}/>
 
-                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Client link</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Client link</div>
                 <div style={{ display:'flex', gap:6 }}>
-                  <div style={{ flex:1, fontSize:13, color:'#6b7280', background:'#f9fafb', padding:'7px 10px', borderRadius:8, border:'1px solid #f3f4f6', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  <div style={{ flex:1, fontSize:13, color:'#374151', background:'#f9fafb', padding:'7px 10px', borderRadius:8, border:'1px solid #f3f4f6', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     /p/{proposal.public_token?.slice(0,16)}…
                   </div>
                   <button onClick={()=>{ navigator.clipboard.writeText(`${window.location.origin}/p/${proposal.public_token}`); toast.success('Copied!') }}
@@ -550,7 +550,7 @@ export default function ProposalBuilderPage() {
 
                 {/* Intro */}
                 <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', marginBottom:14 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Introduction / Cover Letter</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Introduction / Cover Letter</div>
                   <AITextarea value={proposal.intro} onChange={v=>setProp('intro',v)}
                     placeholder="Start with a warm, personalized introduction. Reference the client's business and what you talked about…"
                     rows={4} clientContext={clientContext} fieldName="proposal introduction"/>
@@ -558,7 +558,7 @@ export default function ProposalBuilderPage() {
 
                 {/* Executive Summary */}
                 <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', marginBottom:14 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Executive Summary</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Executive Summary</div>
                   <AITextarea value={proposal.executive_summary} onChange={v=>setProp('executive_summary',v)}
                     placeholder="Summarize the challenge, your approach, and expected outcomes in 2-3 paragraphs…"
                     rows={5} clientContext={clientContext} fieldName="executive summary"/>
@@ -567,7 +567,7 @@ export default function ProposalBuilderPage() {
                 {/* Service sections */}
                 <div style={{ marginBottom:14 }}>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em' }}>Services & Deliverables</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em' }}>Services & Deliverables</div>
                     <button onClick={()=>setShowModulePicker(true)}
                       style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer' }}>
                       <Plus size={13}/> Add Service
@@ -579,7 +579,7 @@ export default function ProposalBuilderPage() {
                       onClick={()=>setShowModulePicker(true)}>
                       <Plus size={28} color={ACCENT} style={{ margin:'0 auto 12px' }}/>
                       <div style={{ fontSize:15, fontWeight:700, color:'#374151', marginBottom:6 }}>Add your first service</div>
-                      <div style={{ fontSize:15, color:'#9ca3af' }}>Pick from your service library or add a blank section</div>
+                      <div style={{ fontSize:15, color:'#4b5563' }}>Pick from your service library or add a blank section</div>
                     </div>
                   ) : (
                     sections.map((sec, i) => (
@@ -594,7 +594,7 @@ export default function ProposalBuilderPage() {
 
                   {sections.length > 0 && (
                     <button onClick={()=>setShowModulePicker(true)}
-                      style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed #e5e7eb`, background:'#fff', color:'#9ca3af', fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginTop:8 }}>
+                      style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed #e5e7eb`, background:'#fff', color:'#4b5563', fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginTop:8 }}>
                       <Plus size={13}/> Add another service
                     </button>
                   )}
@@ -602,7 +602,7 @@ export default function ProposalBuilderPage() {
 
                 {/* Terms */}
                 <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px' }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Terms & Conditions</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Terms & Conditions</div>
                   <AITextarea value={proposal.terms} onChange={v=>setProp('terms',v)}
                     placeholder="Payment terms, revision policy, cancellation terms, intellectual property rights…"
                     rows={5} clientContext={clientContext} fieldName="terms and conditions"/>
@@ -629,13 +629,13 @@ export default function ProposalBuilderPage() {
                 <div style={{ padding:'40px 48px' }}>
                   {proposal.intro && (
                     <div style={{ marginBottom:32 }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
                       <div style={{ fontSize:15, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.intro}</div>
                     </div>
                   )}
                   {proposal.executive_summary && (
                     <div style={{ marginBottom:32 }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Executive Summary</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Executive Summary</div>
                       <div style={{ fontSize:15, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.executive_summary}</div>
                     </div>
                   )}
@@ -643,7 +643,7 @@ export default function ProposalBuilderPage() {
                   {/* Sections */}
                   {sections.length > 0 && (
                     <div style={{ marginBottom:32 }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services & Deliverables</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services & Deliverables</div>
                       {sections.map((sec, i) => {
                         const delivs = typeof sec.deliverables==='string' ? JSON.parse(sec.deliverables||'[]') : (sec.deliverables||[])
                         return (
@@ -652,10 +652,10 @@ export default function ProposalBuilderPage() {
                               <h3 style={{ fontSize:16, fontWeight:800, color:'#111' }}>{sec.title}</h3>
                               <div style={{ textAlign:'right' }}>
                                 {sec.price > 0 && <span style={{ fontSize:16, fontWeight:800, color:ACCENT }}>${Number(sec.price).toLocaleString()} {PRICE_LABELS[sec.price_type]}</span>}
-                                {sec.is_optional && <div style={{ fontSize:13, color:'#9ca3af' }}>Optional</div>}
+                                {sec.is_optional && <div style={{ fontSize:13, color:'#4b5563' }}>Optional</div>}
                               </div>
                             </div>
-                            {sec.content && <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.7, marginBottom:10, whiteSpace:'pre-wrap' }}>{sec.content}</div>}
+                            {sec.content && <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, marginBottom:10, whiteSpace:'pre-wrap' }}>{sec.content}</div>}
                             {delivs.filter(d=>d).length > 0 && (
                               <div>
                                 {delivs.filter(d=>d).map((d,j)=>(
@@ -665,7 +665,7 @@ export default function ProposalBuilderPage() {
                                 ))}
                               </div>
                             )}
-                            {sec.timeline && <div style={{ fontSize:14, color:'#9ca3af', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/> {sec.timeline}</div>}
+                            {sec.timeline && <div style={{ fontSize:14, color:'#4b5563', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/> {sec.timeline}</div>}
                           </div>
                         )
                       })}
@@ -675,7 +675,7 @@ export default function ProposalBuilderPage() {
                   {/* Pricing summary */}
                   {(totalMonthly > 0 || totalOneTime > 0) && (
                     <div style={{ background:'#f9fafb', borderRadius:12, padding:'20px 24px', marginBottom:32, border:'1px solid #f3f4f6' }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12 }}>Investment Summary</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12 }}>Investment Summary</div>
                       {totalMonthly > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151', marginBottom:6 }}><span>Monthly retainer</span><span style={{ fontWeight:800 }}>${totalMonthly.toLocaleString()}/mo</span></div>}
                       {totalOneTime > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151' }}><span>One-time setup</span><span style={{ fontWeight:800 }}>${totalOneTime.toLocaleString()}</span></div>}
                     </div>
@@ -683,8 +683,8 @@ export default function ProposalBuilderPage() {
 
                   {proposal.terms && (
                     <div>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
-                      <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
+                      <div style={{ fontSize:15, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
                     </div>
                   )}
                 </div>
@@ -790,7 +790,7 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
             {proposal.type === 'agreement' ? 'Service Agreement' : 'Proposal'}: {proposal.title}
           </div>
           {(totalMonthly > 0 || totalOneTime > 0) && (
-            <div style={{ fontSize:15, color:'#6b7280' }}>
+            <div style={{ fontSize:15, color:'#374151' }}>
               {totalMonthly > 0 && <span>${totalMonthly.toLocaleString()}/mo recurring</span>}
               {totalMonthly > 0 && totalOneTime > 0 && <span> + </span>}
               {totalOneTime > 0 && <span>${totalOneTime.toLocaleString()} one-time</span>}
@@ -812,17 +812,17 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
             <div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
                 <div>
-                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Your name</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', display:'block', marginBottom:4 }}>Your name</label>
                   <input value={agencyName} onChange={e=>setAgencyName(e.target.value)} placeholder="Full legal name"
                     style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
                 <div>
-                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Title</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', display:'block', marginBottom:4 }}>Title</label>
                   <input value={signerTitle} onChange={e=>setSignerTitle(e.target.value)} placeholder="CEO, Account Manager…"
                     style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
               </div>
-              <label style={{ fontSize:14, color:'#6b7280', display:'flex', alignItems:'flex-start', gap:8, marginBottom:12, cursor:'pointer' }}>
+              <label style={{ fontSize:14, color:'#374151', display:'flex', alignItems:'flex-start', gap:8, marginBottom:12, cursor:'pointer' }}>
                 <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{ marginTop:2 }}/>
                 I authorize this {proposal.type || 'proposal'} and agree to its terms on behalf of the agency.
               </label>
@@ -854,15 +854,15 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
                   Copy client signing link →
                 </button>
               </div>
-              <div style={{ fontSize:14, color:'#9ca3af', textAlign:'center' }}>— or sign on their behalf —</div>
+              <div style={{ fontSize:14, color:'#4b5563', textAlign:'center' }}>— or sign on their behalf —</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, margin:'12px 0' }}>
                 <div>
-                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Client name</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', display:'block', marginBottom:4 }}>Client name</label>
                   <input value={signerName} onChange={e=>setSignerName(e.target.value)} placeholder="Client's full name"
                     style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
                 <div>
-                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Email</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', display:'block', marginBottom:4 }}>Email</label>
                   <input value={signerEmail} onChange={e=>setSignerEmail(e.target.value)} placeholder="client@email.com"
                     style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
@@ -892,15 +892,15 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
 function SignatureCanvas({ canvasRef, onStart, onMove, onEnd, onClear }) {
   return (
     <div>
-      <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:5 }}>Signature</label>
+      <label style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', display:'block', marginBottom:5 }}>Signature</label>
       <div style={{ border:'2px dashed #e5e7eb', borderRadius:12, overflow:'hidden', background:'#fff', position:'relative' }}>
         <canvas ref={canvasRef} width={600} height={140} style={{ width:'100%', cursor:'crosshair', display:'block' }}
           onMouseDown={onStart} onMouseMove={onMove} onMouseUp={onEnd} onMouseLeave={onEnd}
           onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd}/>
-        <button onClick={onClear} style={{ position:'absolute', top:8, right:8, fontSize:13, color:'#9ca3af', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
+        <button onClick={onClear} style={{ position:'absolute', top:8, right:8, fontSize:13, color:'#4b5563', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
         <div style={{ position:'absolute', bottom:6, left:0, right:0, borderTop:'1px solid #f3f4f6', pointerEvents:'none' }}/>
       </div>
-      <div style={{ fontSize:13, color:'#9ca3af', marginTop:4 }}>Draw signature above using mouse or touchscreen</div>
+      <div style={{ fontSize:13, color:'#4b5563', marginTop:4 }}>Draw signature above using mouse or touchscreen</div>
     </div>
   )
 }

@@ -275,15 +275,15 @@ export default function CampaignBuilderPage() {
         onClick={() => setSelectedBlockId(b.id)}>
         {/* Block controls */}
         <div className={`absolute -top-3 right-2 flex gap-0.5 ${isSel ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-10`}>
-          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, -1) }} className="w-5 h-5 bg-white shadow rounded text-gray-500 hover:text-gray-800 flex items-center justify-center"><ArrowUp size={10} /></button>
-          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, 1) }} className="w-5 h-5 bg-white shadow rounded text-gray-500 hover:text-gray-800 flex items-center justify-center"><ArrowDown size={10} /></button>
+          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, -1) }} className="w-5 h-5 bg-white shadow rounded text-gray-700 hover:text-gray-800 flex items-center justify-center"><ArrowUp size={10} /></button>
+          <button onClick={e => { e.stopPropagation(); moveBlock(b.id, 1) }} className="w-5 h-5 bg-white shadow rounded text-gray-700 hover:text-gray-800 flex items-center justify-center"><ArrowDown size={10} /></button>
           <button onClick={e => { e.stopPropagation(); deleteBlock(b.id) }} className="w-5 h-5 bg-white shadow rounded text-red-400 hover:text-red-600 flex items-center justify-center"><Trash2 size={10} /></button>
         </div>
         {/* Render */}
         {b.type === 'header' && <div style={{ background: d.bgColor, padding: '32px 40px', textAlign: 'center' }}><h1 style={{ margin: 0, color: d.textColor, fontSize: 28, fontWeight: 700 }}>{d.logoText}</h1>{d.tagline && <p style={{ margin: '8px 0 0', color: d.textColor, opacity: 0.7, fontSize: 15 }}>{d.tagline}</p>}</div>}
         {b.type === 'text' && <div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: d.align }}><p style={{ margin: 0, color: d.textColor, fontSize: d.fontSize, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{d.content}</p></div>}
         {b.type === 'heading' && <div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: d.align }}><h2 style={{ margin: 0, color: d.textColor, fontSize: d.fontSize, fontWeight: d.fontWeight || 700, lineHeight: 1.2 }}>{d.content}</h2></div>}
-        {b.type === 'image' && <div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: 'center' }}>{d.src ? <img src={d.src} alt={d.alt} style={{ maxWidth: '100%', borderRadius: 4 }} /> : <div style={{ background: '#f3f4f6', height: 200, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 15 }}>Click to add image</div>}</div>}
+        {b.type === 'image' && <div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: 'center' }}>{d.src ? <img src={d.src} alt={d.alt} style={{ maxWidth: '100%', borderRadius: 4 }} /> : <div style={{ background: '#f3f4f6', height: 200, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4b5563', fontSize: 15 }}>Click to add image</div>}</div>}
         {b.type === 'button' && <div style={{ background: d.bgColor, padding: `${d.padding}px 40px`, textAlign: d.align }}><a style={{ display: 'inline-block', background: d.btnColor, color: d.textColor, padding: '14px 32px', borderRadius: d.borderRadius, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>{d.text}</a></div>}
         {b.type === 'divider' && <div style={{ background: d.bgColor, padding: `${d.padding}px 40px` }}><hr style={{ border: 'none', borderTop: `${d.thickness}px solid ${d.color}`, margin: 0 }} /></div>}
         {b.type === 'spacer' && <div style={{ background: d.bgColor, height: d.height }} />}
@@ -302,11 +302,11 @@ export default function CampaignBuilderPage() {
       <main className="flex-1 flex flex-col overflow-hidden" style={{ background: '#F8F9FC' }}>
         {/* Header */}
         <div className="h-14 bg-white border-b border-gray-200 px-6 flex items-center gap-3 flex-shrink-0">
-          <button onClick={() => navigate('/marketing')} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></button>
+          <button onClick={() => navigate('/marketing')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
           <h1 className="text-base font-bold text-gray-900">{campaignId ? 'Edit Campaign' : 'New Campaign'}</h1>
           <div className="flex items-center gap-2 ml-4">
             {[{ n: 1, l: 'Setup' }, { n: 2, l: 'Design' }, { n: 3, l: 'Send' }].map(s => (
-              <button key={s.n} onClick={() => setStep(s.n)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${step === s.n ? 'bg-brand-500 text-white' : step > s.n ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              <button key={s.n} onClick={() => setStep(s.n)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${step === s.n ? 'bg-brand-500 text-white' : step > s.n ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                 {step > s.n && <Check size={11} />}{s.l}
               </button>
             ))}
@@ -325,18 +325,18 @@ export default function CampaignBuilderPage() {
                 <div className="bg-white rounded-2xl p-6 border border-gray-100" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                   <h3 className="text-sm font-semibold text-gray-900 mb-4">Details</h3>
                   <div className="space-y-3">
-                    <div><label className="text-sm text-gray-500 block mb-1">Campaign Name</label><input className="input text-sm" placeholder="Monthly Newsletter" value={campaign.name} onChange={e => setCampaign(c => ({ ...c, name: e.target.value }))} /></div>
+                    <div><label className="text-sm text-gray-700 block mb-1">Campaign Name</label><input className="input text-sm" placeholder="Monthly Newsletter" value={campaign.name} onChange={e => setCampaign(c => ({ ...c, name: e.target.value }))} /></div>
                     <div>
-                      <div className="flex items-center justify-between mb-1"><label className="text-sm text-gray-500">Subject Line</label><button onClick={generateSubjects} disabled={generatingSubjects} className="text-[13px] text-brand-500 hover:text-brand-700 flex items-center gap-1 disabled:opacity-50">{generatingSubjects ? <Loader2 size={10} className="animate-spin" /> : <Wand2 size={10} />} {generatingSubjects ? 'Generating...' : 'AI Suggest'}</button></div>
+                      <div className="flex items-center justify-between mb-1"><label className="text-sm text-gray-700">Subject Line</label><button onClick={generateSubjects} disabled={generatingSubjects} className="text-[13px] text-brand-500 hover:text-brand-700 flex items-center gap-1 disabled:opacity-50">{generatingSubjects ? <Loader2 size={10} className="animate-spin" /> : <Wand2 size={10} />} {generatingSubjects ? 'Generating...' : 'AI Suggest'}</button></div>
                       <input className="input text-sm" placeholder="Enter subject line or click AI Suggest" value={campaign.subject} onChange={e => setCampaign(c => ({ ...c, subject: e.target.value }))} />
                       {showAiSubjects && <div className="mt-2 bg-gray-50 rounded-lg p-2 space-y-1">
-                        {generatingSubjects && <div className="flex items-center gap-2 px-2 py-2 text-sm text-gray-400"><Loader2 size={12} className="animate-spin" /> Generating subject lines...</div>}
+                        {generatingSubjects && <div className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700"><Loader2 size={12} className="animate-spin" /> Generating subject lines...</div>}
                         {aiSubjects.map((s, i) => <button key={i} onClick={() => { setCampaign(c => ({ ...c, subject: s })); setShowAiSubjects(false) }} className="w-full text-left text-sm text-gray-700 hover:bg-white rounded px-2 py-1.5">{s}</button>)}
-                        {!generatingSubjects && aiSubjects.length > 0 && <button onClick={() => setShowAiSubjects(false)} className="w-full text-center text-[13px] text-gray-400 hover:text-gray-600 pt-1">Close</button>}
+                        {!generatingSubjects && aiSubjects.length > 0 && <button onClick={() => setShowAiSubjects(false)} className="w-full text-center text-[13px] text-gray-700 hover:text-gray-600 pt-1">Close</button>}
                       </div>}
                     </div>
-                    <div><label className="text-sm text-gray-500 block mb-1">Preview Text</label><input className="input text-sm" value={campaign.preview_text} onChange={e => setCampaign(c => ({ ...c, preview_text: e.target.value }))} /></div>
-                    <div><label className="text-sm text-gray-500 block mb-1">From Name</label><input className="input text-sm" value={campaign.from_name} onChange={e => setCampaign(c => ({ ...c, from_name: e.target.value }))} /></div>
+                    <div><label className="text-sm text-gray-700 block mb-1">Preview Text</label><input className="input text-sm" value={campaign.preview_text} onChange={e => setCampaign(c => ({ ...c, preview_text: e.target.value }))} /></div>
+                    <div><label className="text-sm text-gray-700 block mb-1">From Name</label><input className="input text-sm" value={campaign.from_name} onChange={e => setCampaign(c => ({ ...c, from_name: e.target.value }))} /></div>
                   </div>
                 </div>
                 <div className="bg-white rounded-2xl p-6 border border-gray-100" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
@@ -359,23 +359,23 @@ export default function CampaignBuilderPage() {
                 <button onClick={() => setShowAIAssistant(true)} className="w-full flex items-center gap-2 px-3 py-2.5 mb-1.5 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-xl transition-colors"><Sparkles size={13} /> Design with AI</button>
                 <button onClick={() => setShowTemplates(true)} className="w-full flex items-center gap-2 px-3 py-2 mb-1.5 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-xl transition-colors"><Layout size={13} /> Templates</button>
                 <button onClick={() => setShowImageFinder(true)} className="w-full flex items-center gap-2 px-3 py-2 mb-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"><Search size={13} /> Find Images</button>
-                <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Add Block</p>
+                <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-2">Add Block</p>
                 {BLOCK_TYPES.map(bt => { const I = bt.icon; return (
                   <button key={bt.type} onClick={() => addBlock(bt.type)} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                    <I size={13} className="text-gray-400" /> {bt.label}
+                    <I size={13} className="text-gray-700" /> {bt.label}
                   </button>
                 )})}
                 {/* Brand Assets */}
                 {brandAssets.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1"><Palette size={9} /> Brand Assets</p>
+                    <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1"><Palette size={9} /> Brand Assets</p>
                     {brandAssets.map((ba, bi) => (
                       <div key={bi} className="mb-3">
                         <p className="text-[13px] font-medium text-gray-600 mb-1.5">{ba.clients?.name || 'Client'}</p>
                         {/* Colors */}
                         {(ba.primary_colors || []).length > 0 && (
                           <div className="mb-2">
-                            <p className="text-[12px] text-gray-400 mb-1">Colors</p>
+                            <p className="text-[12px] text-gray-700 mb-1">Colors</p>
                             <div className="flex flex-wrap gap-1">
                               {(ba.primary_colors || []).map((c, ci) => (
                                 <button key={ci} onClick={() => { navigator.clipboard.writeText(c.hex); toast.success(`${c.hex} copied`) }} title={`${c.name}: ${c.hex} — click to copy`}
@@ -387,16 +387,16 @@ export default function CampaignBuilderPage() {
                         {/* Fonts */}
                         {(ba.fonts || []).length > 0 && (
                           <div className="mb-2">
-                            <p className="text-[12px] text-gray-400 mb-1">Fonts</p>
+                            <p className="text-[12px] text-gray-700 mb-1">Fonts</p>
                             {(ba.fonts || []).map((f, fi) => (
-                              <p key={fi} className="text-[13px] text-gray-600 cursor-pointer hover:text-brand-600" onClick={() => { navigator.clipboard.writeText(f.name); toast.success(`${f.name} copied`) }} title="Click to copy font name">{f.name} <span className="text-gray-300">({f.category})</span></p>
+                              <p key={fi} className="text-[13px] text-gray-600 cursor-pointer hover:text-brand-600" onClick={() => { navigator.clipboard.writeText(f.name); toast.success(`${f.name} copied`) }} title="Click to copy font name">{f.name} <span className="text-gray-600">({f.category})</span></p>
                             ))}
                           </div>
                         )}
                         {/* Logos */}
                         {(ba.logo_files || []).length > 0 && (
                           <div>
-                            <p className="text-[12px] text-gray-400 mb-1">Logos</p>
+                            <p className="text-[12px] text-gray-700 mb-1">Logos</p>
                             <div className="flex flex-wrap gap-1">
                               {(ba.logo_files || []).slice(0, 4).map((logo, li) => (
                                 <button key={li} onClick={() => { if (selectedBlockId) { updateBlock(selectedBlockId, { src: logo.url }); toast.success('Logo inserted') } else { navigator.clipboard.writeText(logo.url); toast.success('Logo URL copied') } }} title={`${logo.name} — click to insert into selected image block`}
@@ -413,7 +413,7 @@ export default function CampaignBuilderPage() {
                 )}
 
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-[12px] text-gray-400">Click a block to add it. Click any block in the email to edit its properties.</p>
+                  <p className="text-[12px] text-gray-700">Click a block to add it. Click any block in the email to edit its properties.</p>
                 </div>
               </div>
 
@@ -423,7 +423,7 @@ export default function CampaignBuilderPage() {
                   <div className="bg-white rounded-lg overflow-hidden" style={{ boxShadow: '0 2px 20px rgba(0,0,0,0.08)' }}>
                     {blocks.map(b => renderBlock(b))}
                   </div>
-                  {blocks.length === 0 && <div className="text-center py-20 text-sm text-gray-400">Click a block type on the left to start building your email</div>}
+                  {blocks.length === 0 && <div className="text-center py-20 text-sm text-gray-700">Click a block type on the left to start building your email</div>}
                 </div>
               </div>
 
@@ -431,8 +431,8 @@ export default function CampaignBuilderPage() {
               {sel ? (
                 <div className="w-64 bg-white border-l border-gray-200 overflow-y-auto flex-shrink-0 p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[13px] font-semibold text-gray-500 uppercase">{BLOCK_TYPES.find(t => t.type === sel.type)?.label}</p>
-                    <button onClick={() => setSelectedBlockId(null)} className="text-gray-400"><X size={14} /></button>
+                    <p className="text-[13px] font-semibold text-gray-700 uppercase">{BLOCK_TYPES.find(t => t.type === sel.type)?.label}</p>
+                    <button onClick={() => setSelectedBlockId(null)} className="text-gray-700"><X size={14} /></button>
                   </div>
                   <div className="space-y-3">
                     {sel.type === 'header' && (<>
@@ -442,7 +442,7 @@ export default function CampaignBuilderPage() {
                       <ColorPicker label="Text" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
                     </>)}
                     {sel.type === 'text' && (<>
-                      <div><label className="text-[13px] text-gray-500 mb-1 block">Content</label><textarea className="input text-sm py-1 resize-none" rows={5} value={sel.data.content} onChange={e => updateBlock(sel.id, { content: e.target.value })} /></div>
+                      <div><label className="text-[13px] text-gray-700 mb-1 block">Content</label><textarea className="input text-sm py-1 resize-none" rows={5} value={sel.data.content} onChange={e => updateBlock(sel.id, { content: e.target.value })} /></div>
                       <NumField label="Font Size" value={sel.data.fontSize} onChange={v => updateBlock(sel.id, { fontSize: v })} min={10} max={36} />
                       <SelField label="Align" value={sel.data.align} options={['left', 'center', 'right']} onChange={v => updateBlock(sel.id, { align: v })} />
                       <ColorPicker label="Text Color" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
@@ -468,8 +468,8 @@ export default function CampaignBuilderPage() {
                     {sel.type === 'divider' && <ColorPicker label="Color" value={sel.data.color} onChange={v => updateBlock(sel.id, { color: v })} />}
                     {sel.type === 'spacer' && <NumField label="Height" value={sel.data.height} onChange={v => updateBlock(sel.id, { height: v })} min={8} max={96} />}
                     {sel.type === 'twocol' && (<>
-                      <div><label className="text-[13px] text-gray-500 mb-1 block">Left</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.leftContent} onChange={e => updateBlock(sel.id, { leftContent: e.target.value })} /></div>
-                      <div><label className="text-[13px] text-gray-500 mb-1 block">Right</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.rightContent} onChange={e => updateBlock(sel.id, { rightContent: e.target.value })} /></div>
+                      <div><label className="text-[13px] text-gray-700 mb-1 block">Left</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.leftContent} onChange={e => updateBlock(sel.id, { leftContent: e.target.value })} /></div>
+                      <div><label className="text-[13px] text-gray-700 mb-1 block">Right</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.rightContent} onChange={e => updateBlock(sel.id, { rightContent: e.target.value })} /></div>
                       <ColorPicker label="Text" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
                     </>)}
                     {sel.type === 'heading' && (<>
@@ -481,14 +481,14 @@ export default function CampaignBuilderPage() {
                       <ColorPicker label="Background" value={sel.data.bgColor} onChange={v => updateBlock(sel.id, { bgColor: v })} />
                     </>)}
                     {sel.type === 'quote' && (<>
-                      <div><label className="text-[13px] text-gray-500 mb-1 block">Quote</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.text} onChange={e => updateBlock(sel.id, { text: e.target.value })} /></div>
+                      <div><label className="text-[13px] text-gray-700 mb-1 block">Quote</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.text} onChange={e => updateBlock(sel.id, { text: e.target.value })} /></div>
                       <Field label="Author" value={sel.data.author} onChange={v => updateBlock(sel.id, { author: v })} />
                       <ColorPicker label="Text Color" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
                       <ColorPicker label="Background" value={sel.data.bgColor} onChange={v => updateBlock(sel.id, { bgColor: v })} />
                     </>)}
                     {sel.type === 'list' && (<>
                       <div>
-                        <label className="text-[13px] text-gray-500 mb-1 block">Items (one per line)</label>
+                        <label className="text-[13px] text-gray-700 mb-1 block">Items (one per line)</label>
                         <textarea className="input text-sm py-1 resize-none" rows={5} value={(sel.data.items || []).join('\n')} onChange={e => updateBlock(sel.id, { items: e.target.value.split('\n') })} />
                       </div>
                       <ColorPicker label="Text Color" value={sel.data.textColor} onChange={v => updateBlock(sel.id, { textColor: v })} />
@@ -496,7 +496,7 @@ export default function CampaignBuilderPage() {
                     </>)}
                     {sel.type === 'hero' && (<>
                       <Field label="Heading" value={sel.data.heading} onChange={v => updateBlock(sel.id, { heading: v })} />
-                      <div><label className="text-[13px] text-gray-500 mb-1 block">Subtext</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.subtext} onChange={e => updateBlock(sel.id, { subtext: e.target.value })} /></div>
+                      <div><label className="text-[13px] text-gray-700 mb-1 block">Subtext</label><textarea className="input text-sm py-1 resize-none" rows={3} value={sel.data.subtext} onChange={e => updateBlock(sel.id, { subtext: e.target.value })} /></div>
                       <Field label="Button Text" value={sel.data.btnText} onChange={v => updateBlock(sel.id, { btnText: v })} />
                       <Field label="Button URL" value={sel.data.btnUrl} onChange={v => updateBlock(sel.id, { btnUrl: v })} />
                       <ColorPicker label="Background" value={sel.data.bgColor} onChange={v => updateBlock(sel.id, { bgColor: v })} />
@@ -511,7 +511,7 @@ export default function CampaignBuilderPage() {
                     {/* Brand quick colors */}
                     {brandAssets.some(ba => ba.primary_colors?.length) && (
                       <div className="border-t border-gray-100 pt-2 mt-1">
-                        <p className="text-[12px] text-gray-400 mb-1.5">Brand Colors</p>
+                        <p className="text-[12px] text-gray-700 mb-1.5">Brand Colors</p>
                         <div className="flex flex-wrap gap-1">
                           {brandAssets.flatMap(ba => ba.primary_colors || []).map((c, i) => (
                             <button key={i} onClick={() => {
@@ -542,14 +542,14 @@ export default function CampaignBuilderPage() {
                   }} />
               ) : (
                 <div className="w-64 bg-white border-l border-gray-200 p-4 flex-shrink-0">
-                  <p className="text-[13px] font-semibold text-gray-500 uppercase mb-2">Email Builder</p>
-                  <p className="text-sm text-gray-400 mb-3">Click any block to edit. Use the left panel to add new blocks.</p>
+                  <p className="text-[13px] font-semibold text-gray-700 uppercase mb-2">Email Builder</p>
+                  <p className="text-sm text-gray-700 mb-3">Click any block to edit. Use the left panel to add new blocks.</p>
                   <button onClick={() => setShowPreview(true)} className="btn-secondary text-sm w-full justify-center mb-2"><Eye size={12} /> Preview</button>
                   <button onClick={() => setShowPersonalization(true)} className="btn-secondary text-sm w-full justify-center mb-2"><Code2 size={12} /> Personalization</button>
                   {/* Campaign tags */}
                   <div className="border-t border-gray-100 pt-3 mt-3">
-                    <p className="text-[13px] font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1"><Tag size={10} /> Campaign Tags</p>
-                    <p className="text-[13px] text-gray-400 mb-2">Applied to all recipients on send</p>
+                    <p className="text-[13px] font-semibold text-gray-700 uppercase mb-2 flex items-center gap-1"><Tag size={10} /> Campaign Tags</p>
+                    <p className="text-[13px] text-gray-700 mb-2">Applied to all recipients on send</p>
                     <TagAutocomplete value={campaignTags} onChange={setCampaignTags} contacts={contacts} placeholder="Add send tag..." />
                   </div>
                 </div>
@@ -585,8 +585,8 @@ export default function CampaignBuilderPage() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowTemplates(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                <div><h3 className="font-semibold text-gray-900">Email Templates</h3><p className="text-sm text-gray-500 mt-0.5">Choose a starting point for your email</p></div>
-                <button onClick={() => setShowTemplates(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+                <div><h3 className="font-semibold text-gray-900">Email Templates</h3><p className="text-sm text-gray-700 mt-0.5">Choose a starting point for your email</p></div>
+                <button onClick={() => setShowTemplates(false)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
               </div>
               <div className="flex-1 overflow-auto p-5">
                 <div className="grid grid-cols-2 gap-4">
@@ -606,12 +606,12 @@ export default function CampaignBuilderPage() {
                             })}
                           </div>
                         ) : (
-                          <div className="h-full flex items-center justify-center text-gray-300 text-sm">Blank Canvas</div>
+                          <div className="h-full flex items-center justify-center text-gray-600 text-sm">Blank Canvas</div>
                         )}
                       </div>
                       <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-600">{tpl.name}</p>
-                      <p className="text-sm text-gray-500 mt-0.5">{tpl.desc}</p>
-                      <p className="text-[13px] text-gray-400 mt-1">{tpl.blocks.length} blocks</p>
+                      <p className="text-sm text-gray-700 mt-0.5">{tpl.desc}</p>
+                      <p className="text-[13px] text-gray-700 mt-1">{tpl.blocks.length} blocks</p>
                     </button>
                   ))}
                 </div>
@@ -627,8 +627,8 @@ export default function CampaignBuilderPage() {
               <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-900">Preview</h3>
                 <div className="flex items-center gap-2">
-                  {['desktop', 'mobile'].map(m => <button key={m} onClick={() => setPreviewMode(m)} className={`text-sm px-3 py-1 rounded-lg capitalize ${previewMode === m ? 'bg-gray-200 text-gray-800' : 'text-gray-500'}`}>{m}</button>)}
-                  <button onClick={() => setShowPreview(false)} className="text-gray-400 ml-2"><X size={18} /></button>
+                  {['desktop', 'mobile'].map(m => <button key={m} onClick={() => setPreviewMode(m)} className={`text-sm px-3 py-1 rounded-lg capitalize ${previewMode === m ? 'bg-gray-200 text-gray-800' : 'text-gray-700'}`}>{m}</button>)}
+                  <button onClick={() => setShowPreview(false)} className="text-gray-700 ml-2"><X size={18} /></button>
                 </div>
               </div>
               <div className="flex-1 overflow-auto p-6 bg-gray-100">
@@ -651,11 +651,11 @@ export default function CampaignBuilderPage() {
 }
 
 function Field({ label, value, onChange }) {
-  return <div><label className="text-[13px] text-gray-500 mb-1 block">{label}</label><input className="input text-sm py-1" value={value || ''} onChange={e => onChange(e.target.value)} /></div>
+  return <div><label className="text-[13px] text-gray-700 mb-1 block">{label}</label><input className="input text-sm py-1" value={value || ''} onChange={e => onChange(e.target.value)} /></div>
 }
 function NumField({ label, value, onChange, min = 0, max = 999 }) {
-  return <div><label className="text-[13px] text-gray-500 mb-1 block">{label}</label><input className="input text-sm py-1" type="number" min={min} max={max} value={value} onChange={e => onChange(+e.target.value)} /></div>
+  return <div><label className="text-[13px] text-gray-700 mb-1 block">{label}</label><input className="input text-sm py-1" type="number" min={min} max={max} value={value} onChange={e => onChange(+e.target.value)} /></div>
 }
 function SelField({ label, value, options, onChange }) {
-  return <div><label className="text-[13px] text-gray-500 mb-1 block">{label}</label><select className="input text-sm py-1" value={value} onChange={e => onChange(e.target.value)}>{options.map(o => <option key={o}>{o}</option>)}</select></div>
+  return <div><label className="text-[13px] text-gray-700 mb-1 block">{label}</label><select className="input text-sm py-1" value={value} onChange={e => onChange(e.target.value)}>{options.map(o => <option key={o}>{o}</option>)}</select></div>
 }

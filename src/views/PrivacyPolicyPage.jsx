@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <svg width={32} height={32} viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="#ea2729"/><path d="M12 10L12 30L28 30L28 26L16 26L16 10Z" fill="white"/><circle cx="28" cy="14" r="4" fill="white" opacity="0.6"/></svg>
-          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Moose AI</p><p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>by Moose</p></div>
+          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Moose AI</p><p style={{ margin: 0, fontSize: 13, color: '#374151' }}>by Moose</p></div>
         </div>
         <a href="/" style={{ fontSize: 15, color: '#ea2729', fontWeight: 700, textDecoration: 'none' }}>← Back to App</a>
       </div>
@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '48px 24px' }}>
         <div style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: 36, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>Privacy Policy</h1>
-          <p style={{ fontSize: 15, color: '#6b7280', margin: 0 }}>Last updated: {lastUpdated}</p>
+          <p style={{ fontSize: 15, color: '#374151', margin: 0 }}>Last updated: {lastUpdated}</p>
           <div style={{ marginTop: 16, padding: '14px 18px', background: '#FFF7ED', borderRadius: 10, border: '1px solid #FED7AA' }}>
             <p style={{ margin: 0, fontSize: 15, color: '#92400E', lineHeight: 1.6 }}>This Privacy Policy describes how {companyName} ("we," "us," or "our") collects, uses, and shares information about you when you use {appName} and our related services.</p>
           </div>
@@ -103,7 +103,7 @@ export default function PrivacyPolicyPage() {
         <Section id="s12" title="12. Contact Us">
           <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             {[{ l: 'Company', v: companyName }, { l: 'App', v: appName + ' Platform' }, { l: 'Email', v: email, href: 'mailto:' + email }, { l: 'Website', v: website, href: 'https://' + website }, { l: 'Address', v: address }, { l: 'Response Time', v: 'Within 30 days' }].map(i => (
-              <div key={i.l}><p style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>{i.l}</p>{i.href ? <a href={i.href} style={{ fontSize: 15, color: '#ea2729', fontWeight: 600 }}>{i.v}</a> : <p style={{ margin: 0, fontSize: 15, color: '#111827', fontWeight: 600 }}>{i.v}</p>}</div>
+              <div key={i.l}><p style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>{i.l}</p>{i.href ? <a href={i.href} style={{ fontSize: 15, color: '#ea2729', fontWeight: 600 }}>{i.v}</a> : <p style={{ margin: 0, fontSize: 15, color: '#111827', fontWeight: 600 }}>{i.v}</p>}</div>
             ))}
           </div>
           <div style={{ marginTop: 20, padding: '16px 20px', background: '#FFF7ED', borderRadius: 10, border: '1px solid #FED7AA' }}>
@@ -112,7 +112,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <div style={{ textAlign: 'center', padding: '20px 0 40px' }}>
-          <p style={{ fontSize: 15, color: '#9ca3af' }}>© {new Date().getFullYear()} {companyName}. All rights reserved.</p>
+          <p style={{ fontSize: 15, color: '#4b5563' }}>© {new Date().getFullYear()} {companyName}. All rights reserved.</p>
         </div>
       </div>
     </div>

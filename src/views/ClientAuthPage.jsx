@@ -32,7 +32,7 @@ export default function ClientAuthPage() {
           </div>
           <div>
             <h1 className="font-bold text-gray-900">Client Portal</h1>
-            <p className="text-sm text-gray-500">Moose</p>
+            <p className="text-sm text-gray-700">Moose</p>
           </div>
         </div>
 
@@ -40,19 +40,19 @@ export default function ClientAuthPage() {
           <div className="text-center py-6">
             <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><Check size={24} className="text-green-500" /></div>
             <h2 className="font-semibold text-gray-900 mb-2">Check Your Email</h2>
-            <p className="text-sm text-gray-500 mb-4">We sent a magic link to <strong>{email}</strong>. Click it to access your projects.</p>
+            <p className="text-sm text-gray-700 mb-4">We sent a magic link to <strong>{email}</strong>. Click it to access your projects.</p>
             <button onClick={() => setSent(false)} className="text-sm text-brand-500 hover:text-brand-700">Use a different email</button>
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-500 mb-5">Enter your email to access your project dashboard. We'll send you a secure login link.</p>
+            <p className="text-sm text-gray-700 mb-5">Enter your email to access your project dashboard. We'll send you a secure login link.</p>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input className="input text-sm" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoFocus />
               <button type="submit" disabled={loading || !email.trim()} className="btn-primary w-full justify-center">
                 {loading ? 'Sending...' : <><ArrowRight size={15} /> Send Magic Link</>}
               </button>
             </form>
-            <p className="text-[13px] text-gray-400 mt-4 text-center">No password needed. We'll email you a secure link that logs you in instantly.</p>
+            <p className="text-[13px] text-gray-700 mt-4 text-center">No password needed. We'll email you a secure link that logs you in instantly.</p>
           </>
         )}
       </div>

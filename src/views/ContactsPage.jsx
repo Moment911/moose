@@ -124,10 +124,10 @@ export default function ContactsPage() {
       <main className="flex-1 overflow-y-auto" style={{ background: '#F8F9FC' }}>
         <div className="px-4 md:px-8 py-4 md:py-6">
           <div className="flex items-center gap-3 mb-4">
-            <button onClick={() => navigate('/marketing')} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></button>
+            <button onClick={() => navigate('/marketing')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div className="flex-1">
               <h1 className="text-xl md:text-2xl font-bold text-gray-900">Contacts</h1>
-              <p className="text-sm text-gray-500 mt-0.5">{contacts.length} total &middot; {contacts.filter(c => c.status === 'subscribed').length} subscribed</p>
+              <p className="text-sm text-gray-700 mt-0.5">{contacts.length} total &middot; {contacts.filter(c => c.status === 'subscribed').length} subscribed</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button onClick={() => setShowImport(true)} className="btn-secondary text-sm hidden md:flex"><Upload size={13} strokeWidth={1.5} /> Import</button>
@@ -140,7 +140,7 @@ export default function ContactsPage() {
           <div className="flex gap-1 mb-4">
             {[{ key: 'contacts', label: 'Contacts', icon: Users }, { key: 'tags', label: 'Tags', icon: Tag }].map(t => {
               const I = t.icon
-              return <button key={t.key} onClick={() => setTab(t.key)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}><I size={14} /> {t.label}</button>
+              return <button key={t.key} onClick={() => setTab(t.key)} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${tab === t.key ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-700 hover:text-gray-700'}`}><I size={14} /> {t.label}</button>
             })}
           </div>
 
@@ -156,19 +156,19 @@ export default function ContactsPage() {
                   <span className="text-sm font-medium text-brand-700">{selected.size} selected</span>
                   <button onClick={() => setBulkTagOpen(true)} className="text-sm text-brand-600 hover:text-brand-800 flex items-center gap-1"><Tag size={11} /> Add Tag</button>
                   <button onClick={handleBulkDelete} className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"><Trash2 size={11} /> Delete</button>
-                  <button onClick={() => setSelected(new Set())} className="ml-auto text-sm text-gray-500">Clear</button>
+                  <button onClick={() => setSelected(new Set())} className="ml-auto text-sm text-gray-700">Clear</button>
                 </div>
               )}
 
               {/* Filters */}
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 flex-1 max-w-sm" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                  <Search size={14} strokeWidth={1.5} className="text-gray-400" />
+                  <Search size={14} strokeWidth={1.5} className="text-gray-700" />
                   <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search contacts..." value={search} onChange={e => { setSearch(e.target.value); setPage(0) }} />
                 </div>
                 <div className="flex bg-white rounded-xl border border-gray-200 p-0.5" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
                   {['all', 'subscribed', 'unsubscribed'].map(s => (
-                    <button key={s} onClick={() => { setFilterStatus(s); setPage(0) }} className={`text-sm px-3 py-1.5 rounded-lg capitalize font-medium ${filterStatus === s ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-700'}`}>{s}</button>
+                    <button key={s} onClick={() => { setFilterStatus(s); setPage(0) }} className={`text-sm px-3 py-1.5 rounded-lg capitalize font-medium ${filterStatus === s ? 'bg-gray-900 text-white' : 'text-gray-700 hover:text-gray-700'}`}>{s}</button>
                   ))}
                 </div>
               </div>
@@ -176,24 +176,24 @@ export default function ContactsPage() {
               {/* Tag filter */}
               {contacts.some(c => c.tags?.length) && (
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[13px] text-gray-400 uppercase font-semibold">Filter by tag:</span>
+                  <span className="text-[13px] text-gray-700 uppercase font-semibold">Filter by tag:</span>
                   <div className="flex flex-wrap gap-1">
                     {[...new Set(contacts.flatMap(c => c.tags || []))].slice(0, 15).map(t => (
                       <button key={t} onClick={() => { setFilterTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]); setPage(0) }}
                         className={`text-[13px] px-2 py-0.5 rounded-full transition-colors ${filterTags.includes(t) ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t}</button>
                     ))}
-                    {filterTags.length > 0 && <button onClick={() => setFilterTags([])} className="text-[13px] text-gray-400 hover:text-gray-600 ml-1">Clear</button>}
+                    {filterTags.length > 0 && <button onClick={() => setFilterTags([])} className="text-[13px] text-gray-700 hover:text-gray-600 ml-1">Clear</button>}
                   </div>
                 </div>
               )}
 
               {/* Table */}
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div className="grid grid-cols-[32px_1fr_160px_100px_100px_80px_40px] gap-3 px-5 py-3 bg-gray-50/50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                <div className="grid grid-cols-[32px_1fr_160px_100px_100px_80px_40px] gap-3 px-5 py-3 bg-gray-50/50 text-[13px] font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-100">
                   <div><input type="checkbox" checked={selected.size === paged.length && paged.length > 0} onChange={toggleSelectAll} className="rounded border-gray-300" /></div>
                   <div>Name</div><div>Email</div><div>Company</div><div>Tags</div><div>Status</div><div></div>
                 </div>
-                {paged.length === 0 && <div className="py-16 text-center text-sm text-gray-400">No contacts found</div>}
+                {paged.length === 0 && <div className="py-16 text-center text-sm text-gray-700">No contacts found</div>}
                 {paged.map(c => (
                   <div key={c.id} className="grid grid-cols-[32px_1fr_160px_100px_100px_80px_40px] gap-3 px-5 py-3 items-center border-b border-gray-50 hover:bg-gray-50/50 group">
                     <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggleSelect(c.id)} className="rounded border-gray-300" />
@@ -201,11 +201,11 @@ export default function ContactsPage() {
                       <div className="w-8 h-8 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">{((c.first_name || c.email)[0] || '?').toUpperCase()}</div>
                       <span className="text-sm font-medium text-gray-900 hover:text-brand-600">{c.first_name ? `${c.first_name} ${c.last_name || ''}` : c.email.split('@')[0]}</span>
                     </div>
-                    <span className="text-sm text-gray-500 truncate">{c.email}</span>
-                    <span className="text-sm text-gray-400 truncate">{c.company || '\u2014'}</span>
-                    <div className="flex gap-0.5 flex-wrap">{(c.tags || []).slice(0, 2).map((t, i) => <span key={i} className="text-[12px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{t}</span>)}{(c.tags || []).length > 2 && <span className="text-[12px] text-gray-400">+{c.tags.length - 2}</span>}</div>
-                    <button onClick={() => handleToggleStatus(c)} className={`text-[13px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${c.status === 'subscribed' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{c.status}</button>
-                    <button onClick={() => handleDelete(c.id)} className="text-gray-300 hover:text-brand-500 opacity-0 group-hover:opacity-100"><Trash2 size={12} strokeWidth={1.5} /></button>
+                    <span className="text-sm text-gray-700 truncate">{c.email}</span>
+                    <span className="text-sm text-gray-700 truncate">{c.company || '\u2014'}</span>
+                    <div className="flex gap-0.5 flex-wrap">{(c.tags || []).slice(0, 2).map((t, i) => <span key={i} className="text-[12px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{t}</span>)}{(c.tags || []).length > 2 && <span className="text-[12px] text-gray-700">+{c.tags.length - 2}</span>}</div>
+                    <button onClick={() => handleToggleStatus(c)} className={`text-[13px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${c.status === 'subscribed' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{c.status}</button>
+                    <button onClick={() => handleDelete(c.id)} className="text-gray-600 hover:text-brand-500 opacity-0 group-hover:opacity-100"><Trash2 size={12} strokeWidth={1.5} /></button>
                   </div>
                 ))}
               </div>
@@ -213,13 +213,13 @@ export default function ContactsPage() {
               {/* Pagination */}
               {pages > 1 && (
                 <div className="flex items-center justify-between mt-4">
-                  <span className="text-sm text-gray-400">Showing {page * PAGE + 1}-{Math.min((page + 1) * PAGE, filtered.length)} of {filtered.length}</span>
+                  <span className="text-sm text-gray-700">Showing {page * PAGE + 1}-{Math.min((page + 1) * PAGE, filtered.length)} of {filtered.length}</span>
                   <div className="flex gap-1">
-                    <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 px-2">Prev</button>
+                    <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0} className="text-sm text-gray-700 hover:text-gray-700 disabled:opacity-30 px-2">Prev</button>
                     {Array.from({ length: Math.min(pages, 5) }).map((_, i) => (
-                      <button key={i} onClick={() => setPage(i)} className={`w-8 h-8 rounded-lg text-sm ${page === i ? 'bg-brand-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>{i + 1}</button>
+                      <button key={i} onClick={() => setPage(i)} className={`w-8 h-8 rounded-lg text-sm ${page === i ? 'bg-brand-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>{i + 1}</button>
                     ))}
-                    <button onClick={() => setPage(Math.min(pages - 1, page + 1))} disabled={page >= pages - 1} className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 px-2">Next</button>
+                    <button onClick={() => setPage(Math.min(pages - 1, page + 1))} disabled={page >= pages - 1} className="text-sm text-gray-700 hover:text-gray-700 disabled:opacity-30 px-2">Next</button>
                   </div>
                 </div>
               )}
@@ -233,42 +233,42 @@ export default function ContactsPage() {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
                 <h2 className="font-semibold text-gray-900">Add Contact</h2>
-                <button onClick={() => setShowAdd(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+                <button onClick={() => setShowAdd(false)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
               </div>
               <form onSubmit={handleAdd} className="flex-1 overflow-auto px-5 py-4 space-y-3">
                 {/* Core fields - always visible */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm text-gray-500 block mb-1">First Name</label><input className="input text-sm" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} autoFocus /></div>
-                  <div><label className="text-sm text-gray-500 block mb-1">Last Name</label><input className="input text-sm" value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} /></div>
+                  <div><label className="text-sm text-gray-700 block mb-1">First Name</label><input className="input text-sm" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} autoFocus /></div>
+                  <div><label className="text-sm text-gray-700 block mb-1">Last Name</label><input className="input text-sm" value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} /></div>
                 </div>
-                <div><label className="text-sm text-gray-500 block mb-1">Email *</label><input className="input text-sm" type="email" placeholder="name@company.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-700 block mb-1">Email *</label><input className="input text-sm" type="email" placeholder="name@company.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm text-gray-500 block mb-1">Phone</label><input className="input text-sm" placeholder="+1 (555) 123-4567" value={form.phone_mobile} onChange={e => setForm(f => ({ ...f, phone_mobile: e.target.value }))} /></div>
-                  <div><label className="text-sm text-gray-500 block mb-1">Company</label><input className="input text-sm" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
+                  <div><label className="text-sm text-gray-700 block mb-1">Phone</label><input className="input text-sm" placeholder="+1 (555) 123-4567" value={form.phone_mobile} onChange={e => setForm(f => ({ ...f, phone_mobile: e.target.value }))} /></div>
+                  <div><label className="text-sm text-gray-700 block mb-1">Company</label><input className="input text-sm" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm text-gray-500 block mb-1">Job Title</label><input className="input text-sm" value={form.job_title} onChange={e => setForm(f => ({ ...f, job_title: e.target.value }))} /></div>
-                  <div><label className="text-sm text-gray-500 block mb-1">Tags</label><input className="input text-sm" placeholder="client, vip" value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} /></div>
+                  <div><label className="text-sm text-gray-700 block mb-1">Job Title</label><input className="input text-sm" value={form.job_title} onChange={e => setForm(f => ({ ...f, job_title: e.target.value }))} /></div>
+                  <div><label className="text-sm text-gray-700 block mb-1">Tags</label><input className="input text-sm" placeholder="client, vip" value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} /></div>
                 </div>
 
                 {/* More fields toggle */}
                 <button type="button" onClick={() => setShowMoreFields(!showMoreFields)}
-                  className="w-full text-sm text-gray-400 hover:text-gray-600 py-1.5 flex items-center justify-center gap-1 border border-dashed border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  className="w-full text-sm text-gray-700 hover:text-gray-600 py-1.5 flex items-center justify-center gap-1 border border-dashed border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                   <Plus size={11} className={`transition-transform ${showMoreFields ? 'rotate-45' : ''}`} />
                   {showMoreFields ? 'Hide extra fields' : 'More fields (address, social, notes...)'}
                 </button>
 
                 {showMoreFields && (
                   <div className="space-y-3 pt-1">
-                    <p className="text-[12px] text-gray-400 uppercase font-semibold tracking-wider">Details</p>
+                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider">Details</p>
                     <div className="grid grid-cols-3 gap-3">
-                      <div><label className="text-sm text-gray-500 block mb-1">Prefix</label><input className="input text-sm" placeholder="Mr." value={form.prefix} onChange={e => setForm(f => ({ ...f, prefix: e.target.value }))} /></div>
-                      <div><label className="text-sm text-gray-500 block mb-1">Department</label><input className="input text-sm" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} /></div>
-                      <div><label className="text-sm text-gray-500 block mb-1">Industry</label><input className="input text-sm" value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} /></div>
+                      <div><label className="text-sm text-gray-700 block mb-1">Prefix</label><input className="input text-sm" placeholder="Mr." value={form.prefix} onChange={e => setForm(f => ({ ...f, prefix: e.target.value }))} /></div>
+                      <div><label className="text-sm text-gray-700 block mb-1">Department</label><input className="input text-sm" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} /></div>
+                      <div><label className="text-sm text-gray-700 block mb-1">Industry</label><input className="input text-sm" value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} /></div>
                     </div>
-                    <div><label className="text-sm text-gray-500 block mb-1">Website</label><input className="input text-sm" placeholder="https://..." value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} /></div>
+                    <div><label className="text-sm text-gray-700 block mb-1">Website</label><input className="input text-sm" placeholder="https://..." value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} /></div>
 
-                    <p className="text-[12px] text-gray-400 uppercase font-semibold tracking-wider pt-1">Address</p>
+                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Address</p>
                     <div><input className="input text-sm" placeholder="Street address" value={form.address_line1} onChange={e => setForm(f => ({ ...f, address_line1: e.target.value }))} /></div>
                     <div className="grid grid-cols-3 gap-3">
                       <div><input className="input text-sm" placeholder="City" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} /></div>
@@ -276,13 +276,13 @@ export default function ContactsPage() {
                       <div><input className="input text-sm" placeholder="Zip" value={form.zip_code} onChange={e => setForm(f => ({ ...f, zip_code: e.target.value }))} /></div>
                     </div>
 
-                    <p className="text-[12px] text-gray-400 uppercase font-semibold tracking-wider pt-1">Social</p>
+                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Social</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div><input className="input text-sm" placeholder="LinkedIn URL" value={form.linkedin_url} onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))} /></div>
                       <div><input className="input text-sm" placeholder="Twitter @handle" value={form.twitter_handle} onChange={e => setForm(f => ({ ...f, twitter_handle: e.target.value }))} /></div>
                     </div>
 
-                    <p className="text-[12px] text-gray-400 uppercase font-semibold tracking-wider pt-1">Lead Info</p>
+                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Lead Info</p>
                     <div className="grid grid-cols-3 gap-3">
                       <div><select className="input text-sm" value={form.lead_source} onChange={e => setForm(f => ({ ...f, lead_source: e.target.value }))}>
                         <option value="">Source</option><option>Website</option><option>Referral</option><option>Social Media</option><option>Cold Outreach</option><option>Event</option><option>Other</option>
@@ -294,12 +294,12 @@ export default function ContactsPage() {
                         <option value="lead">Lead</option><option value="subscriber">Subscriber</option><option value="opportunity">Opportunity</option><option value="customer">Customer</option>
                       </select></div>
                     </div>
-                    <div><label className="text-sm text-gray-500 block mb-1">Notes</label><textarea className="input text-sm resize-none" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} /></div>
+                    <div><label className="text-sm text-gray-700 block mb-1">Notes</label><textarea className="input text-sm resize-none" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} /></div>
                   </div>
                 )}
               </form>
               <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-2 flex-shrink-0">
-                <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-gray-500 px-3 py-1.5">Cancel</button>
+                <button type="button" onClick={() => setShowAdd(false)} className="text-sm text-gray-700 px-3 py-1.5">Cancel</button>
                 <button onClick={handleAdd} className="btn-primary text-sm">Add Contact</button>
               </div>
             </div>
@@ -329,7 +329,7 @@ function BulkTagInput({ contacts, onApply, onCancel }) {
     <div>
       <TagAutocomplete value={tags} onChange={setTags} contacts={contacts} placeholder="Type tags..." />
       <div className="flex gap-2 mt-4 justify-end">
-        <button onClick={onCancel} className="text-sm text-gray-500 px-3 py-1.5">Cancel</button>
+        <button onClick={onCancel} className="text-sm text-gray-700 px-3 py-1.5">Cancel</button>
         <button onClick={() => onApply(tags)} disabled={tags.length === 0} className="btn-primary text-sm disabled:opacity-40">Apply Tags</button>
       </div>
     </div>

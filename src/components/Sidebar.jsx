@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Plus, Mail, FileSignature, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
 import toast from 'react-hot-toast'
 
@@ -104,7 +104,7 @@ function DevSection() {
 }
 
 export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) {
-  const { agencyId } = useAuth()
+  const { agencyId, firstName, initials, greeting, agencyName, isOwner } = useAuth()
   const [clients, setClients] = useState([])
   const [projects, setProjects] = useState({})
   const [expanded, setExpanded] = useState({})
@@ -200,6 +200,22 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
 
         {/* ── CORE ── */}
+        {/* ── User greeting ── */}
+        <div style={{ margin:'0 8px 14px', padding:'12px 14px', borderRadius:12, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.08)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:36, height:36, borderRadius:'50%', background:'#ea2729', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#fff', flexShrink:0 }}>
+              {initials}
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:14, fontWeight:800, color:'#fff', lineHeight:1.2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                {firstName || 'Welcome'}
+              </div>
+              <div style={{ fontSize:12, color:'rgba(255,255,255,.45)', marginTop:2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                {agencyName || 'Your Agency'}
+              </div>
+            </div>
+          </div>
+        </div>
         <NavLink to="/" exact icon={LayoutGrid} label="Project Hub" />
         <NavLink to="/clients" icon={Users} label="Clients" startsWith />
         <NavLink to="/reviews" icon={MessageSquare} label="Reviews" startsWith />

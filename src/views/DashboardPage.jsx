@@ -23,7 +23,7 @@ function statusPill(status) {
   const s = {
     active:    { label: 'Active',     bg: '#f0fdf4', color: '#16a34a' },
     prospect:  { label: 'Prospect',   bg: '#f0fbfc', color: ACCENT },
-    inactive:  { label: 'Inactive',   bg: '#f9fafb', color: '#9ca3af' },
+    inactive:  { label: 'Inactive',   bg: '#f9fafb', color: '#4b5563' },
     paused:    { label: 'Paused',     bg: '#fffbeb', color: '#d97706' },
   }[status] || { label: status || 'Active', bg: '#f0fdf4', color: '#16a34a' }
   return (
@@ -36,7 +36,7 @@ function statusPill(status) {
 function onboardingBadge(pct) {
   if (pct >= 100) return { label: 'Complete', color: '#16a34a', bg: '#f0fdf4' }
   if (pct >= 50)  return { label: `${pct}% done`, color: '#d97706', bg: '#fffbeb' }
-  return { label: 'Not started', color: '#9ca3af', bg: '#f9fafb' }
+  return { label: 'Not started', color: '#4b5563', bg: '#f9fafb' }
 }
 
 // ── Client card in the left panel ─────────────────────────────────────────────
@@ -51,7 +51,7 @@ function ClientCard({ client, active, onSelect }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{client.name}</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 1 }}>{client.industry || 'No industry set'}</div>
+          <div style={{ fontSize: 13, color: '#374151', marginTop: 1 }}>{client.industry || 'No industry set'}</div>
         </div>
         {active && <ChevronRight size={13} color={ACCENT} />}
       </div>
@@ -88,7 +88,7 @@ function ProjectRow({ project, onDelete, onRename, navigate }) {
         ) : (
           <div style={{ fontSize: 15, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{project.name}</div>
         )}
-        <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 1 }}>
+        <div style={{ fontSize: 13, color: '#374151', marginTop: 1 }}>
           {project.project_type || 'Project'} · {new Date(project.created_at).toLocaleDateString()}
         </div>
       </div>
@@ -100,7 +100,7 @@ function ProjectRow({ project, onDelete, onRename, navigate }) {
       </div>
       <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
         <button onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
-          style={{ padding: 6, borderRadius: 7, border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+          style={{ padding: 6, borderRadius: 7, border: 'none', background: 'none', cursor: 'pointer', color: '#374151' }}>
           <MoreHorizontal size={15} />
         </button>
         {menuOpen && (
@@ -130,7 +130,7 @@ function ProjectRow({ project, onDelete, onRename, navigate }) {
 export default function DashboardPage() {
   const navigate   = useNavigate()
   const { clientId: urlClientId } = useParams()
-  const { agencyId } = useAuth()
+  const { agencyId, firstName, greeting, agencyName } = useAuth()
   const { clients, selectedClient, selectClient } = useClient()
 
   const [tab, setTab]           = useState('projects')   // projects | onboarding | research | reviews
@@ -230,10 +230,23 @@ export default function DashboardPage() {
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
+        {/* ── Greeting bar ── */}
+        <div style={{ position:'absolute', top:0, left:240, right:0, zIndex:5, background:'#000', padding:'14px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+          <div>
+            <div style={{ fontSize:22, fontWeight:900, color:'#fff', letterSpacing:-0.3 }}>{greeting}</div>
+            <div style={{ fontSize:15, color:'rgba(255,255,255,.45)', marginTop:2 }}>{agencyName ? `${agencyName} · ` : ''}{new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })}</div>
+          </div>
+          <div style={{ display:'flex', gap:10 }}>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,.4)' }}>Total clients</div>
+              <div style={{ fontSize:22, fontWeight:900, color:'#ea2729' }}>{clients.length}</div>
+            </div>
+          </div>
+        </div>
         {/* ── Left: Client list ── */}
         <div style={{ width: 240, flexShrink: 0, background: '#fff', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '14px 14px 10px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#111', textTransform: 'uppercase', letterSpacing: '.06em' }}>
               Clients ({clients.length})
             </div>
             <button onClick={() => navigate('/clients')}
@@ -246,7 +259,7 @@ export default function DashboardPage() {
             {clients.length === 0 ? (
               <div style={{ padding: '24px 16px', textAlign: 'center' }}>
                 <Users size={28} color="#e5e7eb" style={{ margin: '0 auto 10px' }} />
-                <div style={{ fontSize: 15, color: '#9ca3af', marginBottom: 10 }}>No clients yet</div>
+                <div style={{ fontSize: 15, color: '#374151', marginBottom: 10 }}>No clients yet</div>
                 <button onClick={() => navigate('/clients')}
                   style={{ fontSize: 14, padding: '7px 14px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', cursor: 'pointer', fontWeight: 700 }}>
                   Add first client
@@ -266,7 +279,7 @@ export default function DashboardPage() {
           {!selectedClient ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 14 }}>
               <LayoutGrid size={40} color="#e5e7eb" />
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#9ca3af' }}>Select a client to open their workspace</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#374151', fontWeight:700 }}>Select a client to open their workspace</div>
               <button onClick={() => navigate('/clients')} style={{ fontSize: 15, padding: '9px 20px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 7 }}>
                 <Plus size={14} /> Add your first client
               </button>
@@ -352,7 +365,7 @@ export default function DashboardPage() {
                       <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '48px 24px', textAlign: 'center' }}>
                         <FolderOpen size={36} color="#e5e7eb" style={{ margin: '0 auto 14px' }} />
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>No projects yet for {selectedClient.name}</div>
-                        <div style={{ fontSize: 15, color: '#9ca3af', marginBottom: 16 }}>Create a project to start managing deliverables, files, and client feedback.</div>
+                        <div style={{ fontSize: 15, color: '#374151', marginBottom: 16 }}>Create a project to start managing deliverables, files, and client feedback.</div>
                         <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)}
                           placeholder="Name your first project…"
                           style={{ display: 'block', width: '100%', maxWidth: 280, margin: '0 auto 10px', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none' }} />
@@ -377,7 +390,7 @@ export default function DashboardPage() {
                   <div>
                     <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
                       <div style={{ flex: 1, background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Onboarding status</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#111', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Onboarding status</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                           <div style={{ flex: 1, height: 8, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${onboardPct}%`, background: onboardPct >= 100 ? '#16a34a' : ACCENT, borderRadius: 4, transition: 'width .4s' }} />
@@ -385,12 +398,12 @@ export default function DashboardPage() {
                           <span style={{ fontSize: 15, fontWeight: 800, color: onboardPct >= 100 ? '#16a34a' : ACCENT }}>{onboardPct}%</span>
                         </div>
                         {onboarding ? (
-                          <div style={{ fontSize: 14, color: '#6b7280' }}>
+                          <div style={{ fontSize: 14, color: '#374151' }}>
                             Form sent {new Date(onboarding.created_at).toLocaleDateString()}
                             {onboarding.used_at && <> · Completed {new Date(onboarding.used_at).toLocaleDateString()}</>}
                           </div>
                         ) : (
-                          <div style={{ fontSize: 14, color: '#9ca3af' }}>No onboarding form sent yet</div>
+                          <div style={{ fontSize: 14, color: '#374151' }}>No onboarding form sent yet</div>
                         )}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -421,7 +434,7 @@ export default function DashboardPage() {
                             ['Review count', profile.review_count],
                           ].filter(([, v]) => v).map(([label, val]) => (
                             <div key={label}>
-                              <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 2 }}>{label}</div>
+                              <div style={{ fontSize: 13, color: '#4b5563', marginBottom: 2 }}>{label}</div>
                               <div style={{ fontSize: 15, color: '#111', fontWeight: 600 }}>{val}</div>
                             </div>
                           ))}
@@ -436,7 +449,7 @@ export default function DashboardPage() {
                   <div>
                     <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>Scout intelligence for {selectedClient.name}</div>
-                      <div style={{ fontSize: 15, color: '#6b7280', marginBottom: 14 }}>
+                      <div style={{ fontSize: 15, color: '#374151', marginBottom: 14 }}>
                         Use Scout to research {selectedClient.name}'s competitive landscape, find similar businesses in their market, or analyze their industry.
                       </div>
                       <div style={{ display: 'flex', gap: 10 }}>
@@ -462,7 +475,7 @@ export default function DashboardPage() {
                           ['Email', selectedClient.email],
                         ].map(([label, val]) => (
                           <div key={label}>
-                            <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 2 }}>{label}</div>
+                            <div style={{ fontSize: 13, color: '#4b5563', marginBottom: 2 }}>{label}</div>
                             <div style={{ fontSize: 15, color: val ? '#111' : '#d1d5db', fontWeight: val ? 500 : 400 }}>{val || 'Not set'}</div>
                           </div>
                         ))}
@@ -475,7 +488,7 @@ export default function DashboardPage() {
                 {tab === 'reviews' && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                      <div style={{ fontSize: 15, color: '#6b7280' }}>{reviews.length} reviews for {selectedClient.name}</div>
+                      <div style={{ fontSize: 15, color: '#374151' }}>{reviews.length} reviews for {selectedClient.name}</div>
                       <button onClick={() => navigate('/reviews')}
                         style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <Star size={13} /> Open Reviews Module <ArrowRight size={12} />
@@ -486,7 +499,7 @@ export default function DashboardPage() {
                       <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '40px 24px', textAlign: 'center' }}>
                         <Star size={32} color="#e5e7eb" style={{ margin: '0 auto 12px' }} />
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>No reviews yet</div>
-                        <div style={{ fontSize: 15, color: '#9ca3af', marginBottom: 14 }}>Reviews will appear here once loaded from Google, Yelp, or Facebook.</div>
+                        <div style={{ fontSize: 15, color: '#4b5563', marginBottom: 14 }}>Reviews will appear here once loaded from Google, Yelp, or Facebook.</div>
                         <button onClick={() => navigate('/reviews')} style={{ padding: '9px 20px', borderRadius: 10, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
                           Go to Reviews Module
                         </button>
@@ -498,12 +511,12 @@ export default function DashboardPage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                               <span style={{ fontSize: 14, fontWeight: 700, color: '#374151', background: '#f3f4f6', padding: '2px 8px', borderRadius: 20, textTransform: 'capitalize' }}>{r.platform}</span>
                               <span style={{ fontSize: 15, color: '#f59e0b' }}>{'★'.repeat(r.star_rating || 5)}</span>
-                              <span style={{ fontSize: 14, color: '#9ca3af', marginLeft: 'auto' }}>{r.reviewer_name}</span>
-                              <span style={{ fontSize: 13, color: '#9ca3af' }}>{r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString() : ''}</span>
+                              <span style={{ fontSize: 14, color: '#4b5563', marginLeft: 'auto' }}>{r.reviewer_name}</span>
+                              <span style={{ fontSize: 13, color: '#374151' }}>{r.reviewed_at ? new Date(r.reviewed_at).toLocaleDateString() : ''}</span>
                             </div>
                             <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.6 }}>{r.review_text}</div>
                             {r.response_text && (
-                              <div style={{ marginTop: 8, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, fontSize: 14, color: '#6b7280', borderLeft: `3px solid ${ACCENT}` }}>
+                              <div style={{ marginTop: 8, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, fontSize: 14, color: '#374151', borderLeft: `3px solid ${ACCENT}` }}>
                                 <strong style={{ color: '#374151' }}>Response:</strong> {r.response_text}
                               </div>
                             )}

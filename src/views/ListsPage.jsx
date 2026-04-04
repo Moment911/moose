@@ -80,16 +80,16 @@ export default function ListsPage() {
       <main className="flex-1 overflow-y-auto" style={{ background: '#F8F9FC' }}>
         <div className="px-4 md:px-8 py-4 md:py-6">
           <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => navigate('/marketing')} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></button>
+            <button onClick={() => navigate('/marketing')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">Contact Lists</h1>
-              <p className="text-sm text-gray-500 mt-0.5">{lists.length} lists</p>
+              <p className="text-sm text-gray-700 mt-0.5">{lists.length} lists</p>
             </div>
             <button onClick={() => setShowCreate(true)} className="btn-primary text-sm"><Plus size={13} /> New List</button>
           </div>
 
           <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 max-w-sm mb-4" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-            <Search size={14} className="text-gray-400" />
+            <Search size={14} className="text-gray-700" />
             <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search lists..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
 
@@ -101,16 +101,16 @@ export default function ListsPage() {
                     <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center"><Users size={16} className="text-purple-500" /></div>
                     <div>
                       <h3 className="text-sm font-semibold text-gray-900">{list.name}</h3>
-                      {list.description && <p className="text-sm text-gray-400">{list.description}</p>}
+                      {list.description && <p className="text-sm text-gray-700">{list.description}</p>}
                     </div>
                   </div>
-                  <button onClick={() => handleDelete(list.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={13} /></button>
+                  <button onClick={() => handleDelete(list.id)} className="text-gray-600 hover:text-red-500"><Trash2 size={13} /></button>
                 </div>
-                <p className="text-sm text-gray-400 mb-3">Created {list.created_at ? format(new Date(list.created_at), 'MMM d, yyyy') : 'recently'}</p>
+                <p className="text-sm text-gray-700 mb-3">Created {list.created_at ? format(new Date(list.created_at), 'MMM d, yyyy') : 'recently'}</p>
                 <button onClick={() => openMembers(list.id)} className="w-full btn-secondary text-sm justify-center"><Users size={12} /> Manage Members</button>
               </div>
             ))}
-            {filtered.length === 0 && <div className="col-span-3 py-16 text-center text-sm text-gray-400">No lists found. Create your first list!</div>}
+            {filtered.length === 0 && <div className="col-span-3 py-16 text-center text-sm text-gray-700">No lists found. Create your first list!</div>}
           </div>
         </div>
 
@@ -120,14 +120,14 @@ export default function ListsPage() {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 className="font-semibold text-gray-900">New Contact List</h2>
-                <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+                <button onClick={() => setShowCreate(false)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
               </div>
               <form onSubmit={handleCreate} className="px-5 py-4 space-y-3">
-                <div><label className="text-sm text-gray-500 block mb-1">List Name *</label><input className="input text-sm" placeholder="VIP Clients" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
-                <div><label className="text-sm text-gray-500 block mb-1">Description</label><input className="input text-sm" placeholder="Optional description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-700 block mb-1">List Name *</label><input className="input text-sm" placeholder="VIP Clients" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
+                <div><label className="text-sm text-gray-700 block mb-1">Description</label><input className="input text-sm" placeholder="Optional description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
               </form>
               <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
-                <button onClick={() => setShowCreate(false)} className="text-sm text-gray-500 px-3 py-1.5">Cancel</button>
+                <button onClick={() => setShowCreate(false)} className="text-sm text-gray-700 px-3 py-1.5">Cancel</button>
                 <button onClick={handleCreate} className="btn-primary text-sm">Create List</button>
               </div>
             </div>
@@ -141,13 +141,13 @@ export default function ListsPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
                 <div>
                   <h2 className="font-semibold text-gray-900">{memberList.name}</h2>
-                  <p className="text-sm text-gray-400">{members.length} members</p>
+                  <p className="text-sm text-gray-700">{members.length} members</p>
                 </div>
-                <button onClick={() => setShowMembers(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+                <button onClick={() => setShowMembers(null)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
               </div>
               <div className="px-5 py-3 border-b border-gray-100 flex-shrink-0">
                 <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5">
-                  <Search size={12} className="text-gray-400" />
+                  <Search size={12} className="text-gray-700" />
                   <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search contacts..." value={addContactSearch} onChange={e => setAddContactSearch(e.target.value)} />
                 </div>
               </div>
@@ -161,7 +161,7 @@ export default function ListsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-800">{c.first_name ? `${c.first_name} ${c.last_name || ''}` : c.email}</p>
-                        <p className="text-sm text-gray-400 truncate">{c.email}</p>
+                        <p className="text-sm text-gray-700 truncate">{c.email}</p>
                       </div>
                     </div>
                   )

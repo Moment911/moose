@@ -129,19 +129,19 @@ export default function MessagesPage() {
               <button onClick={() => setShowNew(true)} className="w-8 h-8 bg-brand-500 text-white rounded-lg flex items-center justify-center hover:bg-brand-600"><PenLine size={14} /></button>
             </div>
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-1.5">
-              <Search size={13} className="text-gray-400" />
+              <Search size={13} className="text-gray-700" />
               <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
           </div>
           <div className="flex border-b border-gray-100 px-2 py-1 gap-0.5">
             {['all', 'unread', 'archived'].map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={`flex-1 text-[13px] py-1 rounded font-medium capitalize ${filter === f ? 'bg-gray-200 text-gray-800' : 'text-gray-500 hover:bg-gray-100'}`}>{f}</button>
+              <button key={f} onClick={() => setFilter(f)} className={`flex-1 text-[13px] py-1 rounded font-medium capitalize ${filter === f ? 'bg-gray-200 text-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}>{f}</button>
             ))}
           </div>
           <div className="flex-1 overflow-y-auto">
             {Object.entries(groups).map(([group, convos]) => (
               <div key={group}>
-                <p className="text-[12px] font-semibold text-gray-400 uppercase px-4 pt-3 pb-1">{group}</p>
+                <p className="text-[12px] font-semibold text-gray-700 uppercase px-4 pt-3 pb-1">{group}</p>
                 {convos.map(c => (
                   <div key={c.id} onClick={() => setSelectedConvo(c)}
                     className={`px-4 py-3 cursor-pointer border-b border-gray-50 transition-colors ${selectedConvo?.id === c.id ? 'bg-brand-50' : 'hover:bg-gray-50'}`}>
@@ -155,8 +155,8 @@ export default function MessagesPage() {
                           {c.unread_count > 0 && <div className="w-2 h-2 bg-brand-500 rounded-full flex-shrink-0 ml-1" />}
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
-                          <span className="text-[13px] text-gray-400 truncate">{(c.participants || []).map(p => p.name).join(', ') || 'No participants'}</span>
-                          <span className="text-[12px] text-gray-400 flex-shrink-0 ml-1">{c.last_message_at ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true }).replace('about ', '') : ''}</span>
+                          <span className="text-[13px] text-gray-700 truncate">{(c.participants || []).map(p => p.name).join(', ') || 'No participants'}</span>
+                          <span className="text-[12px] text-gray-700 flex-shrink-0 ml-1">{c.last_message_at ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true }).replace('about ', '') : ''}</span>
                         </div>
                       </div>
                     </div>
@@ -164,7 +164,7 @@ export default function MessagesPage() {
                 ))}
               </div>
             ))}
-            {filtered.length === 0 && <div className="py-12 text-center text-sm text-gray-400">{loading ? 'Loading...' : 'No conversations'}</div>}
+            {filtered.length === 0 && <div className="py-12 text-center text-sm text-gray-700">{loading ? 'Loading...' : 'No conversations'}</div>}
           </div>
         </div>
 
@@ -178,10 +178,10 @@ export default function MessagesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-gray-900 truncate">{selectedConvo.subject || 'No subject'}</h3>
-                  <p className="text-[13px] text-gray-400">{(selectedConvo.participants || []).map(p => p.email).join(', ')}</p>
+                  <p className="text-[13px] text-gray-700">{(selectedConvo.participants || []).map(p => p.email).join(', ')}</p>
                 </div>
-                <button onClick={handleArchive} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100" title="Archive"><Archive size={14} /></button>
-                <button onClick={handleDeleteConvo} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50" title="Delete"><Trash2 size={14} /></button>
+                <button onClick={handleArchive} className="p-1.5 rounded-lg text-gray-700 hover:text-gray-700 hover:bg-gray-100" title="Archive"><Archive size={14} /></button>
+                <button onClick={handleDeleteConvo} className="p-1.5 rounded-lg text-gray-700 hover:text-brand-500 hover:bg-brand-50" title="Delete"><Trash2 size={14} /></button>
               </div>
 
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
@@ -193,23 +193,23 @@ export default function MessagesPage() {
                         {m.is_internal && <p className="text-[12px] text-amber-600 font-medium mb-1">🔒 Internal note</p>}
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-medium ${isMe && !m.is_internal ? 'text-white/80' : 'text-gray-700'}`}>{m.sender_name || 'Unknown'}</span>
-                          <span className={`text-[12px] ${isMe && !m.is_internal ? 'text-white/50' : 'text-gray-400'}`}>{m.created_at && format(new Date(m.created_at), 'MMM d h:mm a')}</span>
+                          <span className={`text-[12px] ${isMe && !m.is_internal ? 'text-white/50' : 'text-gray-700'}`}>{m.created_at && format(new Date(m.created_at), 'MMM d h:mm a')}</span>
                         </div>
                         <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isMe && !m.is_internal ? 'text-white' : 'text-gray-800'}`}>{m.body}</p>
                       </div>
                     </div>
                   )
                 })}
-                {messages.length === 0 && <div className="text-center py-12 text-sm text-gray-400">No messages yet. Start the conversation!</div>}
+                {messages.length === 0 && <div className="text-center py-12 text-sm text-gray-700">No messages yet. Start the conversation!</div>}
               </div>
 
               {/* Composer */}
               <div className="px-5 py-3 border-t border-gray-200 flex-shrink-0">
                 <div className="flex gap-2 mb-2">
-                  <label className={`flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg cursor-pointer ${isInternal ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-500 hover:bg-gray-100'}`}>
+                  <label className={`flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg cursor-pointer ${isInternal ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-700 hover:bg-gray-100'}`}>
                     <input type="checkbox" checked={isInternal} onChange={e => setIsInternal(e.target.checked)} className="w-3 h-3" /> Internal note
                   </label>
-                  <label className="flex items-center gap-1.5 text-sm text-gray-500 px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-sm text-gray-700 px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer">
                     <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} className="w-3 h-3" /> Also email
                   </label>
                 </div>
@@ -222,7 +222,7 @@ export default function MessagesPage() {
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center"><MessageSquare size={40} strokeWidth={1} className="text-gray-200 mx-auto mb-3" /><p className="text-sm text-gray-400">Select a conversation</p></div>
+              <div className="text-center"><MessageSquare size={40} strokeWidth={1} className="text-gray-200 mx-auto mb-3" /><p className="text-sm text-gray-700">Select a conversation</p></div>
             </div>
           )}
         </div>
@@ -230,14 +230,14 @@ export default function MessagesPage() {
         {/* RIGHT — Context */}
         {selectedConvo && (
           <div className="w-72 border-l border-gray-200 overflow-y-auto flex-shrink-0 p-4">
-            <p className="text-[12px] font-semibold text-gray-400 uppercase mb-3">Conversation Details</p>
+            <p className="text-[12px] font-semibold text-gray-700 uppercase mb-3">Conversation Details</p>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Type</p>
+                <p className="text-sm text-gray-700 mb-1">Type</p>
                 <span className="text-sm px-2 py-0.5 rounded-full font-medium" style={{ background: (TYPE_COLORS[selectedConvo.type] || '#9ca3af') + '18', color: TYPE_COLORS[selectedConvo.type] || '#9ca3af' }}>{selectedConvo.type}</span>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Participants</p>
+                <p className="text-sm text-gray-700 mb-1">Participants</p>
                 <div className="space-y-1">
                   {(selectedConvo.participants || []).map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -248,16 +248,16 @@ export default function MessagesPage() {
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Messages</p>
+                <p className="text-sm text-gray-700 mb-1">Messages</p>
                 <p className="text-sm font-medium text-gray-900">{messages.length}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Created</p>
+                <p className="text-sm text-gray-700 mb-1">Created</p>
                 <p className="text-sm text-gray-700">{selectedConvo.created_at && format(new Date(selectedConvo.created_at), 'MMM d yyyy h:mm a')}</p>
               </div>
               {selectedConvo.reply_token && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Client Reply Link</p>
+                  <p className="text-sm text-gray-700 mb-1">Client Reply Link</p>
                   <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/reply/${selectedConvo.reply_token}`); toast.success('Copied!') }}
                     className="text-sm text-brand-500 hover:text-brand-700">Copy magic link</button>
                 </div>
@@ -273,14 +273,14 @@ export default function MessagesPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="font-semibold text-gray-900">New Conversation</h2>
-              <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              <button onClick={() => setShowNew(false)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
             </div>
             <div className="px-5 py-4 space-y-3">
               <div className="flex gap-2">
                 {[{ key: 'client', label: 'Client', icon: Users }, { key: 'internal', label: 'Internal', icon: MessageSquare }, { key: 'project', label: 'Project', icon: Layers }].map(t => {
                   const I = t.icon; return (
                   <button key={t.key} onClick={() => setNewType(t.key)}
-                    className={`flex-1 text-sm py-2 rounded-lg font-medium border transition-colors flex items-center justify-center gap-1 ${newType === t.key ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-500'}`}>
+                    className={`flex-1 text-sm py-2 rounded-lg font-medium border transition-colors flex items-center justify-center gap-1 ${newType === t.key ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-700'}`}>
                     <I size={12} /> {t.label}
                   </button>
                 )})}
@@ -289,7 +289,7 @@ export default function MessagesPage() {
               <input className="input text-sm" placeholder="Subject" value={newSubject} onChange={e => setNewSubject(e.target.value)} />
             </div>
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
-              <button onClick={() => setShowNew(false)} className="text-sm text-gray-500 px-3 py-1.5">Cancel</button>
+              <button onClick={() => setShowNew(false)} className="text-sm text-gray-700 px-3 py-1.5">Cancel</button>
               <button onClick={handleNewConversation} disabled={!newSubject.trim()} className="btn-primary text-sm">Create</button>
             </div>
           </div>

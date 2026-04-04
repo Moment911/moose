@@ -134,10 +134,10 @@ export default function SEOConnectPage() {
       <main className="flex-1 overflow-y-auto" style={{ background: '#F8F9FC' }}>
         <div className="px-4 md:px-8 py-4 md:py-6">
           <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => navigate('/seo')} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></button>
+            <button onClick={() => navigate('/seo')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-gray-900">Connect Data Sources</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Link Google services to analyze SEO performance</p>
+              <p className="text-sm text-gray-700 mt-0.5">Link Google services to analyze SEO performance</p>
             </div>
           </div>
 
@@ -165,7 +165,7 @@ export default function SEOConnectPage() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <div className="px-5 py-4 border-b border-gray-100">
                   <h3 className="text-sm font-semibold text-gray-800">Google Services</h3>
-                  <p className="text-sm text-gray-400 mt-0.5">One sign-in connects Search Console + Analytics</p>
+                  <p className="text-sm text-gray-700 mt-0.5">One sign-in connects Search Console + Analytics</p>
                 </div>
                 {SERVICES.map((svc, i) => {
                   const conn = connMap[svc.key]
@@ -177,7 +177,7 @@ export default function SEOConnectPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-800">{svc.label}</p>
-                        <p className="text-sm text-gray-400 mt-0.5">{svc.desc}</p>
+                        <p className="text-sm text-gray-700 mt-0.5">{svc.desc}</p>
                       </div>
                       {!svc.available ? (
                         <span className="text-[13px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">Pending Verification</span>
@@ -187,7 +187,7 @@ export default function SEOConnectPage() {
                           <button onClick={() => handleDisconnect(svc.key)} className="text-[13px] text-red-400 hover:text-red-600">Disconnect</button>
                         </div>
                       ) : (
-                        <span className="text-[13px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Not connected</span>
+                        <span className="text-[13px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">Not connected</span>
                       )}
                     </div>
                   )
@@ -227,7 +227,7 @@ export default function SEOConnectPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold text-gray-800">Data sources connected</p>
-                      <p className="text-sm text-gray-400 mt-0.5">Data is being synced automatically</p>
+                      <p className="text-sm text-gray-700 mt-0.5">Data is being synced automatically</p>
                     </div>
                     <button onClick={() => navigate('/seo')} className="btn-primary text-sm">View Dashboard →</button>
                   </div>
@@ -238,8 +238,8 @@ export default function SEOConnectPage() {
 
           {!selectedClient && (
             <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-              <Link2 size={40} className="text-gray-300 mx-auto mb-4" />
-              <p className="text-sm text-gray-500">Select a client above to manage their data connections</p>
+              <Link2 size={40} className="text-gray-600 mx-auto mb-4" />
+              <p className="text-sm text-gray-700">Select a client above to manage their data connections</p>
             </div>
           )}
         </div>

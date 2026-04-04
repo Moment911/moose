@@ -29,9 +29,9 @@ function Card({ title, icon:Icon, color=ACCENT, children }) {
 function StatCard({ label, value, color, sub }) {
   return (
     <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
-      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>{label}</div>
+      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:6 }}>{label}</div>
       <div style={{ fontSize:22, fontWeight:800, color:color||'#111' }}>{value}</div>
-      {sub&&<div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>{sub}</div>}
+      {sub&&<div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>{sub}</div>}
     </div>
   )
 }
@@ -112,11 +112,11 @@ Return ONLY valid JSON with these keys:
       <div style={{ flex:1, overflowY:'auto' }}>
         {/* Header */}
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'13px 24px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:0, zIndex:10 }}>
-          <button onClick={()=>navigate(`/clients/${clientId}`)} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}><ChevronLeft size={17}/></button>
+          <button onClick={()=>navigate(`/clients/${clientId}`)} style={{ background:'none', border:'none', cursor:'pointer', color:'#4b5563' }}><ChevronLeft size={17}/></button>
           <div style={{ width:36, height:36, borderRadius:9, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:15 }}>{client?.name?.[0]}</div>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:16, fontWeight:700, color:'#111' }}>{client?.name}</div>
-            <div style={{ fontSize:13, color:'#9ca3af' }}>Client Persona & Marketing Intelligence</div>
+            <div style={{ fontSize:13, color:'#4b5563' }}>Client Persona & Marketing Intelligence</div>
           </div>
           <button onClick={generatePersona} disabled={generating}
             style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
@@ -131,7 +131,7 @@ Return ONLY valid JSON with these keys:
             <div style={{ background:'#fff', borderRadius:14, border:'1.5px dashed #e5e7eb', padding:48, textAlign:'center', marginBottom:20 }}>
               <Users size={44} color="#e5e7eb" strokeWidth={1} style={{ margin:'0 auto 14px' }}/>
               <div style={{ fontSize:17, fontWeight:700, color:'#374151', marginBottom:7 }}>No persona data yet</div>
-              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20, maxWidth:420, margin:'0 auto 20px' }}>Send the client their onboarding link so they fill in their business info. Then click Generate AI Persona above to create a full marketing intelligence brief.</div>
+              <div style={{ fontSize:15, color:'#4b5563', marginBottom:20, maxWidth:420, margin:'0 auto 20px' }}>Send the client their onboarding link so they fill in their business info. Then click Generate AI Persona above to create a full marketing intelligence brief.</div>
               <button onClick={generatePersona} disabled={generating} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 22px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                 <Sparkles size={14}/> Generate Anyway
               </button>
@@ -149,7 +149,7 @@ Return ONLY valid JSON with these keys:
                     <span style={{ fontSize:14, fontWeight:700, color:ACCENT, textTransform:'uppercase', letterSpacing:'.05em' }}>AI Persona</span>
                   </div>
                   <div style={{ fontSize:20, fontWeight:800, color:'#fff', marginBottom:6 }}>"{persona.persona_name}"</div>
-                  <div style={{ fontSize:15, color:'#a1a1aa', lineHeight:1.65 }}>{persona.persona_summary}</div>
+                  <div style={{ fontSize:15, color:'#4b5563', lineHeight:1.65 }}>{persona.persona_summary}</div>
                 </div>
 
                 {/* Demographics */}
@@ -158,7 +158,7 @@ Return ONLY valid JSON with these keys:
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                       {Object.entries(persona.demographics).filter(([,v])=>v).map(([k,v])=>(
                         <div key={k} style={{ background:'#f9fafb', borderRadius:9, padding:'10px 12px' }}>
-                          <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:3 }}>{k.replace(/_/g,' ')}</div>
+                          <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.04em', marginBottom:3 }}>{k.replace(/_/g,' ')}</div>
                           <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{v}</div>
                         </div>
                       ))}
@@ -172,7 +172,7 @@ Return ONLY valid JSON with these keys:
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
                       {[['Core Values',persona.psychographics.values,'#10b981'],['Motivations',persona.psychographics.motivations,'#3b82f6'],['Fears / Objections',persona.psychographics.fears,'#ef4444'],['Aspirations',persona.psychographics.aspirations,'#8b5cf6']].map(([label,items,color])=>(
                         <div key={label}>
-                          <div style={{ fontSize:13, fontWeight:700, color:'#6b7280', marginBottom:7 }}>{label}</div>
+                          <div style={{ fontSize:13, fontWeight:700, color:'#374151', marginBottom:7 }}>{label}</div>
                           {(items||[]).map((item,i)=><div key={i} style={{ display:'flex', gap:6, marginBottom:5, fontSize:14, color:'#374151' }}><div style={{ width:5, height:5, borderRadius:'50%', background:color, flexShrink:0, marginTop:5 }}/>{item}</div>)}
                         </div>
                       ))}
@@ -191,7 +191,7 @@ Return ONLY valid JSON with these keys:
                       <div style={{ fontSize:14, fontWeight:700, color:'#374151', marginBottom:8 }}>👥 Facebook Interests</div>
                       <div style={{ display:'flex', flexWrap:'wrap' }}>{persona.ad_targeting.facebook_interests?.map(i=><Pill key={i} text={i} color="#8b5cf6"/>)}</div>
                     </div>
-                    {persona.ad_targeting.geo_radius&&<div style={{ fontSize:14, color:'#6b7280' }}>📍 {persona.ad_targeting.geo_radius}</div>}
+                    {persona.ad_targeting.geo_radius&&<div style={{ fontSize:14, color:'#374151' }}>📍 {persona.ad_targeting.geo_radius}</div>}
                   </Card>
                 )}
 
@@ -202,9 +202,9 @@ Return ONLY valid JSON with these keys:
                       <div style={{ fontSize:14, fontWeight:700, color:'#374151', marginBottom:8 }}>🎯 Headline Angles</div>
                       {persona.messaging.headline_angles?.map((h,i)=>(
                         <div key={i} style={{ display:'flex', gap:9, marginBottom:6, padding:'7px 11px', background:'#f9fafb', borderRadius:8, border:'1px solid #f3f4f6' }}>
-                          <span style={{ fontSize:13, fontWeight:700, color:'#9ca3af', flexShrink:0 }}>H{i+1}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#4b5563', flexShrink:0 }}>H{i+1}</span>
                           <span style={{ fontSize:15, color:'#374151', flex:1 }}>{h}</span>
-                          <button onClick={()=>{navigator.clipboard.writeText(h);toast.success('Copied')}} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af', flexShrink:0 }}><Copy size={10}/></button>
+                          <button onClick={()=>{navigator.clipboard.writeText(h);toast.success('Copied')}} style={{ background:'none', border:'none', cursor:'pointer', color:'#4b5563', flexShrink:0 }}><Copy size={10}/></button>
                         </div>
                       ))}
                     </div>
@@ -225,8 +225,8 @@ Return ONLY valid JSON with these keys:
                 {persona.ltv_analysis&&(
                   <Card title="LTV Analysis" icon={DollarSign} color="#10b981">
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:9, marginBottom:12 }}>
-                      <div style={{ background:'#f0fdf4', borderRadius:9, padding:'11px', textAlign:'center' }}><div style={{ fontSize:15, fontWeight:800, color:'#166534' }}>{persona.ltv_analysis.first_year_value}</div><div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>Year 1</div></div>
-                      <div style={{ background:'#eff6ff', borderRadius:9, padding:'11px', textAlign:'center' }}><div style={{ fontSize:15, fontWeight:800, color:'#1d4ed8' }}>{persona.ltv_analysis.three_year_value}</div><div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>3-Year LTV</div></div>
+                      <div style={{ background:'#f0fdf4', borderRadius:9, padding:'11px', textAlign:'center' }}><div style={{ fontSize:15, fontWeight:800, color:'#166534' }}>{persona.ltv_analysis.first_year_value}</div><div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>Year 1</div></div>
+                      <div style={{ background:'#eff6ff', borderRadius:9, padding:'11px', textAlign:'center' }}><div style={{ fontSize:15, fontWeight:800, color:'#1d4ed8' }}>{persona.ltv_analysis.three_year_value}</div><div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>3-Year LTV</div></div>
                     </div>
                     {persona.ltv_analysis.upsell_opportunities?.map((u,i)=><div key={i} style={{ fontSize:14, color:'#374151', display:'flex', gap:5, marginBottom:4 }}><span style={{ color:'#10b981', fontWeight:700 }}>↑</span>{u}</div>)}
                   </Card>
@@ -238,9 +238,9 @@ Return ONLY valid JSON with these keys:
                       <div key={i} style={{ marginBottom:12 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
                           <div><span style={{ fontSize:15, fontWeight:700, color:'#111' }}>{ch.channel}</span><span style={{ fontSize:12, fontWeight:700, padding:'1px 6px', borderRadius:8, marginLeft:6, background:ch.priority==='high'?'#fef2f2':ch.priority==='mid'?'#fffbeb':'#f0fdf4', color:ch.priority==='high'?'#dc2626':ch.priority==='mid'?'#d97706':'#16a34a' }}>{ch.priority?.toUpperCase()}</span></div>
-                          <span style={{ fontSize:13, fontWeight:700, color:'#9ca3af' }}>{ch.budget_allocation}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#4b5563' }}>{ch.budget_allocation}</span>
                         </div>
-                        <div style={{ fontSize:13, color:'#9ca3af' }}>{ch.rationale}</div>
+                        <div style={{ fontSize:13, color:'#4b5563' }}>{ch.rationale}</div>
                       </div>
                     ))}
                   </Card>
@@ -260,12 +260,12 @@ Return ONLY valid JSON with these keys:
                 {persona.online_behavior&&(
                   <Card title="Online Behavior" icon={Globe} color="#06b6d4">
                     <div style={{ marginBottom:10 }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', marginBottom:6, textTransform:'uppercase' }}>Platforms Used</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', marginBottom:6, textTransform:'uppercase' }}>Platforms Used</div>
                       <div style={{ display:'flex', flexWrap:'wrap' }}>{persona.online_behavior.social_platforms?.map(p=><Pill key={p} text={p} color="#06b6d4"/>)}</div>
                     </div>
                     {persona.online_behavior.peak_usage_time&&<div style={{ fontSize:14, color:'#374151', marginBottom:8 }}><strong>Peak time:</strong> {persona.online_behavior.peak_usage_time}</div>}
                     <div>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', marginBottom:6, textTransform:'uppercase' }}>Search Triggers</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', marginBottom:6, textTransform:'uppercase' }}>Search Triggers</div>
                       {persona.online_behavior.search_triggers?.map((t,i)=><div key={i} style={{ fontSize:14, color:'#374151', display:'flex', gap:5, marginBottom:4 }}><span style={{ color:'#06b6d4', fontWeight:700 }}>→</span>{t}</div>)}
                     </div>
                   </Card>

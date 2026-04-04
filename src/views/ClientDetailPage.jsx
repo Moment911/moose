@@ -49,18 +49,18 @@ const INDUSTRIES = [
 // ── Masked password field ─────────────────────────────────────────────────────
 function MaskedPw({ value }) {
   const [show, setShow] = useState(false)
-  if (!value) return <span style={{ color: '#9ca3af', fontSize: 15 }}>—</span>
+  if (!value) return <span style={{ color: '#4b5563', fontSize: 15 }}>—</span>
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ fontFamily: show ? 'inherit' : 'monospace', fontSize: 15, color: '#111', letterSpacing: show ? 'normal' : '0.15em' }}>
         {show ? value : '••••••••••••'}
       </span>
       <button onClick={() => setShow(s => !s)}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 2 }}>
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 2 }}>
         {show ? <EyeOff size={13} /> : <Eye size={13} />}
       </button>
       <button onClick={() => { navigator.clipboard.writeText(value); toast.success('Copied!') }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 2 }}>
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', padding: 2 }}>
         <Copy size={13} />
       </button>
     </div>
@@ -72,7 +72,7 @@ function DataRow({ label, value, masked, link, mono }) {
   const displayVal = Array.isArray(value) ? value.join(', ') : String(value)
   return (
     <div style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5 }}>{label}</div>
       <div>
         {masked ? <MaskedPw value={displayVal} /> : link && value ? (
           <a href={value.startsWith('http') ? value : 'https://' + value} target="_blank" rel="noreferrer"
@@ -94,7 +94,7 @@ function DataPills({ label, value, color = '#ea2729' }) {
   if (!arr.length) return null
   return (
     <div style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 8 }}>{label}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
         {arr.map((item, i) => (
           <span key={i} style={{ fontSize: 15, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: color + '15', color, border: `1px solid ${color}30` }}>{item}</span>
@@ -207,7 +207,7 @@ export default function ClientDetailPage() {
     if (options) {
       return (
         <div>
-          <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
           <select
             className="input w-full"
             value={val}
@@ -223,7 +223,7 @@ export default function ClientDetailPage() {
     if (type === 'textarea') {
       return (
         <div>
-          <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
           <textarea
             className="input w-full min-h-[80px] resize-y"
             value={val}
@@ -238,9 +238,9 @@ export default function ClientDetailPage() {
 
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
         <div className="relative">
-          {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />}
+          {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700" />}
           <input
             type={type}
             className={`input w-full ${Icon ? 'pl-10' : ''}`}
@@ -260,7 +260,7 @@ export default function ClientDetailPage() {
       <div className="card p-6 mb-6">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+          {description && <p className="text-sm text-gray-700 mt-1">{description}</p>}
         </div>
         {children}
       </div>
@@ -305,9 +305,9 @@ export default function ClientDetailPage() {
                 <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate(`/project/${p.id}`)}>
                   <div>
                     <p className="font-medium text-gray-900">{p.name}</p>
-                    <p className="text-sm text-gray-500">Created {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
+                    <p className="text-sm text-gray-700">Created {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-gray-400" />
+                  <ExternalLink className="w-4 h-4 text-gray-700" />
                 </div>
               ))}
             </div>
@@ -404,7 +404,7 @@ export default function ClientDetailPage() {
               <button className="btn-secondary text-sm" onClick={() => saveNestedField('brand', 'logo_url', '')}>Remove</button>
             </div>
           ) : (
-            <div className="text-sm text-gray-400 italic">No logo uploaded. Set via onboarding form or paste URL below.</div>
+            <div className="text-sm text-gray-700 italic">No logo uploaded. Set via onboarding form or paste URL below.</div>
           )}
           <div className="mt-3">
             <InlineField label="Logo URL" value={brand.logo_url} onSave={(v) => saveNestedField('brand', 'logo_url', v)} type="url" placeholder="https://..." />
@@ -417,10 +417,10 @@ export default function ClientDetailPage() {
               <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
                 <div className="w-8 h-8 rounded-md border border-gray-200 shadow-inner" style={{ backgroundColor: color }} />
                 <span className="text-sm font-mono text-gray-700">{color}</span>
-                <button onClick={() => removeColor(idx)} className="text-gray-400 hover:text-red-500"><X className="w-3 h-3" /></button>
+                <button onClick={() => removeColor(idx)} className="text-gray-700 hover:text-red-500"><X className="w-3 h-3" /></button>
               </div>
             ))}
-            {!(brand.colors || []).length && <p className="text-sm text-gray-400 italic">No brand colors defined.</p>}
+            {!(brand.colors || []).length && <p className="text-sm text-gray-700 italic">No brand colors defined.</p>}
           </div>
           <div className="flex items-center gap-3">
             <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} className="w-10 h-10 rounded cursor-pointer border-0" />
@@ -434,10 +434,10 @@ export default function ClientDetailPage() {
             {(brand.fonts || []).map((font, idx) => (
               <span key={idx} className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
                 {font}
-                <button onClick={() => removeFont(idx)} className="text-gray-400 hover:text-red-500"><X className="w-3 h-3" /></button>
+                <button onClick={() => removeFont(idx)} className="text-gray-700 hover:text-red-500"><X className="w-3 h-3" /></button>
               </span>
             ))}
-            {!(brand.fonts || []).length && <p className="text-sm text-gray-400 italic">No fonts defined.</p>}
+            {!(brand.fonts || []).length && <p className="text-sm text-gray-700 italic">No fonts defined.</p>}
           </div>
           <FontAdder onAdd={addFont} />
         </Section>
@@ -523,7 +523,7 @@ export default function ClientDetailPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-gray-900">{c.name}</span>
-                  {c.role && <span className="text-sm text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{c.role}</span>}
+                  {c.role && <span className="text-sm text-gray-700 bg-gray-200 px-2 py-0.5 rounded-full">{c.role}</span>}
                   {c.is_primary && (
                     <button onClick={() => toggleBadge(idx, 'is_primary')} className="inline-flex items-center gap-1 text-sm bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">
                       <Crown className="w-3 h-3" /> Primary
@@ -540,15 +540,15 @@ export default function ClientDetailPage() {
                     </button>
                   )}
                 </div>
-                <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                <div className="flex items-center gap-4 mt-1 text-sm text-gray-700">
                   {c.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {c.email}</span>}
                   {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {c.phone}</span>}
                 </div>
               </div>
-              <button onClick={() => removeContact(idx)} className="text-gray-400 hover:text-red-500 ml-2"><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => removeContact(idx)} className="text-gray-700 hover:text-red-500 ml-2"><Trash2 className="w-4 h-4" /></button>
             </div>
           ))}
-          {!contacts.length && <p className="text-sm text-gray-400 italic">No contacts added yet.</p>}
+          {!contacts.length && <p className="text-sm text-gray-700 italic">No contacts added yet.</p>}
         </div>
 
         {showAdd ? (
@@ -628,18 +628,18 @@ export default function ClientDetailPage() {
                   <span className={`inline-flex items-center text-sm font-medium px-2 py-0.5 rounded-full ${t.used_at ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                     {t.used_at ? 'Completed' : 'Pending'}
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-700">
                     Created {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}
                   </span>
                 </div>
-                <p className="text-sm text-gray-400 font-mono truncate">{window.location.origin}/onboarding/{t.token}</p>
+                <p className="text-sm text-gray-700 font-mono truncate">{window.location.origin}/onboarding/{t.token}</p>
               </div>
               <button onClick={() => copyLink(t.token)} className="btn-secondary text-sm inline-flex items-center gap-1.5 ml-3 shrink-0">
                 {copiedToken === t.token ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Link</>}
               </button>
             </div>
           ))}
-          {!tokens.length && <p className="text-sm text-gray-400 italic">No onboarding links generated yet.</p>}
+          {!tokens.length && <p className="text-sm text-gray-700 italic">No onboarding links generated yet.</p>}
         </div>
       </Section>
     )
@@ -651,7 +651,7 @@ export default function ClientDetailPage() {
       <div className="flex h-screen bg-gray-50">
         <Sidebar />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-gray-400">Loading client...</div>
+          <div className="animate-pulse text-gray-700">Loading client...</div>
         </main>
       </div>
     )
@@ -693,7 +693,7 @@ export default function ClientDetailPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <div>
               <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: 0 }}>Client Intelligence Profile</h2>
-              <p style={{ fontSize: 15, color: '#9ca3af', margin: '4px 0 0' }}>All data submitted via client onboarding form</p>
+              <p style={{ fontSize: 15, color: '#4b5563', margin: '4px 0 0' }}>All data submitted via client onboarding form</p>
             </div>
             <button onClick={() => window.location.reload()}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: 'pointer', color: '#374151', fontWeight: 600 }}>
@@ -704,7 +704,7 @@ export default function ClientDetailPage() {
             <div style={{ background: '#f0fbfc', borderRadius: 14, border: `1.5px dashed #ea272940`, padding: 40, textAlign: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
-              <div style={{ fontSize: 15, color: '#9ca3af', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, color: '#4b5563', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
                 Go to the <strong>Onboarding</strong> tab to generate a link, then send it to your client to fill out. All their data will appear here automatically once submitted.
               </div>
             </div>
@@ -866,7 +866,7 @@ export default function ClientDetailPage() {
           style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#8b5cf6', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:15, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
           ✨ Open AI Persona Builder
         </a>
-        <p style={{ fontSize:14, color:'#9ca3af', marginTop:10 }}>Generates: ideal customer profile, demographics, psychographics, Google/Facebook targeting, headline angles, channel recommendations, 30-day quick wins, LTV analysis.</p>
+        <p style={{ fontSize:14, color:'#4b5563', marginTop:10 }}>Generates: ideal customer profile, demographics, psychographics, Google/Facebook targeting, headline angles, channel recommendations, 30-day quick wins, LTV analysis.</p>
       </Section>
     ),
     access: (
@@ -875,7 +875,7 @@ export default function ClientDetailPage() {
           style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#ea2729', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:15, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
           🔑 Open Access Checklist
         </a>
-        <p style={{ fontSize:14, color:'#9ca3af', marginTop:10, marginBottom:0 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
+        <p style={{ fontSize:14, color:'#4b5563', marginTop:10, marginBottom:0 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
       </Section>
     ),
   }
@@ -894,7 +894,7 @@ export default function ClientDetailPage() {
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
               <div className="flex items-center gap-3 mt-1">
-                {client.email && <span className="text-sm text-gray-500 flex items-center gap-1"><Mail className="w-3 h-3" /> {client.email}</span>}
+                {client.email && <span className="text-sm text-gray-700 flex items-center gap-1"><Mail className="w-3 h-3" /> {client.email}</span>}
                 {profile.industry && <span className="text-sm bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">{profile.industry}</span>}
                 {profile.website && (
                   <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-500 hover:underline flex items-center gap-1">
@@ -914,7 +914,7 @@ export default function ClientDetailPage() {
                 className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                   activeTab === tab.key
                     ? 'border-brand-500 text-brand-500'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 {tab.label}

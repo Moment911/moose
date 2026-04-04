@@ -18,7 +18,7 @@ const TEAL = '#5bc6d0'
 const STATUS_COLORS = {
   active:   { bg:'#f0fdf4', color:'#16a34a', dot:'#16a34a' },
   prospect: { bg:'#f0fbfc', color:ACCENT,    dot:ACCENT },
-  inactive: { bg:'#f9fafb', color:'#9ca3af', dot:'#9ca3af' },
+  inactive: { bg:'#f9fafb', color:'#4b5563', dot:'#9ca3af' },
   paused:   { bg:'#fffbeb', color:'#d97706', dot:'#d97706' },
 }
 
@@ -144,7 +144,7 @@ export default function ClientsPage() {
   const industries = [...new Set(clients.map(c => c.industry).filter(Boolean))]
 
   const THstyle = (field) => ({
-    padding:'11px 14px', fontSize:14, fontWeight:700, color:'#6b7280',
+    padding:'11px 14px', fontSize:14, fontWeight:700, color:'#374151',
     textAlign:'left', background:'#f9fafb', borderBottom:'1px solid #e5e7eb',
     cursor:'pointer', userSelect:'none', whiteSpace:'nowrap'
   })
@@ -160,7 +160,7 @@ export default function ClientsPage() {
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
               <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>Clients</h1>
-              <p style={{ fontSize:15, color:'#9ca3af', margin:'4px 0 0' }}>
+              <p style={{ fontSize:15, color:'#4b5563', margin:'4px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
@@ -178,7 +178,7 @@ export default function ClientsPage() {
                   {editingId ? 'Edit Client' : 'New Client'}
                 </h2>
                 <button onClick={() => { setShowAdd(false); setEditingId(null) }}
-                  style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:4 }}>
+                  style={{ border:'none', background:'none', cursor:'pointer', color:'#4b5563', padding:4 }}>
                   <X size={18}/>
                 </button>
               </div>
@@ -223,7 +223,7 @@ export default function ClientsPage() {
                   {editingId ? 'Save Changes' : 'Add Client'}
                 </button>
                 <button onClick={() => { setShowAdd(false); setEditingId(null) }}
-                  style={{ padding:'10px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:15, cursor:'pointer' }}>
+                  style={{ padding:'10px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:15, cursor:'pointer' }}>
                   Cancel
                 </button>
               </div>
@@ -237,7 +237,7 @@ export default function ClientsPage() {
               <input value={search} onChange={e=>setSearch(e.target.value)}
                 placeholder="Search by name, email, phone, industry…"
                 style={{ border:'none', outline:'none', fontSize:15, background:'transparent', flex:1, color:'#111' }}/>
-              {search && <button onClick={()=>setSearch('')} style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:2 }}><X size={13}/></button>}
+              {search && <button onClick={()=>setSearch('')} style={{ border:'none', background:'none', cursor:'pointer', color:'#4b5563', padding:2 }}><X size={13}/></button>}
             </div>
 
             <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
@@ -257,26 +257,26 @@ export default function ClientsPage() {
 
             {(search || statusFilter !== 'all' || industryFilter !== 'all') && (
               <button onClick={()=>{ setSearch(''); setStatusFilter('all'); setIndustryFilter('all') }}
-                style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, color:'#6b7280', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, color:'#374151', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
                 <X size={13}/> Clear
               </button>
             )}
 
-            <div style={{ fontSize:15, color:'#9ca3af', marginLeft:'auto' }}>
+            <div style={{ fontSize:15, color:'#4b5563', marginLeft:'auto' }}>
               {filtered.length} of {clients.length} clients
             </div>
           </div>
 
           {/* Table */}
           {loading ? (
-            <div style={{ textAlign:'center', padding:60, color:'#9ca3af', fontSize:15 }}>Loading clients…</div>
+            <div style={{ textAlign:'center', padding:60, color:'#4b5563', fontSize:15 }}>Loading clients…</div>
           ) : filtered.length === 0 ? (
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'64px 24px', textAlign:'center' }}>
               <Users size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
               <div style={{ fontSize:17, fontWeight:700, color:'#111', marginBottom:6 }}>
                 {clients.length === 0 ? 'No clients yet' : 'No clients match your filters'}
               </div>
-              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>
+              <div style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>
                 {clients.length === 0 ? 'Add your first client to get started.' : 'Try adjusting your search or filters.'}
               </div>
               {clients.length === 0 && (
@@ -326,7 +326,7 @@ export default function ClientsPage() {
                             {client.website && (
                               <a href={client.website} target="_blank" rel="noreferrer"
                                 onClick={e=>e.stopPropagation()}
-                                style={{ fontSize:13, color:'#9ca3af', display:'flex', alignItems:'center', gap:3, textDecoration:'none' }}>
+                                style={{ fontSize:13, color:'#4b5563', display:'flex', alignItems:'center', gap:3, textDecoration:'none' }}>
                                 <Globe size={10}/> {client.website.replace(/^https?:\/\//,'').slice(0,30)}
                               </a>
                             )}
@@ -351,13 +351,13 @@ export default function ClientsPage() {
                         <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
                           {client.email && (
                             <a href={`mailto:${client.email}`} onClick={e=>e.stopPropagation()}
-                              style={{ fontSize:14, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
+                              style={{ fontSize:14, color:'#374151', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
                               <Mail size={11}/> {client.email}
                             </a>
                           )}
                           {client.phone && (
                             <a href={`tel:${client.phone}`} onClick={e=>e.stopPropagation()}
-                              style={{ fontSize:14, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
+                              style={{ fontSize:14, color:'#374151', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
                               <Phone size={11}/> {client.phone}
                             </a>
                           )}
@@ -374,7 +374,7 @@ export default function ClientsPage() {
                           </button>
                           <div style={{ position:'relative' }}>
                             <button onClick={() => setMenuOpen(menuOpen===client.id ? null : client.id)}
-                              style={{ padding:'5px 7px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#9ca3af', display:'flex', alignItems:'center' }}>
+                              style={{ padding:'5px 7px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#4b5563', display:'flex', alignItems:'center' }}>
                               <MoreHorizontal size={14}/>
                             </button>
                             {menuOpen===client.id && (

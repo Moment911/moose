@@ -276,9 +276,9 @@ export default function ProjectPage() {
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => navigate(`/client/${client?.id}`)} className="text-gray-400 hover:text-gray-600"><ChevronLeft size={18} /></button>
-            <div className="text-sm text-gray-500">{client?.name}</div>
-            <span className="text-gray-300">/</span>
+            <button onClick={() => navigate(`/client/${client?.id}`)} className="text-gray-700 hover:text-gray-600"><ChevronLeft size={18} /></button>
+            <div className="text-sm text-gray-700">{client?.name}</div>
+            <span className="text-gray-600">/</span>
             <h1 className="text-sm font-semibold text-gray-900">{project?.name}</h1>
           </div>
           <div className="flex items-center justify-between">
@@ -315,7 +315,7 @@ export default function ProjectPage() {
             ].map(t => (
               <button key={t.key} onClick={() => t.link ? navigate(t.link) : setTab(t.key)}
                 className={`py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                  tab === t.key ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-800'
+                  tab === t.key ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-700 hover:text-gray-800'
                 }`}>{t.label}</button>
             ))}
           </div>
@@ -326,7 +326,7 @@ export default function ProjectPage() {
             <div className="card p-5 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-gray-900">Upload Files</h3>
-                <button onClick={() => setShowUpload(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+                <button onClick={() => setShowUpload(false)} className="text-gray-700 hover:text-gray-600 text-xl leading-none">&times;</button>
               </div>
               <UploadDropzone projectId={projectId} onUploaded={onUploaded} />
             </div>
@@ -340,7 +340,7 @@ export default function ProjectPage() {
                 <>
                   <div className="flex items-center gap-2 mb-1">
                     <Palette size={14} className="text-brand-500" />
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Design Canvases</span>
+                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Design Canvases</span>
                   </div>
                   {canvases.map(canvas => (
                     <div key={canvas.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
@@ -353,7 +353,7 @@ export default function ProjectPage() {
                         <p className="font-medium text-gray-900 text-sm truncate">{canvas.name}</p>
                         <div className="flex items-center gap-4 mt-1">
                           <span className="text-sm text-brand-600 font-medium">Design Canvas</span>
-                          <span className="text-sm text-gray-400 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(canvas.created_at), { addSuffix: true })}</span>
+                          <span className="text-sm text-gray-700 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(canvas.created_at), { addSuffix: true })}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -382,7 +382,7 @@ export default function ProjectPage() {
                 <>
                   <div className="flex items-center gap-2 mt-4 mb-1">
                     <Mail size={14} className="text-brand-500" />
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Email Designs</span>
+                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Email Designs</span>
                   </div>
                   {emails.map(email => (
                     <div key={email.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
@@ -395,8 +395,8 @@ export default function ProjectPage() {
                         <p className="font-medium text-gray-900 text-sm truncate">{email.name}</p>
                         <div className="flex items-center gap-4 mt-1">
                           <span className="text-sm text-brand-600 font-medium">Email Template</span>
-                          {email.subject && <span className="text-sm text-gray-400 truncate">Subject: {email.subject}</span>}
-                          <span className="text-sm text-gray-400 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(email.created_at), { addSuffix: true })}</span>
+                          {email.subject && <span className="text-sm text-gray-700 truncate">Subject: {email.subject}</span>}
+                          <span className="text-sm text-gray-700 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(email.created_at), { addSuffix: true })}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -411,12 +411,12 @@ export default function ProjectPage() {
               {/* Uploaded files section */}
               {files.length > 0 && (canvases.length > 0 || emails.length > 0) && (
                 <div className="flex items-center gap-2 mt-4 mb-1">
-                  <FileImage size={14} className="text-gray-400" />
-                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Uploaded Files</span>
+                  <FileImage size={14} className="text-gray-700" />
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Uploaded Files</span>
                 </div>
               )}
               {files.length === 0 && canvases.length === 0 && emails.length === 0 && !showUpload && (
-                <div className="text-center py-12"><FileImage size={40} className="text-gray-300 mx-auto mb-3" /><p className="text-gray-500 text-sm mb-4">Get started by creating something.</p>
+                <div className="text-center py-12"><FileImage size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm mb-4">Get started by creating something.</p>
                   <div className="flex items-center justify-center gap-3">
                     <button onClick={() => navigate(`/project/${projectId}/canvas`)} className="btn-secondary"><PenLine size={15} /> Design Canvas</button>
                     <button onClick={() => navigate(`/project/${projectId}/email`)} className="btn-secondary" style={{ borderColor: '#ea2729', color: '#ea2729' }}><Mail size={15} /> Email Designer</button>
@@ -438,8 +438,8 @@ export default function ProjectPage() {
                       {(file.version_number || 1) > 1 && <span className="text-[13px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><GitBranch size={8} /> v{file.version_number}</span>}
                     </div>
                     <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm text-gray-500">{file.type?.startsWith('image/') ? 'Image' : file.type === 'application/pdf' ? 'PDF' : file.type?.startsWith('video/') ? 'Screen Recording' : 'HTML'}{file.size && ` \u00b7 ${(file.size / 1024 / 1024).toFixed(1)} MB`}</span>
-                      <span className="text-sm text-gray-400 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}</span>
+                      <span className="text-sm text-gray-700">{file.type?.startsWith('image/') ? 'Image' : file.type === 'application/pdf' ? 'PDF' : file.type?.startsWith('video/') ? 'Screen Recording' : 'HTML'}{file.size && ` \u00b7 ${(file.size / 1024 / 1024).toFixed(1)} MB`}</span>
+                      <span className="text-sm text-gray-700 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -448,7 +448,7 @@ export default function ProjectPage() {
                     {!file.type?.startsWith('video/') && <button onClick={e => { e.stopPropagation(); setVersionUploadFor(file); setTimeout(() => versionInputRef.current?.click(), 50) }}
                       className="opacity-0 group-hover:opacity-100 text-purple-400 hover:text-purple-600 p-1" title="Upload new version"><Upload size={13} /></button>}
                     <button onClick={e => handleDeleteFile(file, e)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
-                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors"><ChevronLeft size={12} className="rotate-180" /></div>
+                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 group-hover:bg-brand-50 group-hover:text-brand-500 transition-colors"><ChevronLeft size={12} className="rotate-180" /></div>
                   </div>
                 </div>
               )})}
@@ -464,15 +464,15 @@ export default function ProjectPage() {
                 <h3 className="font-medium text-gray-900 text-sm mb-4 flex items-center gap-2"><UserPlus size={15} /> Add Team Member</h3>
                 <form onSubmit={handleAddMember} className="flex gap-3 items-end flex-wrap">
                   <div className="flex-1 min-w-[180px]">
-                    <label className="text-[13px] text-gray-500 block mb-1">Email *</label>
+                    <label className="text-[13px] text-gray-700 block mb-1">Email *</label>
                     <input className="input text-sm" placeholder="email@company.com" type="email" value={newMemberEmail} onChange={e => setNewMemberEmail(e.target.value)} />
                   </div>
                   <div className="w-40">
-                    <label className="text-[13px] text-gray-500 block mb-1">Name</label>
+                    <label className="text-[13px] text-gray-700 block mb-1">Name</label>
                     <input className="input text-sm" placeholder="Full name" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} />
                   </div>
                   <div className="w-32">
-                    <label className="text-[13px] text-gray-500 block mb-1">Role</label>
+                    <label className="text-[13px] text-gray-700 block mb-1">Role</label>
                     <select className="input text-sm" value={newMemberRole} onChange={e => setNewMemberRole(e.target.value)}>
                       <option value="admin">Admin</option>
                       <option value="staff">Staff</option>
@@ -485,7 +485,7 @@ export default function ProjectPage() {
                   </button>
                 </form>
                 <div className="mt-3 flex items-center gap-2">
-                  <p className="text-[13px] text-gray-400 flex-1">
+                  <p className="text-[13px] text-gray-700 flex-1">
                     <strong>Admin</strong> = full access &middot; <strong>Staff</strong> = annotate & comment &middot; <strong>Client</strong> = view & comment via link &middot; <strong>Viewer</strong> = read-only
                   </p>
                   {project?.access_level !== 'private' && (
@@ -496,10 +496,10 @@ export default function ProjectPage() {
 
               {/* Team list */}
               {team.length === 0 ? (
-                <div className="text-center py-16"><Users size={40} className="text-gray-300 mx-auto mb-3" /><p className="text-gray-500 text-sm">No team members yet.</p></div>
+                <div className="text-center py-16"><Users size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm">No team members yet.</p></div>
               ) : (
                 <div className="card overflow-hidden">
-                  <div className="grid grid-cols-[1fr_160px_100px_100px_120px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  <div className="grid grid-cols-[1fr_160px_100px_100px_120px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     <div>Member</div><div>Email</div><div>Role</div><div>Status</div><div>Actions</div>
                   </div>
                   <div className="divide-y divide-gray-100">
@@ -511,7 +511,7 @@ export default function ProjectPage() {
                           <div>
                             <p className="font-medium text-gray-900 text-sm">{member.name || '\u2014'}</p>
                           </div>
-                          <div className="text-gray-500 text-sm truncate">{member.email}</div>
+                          <div className="text-gray-700 text-sm truncate">{member.email}</div>
                           <div>
                             <select value={member.role} onChange={e => handleChangeRole(member, e.target.value)}
                               className={`text-sm px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${rs.cls}`}>
@@ -530,9 +530,9 @@ export default function ProjectPage() {
                           </div>
                           <div className="flex items-center gap-1">
                             <button onClick={() => handleResendInvite(member)} title="Resend invite email"
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"><Mail size={13} /></button>
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"><Mail size={13} /></button>
                             <button onClick={() => handleRemoveMember(member)} title="Remove access"
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
+                              className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-700 hover:bg-red-50 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
                           </div>
                         </div>
                       )
@@ -547,7 +547,7 @@ export default function ProjectPage() {
           {tab === 'rounds' && (
             <div className="space-y-4">
               {rounds.length === 0 && (
-                <div className="text-center py-20"><Send size={40} className="text-gray-300 mx-auto mb-3" /><p className="text-gray-500 text-sm mb-2">No rounds submitted yet.</p><p className="text-sm text-gray-400">Clients can submit feedback rounds from the public review link.</p></div>
+                <div className="text-center py-20"><Send size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm mb-2">No rounds submitted yet.</p><p className="text-sm text-gray-700">Clients can submit feedback rounds from the public review link.</p></div>
               )}
               {rounds.length > 0 && (
                 <div className="bg-brand-50 border border-brand-200 rounded-xl px-5 py-3 flex items-center justify-between">
@@ -567,7 +567,7 @@ export default function ProjectPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2"><span className="text-sm font-medium text-gray-900">Submitted by {round.submitted_by}</span>
                           <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${round.status === 'complete' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{round.status}</span></div>
-                        <div className="flex items-center gap-4 mt-1"><span className="text-sm text-gray-500">{round.comment_count} comments</span><span className="text-sm text-gray-500">{round.file_count} files</span><span className="text-sm text-gray-400">{format(new Date(round.submitted_at), 'MMM d yyyy h:mm a')}</span></div>
+                        <div className="flex items-center gap-4 mt-1"><span className="text-sm text-gray-700">{round.comment_count} comments</span><span className="text-sm text-gray-700">{round.file_count} files</span><span className="text-sm text-gray-700">{format(new Date(round.submitted_at), 'MMM d yyyy h:mm a')}</span></div>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
                         {signatures[round.id] && <span className="text-sm bg-green-50 text-green-700 px-2 py-1 rounded-lg font-medium flex items-center gap-1"><Pen size={9} /> Signed</span>}
@@ -575,15 +575,15 @@ export default function ProjectPage() {
                         {!signatures[round.id] && <a href={`/sign/${projectId}/${round.id}`} target="_blank" rel="noreferrer" className="text-sm bg-purple-50 text-purple-700 hover:bg-purple-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Pen size={10} /> E-Sign</a>}
                         {round.status !== 'complete' && <button onClick={() => handleMarkRoundComplete(round)} className="text-sm bg-green-50 text-green-700 hover:bg-green-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Check size={10} /> Done</button>}
                         <button onClick={() => handleNotifyClient(round)} className="text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Mail size={10} /> Notify</button>
-                        <div className="text-gray-400">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</div>
+                        <div className="text-gray-700">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</div>
                       </div>
                     </div>
                     {isExpanded && summary.length > 0 && (
                       <div className="border-t border-gray-100">{summary.map((group, gi) => (
                         <div key={gi}>
-                          <div className="bg-gray-50 px-5 py-2.5 flex items-center gap-2 border-b border-gray-100"><FileText size={13} className="text-gray-400" /><span className="text-sm font-medium text-gray-700">{group.fileName}</span><span className="text-sm text-gray-400 ml-auto">{group.comments?.length || 0} comments</span></div>
+                          <div className="bg-gray-50 px-5 py-2.5 flex items-center gap-2 border-b border-gray-100"><FileText size={13} className="text-gray-700" /><span className="text-sm font-medium text-gray-700">{group.fileName}</span><span className="text-sm text-gray-700 ml-auto">{group.comments?.length || 0} comments</span></div>
                           <div className="divide-y divide-gray-50">{(group.comments || []).map((c, ci) => (
-                            <div key={ci} className="px-5 py-3 flex items-start gap-3"><span className="text-sm flex-shrink-0 mt-0.5">{TOOL_ICONS[c.type] || '\u25ef'}</span><div className="flex-1 min-w-0"><p className="text-sm text-gray-800">{c.text}</p><p className="text-sm text-gray-400 mt-0.5">by {c.author}</p></div></div>
+                            <div key={ci} className="px-5 py-3 flex items-start gap-3"><span className="text-sm flex-shrink-0 mt-0.5">{TOOL_ICONS[c.type] || '\u25ef'}</span><div className="flex-1 min-w-0"><p className="text-sm text-gray-800">{c.text}</p><p className="text-sm text-gray-700 mt-0.5">by {c.author}</p></div></div>
                           ))}</div>
                         </div>
                       ))}</div>
@@ -599,7 +599,7 @@ export default function ProjectPage() {
             <div className="space-y-5">
               <div className="card p-6">
                 <h3 className="font-semibold text-gray-900 text-base mb-1">Integrations</h3>
-                <p className="text-sm text-gray-500 mb-6">Connect this project to your workflow tools. Events fire automatically when clients comment or submit rounds.</p>
+                <p className="text-sm text-gray-700 mb-6">Connect this project to your workflow tools. Events fire automatically when clients comment or submit rounds.</p>
 
                 <div className="space-y-6">
                   {/* Zapier / Make / n8n */}
@@ -608,11 +608,11 @@ export default function ProjectPage() {
                       <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center"><Activity size={18} strokeWidth={1.5} className="text-brand-500" /></div>
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Zapier / Make / n8n / Go High Level</h4>
-                        <p className="text-sm text-gray-500">Paste any webhook URL. We'll POST JSON on events.</p>
+                        <p className="text-sm text-gray-700">Paste any webhook URL. We'll POST JSON on events.</p>
                       </div>
                     </div>
                     <input className="input text-sm mb-2" placeholder="https://hooks.zapier.com/hooks/catch/..." value={project?.webhook_url || ''} onChange={e => updateProject(projectId, { webhook_url: e.target.value.trim() || null }).then(({ data }) => data && setProject(data))} />
-                    <p className="text-sm text-gray-400">Works with Zapier, Make.com, n8n, Go High Level, Pabbly, and any tool that accepts webhooks.</p>
+                    <p className="text-sm text-gray-700">Works with Zapier, Make.com, n8n, Go High Level, Pabbly, and any tool that accepts webhooks.</p>
                   </div>
 
                   {/* Slack */}
@@ -621,11 +621,11 @@ export default function ProjectPage() {
                       <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center"><MessageSquare size={18} strokeWidth={1.5} className="text-brand-500" /></div>
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">Slack Notifications</h4>
-                        <p className="text-sm text-gray-500">Get Slack messages when clients comment or submit rounds.</p>
+                        <p className="text-sm text-gray-700">Get Slack messages when clients comment or submit rounds.</p>
                       </div>
                     </div>
                     <input className="input text-sm mb-2" placeholder="https://hooks.slack.com/services/T00/B00/xxx" value={project?.slack_webhook_url || ''} onChange={e => updateProject(projectId, { slack_webhook_url: e.target.value.trim() || null }).then(({ data }) => data && setProject(data))} />
-                    <p className="text-sm text-gray-400">Create an Incoming Webhook in your Slack workspace settings.</p>
+                    <p className="text-sm text-gray-700">Create an Incoming Webhook in your Slack workspace settings.</p>
                   </div>
 
                   {/* Events reference */}
@@ -641,7 +641,7 @@ export default function ProjectPage() {
                           <code className="text-sm bg-white border border-gray-200 rounded px-2 py-0.5 text-brand-600 font-mono flex-shrink-0">{e.event}</code>
                           <div>
                             <p className="text-gray-700">{e.desc}</p>
-                            <p className="text-sm text-gray-400 mt-0.5">Fields: project_name, timestamp, review_url, {e.fields}</p>
+                            <p className="text-sm text-gray-700 mt-0.5">Fields: project_name, timestamp, review_url, {e.fields}</p>
                           </div>
                         </div>
                       ))}
@@ -655,14 +655,14 @@ export default function ProjectPage() {
           {/* ACTIVITY TAB */}
           {tab === 'activity' && (
             <div className="card overflow-hidden">
-              {activity.length === 0 && (<div className="text-center py-16"><Activity size={32} className="text-gray-300 mx-auto mb-3" /><p className="text-gray-500 text-sm">No activity yet.</p></div>)}
+              {activity.length === 0 && (<div className="text-center py-16"><Activity size={32} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm">No activity yet.</p></div>)}
               <div className="divide-y divide-gray-100">
-                {activity.length > 0 && (<div className="grid grid-cols-[120px_1fr_140px_100px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wide"><div>Date</div><div>Activity</div><div>File</div><div>Type</div></div>)}
+                {activity.length > 0 && (<div className="grid grid-cols-[120px_1fr_140px_100px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-700 uppercase tracking-wide"><div>Date</div><div>Activity</div><div>File</div><div>Type</div></div>)}
                 {activity.map(act => (
                   <div key={act.id} className="grid grid-cols-[120px_1fr_140px_100px] gap-4 px-5 py-3.5 text-sm hover:bg-gray-50">
-                    <div className="text-gray-400 text-sm">{format(new Date(act.created_at), 'MMM d, h:mm a')}</div>
+                    <div className="text-gray-700 text-sm">{format(new Date(act.created_at), 'MMM d, h:mm a')}</div>
                     <div className="text-gray-800 truncate"><span className="font-medium text-gray-900">{act.actor}</span>{' \u2014 '}{act.detail}</div>
-                    <div className="text-gray-500 text-sm truncate">{files.find(f => f.id === act.file_id)?.name || '\u2014'}</div>
+                    <div className="text-gray-700 text-sm truncate">{files.find(f => f.id === act.file_id)?.name || '\u2014'}</div>
                     <div><span className={`text-sm px-2 py-0.5 rounded-full font-medium ${act.action === 'comment' ? 'bg-amber-50 text-amber-700' : act.action === 'resolve' ? 'bg-green-50 text-green-700' : act.action === 'upload' ? 'bg-blue-50 text-blue-700' : act.action === 'round_submitted' ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-600'}`}>{act.action === 'round_submitted' ? 'round' : act.action}</span></div>
                   </div>
                 ))}
@@ -679,7 +679,7 @@ export default function ProjectPage() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
               <h3 className="font-semibold text-gray-900 text-sm">{videoModal.name}</h3>
-              <button onClick={() => setVideoModal(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              <button onClick={() => setVideoModal(null)} className="text-gray-700 hover:text-gray-600"><X size={18} /></button>
             </div>
             <video src={videoModal.url} controls autoPlay className="w-full" style={{ maxHeight: '70vh' }} />
           </div>

@@ -60,17 +60,17 @@ function ClientBubble({ x, y, text, isNew, annotation, onSubmit, onCancel, onDra
         <div className="bg-gray-50 px-3 py-2 flex items-center justify-between border-b border-gray-100"
           style={{ cursor: 'grab' }} onMouseDown={handleDragStart}>
           <div className="flex items-center gap-2">
-            <GripHorizontal size={12} className="text-gray-300" />
-            <span className="text-sm font-medium text-gray-500">{isNew ? 'Add Comment' : 'Edit Comment'}</span>
+            <GripHorizontal size={12} className="text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">{isNew ? 'Add Comment' : 'Edit Comment'}</span>
           </div>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
+          <button onClick={onCancel} className="text-gray-700 hover:text-gray-600"><X size={14} /></button>
         </div>
         <div className="p-3">
           <textarea ref={textareaRef} value={value} onChange={e => setValue(e.target.value)} onKeyDown={handleKeyDown}
             className="w-full text-sm border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
             rows={3} placeholder="Describe the change needed... (Enter to send)" />
           <div className="flex items-center justify-end mt-2 gap-2">
-            <button onClick={onCancel} className="text-sm text-gray-500 hover:text-gray-700 px-2 py-1">Cancel</button>
+            <button onClick={onCancel} className="text-sm text-gray-700 hover:text-gray-700 px-2 py-1">Cancel</button>
             <button onClick={() => value.trim() && onSubmit(value.trim())} disabled={!value.trim()}
               className="text-sm bg-brand-500 text-white px-3 py-1.5 rounded-lg hover:bg-brand-600 disabled:opacity-40 transition-colors font-medium">
               Send
@@ -341,9 +341,9 @@ export default function PublicReviewPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Lock size={40} className="text-gray-300 mx-auto mb-4" />
+          <Lock size={40} className="text-gray-600 mx-auto mb-4" />
           <h1 className="text-xl font-semibold text-gray-700 mb-2">Access Denied</h1>
-          <p className="text-gray-500 text-sm">This review link is private or doesn't exist.</p>
+          <p className="text-gray-700 text-sm">This review link is private or doesn't exist.</p>
         </div>
       </div>
     )
@@ -360,7 +360,7 @@ export default function PublicReviewPage() {
             </div>
             <div>
               <h1 className="font-semibold text-gray-900">Password Required</h1>
-              <p className="text-sm text-gray-500">{project?.name}</p>
+              <p className="text-sm text-gray-700">{project?.name}</p>
             </div>
           </div>
           <form onSubmit={handlePasswordSubmit} className="space-y-3">
@@ -394,7 +394,7 @@ export default function PublicReviewPage() {
         <div className="text-sm text-white font-medium truncate flex-1">{file?.name}</div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-[13px] md:text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded-lg">
+          <span className="text-[13px] md:text-sm text-gray-700 bg-gray-800 px-2 py-1 rounded-lg">
             R{Math.min(currentRound, maxRounds)}/{maxRounds}
           </span>
 
@@ -420,7 +420,7 @@ export default function PublicReviewPage() {
               <StopCircle size={11} /> {formatRecTime(recordingTime)}
             </button>
           ) : (
-            <button onClick={startRecording} className="text-sm text-gray-400 bg-gray-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors">
+            <button onClick={startRecording} className="text-sm text-gray-700 bg-gray-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors">
               <Video size={11} /> <span className="hidden md:inline">Record</span>
             </button>
           )}
@@ -540,11 +540,11 @@ export default function PublicReviewPage() {
           )}
 
           <div className="p-4 border-b border-gray-100 flex-shrink-0">
-            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Your name</p>
+            <p className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">Your name</p>
             <input className="input text-sm" placeholder="Enter your name\u2026" value={authorName}
               onChange={e => setAuthorName(e.target.value)} />
             <div className="flex items-center justify-between mt-2">
-              <p className="text-sm text-gray-400">Click a tool, then click on the design.</p>
+              <p className="text-sm text-gray-700">Click a tool, then click on the design.</p>
               <button onClick={() => setShowTemplates(!showTemplates)} className="text-[13px] text-brand-500 hover:text-brand-700 font-medium">Templates</button>
             </div>
             <div className="flex gap-1 mt-3">
@@ -558,7 +558,7 @@ export default function PublicReviewPage() {
                   className={`flex-1 text-sm py-1.5 rounded-lg border transition-colors ${
                     tool === t.key && !roundsExhausted
                       ? 'bg-brand-50 border-brand-300 text-brand-700 font-medium'
-                      : 'border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40'
+                      : 'border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40'
                   }`}>
                   {t.label}
                 </button>
@@ -593,8 +593,8 @@ export default function PublicReviewPage() {
             </div>
           ) : (
             <div className="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0 text-center">
-              <p className="text-sm text-gray-500 font-medium">All revision rounds complete</p>
-              <p className="text-[13px] text-gray-400 mt-1">Contact {project?.brand_name || 'Moose'} for additional revisions</p>
+              <p className="text-sm text-gray-700 font-medium">All revision rounds complete</p>
+              <p className="text-[13px] text-gray-700 mt-1">Contact {project?.brand_name || 'Moose'} for additional revisions</p>
             </div>
           )}
         </div>

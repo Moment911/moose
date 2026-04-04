@@ -149,7 +149,7 @@ const STANDALONE = [
     id: 'competitor_intel',
     name: 'Competitor Intelligence',
     tagline: 'Weekly brief on what your competitors are doing — and how to counter it',
-    icon: Shield, color: '#6b7280', price: 99,
+    icon: Shield, color: '#374151', price: 99,
     runs: 'Every Monday',
     stats_label: ['Competitors Tracked','Alerts Sent','Opportunities Found'],
     mock_stats: ['3','47','12'],
@@ -192,7 +192,7 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
           </div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:3 }}>{agent.name}</div>
-            <div style={{ fontSize:14, color:'#6b7280', lineHeight:1.5 }}>{agent.tagline}</div>
+            <div style={{ fontSize:14, color:'#374151', lineHeight:1.5 }}>{agent.tagline}</div>
           </div>
           {/* Toggle */}
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, flexShrink:0 }}>
@@ -214,7 +214,7 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
                 <div style={{ fontSize:16, fontWeight:900, color: i===0?agent.color:'#111' }}>
                   {stats?.[i] || agent.mock_stats[i]}
                 </div>
-                <div style={{ fontSize:13, color:'#9ca3af', lineHeight:1.3, marginTop:2 }}>{label}</div>
+                <div style={{ fontSize:13, color:'#4b5563', lineHeight:1.3, marginTop:2 }}>{label}</div>
               </div>
             ))}
           </div>
@@ -222,7 +222,7 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
 
         {/* Meta row */}
         <div style={{ display:'flex', gap:10, marginBottom:14, flexWrap:'wrap' }}>
-          <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', display:'flex', alignItems:'center', gap:5 }}>
+          <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:'#f3f4f6', color:'#374151', display:'flex', alignItems:'center', gap:5 }}>
             <Clock size={10}/> {agent.runs}
           </span>
           <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:agent.color+'12', color:agent.color }}>
@@ -296,7 +296,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
               <div style={{ fontSize:22, fontWeight:900, color:'#fff' }}>Agency Autopilot Bundle</div>
               <span style={{ fontSize:13, fontWeight:800, color:ACCENT, background:ACCENT+'20', border:`1px solid ${ACCENT}40`, borderRadius:20, padding:'3px 12px' }}>BEST VALUE</span>
             </div>
-            <div style={{ fontSize:15, color:'#a1a1aa', lineHeight:1.6, maxWidth:600 }}>
+            <div style={{ fontSize:15, color:'#4b5563', lineHeight:1.6, maxWidth:600 }}>
               All 6 agents working together — review responses, missed call recovery, GBP optimization, monthly reports, social content, and lead scoring. One AI team for every client. Runs 24/7 without your team lifting a finger.
             </div>
           </div>
@@ -305,7 +305,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
         {/* Stats */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:22 }}>
           {[
-            { label:'Value if bought separately', value:'$645/mo', color:'#a1a1aa', strike:true },
+            { label:'Value if bought separately', value:'$645/mo', color:'#4b5563', strike:true },
             { label:'Bundle price', value:'$497/mo', color:ACCENT },
             { label:'Hours saved per client', value:'40+/mo', color:'#22c55e' },
             { label:'Avg client retention lift', value:'+60%', color:'#8b5cf6' },
@@ -423,20 +423,20 @@ export default function AIAgentsPage() {
       <div style={{ width:220, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0 }}>
         <div style={{ padding:'16px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>AI Agents</div>
-          <div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>{clients.length} clients</div>
+          <div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>{clients.length} clients</div>
         </div>
 
         {/* Agency-wide stats */}
         <div style={{ padding:'12px 14px', background:'#f0fbfc', borderBottom:'1px solid #f3f4f6' }}>
-          <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Agency Overview</div>
+          <div style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Agency Overview</div>
           <div style={{ display:'flex', gap:8 }}>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
               <div style={{ fontSize:16, fontWeight:900, color:ACCENT }}>{totalActive}</div>
-              <div style={{ fontSize:12, color:'#9ca3af' }}>Active Agents</div>
+              <div style={{ fontSize:12, color:'#4b5563' }}>Active Agents</div>
             </div>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
               <div style={{ fontSize:15, fontWeight:900, color:'#22c55e' }}>${(estimatedValue/1000).toFixed(0)}k</div>
-              <div style={{ fontSize:12, color:'#9ca3af' }}>MRR Value</div>
+              <div style={{ fontSize:12, color:'#4b5563' }}>MRR Value</div>
             </div>
           </div>
         </div>
@@ -453,7 +453,7 @@ export default function AIAgentsPage() {
                   <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
                   {count > 0 && <span style={{ fontSize:12, fontWeight:800, color:'#22c55e', background:'#f0fdf4', borderRadius:20, padding:'1px 6px' }}>{count} ON</span>}
                 </div>
-                <div style={{ fontSize:13, color:'#9ca3af' }}>{c.industry}</div>
+                <div style={{ fontSize:13, color:'#4b5563' }}>{c.industry}</div>
               </div>
             )
           })}
@@ -463,7 +463,7 @@ export default function AIAgentsPage() {
       {/* Main content */}
       <div style={{ flex:1, overflowY:'auto' }}>
         {!selectedClient ? (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#9ca3af' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#4b5563' }}>
             <Zap size={48} strokeWidth={1}/>
             <div style={{ fontSize:16, fontWeight:700 }}>Select a client to configure their AI agents</div>
           </div>
@@ -473,7 +473,7 @@ export default function AIAgentsPage() {
             <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 26px', display:'flex', alignItems:'center', gap:14, position:'sticky', top:0, zIndex:10 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>{selectedClient.name} — AI Agents</div>
-                <div style={{ fontSize:14, color:'#9ca3af' }}>
+                <div style={{ fontSize:14, color:'#4b5563' }}>
                   {activeCount === 0 ? 'No agents active' : `${activeCount} of ${AGENTS.length} Autopilot agents running`}
                 </div>
               </div>
@@ -510,7 +510,7 @@ export default function AIAgentsPage() {
                 <div>
                   <div style={{ marginBottom:20 }}>
                     <div style={{ fontSize:18, fontWeight:800, color:'#111', marginBottom:6 }}>Standalone Add-On Agents</div>
-                    <div style={{ fontSize:15, color:'#6b7280' }}>Additional AI capabilities that work alongside the Autopilot bundle</div>
+                    <div style={{ fontSize:15, color:'#374151' }}>Additional AI capabilities that work alongside the Autopilot bundle</div>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:16 }}>
                     {STANDALONE.map(agent => {
@@ -526,16 +526,16 @@ export default function AIAgentsPage() {
                               <span style={{ fontSize:13, fontWeight:700, color:agent.color, background:agent.color+'12', padding:'2px 9px', borderRadius:20 }}>${agent.price}/mo</span>
                             </div>
                           </div>
-                          <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.6, marginBottom:14 }}>{agent.tagline}</p>
+                          <p style={{ fontSize:15, color:'#374151', lineHeight:1.6, marginBottom:14 }}>{agent.tagline}</p>
                           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginBottom:16 }}>
                             {agent.stats_label.map((label, i) => (
                               <div key={label} style={{ background:'#f9fafb', borderRadius:8, padding:'8px', textAlign:'center' }}>
                                 <div style={{ fontSize:15, fontWeight:800, color:agent.color }}>{agent.mock_stats[i]}</div>
-                                <div style={{ fontSize:12, color:'#9ca3af', lineHeight:1.2, marginTop:1 }}>{label}</div>
+                                <div style={{ fontSize:12, color:'#4b5563', lineHeight:1.2, marginTop:1 }}>{label}</div>
                               </div>
                             ))}
                           </div>
-                          <div style={{ display:'flex', gap:7, fontSize:13, color:'#9ca3af', marginBottom:14 }}>
+                          <div style={{ display:'flex', gap:7, fontSize:13, color:'#4b5563', marginBottom:14 }}>
                             <Clock size={11}/> {agent.runs}
                           </div>
                           <button onClick={() => toast('Coming in next sprint! Add to your waitlist.', { icon:'🔜' })}
@@ -554,7 +554,7 @@ export default function AIAgentsPage() {
                 <div>
                   <div style={{ marginBottom:20 }}>
                     <div style={{ fontSize:18, fontWeight:800, color:'#111', marginBottom:6 }}>Agent Activity Log</div>
-                    <div style={{ fontSize:15, color:'#6b7280' }}>Everything your AI agents have done for {selectedClient.name}</div>
+                    <div style={{ fontSize:15, color:'#374151' }}>Everything your AI agents have done for {selectedClient.name}</div>
                   </div>
                   {/* Mock activity feed */}
                   {[
@@ -570,7 +570,7 @@ export default function AIAgentsPage() {
                       <div style={{ flex:1 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
                           <span style={{ fontSize:15, fontWeight:700, color:item.color }}>{item.action}</span>
-                          <span style={{ fontSize:13, color:'#9ca3af' }}>{item.time}</span>
+                          <span style={{ fontSize:13, color:'#4b5563' }}>{item.time}</span>
                         </div>
                         <div style={{ fontSize:15, color:'#374151', lineHeight:1.5 }}>{item.desc}</div>
                       </div>

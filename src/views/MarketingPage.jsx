@@ -62,7 +62,7 @@ export default function MarketingPage() {
               <div key={a.label} onClick={() => navigate(a.link)} className="bg-white rounded-2xl p-5 cursor-pointer hover:shadow-lg transition-all hover:-translate-y-0.5 border border-gray-100 group" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: a.color + '15' }}><I size={18} strokeWidth={1.5} style={{ color: a.color }} /></div>
                 <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-1">{a.label} <ArrowUpRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
-                <p className="text-sm text-gray-500 mt-0.5">{a.desc}</p>
+                <p className="text-sm text-gray-700 mt-0.5">{a.desc}</p>
               </div>
             )})}
           </div>
@@ -70,17 +70,17 @@ export default function MarketingPage() {
           {/* Recent campaigns */}
           <h2 className="text-sm font-semibold text-gray-900 mb-3">Recent Campaigns</h2>
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-8" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-            <div className="grid grid-cols-[1fr_80px_80px_80px_100px] gap-4 px-5 py-3 bg-gray-50/50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+            <div className="grid grid-cols-[1fr_80px_80px_80px_100px] gap-4 px-5 py-3 bg-gray-50/50 text-[13px] font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-100">
               <div>Campaign</div><div>Status</div><div>Sent</div><div>Opens</div><div>Date</div>
             </div>
-            {campaigns.length === 0 && <div className="py-12 text-center text-sm text-gray-400">No campaigns yet. Create your first one!</div>}
+            {campaigns.length === 0 && <div className="py-12 text-center text-sm text-gray-700">No campaigns yet. Create your first one!</div>}
             {campaigns.map(c => (
               <div key={c.id} className="grid grid-cols-[1fr_80px_80px_80px_100px] gap-4 px-5 py-3.5 items-center border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer" onClick={() => navigate(`/marketing/campaigns/${c.id}`)}>
-                <div><p className="text-sm font-medium text-gray-900">{c.name}</p><p className="text-sm text-gray-400">{c.subject}</p></div>
+                <div><p className="text-sm font-medium text-gray-900">{c.name}</p><p className="text-sm text-gray-700">{c.subject}</p></div>
                 <span className={`text-[13px] px-2 py-0.5 rounded-full font-medium ${c.status === 'sent' ? 'bg-green-50 text-green-700' : c.status === 'draft' ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-700'}`}>{c.status}</span>
-                <span className="text-sm text-gray-500">{c.total_sent || 0}</span>
-                <span className="text-sm text-gray-500">{c.total_opened || 0}</span>
-                <span className="text-sm text-gray-400">{c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true }) : ''}</span>
+                <span className="text-sm text-gray-700">{c.total_sent || 0}</span>
+                <span className="text-sm text-gray-700">{c.total_opened || 0}</span>
+                <span className="text-sm text-gray-700">{c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true }) : ''}</span>
               </div>
             ))}
           </div>
@@ -93,9 +93,9 @@ export default function MarketingPage() {
               { label: 'Automations', icon: Zap, link: '/marketing/automations', desc: 'Workflows' },
             ].map(a => { const I = a.icon; return (
               <button key={a.label} onClick={() => navigate(a.link)} className="bg-white rounded-xl border border-gray-100 p-3 text-left hover:shadow-md transition-all group" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
-                <I size={15} strokeWidth={1.5} className="text-gray-400 mb-1.5" />
+                <I size={15} strokeWidth={1.5} className="text-gray-700 mb-1.5" />
                 <p className="text-sm font-medium text-gray-800 flex items-center gap-1">{a.label} <ArrowUpRight size={11} className="opacity-0 group-hover:opacity-100" /></p>
-                <p className="text-[13px] text-gray-400">{a.desc}</p>
+                <p className="text-[13px] text-gray-700">{a.desc}</p>
               </button>
             )})}
           </div>

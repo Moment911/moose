@@ -148,7 +148,7 @@ export default function AgencySignupPage() {
       <div style={{ background: '#18181b', padding: '14px 28px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 26, width: 'auto' }} />
         <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,.15)' }} />
-        <span style={{ fontSize: 15, color: '#a1a1aa' }}>
+        <span style={{ fontSize: 15, color: '#4b5563' }}>
           {step < 4 ? '14-day free trial · No credit card required' : 'Setting up your agency…'}
         </span>
         <button onClick={() => navigate('/')} style={{ marginLeft: 'auto', fontSize: 14, color: '#52525b', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -185,7 +185,7 @@ export default function AgencySignupPage() {
               <h1 style={{ fontSize: 30, fontWeight: 900, color: '#111', textAlign: 'center', marginBottom: 6 }}>
                 Choose your plan
               </h1>
-              <p style={{ fontSize: 15, color: '#6b7280', textAlign: 'center', marginBottom: 32 }}>
+              <p style={{ fontSize: 15, color: '#374151', textAlign: 'center', marginBottom: 32 }}>
                 14-day free trial on all plans. Cancel anytime.
               </p>
 
@@ -205,8 +205,8 @@ export default function AgencySignupPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
                           <span style={{ fontSize: 18, fontWeight: 800, color: '#111' }}>{p.name}</span>
-                          <span style={{ fontSize: 22, fontWeight: 900, color: plan === p.id ? ACCENT : '#111' }}>${p.price}<span style={{ fontSize: 14, fontWeight: 600, color: '#9ca3af' }}>/mo</span></span>
-                          <span style={{ fontSize: 14, color: '#9ca3af' }}>{p.seats} seats · {p.clients} clients</span>
+                          <span style={{ fontSize: 22, fontWeight: 900, color: plan === p.id ? ACCENT : '#111' }}>${p.price}<span style={{ fontSize: 14, fontWeight: 600, color: '#4b5563' }}>/mo</span></span>
+                          <span style={{ fontSize: 14, color: '#4b5563' }}>{p.seats} seats · {p.clients} clients</span>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
                           {p.features.map(f => (
@@ -226,7 +226,7 @@ export default function AgencySignupPage() {
                 Start free trial with {selectedPlan?.name} <ArrowRight size={18} />
               </button>
               <div style={{ textAlign: 'center', marginTop: 14 }}>
-                <button onClick={() => navigate('/')} style={{ fontSize: 15, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                <button onClick={() => navigate('/')} style={{ fontSize: 15, color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
                   Skip — explore the demo dashboard
                 </button>
               </div>
@@ -237,7 +237,7 @@ export default function AgencySignupPage() {
           {step === 2 && (
             <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #e5e7eb', padding: '36px' }}>
               <h2 style={{ fontSize: 24, fontWeight: 900, color: '#111', marginBottom: 6 }}>Create your account</h2>
-              <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 28 }}>
+              <p style={{ fontSize: 15, color: '#374151', marginBottom: 28 }}>
                 You'll use this to log into your agency dashboard.
               </p>
 
@@ -267,7 +267,7 @@ export default function AgencySignupPage() {
                     placeholder="8+ characters" style={{ ...INP, paddingRight: 44 }}
                     onFocus={e => e.target.style.borderColor = ACCENT} onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
                   <button type="button" onClick={() => setShowPw(s => !s)}
-                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563' }}>
                     {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
@@ -296,7 +296,7 @@ export default function AgencySignupPage() {
           {step === 3 && (
             <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #e5e7eb', padding: '36px' }}>
               <h2 style={{ fontSize: 24, fontWeight: 900, color: '#111', marginBottom: 6 }}>Name your agency</h2>
-              <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 28 }}>
+              <p style={{ fontSize: 15, color: '#374151', marginBottom: 28 }}>
                 This is how your brand appears to your clients. You can customize your logo and colors after signup.
               </p>
 
@@ -315,11 +315,11 @@ export default function AgencySignupPage() {
                     <input value={form.agency_slug}
                       onChange={e => set('agency_slug', slugify(e.target.value))}
                       style={{ ...INP, border: 'none', borderRadius: 0, flex: 1 }} />
-                    <span style={{ padding: '13px 14px', background: '#f9fafb', fontSize: 15, color: '#9ca3af', borderLeft: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>
+                    <span style={{ padding: '13px 14px', background: '#f9fafb', fontSize: 15, color: '#4b5563', borderLeft: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>
                       .mooseai.com
                     </span>
                   </div>
-                  <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 5 }}>
+                  <div style={{ fontSize: 13, color: '#4b5563', marginTop: 5 }}>
                     Your clients will access: <strong style={{ color: '#374151' }}>app.{form.agency_slug}.mooseai.com</strong>
                   </div>
                 </div>
@@ -327,7 +327,7 @@ export default function AgencySignupPage() {
 
               {/* What gets set up automatically */}
               <div style={{ background: '#f9fafb', borderRadius: 12, border: '1px solid #f3f4f6', padding: '16px', marginBottom: 24 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>
                   What gets set up automatically
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -374,7 +374,7 @@ export default function AgencySignupPage() {
                   <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', marginBottom: 6 }}>
                     Setting up {form.agency_name || 'your agency'}…
                   </h2>
-                  <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 32 }}>
+                  <p style={{ fontSize: 15, color: '#374151', marginBottom: 32 }}>
                     This takes about 10 seconds. No action needed.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
@@ -410,7 +410,7 @@ export default function AgencySignupPage() {
                   <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', marginBottom: 8 }}>
                     {createdAgency.name} is live!
                   </h2>
-                  <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 32, lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 15, color: '#374151', marginBottom: 32, lineHeight: 1.6 }}>
                     Your agency workspace is ready. Start by adding your first client, or explore the dashboard to see what's available.
                   </p>
 
@@ -425,7 +425,7 @@ export default function AgencySignupPage() {
                     </button>
                   </div>
 
-                  <div style={{ marginTop: 24, padding: '14px', background: '#f9fafb', borderRadius: 12, fontSize: 14, color: '#6b7280', textAlign: 'left' }}>
+                  <div style={{ marginTop: 24, padding: '14px', background: '#f9fafb', borderRadius: 12, fontSize: 14, color: '#374151', textAlign: 'left' }}>
                     <strong style={{ color: '#374151' }}>Check your email</strong> — we sent a confirmation to {form.email}. You may need to verify your email before logging in on a new device.
                   </div>
                 </>

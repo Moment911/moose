@@ -91,10 +91,10 @@ export default function TemplatesPage() {
       <main className="flex-1 overflow-y-auto" style={{ background: '#F8F9FC' }}>
         <div className="px-4 md:px-8 py-4 md:py-6">
           <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => navigate('/marketing')} className="text-gray-400 hover:text-gray-700"><ChevronLeft size={18} /></button>
+            <button onClick={() => navigate('/marketing')} className="text-gray-700 hover:text-gray-700"><ChevronLeft size={18} /></button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Pre-built templates to kickstart your campaigns</p>
+              <p className="text-sm text-gray-700 mt-0.5">Pre-built templates to kickstart your campaigns</p>
             </div>
           </div>
 
@@ -102,7 +102,7 @@ export default function TemplatesPage() {
           <div className="flex gap-2 mb-6">
             {categories.map(c => (
               <button key={c} onClick={() => setFilter(c)}
-                className={`text-sm px-3 py-1.5 rounded-lg capitalize font-medium transition-colors ${filter === c ? 'bg-gray-900 text-white' : 'bg-white text-gray-500 hover:text-gray-700 border border-gray-200'}`}>{c}</button>
+                className={`text-sm px-3 py-1.5 rounded-lg capitalize font-medium transition-colors ${filter === c ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 hover:text-gray-700 border border-gray-200'}`}>{c}</button>
             ))}
           </div>
 
@@ -120,16 +120,16 @@ export default function TemplatesPage() {
                     {tpl.preview.cols && <div style={{ padding: '6px 12px', display: 'flex', gap: 8 }}><div className="flex-1"><div className="h-1 bg-gray-200 rounded-full mb-1" /><div className="h-1 bg-gray-200 rounded-full w-4/5" /></div><div className="flex-1"><div className="h-1 bg-gray-200 rounded-full mb-1" /><div className="h-1 bg-gray-200 rounded-full w-4/5" /></div></div>}
                     {tpl.preview.cta && <div style={{ padding: '6px 12px', textAlign: 'center' }}><span style={{ display: 'inline-block', background: '#ea2729', color: '#fff', fontSize: 12, padding: '3px 12px', borderRadius: 4 }}>Button</span></div>}
                     {tpl.preview.footer && <div style={{ background: '#f5f5f5', padding: '4px 12px', textAlign: 'center' }}><div className="h-1 bg-gray-300 rounded-full w-1/3 mx-auto" /></div>}
-                    {Object.keys(tpl.preview).length === 0 && <div className="h-full flex items-center justify-center text-gray-300 text-sm py-8">Blank</div>}
+                    {Object.keys(tpl.preview).length === 0 && <div className="h-full flex items-center justify-center text-gray-600 text-sm py-8">Blank</div>}
                   </div>
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-1">
                     <h3 className="text-sm font-semibold text-gray-900">{tpl.name}</h3>
-                    <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{tpl.category}</span>
+                    <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{tpl.category}</span>
                   </div>
-                  <p className="text-sm text-gray-500 mb-3">{tpl.desc}</p>
-                  <p className="text-[13px] text-gray-400 mb-3">{tpl.blocks.length} blocks</p>
+                  <p className="text-sm text-gray-700 mb-3">{tpl.desc}</p>
+                  <p className="text-[13px] text-gray-700 mb-3">{tpl.blocks.length} blocks</p>
                   <div className="flex gap-2">
                     <button onClick={() => useTemplate(tpl)} className="btn-primary text-sm flex-1 justify-center"><Layout size={12} /> Use Template</button>
                     {tpl.blocks.length > 0 && <button onClick={() => setPreview(tpl)} className="btn-secondary text-sm"><Eye size={12} /></button>}
@@ -148,7 +148,7 @@ export default function TemplatesPage() {
                 <h3 className="font-semibold text-gray-900">{preview.name}</h3>
                 <div className="flex items-center gap-2">
                   <button onClick={() => { useTemplate(preview); setPreview(null) }} className="btn-primary text-sm">Use Template</button>
-                  <button onClick={() => setPreview(null)} className="text-gray-400"><X size={18} /></button>
+                  <button onClick={() => setPreview(null)} className="text-gray-700"><X size={18} /></button>
                 </div>
               </div>
               <div className="flex-1 overflow-auto p-6 bg-gray-100">
