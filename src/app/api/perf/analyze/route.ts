@@ -118,7 +118,7 @@ function ruleWeakPages(pages: any[]) {
 }
 
 function ruleAnomalies(snapshots: any[]) {
-  const findings = []
+  const findings: any[] = []
   if (snapshots.length < 14) return findings
   const sorted = [...snapshots].sort((a,b) => new Date(a.snapshot_date).getTime()-new Date(b.snapshot_date).getTime())
   const recent = sorted.slice(-7), prev = sorted.slice(-14,-7)
