@@ -101,25 +101,25 @@ ALTER TABLE agency_members  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agency_usage    ENABLE ROW LEVEL SECURITY;
 
 -- Agency members can see their own agency
-CREATE POLICY IF NOT EXISTS "members_see_own_agency" ON agencies
+CREATE POLICY "members_see_own_agency" ON agencies
   FOR SELECT USING (
     id IN (SELECT agency_id FROM agency_members WHERE user_id = auth.uid())
   );
 
 -- Only owners/admins can update agency
-CREATE POLICY IF NOT EXISTS "admins_update_agency" ON agencies
+CREATE POLICY "admins_update_agency" ON agencies
   FOR UPDATE USING (
     id IN (SELECT agency_id FROM agency_members WHERE user_id = auth.uid() AND role IN ('owner','admin'))
   );
 
 -- Agency members can see other members
-CREATE POLICY IF NOT EXISTS "members_see_agency_members" ON agency_members
+CREATE POLICY "members_see_agency_members" ON agency_members
   FOR SELECT USING (
     agency_id IN (SELECT agency_id FROM agency_members WHERE user_id = auth.uid())
   );
 
 -- Clients scoped to agency
-CREATE POLICY IF NOT EXISTS "clients_scoped_to_agency" ON clients
+CREATE POLICY "clients_scoped_to_agency" ON clients
   FOR ALL USING (
     agency_id IN (SELECT agency_id FROM agency_members WHERE user_id = auth.uid())
   );
@@ -129,5 +129,5 @@ CREATE OR REPLACE FUNCTION get_user_agency_id()
 RETURNS uuid LANGUAGE sql STABLE AS $$
   SELECT agency_id FROM agency_members
   WHERE user_id = auth.uid()
-  ORDER BY created_at ASC LIMIT 1;
+  ORDER BY invited_at ASC LIMIT 1;
 $$;
