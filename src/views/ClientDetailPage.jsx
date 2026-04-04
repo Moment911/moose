@@ -25,6 +25,7 @@ const TABS = [
   { key: 'contacts', label: 'Contacts' },
   { key: 'onboarding', label: 'Onboarding' },
   { key: 'access', label: '🔑 Access Checklist' },
+  { key: 'persona', label: '✨ AI Persona' },
 ]
 
 const REVENUE_RANGES = [
@@ -589,13 +590,22 @@ export default function ClientDetailPage() {
     marketing: <MarketingTab />,
     contacts: <ContactsTab />,
     onboarding: <OnboardingTab />,
+    persona: (
+      <Section title="AI Marketing Persona" description="AI-generated ideal customer profile, ad targeting, messaging playbook, and channel recommendations.">
+        <a href={`/clients/${clientId}/persona`}
+          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#8b5cf6', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
+          ✨ Open AI Persona Builder
+        </a>
+        <p style={{ fontSize:12, color:'#9ca3af', marginTop:10 }}>Generates: ideal customer profile, demographics, psychographics, Google/Facebook targeting, headline angles, channel recommendations, 30-day quick wins, LTV analysis.</p>
+      </Section>
+    ),
     access: (
       <Section title="Account Access Checklist" description="Track all platform logins, invites, and credentials needed for this client's campaigns.">
         <a href={`/clients/${clientId}/access`}
           style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#E8551A', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
           🔑 Open Access Checklist
         </a>
-        <p style={{ fontSize:12, color:'#9ca3af', marginTop:10 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
+        <p style={{ fontSize:12, color:'#9ca3af', marginTop:10, marginBottom:0 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
       </Section>
     ),
   }
