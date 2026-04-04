@@ -1,103 +1,57 @@
 // ══════════════════════════════════════════════════════════════════════════════
-// Google Places API v1 (New) Integration
-// Real business data: name, address, phone, rating, reviews, website, hours
+// Google Places — calls our server-side API route at /api/scout/places
+// Key never exposed to browser. Works regardless of NEXT_PUBLIC_ vars.
 // ══════════════════════════════════════════════════════════════════════════════
 
-const PLACES_BASE = 'https://places.googleapis.com/v1'
-
-// Fields we want back - controls billing cost
-const FIELD_MASK = [
-  'places.id',
-  'places.displayName',
-  'places.formattedAddress',
-  'places.location',
-  'places.rating',
-  'places.userRatingCount',
-  'places.internationalPhoneNumber',
-  'places.nationalPhoneNumber',
-  'places.websiteUri',
-  'places.businessStatus',
-  'places.primaryType',
-  'places.primaryTypeDisplayName',
-  'places.regularOpeningHours',
-  'places.googleMapsUri',
-  'places.photos',
-].join(',')
-
-function getKey() {
-  // Check all possible env var names for the Google API key
-  return process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY
-    || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
-    || process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-    || ''
+async function callPlacesRoute(body) {
+  const res = await fetch('/api/scout/places', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(`Places route error ${res.status}`)
+  return res.json()
 }
 
-// Export for use in components to check if key is available
+// Always true now — key lives server-side, always available if configured in Vercel
 export function hasGoogleKey() {
-  return !!(process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY
-    || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
-    || process.env.NEXT_PUBLIC_GOOGLE_API_KEY)
+  return true  // Route handles missing key gracefully with { error, places:[] }
 }
 
-// ── Text search — finds businesses matching a query ───────────────────────────
+// ── Text search ────────────────────────────────────────────────────────────────
 export async function placesTextSearch(query, options = {}) {
-  const key = getKey()
-  if (!key) return { places: [], error: 'No Google Places API key configured' }
-
   try {
-    const body = {
-      textQuery: query,
-      maxResultCount: options.maxResults || 20,
-      ...(options.locationBias ? { locationBias: options.locationBias } : {}),
-      ...(options.openNow ? { openNow: true } : {}),
-    }
-
-    const res = await fetch(`${PLACES_BASE}/places:searchText`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': FIELD_MASK,
-      },
-      body: JSON.stringify(body),
+    const data = await callPlacesRoute({
+      action: 'search',
+      query,
+      maxResults: options.maxResults || 20,
     })
-
-    if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.error?.message || `HTTP ${res.status}`)
+    if (data.error && data.places?.length === 0) {
+      console.warn('[Places] Search error:', data.error)
+      return { places: [], error: data.error }
     }
-
-    const data = await res.json()
-    console.log(`[Google Places] Query: "${query||body.textQuery}" → ${(data.places||[]).length} results`)
+    console.log(`[Places] "${query}" → ${(data.places||[]).length} results`)
     if (data.places?.[0]) {
       const p = data.places[0]
-      console.log(`[Google Places] Top result: ${p.displayName?.text} | ${p.rating}★ | ${p.userRatingCount} reviews`)
+      console.log(`[Places] Top: ${p.displayName?.text} | ${p.rating}★ | ${p.userRatingCount} reviews`)
     }
     return { places: data.places || [], error: null }
-  } catch(e) {
-    console.error('Places API error:', e.message)
+  } catch (e) {
+    console.error('[Places] Fetch error:', e.message)
     return { places: [], error: e.message }
   }
 }
 
-// ── Get place details by ID ───────────────────────────────────────────────────
+// ── Place details ──────────────────────────────────────────────────────────────
 export async function getPlaceDetails(placeId) {
-  const key = getKey()
-  if (!key) return null
-
+  if (!placeId) return null
   try {
-    const res = await fetch(`${PLACES_BASE}/places/${placeId}`, {
-      headers: {
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': FIELD_MASK + ',reviews',
-      },
-    })
-    if (!res.ok) return null
-    return res.json()
+    const data = await callPlacesRoute({ action: 'details', placeId })
+    return data.place || null
   } catch { return null }
 }
 
-// ── Map a Google Places result to Moose Scout lead format ─────────────────────
+// ── Map a Google Places result → Moose Scout lead format ──────────────────────
 export function placeToLead(place, index) {
   const name    = place.displayName?.text || 'Unknown Business'
   const address = place.formattedAddress || ''
@@ -106,40 +60,34 @@ export function placeToLead(place, index) {
   const rating  = place.rating || 0
   const reviews = place.userRatingCount || 0
   const mapsUrl = place.googleMapsUri || ''
-  const open    = place.businessStatus === 'OPERATIONAL'
 
-  // Derive marketing gaps from real data signals
+  // Derive gaps from real signals
   const gaps = []
-  if (reviews < 10)   gaps.push('Very few Google reviews — critical gap under 10')
-  else if (reviews < 25)  gaps.push('Low review count — under 25 reviews')
-  else if (reviews < 75)  gaps.push('Below average review volume for this industry')
-  if (rating < 3.5 && rating > 0) gaps.push(`Poor rating (${rating}★) — reputation crisis`)
-  else if (rating < 4.0 && rating > 0) gaps.push(`Below-average rating (${rating}★) — needs improvement`)
-  else if (rating < 4.4 && rating > 0) gaps.push(`Rating (${rating}★) below top competitors`)
-  if (!website)      gaps.push('No website detected — losing leads daily')
-  if (!phone)        gaps.push('Phone number not listed on Google')
-  if (reviews >= 75 && rating >= 4.4 && website && phone) gaps.push('Strong presence — target for growth services')
-  else if (gaps.length === 0) gaps.push('Good foundation — ready for advanced marketing')
+  if (reviews < 10)          gaps.push('Critically low reviews — only ' + reviews + ' on Google')
+  else if (reviews < 25)     gaps.push('Low review count — ' + reviews + ' reviews (under 25)')
+  else if (reviews < 75)     gaps.push('Below-average review volume — ' + reviews + ' reviews')
+  if (rating < 3.5 && rating > 0) gaps.push('Poor rating (' + rating + '★) — reputation crisis')
+  else if (rating < 4.0 && rating > 0) gaps.push('Below-average rating (' + rating + '★)')
+  else if (rating < 4.4 && rating > 0) gaps.push('Rating (' + rating + '★) below top competitors')
+  if (!website)              gaps.push('No website — losing leads daily')
+  if (!phone)                gaps.push('Phone not listed on Google')
+  if (reviews > 0 && reviews < 100 && rating < 4.5) gaps.push('Losing local pack position to competitors')
+  if (gaps.length === 0)     gaps.push('Strong presence — good candidate for growth services')
 
-  // Scout score: higher = more opportunity/need for marketing help
+  // Opportunity score
   let score = 45
-  // Review volume signals (low reviews = high opportunity)
-  if (reviews < 10)        score += 30
-  else if (reviews < 25)   score += 20
-  else if (reviews < 75)   score += 10
-  else if (reviews < 200)  score += 5
-  else                     score -= 5   // established biz, still needs services
-  // Rating signals
+  if (reviews < 10)         score += 30
+  else if (reviews < 25)    score += 20
+  else if (reviews < 75)    score += 10
+  else if (reviews < 200)   score += 5
+  else                      score -= 5
   if (rating < 3.5 && rating > 0)  score += 25
   else if (rating < 4.0 && rating > 0) score += 15
   else if (rating < 4.4 && rating > 0) score += 8
-  else if (rating >= 4.7) score -= 5   // very strong
-  // Missing digital assets
+  else if (rating >= 4.7)  score -= 5
   if (!website) score += 20
   if (!phone)   score += 10
   score = Math.min(95, Math.max(20, score))
-
-  const temperature = score >= 75 ? 'hot' : score >= 50 ? 'warm' : score >= 30 ? 'lukewarm' : 'cold'
 
   return {
     id:              place.id || `gp_${index}`,
@@ -147,37 +95,36 @@ export function placeToLead(place, index) {
     address,
     phone,
     website,
-    email:           '', // Places API doesn't expose email
+    email:           '',
     rating,
     review_count:    reviews,
     score,
-    temperature,
+    temperature:     score >= 75 ? 'hot' : score >= 50 ? 'warm' : score >= 30 ? 'lukewarm' : 'cold',
     years_in_business: null,
     estimated_revenue: null,
     employee_count:  null,
     gaps,
-    ai_summary:      null, // filled by AI enrichment pass
-    gbp_claimed:     true, // it's in Google Places = claimed
+    ai_summary:      null,
+    gbp_claimed:     true,
     has_website:     !!website,
     social_active:   null,
     running_ads:     null,
     maps_url:        mapsUrl,
     place_id:        place.id,
-    // Source provenance
+    types:           place.types || [],
+    hours:           place.regularOpeningHours?.weekdayDescriptions?.join(', ') || '',
     _source:         'google_places',
     _real_data:      true,
   }
 }
 
-// ── Full Scout search using real Google Places data ────────────────────────────
+// ── Full Scout search ──────────────────────────────────────────────────────────
 export async function scoutWithPlaces(businessType, location, options = {}) {
-  const query = `${businessType} in ${location}`
+  const query = businessType + (location ? ' in ' + location : '')
   const { places, error } = await placesTextSearch(query, {
     maxResults: options.maxResults || 20,
   })
-
-  if (error) return { leads: [], error, source: 'google_places' }
-
+  if (error && places.length === 0) return { leads: [], error, source: 'google_places' }
   const leads = places.map((p, i) => placeToLead(p, i))
   return { leads, error: null, source: 'google_places', total: places.length }
 }

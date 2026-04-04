@@ -107,22 +107,16 @@ export function calcRevenueImpact(lead, benchmark, competitors) {
 
 // ── Fetch Place Details (reviews + hours + types) ─────────────────────────────
 export async function fetchPlaceDetails(placeId, apiKey) {
-  if (!placeId || !apiKey) return null
+  if (!placeId) return null
   try {
-    const fieldMask = [
-      'displayName','rating','userRatingCount','nationalPhoneNumber',
-      'websiteUri','formattedAddress','regularOpeningHours','businessStatus',
-      'types','primaryType','editorialSummary','reviews',
-      'servesBeer','delivery','reservable','currentOpeningHours',
-    ].join(',')
-    const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
-      headers: {
-        'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': fieldMask,
-      }
+    const res = await fetch('/api/scout/places', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'details', placeId }),
     })
     if (!res.ok) return null
-    return res.json()
+    const data = await res.json()
+    return data.place || null
   } catch { return null }
 }
 
@@ -225,7 +219,7 @@ export async function analyzeWithClaude(lead, competitors, websiteData, benchmar
 }
 
 // ── MASTER PIPELINE ───────────────────────────────────────────────────────────
-export async function runLeadPipeline(lead, competitors, searchQuery, apiKey, onProgress) {
+export async function runLeadPipeline(lead, competitors, searchQuery, onProgress) {
   const result = { ...lead, pipeline_complete: false }
 
   try {
