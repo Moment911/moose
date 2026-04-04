@@ -155,7 +155,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         <Link to="/" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><LayoutGrid size={15} className={location.pathname === '/' ? 'text-brand-500' : ''} /> Dashboard</Link>
+        }`}><LayoutGrid size={15} className={location.pathname === '/' ? 'text-brand-500' : ''} /> Project Hub</Link>
 
         <Link to="/messages" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/messages' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
