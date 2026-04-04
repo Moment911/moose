@@ -299,7 +299,7 @@ export default function MooseDeskPage() {
                   color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <Settings size={13}/> Setup
               </button>
-              <button onClick={()=>navigate('/desk/analytics')}
+              <button onClick={()=>navigate('/desk/reports')}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
                   border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
                   color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
