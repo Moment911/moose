@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
+import { AuthProvider } from '../hooks/useAuth'
 
 import LoginPage from '../views/LoginPage'
 import DashboardPage from '../views/DashboardPage'
@@ -45,6 +46,7 @@ import SEOConnectPage from '../views/seo/SEOConnectPage'
 export default function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
       <MobileMenuProvider>
         <Toaster position="top-right" />
         <Routes>
@@ -92,6 +94,7 @@ export default function App() {
           <Route path="/seo/connect" element={<SEOConnectPage />} />
         </Routes>
       </MobileMenuProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
