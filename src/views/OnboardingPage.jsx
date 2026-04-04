@@ -502,7 +502,12 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
 }`, 2500
       );
       const cleaned = result.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(cleaned.slice(cleaned.indexOf('{')));
+      const jsonStart2 = cleaned.indexOf('{')
+      if (jsonStart2 === -1) throw new Error('No JSON in response')
+      let jsonStr2 = cleaned.slice(jsonStart2, cleaned.lastIndexOf('}')+1)
+      let parsed
+      try { parsed = JSON.parse(jsonStr2) }
+      catch(_) { parsed = JSON.parse(jsonStr2.replace(/,\s*}/g,'}').replace(/,\s*]/g,']')) }
       setPersonaResult(parsed);
     } catch (e) {
       console.error(e);

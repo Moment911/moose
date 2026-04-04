@@ -94,7 +94,12 @@ Return ONLY valid JSON with these keys:
 }`, 2500
       )
       const cleaned = result.replace(/```json|```/g,'').trim()
-      const parsed = JSON.parse(cleaned.slice(cleaned.indexOf('{')))
+      const jsonStart = cleaned.indexOf('{')
+      if (jsonStart === -1) throw new Error('No JSON object in response')
+      let jsonStr = cleaned.slice(jsonStart, cleaned.lastIndexOf('}')+1)
+      let parsed
+      try { parsed = JSON.parse(jsonStr) }
+      catch(_) { parsed = JSON.parse(jsonStr.replace(/,\s*}/g,'}').replace(/,\s*]/g,']')) }
       await supabase.from('clients').update({ ai_persona: JSON.stringify(parsed) }).eq('id', client.id)
       setPersona(parsed)
       toast.success('AI persona generated!')

@@ -445,44 +445,26 @@ export default function ScoutPage() {
           ? `\nThis is MARKET RESEARCH. Focus on market saturation, opportunity gaps, pricing signals, and trends rather than individual lead quality.`
           : ''
 
-        const prompt = `You are a B2B sales intelligence AI for a marketing agency. Generate 12 realistic local business leads.
-
-Search: "${term}" in "${location || 'United States'}"
-Mode: ${mode === 'prospect' ? 'Find new agency clients' : mode === 'competitor' ? 'Competitor analysis for a market' : 'Market research'}
-${filterGaps.length ? `Must have these marketing gaps: ${filterGaps.join(', ')}` : ''}${modePromptExtra}
-
-Return ONLY valid JSON array of 12 businesses. Each:
-{
-  "id": "unique_${Date.now()}_N",
-  "name": "Real-sounding business name",
-  "address": "Full street address, City, State ZIP",
-  "phone": "(XXX) XXX-XXXX using correct local area code",
-  "website": "https://www.businessname.com",
-  "email": "owner@businessname.com",
-  "rating": 3.2,
-  "review_count": 47,
-  "score": 78,
-  "temperature": "hot",
-  "years_in_business": 8,
-  "estimated_revenue": "$500K-$1M",
-  "employee_count": "6-15",
-  "gaps": ["Specific gap 1", "Specific gap 2", "Gap 3"],
-  "ai_summary": "2-3 sentence insight about this specific business opportunity",
-  "gbp_claimed": true,
-  "has_website": true,
-  "social_active": false,
-  "running_ads": false
-}
-
-Use correct area codes for ${location}. Make addresses realistic for ${location}. Score hot leads 75-95 (multiple gaps). Mix: 2-3 hot, 4-5 warm, 3-4 lukewarm, 1-2 cold.`
+        const modeLabel = mode === 'prospect' ? 'Find new agency clients' : mode === 'competitor' ? 'Competitor analysis' : 'Market research'
+        const gapFilter = filterGaps.length ? 'Must include gaps: ' + filterGaps.join(', ') + '.' : ''
+        const prompt = 'Generate 12 realistic local business leads for a marketing agency. Search: ' + term + ' in ' + (location || 'United States') + '. Mode: ' + modeLabel + '. ' + gapFilter + modePromptExtra + ' Return ONLY a valid JSON array. No markdown, no code fences. Each object: id(string), name(string), address(string), phone(string), website(string), email(string), rating(number), review_count(integer), score(integer 0-100), temperature(string hot/warm/lukewarm/cold), years_in_business(integer), estimated_revenue(string), employee_count(string), gaps(array of 2-4 short strings with NO apostrophes), ai_summary(one short sentence with NO internal quotes), gbp_claimed(boolean), has_website(boolean), social_active(boolean), running_ads(boolean). Score: hot=75-95 warm=50-74 lukewarm=25-49 cold=0-24. Mix: 2 hot, 4 warm, 4 lukewarm, 2 cold.'
 
         const raw = await callClaude(
-          'You generate realistic B2B sales intelligence. Return ONLY valid JSON array, no markdown.',
-          prompt, 3500
+          'You generate B2B sales intelligence. Return ONLY a raw JSON array starting with [ and ending with ]. No markdown, no backticks, no commentary.',
+          prompt, 4000
         )
-        const cleaned = raw.replace(/```json|```/g,'').trim()
-        const start   = cleaned.indexOf('['), end = cleaned.lastIndexOf(']')+1
-        leads  = JSON.parse(cleaned.slice(start, end))
+
+        // Robust JSON extraction + repair
+        let cleaned = raw.replace(/```json|```/g, '').trim()
+        const start = cleaned.indexOf('['), end = cleaned.lastIndexOf(']')
+        if (start === -1 || end === -1) throw new Error('No JSON array in AI response')
+        cleaned = cleaned.slice(start, end + 1)
+        try {
+          leads = JSON.parse(cleaned)
+        } catch(_) {
+          const repaired = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')
+          leads = JSON.parse(repaired)
+        }
         source = 'ai'
       } catch(e) {
         console.error('AI search failed:', e)
@@ -498,13 +480,15 @@ Use correct area codes for ${location}. Make addresses realistic for ${location}
     if (source === 'google' && leads.length > 0) {
       try {
         const names = leads.slice(0,8).map(l=>l.name).join(', ')
-        const summaryPrompt = `For these real ${term} businesses in ${location}, write a 1-sentence marketing opportunity insight for each.
-Businesses: ${names}
-Return JSON array of objects: [{"name":"Business Name","summary":"1 sentence opportunity insight"}]
-Be specific about why each business needs marketing help based on their likely situation.`
-        const raw = await callClaude('Return only valid JSON array, no markdown.', summaryPrompt, 1000)
-        const cleaned = raw.replace(/```json|```/g,'').trim()
-        const summaries = JSON.parse(cleaned.slice(cleaned.indexOf('['), cleaned.lastIndexOf(']')+1))
+        const summaryPrompt = 'For these ' + term + ' businesses in ' + location + ', write one short marketing opportunity sentence for each. Businesses: ' + names + '. Return a JSON array like [{"name":"Exact Business Name","summary":"one sentence, no internal quotes"}]. No markdown, no backticks.'
+        const raw = await callClaude('Return only a raw JSON array starting with [ and ending with ]. No markdown.', summaryPrompt, 1000)
+        let cleaned2 = raw.replace(/```json|```/g,'').trim()
+        const s2 = cleaned2.indexOf('['), e2 = cleaned2.lastIndexOf(']')
+        if (s2 === -1) throw new Error('no array')
+        cleaned2 = cleaned2.slice(s2, e2+1)
+        let summaries
+        try { summaries = JSON.parse(cleaned2) }
+        catch(_) { summaries = JSON.parse(cleaned2.replace(/,\s*}/g,'}').replace(/,\s*]/g,']')) }
         const summaryMap = Object.fromEntries(summaries.map(s=>[s.name, s.summary]))
         leads = leads.map(l=>({ ...l, ai_summary: summaryMap[l.name] || null }))
       } catch(e) {
