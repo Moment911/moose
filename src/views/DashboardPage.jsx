@@ -111,7 +111,7 @@ export default function DashboardPage() {
           <div className="px-4 md:px-8 py-6 md:py-8">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Dashboard</p>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Project Hub</p>
                 {selectedClient ? (
                   <>
                     <h1 className="text-xl md:text-3xl font-bold text-white">{selectedClient.name}</h1>

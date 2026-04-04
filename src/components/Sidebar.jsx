@@ -155,7 +155,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         <Link to="/" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
-        }`}><LayoutGrid size={15} className={location.pathname === '/' ? 'text-brand-500' : ''} /> Dashboard</Link>
+        }`}><LayoutGrid size={15} className={location.pathname === '/' ? 'text-brand-500' : ''} /> Project Hub</Link>
 
         <Link to="/messages" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/messages' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -209,7 +209,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           </Link>
           <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 mt-2 mb-1">SEO</p>
           <Link to="/seo" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <TrendingUp size={14} className={location.pathname === '/seo' ? 'text-green-400' : ''} /> Dashboard
+            <TrendingUp size={14} className={location.pathname === '/seo' ? 'text-green-400' : ''} /> Project Hub
           </Link>
           <Link to="/seo/audit" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/audit' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
             <Zap size={14} className={location.pathname === '/seo/audit' ? 'text-yellow-400' : ''} /> URL Audit

@@ -8,7 +8,7 @@ import LucyLogo from '../LucyLogo'
 
 const SECTIONS = [
   { title: null, items: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/', color: '#E8551A' },
+    { label: 'Project Hub', icon: LayoutDashboard, path: '/', color: '#E8551A' },
     { label: 'Messages', icon: MessageSquare, path: '/messages', color: '#5856D6' },
     { label: 'Tasks', icon: CheckSquare, path: '/tasks', color: '#FF3B30' },
     { label: 'Calendar', icon: Calendar, path: '/calendar', color: '#007AFF' },
@@ -28,7 +28,7 @@ const SECTIONS = [
     { label: 'My Leads', icon: ListFilter, path: '/scout/leads', color: '#FF6B35' },
   ]},
   { title: 'Moose SEO', items: [
-    { label: 'Dashboard', icon: TrendingUp, path: '/seo', color: '#10b981' },
+    { label: 'SEO Hub', icon: TrendingUp, path: '/seo', color: '#10b981' },
     { label: 'URL Audit', icon: Zap, path: '/seo/audit', color: '#f59e0b' },
     { label: 'WP Plugin', icon: Puzzle, path: '/seo/plugin', color: '#8b5cf6' },
     { label: 'Connect Data', icon: Link2, path: '/seo/connect', color: '#3b82f6' },

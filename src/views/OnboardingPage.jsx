@@ -38,7 +38,7 @@ function Input({ id, value, onChange, placeholder, type = 'text', ...rest }) {
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition"
+      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition"
       {...rest}
     />
   );
@@ -50,7 +50,7 @@ function Select({ id, value, onChange, options, placeholder }) {
       id={id}
       value={value}
       onChange={onChange}
-      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition bg-white"
+      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition bg-white"
     >
       <option value="">{placeholder || 'Select...'}</option>
       {options.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -66,7 +66,7 @@ function Textarea({ id, value, onChange, placeholder, rows = 3 }) {
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
-      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition resize-y"
+      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition resize-y"
     />
   );
 }
@@ -113,6 +113,38 @@ function StepBusiness({ data, set }) {
 
   return (
     <>
+      {/* Name callout at top of step 1 */}
+      <div style={{ background: 'linear-gradient(135deg,#fff7f5,#fff)', border: '2px solid #E8551A25', borderRadius: 12, padding: '16px 18px', marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 3 }}>👋 First, who are we working with?</div>
+        <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 10 }}>We'll use your name to personalise your experience.</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Your First Name *</label>
+            <input
+              value={(f._contact_first || '')}
+              onChange={e => set({ ...f, _contact_first: e.target.value })}
+              placeholder="e.g. John"
+              autoFocus
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${(f._contact_first||'').trim() ? '#E8551A' : '#e5e7eb'}`, fontSize: 14, outline: 'none', background: '#fff', color: '#111', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 4 }}>Your Last Name</label>
+            <input
+              value={(f._contact_last || '')}
+              onChange={e => set({ ...f, _contact_last: e.target.value })}
+              placeholder="e.g. Smith"
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none', background: '#fff', color: '#111', boxSizing: 'border-box' }}
+            />
+          </div>
+        </div>
+        {(f._contact_first||'').trim() && (
+          <div style={{ marginTop: 10, padding: '8px 12px', background: '#fff', borderRadius: 8, border: '1px solid #E8551A30', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>👋</span>
+            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>Hi <strong style={{ color: '#E8551A' }}>{(f._contact_first||'').trim().split(' ')[0]}</strong>! Great to meet you — let's build something amazing together.</span>
+          </div>
+        )}
+      </div>
       <SectionHeading title="Business Information" subtitle="Tell us about your business so we can tailor our strategy." />
       <FieldGroup className="sm:grid-cols-2">
         <div><Label htmlFor="biz-name">Business Name *</Label><Input id="biz-name" value={f.business_name} onChange={s('business_name')} placeholder="Acme Corp" /></div>
@@ -533,16 +565,27 @@ export default function OnboardingPage() {
     }
   };
 
+  const firstName = (business?._contact_first || contacts?.[0]?.name || '').trim().split(' ')[0] || ''
+
   const MooseHeader = () => (
     <div className="text-center mb-8">
-      <div className="inline-flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT }}>
-          <span className="text-white font-bold text-sm">M</span>
+      {/* Momenta logo + powered by Moose */}
+      <div className="inline-flex flex-col items-center gap-1 mb-3">
+        <img src="/momenta-logo.svg" alt="Momenta" style={{ height: 40, width: 'auto' }} />
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-400 font-medium uppercase tracking-widest">powered by</span>
+          <span className="text-xs font-bold tracking-widest uppercase" style={{ color: ACCENT }}>Moose AI</span>
         </div>
-        <span className="text-xl font-bold text-gray-900">Moose AI</span>
       </div>
       {status === 'ready' && tokenData?.clients?.name && (
-        <p className="text-sm text-gray-500">Onboarding for <span className="font-medium text-gray-700">{tokenData.clients.name}</span></p>
+        <div>
+          <p className="text-sm text-gray-500">
+            {firstName
+              ? <span>Welcome back, <span className="font-semibold" style={{ color: ACCENT }}>{firstName}</span>! Completing onboarding for <span className="font-medium text-gray-700">{tokenData.clients.name}</span></span>
+              : <span>Onboarding for <span className="font-medium text-gray-700">{tokenData.clients.name}</span></span>
+            }
+          </p>
+        </div>
       )}
     </div>
   );
@@ -586,13 +629,19 @@ export default function OnboardingPage() {
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <div className="max-w-md text-center">
           <MooseHeader />
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6 animate-bounce">
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
-          <p className="text-gray-500 mb-6">Your onboarding information has been submitted successfully. Our team will review everything and be in touch soon.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {firstName ? `Amazing work, ${firstName}! 🎉` : 'Thank You! 🎉'}
+          </h1>
+          <p className="text-gray-500 mb-6">
+            {firstName
+              ? `Thanks for taking the time, ${firstName}. Our team will review everything and reach out shortly with next steps.`
+              : 'Your onboarding information has been submitted successfully. Our team will review everything and be in touch soon.'}
+          </p>
           <div className="inline-block rounded-lg bg-gray-50 border px-4 py-3 text-sm text-gray-600">
             You can safely close this page.
           </div>
@@ -609,6 +658,27 @@ export default function OnboardingPage() {
         <MooseHeader />
         <ProgressBar step={step} />
 
+        {/* Personalized step banner */}
+        {step > 1 && (() => {
+          const name = (contacts?.[0]?.name || '').trim().split(' ')[0]
+          const msgs = {
+            2: name ? `Nice work, ${name}! 🙌 Now let's link your social media profiles.` : `Let's link your social media profiles.`,
+            3: name ? `Great, ${name}! Now tell us about your website and tech setup.` : `Tell us about your website and tech stack.`,
+            4: name ? `Looking good, ${name}! 🎨 Let's capture your brand identity.` : `Let's capture your brand identity.`,
+            5: name ? `Almost there, ${name}! Connect your Google presence.` : `Let's connect your Google presence.`,
+            6: name ? `You're doing great, ${name}! 💪 Tell us about your marketing goals.` : `Tell us about your marketing goals.`,
+            7: name ? `Last step, ${name}! 🎯 Add your team contacts and you're done.` : `Add your team contacts and you're done.`,
+          }
+          const msg = msgs[step]
+          if (!msg) return null
+          return (
+            <div style={{ background: '#18181b', borderRadius: 12, padding: '14px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src="/momenta-logo-white.svg" alt="Momenta" style={{ height: 18, opacity: 0.9 }} />
+              <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.15)' }} />
+              <span style={{ fontSize: 13, color: '#e5e7eb', fontWeight: 500 }}>{msg}</span>
+            </div>
+          )
+        })()}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
           {renderStep()}
         </div>
@@ -635,7 +705,9 @@ export default function OnboardingPage() {
               className="px-6 py-2.5 rounded-lg text-sm font-medium text-white shadow-sm hover:opacity-90 transition"
               style={{ backgroundColor: ACCENT }}
             >
-              Next
+              {step === 1 && (contacts?.[0]?.name || '').trim()
+                ? `Let's go, ${(contacts?.[0]?.name || '').trim().split(' ')[0]}! →`
+                : 'Next →'}
             </button>
           ) : (
             <button
