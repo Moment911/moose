@@ -5,7 +5,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft, Save, Download, Upload, Undo2, Redo2, Trash2,
          Square, Type, Image as ImageIcon, Circle, Minus, MousePointer,
          Layout, FormInput, CreditCard, Star, PenLine, Plus, X, FileText,
-         Layers, Grid3X3, Code, Eye, EyeOff, Lock, Unlock, Wand2, Copy, ChevronDown, ChevronUp } from 'lucide-react'
+         Layers, Grid3X3, Code2, Eye, EyeOff, Lock, Unlock, Wand2, Copy, ChevronDown, ChevronUp } from 'lucide-react'
 import { supabase, createWireframeRecord, updateWireframeRecord, uploadFile, createFile } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import Sidebar from '../components/Sidebar'
@@ -311,7 +311,7 @@ export default function WireframePage() {
             <div className="w-px h-4 bg-gray-200" />
             <button onClick={handleSave} disabled={saving} className="btn-secondary text-[11px] py-1 px-2.5"><Save size={12} /> Save</button>
             <button onClick={handleDownload} className="btn-secondary text-[11px] py-1 px-2.5" title="Export PNG"><Download size={12} /></button>
-            <button onClick={exportToHtml} className="btn-secondary text-[11px] py-1 px-2.5" title="Export HTML+CSS"><Code size={12} /></button>
+            <button onClick={exportToHtml} className="btn-secondary text-[11px] py-1 px-2.5" title="Export HTML+CSS"><Code2 size={12} /></button>
             <button onClick={handleAddToProject} className="btn-primary text-[11px] py-1 px-2.5"><Upload size={12} /> Add</button>
           </div>
         </div>
@@ -507,7 +507,7 @@ export default function WireframePage() {
                   <button onClick={() => { const idx = components.findIndex(c => c.id === sel.id); if (idx < components.length - 1) { const next = [...components]; const [item] = next.splice(idx, 1); next.push(item); updatePage(activePageId, { components: next }); pushHistory() } }} className="flex-1 text-[10px] py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100"><ChevronUp size={9} className="inline" /> Front</button>
                   <button onClick={() => { const idx = components.findIndex(c => c.id === sel.id); if (idx > 0) { const next = [...components]; const [item] = next.splice(idx, 1); next.unshift(item); updatePage(activePageId, { components: next }); pushHistory() } }} className="flex-1 text-[10px] py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100"><ChevronDown size={9} className="inline" /> Back</button>
                 </div>
-                <button onClick={() => setShowCssModal(sel)} className="w-full text-[10px] py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 flex items-center justify-center gap-1"><Code size={9} /> Copy CSS</button>
+                <button onClick={() => setShowCssModal(sel)} className="w-full text-[10px] py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 flex items-center justify-center gap-1"><Code2 size={9} /> Copy CSS</button>
                 <button onClick={deleteSelected} className="w-full text-[10px] py-1.5 rounded-lg text-red-500 hover:bg-red-50 flex items-center justify-center gap-1"><Trash2 size={9} /> Delete</button>
               </div>
             </div>
@@ -528,7 +528,7 @@ export default function WireframePage() {
       {contextMenu && (
         <div className="fixed z-50 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 min-w-[180px]" style={{ left: contextMenu.x, top: contextMenu.y }} onClick={e => e.stopPropagation()}>
           <button onClick={() => { navigator.clipboard.writeText(generateCss(contextMenu.comp)); toast.success('CSS copied!'); setContextMenu(null) }}
-            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Code size={13} /> Copy CSS</button>
+            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Code2 size={13} /> Copy CSS</button>
           <button onClick={() => { setShowCssModal(contextMenu.comp); setContextMenu(null) }}
             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Eye size={13} /> View CSS</button>
           <button onClick={() => { const c = contextMenu.comp; updateComp(c.id, { ...c, id: crypto.randomUUID(), x: c.x + 20, y: c.y + 20, name: c.name + ' copy' }); const dup = { ...c, id: crypto.randomUUID(), x: c.x + 20, y: c.y + 20, name: (c.name || c.type) + ' copy' }; updatePage(activePageId, { components: [...components, dup] }); pushHistory(); setContextMenu(null) }}
@@ -544,7 +544,7 @@ export default function WireframePage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowCssModal(null)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><Code size={14} /> CSS for "{showCssModal.name || showCssModal.type}"</h3>
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><Code2 size={14} /> CSS for "{showCssModal.name || showCssModal.type}"</h3>
               <button onClick={() => setShowCssModal(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
             </div>
             <div className="p-4">

@@ -2,10 +2,10 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Star, Plus, Search, Filter, RefreshCw, Check, X,
-  MessageSquare, Sparkles, Eye, EyeOff, Globe, Facebook,
-  Copy, ExternalLink, Toggle, Settings, ChevronDown,
+  MessageSquare, Sparkles, Eye, EyeOff, Globe,
+  Copy, ExternalLink, Settings, ChevronDown,
   ThumbsUp, AlertTriangle, Loader2, BarChart2, Shield,
-  Code, Sliders, Zap, ArrowRight, ToggleLeft, ToggleRight
+  Sliders, Zap, ArrowRight
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'

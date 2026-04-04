@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Send, Eye, Wand2, Check, AlertTriangle, X, Plus, Trash2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MousePointer, Minus, Columns, FileText, Layout, Square, Palette, Copy, Quote, List, Star, Search, Loader2, Sparkles, Code, Tag } from 'lucide-react'
+import { ChevronLeft, Send, Eye, Wand2, Check, AlertTriangle, X, Plus, Trash2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MousePointer, Minus, Columns, FileText, Layout, Square, Palette, Copy, Quote, List, Star, Search, Loader2, Sparkles, Code2, Tag } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ColorPicker from '../components/ColorPicker'
 import ImageFinder from '../components/email-editor/ImageFinder'
@@ -545,7 +545,7 @@ export default function CampaignBuilderPage() {
                   <p className="text-[10px] font-semibold text-gray-500 uppercase mb-2">Email Builder</p>
                   <p className="text-xs text-gray-400 mb-3">Click any block to edit. Use the left panel to add new blocks.</p>
                   <button onClick={() => setShowPreview(true)} className="btn-secondary text-xs w-full justify-center mb-2"><Eye size={12} /> Preview</button>
-                  <button onClick={() => setShowPersonalization(true)} className="btn-secondary text-xs w-full justify-center mb-2"><Code size={12} /> Personalization</button>
+                  <button onClick={() => setShowPersonalization(true)} className="btn-secondary text-xs w-full justify-center mb-2"><Code2 size={12} /> Personalization</button>
                   {/* Campaign tags */}
                   <div className="border-t border-gray-100 pt-3 mt-3">
                     <p className="text-[10px] font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1"><Tag size={10} /> Campaign Tags</p>

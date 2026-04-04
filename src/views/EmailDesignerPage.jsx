@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Save, Download, Code, Eye, Type, Image as ImageIcon, MousePointer,
+import { ChevronLeft, Save, Download, Code2, Eye, Type, Image as ImageIcon, MousePointer,
          Minus, ArrowUp, ArrowDown, Trash2, Plus, Mail, Columns, FileText, Square } from 'lucide-react'
 import { supabase, createEmailDesign, updateEmailDesign } from '../lib/supabase'
 import ColorPicker from '../components/ColorPicker'
@@ -160,7 +160,7 @@ export default function EmailDesignerPage() {
           <div className="ml-auto flex items-center gap-2">
             <button onClick={() => setShowPreview(!showPreview)} className={`btn-secondary text-xs ${showPreview ? 'bg-brand-50 text-brand-700 border-brand-300' : ''}`}><Eye size={13} /> Preview</button>
             <button onClick={handleSave} disabled={saving} className="btn-secondary text-xs"><Save size={13} /> Save</button>
-            <button onClick={handleCopyHtml} className="btn-secondary text-xs"><Code size={13} /> Copy HTML</button>
+            <button onClick={handleCopyHtml} className="btn-secondary text-xs"><Code2 size={13} /> Copy HTML</button>
             <button onClick={handleExportHtml} className="btn-primary text-xs"><Download size={13} /> Export HTML</button>
           </div>
         </div>

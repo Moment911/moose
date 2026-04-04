@@ -5,7 +5,7 @@ import {
   Play, Pause, Settings, Plus, ChevronRight, Loader2,
   Check, AlertTriangle, TrendingUp, DollarSign, Clock,
   MessageSquare, RefreshCw, Sparkles, Shield, ArrowRight,
-  ToggleLeft, ToggleRight, Activity, X
+  Activity, X
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
