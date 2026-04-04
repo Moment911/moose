@@ -82,13 +82,21 @@ function RecommendationCard({ rec, onApply, onDismiss }) {
               background:priBg,color:priColor,textTransform:'capitalize'}}>{rec.priority}</span>
           </div>
           <p style={{fontSize:13,color:'#374151',lineHeight:1.6,margin:'0 0 10px'}}>{rec.description}</p>
-          {rec.est_impact && (
-            <div style={{display:'inline-flex',alignItems:'center',gap:5,padding:'4px 10px',
-              borderRadius:20,background:'#f0fdf4',border:'1px solid #bbf7d0'}}>
-              <TrendingUp size={12} color={GREEN}/>
-              <span style={{fontSize:12,fontWeight:800,color:GREEN}}>{rec.est_impact}</span>
-            </div>
-          )}
+          <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginTop:4}}>
+            {rec.est_impact && (
+              <div style={{display:'inline-flex',alignItems:'center',gap:5,padding:'4px 10px',
+                borderRadius:20,background:'#f0fdf4',border:'1px solid #bbf7d0'}}>
+                <TrendingUp size={12} color={GREEN}/>
+                <span style={{fontSize:12,fontWeight:800,color:GREEN}}>{rec.est_impact}</span>
+              </div>
+            )}
+            {rec.recommended?.action_this_week && (
+              <div style={{fontSize:12,color:'#7c3aed',background:'#f5f3ff',
+                padding:'4px 10px',borderRadius:20,border:'1px solid #e9d5ff'}}>
+                This week: {rec.recommended.action_this_week}
+              </div>
+            )}
+          </div>
         </div>
         <div style={{display:'flex',gap:6,flexShrink:0}}>
           <button onClick={()=>onApply(rec)}
