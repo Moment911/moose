@@ -239,7 +239,7 @@ export default function DeskReportsPage() {
     }))
 
   return (
-    <div style={{}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"'DM Sans',sans-serif"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
