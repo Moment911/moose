@@ -17,7 +17,7 @@ const SCOPES_BASIC = [
 // 'https://www.googleapis.com/auth/adwords',
 // 'https://www.googleapis.com/auth/business.manage',
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const SERVICES = [
   { key: 'search_console', label: 'Google Search Console', icon: Search, color: '#4285F4', desc: 'Track keyword rankings, clicks, and impressions', available: true },
@@ -67,7 +67,7 @@ export default function SEOConnectPage() {
 
   function startGoogleOAuth() {
     if (!selectedClient) { toast.error('Select a client first'); return }
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
     if (!clientId) { toast.error('VITE_GOOGLE_CLIENT_ID not configured'); return }
 
     const redirectUri = window.location.origin + '/seo/connect'

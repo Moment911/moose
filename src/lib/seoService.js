@@ -7,8 +7,8 @@ export async function refreshGoogleToken(connection) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-        client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+        client_secret: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET || '',
         refresh_token: connection.refresh_token,
         grant_type: 'refresh_token',
       }),

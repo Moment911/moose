@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { Search, X, Loader2, Image as ImageIcon, ExternalLink } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY
-const PEXELS_KEY = import.meta.env.VITE_PEXELS_API_KEY
-const PIXABAY_KEY = import.meta.env.VITE_PIXABAY_API_KEY
+const UNSPLASH_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY
+const PEXELS_KEY = process.env.NEXT_PUBLIC_PEXELS_API_KEY
+const PIXABAY_KEY = process.env.NEXT_PUBLIC_PIXABAY_API_KEY
 
 async function searchUnsplash(query) {
   if (!UNSPLASH_KEY) return { results: [], error: 'Unsplash API key not set' }

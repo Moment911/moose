@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Bug, X, Check, AlertTriangle, Loader2 } from 'lucide-react'
 
 const keys = {
-  'Anthropic (Claude AI)': import.meta.env.VITE_ANTHROPIC_API_KEY,
-  'Unsplash': import.meta.env.VITE_UNSPLASH_ACCESS_KEY,
-  'Pexels': import.meta.env.VITE_PEXELS_API_KEY,
-  'Pixabay': import.meta.env.VITE_PIXABAY_API_KEY,
+  'Anthropic (Claude AI)': process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY,
+  'Unsplash': process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY,
+  'Pexels': process.env.NEXT_PUBLIC_PEXELS_API_KEY,
+  'Pixabay': process.env.NEXT_PUBLIC_PIXABAY_API_KEY,
 }
 
 // Log on load in dev
