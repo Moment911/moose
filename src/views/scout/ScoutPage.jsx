@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Target, Search, MapPin, Star, Globe, Plus, Check,
   Loader2, ExternalLink, Phone, Mail, Copy, Filter,
@@ -388,7 +388,8 @@ function MarketSummaryCard({ results, query, location }) {
 // ══════════════════════════════════════════════════════════════════════════════
 export default function ScoutPage() {
   const { agencyId } = useAuth()
-  const navigate = useNavigate()
+  const navigate      = useNavigate()
+  const routeLocation = useLocation()
   const [mode, setMode]         = useState('prospect')
   const [query, setQuery]       = useState(() => routeLocation.state?.replayQuery || '')
   const [location, setLocation] = useState(() => routeLocation.state?.replayLocation || '')
