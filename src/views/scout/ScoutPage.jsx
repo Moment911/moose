@@ -6,11 +6,13 @@ import {
   Globe, Plus, Check, X, Loader2, ExternalLink, Phone,
   Mail, Copy, Filter, Zap, TrendingUp, AlertCircle,
   BarChart2, Bookmark, BookmarkCheck, ArrowRight,
-  Building, Users, Wifi, WifiOff, Sparkles, RefreshCw
+  Building, Users, Wifi, WifiOff, Sparkles, RefreshCw,
+  Shield, Info, ChevronRight, Database
 } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'
 import { supabase } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
+import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
 import toast from 'react-hot-toast'
 
 const ACCENT = '#E8551A'
@@ -87,6 +89,100 @@ function ScoreRing({ score, size = 52 }) {
   )
 }
 
+
+// ── Confidence badge ──────────────────────────────────────────────────────────
+function ConfidenceBadge({ lead, small }) {
+  const conf = lead._confidence || 60
+  const label = lead._confLabel || { label: 'Unverified', color: '#9ca3af', bg: '#f3f4f6' }
+  const size = small ? 11 : 12
+
+  return (
+    <div style={{ display:'inline-flex', alignItems:'center', gap:5,
+      padding: small ? '2px 7px' : '3px 9px',
+      borderRadius:20, background:label.bg, border:`1px solid ${label.color}25` }}>
+      <Shield size={small?9:10} color={label.color}/>
+      <span style={{ fontSize:size, fontWeight:700, color:label.color }}>{conf}%</span>
+      {!small && <span style={{ fontSize:10, color:label.color, opacity:.8 }}>{label.label}</span>}
+    </div>
+  )
+}
+
+// ── Provenance panel ──────────────────────────────────────────────────────────
+function ProvenancePanel({ lead }) {
+  const [open, setOpen] = useState(false)
+  if (!lead._provenance) return null
+
+  const verified   = lead._provenance.filter(p => p.status === 'verified')
+  const mismatches = lead._provenance.filter(p => p.status === 'mismatch')
+  const conf       = lead._confidence || 60
+  const confLabel  = lead._confLabel  || { label:'Unverified', color:'#9ca3af', bg:'#f3f4f6' }
+
+  const statusIcon = { verified:'✅', estimated:'🔵', mismatch:'⚠️', not_found:'⚪', generated:'🤖', not_checked:'⚪', unknown:'❓' }
+  const statusColor= { verified:'#16a34a', estimated:'#3b82f6', mismatch:'#dc2626', not_found:'#9ca3af', generated:'#E8551A', not_checked:'#9ca3af', unknown:'#9ca3af' }
+
+  return (
+    <div style={{ marginTop:10, borderTop:'1px solid #f3f4f6', paddingTop:10 }}
+      onClick={e=>e.stopPropagation()}>
+      <button onClick={()=>setOpen(o=>!o)}
+        style={{ width:'100%', display:'flex', alignItems:'center', gap:8, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+        <Shield size={12} color={confLabel.color}/>
+        <span style={{ fontSize:12, fontWeight:700, color:'#374151', flex:1, textAlign:'left' }}>Data Sources & Accuracy</span>
+        <span style={{ fontSize:11, fontWeight:700, color:confLabel.color, background:confLabel.bg, padding:'2px 8px', borderRadius:20, border:`1px solid ${confLabel.color}25` }}>
+          {conf}% {confLabel.label}
+        </span>
+        <ChevronRight size={12} color="#9ca3af" style={{ transform:open?'rotate(90deg)':'rotate(0)', transition:'transform .2s' }}/>
+      </button>
+
+      {open && (
+        <div style={{ marginTop:12, background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6', overflow:'hidden' }}>
+          {/* Confidence meter */}
+          <div style={{ padding:'12px 14px', borderBottom:'1px solid #f3f4f6' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Overall Data Confidence</span>
+              <span style={{ fontSize:11, fontWeight:800, color:confLabel.color }}>{conf}%</span>
+            </div>
+            <div style={{ height:6, background:'#e5e7eb', borderRadius:3, overflow:'hidden' }}>
+              <div style={{ height:'100%', width:`${conf}%`, background:confLabel.color, borderRadius:3, transition:'width .5s' }}/>
+            </div>
+            <div style={{ fontSize:10, color:'#9ca3af', marginTop:5 }}>
+              {verified.length} verified · {mismatches.length} flags ·
+              {mismatches.length > 0 ? ' ⚠ Review flagged data before outreach' :
+               verified.length >= 2 ? ' ✓ Address and phone verified locally' :
+               ' AI-generated — verify before calling'}
+            </div>
+          </div>
+
+          {/* Source rows */}
+          {lead._provenance.map((p, i) => (
+            <div key={i} style={{ padding:'10px 14px', borderBottom:i<lead._provenance.length-1?'1px solid #f3f4f6':'none', display:'flex', gap:10, alignItems:'flex-start' }}>
+              <div style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{p.source.icon}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:3 }}>
+                  <span style={{ fontSize:12, fontWeight:700, color:'#111' }}>{p.source.label}</span>
+                  <span style={{ fontSize:9, fontWeight:800, color:statusColor[p.status], background:statusColor[p.status]+'15', padding:'1px 7px', borderRadius:20, textTransform:'uppercase', letterSpacing:'.04em' }}>
+                    {statusIcon[p.status]} {p.status.replace('_',' ')}
+                  </span>
+                  {p.confidence && <span style={{ fontSize:10, color:'#9ca3af', marginLeft:'auto' }}>{p.confidence}%</span>}
+                </div>
+                <div style={{ fontSize:11, color:'#6b7280', lineHeight:1.5 }}>{p.detail}</div>
+                {p.upgrade && <div style={{ fontSize:10, color:'#E8551A', marginTop:3, fontStyle:'italic' }}>💡 {p.upgrade}</div>}
+              </div>
+            </div>
+          ))}
+
+          {/* Data disclaimer */}
+          <div style={{ padding:'10px 14px', background:'#fff7f5', borderTop:'1px solid #f3f4f6', display:'flex', gap:8 }}>
+            <Info size={12} color="#E8551A" style={{ flexShrink:0, marginTop:1 }}/>
+            <div style={{ fontSize:10, color:'#92400e', lineHeight:1.5 }}>
+              <strong>About this data:</strong> Business intelligence generated by Claude AI and cross-referenced against local USPS ZIP, NANP area code, and Census databases. Connect Google Places API or Yelp Fusion for live verified business data.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Lead card ─────────────────────────────────────────────────────────────────
 function LeadCard({ lead, onSave, onAddClient, saved, view }) {
   const [expanded, setExpanded] = useState(false)
@@ -104,6 +200,7 @@ function LeadCard({ lead, onSave, onAddClient, saved, view }) {
         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
           <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{lead.name}</span>
           <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>
+          <ConfidenceBadge lead={lead} small/>
         </div>
         <div style={{ display:'flex', gap:12, fontSize:12, color:'#9ca3af', flexWrap:'wrap' }}>
           {lead.address && <span>📍 {lead.address}</span>}
@@ -139,7 +236,10 @@ function LeadCard({ lead, onSave, onAddClient, saved, view }) {
           <ScoreRing score={score}/>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:4, lineHeight:1.3 }}>{lead.name}</div>
-            <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>
+            <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
+              <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>
+              <ConfidenceBadge lead={lead} small/>
+            </div>
           </div>
           <button onClick={e=>{e.stopPropagation();onSave(lead)}} style={{ padding:'6px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:saved?ACCENT:'#9ca3af', cursor:'pointer', flexShrink:0 }}>
             {saved?<BookmarkCheck size={15}/>:<Bookmark size={15}/>}
@@ -172,8 +272,10 @@ function LeadCard({ lead, onSave, onAddClient, saved, view }) {
           </div>
         )}
 
+        <ProvenancePanel lead={lead}/>
+
         {/* Actions */}
-        <div style={{ display:'flex', gap:7 }} onClick={e=>e.stopPropagation()}>
+        <div style={{ display:'flex', gap:7, marginTop:10 }} onClick={e=>e.stopPropagation()}>
           {lead.phone && <button onClick={()=>copy(lead.phone)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151' }}><Phone size={11}/> Call</button>}
           {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151', textDecoration:'none' }}><Globe size={11}/> Site</a>}
           <button onClick={()=>onAddClient(lead)} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
@@ -247,7 +349,8 @@ Make scores realistic: hot leads (75-95) have multiple clear marketing gaps. Var
       const cleaned = raw.replace(/```json|```/g, '').trim()
       const start = cleaned.indexOf('[')
       const end   = cleaned.lastIndexOf(']') + 1
-      const leads = JSON.parse(cleaned.slice(start, end))
+      const raw_leads = JSON.parse(cleaned.slice(start, end))
+      const leads = enrichLeads(raw_leads, location || term)
       setResults(leads)
       setStats({
         total: leads.length,
@@ -460,6 +563,7 @@ Make scores realistic: hot leads (75-95) have multiple clear marketing gaps. Var
                     { label:'Hot Leads 🔥',  value:stats.hot,      color:'#dc2626' },
                     { label:'Warm Leads',    value:stats.warm,     color:ACCENT },
                     { label:'Avg Score',     value:stats.avgScore, color:scoreColor(stats.avgScore) },
+              { label:'Data Verified',  value:results.filter(l=>l._verified>=2).length, color:'#16a34a' },
                   ].map(s=>(
                     <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
                       <div style={{ fontSize:24, fontWeight:900, color:s.color }}>{s.value}</div>
@@ -473,7 +577,16 @@ Make scores realistic: hot leads (75-95) have multiple clear marketing gaps. Var
               <div style={view === 'grid'
                 ? { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }
                 : { display:'flex', flexDirection:'column', gap:10 }}>
-                {displayed.map(lead=>(
+                {/* Data quality notice */}
+              {results.some(l=>l._mismatches>0) && (
+                <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:12, padding:'10px 16px', marginBottom:14, display:'flex', gap:10, alignItems:'center' }}>
+                  <AlertCircle size={14} color="#d97706"/>
+                  <div style={{ fontSize:13, color:'#92400e' }}>
+                    <strong>{results.filter(l=>l._mismatches>0).length} lead{results.filter(l=>l._mismatches>0).length>1?'s':''}</strong> have data flags (address/phone mismatches). Review before outreach. Click any lead to see details.
+                  </div>
+                </div>
+              )}
+              {displayed.map(lead=>(
                   <LeadCard key={lead.id} lead={lead} view={view}
                     saved={saved.has(lead.id)}
                     onSave={toggleSaved}
