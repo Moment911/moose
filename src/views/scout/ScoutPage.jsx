@@ -764,7 +764,7 @@ export default function ScoutPage() {
                   <div style={{ fontSize:12, fontWeight:800, color:TEAL }}>{pipelineProgress.pct}%</div>
                 </div>
               )}
-              {/* Data source banner */}}
+              {/* Data source banner */}
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background:'#e8f9fa', border:`1px solid ${TEAL}60` }}>
                 <Database size={14} color={TEAL}/>
                 <span style={{ fontSize:15, fontWeight:700, color:'#0e7490' }}>

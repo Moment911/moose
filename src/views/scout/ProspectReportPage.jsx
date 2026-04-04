@@ -79,7 +79,6 @@ function ScoreBar({ label, value, max=100, color=RED }) {
           transition:'width 1.2s cubic-bezier(.22,1,.36,1)',transitionDelay:'.3s'}}/>
       </div>
     </div>
-    </>
   )
 }
 
