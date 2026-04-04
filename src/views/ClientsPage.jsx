@@ -127,7 +127,7 @@ export default function ClientsPage() {
             {filtered.map(client => (
               <div key={client.id}
                 className="card p-5 hover:shadow-md transition-shadow cursor-pointer group relative"
-                onClick={() => navigate(`/client/${client.id}`)}>
+                onClick={() => navigate(`/clients/${client.id}`)}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-semibold text-sm">
