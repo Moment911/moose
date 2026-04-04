@@ -68,6 +68,11 @@ export async function placesTextSearch(query, options = {}) {
     }
 
     const data = await res.json()
+    console.log(`[Google Places] Query: "${query||body.textQuery}" → ${(data.places||[]).length} results`)
+    if (data.places?.[0]) {
+      const p = data.places[0]
+      console.log(`[Google Places] Top result: ${p.displayName?.text} | ${p.rating}★ | ${p.userRatingCount} reviews`)
+    }
     return { places: data.places || [], error: null }
   } catch(e) {
     console.error('Places API error:', e.message)
@@ -105,21 +110,34 @@ export function placeToLead(place, index) {
 
   // Derive marketing gaps from real data signals
   const gaps = []
-  if (reviews < 10)  gaps.push('Very few Google reviews (under 10)')
-  if (reviews < 50)  gaps.push('Low review volume — needs review strategy')
-  if (rating < 4.0 && rating > 0) gaps.push(`Below-average rating (${rating}★) — reputation issue`)
-  if (!website)      gaps.push('No website detected')
-  if (!phone)        gaps.push('Phone number not listed')
-  if (reviews > 0 && reviews < 100 && rating < 4.5) gaps.push('Competitor outranking on Google Maps')
-  if (gaps.length === 0) gaps.push('Strong presence — target for premium services')
+  if (reviews < 10)   gaps.push('Very few Google reviews — critical gap under 10')
+  else if (reviews < 25)  gaps.push('Low review count — under 25 reviews')
+  else if (reviews < 75)  gaps.push('Below average review volume for this industry')
+  if (rating < 3.5 && rating > 0) gaps.push(`Poor rating (${rating}★) — reputation crisis`)
+  else if (rating < 4.0 && rating > 0) gaps.push(`Below-average rating (${rating}★) — needs improvement`)
+  else if (rating < 4.4 && rating > 0) gaps.push(`Rating (${rating}★) below top competitors`)
+  if (!website)      gaps.push('No website detected — losing leads daily')
+  if (!phone)        gaps.push('Phone number not listed on Google')
+  if (reviews >= 75 && rating >= 4.4 && website && phone) gaps.push('Strong presence — target for growth services')
+  else if (gaps.length === 0) gaps.push('Good foundation — ready for advanced marketing')
 
-  // Scout score from real data
-  let score = 50
-  if (reviews < 10)  score += 25  // hot — easy win
-  if (reviews < 50)  score += 10
-  if (rating < 4.2 && rating > 0) score += 15  // reputation problem
-  if (!website)      score += 15
-  score = Math.min(95, Math.max(25, score))
+  // Scout score: higher = more opportunity/need for marketing help
+  let score = 45
+  // Review volume signals (low reviews = high opportunity)
+  if (reviews < 10)        score += 30
+  else if (reviews < 25)   score += 20
+  else if (reviews < 75)   score += 10
+  else if (reviews < 200)  score += 5
+  else                     score -= 5   // established biz, still needs services
+  // Rating signals
+  if (rating < 3.5 && rating > 0)  score += 25
+  else if (rating < 4.0 && rating > 0) score += 15
+  else if (rating < 4.4 && rating > 0) score += 8
+  else if (rating >= 4.7) score -= 5   // very strong
+  // Missing digital assets
+  if (!website) score += 20
+  if (!phone)   score += 10
+  score = Math.min(95, Math.max(20, score))
 
   const temperature = score >= 75 ? 'hot' : score >= 50 ? 'warm' : score >= 30 ? 'lukewarm' : 'cold'
 

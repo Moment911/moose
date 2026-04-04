@@ -426,12 +426,15 @@ export default function ScoutPage() {
     let source = 'ai'
 
     // ── STEP 1: Fetch real business data from Google Places ─────────────────
+    console.log('[Scout] Google key available:', hasGoogleKey())
     if (hasGoogleKey()) {
       try {
         const { leads: googleLeads, error: googleError } = await scoutWithPlaces(term, loc, { maxResults: 20 })
         if (!googleError && googleLeads.length > 0) {
           leads  = googleLeads
           source = 'google'
+          console.log('[Scout] Using Google Places data:', leads.length, 'results')
+          console.log('[Scout] First result:', leads[0]?.name, leads[0]?.rating, leads[0]?.review_count)
         } else if (googleError) {
           console.warn('Google Places failed, falling back to AI:', googleError)
         }
@@ -474,6 +477,7 @@ export default function ScoutPage() {
         try { leads = JSON.parse(cleaned) }
         catch(_) { leads = JSON.parse(cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }
         source = 'ai'
+        console.log('[Scout] Using AI fallback data:', leads.length, 'results')
       } catch(e) {
         console.error('AI search failed:', e)
         setSearchError(e.message?.includes('API key') || e.message?.includes('not set')
