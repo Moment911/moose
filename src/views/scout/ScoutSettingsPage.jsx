@@ -21,7 +21,7 @@ export default function ScoutSettingsPage() {
 
   async function testApi(api) {
     setTesting(t => ({ ...t, [api.key]: true }))
-    const key = import.meta.env[api.env]
+    const key = process.env[api.env]
     await new Promise(r => setTimeout(r, 1000))
     if (key) toast.success(`${api.name}: Connected!`)
     else toast.error(`${api.name}: No API key set`)
@@ -46,7 +46,7 @@ export default function ScoutSettingsPage() {
             <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2"><Key size={16} /> API Configuration</h2>
             <div className="grid grid-cols-2 gap-4">
               {APIS.map(api => {
-                const hasKey = !!import.meta.env[api.env]
+                const hasKey = !!process.env[api.env]
                 return (
                   <div key={api.key} className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                     <div className="flex items-start gap-3 mb-3">

@@ -10,7 +10,7 @@ const keys = {
 }
 
 // Log on load in dev
-if (import.meta.env.DEV) {
+if (process.env.NODE_ENV === 'development') {
   console.log('[DevApiDebug] API Key Status:')
   Object.entries(keys).forEach(([name, key]) => {
     console.log(`  ${name}: ${key ? 'SET (' + key.slice(0, 8) + '...)' : 'MISSING'}`)
@@ -22,7 +22,7 @@ export default function DevApiDebug() {
   const [tests, setTests] = useState({})
   const [testing, setTesting] = useState({})
 
-  if (!import.meta.env.DEV) return null
+  if (!process.env.NODE_ENV === 'development') return null
 
   async function testUnsplash() {
     setTesting(t => ({ ...t, unsplash: true }))
