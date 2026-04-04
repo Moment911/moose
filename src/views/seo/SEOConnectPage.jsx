@@ -70,7 +70,7 @@ export default function SEOConnectPage() {
   function startGoogleOAuth() {
     if (!selectedClient) { toast.error('Select a client first'); return }
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId) { toast.error('VITE_GOOGLE_CLIENT_ID not configured'); return }
+    if (!clientId) { toast.error('NEXT_PUBLIC_GOOGLE_CLIENT_ID not configured'); return }
 
     const redirectUri = window.location.origin + '/seo/connect'
     const state = encodeURIComponent(JSON.stringify({ clientId: selectedClient, ts: Date.now() }))

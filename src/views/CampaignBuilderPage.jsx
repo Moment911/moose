@@ -171,7 +171,7 @@ export default function CampaignBuilderPage() {
       setAiSubjects(lines.length > 0 ? lines : ['Could not generate subject lines'])
     } catch (e) {
       console.error('Subject generation error:', e)
-      setAiSubjects(['Error: ' + (e.message.includes('API key') ? 'Set VITE_ANTHROPIC_API_KEY in .env' : e.message)])
+      setAiSubjects(['Error: ' + (e.message.includes('API key') ? 'Set NEXT_PUBLIC_ANTHROPIC_API_KEY in .env' : e.message)])
       toast.error('AI subject generation failed')
     }
     setGeneratingSubjects(false)

@@ -4,7 +4,7 @@ const API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY
 export async function callChatGPT(prompt, options = {}) {
   if (!API_KEY) {
     // No OpenAI key - return null so callers can fall back to Claude
-    console.warn('VITE_OPENAI_API_KEY not set - GPT analysis skipped')
+    console.warn('NEXT_PUBLIC_OPENAI_API_KEY not set - GPT analysis skipped')
     return null
   }
   try {

@@ -118,7 +118,7 @@ export default function DevApiDebug() {
             ))}
           </div>
           <div className="px-3 py-2 bg-white/5 text-[9px] text-gray-500">
-            Add keys to .env: VITE_ANTHROPIC_API_KEY, VITE_UNSPLASH_ACCESS_KEY, etc.
+            Add keys to .env: NEXT_PUBLIC_ANTHROPIC_API_KEY, NEXT_PUBLIC_UNSPLASH_ACCESS_KEY, etc.
           </div>
         </div>
       )}

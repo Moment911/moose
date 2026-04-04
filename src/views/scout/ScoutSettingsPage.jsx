@@ -5,12 +5,12 @@ import ScoutLayout from './ScoutLayout'
 import toast from 'react-hot-toast'
 
 const APIS = [
-  { key: 'google_places', name: 'Google Places', env: 'VITE_GOOGLE_PLACES_KEY', desc: 'Business search, reviews, contact info', free: 'Free tier: $200/mo credit', logo: '🗺️' },
-  { key: 'hunter', name: 'Hunter.io', env: 'VITE_HUNTER_API_KEY', desc: 'Email finder and verification', free: 'Free: 25 searches/mo', logo: '📧' },
-  { key: 'clearbit', name: 'Clearbit', env: 'VITE_CLEARBIT_API_KEY', desc: 'Company enrichment and firmographics', free: 'Free tier available', logo: '🏢' },
-  { key: 'apollo', name: 'Apollo.io', env: 'VITE_APOLLO_API_KEY', desc: 'Executive contacts and org charts', free: 'Free: 50 credits/mo', logo: '👤' },
-  { key: 'yelp', name: 'Yelp Fusion', env: 'VITE_YELP_API_KEY', desc: 'Business details, reviews, photos', free: 'Free: 5,000 calls/day', logo: '⭐' },
-  { key: 'builtwith', name: 'BuiltWith', env: 'VITE_BUILTWITH_API_KEY', desc: 'Deep technology stack analysis', free: 'Free tier: limited', logo: '🔧' },
+  { key: 'google_places', name: 'Google Places', env: 'NEXT_PUBLIC_GOOGLE_PLACES_KEY', desc: 'Business search, reviews, contact info', free: 'Free tier: $200/mo credit', logo: '🗺️' },
+  { key: 'hunter', name: 'Hunter.io', env: 'NEXT_PUBLIC_HUNTER_API_KEY', desc: 'Email finder and verification', free: 'Free: 25 searches/mo', logo: '📧' },
+  { key: 'clearbit', name: 'Clearbit', env: 'NEXT_PUBLIC_CLEARBIT_API_KEY', desc: 'Company enrichment and firmographics', free: 'Free tier available', logo: '🏢' },
+  { key: 'apollo', name: 'Apollo.io', env: 'NEXT_PUBLIC_APOLLO_API_KEY', desc: 'Executive contacts and org charts', free: 'Free: 50 credits/mo', logo: '👤' },
+  { key: 'yelp', name: 'Yelp Fusion', env: 'NEXT_PUBLIC_YELP_API_KEY', desc: 'Business details, reviews, photos', free: 'Free: 5,000 calls/day', logo: '⭐' },
+  { key: 'builtwith', name: 'BuiltWith', env: 'NEXT_PUBLIC_BUILTWITH_API_KEY', desc: 'Deep technology stack analysis', free: 'Free tier: limited', logo: '🔧' },
 ]
 
 const SCORE_DEFAULTS = { social: 25, website: 30, gmb: 20, reviews: 15, ads: 10 }

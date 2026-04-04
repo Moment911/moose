@@ -48,7 +48,7 @@ Be concise, actionable, and professional. Format responses with markdown headers
         const result = await callClaude(systemPrompt, msg)
         setMessages(prev => [...prev.slice(0, -1), { role: 'assistant', content: result }])
       } catch (e2) {
-        setMessages(prev => [...prev.slice(0, -1), { role: 'assistant', content: `Error: ${e2.message}. Make sure VITE_ANTHROPIC_API_KEY is set in your environment.` }])
+        setMessages(prev => [...prev.slice(0, -1), { role: 'assistant', content: `Error: ${e2.message}. Make sure NEXT_PUBLIC_ANTHROPIC_API_KEY is set in your environment.` }])
       }
     }
     setLoading(false)

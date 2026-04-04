@@ -44,7 +44,7 @@ ${context}`
       const text = await callClaude('You are a senior project manager at a design agency. Analyze client feedback and create actionable summaries. Use markdown formatting with headers, bold text, and bullet points.', prompt, 3000)
       setResult(text); setLoaded(true)
     } catch (e) {
-      setResult(`Error: ${e.message}. Make sure VITE_ANTHROPIC_API_KEY is set.`)
+      setResult(`Error: ${e.message}. Make sure NEXT_PUBLIC_ANTHROPIC_API_KEY is set.`)
       setLoaded(true)
     }
     setLoading(false)

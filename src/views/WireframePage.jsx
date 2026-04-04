@@ -220,7 +220,7 @@ export default function WireframePage() {
       const result = await callClaude(`You are a copywriter for ${project?.name || 'a design project'}. Project type: ${project?.project_type || 'website'}. Write concise, compelling copy.`, `Write ${prompt}. Return ONLY the copy text, nothing else. Keep it short and punchy.`, 200)
       updateComp(selectedId, { text: (result || '').trim() }); pushHistory()
       toast.success('Copy generated!')
-    } catch (e) { toast.error('AI unavailable — set VITE_ANTHROPIC_API_KEY') }
+    } catch (e) { toast.error('AI unavailable — set NEXT_PUBLIC_ANTHROPIC_API_KEY') }
     setAiCopyLoading(false)
   }
 

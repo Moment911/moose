@@ -160,7 +160,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
             <p className="text-xs text-gray-500 mt-0.5">
               {availableApis.length > 0
                 ? `Search ${availableApis.join(', ')}`
-                : 'No image API keys configured. Add VITE_UNSPLASH_ACCESS_KEY, VITE_PEXELS_API_KEY, or VITE_PIXABAY_API_KEY to .env'}
+                : 'No image API keys configured. Add NEXT_PUBLIC_UNSPLASH_ACCESS_KEY, NEXT_PUBLIC_PEXELS_API_KEY, or NEXT_PUBLIC_PIXABAY_API_KEY to .env'}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>

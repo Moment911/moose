@@ -58,7 +58,7 @@ export default function EmployeePage() {
 
       const result = await callClaude('You are a professional project manager writing work summaries for a design agency called Moose.', `${prompt}\n\nContext:\n${context}`, 1500)
       setAiSummary(result)
-    } catch { setAiSummary('AI summary unavailable. Set VITE_ANTHROPIC_API_KEY in Vercel environment variables.') }
+    } catch { setAiSummary('AI summary unavailable. Set NEXT_PUBLIC_ANTHROPIC_API_KEY in Vercel environment variables.') }
     setAiLoading(false)
   }
 

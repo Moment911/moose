@@ -43,7 +43,7 @@ async function apiCall(body) {
 }
 
 export async function callClaude(systemPrompt, userMessage, maxTokens = 2000) {
-  if (!API_KEY) throw new Error('VITE_ANTHROPIC_API_KEY not set')
+  if (!API_KEY) throw new Error('NEXT_PUBLIC_ANTHROPIC_API_KEY not set')
   return apiCall({
     max_tokens: maxTokens,
     system: systemPrompt,
@@ -52,7 +52,7 @@ export async function callClaude(systemPrompt, userMessage, maxTokens = 2000) {
 }
 
 export async function streamClaude(systemPrompt, messages, maxTokens = 2000, onChunk) {
-  if (!API_KEY) throw new Error('VITE_ANTHROPIC_API_KEY not set')
+  if (!API_KEY) throw new Error('NEXT_PUBLIC_ANTHROPIC_API_KEY not set')
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: HEADERS,
     body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, stream: true, system: systemPrompt, messages }),

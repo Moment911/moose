@@ -91,7 +91,7 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
       console.error('AI generation error:', e)
       const msg = e.message || 'Unknown error'
       if (msg.includes('API key') || msg.includes('401') || msg.includes('not set')) {
-        setError('Anthropic API key is missing or invalid. Add VITE_ANTHROPIC_API_KEY to your .env.local file.')
+        setError('Anthropic API key is missing or invalid. Add NEXT_PUBLIC_ANTHROPIC_API_KEY to your .env.local file.')
       } else if (msg.includes('JSON') || msg.includes('Unexpected token')) {
         setError('AI returned invalid format. Please try again.')
       } else {
