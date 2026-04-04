@@ -16,6 +16,7 @@ import { callClaude } from '../../lib/ai'
 import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
 import { scoutWithPlaces, placeToLead, hasGoogleKey } from '../../lib/googlePlaces'
 import toast from 'react-hot-toast'
+import AIThinkingBox from '../../components/AIThinkingBox'
 
 const ACCENT = '#ea2729'
 const TEAL = '#5bc6d0'

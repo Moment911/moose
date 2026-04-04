@@ -124,6 +124,7 @@ Return ONLY valid JSON with these keys:
             {generating?<Loader2 size={13} style={{ animation:'spin 1s linear infinite' }}/>:<Sparkles size={13}/>}
             {generating?'Building your persona…':persona?'Regenerate AI Persona':'Generate AI Persona'}
           </button>
+          {generating && <div style={{margin:'16px 0'}}><AIThinkingBox active={generating} task='onboarding' label='Building your AI customer persona'/></div>}
         </div>
 
         <div style={{ maxWidth:1060, margin:'0 auto', padding:'24px 24px' }}>
