@@ -296,6 +296,7 @@ export default function ProjectPage() {
               <button onClick={() => setShowAccess(true)} className="btn-secondary text-xs"><Settings size={13} /> Access</button>
               <button onClick={() => navigate(`/project/${projectId}/email`)} className="btn-secondary text-xs" style={{ borderColor: '#ea2729', color: '#ea2729' }}><Mail size={13} /> New Email</button>
               <button onClick={() => navigate(`/project/${projectId}/canvas`)} className="btn-secondary text-xs" style={{ borderColor: '#ea2729', color: '#ea2729' }}><PenLine size={13} /> New Canvas</button>
+              <button onClick={() => navigate(`/esign/${projectId}`)} className="btn-secondary text-xs" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={13} /> Proposal / Sign</button>
               <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-xs"><Plus size={13} /> Upload File</button>
             </div>
           </div>

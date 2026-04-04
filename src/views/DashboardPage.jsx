@@ -7,7 +7,7 @@ import {
   CheckCircle, Clock, AlertCircle, Mail, Phone,
   Globe, ExternalLink, ArrowRight, Loader2,
   FileText, MoreHorizontal, Pencil, Trash2,
-  Building, MapPin, TrendingUp, MessageSquare
+  Building, MapPin, TrendingUp, MessageSquare, FileSignature
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase, getProjects, createProject, deleteProject, updateProject } from '../lib/supabase'
@@ -92,12 +92,22 @@ function ProjectRow({ project, onDelete, onRename, navigate }) {
         </div>
       </div>
       <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+        <button onClick={e => { e.stopPropagation(); navigate(`/esign/${project.id}`) }}
+          style={{ padding: '5px 10px', borderRadius: 7, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: '#7c3aed', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, marginRight: 4 }}>
+          <FileSignature size={12} /> Sign
+        </button>
+      </div>
+      <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
         <button onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
           style={{ padding: 6, borderRadius: 7, border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af' }}>
           <MoreHorizontal size={15} />
         </button>
         {menuOpen && (
           <div style={{ position: 'absolute', right: 0, top: '100%', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,.1)', zIndex: 50, minWidth: 140 }}>
+            <button onClick={() => { navigate(`/esign/${project.id}`); setMenuOpen(false) }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: '#7c3aed' }}>
+              <FileSignature size={13} /> Proposal / Sign
+            </button>
             <button onClick={() => { setRenaming(true); setMenuOpen(false) }}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: '#374151' }}>
               <Pencil size={13} /> Rename
