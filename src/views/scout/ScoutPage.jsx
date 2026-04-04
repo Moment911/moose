@@ -230,7 +230,7 @@ function ProvenancePanel({ lead }) {
 }
 
 // ── Lead card ─────────────────────────────────────────────────────────────────
-function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
+function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
   const [expanded, setExpanded] = useState(false)
   const temp  = tempLabel(lead.score||50)
   const score = lead.score||50
@@ -337,6 +337,10 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
             </button>
           )}
           {isCompetitor && <button onClick={()=>onAddClient({...lead, status:'competitor'})} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:'#8b5cf6', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}><BarChart size={13}/> Save Competitor</button>}
+          <button onClick={()=>onReport&&onReport(lead)}
+            style={{ display:'flex', alignItems:'center', gap:4, padding:'7px 10px', borderRadius:8, border:`1px solid ${ACCENT}`, background:`${ACCENT}12`, color:ACCENT, fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+            <Sparkles size={11}/> Report
+          </button>
         </div>
       </div>
     </div>
@@ -869,7 +873,7 @@ export default function ScoutPage() {
                   <LeadCard key={lead.id} lead={lead} mode={mode} view={view}
                     saved={saved.has(lead.id)}
                     onSave={toggleSaved}
-                    onAddClient={addAsClient}/>
+                    onAddClient={addAsClient} onReport={(lead)=>navigate('/scout/report', {state:{lead, allLeads:results, query}})}/>
                 ))}
               </div>
               {displayed.length===0 && (

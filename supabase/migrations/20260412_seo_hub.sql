@@ -104,3 +104,8 @@ CREATE POLICY "allow_all_seo_plugin_data"    ON seo_plugin_data     FOR ALL USIN
 
 -- Add metadata column to agencies for storing template content
 ALTER TABLE agencies ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}';
+
+-- Add phone/contact fields to agencies for report branding
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS phone text;
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS contact_name text;
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS tagline text;
