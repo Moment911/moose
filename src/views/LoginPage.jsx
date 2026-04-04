@@ -81,7 +81,7 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-        <p className="text-center text-gray-500 text-xs mt-6">
+        <p className="text-center text-gray-500 text-sm mt-6">
           Moose AI &middot; <a href="/privacy" target="_blank" style={{ color: '#9ca3af', textDecoration: 'underline' }}>Privacy Policy</a>
         </p>
       </div>

@@ -32,7 +32,7 @@ export default function ScoutReportsPage() {
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
         <Target size={18} className="text-orange-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
-        <span className="text-xs text-slate-400 ml-1">Reports</span>
+        <span className="text-sm text-slate-400 ml-1">Reports</span>
       </div>
       <div className="flex-1 overflow-auto p-6">
         {/* Stats */}
@@ -46,7 +46,7 @@ export default function ScoutReportsPage() {
             <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <I size={18} className="mb-2" style={{ color: s.color }} strokeWidth={1.5} />
               <p className="text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+              <p className="text-sm text-slate-500 mt-0.5">{s.label}</p>
             </div>
           )})}
         </div>
@@ -66,8 +66,8 @@ export default function ScoutReportsPage() {
               <div key={s.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-100">
                 <Target size={14} className="text-orange-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0"><p className="text-sm text-slate-700 truncate">{s.name}</p></div>
-                <span className="text-xs text-slate-500">{s.result_count || 0} results</span>
-                {s.hot_count > 0 && <span className="text-xs text-red-500">{s.hot_count} 🔥</span>}
+                <span className="text-sm text-slate-500">{s.result_count || 0} results</span>
+                {s.hot_count > 0 && <span className="text-sm text-red-500">{s.hot_count} 🔥</span>}
               </div>
             ))}
           </div>
@@ -86,17 +86,17 @@ function ROICalc({ hotLeads, warmLeads }) {
   return (
     <div className="grid grid-cols-3 gap-4">
       <div>
-        <label className="text-xs text-slate-500 block mb-1">Avg Deal Value</label>
+        <label className="text-sm text-slate-500 block mb-1">Avg Deal Value</label>
         <input type="number" className="input text-sm" value={dealValue} onChange={e => setDealValue(+e.target.value)} />
       </div>
       <div>
-        <label className="text-xs text-slate-500 block mb-1">Win Rate %</label>
+        <label className="text-sm text-slate-500 block mb-1">Win Rate %</label>
         <input type="number" className="input text-sm" min={1} max={100} value={winRate} onChange={e => setWinRate(+e.target.value)} />
       </div>
       <div className="flex flex-col justify-center">
-        <p className="text-xs text-slate-400">Potential Revenue</p>
+        <p className="text-sm text-slate-400">Potential Revenue</p>
         <p className="text-2xl font-bold text-green-600">${total.toLocaleString()}</p>
-        <p className="text-[10px] text-slate-400">{hotLeads} hot leads at {winRate * 2}% &middot; {warmLeads} warm at {winRate}%</p>
+        <p className="text-[13px] text-slate-400">{hotLeads} hot leads at {winRate * 2}% &middot; {warmLeads} warm at {winRate}%</p>
       </div>
     </div>
   )

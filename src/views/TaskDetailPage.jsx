@@ -178,11 +178,11 @@ export default function TaskDetailPage() {
             {/* Fields grid */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Due Date</label>
+                <label className="text-sm text-gray-500 mb-1 block">Due Date</label>
                 <input className="input text-sm" type="date" value={task.due_date || ''} onChange={e => update({ due_date: e.target.value || null })} />
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Project</label>
+                <label className="text-sm text-gray-500 mb-1 block">Project</label>
                 <div className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 flex items-center gap-2">
                   {project?.name || 'Unassigned'}
                   {project?.id && <button onClick={() => navigate(`/project/${project.id}`)} className="text-brand-500 hover:text-brand-700 ml-auto"><ArrowUpRight size={13} /></button>}
@@ -192,7 +192,7 @@ export default function TaskDetailPage() {
 
             {/* Description */}
             <div className="mb-6">
-              <label className="text-xs text-gray-500 mb-1 block">Description</label>
+              <label className="text-sm text-gray-500 mb-1 block">Description</label>
               <textarea className="input text-sm resize-none w-full" rows={5} placeholder="Add a detailed description..."
                 value={task.description || ''} onChange={e => setTask(prev => ({ ...prev, description: e.target.value }))}
                 onBlur={() => update({ description: task.description })} />
@@ -200,11 +200,11 @@ export default function TaskDetailPage() {
 
             {/* Assignees */}
             <div className="mb-6">
-              <label className="text-xs text-gray-500 mb-2 block">Assignees</label>
+              <label className="text-sm text-gray-500 mb-2 block">Assignees</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {(task.assignees || []).map((a, i) => (
                   <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-full pl-1 pr-2.5 py-1">
-                    <div className="w-6 h-6 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center">{(a.name || a.email || '?')[0].toUpperCase()}</div>
+                    <div className="w-6 h-6 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center">{(a.name || a.email || '?')[0].toUpperCase()}</div>
                     <span className="text-sm text-gray-700">{a.name || a.email}</span>
                     <button onClick={() => removeAssignee(a.email)} className="text-gray-400 hover:text-brand-500"><X size={12} /></button>
                   </div>
@@ -224,16 +224,16 @@ export default function TaskDetailPage() {
 
             {/* Attachments */}
             <div className="mb-6">
-              <label className="text-xs text-gray-500 mb-2 block flex items-center gap-1"><Paperclip size={11} /> Attachments ({attachments.length})</label>
+              <label className="text-sm text-gray-500 mb-2 block flex items-center gap-1"><Paperclip size={11} /> Attachments ({attachments.length})</label>
               <div className="space-y-2 mb-2">
                 {attachments.map(a => (
                   <div key={a.id} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
                     {a.type?.startsWith('image/') ? <img src={a.url} alt="" className="w-10 h-10 rounded object-cover" /> : <Paperclip size={16} className="text-gray-400" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-700 truncate">{a.name}</p>
-                      <p className="text-[10px] text-gray-400">{a.size ? `${(a.size / 1024).toFixed(0)} KB` : ''} {a.uploaded_at && format(new Date(a.uploaded_at), 'MMM d')}</p>
+                      <p className="text-[13px] text-gray-400">{a.size ? `${(a.size / 1024).toFixed(0)} KB` : ''} {a.uploaded_at && format(new Date(a.uploaded_at), 'MMM d')}</p>
                     </div>
-                    <a href={a.url} target="_blank" rel="noreferrer" className="text-brand-500 hover:text-brand-700 text-xs">Open</a>
+                    <a href={a.url} target="_blank" rel="noreferrer" className="text-brand-500 hover:text-brand-700 text-sm">Open</a>
                   </div>
                 ))}
               </div>
@@ -244,7 +244,7 @@ export default function TaskDetailPage() {
             </div>
 
             {/* Meta */}
-            <div className="border-t border-gray-100 pt-4 text-xs text-gray-400 space-y-1">
+            <div className="border-t border-gray-100 pt-4 text-sm text-gray-400 space-y-1">
               <p className="flex items-center gap-1"><Clock size={11} /> Created {task.created_at && formatDistanceToNow(new Date(task.created_at), { addSuffix: true })} by {task.created_by || 'Unknown'}</p>
               {task.completed_at && <p className="flex items-center gap-1"><Check size={11} /> Completed {format(new Date(task.completed_at), 'MMM d yyyy h:mm a')}</p>}
             </div>
@@ -260,9 +260,9 @@ export default function TaskDetailPage() {
               {comments.map(c => (
                 <div key={c.id} className="bg-white rounded-xl p-3 border border-gray-100">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold flex items-center justify-center">{(c.author_name || '?')[0].toUpperCase()}</div>
+                    <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-[13px] font-bold flex items-center justify-center">{(c.author_name || '?')[0].toUpperCase()}</div>
                     <span className="text-sm font-medium text-gray-800">{c.author_name}</span>
-                    <span className="text-[10px] text-gray-400 ml-auto">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                    <span className="text-[13px] text-gray-400 ml-auto">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: renderMentions(c.text) }} />
                 </div>
@@ -274,12 +274,12 @@ export default function TaskDetailPage() {
                 <div className="absolute bottom-full left-5 right-5 bg-white rounded-xl border border-gray-200 shadow-lg mb-1 max-h-32 overflow-y-auto z-10">
                   {staffMembers.filter(s => !mentionQuery || (s.name || s.email).toLowerCase().includes(mentionQuery)).slice(0, 5).map(s => (
                     <button key={s.id} onClick={() => insertMention(s)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left">
-                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[8px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
+                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
                       <span className="text-gray-800">{s.name || s.email}</span>
-                      <span className="text-xs text-gray-400 ml-auto">{s.role}</span>
+                      <span className="text-sm text-gray-400 ml-auto">{s.role}</span>
                     </button>
                   ))}
-                  {staffMembers.filter(s => !mentionQuery || (s.name || s.email).toLowerCase().includes(mentionQuery)).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                  {staffMembers.filter(s => !mentionQuery || (s.name || s.email).toLowerCase().includes(mentionQuery)).length === 0 && <p className="px-3 py-2 text-sm text-gray-400">No matches</p>}
                 </div>
               )}
               <div className="flex gap-2">

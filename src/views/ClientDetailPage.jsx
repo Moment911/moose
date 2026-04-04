@@ -48,10 +48,10 @@ const INDUSTRIES = [
 // ── Masked password field ─────────────────────────────────────────────────────
 function MaskedPw({ value }) {
   const [show, setShow] = useState(false)
-  if (!value) return <span style={{ color: '#9ca3af', fontSize: 13 }}>—</span>
+  if (!value) return <span style={{ color: '#9ca3af', fontSize: 15 }}>—</span>
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ fontFamily: show ? 'inherit' : 'monospace', fontSize: 13, color: '#111', letterSpacing: show ? 'normal' : '0.15em' }}>
+      <span style={{ fontFamily: show ? 'inherit' : 'monospace', fontSize: 15, color: '#111', letterSpacing: show ? 'normal' : '0.15em' }}>
         {show ? value : '••••••••••••'}
       </span>
       <button onClick={() => setShow(s => !s)}
@@ -71,15 +71,15 @@ function DataRow({ label, value, masked, link, mono }) {
   const displayVal = Array.isArray(value) ? value.join(', ') : String(value)
   return (
     <div style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
-      <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 5 }}>{label}</div>
       <div>
         {masked ? <MaskedPw value={displayVal} /> : link && value ? (
           <a href={value.startsWith('http') ? value : 'https://' + value} target="_blank" rel="noreferrer"
-            style={{ fontSize: 15, color: '#E8551A', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 600, wordBreak: 'break-all' }}>
+            style={{ fontSize: 15, color: '#E8551A', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 700, wordBreak: 'break-all' }}>
             {displayVal.length > 60 ? displayVal.slice(0, 60) + '…' : displayVal} <ExternalLink size={13} />
           </a>
         ) : (
-          <div style={{ fontSize: 15, color: '#111', fontFamily: mono ? 'monospace' : 'inherit', lineHeight: 1.65, fontWeight: 500, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
+          <div style={{ fontSize: 15, color: '#111', fontFamily: mono ? 'monospace' : 'inherit', lineHeight: 1.65, fontWeight: 600, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
             {displayVal}
           </div>
         )}
@@ -93,10 +93,10 @@ function DataPills({ label, value, color = '#E8551A' }) {
   if (!arr.length) return null
   return (
     <div style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
-      <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 8 }}>{label}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
         {arr.map((item, i) => (
-          <span key={i} style={{ fontSize: 13, fontWeight: 600, padding: '4px 12px', borderRadius: 20, background: color + '15', color, border: `1px solid ${color}30` }}>{item}</span>
+          <span key={i} style={{ fontSize: 15, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: color + '15', color, border: `1px solid ${color}30` }}>{item}</span>
         ))}
       </div>
     </div>
@@ -206,7 +206,7 @@ export default function ClientDetailPage() {
     if (options) {
       return (
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
           <select
             className="input w-full"
             value={val}
@@ -222,7 +222,7 @@ export default function ClientDetailPage() {
     if (type === 'textarea') {
       return (
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
           <textarea
             className="input w-full min-h-[80px] resize-y"
             value={val}
@@ -237,7 +237,7 @@ export default function ClientDetailPage() {
 
     return (
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+        <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
         <div className="relative">
           {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />}
           <input
@@ -304,7 +304,7 @@ export default function ClientDetailPage() {
                 <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => navigate(`/project/${p.id}`)}>
                   <div>
                     <p className="font-medium text-gray-900">{p.name}</p>
-                    <p className="text-xs text-gray-500">Created {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
+                    <p className="text-sm text-gray-500">Created {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</p>
                   </div>
                   <ExternalLink className="w-4 h-4 text-gray-400" />
                 </div>
@@ -522,19 +522,19 @@ export default function ClientDetailPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-gray-900">{c.name}</span>
-                  {c.role && <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{c.role}</span>}
+                  {c.role && <span className="text-sm text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{c.role}</span>}
                   {c.is_primary && (
-                    <button onClick={() => toggleBadge(idx, 'is_primary')} className="inline-flex items-center gap-1 text-xs bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">
+                    <button onClick={() => toggleBadge(idx, 'is_primary')} className="inline-flex items-center gap-1 text-sm bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">
                       <Crown className="w-3 h-3" /> Primary
                     </button>
                   )}
                   {c.is_billing && (
-                    <button onClick={() => toggleBadge(idx, 'is_billing')} className="inline-flex items-center gap-1 text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full">
+                    <button onClick={() => toggleBadge(idx, 'is_billing')} className="inline-flex items-center gap-1 text-sm bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full">
                       <CreditCard className="w-3 h-3" /> Billing
                     </button>
                   )}
                   {c.is_decision_maker && (
-                    <button onClick={() => toggleBadge(idx, 'is_decision_maker')} className="inline-flex items-center gap-1 text-xs bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded-full">
+                    <button onClick={() => toggleBadge(idx, 'is_decision_maker')} className="inline-flex items-center gap-1 text-sm bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded-full">
                       <Shield className="w-3 h-3" /> Decision Maker
                     </button>
                   )}
@@ -624,14 +624,14 @@ export default function ClientDetailPage() {
             <div key={t.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${t.used_at ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  <span className={`inline-flex items-center text-sm font-medium px-2 py-0.5 rounded-full ${t.used_at ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                     {t.used_at ? 'Completed' : 'Pending'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-sm text-gray-500">
                     Created {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 font-mono truncate">{window.location.origin}/onboarding/{t.token}</p>
+                <p className="text-sm text-gray-400 font-mono truncate">{window.location.origin}/onboarding/{t.token}</p>
               </div>
               <button onClick={() => copyLink(t.token)} className="btn-secondary text-sm inline-flex items-center gap-1.5 ml-3 shrink-0">
                 {copiedToken === t.token ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy Link</>}
@@ -692,10 +692,10 @@ export default function ClientDetailPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <div>
               <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: 0 }}>Client Intelligence Profile</h2>
-              <p style={{ fontSize: 13, color: '#9ca3af', margin: '4px 0 0' }}>All data submitted via client onboarding form</p>
+              <p style={{ fontSize: 15, color: '#9ca3af', margin: '4px 0 0' }}>All data submitted via client onboarding form</p>
             </div>
             <button onClick={() => window.location.reload()}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151', fontWeight: 500 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: 'pointer', color: '#374151', fontWeight: 600 }}>
               ↻ Refresh
             </button>
           </div>
@@ -703,7 +703,7 @@ export default function ClientDetailPage() {
             <div style={{ background: '#fff7f5', borderRadius: 14, border: `1.5px dashed #E8551A40`, padding: 40, textAlign: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
-              <div style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, color: '#9ca3af', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
                 Go to the <strong>Onboarding</strong> tab to generate a link, then send it to your client to fill out. All their data will appear here automatically once submitted.
               </div>
             </div>
@@ -757,9 +757,9 @@ export default function ClientDetailPage() {
             <DataRow label="Unique Value Prop" value={competitors.uvp} />
             {(competitors.list || []).filter(c => c.name).map((comp, i) => (
               <div key={i} style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 6 }}>#{i+1} {comp.name} {comp.url && <a href={comp.url.startsWith('http') ? comp.url : 'https://' + comp.url} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', fontSize: 12, marginLeft: 8 }}>↗</a>}</div>
-                {comp.strengths && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}><strong style={{ color: '#dc2626' }}>Strengths:</strong> {comp.strengths}</div>}
-                {comp.weaknesses && <div style={{ fontSize: 12, color: '#374151' }}><strong style={{ color: '#16a34a' }}>Weaknesses:</strong> {comp.weaknesses}</div>}
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>#{i+1} {comp.name} {comp.url && <a href={comp.url.startsWith('http') ? comp.url : 'https://' + comp.url} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', fontSize: 14, marginLeft: 8 }}>↗</a>}</div>
+                {comp.strengths && <div style={{ fontSize: 14, color: '#374151', marginBottom: 4 }}><strong style={{ color: '#dc2626' }}>Strengths:</strong> {comp.strengths}</div>}
+                {comp.weaknesses && <div style={{ fontSize: 14, color: '#374151' }}><strong style={{ color: '#16a34a' }}>Weaknesses:</strong> {comp.weaknesses}</div>}
               </div>
             ))}
           </DataSection>
@@ -801,7 +801,7 @@ export default function ClientDetailPage() {
           <DataSection title="Website & Hosting" icon={Server} color="#6b7280">
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: '8px 12px', display: 'flex', gap: 7, marginBottom: 12, alignItems: 'center' }}>
               <Lock size={12} color="#dc2626" />
-              <span style={{ fontSize: 12, color: '#991b1b', fontWeight: 600 }}>Credentials are encrypted — click 👁 to reveal and 📋 to copy</span>
+              <span style={{ fontSize: 14, color: '#991b1b', fontWeight: 700 }}>Credentials are encrypted — click 👁 to reveal and 📋 to copy</span>
             </div>
             <DataRow label="Hosting Provider" value={hosting.provider} />
             <DataRow label="Hosting URL" value={hosting.url} link />
@@ -862,19 +862,19 @@ export default function ClientDetailPage() {
     persona: (
       <Section title="AI Marketing Persona" description="AI-generated ideal customer profile, ad targeting, messaging playbook, and channel recommendations.">
         <a href={`/clients/${clientId}/persona`}
-          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#8b5cf6', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
+          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#8b5cf6', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:15, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
           ✨ Open AI Persona Builder
         </a>
-        <p style={{ fontSize:12, color:'#9ca3af', marginTop:10 }}>Generates: ideal customer profile, demographics, psychographics, Google/Facebook targeting, headline angles, channel recommendations, 30-day quick wins, LTV analysis.</p>
+        <p style={{ fontSize:14, color:'#9ca3af', marginTop:10 }}>Generates: ideal customer profile, demographics, psychographics, Google/Facebook targeting, headline angles, channel recommendations, 30-day quick wins, LTV analysis.</p>
       </Section>
     ),
     access: (
       <Section title="Account Access Checklist" description="Track all platform logins, invites, and credentials needed for this client's campaigns.">
         <a href={`/clients/${clientId}/access`}
-          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#E8551A', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
+          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#E8551A', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:15, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
           🔑 Open Access Checklist
         </a>
-        <p style={{ fontSize:12, color:'#9ca3af', marginTop:10, marginBottom:0 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
+        <p style={{ fontSize:14, color:'#9ca3af', marginTop:10, marginBottom:0 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
       </Section>
     ),
   }
@@ -894,9 +894,9 @@ export default function ClientDetailPage() {
               <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
               <div className="flex items-center gap-3 mt-1">
                 {client.email && <span className="text-sm text-gray-500 flex items-center gap-1"><Mail className="w-3 h-3" /> {client.email}</span>}
-                {profile.industry && <span className="text-xs bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">{profile.industry}</span>}
+                {profile.industry && <span className="text-sm bg-brand-500/10 text-brand-500 px-2 py-0.5 rounded-full">{profile.industry}</span>}
                 {profile.website && (
-                  <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-500 hover:underline flex items-center gap-1">
+                  <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-500 hover:underline flex items-center gap-1">
                     <Globe className="w-3 h-3" /> Website
                   </a>
                 )}

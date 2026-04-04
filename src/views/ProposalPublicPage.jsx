@@ -84,38 +84,38 @@ export default function ProposalPublicPage() {
       {/* Header */}
       <div style={{ background:'#18181b', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ fontSize:15, fontWeight:800, color:'#fff' }}>Moose AI</div>
-        <div style={{ fontSize:12, color:'rgba(255,255,255,.4)' }}>Secure proposal · Powered by Moose AI</div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,.4)' }}>Secure proposal · Powered by Moose AI</div>
       </div>
 
       <div style={{ maxWidth:780, margin:'0 auto', padding:'32px 20px 80px' }}>
         {/* Proposal header */}
         <div style={{ background:'#18181b', borderRadius:16, padding:'36px 40px', marginBottom:20 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,.35)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,.35)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
             {proposal.type==='agreement'?'Service Agreement':proposal.type==='sow'?'Statement of Work':'Proposal'}
           </div>
           <h1 style={{ fontSize:26, fontWeight:900, color:'#fff', marginBottom:8 }}>{proposal.title}</h1>
-          {proposal.clients?.name && <div style={{ fontSize:14, color:'rgba(255,255,255,.45)' }}>Prepared for {proposal.clients.name}</div>}
-          {proposal.valid_until && <div style={{ fontSize:13, color:'rgba(255,255,255,.3)', marginTop:4 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
+          {proposal.clients?.name && <div style={{ fontSize:15, color:'rgba(255,255,255,.45)' }}>Prepared for {proposal.clients.name}</div>}
+          {proposal.valid_until && <div style={{ fontSize:15, color:'rgba(255,255,255,.3)', marginTop:4 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
         </div>
 
         {/* Body */}
         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'36px 40px', marginBottom:20 }}>
           {proposal.intro && (
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
-              <div style={{ fontSize:14, color:'#374151', lineHeight:1.85, whiteSpace:'pre-wrap' }}>{proposal.intro}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
+              <div style={{ fontSize:15, color:'#374151', lineHeight:1.85, whiteSpace:'pre-wrap' }}>{proposal.intro}</div>
             </div>
           )}
           {proposal.executive_summary && (
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Overview</div>
-              <div style={{ fontSize:14, color:'#374151', lineHeight:1.85, whiteSpace:'pre-wrap' }}>{proposal.executive_summary}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Overview</div>
+              <div style={{ fontSize:15, color:'#374151', lineHeight:1.85, whiteSpace:'pre-wrap' }}>{proposal.executive_summary}</div>
             </div>
           )}
 
           {sections.length > 0 && (
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services Included</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services Included</div>
               {sections.map((sec, i) => {
                 const delivs = typeof sec.deliverables==='string' ? JSON.parse(sec.deliverables||'[]') : (sec.deliverables||[])
                 return (
@@ -124,16 +124,16 @@ export default function ProposalPublicPage() {
                       <h3 style={{ fontSize:16, fontWeight:800, color:'#111' }}>{sec.title}</h3>
                       <div>
                         {sec.price>0&&<span style={{ fontSize:16, fontWeight:800, color:ACCENT }}>${Number(sec.price).toLocaleString()} {PRICE_LABELS[sec.price_type]}</span>}
-                        {sec.is_optional&&<div style={{ fontSize:11, color:'#9ca3af' }}>Optional</div>}
+                        {sec.is_optional&&<div style={{ fontSize:13, color:'#9ca3af' }}>Optional</div>}
                       </div>
                     </div>
-                    {sec.content&&<div style={{ fontSize:13, color:'#6b7280', lineHeight:1.75, marginBottom:10 }}>{sec.content}</div>}
+                    {sec.content&&<div style={{ fontSize:15, color:'#6b7280', lineHeight:1.75, marginBottom:10 }}>{sec.content}</div>}
                     {delivs.filter(d=>d).map((d,j)=>(
-                      <div key={j} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#374151', marginBottom:5 }}>
+                      <div key={j} style={{ display:'flex', alignItems:'center', gap:8, fontSize:15, color:'#374151', marginBottom:5 }}>
                         <Check size={12} color={ACCENT} style={{ flexShrink:0 }}/>{d}
                       </div>
                     ))}
-                    {sec.timeline&&<div style={{ fontSize:12, color:'#9ca3af', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/>{sec.timeline}</div>}
+                    {sec.timeline&&<div style={{ fontSize:14, color:'#9ca3af', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/>{sec.timeline}</div>}
                   </div>
                 )
               })}
@@ -142,7 +142,7 @@ export default function ProposalPublicPage() {
 
           {(totalMonthly>0||totalOneTime>0) && (
             <div style={{ background:'#f9fafb', borderRadius:12, padding:'18px 22px', marginBottom:28 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Your Investment</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Your Investment</div>
               {totalMonthly>0&&<div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#111', marginBottom:6 }}><span>Monthly retainer</span><span style={{ fontWeight:800 }}>${totalMonthly.toLocaleString()}/mo</span></div>}
               {totalOneTime>0&&<div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#111' }}><span>One-time setup</span><span style={{ fontWeight:800 }}>${totalOneTime.toLocaleString()}</span></div>}
             </div>
@@ -150,8 +150,8 @@ export default function ProposalPublicPage() {
 
           {proposal.terms&&(
             <div>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
-              <div style={{ fontSize:12, color:'#9ca3af', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
+              <div style={{ fontSize:14, color:'#9ca3af', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
             </div>
           )}
         </div>
@@ -164,7 +164,7 @@ export default function ProposalPublicPage() {
                 <CheckCircle size={32} color="#16a34a"/>
               </div>
               <h2 style={{ fontSize:22, fontWeight:900, color:'#111', marginBottom:6 }}>Proposal Accepted</h2>
-              <p style={{ fontSize:14, color:'#6b7280' }}>
+              <p style={{ fontSize:15, color:'#6b7280' }}>
                 {existingSig ? `Signed by ${existingSig.signer_name}` : 'Your signature has been saved.'}
                 {existingSig?.signed_at ? ` on ${new Date(existingSig.signed_at).toLocaleDateString()}` : ''}
               </p>
@@ -174,32 +174,32 @@ export default function ProposalPublicPage() {
               <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:4, display:'flex', alignItems:'center', gap:8 }}>
                 <Shield size={16} color={ACCENT}/> Sign & Accept
               </div>
-              <div style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>By signing, you accept this proposal and its terms.</div>
+              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>By signing, you accept this proposal and its terms.</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:14 }}>
                 {[['Full name *', signerName, setSignerName,'Your legal name'],['Title', signerTitle, setSignerTitle,'Your title'],['Email', signerEmail, setSignerEmail,'your@email.com']].slice(0,2).map(([label,val,set,ph])=>(
                   <div key={label}>
-                    <label style={{ fontSize:12, fontWeight:600, color:'#374151', display:'block', marginBottom:4 }}>{label}</label>
+                    <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>{label}</label>
                     <input value={val} onChange={e=>set(e.target.value)} placeholder={ph}
-                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}/>
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                   </div>
                 ))}
               </div>
               <div style={{ marginBottom:14 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'#374151', display:'block', marginBottom:4 }}>Email</label>
+                <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Email</label>
                 <input value={signerEmail} onChange={e=>setSignerEmail(e.target.value)} placeholder="your@email.com"
-                  style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}/>
+                  style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
               </div>
               <div style={{ marginBottom:14 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'#374151', display:'block', marginBottom:6 }}>Signature</label>
+                <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:6 }}>Signature</label>
                 <div style={{ border:'2px dashed #e5e7eb', borderRadius:12, position:'relative', background:'#fafafa' }}>
                   <canvas ref={canvasRef} width={700} height={140} style={{ width:'100%', cursor:'crosshair', display:'block' }}
                     onMouseDown={start} onMouseMove={move} onMouseUp={()=>setDrawing(false)} onMouseLeave={()=>setDrawing(false)}
                     onTouchStart={start} onTouchMove={move} onTouchEnd={()=>setDrawing(false)}/>
-                  <button onClick={clear} style={{ position:'absolute', top:8, right:10, fontSize:11, color:'#9ca3af', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
+                  <button onClick={clear} style={{ position:'absolute', top:8, right:10, fontSize:13, color:'#9ca3af', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
                 </div>
-                <div style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>Draw your signature above</div>
+                <div style={{ fontSize:13, color:'#9ca3af', marginTop:4 }}>Draw your signature above</div>
               </div>
-              <label style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:16, cursor:'pointer', fontSize:13, color:'#374151', lineHeight:1.6 }}>
+              <label style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:16, cursor:'pointer', fontSize:15, color:'#374151', lineHeight:1.6 }}>
                 <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{ marginTop:3, flexShrink:0 }}/>
                 I have reviewed this {proposal.type||'proposal'} and agree to its terms. I understand this constitutes a legally binding electronic signature.
               </label>

@@ -117,7 +117,7 @@ export default function AdminPortalPage() {
         {/* Admin sidebar */}
         <div className="hidden md:flex w-52 bg-gray-50 border-r border-gray-200 flex-col flex-shrink-0">
           <div className="px-4 py-5 border-b border-gray-200">
-            <button onClick={() => navigate('/')} className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1 mb-2"><ChevronLeft size={12} /> Dashboard</button>
+            <button onClick={() => navigate('/')} className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 mb-2"><ChevronLeft size={12} /> Dashboard</button>
             <h2 className="text-base font-bold text-gray-900">Admin Portal</h2>
           </div>
           <nav className="flex-1 overflow-y-auto py-2 px-2">
@@ -163,7 +163,7 @@ export default function AdminPortalPage() {
                       <div key={a.id} className="px-4 py-3 flex items-center gap-3 text-sm">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.action === 'comment' || a.action === 'round_submitted' ? 'bg-brand-500' : 'bg-gray-300'}`} />
                         <span className="text-gray-800 truncate flex-1"><span className="font-medium">{a.actor}</span> — {a.detail}</span>
-                        <span className="text-xs text-gray-400 flex-shrink-0">{a.created_at && formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
+                        <span className="text-sm text-gray-400 flex-shrink-0">{a.created_at && formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
                       </div>
                     ))}
                     {activity.length === 0 && <div className="py-8 text-center text-sm text-gray-400">No recent activity</div>}
@@ -180,8 +180,8 @@ export default function AdminPortalPage() {
                   </div>
                   {showAddClient && (
                     <div className="card p-4 mb-4"><form onSubmit={handleAddClient} className="flex gap-3 items-end">
-                      <div className="flex-1"><label className="text-xs text-gray-500 block mb-1">Name *</label><input className="input text-sm" placeholder="Company" value={clientName} onChange={e => setClientName(e.target.value)} autoFocus /></div>
-                      <div className="flex-1"><label className="text-xs text-gray-500 block mb-1">Email</label><input className="input text-sm" type="email" placeholder="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} /></div>
+                      <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Name *</label><input className="input text-sm" placeholder="Company" value={clientName} onChange={e => setClientName(e.target.value)} autoFocus /></div>
+                      <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Email</label><input className="input text-sm" type="email" placeholder="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} /></div>
                       <button type="submit" className="btn-primary text-sm h-[38px]">Create</button>
                       <button type="button" onClick={() => setShowAddClient(false)} className="btn-secondary text-sm h-[38px]">Cancel</button>
                     </form></div>
@@ -191,10 +191,10 @@ export default function AdminPortalPage() {
                       <Search size={14} strokeWidth={1.5} className="text-brand-500" />
                       <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search clients..." value={clientSearch} onChange={e => { setClientSearch(e.target.value); setClientPage(0) }} />
                     </div>
-                    <span className="text-xs text-gray-400">{filteredClients.length} results</span>
+                    <span className="text-sm text-gray-400">{filteredClients.length} results</span>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="grid grid-cols-[1fr_180px_80px_120px_100px] gap-4 px-4 py-2.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b">
+                    <div className="grid grid-cols-[1fr_180px_80px_120px_100px] gap-4 px-4 py-2.5 bg-gray-50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b">
                       <div>Client</div><div>Email</div><div>Projects</div><div>Created</div><div>Actions</div>
                     </div>
                     {pagedClients.map(c => (
@@ -215,7 +215,7 @@ export default function AdminPortalPage() {
                             </div>
                             <span className="text-sm text-gray-500 truncate">{c.email || '—'}</span>
                             <span className="text-sm text-gray-500">{allProjects.filter(p => p.client_id === c.id).length}</span>
-                            <span className="text-xs text-gray-400">{format(new Date(c.created_at), 'MMM d yyyy')}</span>
+                            <span className="text-sm text-gray-400">{format(new Date(c.created_at), 'MMM d yyyy')}</span>
                             <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                               <button onClick={() => { setEditingClient(c.id); setEditClientName(c.name); setEditClientEmail(c.email || '') }} className="p-1 rounded hover:bg-gray-100 text-gray-400"><Edit2 size={12} /></button>
                               <button onClick={() => navigate(`/client/${c.id}`)} className="p-1 rounded hover:bg-gray-100 text-gray-400"><ArrowUpRight size={12} /></button>
@@ -227,20 +227,20 @@ export default function AdminPortalPage() {
                           <div className="bg-gray-50 px-8 py-3 border-b border-gray-200">
                             {/* Slack channel for client */}
                             <div className="flex items-center gap-3 mb-3">
-                              <label className="text-xs text-gray-500">Slack Channel:</label>
-                              <input className="input text-xs py-1 w-64" placeholder="https://app.slack.com/client/T00/C00..." value={c.slack_channel_url || ''}
+                              <label className="text-sm text-gray-500">Slack Channel:</label>
+                              <input className="input text-sm py-1 w-64" placeholder="https://app.slack.com/client/T00/C00..." value={c.slack_channel_url || ''}
                                 onChange={e => { supabase.from('clients').update({ slack_channel_url: e.target.value.trim() || null }).eq('id', c.id) }}
                                 onBlur={e => { supabase.from('clients').update({ slack_channel_url: e.target.value.trim() || null }).eq('id', c.id); loadAll() }} />
-                              {c.slack_channel_url && <a href={c.slack_channel_url} target="_blank" rel="noreferrer" className="text-xs text-brand-500 hover:text-brand-700 flex items-center gap-1"><MessageSquare size={11} /> Open Slack</a>}
+                              {c.slack_channel_url && <a href={c.slack_channel_url} target="_blank" rel="noreferrer" className="text-sm text-brand-500 hover:text-brand-700 flex items-center gap-1"><MessageSquare size={11} /> Open Slack</a>}
                             </div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Projects</p>
+                            <p className="text-sm font-semibold text-gray-500 uppercase mb-2">Projects</p>
                             {allProjects.filter(p => p.client_id === c.id).map(p => (
                               <div key={p.id} className="flex items-center gap-3 py-1.5 text-sm cursor-pointer hover:text-brand-600" onClick={() => navigate(`/project/${p.id}`)}>
                                 <span className="text-gray-700">{p.name}</span>
-                                <span className="text-xs text-gray-400">{p.project_type || 'other'}</span>
+                                <span className="text-sm text-gray-400">{p.project_type || 'other'}</span>
                               </div>
                             ))}
-                            {allProjects.filter(p => p.client_id === c.id).length === 0 && <p className="text-xs text-gray-400">No projects</p>}
+                            {allProjects.filter(p => p.client_id === c.id).length === 0 && <p className="text-sm text-gray-400">No projects</p>}
                           </div>
                         )}
                       </div>
@@ -270,16 +270,16 @@ export default function AdminPortalPage() {
                     </div>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="grid grid-cols-[1fr_120px_80px_80px_80px_90px] gap-4 px-4 py-2.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b">
+                    <div className="grid grid-cols-[1fr_120px_80px_80px_80px_90px] gap-4 px-4 py-2.5 bg-gray-50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b">
                       <div>Project</div><div>Client</div><div>Type</div><div>Round</div><div>Files</div><div>Actions</div>
                     </div>
                     {pagedProjects.map(p => (
                       <div key={p.id} className="grid grid-cols-[1fr_120px_80px_80px_80px_90px] gap-4 px-4 py-2.5 items-center border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/project/${p.id}`)}>
                         <span className="text-sm font-medium text-gray-900 truncate">{p.name}</span>
-                        <span className="text-xs text-gray-500 truncate">{p.clientName}</span>
-                        <span className="text-xs text-gray-400">{p.project_type || '—'}</span>
-                        <span className="text-xs text-gray-400">{p.max_rounds || 2}</span>
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-sm text-gray-500 truncate">{p.clientName}</span>
+                        <span className="text-sm text-gray-400">{p.project_type || '—'}</span>
+                        <span className="text-sm text-gray-400">{p.max_rounds || 2}</span>
+                        <span className="text-sm text-gray-400">—</span>
                         <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                           <button onClick={() => navigate(`/project/${p.id}`)} className="p-1 rounded hover:bg-gray-100 text-gray-400"><ArrowUpRight size={12} /></button>
                         </div>
@@ -299,9 +299,9 @@ export default function AdminPortalPage() {
                   </div>
                   {showAddStaff && (
                     <div className="card p-4 mb-4"><form onSubmit={handleAddStaff} className="flex gap-3 items-end flex-wrap">
-                      <div className="flex-1 min-w-[160px]"><label className="text-xs text-gray-500 block mb-1">Email *</label><input className="input text-sm" type="email" placeholder="staff@agency.com" value={newEmail} onChange={e => setNewEmail(e.target.value)} /></div>
-                      <div className="w-36"><label className="text-xs text-gray-500 block mb-1">Name</label><input className="input text-sm" placeholder="Name" value={newName} onChange={e => setNewName(e.target.value)} /></div>
-                      <div className="w-32"><label className="text-xs text-gray-500 block mb-1">Role</label><select className="input text-sm" value={newRole} onChange={e => setNewRole(e.target.value)}>{ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}</select></div>
+                      <div className="flex-1 min-w-[160px]"><label className="text-sm text-gray-500 block mb-1">Email *</label><input className="input text-sm" type="email" placeholder="staff@agency.com" value={newEmail} onChange={e => setNewEmail(e.target.value)} /></div>
+                      <div className="w-36"><label className="text-sm text-gray-500 block mb-1">Name</label><input className="input text-sm" placeholder="Name" value={newName} onChange={e => setNewName(e.target.value)} /></div>
+                      <div className="w-32"><label className="text-sm text-gray-500 block mb-1">Role</label><select className="input text-sm" value={newRole} onChange={e => setNewRole(e.target.value)}>{ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}</select></div>
                       <button type="submit" className="btn-primary text-sm h-[38px]">Add</button>
                       <button type="button" onClick={() => setShowAddStaff(false)} className="btn-secondary text-sm h-[38px]">Cancel</button>
                     </form></div>
@@ -313,7 +313,7 @@ export default function AdminPortalPage() {
                     </div>
                   </div>
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <div className="grid grid-cols-[1fr_180px_100px_80px_80px_80px] gap-4 px-4 py-2.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b">
+                    <div className="grid grid-cols-[1fr_180px_100px_80px_80px_80px] gap-4 px-4 py-2.5 bg-gray-50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b">
                       <div>Name</div><div>Email</div><div>Role</div><div>Clients</div><div>Status</div><div>Actions</div>
                     </div>
                     {filteredStaff.map(s => {
@@ -322,17 +322,17 @@ export default function AdminPortalPage() {
                       return (
                         <div key={s.id} className="grid grid-cols-[1fr_180px_100px_80px_80px_80px] gap-4 px-4 py-2.5 items-center border-b border-gray-100 hover:bg-gray-50">
                           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate(`/employees/${s.id}`)}>
-                            <div className="w-7 h-7 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
+                            <div className="w-7 h-7 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
                             <span className="text-sm font-medium text-gray-900">{s.name || '—'}</span>
                           </div>
                           <span className="text-sm text-gray-500 truncate">{s.email}</span>
                           <select value={s.role} onChange={e => { supabase.from('staff_members').update({ role: e.target.value }).eq('id', s.id).then(() => loadAll()) }}
-                            className={`text-xs px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${role.cls}`}>
+                            className={`text-sm px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${role.cls}`}>
                             {ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
                           </select>
-                          <span className="text-xs text-gray-500">{clientCount}</span>
+                          <span className="text-sm text-gray-500">{clientCount}</span>
                           <button onClick={() => { supabase.from('staff_members').update({ active: !s.active }).eq('id', s.id).then(() => loadAll()) }}
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{s.active ? 'Active' : 'Off'}</button>
+                            className={`text-sm px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{s.active ? 'Active' : 'Off'}</button>
                           <button onClick={() => handleDeleteStaff(s)} className="text-gray-400 hover:text-brand-500"><Trash2 size={13} strokeWidth={1.5} /></button>
                         </div>
                       )
@@ -347,14 +347,14 @@ export default function AdminPortalPage() {
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 mb-2">Access Matrix</h1>
                   <p className="text-sm text-gray-500 mb-1">Set access levels for each staff member per client.</p>
-                  <div className="flex gap-2 mb-4 text-xs">{ACCESS_ROLES.map(r => <span key={r.key} className={`px-2 py-0.5 rounded-full ${r.cls}`}>{r.label}</span>)}</div>
+                  <div className="flex gap-2 mb-4 text-sm">{ACCESS_ROLES.map(r => <span key={r.key} className={`px-2 py-0.5 rounded-full ${r.cls}`}>{r.label}</span>)}</div>
                   {staff.filter(s => s.active).length === 0 ? <div className="card py-16 text-center text-sm text-gray-400">Add staff first</div> : (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-auto max-h-[70vh]">
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 z-10">
                           <tr className="bg-gray-50 border-b border-gray-200">
-                            <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase sticky left-0 bg-gray-50 min-w-[160px]">Staff</th>
-                            {clients.map(c => <th key={c.id} className="px-2 py-3 text-xs font-semibold text-gray-500 text-center min-w-[110px]">{c.name}</th>)}
+                            <th className="text-left px-4 py-3 text-sm font-semibold text-gray-500 uppercase sticky left-0 bg-gray-50 min-w-[160px]">Staff</th>
+                            {clients.map(c => <th key={c.id} className="px-2 py-3 text-sm font-semibold text-gray-500 text-center min-w-[110px]">{c.name}</th>)}
                           </tr>
                         </thead>
                         <tbody>
@@ -362,7 +362,7 @@ export default function AdminPortalPage() {
                             <tr key={s.id} className="border-b border-gray-100">
                               <td className="px-4 py-2.5 font-medium text-gray-900 sticky left-0 bg-white">
                                 <div className="text-sm">{s.name || s.email}</div>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${(ROLES.find(r => r.key === s.role) || ROLES[3]).cls}`}>{s.role}</span>
+                                <span className={`text-[13px] px-1.5 py-0.5 rounded-full ${(ROLES.find(r => r.key === s.role) || ROLES[3]).cls}`}>{s.role}</span>
                               </td>
                               {clients.map(c => {
                                 const a = access.find(x => x.staff_id === s.id && x.client_id === c.id)
@@ -370,7 +370,7 @@ export default function AdminPortalPage() {
                                 return (
                                   <td key={c.id} className="px-2 py-2 text-center">
                                     <select value={current} onChange={e => handleSetAccessRole(s.id, c.id, e.target.value)}
-                                      className={`text-[10px] px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${(ACCESS_ROLES.find(r => r.key === current) || ACCESS_ROLES[0]).cls}`}>
+                                      className={`text-[13px] px-2 py-1 rounded-full font-medium border-0 cursor-pointer ${(ACCESS_ROLES.find(r => r.key === current) || ACCESS_ROLES[0]).cls}`}>
                                       {ACCESS_ROLES.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
                                     </select>
                                   </td>
@@ -390,14 +390,14 @@ export default function AdminPortalPage() {
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 mb-4">Audit Log</h1>
                   <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-                    <div className="grid grid-cols-[120px_1fr_100px] gap-4 px-4 py-2.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b">
+                    <div className="grid grid-cols-[120px_1fr_100px] gap-4 px-4 py-2.5 bg-gray-50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b">
                       <div>Time</div><div>Activity</div><div>Type</div>
                     </div>
                     {activity.map(a => (
                       <div key={a.id} className="grid grid-cols-[120px_1fr_100px] gap-4 px-4 py-3 text-sm hover:bg-gray-50">
-                        <span className="text-xs text-gray-400">{a.created_at && format(new Date(a.created_at), 'MMM d, h:mm a')}</span>
+                        <span className="text-sm text-gray-400">{a.created_at && format(new Date(a.created_at), 'MMM d, h:mm a')}</span>
                         <span className="text-gray-800 truncate"><span className="font-medium">{a.actor}</span> — {a.detail}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium w-fit ${a.action === 'comment' ? 'bg-gray-100 text-gray-600' : a.action === 'round_submitted' ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-600'}`}>{a.action}</span>
+                        <span className={`text-sm px-2 py-0.5 rounded-full font-medium w-fit ${a.action === 'comment' ? 'bg-gray-100 text-gray-600' : a.action === 'round_submitted' ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-600'}`}>{a.action}</span>
                       </div>
                     ))}
                     {activity.length === 0 && <div className="py-12 text-center text-sm text-gray-400">No activity logged</div>}

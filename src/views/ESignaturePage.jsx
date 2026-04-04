@@ -93,20 +93,20 @@ export default function ESignaturePage() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#231f20' }}><Pen size={18} className="text-white" /></div>
             <div>
               <h1 className="text-lg font-bold text-gray-900">E-Signature \u2014 Round {round?.round_number}</h1>
-              <p className="text-xs text-gray-500">{project?.name} {round?.submitted_at && `\u00b7 Submitted ${format(new Date(round.submitted_at), 'MMM d yyyy')}`}</p>
+              <p className="text-sm text-gray-500">{project?.name} {round?.submitted_at && `\u00b7 Submitted ${format(new Date(round.submitted_at), 'MMM d yyyy')}`}</p>
             </div>
           </div>
 
           {/* Round summary */}
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">Feedback Summary</h3>
-            {grouped.length === 0 ? <p className="text-xs text-gray-400">No annotations in this round</p> : (
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Feedback Summary</h3>
+            {grouped.length === 0 ? <p className="text-sm text-gray-400">No annotations in this round</p> : (
               <div className="space-y-3">
                 {grouped.map(({ file, anns }) => (
                   <div key={file.id}>
-                    <p className="text-xs font-medium text-gray-700 flex items-center gap-1 mb-1"><FileText size={11} /> {file.name} ({anns.length})</p>
+                    <p className="text-sm font-medium text-gray-700 flex items-center gap-1 mb-1"><FileText size={11} /> {file.name} ({anns.length})</p>
                     <div className="space-y-1 ml-4">
-                      {anns.map(a => <p key={a.id} className="text-xs text-gray-500">\u2022 {a.text || '(no text)'} \u2014 <span className="text-gray-400">{a.author}</span></p>)}
+                      {anns.map(a => <p key={a.id} className="text-sm text-gray-500">\u2022 {a.text || '(no text)'} \u2014 <span className="text-gray-400">{a.author}</span></p>)}
                     </div>
                   </div>
                 ))}
@@ -131,30 +131,30 @@ export default function ESignaturePage() {
             <>
               {/* Signature area */}
               <div className="mb-4">
-                <label className="text-xs font-medium text-gray-700 mb-2 block">Your Signature</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Your Signature</label>
                 <div className="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-white relative">
                   <canvas ref={canvasRef} width={500} height={150} className="w-full cursor-crosshair"
                     onMouseDown={handleCanvasMouseDown} onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}
                     onTouchStart={e => { e.preventDefault(); handleCanvasMouseDown(e.touches[0]) }}
                     onTouchMove={e => { e.preventDefault(); handleCanvasMouseMove(e.touches[0]) }}
                     onTouchEnd={handleCanvasMouseUp} />
-                  <button onClick={clearSignature} className="absolute top-2 right-2 text-xs text-gray-400 hover:text-gray-600">Clear</button>
+                  <button onClick={clearSignature} className="absolute top-2 right-2 text-sm text-gray-400 hover:text-gray-600">Clear</button>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">Draw your signature above using your mouse or finger</p>
+                <p className="text-[13px] text-gray-400 mt-1">Draw your signature above using your mouse or finger</p>
               </div>
 
               <div className="mb-4">
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Full Name</label>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Full Name</label>
                 <input className="input" value={signerName} onChange={e => setSignerName(e.target.value)} placeholder="Enter your full legal name" />
               </div>
 
               <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-2">Date: {format(new Date(), 'MMMM d, yyyy')}</p>
+                <p className="text-sm text-gray-500 mb-2">Date: {format(new Date(), 'MMMM d, yyyy')}</p>
               </div>
 
               <label className="flex items-start gap-3 mb-6 cursor-pointer">
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
-                <span className="text-xs text-gray-600">I approve this round of revisions and confirm that all requested changes have been reviewed. This constitutes an electronic signature.</span>
+                <span className="text-sm text-gray-600">I approve this round of revisions and confirm that all requested changes have been reviewed. This constitutes an electronic signature.</span>
               </label>
 
               <button onClick={handleSubmit} disabled={submitting || !signerName.trim() || !agreed}

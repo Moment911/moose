@@ -58,19 +58,19 @@ function AITextarea({ value, onChange, placeholder, rows=4, clientContext='', fi
   return (
     <div style={{ position:'relative' }}>
       <textarea value={value||''} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={rows}
-        style={{ width:'100%', padding:'12px 14px', paddingBottom:40, borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', resize:'vertical', fontFamily:'inherit', color:'#111', background:'#fff', lineHeight:1.65, boxSizing:'border-box' }}
+        style={{ width:'100%', padding:'12px 14px', paddingBottom:40, borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', fontFamily:'inherit', color:'#111', background:'#fff', lineHeight:1.65, boxSizing:'border-box' }}
         onFocus={e=>e.target.style.borderColor=ACCENT}
         onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
       <div style={{ position:'absolute', bottom:8, right:10, display:'flex', gap:6 }}>
         {!value?.trim() ? (
           <button onClick={generateFresh} disabled={generating}
-            style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 11px', borderRadius:7, border:'none', background:ACCENT, color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
+            style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 11px', borderRadius:7, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
             {generating?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>}
             Generate with AI
           </button>
         ) : (
           <button onClick={supercharge} disabled={generating}
-            style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 11px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
+            style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 11px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
             {generating?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>}
             {generating?'Supercharging…':'Supercharge with AI'}
           </button>
@@ -115,15 +115,15 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
         <div style={{ flex:1, minWidth:0 }}>
           <input value={section.title} onChange={e=>{e.stopPropagation();onChange({...section,title:e.target.value})}}
             onClick={e=>e.stopPropagation()}
-            style={{ fontSize:14, fontWeight:700, color:'#111', border:'none', outline:'none', background:'transparent', width:'100%' }}
+            style={{ fontSize:15, fontWeight:700, color:'#111', border:'none', outline:'none', background:'transparent', width:'100%' }}
             placeholder="Section title…"/>
         </div>
         {section.price > 0 && (
-          <span style={{ fontSize:14, fontWeight:800, color:ACCENT, flexShrink:0 }}>
+          <span style={{ fontSize:15, fontWeight:800, color:ACCENT, flexShrink:0 }}>
             ${Number(section.price).toLocaleString()} {PRICE_LABELS[section.price_type]||''}
           </span>
         )}
-        {section.is_optional && <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', fontWeight:700 }}>Optional</span>}
+        {section.is_optional && <span style={{ fontSize:13, padding:'2px 8px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', fontWeight:700 }}>Optional</span>}
         <div style={{ display:'flex', gap:4 }} onClick={e=>e.stopPropagation()}>
           {index > 0     && <button onClick={()=>onMoveUp(index)}   style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}><ChevronUp size={13}/></button>}
           {index < total-1 && <button onClick={()=>onMoveDown(index)} style={{ padding:4, border:'none', background:'none', cursor:'pointer', color:'#9ca3af' }}><ChevronDown size={13}/></button>}
@@ -136,7 +136,7 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
         <div style={{ padding:'0 16px 16px', borderTop:'1px solid #f9fafb' }}>
           {/* Description */}
           <div style={{ marginTop:12, marginBottom:12 }}>
-            <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>Description</label>
+            <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>Description</label>
             <AITextarea value={section.content} onChange={v=>onChange({...section,content:v})}
               placeholder="Describe what this service includes and the value it delivers…"
               rows={3} clientContext={clientContext} fieldName={section.title + ' service description'}/>
@@ -145,9 +145,9 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
           {/* Deliverables */}
           <div style={{ marginBottom:12 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em' }}>Deliverables</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em' }}>Deliverables</label>
               <button onClick={aiDeliverables} disabled={generatingDeliverables}
-                style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
                 {generatingDeliverables?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>}
                 AI Generate
               </button>
@@ -156,13 +156,13 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
               <div key={i} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
                 <Check size={12} color={ACCENT} style={{ flexShrink:0 }}/>
                 <input value={d} onChange={e=>{const next=[...deliverables]; next[i]=e.target.value; onChange({...section,deliverables:next})}}
-                  style={{ flex:1, fontSize:13, border:'none', borderBottom:'1px solid #f3f4f6', outline:'none', padding:'3px 0', color:'#374151', background:'transparent' }}/>
+                  style={{ flex:1, fontSize:15, border:'none', borderBottom:'1px solid #f3f4f6', outline:'none', padding:'3px 0', color:'#374151', background:'transparent' }}/>
                 <button onClick={()=>{ const next=deliverables.filter((_,j)=>j!==i); onChange({...section,deliverables:next}) }}
                   style={{ border:'none', background:'none', cursor:'pointer', color:'#fca5a5', padding:2 }}><X size={11}/></button>
               </div>
             ))}
             <button onClick={()=>onChange({...section,deliverables:[...deliverables,'']})}
-              style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:ACCENT, border:'none', background:'none', cursor:'pointer', marginTop:4, padding:'3px 0' }}>
+              style={{ display:'flex', alignItems:'center', gap:6, fontSize:14, color:ACCENT, border:'none', background:'none', cursor:'pointer', marginTop:4, padding:'3px 0' }}>
               <Plus size={11}/> Add deliverable
             </button>
           </div>
@@ -170,31 +170,31 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
           {/* Pricing row */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 130px 160px auto', gap:10, alignItems:'end' }}>
             <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Timeline</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Timeline</label>
               <input value={section.timeline||''} onChange={e=>onChange({...section,timeline:e.target.value})}
                 placeholder="e.g. 4–6 weeks, Ongoing"
-                style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111' }}/>
+                style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111' }}/>
             </div>
             <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Price</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Price</label>
               <div style={{ position:'relative' }}>
-                <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:13, color:'#9ca3af' }}>$</span>
+                <span style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)', fontSize:15, color:'#9ca3af' }}>$</span>
                 <input type="number" value={section.price||''} onChange={e=>onChange({...section,price:+e.target.value})}
                   placeholder="0"
-                  style={{ width:'100%', padding:'8px 12px 8px 24px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111' }}/>
+                  style={{ width:'100%', padding:'8px 12px 8px 24px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111' }}/>
               </div>
             </div>
             <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Billing type</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Billing type</label>
               <select value={section.price_type||'monthly'} onChange={e=>onChange({...section,price_type:e.target.value})}
-                style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', background:'#fff' }}>
+                style={{ width:'100%', padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', background:'#fff' }}>
                 {Object.entries(PRICE_LABELS).map(([k,v])=><option key={k} value={k}>{k.charAt(0).toUpperCase()+k.slice(1).replace('_',' ')} {v}</option>)}
               </select>
             </div>
             <div>
-              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Optional</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:5 }}>Optional</label>
               <button onClick={()=>onChange({...section,is_optional:!section.is_optional})}
-                style={{ padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:section.is_optional?ACCENT:'#9ca3af', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
+                style={{ padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:section.is_optional?ACCENT:'#9ca3af', display:'flex', alignItems:'center', gap:5, fontSize:14 }}>
                 {section.is_optional?<ToggleRight size={15} color={ACCENT}/>:<ToggleLeft size={15}/>}
                 {section.is_optional?'Yes':'No'}
               </button>
@@ -225,7 +225,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
           <div style={{ display:'flex', alignItems:'center', gap:8, background:'#f9fafb', borderRadius:10, padding:'8px 14px', border:'1.5px solid #e5e7eb' }}>
             <Edit3 size={14} color="#9ca3af"/>
             <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search services…"
-              style={{ border:'none', outline:'none', background:'transparent', fontSize:13, flex:1, color:'#111' }}/>
+              style={{ border:'none', outline:'none', background:'transparent', fontSize:15, flex:1, color:'#111' }}/>
           </div>
         </div>
         <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
@@ -234,7 +234,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
             if (!items.length) return null
             return (
               <div key={cat} style={{ marginBottom:18 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 }}>
                   {cat.replace('_',' ')}
                 </div>
                 {items.map(m => (
@@ -243,13 +243,13 @@ function ModulePicker({ modules, onAdd, onClose }) {
                     onMouseLeave={e=>{ e.currentTarget.style.borderColor='#e5e7eb'; e.currentTarget.style.background='#fff' }}
                     onClick={()=>{ onAdd(m); onClose() }}>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:2 }}>{m.name}</div>
-                      <div style={{ fontSize:12, color:'#9ca3af', lineHeight:1.5 }}>{m.description?.slice(0,80)}{m.description?.length>80?'…':''}</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:2 }}>{m.name}</div>
+                      <div style={{ fontSize:14, color:'#9ca3af', lineHeight:1.5 }}>{m.description?.slice(0,80)}{m.description?.length>80?'…':''}</div>
                     </div>
                     {m.price > 0 && (
                       <div style={{ textAlign:'right', flexShrink:0 }}>
-                        <div style={{ fontSize:14, fontWeight:800, color:ACCENT }}>${Number(m.price).toLocaleString()}</div>
-                        <div style={{ fontSize:11, color:'#9ca3af' }}>{PRICE_LABELS[m.price_type]||''}</div>
+                        <div style={{ fontSize:15, fontWeight:800, color:ACCENT }}>${Number(m.price).toLocaleString()}</div>
+                        <div style={{ fontSize:13, color:'#9ca3af' }}>{PRICE_LABELS[m.price_type]||''}</div>
                       </div>
                     )}
                     <Plus size={16} color={ACCENT}/>
@@ -259,7 +259,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
             )
           })}
           <button onClick={()=>{ onAdd(null); onClose() }}
-            style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
+            style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:15, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
             <Plus size={14}/> Add blank section
           </button>
         </div>
@@ -437,7 +437,7 @@ export default function ProposalBuilderPage() {
         {/* Top bar */}
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'10px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
           <button onClick={()=>navigate('/proposals')}
-            style={{ display:'flex', alignItems:'center', gap:5, border:'none', background:'none', cursor:'pointer', color:'#6b7280', fontSize:13 }}>
+            style={{ display:'flex', alignItems:'center', gap:5, border:'none', background:'none', cursor:'pointer', color:'#6b7280', fontSize:15 }}>
             <ChevronLeft size={15}/> Proposals
           </button>
           <div style={{ width:'1px', height:16, background:'#e5e7eb' }}/>
@@ -445,7 +445,7 @@ export default function ProposalBuilderPage() {
             style={{ fontSize:15, fontWeight:700, color:'#111', border:'none', outline:'none', flex:1, background:'transparent' }}
             placeholder="Proposal title…"/>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:12, color:'#9ca3af', display:'flex', alignItems:'center', gap:5 }}>
+            <span style={{ fontSize:14, color:'#9ca3af', display:'flex', alignItems:'center', gap:5 }}>
               {saving ? <><Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/> Saving…</> : <><Check size={11} color="#16a34a"/> Saved</>}
             </span>
           </div>
@@ -453,7 +453,7 @@ export default function ProposalBuilderPage() {
           <div style={{ display:'flex', gap:2, background:'#f3f4f6', borderRadius:9, padding:3 }}>
             {[['build','Build'],['preview','Preview'],['sign','Sign']].map(([p,l])=>(
               <button key={p} onClick={()=>setActivePanel(p)}
-                style={{ padding:'5px 14px', borderRadius:7, border:'none', background:activePanel===p?'#fff':'transparent', color:activePanel===p?'#111':'#6b7280', fontSize:12, fontWeight:activePanel===p?700:500, cursor:'pointer', boxShadow:activePanel===p?'0 1px 3px rgba(0,0,0,.1)':'' }}>
+                style={{ padding:'5px 14px', borderRadius:7, border:'none', background:activePanel===p?'#fff':'transparent', color:activePanel===p?'#111':'#6b7280', fontSize:14, fontWeight:activePanel===p?700:500, cursor:'pointer', boxShadow:activePanel===p?'0 1px 3px rgba(0,0,0,.1)':'' }}>
                 {l}
               </button>
             ))}
@@ -461,7 +461,7 @@ export default function ProposalBuilderPage() {
 
           {/* Actions */}
           <select value={proposal.type||'proposal'} onChange={e=>setProp('type',e.target.value)}
-            style={{ padding:'7px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:12, color:'#374151', background:'#fff', outline:'none' }}>
+            style={{ padding:'7px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, color:'#374151', background:'#fff', outline:'none' }}>
             <option value="proposal">Proposal</option>
             <option value="sow">Statement of Work</option>
             <option value="agreement">Agreement</option>
@@ -469,13 +469,13 @@ export default function ProposalBuilderPage() {
 
           {proposal.type !== 'agreement' && (
             <button onClick={convertToAgreement} disabled={converting}
-              style={{ padding:'7px 14px', borderRadius:9, border:'none', background:'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+              style={{ padding:'7px 14px', borderRadius:9, border:'none', background:'#7c3aed', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
               <FileText size={13}/> {converting?'Converting…':'Convert to Agreement'}
             </button>
           )}
 
           <button onClick={sendProposal} disabled={sending}
-            style={{ padding:'7px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, boxShadow:`0 4px 12px ${ACCENT}40` }}>
+            style={{ padding:'7px 16px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, boxShadow:`0 4px 12px ${ACCENT}40` }}>
             <Send size={13}/> {sending?'Sending…':'Send to Client'}
           </button>
         </div>
@@ -487,54 +487,54 @@ export default function ProposalBuilderPage() {
             <>
               {/* Left: settings */}
               <div style={{ width:280, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', overflowY:'auto', padding:'18px 16px' }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Proposal Settings</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>Proposal Settings</div>
 
                 <div style={{ marginBottom:14 }}>
-                  <label style={{ fontSize:12, fontWeight:600, color:'#374151', display:'block', marginBottom:5 }}>Client</label>
+                  <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Client</label>
                   <select value={proposal.client_id||''} onChange={e=>setProp('client_id',e.target.value||null)}
-                    style={{ width:'100%', padding:'8px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff', outline:'none' }}>
+                    style={{ width:'100%', padding:'8px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, color:'#111', background:'#fff', outline:'none' }}>
                     <option value="">Select client…</option>
                     {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
 
                 <div style={{ marginBottom:14 }}>
-                  <label style={{ fontSize:12, fontWeight:600, color:'#374151', display:'block', marginBottom:5 }}>Valid until</label>
+                  <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Valid until</label>
                   <input type="date" value={proposal.valid_until||''} onChange={e=>setProp('valid_until',e.target.value)}
-                    style={{ width:'100%', padding:'8px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', outline:'none' }}/>
+                    style={{ width:'100%', padding:'8px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, color:'#111', outline:'none' }}/>
                 </div>
 
                 <div style={{ height:'0.5px', background:'#f3f4f6', margin:'14px 0' }}/>
 
                 {/* Pricing summary */}
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Pricing Summary</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Pricing Summary</div>
                 {totalMonthly > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#374151', marginBottom:6 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151', marginBottom:6 }}>
                     <span>Monthly recurring</span>
                     <span style={{ fontWeight:700 }}>${totalMonthly.toLocaleString()}/mo</span>
                   </div>
                 )}
                 {totalOneTime > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#374151', marginBottom:6 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151', marginBottom:6 }}>
                     <span>One-time fees</span>
                     <span style={{ fontWeight:700 }}>${totalOneTime.toLocaleString()}</span>
                   </div>
                 )}
                 {sections.filter(s=>s.is_optional&&s.price>0).length > 0 && (
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#9ca3af', marginBottom:6 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#9ca3af', marginBottom:6 }}>
                     <span>Optional add-ons</span>
                     <span>${sections.filter(s=>s.is_optional).reduce((sum,s)=>sum+(s.price||0),0).toLocaleString()}</span>
                   </div>
                 )}
                 {totalMonthly === 0 && totalOneTime === 0 && (
-                  <div style={{ fontSize:13, color:'#d1d5db' }}>Add sections with pricing</div>
+                  <div style={{ fontSize:15, color:'#d1d5db' }}>Add sections with pricing</div>
                 )}
 
                 <div style={{ height:'0.5px', background:'#f3f4f6', margin:'14px 0' }}/>
 
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Client link</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Client link</div>
                 <div style={{ display:'flex', gap:6 }}>
-                  <div style={{ flex:1, fontSize:11, color:'#6b7280', background:'#f9fafb', padding:'7px 10px', borderRadius:8, border:'1px solid #f3f4f6', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  <div style={{ flex:1, fontSize:13, color:'#6b7280', background:'#f9fafb', padding:'7px 10px', borderRadius:8, border:'1px solid #f3f4f6', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     /p/{proposal.public_token?.slice(0,16)}…
                   </div>
                   <button onClick={()=>{ navigator.clipboard.writeText(`${window.location.origin}/p/${proposal.public_token}`); toast.success('Copied!') }}
@@ -549,7 +549,7 @@ export default function ProposalBuilderPage() {
 
                 {/* Intro */}
                 <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', marginBottom:14 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Introduction / Cover Letter</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Introduction / Cover Letter</div>
                   <AITextarea value={proposal.intro} onChange={v=>setProp('intro',v)}
                     placeholder="Start with a warm, personalized introduction. Reference the client's business and what you talked about…"
                     rows={4} clientContext={clientContext} fieldName="proposal introduction"/>
@@ -557,7 +557,7 @@ export default function ProposalBuilderPage() {
 
                 {/* Executive Summary */}
                 <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', marginBottom:14 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Executive Summary</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Executive Summary</div>
                   <AITextarea value={proposal.executive_summary} onChange={v=>setProp('executive_summary',v)}
                     placeholder="Summarize the challenge, your approach, and expected outcomes in 2-3 paragraphs…"
                     rows={5} clientContext={clientContext} fieldName="executive summary"/>
@@ -566,9 +566,9 @@ export default function ProposalBuilderPage() {
                 {/* Service sections */}
                 <div style={{ marginBottom:14 }}>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em' }}>Services & Deliverables</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em' }}>Services & Deliverables</div>
                     <button onClick={()=>setShowModulePicker(true)}
-                      style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                      style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer' }}>
                       <Plus size={13}/> Add Service
                     </button>
                   </div>
@@ -577,8 +577,8 @@ export default function ProposalBuilderPage() {
                     <div style={{ background:'#fff', borderRadius:14, border:`2px dashed ${ACCENT}30`, padding:'40px 24px', textAlign:'center', cursor:'pointer' }}
                       onClick={()=>setShowModulePicker(true)}>
                       <Plus size={28} color={ACCENT} style={{ margin:'0 auto 12px' }}/>
-                      <div style={{ fontSize:14, fontWeight:700, color:'#374151', marginBottom:6 }}>Add your first service</div>
-                      <div style={{ fontSize:13, color:'#9ca3af' }}>Pick from your service library or add a blank section</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:'#374151', marginBottom:6 }}>Add your first service</div>
+                      <div style={{ fontSize:15, color:'#9ca3af' }}>Pick from your service library or add a blank section</div>
                     </div>
                   ) : (
                     sections.map((sec, i) => (
@@ -593,7 +593,7 @@ export default function ProposalBuilderPage() {
 
                   {sections.length > 0 && (
                     <button onClick={()=>setShowModulePicker(true)}
-                      style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed #e5e7eb`, background:'#fff', color:'#9ca3af', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginTop:8 }}>
+                      style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed #e5e7eb`, background:'#fff', color:'#9ca3af', fontSize:15, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginTop:8 }}>
                       <Plus size={13}/> Add another service
                     </button>
                   )}
@@ -601,7 +601,7 @@ export default function ProposalBuilderPage() {
 
                 {/* Terms */}
                 <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px' }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Terms & Conditions</div>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:10 }}>Terms & Conditions</div>
                   <AITextarea value={proposal.terms} onChange={v=>setProp('terms',v)}
                     placeholder="Payment terms, revision policy, cancellation terms, intellectual property rights…"
                     rows={5} clientContext={clientContext} fieldName="terms and conditions"/>
@@ -617,32 +617,32 @@ export default function ProposalBuilderPage() {
               <div style={{ maxWidth:780, margin:'0 auto', background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
                 {/* Proposal header */}
                 <div style={{ background:'#18181b', padding:'40px 48px' }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,.4)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,.4)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:12 }}>
                     {proposal.type === 'agreement' ? 'Service Agreement' : proposal.type === 'sow' ? 'Statement of Work' : 'Proposal'}
                   </div>
                   <h1 style={{ fontSize:28, fontWeight:900, color:'#fff', marginBottom:10 }}>{proposal.title}</h1>
-                  {proposal.clients && <div style={{ fontSize:14, color:'rgba(255,255,255,.5)' }}>Prepared for {proposal.clients.name}</div>}
-                  {proposal.valid_until && <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:6 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
+                  {proposal.clients && <div style={{ fontSize:15, color:'rgba(255,255,255,.5)' }}>Prepared for {proposal.clients.name}</div>}
+                  {proposal.valid_until && <div style={{ fontSize:15, color:'rgba(255,255,255,.4)', marginTop:6 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
                 </div>
 
                 <div style={{ padding:'40px 48px' }}>
                   {proposal.intro && (
                     <div style={{ marginBottom:32 }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
-                      <div style={{ fontSize:14, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.intro}</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Introduction</div>
+                      <div style={{ fontSize:15, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.intro}</div>
                     </div>
                   )}
                   {proposal.executive_summary && (
                     <div style={{ marginBottom:32 }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Executive Summary</div>
-                      <div style={{ fontSize:14, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.executive_summary}</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Executive Summary</div>
+                      <div style={{ fontSize:15, color:'#374151', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.executive_summary}</div>
                     </div>
                   )}
 
                   {/* Sections */}
                   {sections.length > 0 && (
                     <div style={{ marginBottom:32 }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services & Deliverables</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>Services & Deliverables</div>
                       {sections.map((sec, i) => {
                         const delivs = typeof sec.deliverables==='string' ? JSON.parse(sec.deliverables||'[]') : (sec.deliverables||[])
                         return (
@@ -651,20 +651,20 @@ export default function ProposalBuilderPage() {
                               <h3 style={{ fontSize:16, fontWeight:800, color:'#111' }}>{sec.title}</h3>
                               <div style={{ textAlign:'right' }}>
                                 {sec.price > 0 && <span style={{ fontSize:16, fontWeight:800, color:ACCENT }}>${Number(sec.price).toLocaleString()} {PRICE_LABELS[sec.price_type]}</span>}
-                                {sec.is_optional && <div style={{ fontSize:11, color:'#9ca3af' }}>Optional</div>}
+                                {sec.is_optional && <div style={{ fontSize:13, color:'#9ca3af' }}>Optional</div>}
                               </div>
                             </div>
-                            {sec.content && <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.7, marginBottom:10, whiteSpace:'pre-wrap' }}>{sec.content}</div>}
+                            {sec.content && <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.7, marginBottom:10, whiteSpace:'pre-wrap' }}>{sec.content}</div>}
                             {delivs.filter(d=>d).length > 0 && (
                               <div>
                                 {delivs.filter(d=>d).map((d,j)=>(
-                                  <div key={j} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#374151', marginBottom:4 }}>
+                                  <div key={j} style={{ display:'flex', alignItems:'center', gap:8, fontSize:15, color:'#374151', marginBottom:4 }}>
                                     <Check size={12} color={ACCENT} style={{ flexShrink:0 }}/> {d}
                                   </div>
                                 ))}
                               </div>
                             )}
-                            {sec.timeline && <div style={{ fontSize:12, color:'#9ca3af', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/> {sec.timeline}</div>}
+                            {sec.timeline && <div style={{ fontSize:14, color:'#9ca3af', marginTop:8, display:'flex', alignItems:'center', gap:5 }}><Clock size={11}/> {sec.timeline}</div>}
                           </div>
                         )
                       })}
@@ -674,16 +674,16 @@ export default function ProposalBuilderPage() {
                   {/* Pricing summary */}
                   {(totalMonthly > 0 || totalOneTime > 0) && (
                     <div style={{ background:'#f9fafb', borderRadius:12, padding:'20px 24px', marginBottom:32, border:'1px solid #f3f4f6' }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12 }}>Investment Summary</div>
-                      {totalMonthly > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:14, color:'#374151', marginBottom:6 }}><span>Monthly retainer</span><span style={{ fontWeight:800 }}>${totalMonthly.toLocaleString()}/mo</span></div>}
-                      {totalOneTime > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:14, color:'#374151' }}><span>One-time setup</span><span style={{ fontWeight:800 }}>${totalOneTime.toLocaleString()}</span></div>}
+                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12 }}>Investment Summary</div>
+                      {totalMonthly > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151', marginBottom:6 }}><span>Monthly retainer</span><span style={{ fontWeight:800 }}>${totalMonthly.toLocaleString()}/mo</span></div>}
+                      {totalOneTime > 0 && <div style={{ display:'flex', justifyContent:'space-between', fontSize:15, color:'#374151' }}><span>One-time setup</span><span style={{ fontWeight:800 }}>${totalOneTime.toLocaleString()}</span></div>}
                     </div>
                   )}
 
                   {proposal.terms && (
                     <div>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
-                      <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Terms & Conditions</div>
+                      <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.8, whiteSpace:'pre-wrap' }}>{proposal.terms}</div>
                     </div>
                   )}
                 </div>
@@ -785,11 +785,11 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
       <div style={{ maxWidth:680, margin:'0 auto' }}>
 
         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 28px', marginBottom:16 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:4 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:4 }}>
             {proposal.type === 'agreement' ? 'Service Agreement' : 'Proposal'}: {proposal.title}
           </div>
           {(totalMonthly > 0 || totalOneTime > 0) && (
-            <div style={{ fontSize:13, color:'#6b7280' }}>
+            <div style={{ fontSize:15, color:'#6b7280' }}>
               {totalMonthly > 0 && <span>${totalMonthly.toLocaleString()}/mo recurring</span>}
               {totalMonthly > 0 && totalOneTime > 0 && <span> + </span>}
               {totalOneTime > 0 && <span>${totalOneTime.toLocaleString()} one-time</span>}
@@ -799,35 +799,35 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
 
         {/* Agency signature */}
         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 28px', marginBottom:14 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:'#111', marginBottom:16, display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:16, display:'flex', alignItems:'center', gap:8 }}>
             <Shield size={16} color={ACCENT}/> Agency Signature
           </div>
           {agencySig ? (
             <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:'#f0fdf4', borderRadius:10 }}>
               <CheckCircle size={16} color="#16a34a"/>
-              <div style={{ fontSize:13, color:'#16a34a' }}>Signed by {agencySig.signer_name} · {new Date(agencySig.signed_at).toLocaleString()}</div>
+              <div style={{ fontSize:15, color:'#16a34a' }}>Signed by {agencySig.signer_name} · {new Date(agencySig.signed_at).toLocaleString()}</div>
             </div>
           ) : (
             <div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Your name</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Your name</label>
                   <input value={agencyName} onChange={e=>setAgencyName(e.target.value)} placeholder="Full legal name"
-                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}/>
+                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Title</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Title</label>
                   <input value={signerTitle} onChange={e=>setSignerTitle(e.target.value)} placeholder="CEO, Account Manager…"
-                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}/>
+                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
               </div>
-              <label style={{ fontSize:12, color:'#6b7280', display:'flex', alignItems:'flex-start', gap:8, marginBottom:12, cursor:'pointer' }}>
+              <label style={{ fontSize:14, color:'#6b7280', display:'flex', alignItems:'flex-start', gap:8, marginBottom:12, cursor:'pointer' }}>
                 <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{ marginTop:2 }}/>
                 I authorize this {proposal.type || 'proposal'} and agree to its terms on behalf of the agency.
               </label>
               <SignatureCanvas canvasRef={canvasRef} onStart={start} onMove={move} onEnd={()=>setDrawing(false)} onClear={clearSig}/>
               <button onClick={()=>sign('agency')} disabled={submitting||!agencyName.trim()||!agreed}
-                style={{ width:'100%', marginTop:12, padding:'11px', borderRadius:10, border:'none', background:'#18181b', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:!agencyName.trim()||!agreed?.5:1 }}>
+                style={{ width:'100%', marginTop:12, padding:'11px', borderRadius:10, border:'none', background:'#18181b', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', opacity:!agencyName.trim()||!agreed?.5:1 }}>
                 {submitting?'Saving…':'Sign as Agency'}
               </button>
             </div>
@@ -836,38 +836,38 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
 
         {/* Client signature */}
         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 28px', marginBottom:14 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:'#111', marginBottom:16, display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:16, display:'flex', alignItems:'center', gap:8 }}>
             <User size={16} color="#3b82f6"/> Client Signature
           </div>
           {existingSig ? (
             <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:'#f0fdf4', borderRadius:10 }}>
               <CheckCircle size={16} color="#16a34a"/>
-              <div style={{ fontSize:13, color:'#16a34a' }}>Signed by {existingSig.signer_name} · {new Date(existingSig.signed_at).toLocaleString()}</div>
+              <div style={{ fontSize:15, color:'#16a34a' }}>Signed by {existingSig.signer_name} · {new Date(existingSig.signed_at).toLocaleString()}</div>
             </div>
           ) : (
             <div>
-              <div style={{ padding:'12px 14px', background:'#eff6ff', borderRadius:10, marginBottom:14, fontSize:13, color:'#1d4ed8' }}>
+              <div style={{ padding:'12px 14px', background:'#eff6ff', borderRadius:10, marginBottom:14, fontSize:15, color:'#1d4ed8' }}>
                 Share the client link and they can sign directly from their browser — no account needed.
                 <button onClick={()=>{ navigator.clipboard.writeText(`${window.location.origin}/p/${proposal.public_token}`); toast.success('Link copied!') }}
-                  style={{ display:'block', marginTop:6, fontSize:12, color:'#1d4ed8', fontWeight:700, background:'none', border:'none', cursor:'pointer', textDecoration:'underline', padding:0 }}>
+                  style={{ display:'block', marginTop:6, fontSize:14, color:'#1d4ed8', fontWeight:700, background:'none', border:'none', cursor:'pointer', textDecoration:'underline', padding:0 }}>
                   Copy client signing link →
                 </button>
               </div>
-              <div style={{ fontSize:12, color:'#9ca3af', textAlign:'center' }}>— or sign on their behalf —</div>
+              <div style={{ fontSize:14, color:'#9ca3af', textAlign:'center' }}>— or sign on their behalf —</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, margin:'12px 0' }}>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Client name</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Client name</label>
                   <input value={signerName} onChange={e=>setSignerName(e.target.value)} placeholder="Client's full name"
-                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}/>
+                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
                 <div>
-                  <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Email</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:4 }}>Email</label>
                   <input value={signerEmail} onChange={e=>setSignerEmail(e.target.value)} placeholder="client@email.com"
-                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}/>
+                    style={{ width:'100%', padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                 </div>
               </div>
               <button onClick={()=>sign('client')} disabled={submitting||!signerName.trim()}
-                style={{ width:'100%', padding:'11px', borderRadius:10, border:'none', background:'#3b82f6', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:!signerName.trim()?.5:1 }}>
+                style={{ width:'100%', padding:'11px', borderRadius:10, border:'none', background:'#3b82f6', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', opacity:!signerName.trim()?.5:1 }}>
                 {submitting?'Saving…':'Save Client Signature'}
               </button>
             </div>
@@ -878,8 +878,8 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
           <div style={{ background:'#f0fdf4', borderRadius:14, border:'1px solid #bbf7d0', padding:'16px 20px', display:'flex', alignItems:'center', gap:12 }}>
             <CheckCircle size={20} color="#16a34a"/>
             <div>
-              <div style={{ fontSize:14, fontWeight:700, color:'#16a34a' }}>Fully executed — both parties signed</div>
-              <div style={{ fontSize:12, color:'#16a34a', opacity:.8 }}>This agreement is legally binding. Keep a copy for your records.</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'#16a34a' }}>Fully executed — both parties signed</div>
+              <div style={{ fontSize:14, color:'#16a34a', opacity:.8 }}>This agreement is legally binding. Keep a copy for your records.</div>
             </div>
           </div>
         )}
@@ -891,15 +891,15 @@ function SignaturePanel({ proposalId, proposal, sections, totalMonthly, totalOne
 function SignatureCanvas({ canvasRef, onStart, onMove, onEnd, onClear }) {
   return (
     <div>
-      <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:5 }}>Signature</label>
+      <label style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', display:'block', marginBottom:5 }}>Signature</label>
       <div style={{ border:'2px dashed #e5e7eb', borderRadius:12, overflow:'hidden', background:'#fff', position:'relative' }}>
         <canvas ref={canvasRef} width={600} height={140} style={{ width:'100%', cursor:'crosshair', display:'block' }}
           onMouseDown={onStart} onMouseMove={onMove} onMouseUp={onEnd} onMouseLeave={onEnd}
           onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd}/>
-        <button onClick={onClear} style={{ position:'absolute', top:8, right:8, fontSize:11, color:'#9ca3af', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
+        <button onClick={onClear} style={{ position:'absolute', top:8, right:8, fontSize:13, color:'#9ca3af', border:'none', background:'none', cursor:'pointer' }}>Clear</button>
         <div style={{ position:'absolute', bottom:6, left:0, right:0, borderTop:'1px solid #f3f4f6', pointerEvents:'none' }}/>
       </div>
-      <div style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>Draw signature above using mouse or touchscreen</div>
+      <div style={{ fontSize:13, color:'#9ca3af', marginTop:4 }}>Draw signature above using mouse or touchscreen</div>
     </div>
   )
 }

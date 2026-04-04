@@ -136,7 +136,7 @@ export default function SEOAuditPage() {
           <div className="mb-6">
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Zap size={22} className="text-yellow-500" /> URL Audit & Client Pitch
-              <span className="text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">Moose SEO</span>
+              <span className="text-[13px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">Moose SEO</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">Enter any URL for an instant AI-powered SEO audit. Perfect for client pitches.</p>
           </div>
@@ -151,15 +151,15 @@ export default function SEOAuditPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-              <div><label className="text-xs text-gray-500 block mb-1">Business Name</label><input className="input text-sm" placeholder="Acme Plumbing" value={bizName} onChange={e => setBizName(e.target.value)} /></div>
-              <div><label className="text-xs text-gray-500 block mb-1">Industry</label><input className="input text-sm" placeholder="Plumbing / HVAC" value={industry} onChange={e => setIndustry(e.target.value)} /></div>
-              <div><label className="text-xs text-gray-500 block mb-1">Location</label><input className="input text-sm" placeholder="Miami, FL" value={location} onChange={e => setLocation(e.target.value)} /></div>
+              <div><label className="text-sm text-gray-500 block mb-1">Business Name</label><input className="input text-sm" placeholder="Acme Plumbing" value={bizName} onChange={e => setBizName(e.target.value)} /></div>
+              <div><label className="text-sm text-gray-500 block mb-1">Industry</label><input className="input text-sm" placeholder="Plumbing / HVAC" value={industry} onChange={e => setIndustry(e.target.value)} /></div>
+              <div><label className="text-sm text-gray-500 block mb-1">Location</label><input className="input text-sm" placeholder="Miami, FL" value={location} onChange={e => setLocation(e.target.value)} /></div>
             </div>
             {/* Competitors */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-gray-600">Competitors <span className="text-gray-400 font-normal">(optional)</span></label>
-                {competitors.length < 5 && <button onClick={() => setCompetitors([...competitors, ''])} className="text-xs text-brand-500 hover:text-brand-700 flex items-center gap-1"><Plus size={12} /> Add</button>}
+                <label className="text-sm font-semibold text-gray-600">Competitors <span className="text-gray-400 font-normal">(optional)</span></label>
+                {competitors.length < 5 && <button onClick={() => setCompetitors([...competitors, ''])} className="text-sm text-brand-500 hover:text-brand-700 flex items-center gap-1"><Plus size={12} /> Add</button>}
               </div>
               {competitors.map((c, i) => (
                 <div key={i} className="flex gap-2 mb-2">
@@ -172,7 +172,7 @@ export default function SEOAuditPage() {
               ))}
             </div>
             <button onClick={runAudit} disabled={loading || !url.trim()} className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #E8551A, #ff6b35)', boxShadow: loading ? 'none' : '0 4px 14px rgba(232,85,26,0.3)' }}>
-              {loading ? <><Loader2 size={16} className="animate-spin" /> {step}</> : <><Search size={16} /> Run Full SEO Audit <span className="text-xs opacity-70">Claude + GPT-4o</span></>}
+              {loading ? <><Loader2 size={16} className="animate-spin" /> {step}</> : <><Search size={16} /> Run Full SEO Audit <span className="text-sm opacity-70">Claude + GPT-4o</span></>}
             </button>
           </div>
 
@@ -183,35 +183,35 @@ export default function SEOAuditPage() {
               <div className="rounded-2xl p-5 md:p-6 mb-5 text-white" style={{ background: 'linear-gradient(135deg, #111827, #1f2937)' }}>
                 <div className="flex flex-col md:flex-row gap-5 items-start">
                   <div className="flex-1">
-                    <p className="text-xs text-gray-400 mb-1">{audit.businessName} &middot; {new Date(audit.generatedAt).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-400 mb-1">{audit.businessName} &middot; {new Date(audit.generatedAt).toLocaleDateString()}</p>
                     <h2 className="text-lg md:text-xl font-bold text-white mb-2">{audit.pitchHeadline}</h2>
                     <p className="text-sm text-gray-300 leading-relaxed mb-3">{audit.executiveSummary}</p>
                     {audit.urgencyFactors.slice(0, 2).map((u, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1 text-xs text-red-300 mr-2 mb-1"><AlertTriangle size={11} /> {u}</span>
+                      <span key={i} className="inline-flex items-center gap-1 bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1 text-sm text-red-300 mr-2 mb-1"><AlertTriangle size={11} /> {u}</span>
                     ))}
-                    <div className="mt-3">{audit.quickWins.slice(0, 3).map((w, i) => <p key={i} className="text-xs text-gray-300 flex items-center gap-2 mb-1"><CheckCircle size={12} className="text-green-400" /> {w}</p>)}</div>
+                    <div className="mt-3">{audit.quickWins.slice(0, 3).map((w, i) => <p key={i} className="text-sm text-gray-300 flex items-center gap-2 mb-1"><CheckCircle size={12} className="text-green-400" /> {w}</p>)}</div>
                   </div>
                   <div className="text-center flex-shrink-0">
                     <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto relative" style={{ background: `conic-gradient(${scoreColor(audit.overallScore)} ${audit.overallScore * 3.6}deg, rgba(255,255,255,0.1) 0deg)` }}>
                       <div className="absolute inset-1.5 rounded-full bg-gray-800 flex flex-col items-center justify-center">
                         <span className="text-2xl font-extrabold" style={{ color: scoreColor(audit.overallScore) }}>{audit.overallScore}</span>
-                        <span className="text-[10px] text-gray-400">/ 100</span>
+                        <span className="text-[13px] text-gray-400">/ 100</span>
                       </div>
                     </div>
                     <p className="text-lg font-bold mt-2" style={{ color: scoreColor(audit.overallScore) }}>Grade {audit.grade}</p>
-                    <p className="text-xs text-gray-500">{audit.issues.filter(i => i.severity === 'critical').length} critical &middot; {audit.issues.filter(i => i.severity === 'warning').length} warnings</p>
+                    <p className="text-sm text-gray-500">{audit.issues.filter(i => i.severity === 'critical').length} critical &middot; {audit.issues.filter(i => i.severity === 'warning').length} warnings</p>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4 flex-wrap">
-                  <button onClick={downloadReport} className="flex items-center gap-1.5 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs font-medium hover:bg-white/20"><Download size={14} /> Download</button>
-                  <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(audit, null, 2)); toast.success('Copied!') }} className="flex items-center gap-1.5 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs font-medium hover:bg-white/20"><Share2 size={14} /> Copy JSON</button>
+                  <button onClick={downloadReport} className="flex items-center gap-1.5 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm font-medium hover:bg-white/20"><Download size={14} /> Download</button>
+                  <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(audit, null, 2)); toast.success('Copied!') }} className="flex items-center gap-1.5 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm font-medium hover:bg-white/20"><Share2 size={14} /> Copy JSON</button>
                 </div>
               </div>
 
               {/* Tabs */}
               <div className="flex overflow-x-auto bg-white rounded-t-xl border border-gray-200 border-b-0" style={{ scrollbarWidth: 'none' }}>
                 {['overview', 'issues', 'performance', 'aeo', 'keywords'].map(t => (
-                  <button key={t} onClick={() => setActiveTab(t)} className={`flex-shrink-0 px-4 py-3 text-xs font-medium capitalize ${activeTab === t ? 'text-brand-500 border-b-2 border-brand-500' : 'text-gray-500 border-b-2 border-transparent hover:text-gray-700'}`}>{t}</button>
+                  <button key={t} onClick={() => setActiveTab(t)} className={`flex-shrink-0 px-4 py-3 text-sm font-medium capitalize ${activeTab === t ? 'text-brand-500 border-b-2 border-brand-500' : 'text-gray-500 border-b-2 border-transparent hover:text-gray-700'}`}>{t}</button>
                 ))}
               </div>
               <div className="bg-white rounded-b-xl border border-gray-200 border-t-0 p-4 md:p-5 mb-6">
@@ -220,13 +220,13 @@ export default function SEOAuditPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                       {[{ k: 'technical', l: 'Technical', i: Shield }, { k: 'content', l: 'Content', i: FileText }, { k: 'performance', l: 'Speed', i: Zap }, { k: 'local', l: 'Local', i: Target }, { k: 'mobile', l: 'Mobile', i: Smartphone }, { k: 'aeo', l: 'AEO', i: BarChart2 }, { k: 'backlinks', l: 'Links', i: Link2 }, { k: 'gmb', l: 'GMB', i: Star }].map(c => {
                         const s = audit.scores[c.k] || 0; const I = c.i
-                        return <div key={c.k} className="bg-gray-50 rounded-xl p-3 border border-gray-100"><div className="flex items-center justify-between mb-1"><I size={14} style={{ color: scoreColor(s) }} /><span className="text-lg font-bold" style={{ color: scoreColor(s) }}>{s}</span></div><p className="text-[10px] text-gray-600 font-medium">{c.l}</p><div className="h-1 bg-gray-200 rounded-full mt-1.5"><div className="h-full rounded-full" style={{ width: `${s}%`, background: scoreColor(s) }} /></div></div>
+                        return <div key={c.k} className="bg-gray-50 rounded-xl p-3 border border-gray-100"><div className="flex items-center justify-between mb-1"><I size={14} style={{ color: scoreColor(s) }} /><span className="text-lg font-bold" style={{ color: scoreColor(s) }}>{s}</span></div><p className="text-[13px] text-gray-600 font-medium">{c.l}</p><div className="h-1 bg-gray-200 rounded-full mt-1.5"><div className="h-full rounded-full" style={{ width: `${s}%`, background: scoreColor(s) }} /></div></div>
                       })}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {[{ l: 'SSL', v: audit.pageData?.hasSSL }, { l: 'Schema', v: audit.pageData?.hasSchema }, { l: 'OG Tags', v: audit.pageData?.hasOG }, { l: 'Canonical', v: audit.pageData?.hasCanonical }].map(d => (
                         <div key={d.l} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
-                          <span className="text-xs text-gray-600">{d.l}</span>
+                          <span className="text-sm text-gray-600">{d.l}</span>
                           {d.v ? <CheckCircle size={14} className="text-green-500" /> : <X size={14} className="text-red-500" />}
                         </div>
                       ))}
@@ -240,15 +240,15 @@ export default function SEOAuditPage() {
                         <button onClick={() => setExpanded(expanded === i ? null : i)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                           <div className="flex-1 min-w-0 mr-2">
                             <p className="text-sm font-semibold text-gray-800">{issue.title}</p>
-                            <p className="text-xs text-gray-500">{issue.category} &middot; {issue.effort || 'medium'} effort</p>
+                            <p className="text-sm text-gray-500">{issue.category} &middot; {issue.effort || 'medium'} effort</p>
                           </div>
                           {expanded === i ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
                         </button>
                         {expanded === i && (
                           <div className="px-4 pb-3 space-y-2">
-                            {issue.impact && <p className="text-xs text-gray-600"><strong>Impact:</strong> {issue.impact}</p>}
-                            <p className="text-xs text-gray-600"><strong>Description:</strong> {issue.description}</p>
-                            {issue.fix && <div className="bg-white rounded-lg p-2.5 text-xs text-gray-700"><strong>Fix:</strong> {issue.fix}</div>}
+                            {issue.impact && <p className="text-sm text-gray-600"><strong>Impact:</strong> {issue.impact}</p>}
+                            <p className="text-sm text-gray-600"><strong>Description:</strong> {issue.description}</p>
+                            {issue.fix && <div className="bg-white rounded-lg p-2.5 text-sm text-gray-700"><strong>Fix:</strong> {issue.fix}</div>}
                           </div>
                         )}
                       </div>
@@ -261,7 +261,7 @@ export default function SEOAuditPage() {
                       {[{ l: 'Performance', v: audit.pageSpeed.performance }, { l: 'SEO', v: audit.pageSpeed.seo }, { l: 'Accessibility', v: audit.pageSpeed.accessibility }, { l: 'Best Practices', v: audit.pageSpeed.bestPractices }].map(m => (
                         <div key={m.l} className="text-center bg-gray-50 rounded-xl p-4 border border-gray-100">
                           <p className="text-3xl font-bold" style={{ color: scoreColor(m.v || 0) }}>{m.v ?? '—'}</p>
-                          <p className="text-[10px] text-gray-500 mt-1">{m.l}</p>
+                          <p className="text-[13px] text-gray-500 mt-1">{m.l}</p>
                         </div>
                       ))}
                     </div>
@@ -269,7 +269,7 @@ export default function SEOAuditPage() {
                       {[{ l: 'FCP', v: audit.pageSpeed.fcp }, { l: 'LCP', v: audit.pageSpeed.lcp }, { l: 'CLS', v: audit.pageSpeed.cls }, { l: 'TBT', v: audit.pageSpeed.tbt }].map(m => (
                         <div key={m.l} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                           <p className="text-lg font-bold text-gray-800">{m.v}</p>
-                          <p className="text-[10px] text-gray-500">{m.l}</p>
+                          <p className="text-[13px] text-gray-500">{m.l}</p>
                         </div>
                       ))}
                     </div>
@@ -288,16 +288,16 @@ export default function SEOAuditPage() {
                       </div>
                     </div>
                     {audit.aeoAnalysis && <div className="bg-gray-50 rounded-xl p-4 mb-3"><p className="text-sm text-gray-700 leading-relaxed">{audit.aeoAnalysis}</p></div>}
-                    {audit.schemaOpps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Schema Opportunities</p>{audit.schemaOpps.map((s, i) => <p key={i} className="text-xs text-gray-600 flex items-center gap-2 mb-1"><CheckCircle size={12} className="text-purple-500" /> {s}</p>)}</div>}
+                    {audit.schemaOpps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Schema Opportunities</p>{audit.schemaOpps.map((s, i) => <p key={i} className="text-sm text-gray-600 flex items-center gap-2 mb-1"><CheckCircle size={12} className="text-purple-500" /> {s}</p>)}</div>}
                   </div>
                 )}
                 {activeTab === 'keywords' && (
                   <div>
                     {audit.keywordOpps.length > 0 && <div className="mb-4"><p className="text-sm font-semibold text-gray-800 mb-2">Keyword Opportunities</p>{audit.keywordOpps.map((k, i) => (
-                      <div key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 mb-2"><div><p className="text-sm font-medium text-gray-800">{k.keyword}</p><p className="text-[10px] text-gray-500">{k.intent} &middot; {k.opportunity}</p></div><span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${k.difficulty === 'low' ? 'bg-green-100 text-green-700' : k.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{k.difficulty}</span></div>
+                      <div key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 mb-2"><div><p className="text-sm font-medium text-gray-800">{k.keyword}</p><p className="text-[13px] text-gray-500">{k.intent} &middot; {k.opportunity}</p></div><span className={`text-[13px] px-2 py-0.5 rounded-full font-semibold ${k.difficulty === 'low' ? 'bg-green-100 text-green-700' : k.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{k.difficulty}</span></div>
                     ))}</div>}
-                    {audit.contentGaps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Content Gaps</p>{audit.contentGaps.map((g, i) => <p key={i} className="text-xs text-orange-700 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg px-3 py-2 mb-1">{g}</p>)}</div>}
-                    {audit.trafficOpp && <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 text-center mt-4"><TrendingUp size={24} className="text-brand-500 mx-auto mb-2" /><p className="text-lg font-bold text-brand-600">{audit.trafficOpp}</p><p className="text-xs text-brand-400">Estimated additional traffic if issues fixed</p></div>}
+                    {audit.contentGaps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Content Gaps</p>{audit.contentGaps.map((g, i) => <p key={i} className="text-sm text-orange-700 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg px-3 py-2 mb-1">{g}</p>)}</div>}
+                    {audit.trafficOpp && <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 text-center mt-4"><TrendingUp size={24} className="text-brand-500 mx-auto mb-2" /><p className="text-lg font-bold text-brand-600">{audit.trafficOpp}</p><p className="text-sm text-brand-400">Estimated additional traffic if issues fixed</p></div>}
                   </div>
                 )}
               </div>

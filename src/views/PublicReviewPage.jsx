@@ -61,7 +61,7 @@ function ClientBubble({ x, y, text, isNew, annotation, onSubmit, onCancel, onDra
           style={{ cursor: 'grab' }} onMouseDown={handleDragStart}>
           <div className="flex items-center gap-2">
             <GripHorizontal size={12} className="text-gray-300" />
-            <span className="text-xs font-medium text-gray-500">{isNew ? 'Add Comment' : 'Edit Comment'}</span>
+            <span className="text-sm font-medium text-gray-500">{isNew ? 'Add Comment' : 'Edit Comment'}</span>
           </div>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X size={14} /></button>
         </div>
@@ -70,9 +70,9 @@ function ClientBubble({ x, y, text, isNew, annotation, onSubmit, onCancel, onDra
             className="w-full text-sm border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
             rows={3} placeholder="Describe the change needed... (Enter to send)" />
           <div className="flex items-center justify-end mt-2 gap-2">
-            <button onClick={onCancel} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1">Cancel</button>
+            <button onClick={onCancel} className="text-sm text-gray-500 hover:text-gray-700 px-2 py-1">Cancel</button>
             <button onClick={() => value.trim() && onSubmit(value.trim())} disabled={!value.trim()}
-              className="text-xs bg-brand-500 text-white px-3 py-1.5 rounded-lg hover:bg-brand-600 disabled:opacity-40 transition-colors font-medium">
+              className="text-sm bg-brand-500 text-white px-3 py-1.5 rounded-lg hover:bg-brand-600 disabled:opacity-40 transition-colors font-medium">
               Send
             </button>
           </div>
@@ -360,13 +360,13 @@ export default function PublicReviewPage() {
             </div>
             <div>
               <h1 className="font-semibold text-gray-900">Password Required</h1>
-              <p className="text-xs text-gray-500">{project?.name}</p>
+              <p className="text-sm text-gray-500">{project?.name}</p>
             </div>
           </div>
           <form onSubmit={handlePasswordSubmit} className="space-y-3">
             <input className="input" type="password" placeholder="Enter access password\u2026" value={password}
               onChange={e => { setPassword(e.target.value); setPwError('') }} autoFocus />
-            {pwError && <p className="text-xs text-red-500">{pwError}</p>}
+            {pwError && <p className="text-sm text-red-500">{pwError}</p>}
             <button type="submit" className="btn-primary w-full justify-center">Access Review</button>
           </form>
         </div>
@@ -394,15 +394,15 @@ export default function PublicReviewPage() {
         <div className="text-sm text-white font-medium truncate flex-1">{file?.name}</div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-[10px] md:text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded-lg">
+          <span className="text-[13px] md:text-sm text-gray-400 bg-gray-800 px-2 py-1 rounded-lg">
             R{Math.min(currentRound, maxRounds)}/{maxRounds}
           </span>
 
           {project?.due_date && (() => {
             const days = differenceInDays(new Date(project.due_date), new Date())
-            if (days < 0) return <span className="text-[10px] bg-red-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 animate-pulse"><AlertTriangle size={9} /> Overdue</span>
-            if (days === 0) return <span className="text-[10px] bg-red-500 text-white px-2 py-1 rounded-lg animate-pulse">Due today!</span>
-            if (days <= 3) return <span className="text-[10px] bg-amber-500 text-white px-2 py-1 rounded-lg">{days}d left</span>
+            if (days < 0) return <span className="text-[13px] bg-red-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 animate-pulse"><AlertTriangle size={9} /> Overdue</span>
+            if (days === 0) return <span className="text-[13px] bg-red-500 text-white px-2 py-1 rounded-lg animate-pulse">Due today!</span>
+            if (days <= 3) return <span className="text-[13px] bg-amber-500 text-white px-2 py-1 rounded-lg">{days}d left</span>
             return null
           })()}
 
@@ -410,24 +410,24 @@ export default function PublicReviewPage() {
           <button onClick={async () => {
             await supabase.functions.invoke('send-email', { body: { type: 'client_notify_agency', project_name: project?.name, client_name: authorName || 'Client', review_url: window.location.href } })
             toast.success('Agency notified!')
-          }} className="bg-brand-500 hover:bg-brand-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+          }} className="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
             <Send size={11} /> Notify Agency
           </button>
 
           {/* Record button */}
           {recording ? (
-            <button onClick={stopRecording} className="bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
+            <button onClick={stopRecording} className="bg-red-500 text-white text-sm font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 animate-pulse">
               <StopCircle size={11} /> {formatRecTime(recordingTime)}
             </button>
           ) : (
-            <button onClick={startRecording} className="text-xs text-gray-400 bg-gray-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors">
+            <button onClick={startRecording} className="text-sm text-gray-400 bg-gray-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1 hover:bg-gray-700 transition-colors">
               <Video size={11} /> <span className="hidden md:inline">Record</span>
             </button>
           )}
 
           {!roundsExhausted && !isMobile && (
             <button onClick={() => setShowSubmitModal(true)} disabled={unsubmittedCount === 0}
-              className="bg-green-500 hover:bg-green-600 disabled:opacity-40 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              className="bg-green-500 hover:bg-green-600 disabled:opacity-40 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
               <Send size={11} /> Submit ({unsubmittedCount})
             </button>
           )}
@@ -435,7 +435,7 @@ export default function PublicReviewPage() {
       </div>
 
       {/* Tool hint bar — hide on mobile */}
-      <div className="text-white px-5 py-2 items-center gap-3 text-xs flex-shrink-0 hidden md:flex" style={{ background: project?.brand_color || '#ea2729' }}>
+      <div className="text-white px-5 py-2 items-center gap-3 text-sm flex-shrink-0 hidden md:flex" style={{ background: project?.brand_color || '#ea2729' }}>
         <span className="font-medium">How to leave feedback:</span>
         <span className="text-brand-100">1. Enter your name below &middot; 2. Click a tool and click on the design &middot; 3. Type your comment and hit Enter</span>
       </div>
@@ -443,8 +443,8 @@ export default function PublicReviewPage() {
       {roundsExhausted && (
         <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: 'linear-gradient(135deg, #ea2729, #dc2626)' }}>
           <span>All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} complete</span>
-          <a href="https://www.moose.ai/contact" target="_blank" rel="noreferrer" className="bg-white text-brand-600 font-semibold text-xs px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
-          <a href="https://www.moose.ai/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-xs px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>
+          <a href="https://www.moose.ai/contact" target="_blank" rel="noreferrer" className="bg-white text-brand-600 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
+          <a href="https://www.moose.ai/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>
         </div>
       )}
 
@@ -509,14 +509,14 @@ export default function PublicReviewPage() {
           <div className="absolute bottom-3 right-3 z-30 flex flex-col gap-2 items-end">
             {!roundsExhausted && unsubmittedCount > 0 && (
               <button onClick={() => setShowSubmitModal(true)}
-                className="bg-green-500 text-white font-bold text-xs px-4 py-3 rounded-full shadow-lg flex items-center gap-1.5">
+                className="bg-green-500 text-white font-bold text-sm px-4 py-3 rounded-full shadow-lg flex items-center gap-1.5">
                 <Send size={13} /> Submit ({unsubmittedCount})
               </button>
             )}
             <button onClick={() => setSidebarOpen(!sidebarOpen)}
               className="w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-white border border-gray-200 text-gray-700">
               <MessageSquare size={18} />
-              {annotations.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{annotations.length}</span>}
+              {annotations.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white text-[12px] font-bold rounded-full flex items-center justify-center">{annotations.length}</span>}
             </button>
           </div>
         )}
@@ -540,12 +540,12 @@ export default function PublicReviewPage() {
           )}
 
           <div className="p-4 border-b border-gray-100 flex-shrink-0">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Your name</p>
+            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Your name</p>
             <input className="input text-sm" placeholder="Enter your name\u2026" value={authorName}
               onChange={e => setAuthorName(e.target.value)} />
             <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-400">Click a tool, then click on the design.</p>
-              <button onClick={() => setShowTemplates(!showTemplates)} className="text-[10px] text-brand-500 hover:text-brand-700 font-medium">Templates</button>
+              <p className="text-sm text-gray-400">Click a tool, then click on the design.</p>
+              <button onClick={() => setShowTemplates(!showTemplates)} className="text-[13px] text-brand-500 hover:text-brand-700 font-medium">Templates</button>
             </div>
             <div className="flex gap-1 mt-3">
               {[
@@ -555,7 +555,7 @@ export default function PublicReviewPage() {
                 { key: 'rect', label: '\u25ad Box', title: 'Draw box' },
               ].map(t => (
                 <button key={t.key} onClick={() => setTool(t.key)} title={t.title} disabled={roundsExhausted}
-                  className={`flex-1 text-xs py-1.5 rounded-lg border transition-colors ${
+                  className={`flex-1 text-sm py-1.5 rounded-lg border transition-colors ${
                     tool === t.key && !roundsExhausted
                       ? 'bg-brand-50 border-brand-300 text-brand-700 font-medium'
                       : 'border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40'
@@ -585,7 +585,7 @@ export default function PublicReviewPage() {
                 <Send size={15} />
                 {unsubmittedCount > 0 ? `SUBMIT CHANGES (${unsubmittedCount})` : 'Add comments, then submit'}
               </button>
-              <p className="text-[10px] text-brand-600 text-center mt-2 font-medium">
+              <p className="text-[13px] text-brand-600 text-center mt-2 font-medium">
                 {unsubmittedCount > 0
                   ? `Click to review and submit your feedback to ${project?.brand_name || 'Moose'}`
                   : 'Use the tools above to add your feedback first'}
@@ -593,8 +593,8 @@ export default function PublicReviewPage() {
             </div>
           ) : (
             <div className="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0 text-center">
-              <p className="text-xs text-gray-500 font-medium">All revision rounds complete</p>
-              <p className="text-[10px] text-gray-400 mt-1">Contact {project?.brand_name || 'Moose'} for additional revisions</p>
+              <p className="text-sm text-gray-500 font-medium">All revision rounds complete</p>
+              <p className="text-[13px] text-gray-400 mt-1">Contact {project?.brand_name || 'Moose'} for additional revisions</p>
             </div>
           )}
         </div>

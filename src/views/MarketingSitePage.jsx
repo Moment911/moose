@@ -19,7 +19,7 @@ function Btn({ children, variant='primary', size='md', onClick, href, style={} }
     cursor:'pointer', borderRadius:12, textDecoration:'none', border:'none',
     transition:'all .15s', fontFamily:'inherit',
     ...(size==='lg' ? { padding:'16px 32px', fontSize:17 } :
-        size==='sm' ? { padding:'8px 16px', fontSize:13 } :
+        size==='sm' ? { padding:'8px 16px', fontSize:15 } :
                       { padding:'12px 24px', fontSize:15 }),
     ...(variant==='primary' ? { background:ACCENT, color:'#fff', boxShadow:`0 6px 24px ${ACCENT}40` } :
         variant==='dark'    ? { background:DARK2, color:'#fff', boxShadow:'0 4px 16px rgba(0,0,0,.3)' } :
@@ -36,7 +36,7 @@ function Btn({ children, variant='primary', size='md', onClick, href, style={} }
 
 function Badge({ children, color=ACCENT }) {
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:12, fontWeight:800, color, background:color+'15', border:`1px solid ${color}30`, borderRadius:20, padding:'4px 14px', textTransform:'uppercase', letterSpacing:'.06em' }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:14, fontWeight:800, color, background:color+'15', border:`1px solid ${color}30`, borderRadius:20, padding:'4px 14px', textTransform:'uppercase', letterSpacing:'.06em' }}>
       {children}
     </span>
   )
@@ -63,7 +63,7 @@ function Nav({ onLogin }) {
           <img src="/moose-logo.svg" alt="Moose AI" style={{ height:28, filter:'brightness(0) invert(1)' }} />
         </div>
         <div style={{ flex:1, display:'flex', gap:28, justifyContent:'center' }}>
-          {links.map(l => <a key={l} href={`#${l.toLowerCase().replace(/ /g,'-')}`} style={{ fontSize:14, fontWeight:500, color:'rgba(255,255,255,.7)', textDecoration:'none', transition:'color .15s' }} onMouseEnter={e=>e.target.style.color='#fff'} onMouseLeave={e=>e.target.style.color='rgba(255,255,255,.7)'}>{l}</a>)}
+          {links.map(l => <a key={l} href={`#${l.toLowerCase().replace(/ /g,'-')}`} style={{ fontSize:15, fontWeight:600, color:'rgba(255,255,255,.7)', textDecoration:'none', transition:'color .15s' }} onMouseEnter={e=>e.target.style.color='#fff'} onMouseLeave={e=>e.target.style.color='rgba(255,255,255,.7)'}>{l}</a>)}
         </div>
         <div style={{ display:'flex', gap:10 }}>
           <Btn variant="ghost" size="sm" onClick={onLogin}>Sign In</Btn>
@@ -117,7 +117,7 @@ function Hero({ onLogin }) {
           ].map(s => (
             <div key={s.label} style={{ textAlign:'center' }}>
               <div style={{ fontSize:28, fontWeight:900, color:'#fff' }}>{s.n}</div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', marginTop:2 }}>{s.label}</div>
+              <div style={{ fontSize:14, color:'rgba(255,255,255,.4)', marginTop:2 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -130,7 +130,7 @@ function Hero({ onLogin }) {
               <div style={{ background:'#0a0a0d', padding:'12px 16px', display:'flex', alignItems:'center', gap:8, borderBottom:'1px solid rgba(255,255,255,.06)' }}>
                 {['#ff5f57','#febc2e','#28c840'].map(c=><div key={c} style={{ width:10, height:10, borderRadius:'50%', background:c }}/>)}
                 <div style={{ flex:1, background:'rgba(255,255,255,.05)', borderRadius:6, height:24, marginLeft:12, display:'flex', alignItems:'center', paddingLeft:12 }}>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,.3)' }}>app.youragency.com</span>
+                  <span style={{ fontSize:13, color:'rgba(255,255,255,.3)' }}>app.youragency.com</span>
                 </div>
               </div>
               {/* Dashboard preview */}
@@ -138,38 +138,38 @@ function Hero({ onLogin }) {
                 {/* Sidebar */}
                 <div style={{ background:'#111113', borderRight:'1px solid rgba(255,255,255,.06)', padding:'16px 12px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:24, padding:'0 8px' }}>
-                    <div style={{ width:28, height:28, borderRadius:7, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#fff' }}>Y</div>
+                    <div style={{ width:28, height:28, borderRadius:7, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, color:'#fff' }}>Y</div>
                     <div>
-                      <div style={{ fontSize:11, fontWeight:700, color:'#fff' }}>Your Agency</div>
-                      <div style={{ fontSize:9, color:'rgba(255,255,255,.3)' }}>White-labeled</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>Your Agency</div>
+                      <div style={{ fontSize:12, color:'rgba(255,255,255,.3)' }}>White-labeled</div>
                     </div>
                   </div>
                   {['Project Hub','Clients','Scout','AI Agents','Social Planner','Reporting','Payments'].map((item, i) => (
                     <div key={item} style={{ padding:'8px 10px', borderRadius:8, marginBottom:2, background: i===1?'rgba(232,85,26,.15)':'transparent', display:'flex', alignItems:'center', gap:8 }}>
                       <div style={{ width:6, height:6, borderRadius:'50%', background: i===1?ACCENT:'rgba(255,255,255,.15)' }}/>
-                      <span style={{ fontSize:12, color: i===1?ACCENT:'rgba(255,255,255,.45)', fontWeight: i===1?700:400 }}>{item}</span>
+                      <span style={{ fontSize:14, color: i===1?ACCENT:'rgba(255,255,255,.45)', fontWeight: i===1?700:400 }}>{item}</span>
                     </div>
                   ))}
                 </div>
                 {/* Main area */}
                 <div style={{ padding:20, overflow:'hidden' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>Clients — 18 Active</div>
-                    <div style={{ fontSize:11, padding:'4px 10px', borderRadius:7, background:ACCENT+'20', color:ACCENT, fontWeight:700 }}>+ Add Client</div>
+                    <div style={{ fontSize:15, fontWeight:700, color:'#fff' }}>Clients — 18 Active</div>
+                    <div style={{ fontSize:13, padding:'4px 10px', borderRadius:7, background:ACCENT+'20', color:ACCENT, fontWeight:700 }}>+ Add Client</div>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
                     {['Acme Plumbing','Miami Dental','FitLife Gym','Sunrise HVAC','LexGroup Law','GreenThumb Co'].map((name,i) => (
                       <div key={name} style={{ background:'rgba(255,255,255,.04)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,.07)' }}>
-                        <div style={{ width:24, height:24, borderRadius:6, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:'#fff', marginBottom:6 }}>{name[0]}</div>
-                        <div style={{ fontSize:11, fontWeight:600, color:'#fff', marginBottom:2 }}>{name}</div>
-                        <div style={{ fontSize:9, color:'rgba(255,255,255,.3)' }}>{['Active','Onboarding','Active','Active','Onboarding','Active'][i]}</div>
+                        <div style={{ width:24, height:24, borderRadius:6, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'#fff', marginBottom:6 }}>{name[0]}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:2 }}>{name}</div>
+                        <div style={{ fontSize:12, color:'rgba(255,255,255,.3)' }}>{['Active','Onboarding','Active','Active','Onboarding','Active'][i]}</div>
                       </div>
                     ))}
                   </div>
                   {/* AI activity pulse */}
                   <div style={{ marginTop:14, background:'rgba(232,85,26,.08)', border:'1px solid rgba(232,85,26,.2)', borderRadius:10, padding:'10px 14px', display:'flex', alignItems:'center', gap:10 }}>
                     <div style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', animation:'pulse 1.5s infinite' }}/>
-                    <span style={{ fontSize:11, color:'rgba(255,255,255,.6)' }}>AI generated 3 social posts, responded to 7 reviews, sent 12 follow-up emails today</span>
+                    <span style={{ fontSize:13, color:'rgba(255,255,255,.6)' }}>AI generated 3 social posts, responded to 7 reviews, sent 12 follow-up emails today</span>
                   </div>
                 </div>
               </div>
@@ -212,10 +212,10 @@ function HowItWorks() {
               <div key={s.n} style={{ textAlign:'center' }}>
                 <div style={{ width:80, height:80, borderRadius:'50%', background: i===2?ACCENT:'#f9fafb', border: `2px solid ${i===2?ACCENT:'#e5e7eb'}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', fontSize:32, boxShadow: i===2?`0 8px 24px ${ACCENT}35`:'none', position:'relative' }}>
                   {s.icon}
-                  <div style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:900, color:'#fff' }}>{s.n}</div>
+                  <div style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:900, color:'#fff' }}>{s.n}</div>
                 </div>
                 <h3 style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8, lineHeight:1.3 }}>{s.title}</h3>
-                <p style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>{s.desc}</p>
+                <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>{s.desc}</p>
               </div>
             ))}
           </div>
@@ -278,10 +278,10 @@ function Features() {
               onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none' }}>
               <div style={{ fontSize:36, marginBottom:16 }}>{f.icon}</div>
               <h3 style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:10, letterSpacing:-.3 }}>{f.title}</h3>
-              <p style={{ fontSize:14, color:'#6b7280', lineHeight:1.65, marginBottom:18 }}>{f.desc}</p>
+              <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.65, marginBottom:18 }}>{f.desc}</p>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {f.bullets.map(b => (
-                  <div key={b} style={{ display:'flex', gap:10, fontSize:13, color:'#374151' }}>
+                  <div key={b} style={{ display:'flex', gap:10, fontSize:15, color:'#374151' }}>
                     <div style={{ width:18, height:18, borderRadius:'50%', background:f.color+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                       <Check size={10} color={f.color} strokeWidth={3}/>
                     </div>
@@ -348,12 +348,12 @@ function Pricing() {
           </p>
           {/* Annual toggle */}
           <div style={{ display:'inline-flex', alignItems:'center', gap:12, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.1)', borderRadius:40, padding:'8px 16px' }}>
-            <span style={{ fontSize:14, color: !annual?'#fff':'rgba(255,255,255,.4)', fontWeight: !annual?700:400 }}>Monthly</span>
+            <span style={{ fontSize:15, color: !annual?'#fff':'rgba(255,255,255,.4)', fontWeight: !annual?700:400 }}>Monthly</span>
             <div onClick={() => setAnnual(a=>!a)} style={{ width:44, height:24, borderRadius:12, background: annual?ACCENT:'rgba(255,255,255,.15)', cursor:'pointer', position:'relative', transition:'background .2s' }}>
               <div style={{ position:'absolute', top:3, left: annual?22:3, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 4px rgba(0,0,0,.3)' }}/>
             </div>
-            <span style={{ fontSize:14, color: annual?'#fff':'rgba(255,255,255,.4)', fontWeight: annual?700:400 }}>Annual</span>
-            {annual && <span style={{ fontSize:11, fontWeight:800, color:'#22c55e', background:'rgba(34,197,94,.15)', padding:'2px 8px', borderRadius:20 }}>Save 17%</span>}
+            <span style={{ fontSize:15, color: annual?'#fff':'rgba(255,255,255,.4)', fontWeight: annual?700:400 }}>Annual</span>
+            {annual && <span style={{ fontSize:13, fontWeight:800, color:'#22c55e', background:'rgba(34,197,94,.15)', padding:'2px 8px', borderRadius:20 }}>Save 17%</span>}
           </div>
         </div>
 
@@ -362,8 +362,8 @@ function Pricing() {
             <div key={plan.name} style={{ background: plan.popular?'#fff':'rgba(255,255,255,.04)', borderRadius:20, border: plan.popular?`2px solid ${ACCENT}`:'1px solid rgba(255,255,255,.1)', padding:'28px 24px', position:'relative', transition:'transform .15s' }}
               onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'}
               onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}>
-              {plan.popular && <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', fontSize:11, fontWeight:800, color:'#fff', background:ACCENT, borderRadius:20, padding:'3px 14px', whiteSpace:'nowrap' }}>MOST POPULAR</div>}
-              <div style={{ fontSize:13, fontWeight:700, color: plan.popular?'#6b7280':'rgba(255,255,255,.5)', marginBottom:8 }}>{plan.name}</div>
+              {plan.popular && <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', fontSize:13, fontWeight:800, color:'#fff', background:ACCENT, borderRadius:20, padding:'3px 14px', whiteSpace:'nowrap' }}>MOST POPULAR</div>}
+              <div style={{ fontSize:15, fontWeight:700, color: plan.popular?'#6b7280':'rgba(255,255,255,.5)', marginBottom:8 }}>{plan.name}</div>
               <div style={{ marginBottom:12 }}>
                 {plan.price ? (
                   <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
@@ -374,15 +374,15 @@ function Pricing() {
                   <div style={{ fontSize:36, fontWeight:900, color:'#fff', letterSpacing:-1 }}>Custom</div>
                 )}
               </div>
-              <p style={{ fontSize:13, color: plan.popular?'#6b7280':'rgba(255,255,255,.45)', lineHeight:1.6, marginBottom:20 }}>{plan.desc}</p>
+              <p style={{ fontSize:15, color: plan.popular?'#6b7280':'rgba(255,255,255,.45)', lineHeight:1.6, marginBottom:20 }}>{plan.desc}</p>
               <div style={{ display:'flex', gap:12, marginBottom:24 }}>
                 {[`${plan.seats} seats`, `${plan.clients} clients`].map(badge => (
-                  <span key={badge} style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background: plan.popular?`${ACCENT}15`:'rgba(255,255,255,.08)', color: plan.popular?ACCENT:'rgba(255,255,255,.6)' }}>{badge}</span>
+                  <span key={badge} style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background: plan.popular?`${ACCENT}15`:'rgba(255,255,255,.08)', color: plan.popular?ACCENT:'rgba(255,255,255,.6)' }}>{badge}</span>
                 ))}
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:9, marginBottom:24 }}>
                 {plan.features.map(f => (
-                  <div key={f} style={{ display:'flex', gap:9, fontSize:13, color: plan.popular?'#374151':'rgba(255,255,255,.65)', alignItems:'flex-start' }}>
+                  <div key={f} style={{ display:'flex', gap:9, fontSize:15, color: plan.popular?'#374151':'rgba(255,255,255,.65)', alignItems:'flex-start' }}>
                     <Check size={14} color={plan.popular?ACCENT:'#22c55e'} strokeWidth={3} style={{ flexShrink:0, marginTop:1 }}/>
                     {f}
                   </div>
@@ -396,7 +396,7 @@ function Pricing() {
           ))}
         </div>
 
-        <div style={{ textAlign:'center', marginTop:40, fontSize:14, color:'rgba(255,255,255,.35)' }}>
+        <div style={{ textAlign:'center', marginTop:40, fontSize:15, color:'rgba(255,255,255,.35)' }}>
           All plans include: 99.9% uptime SLA · SOC 2 compliant data storage · GDPR ready · Cancel anytime
         </div>
       </div>
@@ -428,10 +428,10 @@ function Testimonials() {
               </div>
               <p style={{ fontSize:15, color:'#374151', lineHeight:1.75, marginBottom:20, fontStyle:'italic' }}>"{t.text}"</p>
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{ width:40, height:40, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#fff' }}>{t.avatar}</div>
+                <div style={{ width:40, height:40, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, color:'#fff' }}>{t.avatar}</div>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{t.name}</div>
-                  <div style={{ fontSize:12, color:'#9ca3af' }}>{t.role}</div>
+                  <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{t.name}</div>
+                  <div style={{ fontSize:14, color:'#9ca3af' }}>{t.role}</div>
                 </div>
               </div>
             </div>
@@ -507,7 +507,7 @@ function CTA({ onLogin }) {
         </div>
         <div style={{ marginTop:40, display:'flex', gap:24, justifyContent:'center', flexWrap:'wrap' }}>
           {['✓ 14-day free trial', '✓ No credit card', '✓ Cancel anytime', '✓ White-label ready on day 1'].map(t => (
-            <span key={t} style={{ fontSize:13, color:'rgba(255,255,255,.4)', fontWeight:500 }}>{t}</span>
+            <span key={t} style={{ fontSize:15, color:'rgba(255,255,255,.4)', fontWeight:600 }}>{t}</span>
           ))}
         </div>
       </div>
@@ -523,9 +523,9 @@ function Footer() {
         <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:48, marginBottom:48 }}>
           <div>
             <img src="/moose-logo.svg" alt="Moose AI" style={{ height:28, filter:'brightness(0) invert(1)', marginBottom:16 }} />
-            <p style={{ fontSize:14, color:'rgba(255,255,255,.35)', lineHeight:1.7, maxWidth:280 }}>The AI-powered agency platform for marketing agencies who want to scale without scaling their headcount.</p>
+            <p style={{ fontSize:15, color:'rgba(255,255,255,.35)', lineHeight:1.7, maxWidth:280 }}>The AI-powered agency platform for marketing agencies who want to scale without scaling their headcount.</p>
             <div style={{ display:'flex', gap:12, marginTop:20 }}>
-              {['Twitter','LinkedIn','YouTube'].map(s => <a key={s} href="#" style={{ fontSize:12, color:'rgba(255,255,255,.3)', textDecoration:'none' }}>{s}</a>)}
+              {['Twitter','LinkedIn','YouTube'].map(s => <a key={s} href="#" style={{ fontSize:14, color:'rgba(255,255,255,.3)', textDecoration:'none' }}>{s}</a>)}
             </div>
           </div>
           {[
@@ -534,14 +534,14 @@ function Footer() {
             { label:'Legal', links:['Privacy Policy','Terms of Service','Security','GDPR','Cookie Policy'] },
           ].map(col => (
             <div key={col.label}>
-              <div style={{ fontSize:12, fontWeight:800, color:'rgba(255,255,255,.25)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>{col.label}</div>
-              {col.links.map(l => <a key={l} href="#" style={{ display:'block', fontSize:14, color:'rgba(255,255,255,.45)', textDecoration:'none', marginBottom:10 }}>{l}</a>)}
+              <div style={{ fontSize:14, fontWeight:800, color:'rgba(255,255,255,.25)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>{col.label}</div>
+              {col.links.map(l => <a key={l} href="#" style={{ display:'block', fontSize:15, color:'rgba(255,255,255,.45)', textDecoration:'none', marginBottom:10 }}>{l}</a>)}
             </div>
           ))}
         </div>
         <div style={{ borderTop:'1px solid rgba(255,255,255,.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:13, color:'rgba(255,255,255,.2)' }}>© 2026 Moose AI Inc. All rights reserved.</span>
-          <span style={{ fontSize:13, color:'rgba(255,255,255,.2)' }}>Powered by Claude AI</span>
+          <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>© 2026 Moose AI Inc. All rights reserved.</span>
+          <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>Powered by Claude AI</span>
         </div>
       </div>
     </footer>

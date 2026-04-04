@@ -150,7 +150,7 @@ function StatusPill({ status }) {
   }[status] || { color:'#9ca3af', bg:'#f9fafb', label:'To Do', icon: Circle }
   const Icon = cfg.icon
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:20, background:cfg.bg, fontSize:11, fontWeight:700, color:cfg.color }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:20, background:cfg.bg, fontSize:13, fontWeight:700, color:cfg.color }}>
       <Icon size={11}/> {cfg.label}
     </span>
   )
@@ -179,11 +179,11 @@ function IframeViewer({ url, step, tutorialStep }) {
         <div style={{ display:'flex', gap:6 }}>
           {['#ff5f57','#ffbd2e','#28c840'].map(c=><div key={c} style={{ width:12, height:12, borderRadius:'50%', background:c }}/>)}
         </div>
-        <div style={{ flex:1, background:'#fff', borderRadius:8, padding:'5px 12px', fontSize:12, color:'#6b7280', border:'1px solid #e5e7eb', fontFamily:'monospace' }}>
+        <div style={{ flex:1, background:'#fff', borderRadius:8, padding:'5px 12px', fontSize:14, color:'#6b7280', border:'1px solid #e5e7eb', fontFamily:'monospace' }}>
           {url}
         </div>
         <a href={url} target="_blank" rel="noreferrer"
-          style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, textDecoration:'none' }}>
+          style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, textDecoration:'none' }}>
           <ExternalLink size={12}/> Open
         </a>
       </div>
@@ -194,20 +194,20 @@ function IframeViewer({ url, step, tutorialStep }) {
           <step.icon size={28} color={step.color}/>
         </div>
         <div style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:8 }}>Open {step.label}</div>
-        <div style={{ fontSize:14, color:'#6b7280', lineHeight:1.7, maxWidth:380, marginBottom:24 }}>
+        <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.7, maxWidth:380, marginBottom:24 }}>
           This page requires you to be logged into {step.label.split(' ')[0]}. Click Open to launch it in a new tab, then follow the steps on the right.
         </div>
 
         {/* Current tutorial step callout */}
         {tutorialStep && (
           <div style={{ background:'#fff', borderRadius:14, border:`2px solid ${step.color}`, padding:'16px 20px', maxWidth:420, width:'100%', textAlign:'left', marginBottom:20 }}>
-            <div style={{ fontSize:11, fontWeight:800, color:step.color, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
+            <div style={{ fontSize:13, fontWeight:800, color:step.color, textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>
               Current Step
             </div>
             <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:6 }}>{tutorialStep.label}</div>
-            <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>{tutorialStep.action}</div>
+            <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>{tutorialStep.action}</div>
             {tutorialStep.highlight && (
-              <div style={{ marginTop:10, padding:'8px 12px', background:step.color+'10', borderRadius:8, fontSize:12, color:step.color, fontWeight:600, display:'flex', alignItems:'center', gap:7 }}>
+              <div style={{ marginTop:10, padding:'8px 12px', background:step.color+'10', borderRadius:8, fontSize:14, color:step.color, fontWeight:700, display:'flex', alignItems:'center', gap:7 }}>
                 <AlertCircle size={13}/>
                 Look for: <strong>{tutorialStep.highlight}</strong>
               </div>
@@ -216,10 +216,10 @@ function IframeViewer({ url, step, tutorialStep }) {
         )}
 
         <a href={url} target="_blank" rel="noreferrer"
-          style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:12, background:step.color, color:'#fff', fontSize:14, fontWeight:700, textDecoration:'none', boxShadow:`0 4px 16px ${step.color}40` }}>
+          style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 28px', borderRadius:12, background:step.color, color:'#fff', fontSize:15, fontWeight:700, textDecoration:'none', boxShadow:`0 4px 16px ${step.color}40` }}>
           <ExternalLink size={15}/> Open {step.urlLabel || step.label}
         </a>
-        <div style={{ fontSize:12, color:'#9ca3af', marginTop:12 }}>Opens in a new tab — come back here when done</div>
+        <div style={{ fontSize:14, color:'#9ca3af', marginTop:12 }}>Opens in a new tab — come back here when done</div>
       </div>
     </div>
   )
@@ -231,9 +231,9 @@ function IframeViewer({ url, step, tutorialStep }) {
         <div style={{ display:'flex', gap:6 }}>
           {['#ff5f57','#ffbd2e','#28c840'].map(c=><div key={c} style={{ width:12, height:12, borderRadius:'50%', background:c }}/>)}
         </div>
-        <div style={{ flex:1, background:'#fff', borderRadius:8, padding:'5px 12px', fontSize:12, color:'#6b7280', border:'1px solid #e5e7eb', fontFamily:'monospace' }}>{url}</div>
+        <div style={{ flex:1, background:'#fff', borderRadius:8, padding:'5px 12px', fontSize:14, color:'#6b7280', border:'1px solid #e5e7eb', fontFamily:'monospace' }}>{url}</div>
         <a href={url} target="_blank" rel="noreferrer"
-          style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+          style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:14, fontWeight:700, textDecoration:'none' }}>
           <ExternalLink size={12}/> New Tab
         </a>
       </div>
@@ -262,10 +262,10 @@ function EnvVarRow({ varDef, value, onChange }) {
   return (
     <div style={{ marginBottom:12 }}>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-        <code style={{ fontSize:12, fontWeight:700, color:'#374151', background:'#f3f4f6', padding:'2px 8px', borderRadius:6, fontFamily:'monospace' }}>
+        <code style={{ fontSize:14, fontWeight:700, color:'#374151', background:'#f3f4f6', padding:'2px 8px', borderRadius:6, fontFamily:'monospace' }}>
           {varDef.key}
         </code>
-        <button onClick={copyKey} style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:6, border:'1px solid #e5e7eb', background:'#fff', fontSize:11, cursor:'pointer', color: copied?'#16a34a':'#6b7280' }}>
+        <button onClick={copyKey} style={{ display:'flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:6, border:'1px solid #e5e7eb', background:'#fff', fontSize:13, cursor:'pointer', color: copied?'#16a34a':'#6b7280' }}>
           {copied ? <CheckCircle size={10}/> : <Copy size={10}/>}
           {copied ? 'Copied' : 'Copy key name'}
         </button>
@@ -276,7 +276,7 @@ function EnvVarRow({ varDef, value, onChange }) {
           value={value || ''}
           onChange={e => onChange(e.target.value)}
           placeholder={varDef.placeholder}
-          style={{ flex:1, padding:'10px 14px', borderRadius:10, border:`1.5px solid ${value?'#16a34a':'#e5e7eb'}`, fontSize:13, outline:'none', fontFamily:'monospace', color:'#111', background:'#fff' }}
+          style={{ flex:1, padding:'10px 14px', borderRadius:10, border:`1.5px solid ${value?'#16a34a':'#e5e7eb'}`, fontSize:15, outline:'none', fontFamily:'monospace', color:'#111', background:'#fff' }}
         />
         <button onClick={()=>setShow(s=>!s)}
           style={{ padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center' }}>
@@ -350,17 +350,17 @@ export default function AgencySetupPage() {
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 24px', display:'flex', alignItems:'center', gap:16, flexShrink:0 }}>
           <div>
             <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>Platform Setup</div>
-            <div style={{ fontSize:12, color:'#9ca3af' }}>Owner-only — connect backend infrastructure to activate all platform features</div>
+            <div style={{ fontSize:14, color:'#9ca3af' }}>Owner-only — connect backend infrastructure to activate all platform features</div>
           </div>
           <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ fontSize:13, color:'#6b7280' }}>{totalComplete} / {SETUP_STEPS.length} connected</div>
+            <div style={{ fontSize:15, color:'#6b7280' }}>{totalComplete} / {SETUP_STEPS.length} connected</div>
             <div style={{ width:160, height:6, background:'#f3f4f6', borderRadius:3, overflow:'hidden' }}>
               <div style={{ height:'100%', width:`${progress}%`, background:ACCENT, borderRadius:3, transition:'width .4s' }}/>
             </div>
-            <div style={{ fontSize:13, fontWeight:700, color:ACCENT }}>{progress}%</div>
+            <div style={{ fontSize:15, fontWeight:700, color:ACCENT }}>{progress}%</div>
             {totalComplete >= totalRequired && (
               <button onClick={()=>navigate('/')}
-                style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                 Go to Dashboard <ArrowRight size={13}/>
               </button>
             )}
@@ -372,7 +372,7 @@ export default function AgencySetupPage() {
           {/* ── Left: step list ── */}
           <div style={{ width:260, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', overflow:'hidden' }}>
             <div style={{ padding:'16px 14px 8px', borderBottom:'1px solid #f3f4f6' }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em' }}>Connection Steps</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em' }}>Connection Steps</div>
             </div>
             <div style={{ flex:1, overflowY:'auto' }}>
               {SETUP_STEPS.map((s, i) => {
@@ -392,11 +392,11 @@ export default function AgencySetupPage() {
                         )}
                       </div>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:13, fontWeight:700, color:active?'#111':'#374151', display:'flex', alignItems:'center', gap:6 }}>
+                        <div style={{ fontSize:15, fontWeight:700, color:active?'#111':'#374151', display:'flex', alignItems:'center', gap:6 }}>
                           {s.label}
-                          {s.required && <span style={{ fontSize:9, fontWeight:800, color:ACCENT, background:'#fff7f5', padding:'1px 5px', borderRadius:4, border:`1px solid ${ACCENT}30` }}>REQ</span>}
+                          {s.required && <span style={{ fontSize:12, fontWeight:800, color:ACCENT, background:'#fff7f5', padding:'1px 5px', borderRadius:4, border:`1px solid ${ACCENT}30` }}>REQ</span>}
                         </div>
-                        <div style={{ fontSize:11, color:'#9ca3af', marginTop:1 }}>{s.sublabel}</div>
+                        <div style={{ fontSize:13, color:'#9ca3af', marginTop:1 }}>{s.sublabel}</div>
                       </div>
                       <StatusPill status={status}/>
                     </div>
@@ -405,7 +405,7 @@ export default function AgencySetupPage() {
               })}
             </div>
             <div style={{ padding:'14px 16px', borderTop:'1px solid #f3f4f6', background:'#f9fafb' }}>
-              <button onClick={()=>navigate('/')} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+              <button onClick={()=>navigate('/')} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
                 Skip for now — go to Dashboard
               </button>
             </div>
@@ -427,16 +427,16 @@ export default function AgencySetupPage() {
                 </div>
                 <div>
                   <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{step.label}</div>
-                  <div style={{ fontSize:12, color:'#9ca3af' }}>{step.sublabel}</div>
+                  <div style={{ fontSize:14, color:'#9ca3af' }}>{step.sublabel}</div>
                 </div>
                 <StatusPill status={statuses[step.id]||'pending'}/>
               </div>
-              <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.65 }}>{step.desc}</div>
+              <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.65 }}>{step.desc}</div>
             </div>
 
             {/* Tutorial steps */}
             <div style={{ padding:'16px 20px', borderBottom:'1px solid #f3f4f6', flex:'none' }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>
                 Step-by-Step Guide
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -449,13 +449,13 @@ export default function AgencySetupPage() {
                       <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
                         <div style={{ width:22, height:22, borderRadius:'50%', background:done?'#16a34a':current?step.color:'#e5e7eb', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
                           {done ? <Check size={11} color="#fff" strokeWidth={3}/>
-                               : <span style={{ fontSize:10, fontWeight:800, color:current?'#fff':'#9ca3af' }}>{i+1}</span>}
+                               : <span style={{ fontSize:13, fontWeight:800, color:current?'#fff':'#9ca3af' }}>{i+1}</span>}
                         </div>
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:13, fontWeight:done?500:700, color:done?'#9ca3af':current?'#111':'#374151', textDecoration:done?'line-through':'' }}>{t.label}</div>
-                          {current && <div style={{ fontSize:12, color:'#6b7280', lineHeight:1.5, marginTop:3 }}>{t.action}</div>}
+                          <div style={{ fontSize:15, fontWeight:done?500:700, color:done?'#9ca3af':current?'#111':'#374151', textDecoration:done?'line-through':'' }}>{t.label}</div>
+                          {current && <div style={{ fontSize:14, color:'#6b7280', lineHeight:1.5, marginTop:3 }}>{t.action}</div>}
                           {current && t.highlight && (
-                            <div style={{ marginTop:6, padding:'6px 10px', background:step.color+'12', borderRadius:7, fontSize:11, color:step.color, fontWeight:600, display:'flex', alignItems:'center', gap:6 }}>
+                            <div style={{ marginTop:6, padding:'6px 10px', background:step.color+'12', borderRadius:7, fontSize:13, color:step.color, fontWeight:700, display:'flex', alignItems:'center', gap:6 }}>
                               <AlertCircle size={11}/> Look for: {t.highlight}
                             </div>
                           )}
@@ -467,16 +467,16 @@ export default function AgencySetupPage() {
               </div>
               <div style={{ display:'flex', gap:8, marginTop:12 }}>
                 {tutStep > 0 && (
-                  <button onClick={()=>setTutStep(t=>t-1)} style={{ flex:1, padding:'8px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', fontSize:12, color:'#374151', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                  <button onClick={()=>setTutStep(t=>t-1)} style={{ flex:1, padding:'8px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', fontSize:14, color:'#374151', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
                     <ChevronLeft size={13}/> Back
                   </button>
                 )}
                 {tutStep < step.tutorial.length - 1 ? (
-                  <button onClick={()=>setTutStep(t=>t+1)} style={{ flex:1, padding:'8px', borderRadius:9, border:'none', background:step.color, cursor:'pointer', fontSize:12, color:'#fff', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                  <button onClick={()=>setTutStep(t=>t+1)} style={{ flex:1, padding:'8px', borderRadius:9, border:'none', background:step.color, cursor:'pointer', fontSize:14, color:'#fff', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
                     Next Step <ChevronRight size={13}/>
                   </button>
                 ) : (
-                  <button onClick={()=>{ setTutStep(step.tutorial.length-1) }} style={{ flex:1, padding:'8px', borderRadius:9, border:`1.5px solid ${step.color}`, background:'#fff', cursor:'pointer', fontSize:12, color:step.color, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                  <button onClick={()=>{ setTutStep(step.tutorial.length-1) }} style={{ flex:1, padding:'8px', borderRadius:9, border:`1.5px solid ${step.color}`, background:'#fff', cursor:'pointer', fontSize:14, color:step.color, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
                     <Check size={13}/> All steps done
                   </button>
                 )}
@@ -485,10 +485,10 @@ export default function AgencySetupPage() {
 
             {/* Env var inputs */}
             <div style={{ flex:1, overflowY:'auto', padding:'16px 20px' }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>
                 Vercel Environment Variables
               </div>
-              <div style={{ marginBottom:12, padding:'10px 12px', background:'#f9fafb', borderRadius:10, fontSize:12, color:'#6b7280', lineHeight:1.5 }}>
+              <div style={{ marginBottom:12, padding:'10px 12px', background:'#f9fafb', borderRadius:10, fontSize:14, color:'#6b7280', lineHeight:1.5 }}>
                 Paste your values below to keep track. Then add them to Vercel → Settings → Environment Variables.
               </div>
 
@@ -500,7 +500,7 @@ export default function AgencySetupPage() {
               ))}
 
               <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer"
-                style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#f9fafb', color:'#374151', textDecoration:'none', fontSize:12, fontWeight:600, marginTop:4 }}>
+                style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#f9fafb', color:'#374151', textDecoration:'none', fontSize:14, fontWeight:700, marginTop:4 }}>
                 <ExternalLink size={13}/> Open Vercel Environment Variables
               </a>
             </div>
@@ -508,13 +508,13 @@ export default function AgencySetupPage() {
             {/* Bottom actions */}
             <div style={{ padding:'16px 20px', borderTop:'1px solid #f3f4f6', display:'flex', flexDirection:'column', gap:8, flexShrink:0 }}>
               <button onClick={markComplete}
-                style={{ width:'100%', padding:'12px', borderRadius:12, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                style={{ width:'100%', padding:'12px', borderRadius:12, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 <CheckCircle size={16}/>
                 Mark as Connected
               </button>
               {!step.required && (
                 <button onClick={markSkipped}
-                  style={{ width:'100%', padding:'10px', borderRadius:12, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:13, cursor:'pointer' }}>
+                  style={{ width:'100%', padding:'10px', borderRadius:12, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:15, cursor:'pointer' }}>
                   Skip for now
                 </button>
               )}

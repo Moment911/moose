@@ -32,7 +32,7 @@ export default function ScoutSavedPage() {
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
         <Target size={18} className="text-orange-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
-        <span className="text-xs text-slate-400 ml-1">Saved Searches</span>
+        <span className="text-sm text-slate-400 ml-1">Saved Searches</span>
       </div>
       <div className="flex-1 overflow-auto p-6">
         {searches.length === 0 ? (
@@ -49,21 +49,21 @@ export default function ScoutSavedPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-sm font-semibold text-slate-800">{s.name || 'Untitled Search'}</h3>
-                    <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5"><Clock size={10} /> {s.created_at ? formatDistanceToNow(new Date(s.created_at), { addSuffix: true }) : ''}</p>
+                    <p className="text-[13px] text-slate-400 flex items-center gap-1 mt-0.5"><Clock size={10} /> {s.created_at ? formatDistanceToNow(new Date(s.created_at), { addSuffix: true }) : ''}</p>
                   </div>
                   <button onClick={() => handleDelete(s.id)} className="text-slate-300 hover:text-red-500"><Trash2 size={14} /></button>
                 </div>
-                <div className="flex items-center gap-3 mb-3 text-xs text-slate-500">
+                <div className="flex items-center gap-3 mb-3 text-sm text-slate-500">
                   <span>{s.result_count || 0} results</span>
                   {s.hot_count > 0 && <span className="text-red-500 flex items-center gap-1"><Flame size={11} /> {s.hot_count} hot</span>}
                   {s.warm_count > 0 && <span className="text-orange-500">{s.warm_count} warm</span>}
                 </div>
                 {(s.industries || []).length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {(s.industries || []).map(i => <span key={i} className="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{i}</span>)}
+                    {(s.industries || []).map(i => <span key={i} className="text-[12px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{i}</span>)}
                   </div>
                 )}
-                <button onClick={() => navigate('/scout')} className="w-full btn-secondary text-xs justify-center"><Play size={12} /> Run Again</button>
+                <button onClick={() => navigate('/scout')} className="w-full btn-secondary text-sm justify-center"><Play size={12} /> Run Again</button>
               </div>
             ))}
           </div>

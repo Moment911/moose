@@ -191,7 +191,7 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
           </div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:3 }}>{agent.name}</div>
-            <div style={{ fontSize:12, color:'#6b7280', lineHeight:1.5 }}>{agent.tagline}</div>
+            <div style={{ fontSize:14, color:'#6b7280', lineHeight:1.5 }}>{agent.tagline}</div>
           </div>
           {/* Toggle */}
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:5, flexShrink:0 }}>
@@ -199,7 +199,7 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
               style={{ width:48, height:26, borderRadius:13, background: enabled ? agent.color : '#d1d5db', cursor:'pointer', position:'relative', transition:'background .25s' }}>
               <div style={{ position:'absolute', top:3, left: enabled ? 24 : 3, width:20, height:20, borderRadius:'50%', background:'#fff', transition:'left .25s', boxShadow:'0 1px 4px rgba(0,0,0,.2)' }}/>
             </div>
-            <div style={{ fontSize:10, fontWeight:700, color: enabled ? agent.color : '#9ca3af' }}>
+            <div style={{ fontSize:13, fontWeight:700, color: enabled ? agent.color : '#9ca3af' }}>
               {enabled ? 'ON' : 'OFF'}
             </div>
           </div>
@@ -213,7 +213,7 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
                 <div style={{ fontSize:16, fontWeight:900, color: i===0?agent.color:'#111' }}>
                   {stats?.[i] || agent.mock_stats[i]}
                 </div>
-                <div style={{ fontSize:10, color:'#9ca3af', lineHeight:1.3, marginTop:2 }}>{label}</div>
+                <div style={{ fontSize:13, color:'#9ca3af', lineHeight:1.3, marginTop:2 }}>{label}</div>
               </div>
             ))}
           </div>
@@ -221,40 +221,40 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
 
         {/* Meta row */}
         <div style={{ display:'flex', gap:10, marginBottom:14, flexWrap:'wrap' }}>
-          <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', display:'flex', alignItems:'center', gap:5 }}>
+          <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', display:'flex', alignItems:'center', gap:5 }}>
             <Clock size={10}/> {agent.runs}
           </span>
-          <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, background:agent.color+'12', color:agent.color }}>
+          <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:agent.color+'12', color:agent.color }}>
             ${agent.price}/mo add-on
           </span>
-          {enabled && <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>● Active</span>}
+          {enabled && <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>● Active</span>}
         </div>
 
         {/* Impact callout */}
-        <div style={{ background:`linear-gradient(135deg, ${agent.color}08, transparent)`, border:`1px solid ${agent.color}20`, borderRadius:10, padding:'9px 12px', marginBottom:14, fontSize:12, color:'#374151' }}>
+        <div style={{ background:`linear-gradient(135deg, ${agent.color}08, transparent)`, border:`1px solid ${agent.color}20`, borderRadius:10, padding:'9px 12px', marginBottom:14, fontSize:14, color:'#374151' }}>
           💡 <strong>Impact:</strong> {agent.impact}
         </div>
 
         {/* How it works (expandable) */}
         <button onClick={() => setExpanded(e => !e)}
           style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'none', border:'none', cursor:'pointer', padding:0, marginBottom: expanded ? 12 : 0 }}>
-          <span style={{ fontSize:12, fontWeight:700, color:'#374151' }}>How it works</span>
+          <span style={{ fontSize:14, fontWeight:700, color:'#374151' }}>How it works</span>
           <ChevronRight size={14} color="#9ca3af" style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0)', transition:'transform .2s' }}/>
         </button>
 
         {expanded && (
           <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:14 }}>
             {agent.how.map((step, i) => (
-              <div key={i} style={{ display:'flex', gap:10, fontSize:12, color:'#374151', alignItems:'flex-start' }}>
-                <div style={{ width:20, height:20, borderRadius:'50%', background:agent.color+'15', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:agent.color, flexShrink:0 }}>{i+1}</div>
+              <div key={i} style={{ display:'flex', gap:10, fontSize:14, color:'#374151', alignItems:'flex-start' }}>
+                <div style={{ width:20, height:20, borderRadius:'50%', background:agent.color+'15', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:agent.color, flexShrink:0 }}>{i+1}</div>
                 {step}
               </div>
             ))}
             {agent.requires && (
               <div style={{ marginTop:6, padding:'8px 12px', background:'#fffbeb', borderRadius:9, border:'1px solid #fde68a' }}>
-                <div style={{ fontSize:10, fontWeight:800, color:'#92400e', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4 }}>Requires</div>
+                <div style={{ fontSize:13, fontWeight:800, color:'#92400e', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4 }}>Requires</div>
                 {agent.requires.map(r => (
-                  <div key={r} style={{ fontSize:11, color:'#92400e', display:'flex', gap:6 }}><Check size={10} style={{ flexShrink:0, marginTop:1 }}/>{r}</div>
+                  <div key={r} style={{ fontSize:13, color:'#92400e', display:'flex', gap:6 }}><Check size={10} style={{ flexShrink:0, marginTop:1 }}/>{r}</div>
                 ))}
               </div>
             )}
@@ -264,11 +264,11 @@ function AgentCard({ agent, clientId, enabled, stats, onToggle, onConfigure }) {
         {/* Action buttons */}
         <div style={{ display:'flex', gap:8 }}>
           <button onClick={() => onToggle(!enabled)}
-            style={{ flex:1, padding:'9px', borderRadius:10, border:'none', background: enabled ? '#fef2f2' : agent.color, color: enabled ? '#dc2626' : '#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+            style={{ flex:1, padding:'9px', borderRadius:10, border:'none', background: enabled ? '#fef2f2' : agent.color, color: enabled ? '#dc2626' : '#fff', fontSize:15, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
             {enabled ? <><Pause size={13}/> Pause</> : <><Play size={13}/> Activate</>}
           </button>
           <button onClick={() => onConfigure(agent.id)}
-            style={{ padding:'9px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5, fontSize:12 }}>
+            style={{ padding:'9px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5, fontSize:14 }}>
             <Settings size={13}/> Config
           </button>
         </div>
@@ -293,9 +293,9 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
           <div style={{ flex:1 }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
               <div style={{ fontSize:22, fontWeight:900, color:'#fff' }}>Agency Autopilot Bundle</div>
-              <span style={{ fontSize:11, fontWeight:800, color:ACCENT, background:ACCENT+'20', border:`1px solid ${ACCENT}40`, borderRadius:20, padding:'3px 12px' }}>BEST VALUE</span>
+              <span style={{ fontSize:13, fontWeight:800, color:ACCENT, background:ACCENT+'20', border:`1px solid ${ACCENT}40`, borderRadius:20, padding:'3px 12px' }}>BEST VALUE</span>
             </div>
-            <div style={{ fontSize:14, color:'#a1a1aa', lineHeight:1.6, maxWidth:600 }}>
+            <div style={{ fontSize:15, color:'#a1a1aa', lineHeight:1.6, maxWidth:600 }}>
               All 6 agents working together — review responses, missed call recovery, GBP optimization, monthly reports, social content, and lead scoring. One AI team for every client. Runs 24/7 without your team lifting a finger.
             </div>
           </div>
@@ -311,7 +311,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
           ].map(s => (
             <div key={s.label} style={{ background:'rgba(255,255,255,.06)', borderRadius:12, padding:'14px 16px', textAlign:'center' }}>
               <div style={{ fontSize:20, fontWeight:900, color:s.color, textDecoration:s.strike?'line-through':'none' }}>{s.value}</div>
-              <div style={{ fontSize:11, color:'#52525b', marginTop:4, lineHeight:1.3 }}>{s.label}</div>
+              <div style={{ fontSize:13, color:'#52525b', marginTop:4, lineHeight:1.3 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -319,7 +319,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
         {/* Agent checklist */}
         <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:22 }}>
           {AGENTS.map(a => (
-            <span key={a.id} style={{ fontSize:12, fontWeight:600, padding:'5px 14px', borderRadius:20, background:'rgba(255,255,255,.07)', border:'1px solid rgba(255,255,255,.12)', color:'#d4d4d8', display:'flex', alignItems:'center', gap:6 }}>
+            <span key={a.id} style={{ fontSize:14, fontWeight:700, padding:'5px 14px', borderRadius:20, background:'rgba(255,255,255,.07)', border:'1px solid rgba(255,255,255,.12)', color:'#d4d4d8', display:'flex', alignItems:'center', gap:6 }}>
               <a.icon size={12} color={a.color}/> {a.name}
             </span>
           ))}
@@ -329,18 +329,18 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             <div style={{ width:8, height:8, borderRadius:'50%', background: allActive ? '#22c55e' : activeCount > 0 ? '#f59e0b' : '#4b5563', animation: allActive ? 'pulse 2s infinite' : 'none' }}/>
-            <span style={{ fontSize:13, color: allActive ? '#22c55e' : activeCount > 0 ? '#f59e0b' : '#6b7280', fontWeight:700 }}>
+            <span style={{ fontSize:15, color: allActive ? '#22c55e' : activeCount > 0 ? '#f59e0b' : '#6b7280', fontWeight:700 }}>
               {allActive ? 'All 6 agents running' : activeCount > 0 ? `${activeCount} of 6 agents active` : 'No agents active'}
             </span>
           </div>
           {!allActive && (
             <button onClick={onActivateAll}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'11px 24px', borderRadius:12, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', boxShadow:`0 6px 20px ${ACCENT}45` }}>
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'11px 24px', borderRadius:12, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:800, cursor:'pointer', boxShadow:`0 6px 20px ${ACCENT}45` }}>
               <Zap size={16}/> Activate All 6 Agents <ArrowRight size={15}/>
             </button>
           )}
           {allActive && (
-            <div style={{ display:'flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:12, background:'rgba(34,197,94,.15)', border:'1px solid rgba(34,197,94,.3)', color:'#22c55e', fontSize:13, fontWeight:700 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:7, padding:'11px 20px', borderRadius:12, background:'rgba(34,197,94,.15)', border:'1px solid rgba(34,197,94,.3)', color:'#22c55e', fontSize:15, fontWeight:700 }}>
               <Check size={15} strokeWidth={3}/> Running at full capacity
             </div>
           )}
@@ -422,20 +422,20 @@ export default function AIAgentsPage() {
       <div style={{ width:220, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0 }}>
         <div style={{ padding:'16px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>AI Agents</div>
-          <div style={{ fontSize:11, color:'#9ca3af', marginTop:2 }}>{clients.length} clients</div>
+          <div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>{clients.length} clients</div>
         </div>
 
         {/* Agency-wide stats */}
         <div style={{ padding:'12px 14px', background:'#fff7f5', borderBottom:'1px solid #f3f4f6' }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Agency Overview</div>
+          <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Agency Overview</div>
           <div style={{ display:'flex', gap:8 }}>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
               <div style={{ fontSize:16, fontWeight:900, color:ACCENT }}>{totalActive}</div>
-              <div style={{ fontSize:9, color:'#9ca3af' }}>Active Agents</div>
+              <div style={{ fontSize:12, color:'#9ca3af' }}>Active Agents</div>
             </div>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
-              <div style={{ fontSize:14, fontWeight:900, color:'#22c55e' }}>${(estimatedValue/1000).toFixed(0)}k</div>
-              <div style={{ fontSize:9, color:'#9ca3af' }}>MRR Value</div>
+              <div style={{ fontSize:15, fontWeight:900, color:'#22c55e' }}>${(estimatedValue/1000).toFixed(0)}k</div>
+              <div style={{ fontSize:12, color:'#9ca3af' }}>MRR Value</div>
             </div>
           </div>
         </div>
@@ -449,10 +449,10 @@ export default function AIAgentsPage() {
               <div key={c.id} onClick={() => handleSelectClient(c)}
                 style={{ padding:'11px 14px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#fff7f5':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'#111' }}>{c.name}</div>
-                  {count > 0 && <span style={{ fontSize:9, fontWeight:800, color:'#22c55e', background:'#f0fdf4', borderRadius:20, padding:'1px 6px' }}>{count} ON</span>}
+                  <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
+                  {count > 0 && <span style={{ fontSize:12, fontWeight:800, color:'#22c55e', background:'#f0fdf4', borderRadius:20, padding:'1px 6px' }}>{count} ON</span>}
                 </div>
-                <div style={{ fontSize:11, color:'#9ca3af' }}>{c.industry}</div>
+                <div style={{ fontSize:13, color:'#9ca3af' }}>{c.industry}</div>
               </div>
             )
           })}
@@ -464,7 +464,7 @@ export default function AIAgentsPage() {
         {!selectedClient ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#9ca3af' }}>
             <Zap size={48} strokeWidth={1}/>
-            <div style={{ fontSize:16, fontWeight:600 }}>Select a client to configure their AI agents</div>
+            <div style={{ fontSize:16, fontWeight:700 }}>Select a client to configure their AI agents</div>
           </div>
         ) : (
           <div>
@@ -472,7 +472,7 @@ export default function AIAgentsPage() {
             <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 26px', display:'flex', alignItems:'center', gap:14, position:'sticky', top:0, zIndex:10 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>{selectedClient.name} — AI Agents</div>
-                <div style={{ fontSize:12, color:'#9ca3af' }}>
+                <div style={{ fontSize:14, color:'#9ca3af' }}>
                   {activeCount === 0 ? 'No agents active' : `${activeCount} of ${AGENTS.length} Autopilot agents running`}
                 </div>
               </div>
@@ -480,7 +480,7 @@ export default function AIAgentsPage() {
               <div style={{ display:'flex', gap:2, background:'#f3f4f6', borderRadius:10, padding:3 }}>
                 {[['autopilot','🤖 Autopilot'],['standalone','⚡ Add-ons'],['activity','📊 Activity']].map(([id,label]) => (
                   <button key={id} onClick={() => setActiveTab(id)}
-                    style={{ padding:'6px 14px', borderRadius:8, border:'none', background:activeTab===id?'#fff':'transparent', color:activeTab===id?'#111':'#6b7280', fontSize:12, fontWeight:activeTab===id?700:500, cursor:'pointer', boxShadow:activeTab===id?'0 1px 3px rgba(0,0,0,.1)':'none', whiteSpace:'nowrap' }}>
+                    style={{ padding:'6px 14px', borderRadius:8, border:'none', background:activeTab===id?'#fff':'transparent', color:activeTab===id?'#111':'#6b7280', fontSize:14, fontWeight:activeTab===id?700:500, cursor:'pointer', boxShadow:activeTab===id?'0 1px 3px rgba(0,0,0,.1)':'none', whiteSpace:'nowrap' }}>
                     {label}
                   </button>
                 ))}
@@ -509,7 +509,7 @@ export default function AIAgentsPage() {
                 <div>
                   <div style={{ marginBottom:20 }}>
                     <div style={{ fontSize:18, fontWeight:800, color:'#111', marginBottom:6 }}>Standalone Add-On Agents</div>
-                    <div style={{ fontSize:14, color:'#6b7280' }}>Additional AI capabilities that work alongside the Autopilot bundle</div>
+                    <div style={{ fontSize:15, color:'#6b7280' }}>Additional AI capabilities that work alongside the Autopilot bundle</div>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:16 }}>
                     {STANDALONE.map(agent => {
@@ -522,23 +522,23 @@ export default function AIAgentsPage() {
                             </div>
                             <div>
                               <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:3 }}>{agent.name}</div>
-                              <span style={{ fontSize:11, fontWeight:700, color:agent.color, background:agent.color+'12', padding:'2px 9px', borderRadius:20 }}>${agent.price}/mo</span>
+                              <span style={{ fontSize:13, fontWeight:700, color:agent.color, background:agent.color+'12', padding:'2px 9px', borderRadius:20 }}>${agent.price}/mo</span>
                             </div>
                           </div>
-                          <p style={{ fontSize:13, color:'#6b7280', lineHeight:1.6, marginBottom:14 }}>{agent.tagline}</p>
+                          <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.6, marginBottom:14 }}>{agent.tagline}</p>
                           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginBottom:16 }}>
                             {agent.stats_label.map((label, i) => (
                               <div key={label} style={{ background:'#f9fafb', borderRadius:8, padding:'8px', textAlign:'center' }}>
-                                <div style={{ fontSize:14, fontWeight:800, color:agent.color }}>{agent.mock_stats[i]}</div>
-                                <div style={{ fontSize:9, color:'#9ca3af', lineHeight:1.2, marginTop:1 }}>{label}</div>
+                                <div style={{ fontSize:15, fontWeight:800, color:agent.color }}>{agent.mock_stats[i]}</div>
+                                <div style={{ fontSize:12, color:'#9ca3af', lineHeight:1.2, marginTop:1 }}>{label}</div>
                               </div>
                             ))}
                           </div>
-                          <div style={{ display:'flex', gap:7, fontSize:11, color:'#9ca3af', marginBottom:14 }}>
+                          <div style={{ display:'flex', gap:7, fontSize:13, color:'#9ca3af', marginBottom:14 }}>
                             <Clock size={11}/> {agent.runs}
                           </div>
                           <button onClick={() => toast('Coming in next sprint! Add to your waitlist.', { icon:'🔜' })}
-                            style={{ width:'100%', padding:'10px', borderRadius:10, border:`1.5px solid ${agent.color}`, background:'#fff', color:agent.color, fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                            style={{ width:'100%', padding:'10px', borderRadius:10, border:`1.5px solid ${agent.color}`, background:'#fff', color:agent.color, fontSize:15, fontWeight:700, cursor:'pointer' }}>
                             Activate Agent
                           </button>
                         </div>
@@ -553,7 +553,7 @@ export default function AIAgentsPage() {
                 <div>
                   <div style={{ marginBottom:20 }}>
                     <div style={{ fontSize:18, fontWeight:800, color:'#111', marginBottom:6 }}>Agent Activity Log</div>
-                    <div style={{ fontSize:14, color:'#6b7280' }}>Everything your AI agents have done for {selectedClient.name}</div>
+                    <div style={{ fontSize:15, color:'#6b7280' }}>Everything your AI agents have done for {selectedClient.name}</div>
                   </div>
                   {/* Mock activity feed */}
                   {[
@@ -568,10 +568,10 @@ export default function AIAgentsPage() {
                       <div style={{ width:40, height:40, borderRadius:12, background:item.color+'15', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>{item.icon}</div>
                       <div style={{ flex:1 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                          <span style={{ fontSize:13, fontWeight:700, color:item.color }}>{item.action}</span>
-                          <span style={{ fontSize:11, color:'#9ca3af' }}>{item.time}</span>
+                          <span style={{ fontSize:15, fontWeight:700, color:item.color }}>{item.action}</span>
+                          <span style={{ fontSize:13, color:'#9ca3af' }}>{item.time}</span>
                         </div>
-                        <div style={{ fontSize:13, color:'#374151', lineHeight:1.5 }}>{item.desc}</div>
+                        <div style={{ fontSize:15, color:'#374151', lineHeight:1.5 }}>{item.desc}</div>
                       </div>
                       <Check size={15} color="#22c55e" style={{ flexShrink:0, marginTop:2 }}/>
                     </div>

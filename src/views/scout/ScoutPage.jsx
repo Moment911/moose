@@ -132,7 +132,7 @@ function ConfidenceBadge({ lead, small }) {
     <div style={{ display:'inline-flex', alignItems:'center', gap:5, padding:small?'2px 7px':'3px 9px', borderRadius:20, background:lbl.bg, border:`1px solid ${lbl.color}25` }}>
       <Shield size={small?9:10} color={lbl.color}/>
       <span style={{ fontSize:small?11:12, fontWeight:700, color:lbl.color }}>{conf}%</span>
-      {!small && <span style={{ fontSize:10, color:lbl.color, opacity:.8 }}>{lbl.label}</span>}
+      {!small && <span style={{ fontSize:13, color:lbl.color, opacity:.8 }}>{lbl.label}</span>}
     </div>
   )
 }
@@ -140,11 +140,11 @@ function ConfidenceBadge({ lead, small }) {
 // ── Source badge ──────────────────────────────────────────────────────────────
 function SourceBadge({ realData }) {
   return realData ? (
-    <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#eff6ff', color:'#1d4ed8', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
+    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#eff6ff', color:'#1d4ed8', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
       Live Google Data
     </span>
   ) : (
-    <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25`, display:'inline-flex', alignItems:'center', gap:4 }}>
+    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25`, display:'inline-flex', alignItems:'center', gap:4 }}>
       AI Estimated
     </span>
   )
@@ -166,8 +166,8 @@ function ProvenancePanel({ lead }) {
       <button onClick={()=>setOpen(o=>!o)}
         style={{ width:'100%', display:'flex', alignItems:'center', gap:8, background:'none', border:'none', cursor:'pointer', padding:0 }}>
         <Shield size={12} color={confLabel.color}/>
-        <span style={{ fontSize:12, fontWeight:700, color:'#374151', flex:1, textAlign:'left' }}>Data Sources & Accuracy</span>
-        <span style={{ fontSize:11, fontWeight:700, color:confLabel.color, background:confLabel.bg, padding:'2px 8px', borderRadius:20, border:`1px solid ${confLabel.color}25` }}>
+        <span style={{ fontSize:14, fontWeight:700, color:'#374151', flex:1, textAlign:'left' }}>Data Sources & Accuracy</span>
+        <span style={{ fontSize:13, fontWeight:700, color:confLabel.color, background:confLabel.bg, padding:'2px 8px', borderRadius:20, border:`1px solid ${confLabel.color}25` }}>
           {conf}% {confLabel.label}
         </span>
         <ChevronRight size={12} color="#9ca3af" style={{ transform:open?'rotate(90deg)':'rotate(0)', transition:'transform .2s' }}/>
@@ -176,13 +176,13 @@ function ProvenancePanel({ lead }) {
         <div style={{ marginTop:12, background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6', overflow:'hidden' }}>
           <div style={{ padding:'12px 14px', borderBottom:'1px solid #f3f4f6' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-              <span style={{ fontSize:11, fontWeight:700, color:'#6b7280' }}>Overall Data Confidence</span>
-              <span style={{ fontSize:11, fontWeight:800, color:confLabel.color }}>{conf}%</span>
+              <span style={{ fontSize:13, fontWeight:700, color:'#6b7280' }}>Overall Data Confidence</span>
+              <span style={{ fontSize:13, fontWeight:800, color:confLabel.color }}>{conf}%</span>
             </div>
             <div style={{ height:6, background:'#e5e7eb', borderRadius:3, overflow:'hidden' }}>
               <div style={{ height:'100%', width:`${conf}%`, background:confLabel.color, borderRadius:3 }}/>
             </div>
-            <div style={{ fontSize:10, color:'#9ca3af', marginTop:5 }}>
+            <div style={{ fontSize:13, color:'#9ca3af', marginTop:5 }}>
               {lead._real_data ? 'Live data from Google Places API — verified business' :
                verified.length>=2 ? `${verified.length} data points verified locally` :
                'AI-generated — verify before outreach'}
@@ -191,9 +191,9 @@ function ProvenancePanel({ lead }) {
           </div>
           {lead._real_data && (
             <div style={{ padding:'10px 14px', borderBottom:'1px solid #f3f4f6', background:'#eff6ff' }}>
-              <div style={{ fontSize:12, fontWeight:700, color:'#1d4ed8', marginBottom:3 }}>Live Google Places Data</div>
-              <div style={{ fontSize:11, color:'#374151' }}>Name, address, phone, rating, and reviews pulled in real time from Google Maps. Business is live and operational.</div>
-              {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" style={{ fontSize:11, color:'#1d4ed8', display:'inline-flex', alignItems:'center', gap:4, marginTop:4 }}>View on Google Maps ↗</a>}
+              <div style={{ fontSize:14, fontWeight:700, color:'#1d4ed8', marginBottom:3 }}>Live Google Places Data</div>
+              <div style={{ fontSize:13, color:'#374151' }}>Name, address, phone, rating, and reviews pulled in real time from Google Maps. Business is live and operational.</div>
+              {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" style={{ fontSize:13, color:'#1d4ed8', display:'inline-flex', alignItems:'center', gap:4, marginTop:4 }}>View on Google Maps ↗</a>}
             </div>
           )}
           {lead._provenance?.map((p,i)=>(
@@ -201,20 +201,20 @@ function ProvenancePanel({ lead }) {
               <div style={{ fontSize:16, flexShrink:0 }}>{p.source.icon}</div>
               <div style={{ flex:1 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:3 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:'#111' }}>{p.source.label}</span>
-                  <span style={{ fontSize:9, fontWeight:800, color:statusColor[p.status], background:statusColor[p.status]+'15', padding:'1px 7px', borderRadius:20, textTransform:'uppercase' }}>
+                  <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{p.source.label}</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:statusColor[p.status], background:statusColor[p.status]+'15', padding:'1px 7px', borderRadius:20, textTransform:'uppercase' }}>
                     {statusIcon[p.status]} {p.status.replace('_',' ')}
                   </span>
-                  {p.confidence && <span style={{ fontSize:10, color:'#9ca3af', marginLeft:'auto' }}>{p.confidence}%</span>}
+                  {p.confidence && <span style={{ fontSize:13, color:'#9ca3af', marginLeft:'auto' }}>{p.confidence}%</span>}
                 </div>
-                <div style={{ fontSize:11, color:'#6b7280', lineHeight:1.5 }}>{p.detail}</div>
-                {p.upgrade && <div style={{ fontSize:10, color:ACCENT, marginTop:3, fontStyle:'italic' }}>{p.upgrade}</div>}
+                <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.5 }}>{p.detail}</div>
+                {p.upgrade && <div style={{ fontSize:13, color:ACCENT, marginTop:3, fontStyle:'italic' }}>{p.upgrade}</div>}
               </div>
             </div>
           ))}
           <div style={{ padding:'10px 14px', background:'#fff7f5', borderTop:'1px solid #f3f4f6', display:'flex', gap:8 }}>
             <Info size={12} color={ACCENT} style={{ flexShrink:0, marginTop:1 }}/>
-            <div style={{ fontSize:10, color:'#92400e', lineHeight:1.5 }}>
+            <div style={{ fontSize:13, color:'#92400e', lineHeight:1.5 }}>
               {lead._real_data
                 ? 'Live data from Google Places API. Phone, address, rating, and review count are verified in real time.'
                 : 'AI-generated intelligence cross-referenced against USPS ZIP, NANP area codes, and Census data. Connect Yelp Fusion API for additional verification.'
@@ -246,19 +246,19 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
       <ScoreRing score={score} size={46}/>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
-          <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{lead.name}</span>
-          {!isMarket && <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
+          <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>{lead.name}</span>
+          {!isMarket && <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
           <SourceBadge realData={lead._real_data}/>
           <ConfidenceBadge lead={lead} small/>
         </div>
-        <div style={{ display:'flex', gap:12, fontSize:12, color:'#9ca3af', flexWrap:'wrap' }}>
+        <div style={{ display:'flex', gap:12, fontSize:14, color:'#9ca3af', flexWrap:'wrap' }}>
           {lead.address && <span>{lead.address}</span>}
           {lead.phone   && <span>{lead.phone}</span>}
           {lead.rating  > 0 && <span>⭐ {lead.rating} ({lead.review_count} reviews)</span>}
         </div>
         {lead.gaps?.length>0 && (
           <div style={{ display:'flex', gap:5, marginTop:6, flexWrap:'wrap' }}>
-            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
+            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
           </div>
         )}
       </div>
@@ -267,7 +267,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
         {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" style={{ padding:'7px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#4285f4', display:'flex', alignItems:'center' }}><MapPin size={14}/></a>}
         {!isCompetitor && !isMarket && <>
           <button onClick={()=>onSave(lead)} style={{ padding:'7px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:saved?ACCENT:'#9ca3af', cursor:'pointer' }}>{saved?<BookmarkCheck size={14}/>:<Bookmark size={14}/>}</button>
-          <button onClick={()=>onAddClient(lead)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}><Plus size={12}/> Add</button>
+          <button onClick={()=>onAddClient(lead)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}><Plus size={12}/> Add</button>
         </>}
       </div>
     </div>
@@ -286,7 +286,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:4, lineHeight:1.3 }}>{lead.name}</div>
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-              {!isMarket && <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
+              {!isMarket && <span style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
               <SourceBadge realData={lead._real_data}/>
               <ConfidenceBadge lead={lead} small/>
             </div>
@@ -298,28 +298,28 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
           )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
-          {lead.address && <div style={{ fontSize:12, color:'#6b7280', display:'flex', gap:5 }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.address}</div>}
-          {lead.phone   && <div style={{ fontSize:12, color:'#6b7280', display:'flex', gap:5 }}><Phone size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.phone}</div>}
-          {lead.rating>0 && <div style={{ fontSize:12, color:'#6b7280', display:'flex', gap:5 }}>
+          {lead.address && <div style={{ fontSize:14, color:'#6b7280', display:'flex', gap:5 }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.address}</div>}
+          {lead.phone   && <div style={{ fontSize:14, color:'#6b7280', display:'flex', gap:5 }}><Phone size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.phone}</div>}
+          {lead.rating>0 && <div style={{ fontSize:14, color:'#6b7280', display:'flex', gap:5 }}>
             <Star size={11} style={{ flexShrink:0, marginTop:1 }}/>
             {lead.rating}★ · {lead.review_count.toLocaleString()} reviews
-            {lead.review_count < 50 && <span style={{ color:ACCENT, fontWeight:600 }}> — low volume opportunity</span>}
+            {lead.review_count < 50 && <span style={{ color:ACCENT, fontWeight:700 }}> — low volume opportunity</span>}
           </div>}
-          {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ fontSize:12, color:'#3b82f6', display:'flex', gap:5, textDecoration:'none' }}><Globe size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.website.replace(/^https?:\/\//,'').slice(0,50)}</a>}
-          {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ fontSize:12, color:'#4285f4', display:'flex', gap:5, textDecoration:'none' }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>View on Google Maps ↗</a>}
+          {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ fontSize:14, color:'#3b82f6', display:'flex', gap:5, textDecoration:'none' }}><Globe size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.website.replace(/^https?:\/\//,'').slice(0,50)}</a>}
+          {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ fontSize:14, color:'#4285f4', display:'flex', gap:5, textDecoration:'none' }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>View on Google Maps ↗</a>}
         </div>
         {lead.gaps?.length>0 && (
           <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
             {lead.gaps.map(g=>(
-              <span key={g} style={{ fontSize:10, fontWeight:600, padding:'3px 9px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>
+              <span key={g} style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>
                  {g}
               </span>
             ))}
           </div>
         )}
         {expanded && lead.ai_summary && (
-          <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 13px', marginBottom:12, fontSize:12, color:'#374151', lineHeight:1.65, borderTop:'1px solid #f3f4f6' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:10, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>
+          <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 13px', marginBottom:12, fontSize:14, color:'#374151', lineHeight:1.65, borderTop:'1px solid #f3f4f6' }} onClick={e=>e.stopPropagation()}>
+            <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>
               {isCompetitor ? 'Competitive Intelligence' : isMarket ? 'Market Insight' : 'AI Opportunity Analysis'}
             </div>
             {lead.ai_summary}
@@ -327,14 +327,14 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
         )}
         <ProvenancePanel lead={lead}/>
         <div style={{ display:'flex', gap:7, marginTop:10 }} onClick={e=>e.stopPropagation()}>
-          {lead.phone && <button onClick={()=>copy(lead.phone)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151' }}><Phone size={11}/> Copy #</button>}
-          {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151', textDecoration:'none' }}><Globe size={11}/> Site</a>}
+          {lead.phone && <button onClick={()=>copy(lead.phone)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151' }}><Phone size={11}/> Copy #</button>}
+          {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151', textDecoration:'none' }}><Globe size={11}/> Site</a>}
           {!isCompetitor && !isMarket && (
-            <button onClick={()=>onAddClient(lead)} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+            <button onClick={()=>onAddClient(lead)} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}>
               <Plus size={13}/> Add as Client
             </button>
           )}
-          {isCompetitor && <button onClick={()=>onAddClient({...lead, status:'competitor'})} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:'#8b5cf6', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}><BarChart size={13}/> Save Competitor</button>}
+          {isCompetitor && <button onClick={()=>onAddClient({...lead, status:'competitor'})} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:'#8b5cf6', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}><BarChart size={13}/> Save Competitor</button>}
         </div>
       </div>
     </div>
@@ -355,7 +355,7 @@ function MarketSummaryCard({ results, query, location }) {
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
         <BarChart2 size={18} color="#10b981"/>
         <div style={{ fontSize:16, fontWeight:800 }}>Market Overview: {query} in {location}</div>
-        {hasRealData && <span style={{ fontSize:10, fontWeight:700, background:'#4285f4', color:'#fff', padding:'2px 8px', borderRadius:20, marginLeft:'auto' }}>Live Google Data</span>}
+        {hasRealData && <span style={{ fontSize:13, fontWeight:700, background:'#4285f4', color:'#fff', padding:'2px 8px', borderRadius:20, marginLeft:'auto' }}>Live Google Data</span>}
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12 }}>
         {[
@@ -367,12 +367,12 @@ function MarketSummaryCard({ results, query, location }) {
         ].map(s=>(
           <div key={s.label} style={{ background:'rgba(255,255,255,.07)', borderRadius:12, padding:'12px', textAlign:'center' }}>
             <div style={{ fontSize:20, fontWeight:900, color:s.color }}>{s.value}</div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,.5)', marginTop:3, lineHeight:1.3 }}>{s.label}</div>
-            {s.note && <div style={{ fontSize:9, color:'#34d399', marginTop:2 }}>↑ {s.note}</div>}
+            <div style={{ fontSize:13, color:'rgba(255,255,255,.5)', marginTop:3, lineHeight:1.3 }}>{s.label}</div>
+            {s.note && <div style={{ fontSize:12, color:'#34d399', marginTop:2 }}>↑ {s.note}</div>}
           </div>
         ))}
       </div>
-      <div style={{ marginTop:14, fontSize:12, color:'rgba(255,255,255,.5)', lineHeight:1.6 }}>
+      <div style={{ marginTop:14, fontSize:14, color:'rgba(255,255,255,.5)', lineHeight:1.6 }}>
         <strong style={{ color:'rgba(255,255,255,.8)' }}>Key insight:</strong>{' '}
         {lowReviews>results.length*0.5 ? `${lowReviews} of ${results.length} businesses have under 50 reviews — massive review generation opportunity.`
           : lowRating>2 ? `${lowRating} businesses have below 4.0★ rating — reputation management services in high demand.`
@@ -567,20 +567,20 @@ Be specific about why each business needs marketing help based on their likely s
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'12px 24px', display:'flex', alignItems:'center', gap:12, flexShrink:0, zIndex:10 }}>
           <Target size={18} color={modeConfig.color}/>
           <span style={{ fontSize:15, fontWeight:800, color:'#111' }}>Scout</span>
-          <span style={{ fontSize:12, color:'#9ca3af' }}>·</span>
+          <span style={{ fontSize:14, color:'#9ca3af' }}>·</span>
           {/* Mode tabs */}
           <div style={{ display:'flex', gap:2, background:'#f3f4f6', borderRadius:10, padding:3 }}>
             {SEARCH_MODES.map(m=>(
               <button key={m.id} onClick={()=>{ setMode(m.id); setResults([]); setStats(null) }}
                 style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:8, border:'none', background:mode===m.id?'#fff':'transparent', cursor:'pointer', boxShadow:mode===m.id?'0 1px 3px rgba(0,0,0,.1)':'none', transition:'all .15s' }}>
-                <span style={{ fontSize:14 }}></span>
-                <span style={{ fontSize:12, fontWeight:mode===m.id?700:500, color:mode===m.id?m.color:'#6b7280', whiteSpace:'nowrap' }}>{m.label}</span>
+                <span style={{ fontSize:15 }}></span>
+                <span style={{ fontSize:14, fontWeight:mode===m.id?700:500, color:mode===m.id?m.color:'#6b7280', whiteSpace:'nowrap' }}>{m.label}</span>
               </button>
             ))}
           </div>
           {hasResults && (
             <div style={{ display:'flex', gap:8, marginLeft:'auto', alignItems:'center' }}>
-              <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ padding:'5px 10px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:12, cursor:'pointer', outline:'none' }}>
+              <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ padding:'5px 10px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:14, cursor:'pointer', outline:'none' }}>
                 <option value="score">Score ↓</option>
                 <option value="reviews">Reviews ↓</option>
                 <option value="name">Name A–Z</option>
@@ -590,7 +590,7 @@ Be specific about why each business needs marketing help based on their likely s
                   <button key={v} onClick={()=>setView(v)} style={{ width:30, height:28, borderRadius:6, border:'none', background:view===v?'#fff':'transparent', fontSize:16, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:view===v?'0 1px 3px rgba(0,0,0,.1)':'none' }}>{icon}</button>
                 ))}
               </div>
-              <button onClick={()=>{setResults([]);setStats(null);setDataSource(null)}} style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:12, cursor:'pointer', color:'#374151' }}>
+              <button onClick={()=>{setResults([]);setStats(null);setDataSource(null)}} style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}>
                 <RefreshCw size={12}/> New Search
               </button>
             </div>
@@ -600,7 +600,7 @@ Be specific about why each business needs marketing help based on their likely s
         {/* ── Mode description ── */}
         {!hasResults && (
           <div style={{ background:modeConfig.color+'08', borderBottom:`1px solid ${modeConfig.color}20`, padding:'10px 24px', flexShrink:0 }}>
-            <div style={{ fontSize:13, color:'#374151', display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ fontSize:15, color:'#374151', display:'flex', alignItems:'center', gap:8 }}>
               <modeConfig.icon size={14} color={modeConfig.color}/>
               <strong style={{ color:modeConfig.color }}>{modeConfig.label}:</strong>
               {modeConfig.desc}
@@ -615,20 +615,20 @@ Be specific about why each business needs marketing help based on their likely s
               <Search size={16} color="#9ca3af" style={{ flexShrink:0 }}/>
               <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
                 placeholder={modeConfig.placeholder_q}
-                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:14, color:'#111' }}/>
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:15, color:'#111' }}/>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'10px 16px', width:200 }}>
               <MapPin size={15} color="#9ca3af" style={{ flexShrink:0 }}/>
               <input value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
                 placeholder={modeConfig.placeholder_loc}
-                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:14, color:'#111' }}/>
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:15, color:'#111' }}/>
             </div>
-            <button onClick={()=>setShowFilters(s=>!s)} style={{ display:'flex', alignItems:'center', gap:6, padding:'11px 16px', borderRadius:12, border:`1.5px solid ${showFilters?modeConfig.color:'#e5e7eb'}`, background:showFilters?modeConfig.color+'08':'#fff', color:showFilters?modeConfig.color:'#374151', fontSize:13, cursor:'pointer', fontWeight:500 }}>
+            <button onClick={()=>setShowFilters(s=>!s)} style={{ display:'flex', alignItems:'center', gap:6, padding:'11px 16px', borderRadius:12, border:`1.5px solid ${showFilters?modeConfig.color:'#e5e7eb'}`, background:showFilters?modeConfig.color+'08':'#fff', color:showFilters?modeConfig.color:'#374151', fontSize:15, cursor:'pointer', fontWeight:600 }}>
               <Filter size={14}/> Filters
               {(filterGaps.length>0||selectedIndustries.length>0||filterScore>0)&&<span style={{ width:7,height:7,borderRadius:'50%',background:modeConfig.color,flexShrink:0 }}/>}
             </button>
             <button onClick={runSearch} disabled={searching}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'11px 24px', borderRadius:12, border:'none', background:modeConfig.color, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', opacity:searching?.7:1, boxShadow:`0 4px 16px ${modeConfig.color}45` }}>
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'11px 24px', borderRadius:12, border:'none', background:modeConfig.color, color:'#fff', fontSize:15, fontWeight:800, cursor:'pointer', opacity:searching?.7:1, boxShadow:`0 4px 16px ${modeConfig.color}45` }}>
               {searching?<Loader2 size={15} style={{ animation:'spin 1s linear infinite' }}/>:<modeConfig.icon size={15}/>}
               {searching?'Searching…':'Scout'}
             </button>
@@ -638,21 +638,21 @@ Be specific about why each business needs marketing help based on their likely s
           {showFilters && (
             <div style={{ marginTop:14, padding:'16px', background:'#f9fafb', borderRadius:14, border:'1px solid #f3f4f6', display:'grid', gridTemplateColumns:'1fr 1fr 200px', gap:16 }}>
               <div>
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Industry</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Industry</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                   {INDUSTRIES.map(ind=>(
                     <button key={ind.key} onClick={()=>setSelectedIndustries(prev=>prev.includes(ind.key)?prev.filter(k=>k!==ind.key):[...prev,ind.key])}
-                      style={{ fontSize:12, padding:'5px 10px', borderRadius:20, border:`1.5px solid ${selectedIndustries.includes(ind.key)?modeConfig.color:'#e5e7eb'}`, background:selectedIndustries.includes(ind.key)?modeConfig.color+'12':'#fff', color:selectedIndustries.includes(ind.key)?modeConfig.color:'#374151', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                      style={{ fontSize:14, padding:'5px 10px', borderRadius:20, border:`1.5px solid ${selectedIndustries.includes(ind.key)?modeConfig.color:'#e5e7eb'}`, background:selectedIndustries.includes(ind.key)?modeConfig.color+'12':'#fff', color:selectedIndustries.includes(ind.key)?modeConfig.color:'#374151', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                       {ind.label}
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Marketing Gaps</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Marketing Gaps</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
                   {GAPS.map(g=>(
-                    <label key={g} style={{ display:'flex', alignItems:'center', gap:7, fontSize:12, color:'#374151', cursor:'pointer' }}>
+                    <label key={g} style={{ display:'flex', alignItems:'center', gap:7, fontSize:14, color:'#374151', cursor:'pointer' }}>
                       <div onClick={()=>setFilterGaps(prev=>prev.includes(g)?prev.filter(x=>x!==g):[...prev,g])}
                         style={{ width:16,height:16,borderRadius:4,border:`2px solid ${filterGaps.includes(g)?modeConfig.color:'#d1d5db'}`,background:filterGaps.includes(g)?modeConfig.color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer' }}>
                         {filterGaps.includes(g)&&<Check size={10} color="#fff" strokeWidth={3}/>}
@@ -663,10 +663,10 @@ Be specific about why each business needs marketing help based on their likely s
                 </div>
               </div>
               <div>
-                <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Min Score</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Min Score</div>
                 <div style={{ textAlign:'center', marginBottom:8 }}>
                   <span style={{ fontSize:36, fontWeight:900, color:scoreColor(filterScore) }}>{filterScore}</span>
-                  <span style={{ fontSize:13, color:'#9ca3af' }}>/100</span>
+                  <span style={{ fontSize:15, color:'#9ca3af' }}>/100</span>
                 </div>
                 <input type="range" min={0} max={90} step={5} value={filterScore} onChange={e=>setFilterScore(+e.target.value)} style={{ width:'100%', accentColor:modeConfig.color }}/>
               </div>
@@ -682,9 +682,9 @@ Be specific about why each business needs marketing help based on their likely s
             <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:12, padding:'16px 20px', marginBottom:20, display:'flex', gap:12 }}>
               <AlertCircle size={18} color="#dc2626" style={{ flexShrink:0, marginTop:1 }}/>
               <div>
-                <div style={{ fontSize:14, fontWeight:700, color:'#991b1b', marginBottom:4 }}>Search Failed</div>
-                <div style={{ fontSize:13, color:'#991b1b' }}>{searchError}</div>
-                <div style={{ fontSize:12, color:'#9ca3af', marginTop:6 }}>
+                <div style={{ fontSize:15, fontWeight:700, color:'#991b1b', marginBottom:4 }}>Search Failed</div>
+                <div style={{ fontSize:15, color:'#991b1b' }}>{searchError}</div>
+                <div style={{ fontSize:14, color:'#9ca3af', marginTop:6 }}>
                   To fix: Go to Vercel → Settings → Environment Variables → Add <code>NEXT_PUBLIC_ANTHROPIC_API_KEY</code>
                 </div>
               </div>
@@ -695,11 +695,11 @@ Be specific about why each business needs marketing help based on their likely s
           {!searching && !hasResults && !searchError && (
             <div>
               <div style={{ marginBottom:24 }}>
-                <div style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10 }}>Quick Searches</div>
+                <div style={{ fontSize:14, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10 }}>Quick Searches</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
                   {(QUICK_SEARCHES[mode]||QUICK_SEARCHES.prospect).map(qs=>(
                     <button key={qs.label} onClick={()=>{ setQuery(qs.q); setLocation(qs.loc); setTimeout(runSearch,100) }}
-                      style={{ fontSize:13, padding:'8px 16px', borderRadius:24, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151', fontWeight:500, display:'flex', alignItems:'center', gap:6, transition:'all .12s' }}
+                      style={{ fontSize:15, padding:'8px 16px', borderRadius:24, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151', fontWeight:600, display:'flex', alignItems:'center', gap:6, transition:'all .12s' }}
                       onMouseEnter={e=>{ e.currentTarget.style.borderColor=modeConfig.color; e.currentTarget.style.color=modeConfig.color }}
                       onMouseLeave={e=>{ e.currentTarget.style.borderColor='#e5e7eb'; e.currentTarget.style.color='#374151' }}>
                       <modeConfig.icon size={11}/> {qs.label}
@@ -710,16 +710,16 @@ Be specific about why each business needs marketing help based on their likely s
               {/* Data source info */}
               <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'20px 24px', marginBottom:20, display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:8 }}>Live Google Places Data</div>
-                  <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>
+                  <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8 }}>Live Google Places Data</div>
+                  <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>
                     {googleKeyAvailable
                       ? 'Google Places API connected — results will show real businesses with verified ratings, reviews, phone numbers, and websites.'
                       : 'Google Places API key not configured. Add NEXT_PUBLIC_GOOGLE_PLACES_KEY to Vercel for real business data.'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:8 }}>AI Fallback</div>
-                  <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>When Google Places is unavailable, Claude AI generates market-calibrated leads with ZIP/area code cross-referencing and data confidence scoring.</div>
+                  <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8 }}>AI Fallback</div>
+                  <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.6 }}>When Google Places is unavailable, Claude AI generates market-calibrated leads with ZIP/area code cross-referencing and data confidence scoring.</div>
                 </div>
               </div>
               {/* Hero */}
@@ -741,7 +741,7 @@ Be specific about why each business needs marketing help based on their likely s
               <div style={{ fontSize:18, fontWeight:700, color:'#111', marginBottom:8 }}>
                 {mode==='competitor'?'Analyzing competitors':'Scouting'} {query||'businesses'}{location?` in ${location}`:''}…
               </div>
-              <div style={{ fontSize:13, color:'#9ca3af' }}>
+              <div style={{ fontSize:15, color:'#9ca3af' }}>
                 {dataSource==='google'?'Pulling live data from Google Maps…':'Analyzing marketing gaps, review scores, and online presence…'}
               </div>
             </div>
@@ -753,12 +753,12 @@ Be specific about why each business needs marketing help based on their likely s
               {/* Data source banner */}
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: stats?.realData>0?'#eff6ff':'#fff7f5', border:`1px solid ${stats?.realData>0?'#bfdbfe':ACCENT+'30'}` }}>
                 <Database size={14} color={stats?.realData>0?'#1d4ed8':ACCENT}/>
-                <span style={{ fontSize:13, fontWeight:600, color:stats?.realData>0?'#1d4ed8':'#92400e' }}>
+                <span style={{ fontSize:15, fontWeight:700, color:stats?.realData>0?'#1d4ed8':'#92400e' }}>
                   {stats?.realData>0
                     ? `${stats.realData} live businesses from Google Places · ${results.length-stats.realData} AI-estimated`
                     : `AI-generated leads · cross-referenced against USPS ZIP + NANP area codes`}
                 </span>
-                <span style={{ marginLeft:'auto', fontSize:11, color:'#9ca3af' }}>{results.length} results for "{query}" in {location}</span>
+                <span style={{ marginLeft:'auto', fontSize:13, color:'#9ca3af' }}>{results.length} results for "{query}" in {location}</span>
               </div>
 
               {/* Market summary (market mode only) */}
@@ -776,7 +776,7 @@ Be specific about why each business needs marketing help based on their likely s
                   ].map(s=>(
                     <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
                       <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-                      <div style={{ fontSize:11, color:'#9ca3af', marginTop:2 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'#9ca3af', marginTop:2 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -786,7 +786,7 @@ Be specific about why each business needs marketing help based on their likely s
               {results.some(l=>l._mismatches>0) && (
                 <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:12, padding:'10px 16px', marginBottom:14, display:'flex', gap:10, alignItems:'center' }}>
                   <AlertCircle size={14} color="#d97706"/>
-                  <div style={{ fontSize:13, color:'#92400e' }}>
+                  <div style={{ fontSize:15, color:'#92400e' }}>
                     <strong>{results.filter(l=>l._mismatches>0).length} leads</strong> have data flags (address/phone mismatches). Review before outreach. Click any lead → Data Sources to see details.
                   </div>
                 </div>
@@ -806,8 +806,8 @@ Be specific about why each business needs marketing help based on their likely s
               {displayed.length===0 && (
                 <div style={{ textAlign:'center', padding:'40px', color:'#9ca3af' }}>
                   <Filter size={32} style={{ margin:'0 auto 12px', opacity:.4 }}/>
-                  <div style={{ fontSize:14, fontWeight:600 }}>No leads match filters</div>
-                  <button onClick={()=>{setFilterScore(0);setFilterGaps([])}} style={{ marginTop:12, fontSize:12, color:ACCENT, background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Clear filters</button>
+                  <div style={{ fontSize:15, fontWeight:700 }}>No leads match filters</div>
+                  <button onClick={()=>{setFilterScore(0);setFilterGaps([])}} style={{ marginTop:12, fontSize:14, color:ACCENT, background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Clear filters</button>
                 </div>
               )}
             </>

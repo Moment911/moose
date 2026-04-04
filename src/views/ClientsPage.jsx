@@ -30,7 +30,7 @@ const INDUSTRIES = [
 function StatusDot({ status }) {
   const cfg = STATUS_COLORS[status] || STATUS_COLORS.active
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, padding:'3px 10px', borderRadius:20, background:cfg.bg, color:cfg.color }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:14, fontWeight:700, padding:'3px 10px', borderRadius:20, background:cfg.bg, color:cfg.color }}>
       <span style={{ width:6, height:6, borderRadius:'50%', background:cfg.dot, display:'inline-block' }}/>
       {status ? status.charAt(0).toUpperCase()+status.slice(1) : 'Active'}
     </span>
@@ -143,7 +143,7 @@ export default function ClientsPage() {
   const industries = [...new Set(clients.map(c => c.industry).filter(Boolean))]
 
   const THstyle = (field) => ({
-    padding:'11px 14px', fontSize:12, fontWeight:700, color:'#6b7280',
+    padding:'11px 14px', fontSize:14, fontWeight:700, color:'#6b7280',
     textAlign:'left', background:'#f9fafb', borderBottom:'1px solid #e5e7eb',
     cursor:'pointer', userSelect:'none', whiteSpace:'nowrap'
   })
@@ -159,12 +159,12 @@ export default function ClientsPage() {
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
               <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>Clients</h1>
-              <p style={{ fontSize:13, color:'#9ca3af', margin:'4px 0 0' }}>
+              <p style={{ fontSize:15, color:'#9ca3af', margin:'4px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
             <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active' }) }}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
               <Plus size={16}/> Add Client
             </button>
           </div>
@@ -189,26 +189,26 @@ export default function ClientsPage() {
                   { label:'Website', key:'website', placeholder:'https://client.com', type:'url' },
                 ].map(f => (
                   <div key={f.key}>
-                    <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>{f.label}</label>
+                    <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>{f.label}</label>
                     <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)}
                       placeholder={f.placeholder}
-                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}
                       onFocus={e=>e.target.style.borderColor=ACCENT}
                       onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
                   </div>
                 ))}
                 <div>
-                  <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Industry</label>
+                  <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Industry</label>
                   <select value={form.industry} onChange={e=>setF('industry',e.target.value)}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
                     <option value="">Select industry…</option>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Status</label>
+                  <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Status</label>
                   <select value={form.status} onChange={e=>setF('status',e.target.value)}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
                     <option value="active">Active</option>
                     <option value="prospect">Prospect</option>
                     <option value="paused">Paused</option>
@@ -218,11 +218,11 @@ export default function ClientsPage() {
               </div>
               <div style={{ display:'flex', gap:10 }}>
                 <button onClick={handleSave}
-                  style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                  style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                   {editingId ? 'Save Changes' : 'Add Client'}
                 </button>
                 <button onClick={() => { setShowAdd(false); setEditingId(null) }}
-                  style={{ padding:'10px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:14, cursor:'pointer' }}>
+                  style={{ padding:'10px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:15, cursor:'pointer' }}>
                   Cancel
                 </button>
               </div>
@@ -235,12 +235,12 @@ export default function ClientsPage() {
               <Search size={15} color="#9ca3af"/>
               <input value={search} onChange={e=>setSearch(e.target.value)}
                 placeholder="Search by name, email, phone, industry…"
-                style={{ border:'none', outline:'none', fontSize:14, background:'transparent', flex:1, color:'#111' }}/>
+                style={{ border:'none', outline:'none', fontSize:15, background:'transparent', flex:1, color:'#111' }}/>
               {search && <button onClick={()=>setSearch('')} style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:2 }}><X size={13}/></button>}
             </div>
 
             <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
-              style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', fontSize:13, background:'#fff', color:'#374151', outline:'none', cursor:'pointer' }}>
+              style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', fontSize:15, background:'#fff', color:'#374151', outline:'none', cursor:'pointer' }}>
               <option value="all">All statuses</option>
               <option value="active">Active</option>
               <option value="prospect">Prospect</option>
@@ -249,38 +249,38 @@ export default function ClientsPage() {
             </select>
 
             <select value={industryFilter} onChange={e=>setIndustryFilter(e.target.value)}
-              style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', fontSize:13, background:'#fff', color:'#374151', outline:'none', cursor:'pointer' }}>
+              style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', fontSize:15, background:'#fff', color:'#374151', outline:'none', cursor:'pointer' }}>
               <option value="all">All industries</option>
               {industries.map(i=><option key={i} value={i}>{i}</option>)}
             </select>
 
             {(search || statusFilter !== 'all' || industryFilter !== 'all') && (
               <button onClick={()=>{ setSearch(''); setStatusFilter('all'); setIndustryFilter('all') }}
-                style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, color:'#6b7280', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, color:'#6b7280', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
                 <X size={13}/> Clear
               </button>
             )}
 
-            <div style={{ fontSize:13, color:'#9ca3af', marginLeft:'auto' }}>
+            <div style={{ fontSize:15, color:'#9ca3af', marginLeft:'auto' }}>
               {filtered.length} of {clients.length} clients
             </div>
           </div>
 
           {/* Table */}
           {loading ? (
-            <div style={{ textAlign:'center', padding:60, color:'#9ca3af', fontSize:14 }}>Loading clients…</div>
+            <div style={{ textAlign:'center', padding:60, color:'#9ca3af', fontSize:15 }}>Loading clients…</div>
           ) : filtered.length === 0 ? (
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'64px 24px', textAlign:'center' }}>
               <Users size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
               <div style={{ fontSize:17, fontWeight:700, color:'#111', marginBottom:6 }}>
                 {clients.length === 0 ? 'No clients yet' : 'No clients match your filters'}
               </div>
-              <div style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>
+              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>
                 {clients.length === 0 ? 'Add your first client to get started.' : 'Try adjusting your search or filters.'}
               </div>
               {clients.length === 0 && (
                 <button onClick={() => setShowAdd(true)}
-                  style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                  style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                   Add First Client
                 </button>
               )}
@@ -321,11 +321,11 @@ export default function ClientsPage() {
                             {(client.name||'?')[0].toUpperCase()}
                           </div>
                           <div>
-                            <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>{client.name}</div>
+                            <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>{client.name}</div>
                             {client.website && (
                               <a href={client.website} target="_blank" rel="noreferrer"
                                 onClick={e=>e.stopPropagation()}
-                                style={{ fontSize:11, color:'#9ca3af', display:'flex', alignItems:'center', gap:3, textDecoration:'none' }}>
+                                style={{ fontSize:13, color:'#9ca3af', display:'flex', alignItems:'center', gap:3, textDecoration:'none' }}>
                                 <Globe size={10}/> {client.website.replace(/^https?:\/\//,'').slice(0,30)}
                               </a>
                             )}
@@ -335,7 +335,7 @@ export default function ClientsPage() {
 
                       {/* Industry */}
                       <td style={{ padding:'14px 14px' }}>
-                        <span style={{ fontSize:13, color:'#374151', fontWeight:500 }}>
+                        <span style={{ fontSize:15, color:'#374151', fontWeight:600 }}>
                           {client.industry || <span style={{ color:'#d1d5db' }}>—</span>}
                         </span>
                       </td>
@@ -350,17 +350,17 @@ export default function ClientsPage() {
                         <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
                           {client.email && (
                             <a href={`mailto:${client.email}`} onClick={e=>e.stopPropagation()}
-                              style={{ fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
+                              style={{ fontSize:14, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
                               <Mail size={11}/> {client.email}
                             </a>
                           )}
                           {client.phone && (
                             <a href={`tel:${client.phone}`} onClick={e=>e.stopPropagation()}
-                              style={{ fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
+                              style={{ fontSize:14, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
                               <Phone size={11}/> {client.phone}
                             </a>
                           )}
-                          {!client.email && !client.phone && <span style={{ fontSize:12, color:'#d1d5db' }}>No contact info</span>}
+                          {!client.email && !client.phone && <span style={{ fontSize:14, color:'#d1d5db' }}>No contact info</span>}
                         </div>
                       </td>
 
@@ -368,7 +368,7 @@ export default function ClientsPage() {
                       <td style={{ padding:'14px 14px' }} onClick={e=>e.stopPropagation()}>
                         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                           <button onClick={() => navigate(`/clients/${client.id}`)}
-                            style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:11, fontWeight:600, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:4 }}>
+                            style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:4 }}>
                             Open <ArrowRight size={11}/>
                           </button>
                           <div style={{ position:'relative' }}>
@@ -379,11 +379,11 @@ export default function ClientsPage() {
                             {menuOpen===client.id && (
                               <div style={{ position:'absolute', right:0, top:'100%', marginTop:4, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,.1)', zIndex:50, minWidth:150, padding:4 }}>
                                 <button onClick={()=>startEdit(client)}
-                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#374151' }}>
+                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
                                   <Edit2 size={13}/> Edit
                                 </button>
                                 <button onClick={()=>handleDelete(client.id, client.name)}
-                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#dc2626' }}>
+                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#dc2626' }}>
                                   <Trash2 size={13}/> Delete
                                 </button>
                               </div>

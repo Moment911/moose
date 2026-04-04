@@ -108,10 +108,10 @@ export default function CompanyProfilePage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{lead.business_name}</h1>
           <div className="flex flex-wrap items-center gap-2 mt-1">
-            <span className="text-xs text-slate-400">{lead.industry}</span>
-            <span className="text-xs text-slate-500">&middot;</span>
-            <span className="text-xs text-slate-400">{lead.city}, {lead.state}</span>
-            {lead.website && <a href={lead.website.startsWith('http') ? lead.website : 'https://' + lead.website} target="_blank" rel="noopener noreferrer" className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"><Globe size={10} /> {domain}</a>}
+            <span className="text-sm text-slate-400">{lead.industry}</span>
+            <span className="text-sm text-slate-500">&middot;</span>
+            <span className="text-sm text-slate-400">{lead.city}, {lead.state}</span>
+            {lead.website && <a href={lead.website.startsWith('http') ? lead.website : 'https://' + lead.website} target="_blank" rel="noopener noreferrer" className="text-sm text-orange-400 hover:text-orange-300 flex items-center gap-1"><Globe size={10} /> {domain}</a>}
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -119,16 +119,16 @@ export default function CompanyProfilePage() {
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center" style={{ border: `4px solid ${scoreColor(lead.agency_likelihood_score || 50)}` }}>
               <span className="text-lg sm:text-2xl font-extrabold text-white">{lead.agency_likelihood_score || '—'}</span>
             </div>
-            <span className={`text-[10px] font-semibold ${temp.cls.split(' ')[0]}`}>{temp.emoji} {temp.label}</span>
+            <span className={`text-[13px] font-semibold ${temp.cls.split(' ')[0]}`}>{temp.emoji} {temp.label}</span>
           </div>
         </div>
       </div>
 
       {/* Action bar */}
       <div className="px-4 sm:px-6 py-2 bg-white border-b border-slate-200 flex flex-wrap items-center gap-2">
-        <button onClick={handleImport} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"><Plus size={12} /> Import to Contacts</button>
-        {lead.email && <button onClick={() => copy(lead.email)} className="btn-secondary text-xs"><Mail size={11} /> Email</button>}
-        {lead.phone && <button onClick={() => copy(lead.phone)} className="btn-secondary text-xs"><Phone size={11} /> Phone</button>}
+        <button onClick={handleImport} className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"><Plus size={12} /> Import to Contacts</button>
+        {lead.email && <button onClick={() => copy(lead.email)} className="btn-secondary text-sm"><Mail size={11} /> Email</button>}
+        {lead.phone && <button onClick={() => copy(lead.phone)} className="btn-secondary text-sm"><Phone size={11} /> Phone</button>}
       </div>
 
       {/* Tabs */}
@@ -136,7 +136,7 @@ export default function CompanyProfilePage() {
         {TABS.map(t => {
           const I = t.icon
           return <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${tab === t.key ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${tab === t.key ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             <I size={13} /> <span className="hidden sm:inline">{t.label}</span>
           </button>
         })}
@@ -151,7 +151,7 @@ export default function CompanyProfilePage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-slate-800">Business Summary</h3>
-                  {!aiSummary && <button onClick={generateAISummary} disabled={loadingAI} className="text-[10px] text-orange-500 hover:text-orange-700 flex items-center gap-1">
+                  {!aiSummary && <button onClick={generateAISummary} disabled={loadingAI} className="text-[13px] text-orange-500 hover:text-orange-700 flex items-center gap-1">
                     {loadingAI ? <Loader2 size={10} className="animate-spin" /> : <Target size={10} />} Generate with AI
                   </button>}
                 </div>
@@ -169,11 +169,11 @@ export default function CompanyProfilePage() {
                 ].map(s => (
                   <div key={s.label} className="mb-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-600">{s.label}</span>
-                      <span className="text-xs font-medium text-slate-800">{s.val}/{s.max}</span>
+                      <span className="text-sm text-slate-600">{s.label}</span>
+                      <span className="text-sm font-medium text-slate-800">{s.val}/{s.max}</span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full"><div className="h-full rounded-full transition-all" style={{ width: `${s.val / s.max * 100}%`, background: s.val / s.max > 0.6 ? '#22c55e' : s.val / s.max > 0.3 ? '#f97316' : '#ef4444' }} /></div>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{s.desc}</p>
+                    <p className="text-[13px] text-slate-400 mt-0.5">{s.desc}</p>
                   </div>
                 ))}
               </div>
@@ -195,7 +195,7 @@ export default function CompanyProfilePage() {
             {/* Right sidebar */}
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                <h4 className="text-xs font-semibold text-slate-600 uppercase mb-3">Quick Contact</h4>
+                <h4 className="text-sm font-semibold text-slate-600 uppercase mb-3">Quick Contact</h4>
                 <div className="space-y-2.5">
                   {lead.phone && <ContactRow icon={Phone} value={lead.phone} onCopy={() => copy(lead.phone)} />}
                   {lead.email && <ContactRow icon={Mail} value={lead.email} onCopy={() => copy(lead.email)} />}
@@ -205,20 +205,20 @@ export default function CompanyProfilePage() {
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                <h4 className="text-xs font-semibold text-slate-600 uppercase mb-3">Pipeline</h4>
+                <h4 className="text-sm font-semibold text-slate-600 uppercase mb-3">Pipeline</h4>
                 <select className="input text-sm w-full" value={pipelineStage} onChange={e => { setPipelineStage(e.target.value); supabase.from('scout_leads').update({ pipeline_stage: e.target.value }).eq('id', lead.id).catch(() => {}) }}>
                   <option value="lead">Lead</option><option value="contacted">Contacted</option><option value="interested">Interested</option><option value="proposal">Proposal Sent</option><option value="won">Won</option><option value="lost">Lost</option>
                 </select>
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                <h4 className="text-xs font-semibold text-slate-600 uppercase mb-2">Google Reviews</h4>
+                <h4 className="text-sm font-semibold text-slate-600 uppercase mb-2">Google Reviews</h4>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl font-bold text-slate-800">{lead.google_rating || '—'}</span>
-                  <div><div className="flex">{[1,2,3,4,5].map(i => <Star key={i} size={12} className={i <= Math.round(lead.google_rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-slate-200'} />)}</div><p className="text-[10px] text-slate-400">{lead.google_review_count || 0} reviews</p></div>
+                  <div><div className="flex">{[1,2,3,4,5].map(i => <Star key={i} size={12} className={i <= Math.round(lead.google_rating || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-slate-200'} />)}</div><p className="text-[13px] text-slate-400">{lead.google_review_count || 0} reviews</p></div>
                 </div>
                 <div className="flex h-1.5 rounded-full overflow-hidden"><div className="bg-green-400" style={{ width: `${sent.positive}%` }} /><div className="bg-slate-300" style={{ width: `${sent.neutral}%` }} /><div className="bg-red-400" style={{ width: `${sent.negative}%` }} /></div>
-                <p className="text-[10px] text-slate-400 mt-1">{sent.positive}% positive &middot; {sent.negative}% negative</p>
+                <p className="text-[13px] text-slate-400 mt-1">{sent.positive}% positive &middot; {sent.negative}% negative</p>
               </div>
             </div>
           </div>
@@ -232,12 +232,12 @@ export default function CompanyProfilePage() {
                 <div key={t.key} className={`p-4 rounded-xl border-2 text-center ${ts[t.key] ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                   <span className="text-2xl">{t.icon}</span>
                   <p className={`text-sm font-medium mt-1 ${ts[t.key] ? 'text-green-700' : 'text-red-600'}`}>{t.label}</p>
-                  <p className={`text-xs mt-0.5 ${ts[t.key] ? 'text-green-600' : 'text-red-500'}`}>{ts[t.key] ? '✅ Detected' : '❌ Not Found'}</p>
+                  <p className={`text-sm mt-0.5 ${ts[t.key] ? 'text-green-600' : 'text-red-500'}`}>{ts[t.key] ? '✅ Detected' : '❌ Not Found'}</p>
                 </div>
               ))}
             </div>
             <div className="mt-4 p-4 bg-slate-50 rounded-xl">
-              <p className="text-xs text-slate-500">{Object.values(ts).filter(Boolean).length} of {Object.keys(ts).length} marketing tools detected. {Object.values(ts).filter(v => !v).length > 3 ? 'Significant opportunity for a full marketing tech stack implementation.' : 'Moderate tech adoption. Focus on the missing tools.'}</p>
+              <p className="text-sm text-slate-500">{Object.values(ts).filter(Boolean).length} of {Object.keys(ts).length} marketing tools detected. {Object.values(ts).filter(v => !v).length > 3 ? 'Significant opportunity for a full marketing tech stack implementation.' : 'Moderate tech adoption. Focus on the missing tools.'}</p>
             </div>
           </div>
         )}
@@ -254,20 +254,20 @@ export default function CompanyProfilePage() {
                     <span className={`w-3 h-3 rounded-full ${p.active ? 'bg-green-500' : 'bg-red-400'}`} />
                   </div>
                   <p className="text-sm font-semibold text-slate-800">{p.label}</p>
-                  <p className={`text-xs mt-1 ${p.active ? 'text-green-600' : 'text-red-500'}`}>{p.active ? 'Active' : 'Inactive / Not Found'}</p>
-                  {p.detail && <p className="text-[10px] text-slate-400 mt-0.5">{p.detail}</p>}
-                  {p.lastPost && <p className="text-[10px] text-slate-400">{p.lastPost}</p>}
+                  <p className={`text-sm mt-1 ${p.active ? 'text-green-600' : 'text-red-500'}`}>{p.active ? 'Active' : 'Inactive / Not Found'}</p>
+                  {p.detail && <p className="text-[13px] text-slate-400 mt-0.5">{p.detail}</p>}
+                  {p.lastPost && <p className="text-[13px] text-slate-400">{p.lastPost}</p>}
                 </div>
               ))}
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <h3 className="text-sm font-semibold text-slate-800 mb-3">Review Sentiment</h3>
               <div className="flex items-center gap-6">
-                <div className="text-center"><span className="text-3xl font-bold text-slate-800">{lead.google_rating || '—'}</span><p className="text-xs text-slate-400">Rating</p></div>
+                <div className="text-center"><span className="text-3xl font-bold text-slate-800">{lead.google_rating || '—'}</span><p className="text-sm text-slate-400">Rating</p></div>
                 <div className="flex-1">
                   {[5,4,3,2,1].map(s => (
                     <div key={s} className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs text-slate-500 w-4">{s}★</span>
+                      <span className="text-sm text-slate-500 w-4">{s}★</span>
                       <div className="flex-1 h-2 bg-slate-100 rounded-full"><div className="h-full bg-yellow-400 rounded-full" style={{ width: `${s === 5 ? sent.positive : s === 4 ? 20 : s === 3 ? 10 : 5}%` }} /></div>
                     </div>
                   ))}
@@ -285,7 +285,7 @@ export default function CompanyProfilePage() {
                 <span className="text-5xl font-extrabold" style={{ color: scoreColor(lead.agency_likelihood_score || 50) }}>{lead.agency_likelihood_score || '—'}</span>
                 <span className="text-lg text-slate-400">/100</span>
                 <p className={`text-sm font-semibold mt-1 ${temp.cls.split(' ')[0]}`}>{temp.emoji} {temp.label} Lead</p>
-                <p className="text-xs text-slate-400 mt-1">{(lead.opportunities || []).length} marketing gaps identified</p>
+                <p className="text-sm text-slate-400 mt-1">{(lead.opportunities || []).length} marketing gaps identified</p>
               </div>
             </div>
 
@@ -295,7 +295,7 @@ export default function CompanyProfilePage() {
                 {(lead.opportunities || []).map((opp, i) => (
                   <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <p className="text-sm font-medium text-slate-800">{i + 1}. {opp}</p>
-                    <p className="text-xs text-slate-500 mt-1">This represents a service opportunity for Moose.</p>
+                    <p className="text-sm text-slate-500 mt-1">This represents a service opportunity for Moose.</p>
                   </div>
                 ))}
               </div>
@@ -304,9 +304,9 @@ export default function CompanyProfilePage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <h3 className="text-sm font-semibold text-slate-800 mb-2">Estimated Deal Value</h3>
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div><p className="text-lg font-bold text-slate-800">$1,500</p><p className="text-[10px] text-slate-400">Min/month</p></div>
-                <div><p className="text-lg font-bold text-orange-500">$4,500</p><p className="text-[10px] text-slate-400">Typical/month</p></div>
-                <div><p className="text-lg font-bold text-green-600">$54,000</p><p className="text-[10px] text-slate-400">Annual value</p></div>
+                <div><p className="text-lg font-bold text-slate-800">$1,500</p><p className="text-[13px] text-slate-400">Min/month</p></div>
+                <div><p className="text-lg font-bold text-orange-500">$4,500</p><p className="text-[13px] text-slate-400">Typical/month</p></div>
+                <div><p className="text-lg font-bold text-green-600">$54,000</p><p className="text-[13px] text-slate-400">Annual value</p></div>
               </div>
             </div>
           </div>
@@ -330,7 +330,7 @@ export default function CompanyProfilePage() {
               <h3 className="text-sm font-semibold text-slate-800 mb-3">Internal Notes</h3>
               <textarea className="input text-sm w-full resize-none" rows={6} placeholder="Add notes about this prospect..."
                 value={notes} onChange={e => setNotes(e.target.value)} onBlur={saveNotes} />
-              <p className="text-[10px] text-slate-400 mt-1">Auto-saves when you click away</p>
+              <p className="text-[13px] text-slate-400 mt-1">Auto-saves when you click away</p>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
@@ -338,7 +338,7 @@ export default function CompanyProfilePage() {
               <div className="flex flex-wrap gap-2">
                 {['lead', 'contacted', 'interested', 'proposal', 'won', 'lost'].map(stage => (
                   <button key={stage} onClick={() => { setPipelineStage(stage); supabase.from('scout_leads').update({ pipeline_stage: stage }).eq('id', lead.id).catch(() => {}) }}
-                    className={`text-xs px-3 py-2 rounded-xl capitalize font-medium border transition-all ${pipelineStage === stage ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-200 text-slate-600 hover:border-orange-300'}`}>{stage}</button>
+                    className={`text-sm px-3 py-2 rounded-xl capitalize font-medium border transition-all ${pipelineStage === stage ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-200 text-slate-600 hover:border-orange-300'}`}>{stage}</button>
                 ))}
               </div>
             </div>
@@ -354,7 +354,7 @@ function ContactRow({ icon: Icon, label, value, onCopy, link }) {
     <div className="flex items-center gap-3">
       <Icon size={14} className="text-slate-400 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        {label && <p className="text-[9px] text-slate-400 uppercase">{label}</p>}
+        {label && <p className="text-[12px] text-slate-400 uppercase">{label}</p>}
         {link ? <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-orange-500 hover:underline truncate block">{value}</a>
           : <p className="text-sm text-slate-700 truncate">{value}</p>}
       </div>

@@ -37,7 +37,7 @@ export default function ScoutSettingsPage() {
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
         <Target size={18} className="text-orange-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
-        <span className="text-xs text-slate-400 ml-1">Settings</span>
+        <span className="text-sm text-slate-400 ml-1">Settings</span>
       </div>
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-3xl mx-auto space-y-6">
@@ -54,19 +54,19 @@ export default function ScoutSettingsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-semibold text-slate-800">{api.name}</h3>
-                          {hasKey ? <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex items-center gap-0.5"><Check size={8} /> Connected</span> : <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium flex items-center gap-0.5"><AlertTriangle size={8} /> Not configured</span>}
+                          {hasKey ? <span className="text-[12px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex items-center gap-0.5"><Check size={8} /> Connected</span> : <span className="text-[12px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium flex items-center gap-0.5"><AlertTriangle size={8} /> Not configured</span>}
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{api.desc}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">{api.free}</p>
+                        <p className="text-sm text-slate-500 mt-0.5">{api.desc}</p>
+                        <p className="text-[13px] text-slate-400 mt-0.5">{api.free}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => testApi(api)} disabled={testing[api.key]}
-                        className="btn-secondary text-[10px] flex-1 justify-center">
+                        className="btn-secondary text-[13px] flex-1 justify-center">
                         {testing[api.key] ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />} Test
                       </button>
                     </div>
-                    <p className="text-[9px] text-slate-400 mt-2">Set <code className="bg-slate-100 px-1 rounded">{api.env}</code> in .env.local</p>
+                    <p className="text-[12px] text-slate-400 mt-2">Set <code className="bg-slate-100 px-1 rounded">{api.env}</code> in .env.local</p>
                   </div>
                 )
               })}
@@ -78,8 +78,8 @@ export default function ScoutSettingsPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold text-slate-800">SCOUT Score Weights</h2>
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-medium ${totalWeight === 100 ? 'text-green-600' : 'text-red-500'}`}>Total: {totalWeight}%</span>
-                <button onClick={resetWeights} className="text-[10px] text-slate-400 hover:text-slate-600">Reset defaults</button>
+                <span className={`text-sm font-medium ${totalWeight === 100 ? 'text-green-600' : 'text-red-500'}`}>Total: {totalWeight}%</span>
+                <button onClick={resetWeights} className="text-[13px] text-slate-400 hover:text-slate-600">Reset defaults</button>
               </div>
             </div>
             {[
@@ -91,7 +91,7 @@ export default function ScoutSettingsPage() {
             ].map(w => (
               <div key={w.key} className="mb-4">
                 <div className="flex items-center justify-between mb-1">
-                  <div><p className="text-sm text-slate-700 font-medium">{w.label}</p><p className="text-[10px] text-slate-400">{w.desc}</p></div>
+                  <div><p className="text-sm text-slate-700 font-medium">{w.label}</p><p className="text-[13px] text-slate-400">{w.desc}</p></div>
                   <span className="text-sm font-bold text-slate-800 w-10 text-right">{weights[w.key]}%</span>
                 </div>
                 <input type="range" min={0} max={50} value={weights[w.key]} onChange={e => setWeights(prev => ({ ...prev, [w.key]: +e.target.value }))}

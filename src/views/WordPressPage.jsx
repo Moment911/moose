@@ -140,7 +140,7 @@ export default function WordPressPage() {
                         <div>
                           <p className="font-medium text-gray-900">{site.site_name}</p>
                           <a href={site.site_url} target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-gray-400 hover:text-brand-500 flex items-center gap-1">
+                            className="text-sm text-gray-400 hover:text-brand-500 flex items-center gap-1">
                             {site.site_url} <ExternalLink size={10} />
                           </a>
                         </div>
@@ -149,18 +149,18 @@ export default function WordPressPage() {
                     <td className="px-4 py-3 text-gray-600">{site.clients?.name || '—'}</td>
                     <td className="px-4 py-3">
                       {site.connected ? (
-                        <span className="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 text-green-600 text-sm font-medium">
                           <Wifi size={12} /> Connected
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-gray-400 text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 text-gray-400 text-sm font-medium">
                           <WifiOff size={12} /> Pending
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <code className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600 max-w-[140px] truncate">
+                        <code className="text-sm bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-600 max-w-[140px] truncate">
                           {site.license_key}
                         </code>
                         <button onClick={() => copyKey(site.license_key)}
@@ -169,7 +169,7 @@ export default function WordPressPage() {
                         </button>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-500">
                       {site.last_ping ? formatDistanceToNow(new Date(site.last_ping), { addSuffix: true }) : 'Never'}
                     </td>
                     <td className="px-4 py-3">
@@ -209,7 +209,7 @@ export default function WordPressPage() {
               {sites.filter(s => s.connected).map(site => (
                 <div key={site.id} className="card p-4">
                   <p className="font-medium text-sm text-gray-900">{site.site_name}</p>
-                  <div className="mt-2 space-y-1 text-xs text-gray-500">
+                  <div className="mt-2 space-y-1 text-sm text-gray-500">
                     {site.wp_version && <p>WordPress {site.wp_version}</p>}
                     {site.plugin_version && <p>Moose Plugin v{site.plugin_version}</p>}
                   </div>

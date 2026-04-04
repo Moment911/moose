@@ -95,8 +95,8 @@ export default function SEOHubPage() {
               <p className="text-sm text-gray-500 mt-0.5">Intelligence across all channels</p>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={() => navigate('/seo/connect')} className="btn-secondary text-xs"><Link2 size={13} /> Connect Data</button>
-              <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-xs">
+              <button onClick={() => navigate('/seo/connect')} className="btn-secondary text-sm"><Link2 size={13} /> Connect Data</button>
+              <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-sm">
                 {generating ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} {generating ? 'Analyzing...' : 'AI Analysis'}
               </button>
             </div>
@@ -107,7 +107,7 @@ export default function SEOHubPage() {
           {/* Client selector */}
           <div className="md:w-56 bg-white md:border-r border-b md:border-b-0 border-gray-200 flex-shrink-0">
             <div className="p-3">
-              <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Clients</p>
+              <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Clients</p>
               <div className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
                 {clients.map(c => {
                   const conns = c.connections || {}
@@ -121,7 +121,7 @@ export default function SEOHubPage() {
                   )
                 })}
               </div>
-              {clients.length === 0 && <p className="text-xs text-gray-400 text-center py-4">No clients yet</p>}
+              {clients.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No clients yet</p>}
             </div>
           </div>
 
@@ -140,7 +140,7 @@ export default function SEOHubPage() {
                   {TABS.map(t => {
                     const I = t.icon
                     return <button key={t.key} onClick={() => setTab(t.key)}
-                      className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${tab === t.key ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                      className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0 ${tab === t.key ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
                       <I size={14} /> {t.label}
                     </button>
                   })}
@@ -163,11 +163,11 @@ export default function SEOHubPage() {
                                   <I size={16} style={{ color: p.color }} />
                                   <span className="text-sm font-medium text-gray-800">{p.label}</span>
                                 </div>
-                                <p className="text-[10px] text-gray-400 mb-2">{p.desc}</p>
+                                <p className="text-[13px] text-gray-400 mb-2">{p.desc}</p>
                                 {conn?.connected ? (
-                                  <span className="text-[10px] font-semibold text-green-600 flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Connected</span>
+                                  <span className="text-[13px] font-semibold text-green-600 flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Connected</span>
                                 ) : (
-                                  <button onClick={() => navigate('/seo/connect')} className="text-[10px] font-semibold text-orange-500 hover:text-orange-700">Connect →</button>
+                                  <button onClick={() => navigate('/seo/connect')} className="text-[13px] font-semibold text-orange-500 hover:text-orange-700">Connect →</button>
                                 )}
                               </div>
                             )
@@ -182,21 +182,21 @@ export default function SEOHubPage() {
                             <h3 className="text-sm font-semibold text-gray-800">AI Analysis</h3>
                             <div className="flex items-center gap-2">
                               <span className="text-2xl font-bold" style={{ color: (analysis.overallScore || 0) >= 70 ? '#22c55e' : (analysis.overallScore || 0) >= 50 ? '#f59e0b' : '#ef4444' }}>{analysis.overallScore || '—'}</span>
-                              <span className="text-xs text-gray-400">/ 100</span>
+                              <span className="text-sm text-gray-400">/ 100</span>
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 mb-4">{analysis.executiveSummary}</p>
                           {analysis.opportunities && (
                             <div className="space-y-2">
-                              <p className="text-xs font-semibold text-gray-500 uppercase">Top Opportunities</p>
+                              <p className="text-sm font-semibold text-gray-500 uppercase">Top Opportunities</p>
                               {(analysis.opportunities || []).slice(0, 5).map((opp, i) => (
                                 <div key={i} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
-                                  <span className="text-xs font-bold text-green-600 mt-0.5">{i + 1}</span>
+                                  <span className="text-sm font-bold text-green-600 mt-0.5">{i + 1}</span>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-800">{opp.title || opp}</p>
-                                    {opp.description && <p className="text-xs text-gray-500 mt-0.5">{opp.description}</p>}
+                                    {opp.description && <p className="text-sm text-gray-500 mt-0.5">{opp.description}</p>}
                                   </div>
-                                  {opp.impact && <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${opp.impact === 'high' ? 'bg-red-100 text-red-700' : opp.impact === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>{opp.impact}</span>}
+                                  {opp.impact && <span className={`text-[12px] px-2 py-0.5 rounded-full font-medium ${opp.impact === 'high' ? 'bg-red-100 text-red-700' : opp.impact === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>{opp.impact}</span>}
                                 </div>
                               ))}
                             </div>
@@ -209,7 +209,7 @@ export default function SEOHubPage() {
                         <div className="bg-white rounded-xl border border-gray-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-gray-800">Tracked Keywords</h3>
-                            <button onClick={() => setTab('keywords')} className="text-xs text-green-600 hover:text-green-700">View all →</button>
+                            <button onClick={() => setTab('keywords')} className="text-sm text-green-600 hover:text-green-700">View all →</button>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <StatMini label="Total Keywords" value={keywords.length} />
@@ -218,7 +218,7 @@ export default function SEOHubPage() {
                             <StatMini label="Total Clicks" value={keywords.reduce((a, k) => a + (k.clicks || 0), 0)} />
                           </div>
                           <div style={{ overflowX: 'auto' }}>
-                            <table className="w-full text-xs" style={{ minWidth: 500 }}>
+                            <table className="w-full text-sm" style={{ minWidth: 500 }}>
                               <thead><tr className="border-b border-gray-100 text-gray-500"><th className="text-left py-2 font-medium">Keyword</th><th className="text-right py-2 font-medium">Pos</th><th className="text-right py-2 font-medium">Vol</th><th className="text-right py-2 font-medium">Clicks</th><th className="text-right py-2 font-medium">CTR</th></tr></thead>
                               <tbody>
                                 {keywords.slice(0, 10).map((k, i) => (
@@ -243,8 +243,8 @@ export default function SEOHubPage() {
                           {reports.map(r => (
                             <div key={r.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                               <FileText size={14} className="text-gray-400" />
-                              <div className="flex-1 min-w-0"><p className="text-sm text-gray-700 truncate">{r.title || r.report_type}</p><p className="text-[10px] text-gray-400">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p></div>
-                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${r.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
+                              <div className="flex-1 min-w-0"><p className="text-sm text-gray-700 truncate">{r.title || r.report_type}</p><p className="text-[13px] text-gray-400">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p></div>
+                              <span className={`text-[12px] px-2 py-0.5 rounded-full font-medium ${r.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{r.status}</span>
                             </div>
                           ))}
                         </div>
@@ -269,7 +269,7 @@ export default function SEOHubPage() {
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-semibold text-gray-800">Keyword Tracking</h3>
-                        <button className="btn-secondary text-xs"><Plus size={12} /> Add Keywords</button>
+                        <button className="btn-secondary text-sm"><Plus size={12} /> Add Keywords</button>
                       </div>
                       {keywords.length === 0 ? (
                         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
@@ -278,7 +278,7 @@ export default function SEOHubPage() {
                         </div>
                       ) : (
                         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ overflowX: 'auto' }}>
-                          <table className="w-full text-xs" style={{ minWidth: 600 }}>
+                          <table className="w-full text-sm" style={{ minWidth: 600 }}>
                             <thead><tr className="bg-gray-50 border-b text-gray-500"><th className="text-left px-4 py-2.5 font-semibold">Keyword</th><th className="text-right px-3 py-2.5 font-semibold">Position</th><th className="text-right px-3 py-2.5 font-semibold">Volume</th><th className="text-right px-3 py-2.5 font-semibold">Impressions</th><th className="text-right px-3 py-2.5 font-semibold">Clicks</th><th className="text-right px-3 py-2.5 font-semibold">CTR</th></tr></thead>
                             <tbody>
                               {keywords.map((k, i) => (
@@ -343,7 +343,7 @@ export default function SEOHubPage() {
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-semibold text-gray-800">Reports</h3>
-                        <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-xs"><Sparkles size={12} /> Generate Report</button>
+                        <button onClick={generateAIAnalysis} disabled={generating} className="btn-primary text-sm"><Sparkles size={12} /> Generate Report</button>
                       </div>
                       {reports.length === 0 ? (
                         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
@@ -357,9 +357,9 @@ export default function SEOHubPage() {
                               <FileText size={18} className="text-green-500 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-800">{r.title || r.report_type}</p>
-                                <p className="text-xs text-gray-400">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p>
+                                <p className="text-sm text-gray-400">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : ''}</p>
                               </div>
-                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${r.shared_with_client ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{r.shared_with_client ? 'Shared' : r.status}</span>
+                              <span className={`text-[12px] px-2 py-0.5 rounded-full font-medium ${r.shared_with_client ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{r.shared_with_client ? 'Shared' : r.status}</span>
                             </div>
                           ))}
                         </div>
@@ -380,7 +380,7 @@ function StatMini({ label, value }) {
   return (
     <div className="bg-gray-50 rounded-lg p-3">
       <p className="text-lg font-bold text-gray-800">{value}</p>
-      <p className="text-[10px] text-gray-500 font-medium">{label}</p>
+      <p className="text-[13px] text-gray-500 font-medium">{label}</p>
     </div>
   )
 }

@@ -101,13 +101,13 @@ export default function ListsPage() {
                     <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center"><Users size={16} className="text-purple-500" /></div>
                     <div>
                       <h3 className="text-sm font-semibold text-gray-900">{list.name}</h3>
-                      {list.description && <p className="text-xs text-gray-400">{list.description}</p>}
+                      {list.description && <p className="text-sm text-gray-400">{list.description}</p>}
                     </div>
                   </div>
                   <button onClick={() => handleDelete(list.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={13} /></button>
                 </div>
-                <p className="text-xs text-gray-400 mb-3">Created {list.created_at ? format(new Date(list.created_at), 'MMM d, yyyy') : 'recently'}</p>
-                <button onClick={() => openMembers(list.id)} className="w-full btn-secondary text-xs justify-center"><Users size={12} /> Manage Members</button>
+                <p className="text-sm text-gray-400 mb-3">Created {list.created_at ? format(new Date(list.created_at), 'MMM d, yyyy') : 'recently'}</p>
+                <button onClick={() => openMembers(list.id)} className="w-full btn-secondary text-sm justify-center"><Users size={12} /> Manage Members</button>
               </div>
             ))}
             {filtered.length === 0 && <div className="col-span-3 py-16 text-center text-sm text-gray-400">No lists found. Create your first list!</div>}
@@ -123,8 +123,8 @@ export default function ListsPage() {
                 <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
               </div>
               <form onSubmit={handleCreate} className="px-5 py-4 space-y-3">
-                <div><label className="text-xs text-gray-500 block mb-1">List Name *</label><input className="input text-sm" placeholder="VIP Clients" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
-                <div><label className="text-xs text-gray-500 block mb-1">Description</label><input className="input text-sm" placeholder="Optional description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-500 block mb-1">List Name *</label><input className="input text-sm" placeholder="VIP Clients" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
+                <div><label className="text-sm text-gray-500 block mb-1">Description</label><input className="input text-sm" placeholder="Optional description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
               </form>
               <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-2">
                 <button onClick={() => setShowCreate(false)} className="text-sm text-gray-500 px-3 py-1.5">Cancel</button>
@@ -141,14 +141,14 @@ export default function ListsPage() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
                 <div>
                   <h2 className="font-semibold text-gray-900">{memberList.name}</h2>
-                  <p className="text-xs text-gray-400">{members.length} members</p>
+                  <p className="text-sm text-gray-400">{members.length} members</p>
                 </div>
                 <button onClick={() => setShowMembers(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
               </div>
               <div className="px-5 py-3 border-b border-gray-100 flex-shrink-0">
                 <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5">
                   <Search size={12} className="text-gray-400" />
-                  <input className="text-xs bg-transparent outline-none flex-1" placeholder="Search contacts..." value={addContactSearch} onChange={e => setAddContactSearch(e.target.value)} />
+                  <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search contacts..." value={addContactSearch} onChange={e => setAddContactSearch(e.target.value)} />
                 </div>
               </div>
               <div className="flex-1 overflow-auto">
@@ -161,7 +161,7 @@ export default function ListsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-800">{c.first_name ? `${c.first_name} ${c.last_name || ''}` : c.email}</p>
-                        <p className="text-xs text-gray-400 truncate">{c.email}</p>
+                        <p className="text-sm text-gray-400 truncate">{c.email}</p>
                       </div>
                     </div>
                   )

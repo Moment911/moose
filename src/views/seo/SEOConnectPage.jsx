@@ -145,8 +145,8 @@ export default function SEOConnectPage() {
           <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 10, padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 20 }}>
             <AlertTriangle size={18} className="text-yellow-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#92400E' }}>Google Verification In Progress</p>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#78350F', lineHeight: 1.5 }}>Search Console and Analytics are available now. Google Ads and Business Profile require Google app verification which is being processed. These will be enabled automatically once approved.</p>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#92400E' }}>Google Verification In Progress</p>
+              <p style={{ margin: '4px 0 0', fontSize: 15, color: '#78350F', lineHeight: 1.5 }}>Search Console and Analytics are available now. Google Ads and Business Profile require Google app verification which is being processed. These will be enabled automatically once approved.</p>
             </div>
           </div>
 
@@ -165,7 +165,7 @@ export default function SEOConnectPage() {
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <div className="px-5 py-4 border-b border-gray-100">
                   <h3 className="text-sm font-semibold text-gray-800">Google Services</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">One sign-in connects Search Console + Analytics</p>
+                  <p className="text-sm text-gray-400 mt-0.5">One sign-in connects Search Console + Analytics</p>
                 </div>
                 {SERVICES.map((svc, i) => {
                   const conn = connMap[svc.key]
@@ -177,17 +177,17 @@ export default function SEOConnectPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-800">{svc.label}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{svc.desc}</p>
+                        <p className="text-sm text-gray-400 mt-0.5">{svc.desc}</p>
                       </div>
                       {!svc.available ? (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">Pending Verification</span>
+                        <span className="text-[13px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">Pending Verification</span>
                       ) : conn?.connected ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Connected</span>
-                          <button onClick={() => handleDisconnect(svc.key)} className="text-[10px] text-red-400 hover:text-red-600">Disconnect</button>
+                          <span className="text-[13px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Connected</span>
+                          <button onClick={() => handleDisconnect(svc.key)} className="text-[13px] text-red-400 hover:text-red-600">Disconnect</button>
                         </div>
                       ) : (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Not connected</span>
+                        <span className="text-[13px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Not connected</span>
                       )}
                     </div>
                   )
@@ -197,7 +197,7 @@ export default function SEOConnectPage() {
               {/* Connect button */}
               {!hasAnyConnection && (
                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                  <div className="flex items-center gap-2 justify-center mb-3 text-xs text-green-600">
+                  <div className="flex items-center gap-2 justify-center mb-3 text-sm text-green-600">
                     <Shield size={14} /> Read-only access — Moose AI cannot modify your Google accounts
                   </div>
                   <button onClick={startGoogleOAuth} disabled={connecting}
@@ -227,9 +227,9 @@ export default function SEOConnectPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold text-gray-800">Data sources connected</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Data is being synced automatically</p>
+                      <p className="text-sm text-gray-400 mt-0.5">Data is being synced automatically</p>
                     </div>
-                    <button onClick={() => navigate('/seo')} className="btn-primary text-xs">View Dashboard →</button>
+                    <button onClick={() => navigate('/seo')} className="btn-primary text-sm">View Dashboard →</button>
                   </div>
                 </div>
               )}

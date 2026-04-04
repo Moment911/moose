@@ -7,7 +7,7 @@ import { Save, Plus, Trash2, Copy, Check, Users, CreditCard, Globe, Palette, Shi
 import toast from 'react-hot-toast'
 
 const ACCENT = '#E8551A'
-const INP = { width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', background:'#fff', color:'#111', boxSizing:'border-box' }
+const INP = { width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', color:'#111', boxSizing:'border-box' }
 
 const TABS = [
   { id:'general',  label:'General',   icon:Globe },
@@ -74,7 +74,7 @@ export default function AgencySettingsPage() {
     <div style={{ display:'flex', minHeight:'100vh' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div style={{ fontSize:14, color:'#9ca3af' }}>Loading agency settings…</div>
+        <div style={{ fontSize:15, color:'#9ca3af' }}>Loading agency settings…</div>
       </div>
     </div>
   )
@@ -89,10 +89,10 @@ export default function AgencySettingsPage() {
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'18px 28px', display:'flex', alignItems:'center', gap:14 }}>
           <div style={{ flex:1 }}>
             <h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin:0 }}>Agency Settings</h1>
-            <p style={{ fontSize:12, color:'#9ca3af', margin:'3px 0 0' }}>{agency.name} · {plan.name} Plan</p>
+            <p style={{ fontSize:14, color:'#9ca3af', margin:'3px 0 0' }}>{agency.name} · {plan.name} Plan</p>
           </div>
           <button onClick={saveAgency} disabled={saving}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:saving?.7:1 }}>
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', opacity:saving?.7:1 }}>
             <Save size={13}/> {saving?'Saving…':'Save Changes'}
           </button>
         </div>
@@ -103,7 +103,7 @@ export default function AgencySettingsPage() {
             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
               {TABS.map(t => (
                 <button key={t.id} onClick={()=>setTab(t.id)}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:tab===t.id?'#fff7f5':'transparent', border:'none', cursor:'pointer', color:tab===t.id?ACCENT:'#374151', fontWeight:tab===t.id?700:500, fontSize:13, borderLeft:`3px solid ${tab===t.id?ACCENT:'transparent'}`, textAlign:'left' }}>
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:tab===t.id?'#fff7f5':'transparent', border:'none', cursor:'pointer', color:tab===t.id?ACCENT:'#374151', fontWeight:tab===t.id?700:500, fontSize:15, borderLeft:`3px solid ${tab===t.id?ACCENT:'transparent'}`, textAlign:'left' }}>
                   <t.icon size={14}/> {t.label}
                 </button>
               ))}
@@ -118,23 +118,23 @@ export default function AgencySettingsPage() {
               <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
                 <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:20 }}>General Settings</h2>
                 <div style={{ display:'grid', gap:16 }}>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Agency Name</label><input value={agency.name||''} onChange={e=>setAgency(a=>({...a,name:e.target.value}))} style={INP}/></div>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Slug (subdomain)</label>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Agency Name</label><input value={agency.name||''} onChange={e=>setAgency(a=>({...a,name:e.target.value}))} style={INP}/></div>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Slug (subdomain)</label>
                     <div style={{ display:'flex', alignItems:'center', borderRadius:10, border:'1.5px solid #e5e7eb', overflow:'hidden' }}>
                       <input value={agency.slug||''} onChange={e=>setAgency(a=>({...a,slug:e.target.value}))} style={{ ...INP, border:'none', borderRadius:0, flex:1 }}/>
-                      <span style={{ padding:'11px 14px', background:'#f9fafb', fontSize:13, color:'#9ca3af', borderLeft:'1px solid #e5e7eb' }}>.mooseai.com</span>
+                      <span style={{ padding:'11px 14px', background:'#f9fafb', fontSize:15, color:'#9ca3af', borderLeft:'1px solid #e5e7eb' }}>.mooseai.com</span>
                     </div>
                   </div>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Billing Email</label><input type="email" value={agency.billing_email||''} onChange={e=>setAgency(a=>({...a,billing_email:e.target.value}))} style={INP}/></div>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Custom Domain <span style={{ fontSize:11, color:'#9ca3af', fontWeight:400 }}>(Pro+ only)</span></label><input value={agency.brand_domain||''} onChange={e=>setAgency(a=>({...a,brand_domain:e.target.value}))} placeholder="app.youragency.com" style={INP} disabled={agency.plan==='starter'}/></div>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Billing Email</label><input type="email" value={agency.billing_email||''} onChange={e=>setAgency(a=>({...a,billing_email:e.target.value}))} style={INP}/></div>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Custom Domain <span style={{ fontSize:13, color:'#9ca3af', fontWeight:500 }}>(Pro+ only)</span></label><input value={agency.brand_domain||''} onChange={e=>setAgency(a=>({...a,brand_domain:e.target.value}))} placeholder="app.youragency.com" style={INP} disabled={agency.plan==='starter'}/></div>
                 </div>
                 {/* Referral link */}
                 <div style={{ marginTop:24, background:'#f9fafb', borderRadius:12, padding:'16px 18px', border:'1px solid #f3f4f6' }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:6 }}>Your Referral Link</div>
-                  <div style={{ fontSize:12, color:'#6b7280', marginBottom:10 }}>Share this to earn 20% recurring commission on referred agencies</div>
+                  <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:6 }}>Your Referral Link</div>
+                  <div style={{ fontSize:14, color:'#6b7280', marginBottom:10 }}>Share this to earn 20% recurring commission on referred agencies</div>
                   <div style={{ display:'flex', gap:8 }}>
-                    <input readOnly value={`${window.location.origin}/signup?ref=${agency.slug}`} style={{ ...INP, flex:1, fontSize:12, color:'#9ca3af', background:'#fff' }}/>
-                    <button onClick={copyPortalLink} style={{ padding:'10px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#fff', color:ACCENT, fontSize:12, fontWeight:700, cursor:'pointer', flexShrink:0, display:'flex', alignItems:'center', gap:5 }}>
+                    <input readOnly value={`${window.location.origin}/signup?ref=${agency.slug}`} style={{ ...INP, flex:1, fontSize:14, color:'#9ca3af', background:'#fff' }}/>
+                    <button onClick={copyPortalLink} style={{ padding:'10px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#fff', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', flexShrink:0, display:'flex', alignItems:'center', gap:5 }}>
                       {copied?<><Check size={12}/> Copied!</>:<><Copy size={12}/> Copy</>}
                     </button>
                   </div>
@@ -146,14 +146,14 @@ export default function AgencySettingsPage() {
             {tab==='branding'&&(
               <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
                 <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:6 }}>White-Label Branding</h2>
-                <p style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>Your clients will see your brand, not Moose AI</p>
+                <p style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>Your clients will see your brand, not Moose AI</p>
                 <div style={{ display:'grid', gap:16 }}>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Brand Name (shown to clients)</label><input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} placeholder={agency.name} style={INP}/></div>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Logo URL</label>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Brand Name (shown to clients)</label><input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} placeholder={agency.name} style={INP}/></div>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Logo URL</label>
                     <input value={agency.brand_logo_url||''} onChange={e=>setAgency(a=>({...a,brand_logo_url:e.target.value}))} placeholder="https://youragency.com/logo.png" style={INP}/>
                     {agency.brand_logo_url&&<img src={agency.brand_logo_url} alt="logo preview" style={{ marginTop:8, height:48, objectFit:'contain', border:'1px solid #e5e7eb', borderRadius:8, padding:8, background:'#f9fafb' }} onError={e=>e.target.style.display='none'}/>}
                   </div>
-                  <div><label style={{ fontSize:13, fontWeight:700, display:'block', marginBottom:6 }}>Brand Color</label>
+                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Brand Color</label>
                     <div style={{ display:'flex', gap:10 }}>
                       <input type="color" value={agency.brand_color||ACCENT} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{ width:46, height:44, borderRadius:9, border:'1.5px solid #e5e7eb', padding:3, cursor:'pointer' }}/>
                       <input value={agency.brand_color||ACCENT} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{ ...INP, flex:1, fontFamily:'monospace' }}/>
@@ -161,7 +161,7 @@ export default function AgencySettingsPage() {
                     {/* Color preview */}
                     <div style={{ marginTop:10, padding:'12px 16px', borderRadius:10, background:'#f9fafb', border:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:10 }}>
                       <div style={{ width:32, height:32, borderRadius:8, background:agency.brand_color||ACCENT }}/>
-                      <div style={{ fontSize:13, color:'#374151' }}>Buttons, highlights, and accent colors across the platform</div>
+                      <div style={{ fontSize:15, color:'#374151' }}>Buttons, highlights, and accent colors across the platform</div>
                     </div>
                   </div>
                 </div>
@@ -173,15 +173,15 @@ export default function AgencySettingsPage() {
               <div>
                 <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px', marginBottom:16 }}>
                   <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:4 }}>Team Members</h2>
-                  <p style={{ fontSize:13, color:'#9ca3af', marginBottom:18 }}>{members.length} of {plan.seats} seats used</p>
+                  <p style={{ fontSize:15, color:'#9ca3af', marginBottom:18 }}>{members.length} of {plan.seats} seats used</p>
                   {members.map(m=>(
                     <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderBottom:'1px solid #f3f4f6' }}>
-                      <div style={{ width:36, height:36, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:14, flexShrink:0 }}>{m.user?.email?.[0]?.toUpperCase()||'?'}</div>
+                      <div style={{ width:36, height:36, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:15, flexShrink:0 }}>{m.user?.email?.[0]?.toUpperCase()||'?'}</div>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontSize:14, fontWeight:600, color:'#111' }}>{m.user?.email}</div>
-                        <div style={{ fontSize:11, color:'#9ca3af' }}>{m.accepted_at?'Active':'Pending'}</div>
+                        <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{m.user?.email}</div>
+                        <div style={{ fontSize:13, color:'#9ca3af' }}>{m.accepted_at?'Active':'Pending'}</div>
                       </div>
-                      <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:m.role==='owner'?'#fff7f5':m.role==='admin'?'#eff6ff':'#f3f4f6', color:m.role==='owner'?ACCENT:m.role==='admin'?'#1d4ed8':'#6b7280' }}>{m.role}</span>
+                      <span style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:m.role==='owner'?'#fff7f5':m.role==='admin'?'#eff6ff':'#f3f4f6', color:m.role==='owner'?ACCENT:m.role==='admin'?'#1d4ed8':'#6b7280' }}>{m.role}</span>
                       {m.user_id!==user?.id&&<button onClick={async()=>{ await supabase.from('agency_members').delete().eq('id',m.id); loadData(); toast.success('Member removed') }} style={{ padding:'5px 8px', borderRadius:7, border:'none', background:'#fef2f2', color:'#dc2626', cursor:'pointer' }}><Trash2 size={13}/></button>}
                     </div>
                   ))}
@@ -195,7 +195,7 @@ export default function AgencySettingsPage() {
                       <option value="member">Member</option>
                       <option value="viewer">Viewer</option>
                     </select>
-                    <button onClick={inviteMember} style={{ padding:'11px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', flexShrink:0 }}><Plus size={14}/></button>
+                    <button onClick={inviteMember} style={{ padding:'11px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', flexShrink:0 }}><Plus size={14}/></button>
                   </div>
                 </div>
               </div>
@@ -209,11 +209,11 @@ export default function AgencySettingsPage() {
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
                     <div>
                       <div style={{ fontSize:20, fontWeight:900, color:'#111' }}>{plan.name} Plan</div>
-                      <div style={{ fontSize:13, color:'#6b7280' }}>{plan.seats} seats · {plan.clients} clients · {agency.status==='trial'?'Free trial':'Active'}</div>
+                      <div style={{ fontSize:15, color:'#6b7280' }}>{plan.seats} seats · {plan.clients} clients · {agency.status==='trial'?'Free trial':'Active'}</div>
                     </div>
-                    {plan.price&&<div style={{ fontSize:28, fontWeight:900, color:plan.color }}>${plan.price}<span style={{ fontSize:13, fontWeight:500, color:'#9ca3af' }}>/mo</span></div>}
+                    {plan.price&&<div style={{ fontSize:28, fontWeight:900, color:plan.color }}>${plan.price}<span style={{ fontSize:15, fontWeight:600, color:'#9ca3af' }}>/mo</span></div>}
                   </div>
-                  <button style={{ padding:'8px 18px', borderRadius:9, border:`1.5px solid ${plan.color}`, background:'#fff', color:plan.color, fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                  <button style={{ padding:'8px 18px', borderRadius:9, border:`1.5px solid ${plan.color}`, background:'#fff', color:plan.color, fontSize:15, fontWeight:700, cursor:'pointer' }}>
                     Upgrade Plan
                   </button>
                 </div>
@@ -225,7 +225,7 @@ export default function AgencySettingsPage() {
                   ].map(s=>(
                     <div key={s.label} style={{ background:'#f9fafb', borderRadius:10, padding:'14px', textAlign:'center' }}>
                       <div style={{ fontSize:20, fontWeight:800, color:'#111' }}>{s.value}</div>
-                      <div style={{ fontSize:11, color:'#9ca3af', marginTop:3 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'#9ca3af', marginTop:3 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -236,7 +236,7 @@ export default function AgencySettingsPage() {
             {tab==='features'&&features&&(
               <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
                 <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:6 }}>AI Features</h2>
-                <p style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>Toggle which AI features are active for your agency</p>
+                <p style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>Toggle which AI features are active for your agency</p>
                 {[
                   { key:'ai_personas', label:'AI Persona Builder', desc:'Generate ideal customer personas from onboarding data', plans:['starter','growth','pro'] },
                   { key:'ai_social_posts', label:'AI Social Planner', desc:'Auto-generate and schedule social media posts', plans:['growth','pro'] },
@@ -249,9 +249,9 @@ export default function AgencySettingsPage() {
                   return (
                     <div key={f.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 0', borderBottom:'1px solid #f3f4f6' }}>
                       <div>
-                        <div style={{ fontSize:14, fontWeight:700, color: available?'#111':'#9ca3af' }}>{f.label}</div>
-                        <div style={{ fontSize:12, color:'#9ca3af', marginTop:2 }}>{f.desc}</div>
-                        {!available&&<div style={{ fontSize:10, fontWeight:700, color:ACCENT, marginTop:3 }}>Requires {f.plans[0]} plan</div>}
+                        <div style={{ fontSize:15, fontWeight:700, color: available?'#111':'#9ca3af' }}>{f.label}</div>
+                        <div style={{ fontSize:14, color:'#9ca3af', marginTop:2 }}>{f.desc}</div>
+                        {!available&&<div style={{ fontSize:13, fontWeight:700, color:ACCENT, marginTop:3 }}>Requires {f.plans[0]} plan</div>}
                       </div>
                       <div onClick={()=>available&&setFeatures(prev=>({...prev,[f.key]:!prev[f.key]}))}
                         style={{ width:40, height:22, borderRadius:11, background:features[f.key]&&available?ACCENT:'#d1d5db', cursor:available?'pointer':'not-allowed', position:'relative', transition:'background .2s', flexShrink:0 }}>
@@ -261,7 +261,7 @@ export default function AgencySettingsPage() {
                   )
                 })}
                 <button onClick={async()=>{ await supabase.from('agency_features').update(features).eq('agency_id',agency.id); toast.success('Features updated') }}
-                  style={{ marginTop:16, padding:'10px 20px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                  style={{ marginTop:16, padding:'10px 20px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                   Save Feature Settings
                 </button>
               </div>

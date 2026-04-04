@@ -170,8 +170,8 @@ export default function TasksPage() {
           <div className="ml-auto flex items-center gap-2">
             {/* View toggle */}
             <div className="flex bg-gray-100 rounded-lg p-0.5">
-              <button onClick={() => setView('list')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${view === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}><Layers size={12} className="inline mr-1" />List</button>
-              <button onClick={() => setView('board')} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${view === 'board' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}><LayoutGrid size={12} className="inline mr-1" />Board</button>
+              <button onClick={() => setView('list')} className={`text-sm px-3 py-1.5 rounded-md font-medium transition-colors ${view === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}><Layers size={12} className="inline mr-1" />List</button>
+              <button onClick={() => setView('board')} className={`text-sm px-3 py-1.5 rounded-md font-medium transition-colors ${view === 'board' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}><LayoutGrid size={12} className="inline mr-1" />Board</button>
             </div>
           </div>
         </div>
@@ -188,13 +188,13 @@ export default function TasksPage() {
                   <Plus size={16} strokeWidth={1.5} className="text-brand-500 flex-shrink-0" />
                   <input className="flex-1 text-sm bg-transparent outline-none placeholder-gray-400" placeholder="Add a task... (press Enter)" value={newTaskTitle}
                     onChange={e => setNewTaskTitle(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddTask() }} />
-                  {newTaskTitle.trim() && <button onClick={handleAddTask} className="text-xs bg-brand-500 text-white px-3 py-1 rounded-lg">Add</button>}
+                  {newTaskTitle.trim() && <button onClick={handleAddTask} className="text-sm bg-brand-500 text-white px-3 py-1 rounded-lg">Add</button>}
                 </div>
 
                 {/* Task list */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                   {/* Header */}
-                  <div className="grid grid-cols-[32px_1fr_100px_100px_100px_90px_40px] gap-3 px-4 py-2.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b">
+                  <div className="grid grid-cols-[32px_1fr_100px_100px_100px_90px_40px] gap-3 px-4 py-2.5 bg-gray-50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b">
                     <div></div><div>Task</div><div>Assignee</div><div>Status</div><div>Priority</div><div>Due</div><div></div>
                   </div>
 
@@ -211,19 +211,19 @@ export default function TasksPage() {
                           {t.completed && <Check size={10} className="text-white" strokeWidth={3} />}
                         </button>
                         <span className={`text-sm truncate ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>{t.title}</span>
-                        <span className="text-xs text-gray-500 truncate">{t.assignee_name || '\u2014'}</span>
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1" style={{ background: status.color + '18', color: status.color }}>
+                        <span className="text-sm text-gray-500 truncate">{t.assignee_name || '\u2014'}</span>
+                        <span className="text-[13px] font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1" style={{ background: status.color + '18', color: status.color }}>
                           <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.color }} />{status.label}
                         </span>
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: priority.color + '18', color: priority.color }}>{priority.label}</span>
-                        <span className="text-[10px] text-gray-400">{t.due_date ? format(new Date(t.due_date), 'MMM d') : '\u2014'}</span>
+                        <span className="text-[13px] font-medium px-2 py-0.5 rounded-full" style={{ background: priority.color + '18', color: priority.color }}>{priority.label}</span>
+                        <span className="text-[13px] text-gray-400">{t.due_date ? format(new Date(t.due_date), 'MMM d') : '\u2014'}</span>
                         <button onClick={e => { e.stopPropagation(); handleDeleteTask(t.id) }} className="text-gray-300 hover:text-brand-500 transition-colors"><Trash2 size={12} strokeWidth={1.5} /></button>
                       </div>
                     )
                   })}
                 </div>
 
-                <p className="text-xs text-gray-400 mt-3">{tasks.length} tasks &middot; {tasks.filter(t => t.completed).length} completed</p>
+                <p className="text-sm text-gray-400 mt-3">{tasks.length} tasks &middot; {tasks.filter(t => t.completed).length} completed</p>
               </div>
             )}
 
@@ -235,7 +235,7 @@ export default function TasksPage() {
                     <div className="flex items-center gap-2 mb-3 px-1">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ background: col.color }} />
                       <h3 className="text-sm font-semibold text-gray-900">{col.label}</h3>
-                      <span className="text-xs text-gray-400 ml-auto">{col.tasks.length}</span>
+                      <span className="text-sm text-gray-400 ml-auto">{col.tasks.length}</span>
                     </div>
                     <div className="flex-1 space-y-2 min-h-[200px]">
                       {col.tasks.map(t => {
@@ -251,9 +251,9 @@ export default function TasksPage() {
                               <p className={`text-sm flex-1 ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>{t.title}</p>
                             </div>
                             <div className="flex items-center gap-2 mt-2 ml-6">
-                              {t.priority !== 'none' && <span className="text-[9px] px-1.5 py-0.5 rounded font-medium" style={{ background: priority.color + '18', color: priority.color }}>{priority.label}</span>}
-                              {t.due_date && <span className="text-[9px] text-gray-400 flex items-center gap-0.5"><Calendar size={8} />{format(new Date(t.due_date), 'MMM d')}</span>}
-                              {t.assignee_name && <span className="text-[9px] text-gray-400 ml-auto flex items-center gap-0.5"><User size={8} />{t.assignee_name}</span>}
+                              {t.priority !== 'none' && <span className="text-[12px] px-1.5 py-0.5 rounded font-medium" style={{ background: priority.color + '18', color: priority.color }}>{priority.label}</span>}
+                              {t.due_date && <span className="text-[12px] text-gray-400 flex items-center gap-0.5"><Calendar size={8} />{format(new Date(t.due_date), 'MMM d')}</span>}
+                              {t.assignee_name && <span className="text-[12px] text-gray-400 ml-auto flex items-center gap-0.5"><User size={8} />{t.assignee_name}</span>}
                             </div>
                           </div>
                         )
@@ -264,7 +264,7 @@ export default function TasksPage() {
                         const pid = selectedProject === 'all' ? projects[0]?.id : selectedProject
                         if (!pid) { toast.error('Select a project'); return }
                         supabase.from('tasks').insert({ project_id: pid, title, status: col.key, priority: 'none', order_index: col.tasks.length, created_by: user?.email }).select().single().then(({ data }) => { if (data) setTasks(prev => [...prev, data]) })
-                      }} className="w-full text-xs text-gray-400 hover:text-gray-600 py-2 flex items-center justify-center gap-1 hover:bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                      }} className="w-full text-sm text-gray-400 hover:text-gray-600 py-2 flex items-center justify-center gap-1 hover:bg-gray-50 rounded-lg border border-dashed border-gray-200">
                         <Plus size={12} /> Add
                       </button>
                     </div>
@@ -292,8 +292,8 @@ export default function TasksPage() {
 
                 {/* Status */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-20">Status</span>
-                  <select className="input text-xs py-1.5 flex-1" value={selectedTask.status || 'todo'}
+                  <span className="text-sm text-gray-500 w-20">Status</span>
+                  <select className="input text-sm py-1.5 flex-1" value={selectedTask.status || 'todo'}
                     onChange={e => handleUpdateTask(selectedTask.id, { status: e.target.value, completed: e.target.value === 'completed', completed_at: e.target.value === 'completed' ? new Date().toISOString() : null })}>
                     {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                   </select>
@@ -301,8 +301,8 @@ export default function TasksPage() {
 
                 {/* Priority */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-20">Priority</span>
-                  <select className="input text-xs py-1.5 flex-1" value={selectedTask.priority || 'none'}
+                  <span className="text-sm text-gray-500 w-20">Priority</span>
+                  <select className="input text-sm py-1.5 flex-1" value={selectedTask.priority || 'none'}
                     onChange={e => handleUpdateTask(selectedTask.id, { priority: e.target.value })}>
                     {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
                   </select>
@@ -310,15 +310,15 @@ export default function TasksPage() {
 
                 {/* Assignees (multi) */}
                 <div>
-                  <span className="text-xs text-gray-500 mb-1.5 block">Assignees</span>
+                  <span className="text-sm text-gray-500 mb-1.5 block">Assignees</span>
                   {/* Current assignees */}
                   <div className="space-y-1 mb-2">
                     {(selectedTask.assignees || []).map((a, i) => (
                       <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2.5 py-1.5">
-                        <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0">{(a.name || a.email || '?')[0].toUpperCase()}</div>
+                        <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center flex-shrink-0">{(a.name || a.email || '?')[0].toUpperCase()}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-800 truncate">{a.name || a.email}</p>
-                          {a.name && <p className="text-[10px] text-gray-400 truncate">{a.email}</p>}
+                          <p className="text-sm font-medium text-gray-800 truncate">{a.name || a.email}</p>
+                          {a.name && <p className="text-[13px] text-gray-400 truncate">{a.email}</p>}
                         </div>
                         <button onClick={() => removeAssignee(a.email)} className="text-gray-400 hover:text-brand-500"><X size={11} /></button>
                       </div>
@@ -326,7 +326,7 @@ export default function TasksPage() {
                   </div>
                   {/* Add from team */}
                   {staffMembers.length > 0 && (
-                    <select className="input text-xs py-1.5 w-full mb-1.5" value="" onChange={e => { const s = staffMembers.find(x => x.id === e.target.value); if (s) addAssigneeToTask(s.name || s.email.split('@')[0], s.email) }}>
+                    <select className="input text-sm py-1.5 w-full mb-1.5" value="" onChange={e => { const s = staffMembers.find(x => x.id === e.target.value); if (s) addAssigneeToTask(s.name || s.email.split('@')[0], s.email) }}>
                       <option value="">+ Add team member...</option>
                       {staffMembers.filter(s => !(selectedTask.assignees || []).some(a => a.email === s.email)).map(s => (
                         <option key={s.id} value={s.id}>{s.name || s.email} ({s.role})</option>
@@ -335,7 +335,7 @@ export default function TasksPage() {
                   )}
                   {/* Add by email */}
                   <div className="flex gap-1.5">
-                    <input className="input text-xs py-1.5 flex-1" placeholder="Add by email..." value={newAssignee}
+                    <input className="input text-sm py-1.5 flex-1" placeholder="Add by email..." value={newAssignee}
                       onChange={e => setNewAssignee(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter' && newAssignee.trim()) { addAssigneeToTask(newAssignee.split('@')[0], newAssignee.trim()); setNewAssignee('') } }} />
                     <button onClick={() => { if (newAssignee.trim()) { addAssigneeToTask(newAssignee.split('@')[0], newAssignee.trim()); setNewAssignee('') } }}
@@ -345,15 +345,15 @@ export default function TasksPage() {
 
                 {/* Due date */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-20">Due date</span>
-                  <input className="input text-xs py-1.5 flex-1" type="date" value={selectedTask.due_date || ''}
+                  <span className="text-sm text-gray-500 w-20">Due date</span>
+                  <input className="input text-sm py-1.5 flex-1" type="date" value={selectedTask.due_date || ''}
                     onChange={e => handleUpdateTask(selectedTask.id, { due_date: e.target.value || null })} />
                 </div>
 
                 {/* Project */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-20">Project</span>
-                  <select className="input text-xs py-1.5 flex-1" value={selectedTask.project_id || ''}
+                  <span className="text-sm text-gray-500 w-20">Project</span>
+                  <select className="input text-sm py-1.5 flex-1" value={selectedTask.project_id || ''}
                     onChange={e => handleUpdateTask(selectedTask.id, { project_id: e.target.value })}>
                     {projects.map(p => <option key={p.id} value={p.id}>{p.clientName} / {p.name}</option>)}
                   </select>
@@ -361,7 +361,7 @@ export default function TasksPage() {
 
                 {/* Description */}
                 <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Description</label>
+                  <label className="text-sm text-gray-500 mb-1 block">Description</label>
                   <textarea className="input text-sm resize-none" rows={3} placeholder="Add details..." value={selectedTask.description || ''}
                     onChange={e => setSelectedTask(prev => ({ ...prev, description: e.target.value }))}
                     onBlur={() => handleUpdateTask(selectedTask.id, { description: selectedTask.description })} />
@@ -369,9 +369,9 @@ export default function TasksPage() {
 
                 {/* Invite collaborator */}
                 <div className="border-t border-gray-100 pt-4">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1"><UserPlus size={11} strokeWidth={1.5} /> Invite to task</h4>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1"><UserPlus size={11} strokeWidth={1.5} /> Invite to task</h4>
                   <div className="flex gap-2">
-                    <input className="input text-xs py-1.5 flex-1" type="email" placeholder="email@..." value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                    <input className="input text-sm py-1.5 flex-1" type="email" placeholder="email@..." value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleInvite() }} />
                     <button onClick={handleInvite} disabled={!inviteEmail.trim()} className="text-brand-500 hover:text-brand-700 disabled:opacity-30"><Mail size={14} strokeWidth={1.5} /></button>
                   </div>
@@ -379,34 +379,34 @@ export default function TasksPage() {
 
                 {/* Comments */}
                 <div className="border-t border-gray-100 pt-4">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1"><MessageSquare size={11} strokeWidth={1.5} /> Comments ({comments.length})</h4>
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1"><MessageSquare size={11} strokeWidth={1.5} /> Comments ({comments.length})</h4>
                   <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
                     {comments.map(c => (
                       <div key={c.id} className="bg-gray-50 rounded-lg px-3 py-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-gray-700">{c.author_name}</span>
-                          <span className="text-[9px] text-gray-400">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                          <span className="text-sm font-medium text-gray-700">{c.author_name}</span>
+                          <span className="text-[12px] text-gray-400">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                         </div>
-                        <p className="text-xs text-gray-600 mt-1">{c.text}</p>
+                        <p className="text-sm text-gray-600 mt-1">{c.text}</p>
                       </div>
                     ))}
-                    {comments.length === 0 && <p className="text-xs text-gray-400 text-center py-3">No comments yet</p>}
+                    {comments.length === 0 && <p className="text-sm text-gray-400 text-center py-3">No comments yet</p>}
                   </div>
                   <div className="flex gap-2">
-                    <input className="input text-xs py-1.5 flex-1" placeholder="Add a comment..." value={newComment}
+                    <input className="input text-sm py-1.5 flex-1" placeholder="Add a comment..." value={newComment}
                       onChange={e => setNewComment(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddComment() }} />
                     <button onClick={handleAddComment} disabled={!newComment.trim()} className="text-brand-500 hover:text-brand-700 disabled:opacity-30"><Send size={14} strokeWidth={1.5} /></button>
                   </div>
                 </div>
 
                 {/* Meta */}
-                <div className="border-t border-gray-100 pt-3 text-[10px] text-gray-400 space-y-1">
+                <div className="border-t border-gray-100 pt-3 text-[13px] text-gray-400 space-y-1">
                   <p>Created by: {selectedTask.created_by || 'Unknown'}</p>
                   <p>Created: {selectedTask.created_at ? format(new Date(selectedTask.created_at), 'MMM d yyyy h:mm a') : '\u2014'}</p>
                   {selectedTask.completed_at && <p>Completed: {format(new Date(selectedTask.completed_at), 'MMM d yyyy h:mm a')}</p>}
                 </div>
 
-                <button onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-xs text-brand-500 hover:bg-brand-50 py-2 rounded-lg flex items-center justify-center gap-1 border border-brand-200"><Trash2 size={11} strokeWidth={1.5} /> Delete task</button>
+                <button onClick={() => handleDeleteTask(selectedTask.id)} className="w-full text-sm text-brand-500 hover:bg-brand-50 py-2 rounded-lg flex items-center justify-center gap-1 border border-brand-200"><Trash2 size={11} strokeWidth={1.5} /> Delete task</button>
               </div>
             </div>
           )}

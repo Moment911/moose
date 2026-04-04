@@ -97,9 +97,9 @@ export default function AutomationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-gray-900">{auto.name}</h3>
-                    <p className="text-xs text-gray-400">Trigger: {TRIGGER_TYPES.find(t => t.key === auto.trigger_type)?.label || auto.trigger_type} &middot; {(auto.actions || []).length} actions</p>
+                    <p className="text-sm text-gray-400">Trigger: {TRIGGER_TYPES.find(t => t.key === auto.trigger_type)?.label || auto.trigger_type} &middot; {(auto.actions || []).length} actions</p>
                   </div>
-                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium ${auto.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{auto.status}</span>
+                  <span className={`text-[13px] px-2.5 py-1 rounded-full font-medium ${auto.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{auto.status}</span>
                   <button onClick={() => toggleStatus(auto)} className={`p-2 rounded-lg transition-colors ${auto.status === 'active' ? 'text-amber-500 hover:bg-amber-50' : 'text-green-500 hover:bg-green-50'}`} title={auto.status === 'active' ? 'Pause' : 'Activate'}>
                     {auto.status === 'active' ? <Pause size={14} /> : <Play size={14} />}
                   </button>
@@ -119,9 +119,9 @@ export default function AutomationsPage() {
                 <button onClick={() => setShowCreate(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
               </div>
               <form onSubmit={handleCreate} className="px-5 py-4 space-y-4">
-                <div><label className="text-xs text-gray-500 block mb-1">Automation Name *</label><input className="input text-sm" placeholder="Welcome new contacts" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
+                <div><label className="text-sm text-gray-500 block mb-1">Automation Name *</label><input className="input text-sm" placeholder="Welcome new contacts" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
                 <div>
-                  <label className="text-xs text-gray-500 block mb-2">Trigger *</label>
+                  <label className="text-sm text-gray-500 block mb-2">Trigger *</label>
                   <div className="grid grid-cols-2 gap-2">
                     {TRIGGER_TYPES.map(t => {
                       const I = t.icon
@@ -129,25 +129,25 @@ export default function AutomationsPage() {
                         <button key={t.key} type="button" onClick={() => setForm(f => ({ ...f, trigger: t.key }))}
                           className={`text-left p-3 rounded-xl border transition-all ${form.trigger === t.key ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:border-gray-300'}`}>
                           <I size={16} className={form.trigger === t.key ? 'text-brand-500 mb-1' : 'text-gray-400 mb-1'} />
-                          <p className="text-xs font-medium text-gray-800">{t.label}</p>
-                          <p className="text-[10px] text-gray-400">{t.desc}</p>
+                          <p className="text-sm font-medium text-gray-800">{t.label}</p>
+                          <p className="text-[13px] text-gray-400">{t.desc}</p>
                         </button>
                       )
                     })}
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 block mb-2">Actions</label>
+                  <label className="text-sm text-gray-500 block mb-2">Actions</label>
                   {(form.actions || []).map((a, i) => (
                     <div key={i} className="flex items-center gap-2 mb-2 bg-gray-50 rounded-lg px-3 py-2">
-                      <span className="text-xs text-gray-700 flex-1">{ACTION_TYPES.find(t => t.key === a)?.label || a}</span>
+                      <span className="text-sm text-gray-700 flex-1">{ACTION_TYPES.find(t => t.key === a)?.label || a}</span>
                       <button type="button" onClick={() => setForm(f => ({ ...f, actions: f.actions.filter((_, j) => j !== i) }))} className="text-gray-300 hover:text-red-500"><X size={12} /></button>
                     </div>
                   ))}
                   <div className="flex flex-wrap gap-1.5">
                     {ACTION_TYPES.filter(a => !(form.actions || []).includes(a.key)).map(a => (
                       <button key={a.key} type="button" onClick={() => setForm(f => ({ ...f, actions: [...(f.actions || []), a.key] }))}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{a.label}</button>
+                        className="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{a.label}</button>
                     ))}
                   </div>
                 </div>

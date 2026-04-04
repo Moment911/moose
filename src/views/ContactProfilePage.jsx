@@ -113,16 +113,16 @@ export default function ContactProfilePage() {
               <h1 className="text-xl font-bold text-gray-900">{contact.first_name ? `${contact.prefix || ''} ${contact.first_name} ${contact.last_name || ''}`.trim() : contact.email}</h1>
               <p className="text-sm text-gray-500">{[contact.job_title, contact.company].filter(Boolean).join(' at ') || contact.email}</p>
               <div className="flex items-center gap-3 mt-1">
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${contact.status === 'subscribed' ? 'bg-green-50 text-green-700' : contact.status === 'unsubscribed' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500'}`}>{contact.status || 'subscribed'}</span>
+                <span className={`text-[13px] px-2 py-0.5 rounded-full font-medium ${contact.status === 'subscribed' ? 'bg-green-50 text-green-700' : contact.status === 'unsubscribed' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-500'}`}>{contact.status || 'subscribed'}</span>
                 <div className="flex items-center gap-1">
                   <div className="w-16 h-1.5 bg-gray-200 rounded-full"><div className="h-full rounded-full" style={{ width: `${engagement}%`, background: engColor }} /></div>
-                  <span className="text-[10px] font-medium" style={{ color: engColor }}>{engagement}%</span>
+                  <span className="text-[13px] font-medium" style={{ color: engColor }}>{engagement}%</span>
                 </div>
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setEditing(!editing)} className="btn-secondary text-xs"><Edit2 size={12} /> {editing ? 'Cancel' : 'Edit'}</button>
-              <button onClick={handleDelete} className="text-xs text-gray-400 hover:text-red-500 p-2"><Trash2 size={14} /></button>
+              <button onClick={() => setEditing(!editing)} className="btn-secondary text-sm"><Edit2 size={12} /> {editing ? 'Cancel' : 'Edit'}</button>
+              <button onClick={handleDelete} className="text-sm text-gray-400 hover:text-red-500 p-2"><Trash2 size={14} /></button>
             </div>
           </div>
 
@@ -150,9 +150,9 @@ export default function ContactProfilePage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-700">
                             {cfg.label} {camp && <span className="font-medium">"{camp.name}"</span>}
-                            {evt.metadata?.url && <span className="text-xs text-gray-400"> - {evt.metadata.url}</span>}
+                            {evt.metadata?.url && <span className="text-sm text-gray-400"> - {evt.metadata.url}</span>}
                           </p>
-                          <p className="text-[10px] text-gray-400">{evt.created_at ? formatDistanceToNow(new Date(evt.created_at), { addSuffix: true }) : ''}</p>
+                          <p className="text-[13px] text-gray-400">{evt.created_at ? formatDistanceToNow(new Date(evt.created_at), { addSuffix: true }) : ''}</p>
                         </div>
                       </div>
                     )
@@ -163,7 +163,7 @@ export default function ContactProfilePage() {
               {/* Email History */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Email History</h3>
-                <p className="text-xs text-gray-400 mb-3">{contact.email_count || 0} emails sent &middot; {contact.total_emails_opened || 0} opened &middot; {contact.total_emails_clicked || 0} clicked</p>
+                <p className="text-sm text-gray-400 mb-3">{contact.email_count || 0} emails sent &middot; {contact.total_emails_opened || 0} opened &middot; {contact.total_emails_clicked || 0} clicked</p>
                 {campaigns.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No campaigns yet</p>}
                 <div className="space-y-1.5">
                   {campaigns.slice(0, 10).map(c => {
@@ -175,7 +175,7 @@ export default function ContactProfilePage() {
                       <div key={c.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-800 truncate">{c.name}</p>
-                          <p className="text-[10px] text-gray-400">{sentEvt?.created_at ? format(new Date(sentEvt.created_at), 'MMM d, yyyy') : ''}</p>
+                          <p className="text-[13px] text-gray-400">{sentEvt?.created_at ? format(new Date(sentEvt.created_at), 'MMM d, yyyy') : ''}</p>
                         </div>
                         <div className="flex gap-2">
                           {openEvt ? <Eye size={12} className="text-blue-500" /> : <Eye size={12} className="text-gray-300" />}
@@ -216,17 +216,17 @@ export default function ContactProfilePage() {
                         {I && <I size={12} className="text-gray-400 flex-shrink-0" />}
                         {!I && <div className="w-3" />}
                         {editing ? (
-                          <div className="flex-1"><label className="text-[9px] text-gray-400 uppercase">{f.label}</label><input className="input text-xs py-1 w-full" value={val} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} /></div>
+                          <div className="flex-1"><label className="text-[12px] text-gray-400 uppercase">{f.label}</label><input className="input text-sm py-1 w-full" value={val} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} /></div>
                         ) : (
                           <div className="flex-1 min-w-0">
-                            <p className="text-[9px] text-gray-400 uppercase">{f.label}</p>
+                            <p className="text-[12px] text-gray-400 uppercase">{f.label}</p>
                             <p className="text-sm text-gray-800 truncate">{val || <span className="text-gray-300">—</span>}</p>
                           </div>
                         )}
                       </div>
                     )
                   })}
-                  {editing && <button onClick={handleSave} className="btn-primary text-xs w-full justify-center mt-2"><Check size={12} /> Save Changes</button>}
+                  {editing && <button onClick={handleSave} className="btn-primary text-sm w-full justify-center mt-2"><Check size={12} /> Save Changes</button>}
                 </div>
               </div>
 
@@ -240,7 +240,7 @@ export default function ContactProfilePage() {
                       {l.name}
                     </label>
                   ))}
-                  {lists.length === 0 && <p className="text-xs text-gray-400">No lists created</p>}
+                  {lists.length === 0 && <p className="text-sm text-gray-400">No lists created</p>}
                 </div>
               </div>
 

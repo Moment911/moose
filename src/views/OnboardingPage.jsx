@@ -39,13 +39,13 @@ const T = {
   },
   inpFocus: { borderColor: ACCENT },
   lbl: { fontSize: 15, fontWeight: 700, color: '#1f2937', display: 'block', marginBottom: 8 },
-  hint: { fontSize: 13, color: '#6b7280', lineHeight: 1.6, marginBottom: 14, display: 'block' },
+  hint: { fontSize: 15, color: '#6b7280', lineHeight: 1.6, marginBottom: 14, display: 'block' },
   card: { background: '#fff', borderRadius: 20, border: '1px solid #e5e7eb', marginBottom: 20, overflow: 'hidden' },
   cardHead: { padding: '22px 28px', borderBottom: '1px solid #f3f4f6' },
   cardBody: { padding: '24px 28px' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 },
   grid3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 },
-  stepTag: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: ACCENT, background: '#fff7f5', border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: '4px 12px', marginBottom: 12 },
+  stepTag: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: ACCENT, background: '#fff7f5', border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: '4px 12px', marginBottom: 12 },
 };
 
 function F({ label, hint, children, required, span2 }) {
@@ -111,7 +111,7 @@ function SecurePwField({ value, onChange, placeholder }) {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
         <Lock size={11} color="#9ca3af" />
-        <span style={{ fontSize: 11, color: '#9ca3af' }}>Encrypted & stored securely — only your agency team can see this</span>
+        <span style={{ fontSize: 13, color: '#9ca3af' }}>Encrypted & stored securely — only your agency team can see this</span>
       </div>
     </div>
   );
@@ -134,7 +134,7 @@ function PillSelect({ options, value, onChange, multi = true, color = ACCENT }) 
         const active = multi ? arr.includes(opt) : value === opt;
         return (
           <button key={opt} type="button" onClick={() => toggle(opt)}
-            style={{ fontSize: 14, padding: '9px 18px', borderRadius: 24, border: active ? `2px solid ${color}` : '2px solid #e5e7eb', background: active ? color + '12' : '#fff', color: active ? color : '#374151', cursor: 'pointer', fontWeight: active ? 700 : 500, transition: 'all .12s' }}>
+            style={{ fontSize: 15, padding: '9px 18px', borderRadius: 24, border: active ? `2px solid ${color}` : '2px solid #e5e7eb', background: active ? color + '12' : '#fff', color: active ? color : '#374151', cursor: 'pointer', fontWeight: active ? 700 : 500, transition: 'all .12s' }}>
             {opt}
           </button>
         );
@@ -155,7 +155,7 @@ function TagInput({ value, onChange, placeholder, color = ACCENT }) {
     <div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
         {arr.map((v, i) => (
-          <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 14, padding: '6px 14px', borderRadius: 24, background: color + '15', color, border: `1px solid ${color}30`, fontWeight: 600 }}>
+          <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 15, padding: '6px 14px', borderRadius: 24, background: color + '15', color, border: `1px solid ${color}30`, fontWeight: 700 }}>
             {v}
             <button type="button" onClick={() => onChange(arr.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color, padding: 0, fontSize: 16, lineHeight: 1 }}>×</button>
           </span>
@@ -166,7 +166,7 @@ function TagInput({ value, onChange, placeholder, color = ACCENT }) {
           placeholder={placeholder}
           style={{ ...T.inp, flex: 1, fontSize: 15 }} />
         <button type="button" onClick={add}
-          style={{ padding: '14px 20px', borderRadius: 12, border: `2px solid ${color}`, background: '#fff', color, fontSize: 14, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+          style={{ padding: '14px 20px', borderRadius: 12, border: `2px solid ${color}`, background: '#fff', color, fontSize: 15, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
           + Add
         </button>
       </div>
@@ -205,22 +205,22 @@ function SugBox({ text, onAccept, onDismiss, onEdit }) {
     <div style={{ marginTop: 12, background: 'linear-gradient(135deg,#fff7f5,#fff)', border: `2px solid ${ACCENT}30`, borderRadius: 14, padding: '16px 18px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         <Sparkles size={14} color={ACCENT} />
-        <span style={{ fontSize: 12, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Suggestion</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.06em' }}>AI Suggestion</span>
         <button type="button" onClick={onDismiss} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}><X size={14}/></button>
       </div>
       {editing ? (
         <textarea value={editVal} onChange={e => setEditVal(e.target.value)} rows={4}
-          style={{ ...T.inp, marginBottom: 10, fontSize: 14 }} />
+          style={{ ...T.inp, marginBottom: 10, fontSize: 15 }} />
       ) : (
-        <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.75, whiteSpace: 'pre-line', marginBottom: 12 }}>{text}</div>
+        <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75, whiteSpace: 'pre-line', marginBottom: 12 }}>{text}</div>
       )}
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="button" onClick={() => onAccept(editing ? editVal : text)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 9, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
           <Check size={13} /> Use This
         </button>
         <button type="button" onClick={() => setEditing(e => !e)}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 13, cursor: 'pointer', color: '#374151' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 9, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: 'pointer', color: '#374151' }}>
           <Edit3 size={12} /> {editing ? 'Preview' : 'Edit First'}
         </button>
       </div>
@@ -233,7 +233,7 @@ function InfoBox({ children, color = '#3b82f6' }) {
   return (
     <div style={{ background: color + '0d', border: `1px solid ${color}30`, borderRadius: 12, padding: '14px 18px', display: 'flex', gap: 12, marginBottom: 20 }}>
       <Info size={16} color={color} style={{ flexShrink: 0, marginTop: 2 }} />
-      <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.65 }}>{children}</div>
+      <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.65 }}>{children}</div>
     </div>
   );
 }
@@ -248,7 +248,7 @@ function AccessGuide({ platform, icon, steps, link, linkLabel }) {
         <div style={{width:36,height:36,borderRadius:9,background:ACCENT+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><StepIcon name={icon} size={18} color={ACCENT}/></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{platform}</div>
-          <div style={{ fontSize: 12, color: '#9ca3af' }}>Click to see how to add us</div>
+          <div style={{ fontSize: 14, color: '#9ca3af' }}>Click to see how to add us</div>
         </div>
         <span style={{ fontSize: 20, color: '#9ca3af', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform .2s' }}>›</span>
       </button>
@@ -256,14 +256,14 @@ function AccessGuide({ platform, icon, steps, link, linkLabel }) {
         <div style={{ padding: '0 20px 20px', borderTop: '1px solid #e5e7eb' }}>
           <ol style={{ paddingLeft: 20, margin: '14px 0' }}>
             {steps.map((s, i) => (
-              <li key={i} style={{ fontSize: 14, color: '#374151', marginBottom: 10, lineHeight: 1.6 }}>
+              <li key={i} style={{ fontSize: 15, color: '#374151', marginBottom: 10, lineHeight: 1.6 }}>
                 {typeof s === 'string' ? s : s}
               </li>
             ))}
           </ol>
           {link && (
             <a href={link} target="_blank" rel="noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 9, background: ACCENT, color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 700 }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 9, background: ACCENT, color: '#fff', textDecoration: 'none', fontSize: 15, fontWeight: 700 }}>
               {linkLabel || 'Open Official Instructions'} <ExternalLink size={12} />
             </a>
           )}
@@ -559,7 +559,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
         <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 22, opacity: .85 }} />
         <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
-        <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 500 }}>{msg(firstName)}</span>
+        <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName)}</span>
       </div>
     );
   }
@@ -570,16 +570,16 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, height: 62 }}>
         <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 26 }} />
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
-        <span style={{ fontSize: 12, color: '#52525b', fontWeight: 500 }}>Client Onboarding</span>
+        <span style={{ fontSize: 14, color: '#52525b', fontWeight: 600 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
-        {firstName && <span style={{ fontSize: 13, color: '#a1a1aa' }}>Hi <strong style={{ color: '#fff' }}>{firstName}</strong> </span>}
+        {firstName && <span style={{ fontSize: 15, color: '#a1a1aa' }}>Hi <strong style={{ color: '#fff' }}>{firstName}</strong> </span>}
       </div>
       {step > 0 && step < STEPS.length - 1 && (
         <div style={{ maxWidth: 820, margin: '0 auto', paddingBottom: 10 }}>
           <div style={{ height: 3, background: 'rgba(255,255,255,.1)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${(step / (STEPS.length - 2)) * 100}%`, background: ACCENT, borderRadius: 2, transition: 'width .4s' }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#52525b', marginTop: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#52525b', marginTop: 4 }}>
             <span>Step {step} of {STEPS.length - 2}</span>
             <span style={{ color: ACCENT, fontWeight: 700 }}>{Math.round((step / (STEPS.length - 2)) * 100)}% complete</span>
           </div>
@@ -620,8 +620,8 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             {firstName ? `Thank you for taking the time, ${firstName}. ` : ''}Your agency now has everything they need to build a powerful marketing strategy. We'll be in touch very soon!
           </p>
           <div style={{ background: '#f9fafb', borderRadius: 12, padding: '16px 20px', display: 'inline-block' }}>
-            <div style={{ fontSize: 13, color: '#374151' }}>Submitted for: <strong>{biz}</strong></div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div style={{ fontSize: 15, color: '#374151' }}>Submitted for: <strong>{biz}</strong></div>
+            <div style={{ fontSize: 14, color: '#9ca3af', marginTop: 4 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
           </div>
         </div>
       </div>
@@ -634,10 +634,10 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24 }}>
         <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
-          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 24px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: step === 0 ? 'not-allowed' : 'pointer', color: '#374151', opacity: step === 0 ? .4 : 1, fontWeight: 600 }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 24px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: step === 0 ? 'not-allowed' : 'pointer', color: '#374151', opacity: step === 0 ? .4 : 1, fontWeight: 700 }}>
           <ChevronLeft size={16} /> Back
         </button>
-        <span style={{ fontSize: 13, color: '#9ca3af' }}>Step {step} of {STEPS.length - 2}</span>
+        <span style={{ fontSize: 15, color: '#9ca3af' }}>Step {step} of {STEPS.length - 2}</span>
         {!isLast ? (
           <button type="button" onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: `0 6px 20px ${ACCENT}40` }}>
@@ -664,10 +664,10 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
             <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 28 }}>
-              <span style={{ fontSize: 11, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Moose AI</span>
+              <span style={{ fontSize: 13, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Moose AI</span>
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
             <h1 style={{ fontSize: 38, fontWeight: 900, color: '#fff', margin: '0 0 14px', letterSpacing: -0.5 }}>
               Welcome, <span style={{ color: ACCENT }}>{tokenData?.clients?.name || 'there'}</span>! 🎉
             </h1>
@@ -678,18 +678,18 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               <div style={{ display: 'flex', gap: 14 }}>
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20 }}></div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>A note from our team</div>
-                  <div style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.65 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>A note from our team</div>
+                  <div style={{ fontSize: 15, color: '#a1a1aa', lineHeight: 1.65 }}>
                     "The more detail you give us, the more precisely we can target your ideal customers — and the faster we see real results. Our AI will help you along the way."
                   </div>
-                  <div style={{ fontSize: 12, color: '#52525b', marginTop: 8, fontStyle: 'italic' }}>— The Momenta Team</div>
+                  <div style={{ fontSize: 14, color: '#52525b', marginTop: 8, fontStyle: 'italic' }}>— The Momenta Team</div>
                 </div>
               </div>
             </div>
           </div>
 
           <div style={{ padding: '40px 48px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 18 }}>What we'll cover together</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 18 }}>What we'll cover together</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 32 }}>
               {[
                 { icon: 'Clock', title: '20–30 minutes', desc: 'Work at your own pace — saves automatically' },
@@ -701,21 +701,21 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               ].map(item => (
                 <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '16px 18px', border: '1px solid #f3f4f6' }}>
                   <div style={{ marginBottom: 8 }}><StepIcon name={item.icon} size={24} color={ACCENT}/></div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#111', marginBottom: 4 }}>{item.title}</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.4 }}>{item.desc}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 4 }}>{item.title}</div>
+                  <div style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.4 }}>{item.desc}</div>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
               {STEPS.slice(1, -1).map(s => (
-                <span key={s.id} style={{ fontSize: 13, fontWeight: 500, padding: '6px 14px', borderRadius: 20, background: '#fff', border: '1.5px solid #e5e7eb', color: '#374151' }}>
+                <span key={s.id} style={{ fontSize: 15, fontWeight: 600, padding: '6px 14px', borderRadius: 20, background: '#fff', border: '1.5px solid #e5e7eb', color: '#374151' }}>
                   <StepIcon name={s.icon} size={13} color='#6b7280'/> {s.label}
                 </span>
               ))}
             </div>
             <div style={{ background: '#fff7f5', border: `1px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 12 }}>
               <Sparkles size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 14, color: '#92400e', lineHeight: 1.65 }}>
+              <div style={{ fontSize: 15, color: '#92400e', lineHeight: 1.65 }}>
                 <strong>Pro tip:</strong> Look for the <span style={{ color: ACCENT, fontWeight: 800 }}>AI Suggest</span> buttons throughout. They generate smart suggestions based on your industry that you can tweak — no staring at a blank field.
               </div>
             </div>
@@ -723,7 +723,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               style={{ width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 16, padding: '18px 0', fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, boxShadow: `0 8px 28px ${ACCENT}45` }}>
               Let's Build Your Marketing Profile <ChevronRight size={20} />
             </button>
-            <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 12 }}>
+            <div style={{ textAlign: 'center', fontSize: 14, color: '#9ca3af', marginTop: 12 }}>
               20–30 minutes · Auto-saved · No account needed
             </div>
           </div>
@@ -759,7 +759,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                   {form.first_name.trim() && (
                     <div style={{ marginTop: 10, padding: '10px 16px', background: '#fff7f5', borderRadius: 10, border: `1px solid ${ACCENT}25`, display: 'flex', alignItems: 'center', gap: 9, animation: 'fadeIn .3s ease' }}>
                       <span style={{ fontSize: 20 }}></span>
-                      <span style={{ fontSize: 15, color: '#374151', fontWeight: 500 }}>Hi <strong style={{ color: ACCENT }}>{form.first_name.trim().split(' ')[0]}</strong>! Great to meet you.</span>
+                      <span style={{ fontSize: 15, color: '#374151', fontWeight: 600 }}>Hi <strong style={{ color: ACCENT }}>{form.first_name.trim().split(' ')[0]}</strong>! Great to meet you.</span>
                     </div>
                   )}
                 </F>
@@ -1002,7 +1002,7 @@ Product: Water filtration systems — sale and installation..." />
 
               {form.competitors.map((comp, i) => (
                 <div key={i} style={{ background: '#f9fafb', borderRadius: 16, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Competitor #{i + 1}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Competitor #{i + 1}</div>
                   <div style={{ ...T.grid2, gap: 14 }}>
                     <F label="Business Name">
                       <FocusInput value={comp.name} onChange={e => setComp(i, 'name', e.target.value)} placeholder="Rival Plumbing Co." />
@@ -1202,7 +1202,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardBody}>
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '14px 18px', display: 'flex', gap: 12, marginBottom: 24 }}>
                 <Lock size={16} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
-                <div style={{ fontSize: 14, color: '#166534', lineHeight: 1.65 }}>
+                <div style={{ fontSize: 15, color: '#166534', lineHeight: 1.65 }}>
                   <strong>Your credentials are encrypted and stored securely.</strong> Only your agency team can access them — they're never shared with third parties or stored in plain text.
                 </div>
               </div>
@@ -1265,7 +1265,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardBody}>
               <div style={{ background: '#fff7f5', border: `2px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', gap: 12 }}>
                 <Shield size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
-                <div style={{ fontSize: 14, color: '#92400e', lineHeight: 1.65 }}>
+                <div style={{ fontSize: 15, color: '#92400e', lineHeight: 1.65 }}>
                   <strong>Agency email to use for all invitations:</strong><br />
                   <span style={{ fontFamily: 'monospace', fontSize: 16, fontWeight: 800, color: ACCENT, background: '#fff', padding: '4px 12px', borderRadius: 8, display: 'inline-block', marginTop: 6, border: `1px solid ${ACCENT}30` }}>admin@momentamktg.com</span>
                 </div>
@@ -1530,7 +1530,7 @@ Product: Water filtration systems — sale and installation..." />
                 <div style={{ textAlign: 'center', padding: '48px 20px' }}>
                   <Loader2 size={48} color={ACCENT} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 20px' }} />
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 8 }}>Building your persona…</div>
-                  <div style={{ fontSize: 14, color: '#9ca3af' }}>Analyzing your responses, industry data, and competitive landscape</div>
+                  <div style={{ fontSize: 15, color: '#9ca3af' }}>Analyzing your responses, industry data, and competitive landscape</div>
                 </div>
               )}
 
@@ -1555,7 +1555,7 @@ Product: Water filtration systems — sale and installation..." />
                       { label: 'Location Type', value: personaResult.location_type },
                     ].map(d => d.value && (
                       <div key={d.label} style={{ background: '#f9fafb', borderRadius: 12, padding: '14px 16px', border: '1px solid #f3f4f6' }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{d.label}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{d.label}</div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{d.value}</div>
                       </div>
                     ))}
@@ -1563,7 +1563,7 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.psychographic_summary && (
                     <div style={{ background: '#f9fafb', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}> Psychographic Profile</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}> Psychographic Profile</div>
                       <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75 }}>{personaResult.psychographic_summary}</div>
                     </div>
                   )}
@@ -1576,9 +1576,9 @@ Product: Water filtration systems — sale and installation..." />
                       { label: 'Trust Signals That Work', items: personaResult.trust_signals, color: '#3b82f6' },
                     ].map(g => g.items?.length > 0 && (
                       <div key={g.label} style={{ background: '#f9fafb', borderRadius: 14, padding: '16px 18px', border: '1px solid #f3f4f6' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 10 }}>{g.label}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 10 }}>{g.label}</div>
                         {g.items.map((item, i) => (
-                          <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 13, color: '#374151' }}>
+                          <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 15, color: '#374151' }}>
                             <div style={{ width: 5, height: 5, borderRadius: '50%', background: g.color, flexShrink: 0, marginTop: 6 }} />
                             {item}
                           </div>
@@ -1589,10 +1589,10 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.google_keywords?.length > 0 && (
                     <div style={{ background: '#eff6ff', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8', marginBottom: 10 }}>Google Keywords They Search</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#1d4ed8', marginBottom: 10 }}>Google Keywords They Search</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         {personaResult.google_keywords.map(k => (
-                          <span key={k} style={{ fontSize: 13, fontWeight: 600, padding: '5px 13px', borderRadius: 20, background: '#fff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>{k}</span>
+                          <span key={k} style={{ fontSize: 15, fontWeight: 700, padding: '5px 13px', borderRadius: 20, background: '#fff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>{k}</span>
                         ))}
                       </div>
                     </div>
@@ -1600,11 +1600,11 @@ Product: Water filtration systems — sale and installation..." />
 
                   {personaResult.ad_headline_angles?.length > 0 && (
                     <div style={{ background: '#fff7f5', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>Ad Headlines That Stop Them Scrolling</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>Ad Headlines That Stop Them Scrolling</div>
                       {personaResult.ad_headline_angles.map((h, i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '10px 14px', background: '#fff', borderRadius: 10, border: `1px solid ${ACCENT}20`, alignItems: 'center' }}>
-                          <span style={{ fontSize: 12, fontWeight: 800, color: '#9ca3af', flexShrink: 0 }}>H{i + 1}</span>
-                          <span style={{ fontSize: 14, color: '#374151', flex: 1 }}>{h}</span>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: '#9ca3af', flexShrink: 0 }}>H{i + 1}</span>
+                          <span style={{ fontSize: 15, color: '#374151', flex: 1 }}>{h}</span>
                         </div>
                       ))}
                     </div>
@@ -1641,7 +1641,7 @@ Product: Water filtration systems — sale and installation..." />
                         <label style={{ ...T.lbl, marginBottom: 8 }}>What needs to be adjusted? Be specific.</label>
                         <FocusTextarea rows={4} value={form.persona_notes} onChange={e => set('persona_notes', e.target.value)}
                           placeholder="The age range is off — our customers are more 45-65, not 35-54. The income level is right. The triggers are perfect. But we serve more renters than homeowners in Brickell and Miami Beach…" />
-                        <button type="button" onClick={generatePersona} style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                        <button type="button" onClick={generatePersona} style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
                           <RefreshCw size={14} /> Regenerate with My Feedback
                         </button>
                       </div>
@@ -1677,7 +1677,7 @@ Product: Water filtration systems — sale and installation..." />
                 ].map(item => (
                   <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '18px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                     <span style={{ fontSize: 26 }}><StepIcon name={item.icon} size={22} color={ACCENT}/></span>
-                    <div><div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{item.title}</div><div style={{ fontSize: 12, color: '#9ca3af', marginTop: 3 }}>{item.desc}</div></div>
+                    <div><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{item.title}</div><div style={{ fontSize: 14, color: '#9ca3af', marginTop: 3 }}>{item.desc}</div></div>
                   </div>
                 ))}
               </div>

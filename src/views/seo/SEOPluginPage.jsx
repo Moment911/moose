@@ -102,9 +102,9 @@ export default function SEOPluginPage() {
             <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Connect WordPress Site</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                <div><label className="text-xs text-gray-500 block mb-1">Site URL *</label><input className="input text-sm" placeholder="https://clientsite.com" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} /></div>
-                <div><label className="text-xs text-gray-500 block mb-1">Plugin API Key *</label><input className="input text-sm" type="password" placeholder="From WP → HyperLocal SEO → Agency" value={form.apiKey} onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))} /></div>
-                <div><label className="text-xs text-gray-500 block mb-1">Client</label><select className="input text-sm" value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}><option value="">— None —</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                <div><label className="text-sm text-gray-500 block mb-1">Site URL *</label><input className="input text-sm" placeholder="https://clientsite.com" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-500 block mb-1">Plugin API Key *</label><input className="input text-sm" type="password" placeholder="From WP → HyperLocal SEO → Agency" value={form.apiKey} onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-500 block mb-1">Client</label><select className="input text-sm" value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}><option value="">— None —</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
               </div>
               <div className="flex gap-2">
                 <button onClick={connectSite} disabled={testing} className="btn-primary text-sm">{testing ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />} {testing ? 'Connecting...' : 'Test & Connect'}</button>
@@ -120,9 +120,9 @@ export default function SEOPluginPage() {
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No Sites Connected</h3>
               <p className="text-sm text-gray-400 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Moose AI.</p>
               <div className="bg-gray-50 rounded-xl p-4 max-w-md mx-auto text-left mb-6">
-                <p className="text-xs font-semibold text-gray-600 mb-2">Setup Steps:</p>
+                <p className="text-sm font-semibold text-gray-600 mb-2">Setup Steps:</p>
                 {['Install HyperLocal SEO Pro on WordPress', 'Go to WordPress → HyperLocal SEO → Agency Connect', 'Generate API key and copy it', 'Click "Connect Site" and paste the key'].map((s, i) => (
-                  <div key={i} className="flex items-start gap-2 mb-1.5"><span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span><span className="text-xs text-gray-600">{s}</span></div>
+                  <div key={i} className="flex items-start gap-2 mb-1.5"><span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span><span className="text-sm text-gray-600">{s}</span></div>
                 ))}
               </div>
               <button onClick={() => setAdding(true)} className="btn-primary text-sm">Connect Your First Site</button>
@@ -140,8 +140,8 @@ export default function SEOPluginPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{site.site_name || site.url}</p>
-                        <p className="text-[10px] text-gray-400">{site.clients?.name || 'No client'}</p>
-                        <div className="flex items-center gap-1 mt-1"><div className={`w-1.5 h-1.5 rounded-full ${site.connected ? 'bg-green-500' : 'bg-red-400'}`} /><span className="text-[10px] text-gray-400">{site.connected ? 'Connected' : 'Offline'}</span></div>
+                        <p className="text-[13px] text-gray-400">{site.clients?.name || 'No client'}</p>
+                        <div className="flex items-center gap-1 mt-1"><div className={`w-1.5 h-1.5 rounded-full ${site.connected ? 'bg-green-500' : 'bg-red-400'}`} /><span className="text-[13px] text-gray-400">{site.connected ? 'Connected' : 'Offline'}</span></div>
                       </div>
                       <button onClick={e => { e.stopPropagation(); deleteSite(site.id) }} className="text-gray-300 hover:text-red-500 p-1"><Trash2 size={12} /></button>
                     </div>
@@ -155,21 +155,21 @@ export default function SEOPluginPage() {
                   <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 flex items-center justify-between flex-wrap gap-2" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                     <div>
                       <p className="text-base font-semibold text-gray-800">{selected.site_name}</p>
-                      <a href={selected.url} target="_blank" rel="noreferrer" className="text-xs text-brand-500 flex items-center gap-1">{selected.url} <ExternalLink size={10} /></a>
+                      <a href={selected.url} target="_blank" rel="noreferrer" className="text-sm text-brand-500 flex items-center gap-1">{selected.url} <ExternalLink size={10} /></a>
                     </div>
-                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${selected.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selected.connected ? 'Connected' : 'Offline'}</span>
+                    <span className={`text-[13px] font-semibold px-2.5 py-1 rounded-full ${selected.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selected.connected ? 'Connected' : 'Offline'}</span>
                   </div>
 
                   {/* Tabs */}
                   <div className="flex overflow-x-auto bg-white rounded-t-xl border border-gray-200 border-b-0" style={{ scrollbarWidth: 'none' }}>
                     {['actions', 'generate', 'data'].map(t => (
-                      <button key={t} onClick={() => setTab(t)} className={`flex-shrink-0 px-4 py-3 text-xs font-medium capitalize ${tab === t ? 'text-brand-500 border-b-2 border-brand-500' : 'text-gray-500 border-b-2 border-transparent'}`}>{t}</button>
+                      <button key={t} onClick={() => setTab(t)} className={`flex-shrink-0 px-4 py-3 text-sm font-medium capitalize ${tab === t ? 'text-brand-500 border-b-2 border-brand-500' : 'text-gray-500 border-b-2 border-transparent'}`}>{t}</button>
                     ))}
                   </div>
                   <div className="bg-white rounded-b-xl border border-gray-200 border-t-0 p-4">
                     {tab === 'actions' && (
                       <div>
-                        <p className="text-xs text-gray-500 mb-3">Trigger plugin actions on <strong>{selected.site_name}</strong></p>
+                        <p className="text-sm text-gray-500 mb-3">Trigger plugin actions on <strong>{selected.site_name}</strong></p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {QUICK_ACTIONS.map(a => {
                             const I = a.icon
@@ -179,15 +179,15 @@ export default function SEOPluginPage() {
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: a.color + '20' }}>
                                   {activeAction === a.key ? <Loader2 size={16} className="animate-spin" style={{ color: a.color }} /> : <I size={16} style={{ color: a.color }} />}
                                 </div>
-                                <div><p className="text-sm font-medium text-gray-800">{a.label}</p><p className="text-[10px] text-gray-400">{a.desc}</p></div>
+                                <div><p className="text-sm font-medium text-gray-800">{a.label}</p><p className="text-[13px] text-gray-400">{a.desc}</p></div>
                               </button>
                             )
                           })}
                         </div>
                         {actionResult && (
                           <div className={`mt-4 rounded-xl p-3 ${actionResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                            <p className="text-xs font-semibold mb-1">{actionResult.success ? '✅ Success' : '❌ Failed'}</p>
-                            <pre className="text-[10px] text-gray-600 overflow-auto max-h-32">{JSON.stringify(actionResult.data, null, 2)}</pre>
+                            <p className="text-sm font-semibold mb-1">{actionResult.success ? '✅ Success' : '❌ Failed'}</p>
+                            <pre className="text-[13px] text-gray-600 overflow-auto max-h-32">{JSON.stringify(actionResult.data, null, 2)}</pre>
                           </div>
                         )}
                       </div>

@@ -12,9 +12,9 @@ export default function PrivacyPolicyPage() {
       <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <svg width={32} height={32} viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="#E8551A"/><path d="M12 10L12 30L28 30L28 26L16 26L16 10Z" fill="white"/><circle cx="28" cy="14" r="4" fill="white" opacity="0.6"/></svg>
-          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Moose AI</p><p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>by Moose</p></div>
+          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Moose AI</p><p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>by Moose</p></div>
         </div>
-        <a href="/" style={{ fontSize: 14, color: '#E8551A', fontWeight: 600, textDecoration: 'none' }}>← Back to App</a>
+        <a href="/" style={{ fontSize: 15, color: '#E8551A', fontWeight: 700, textDecoration: 'none' }}>← Back to App</a>
       </div>
 
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '48px 24px' }}>
@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
           <h1 style={{ fontSize: 36, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>Privacy Policy</h1>
           <p style={{ fontSize: 15, color: '#6b7280', margin: 0 }}>Last updated: {lastUpdated}</p>
           <div style={{ marginTop: 16, padding: '14px 18px', background: '#FFF7ED', borderRadius: 10, border: '1px solid #FED7AA' }}>
-            <p style={{ margin: 0, fontSize: 14, color: '#92400E', lineHeight: 1.6 }}>This Privacy Policy describes how {companyName} ("we," "us," or "our") collects, uses, and shares information about you when you use {appName} and our related services.</p>
+            <p style={{ margin: 0, fontSize: 15, color: '#92400E', lineHeight: 1.6 }}>This Privacy Policy describes how {companyName} ("we," "us," or "our") collects, uses, and shares information about you when you use {appName} and our related services.</p>
           </div>
         </div>
 
@@ -44,8 +44,8 @@ export default function PrivacyPolicyPage() {
 
         <Section id="s3" title="3. How We Use Google User Data">
           <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '16px 20px', marginBottom: 20 }}>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#065F46' }}>Our commitment regarding Google data:</p>
-            <p style={{ margin: '8px 0 0', fontSize: 13, color: '#047857', lineHeight: 1.6 }}>Moose AI's use and transfer of information received from Google APIs adheres to the <strong>Google API Services User Data Policy</strong>, including the Limited Use requirements. We do not sell Google user data. We do not use Google data for advertising. We only use Google data to provide and improve our services to you.</p>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#065F46' }}>Our commitment regarding Google data:</p>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#047857', lineHeight: 1.6 }}>Moose AI's use and transfer of information received from Google APIs adheres to the <strong>Google API Services User Data Policy</strong>, including the Limited Use requirements. We do not sell Google user data. We do not use Google data for advertising. We only use Google data to provide and improve our services to you.</p>
           </div>
           <P>We use Google user data solely for:</P>
           <UL items={['SEO Analysis: Analyzing Search Console data to identify keyword opportunities and content gaps', 'Traffic Insights: Using GA4 data to understand website traffic and conversion performance', 'PPC Optimization: Analyzing Google Ads data to find wasted spend and optimization opportunities', 'GMB Management: Reading Google Business Profile data to assess review performance and local SEO', 'Report Generation: Compiling your Google data into readable reports and dashboards', 'AI Analysis: Passing data to AI models (Anthropic Claude, OpenAI GPT-4) for strategic recommendations — processed in real-time, not used to train models']} />
@@ -80,8 +80,8 @@ export default function PrivacyPolicyPage() {
 
         <Section id="s8" title="8. Google API Services">
           <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '16px 20px', marginBottom: 20 }}>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1E40AF' }}>Google API Services User Data Policy Compliance</p>
-            <p style={{ margin: '8px 0 0', fontSize: 13, color: '#1D4ED8', lineHeight: 1.6 }}>Moose AI's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', fontWeight: 600 }}>Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1E40AF' }}>Google API Services User Data Policy Compliance</p>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#1D4ED8', lineHeight: 1.6 }}>Moose AI's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', fontWeight: 700 }}>Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
           </div>
           <UL items={['Limited Use: Only use Google data to provide features you requested', 'No Data Selling: Never sell Google user data', 'No Advertising: Do not use Google data for ads', 'No Unauthorized Transfers: No transfers except to provide services', 'Minimum Necessary: Request only minimum permissions needed', 'Transparency: Clearly disclose what data we access and why', 'User Control: Revoke access at any time', 'Secure Storage: OAuth tokens stored with encryption']} />
         </Section>
@@ -103,16 +103,16 @@ export default function PrivacyPolicyPage() {
         <Section id="s12" title="12. Contact Us">
           <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             {[{ l: 'Company', v: companyName }, { l: 'App', v: appName + ' Platform' }, { l: 'Email', v: email, href: 'mailto:' + email }, { l: 'Website', v: website, href: 'https://' + website }, { l: 'Address', v: address }, { l: 'Response Time', v: 'Within 30 days' }].map(i => (
-              <div key={i.l}><p style={{ margin: '0 0 2px', fontSize: 12, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' }}>{i.l}</p>{i.href ? <a href={i.href} style={{ fontSize: 14, color: '#E8551A', fontWeight: 500 }}>{i.v}</a> : <p style={{ margin: 0, fontSize: 14, color: '#111827', fontWeight: 500 }}>{i.v}</p>}</div>
+              <div key={i.l}><p style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>{i.l}</p>{i.href ? <a href={i.href} style={{ fontSize: 15, color: '#E8551A', fontWeight: 600 }}>{i.v}</a> : <p style={{ margin: 0, fontSize: 15, color: '#111827', fontWeight: 600 }}>{i.v}</p>}</div>
             ))}
           </div>
           <div style={{ marginTop: 20, padding: '16px 20px', background: '#FFF7ED', borderRadius: 10, border: '1px solid #FED7AA' }}>
-            <p style={{ margin: 0, fontSize: 13, color: '#92400E', lineHeight: 1.6 }}><strong>For Google data access issues:</strong> Revoke Moose AI's access directly through your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" style={{ color: '#B45309', fontWeight: 600 }}>Google Account permissions page</a>.</p>
+            <p style={{ margin: 0, fontSize: 15, color: '#92400E', lineHeight: 1.6 }}><strong>For Google data access issues:</strong> Revoke Moose AI's access directly through your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" style={{ color: '#B45309', fontWeight: 700 }}>Google Account permissions page</a>.</p>
           </div>
         </Section>
 
         <div style={{ textAlign: 'center', padding: '20px 0 40px' }}>
-          <p style={{ fontSize: 13, color: '#9ca3af' }}>© {new Date().getFullYear()} {companyName}. All rights reserved.</p>
+          <p style={{ fontSize: 15, color: '#9ca3af' }}>© {new Date().getFullYear()} {companyName}. All rights reserved.</p>
         </div>
       </div>
     </div>

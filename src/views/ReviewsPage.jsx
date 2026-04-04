@@ -37,7 +37,7 @@ function StarRow({ rating, size=14, color='#f59e0b' }) {
 function PlatformBadge({ platform }) {
   const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.google
   return (
-    <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, display:'inline-flex', alignItems:'center', gap:4 }}>
+    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, display:'inline-flex', alignItems:'center', gap:4 }}>
       {cfg.icon} {cfg.label}
     </span>
   )
@@ -108,24 +108,24 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
           <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom:4 }}>
             <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>{review.reviewer_name}</span>
             <PlatformBadge platform={review.platform} />
-            {review.is_featured && <span style={{ fontSize:10, fontWeight:800, color:'#f59e0b', background:'#fffbeb', border:'1px solid #fde68a', borderRadius:20, padding:'2px 8px' }}>⭐ FEATURED</span>}
-            {isNegative && <span style={{ fontSize:10, fontWeight:800, color:'#dc2626', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:20, padding:'2px 8px' }}>⚠ NEEDS ATTENTION</span>}
+            {review.is_featured && <span style={{ fontSize:13, fontWeight:800, color:'#f59e0b', background:'#fffbeb', border:'1px solid #fde68a', borderRadius:20, padding:'2px 8px' }}>⭐ FEATURED</span>}
+            {isNegative && <span style={{ fontSize:13, fontWeight:800, color:'#dc2626', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:20, padding:'2px 8px' }}>⚠ NEEDS ATTENTION</span>}
           </div>
           <StarRow rating={review.star_rating} />
-          <div style={{ fontSize:12, color:'#9ca3af', marginTop:4 }}>
+          <div style={{ fontSize:14, color:'#9ca3af', marginTop:4 }}>
             {review.reviewed_at ? formatDistanceToNow(new Date(review.reviewed_at), { addSuffix:true }) : 'Recently'}
-            {review.review_url && <a href={review.review_url} target="_blank" rel="noreferrer" style={{ marginLeft:10, color:cfg.color, fontSize:11 }}>View on {cfg.label} ↗</a>}
+            {review.review_url && <a href={review.review_url} target="_blank" rel="noreferrer" style={{ marginLeft:10, color:cfg.color, fontSize:13 }}>View on {cfg.label} ↗</a>}
           </div>
         </div>
         {/* Actions */}
         <div style={{ display:'flex', gap:7, flexShrink:0 }}>
           {review.status==='pending' && (
             <>
-              <button onClick={()=>onApprove(review.id)} style={{ padding:'6px 12px', borderRadius:8, border:'none', background:'#f0fdf4', color:'#16a34a', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}><Check size={12}/> Approve</button>
-              <button onClick={()=>onReject(review.id)} style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#fef2f2', color:'#dc2626', fontSize:12, cursor:'pointer' }}><X size={12}/></button>
+              <button onClick={()=>onApprove(review.id)} style={{ padding:'6px 12px', borderRadius:8, border:'none', background:'#f0fdf4', color:'#16a34a', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}><Check size={12}/> Approve</button>
+              <button onClick={()=>onReject(review.id)} style={{ padding:'6px 10px', borderRadius:8, border:'none', background:'#fef2f2', color:'#dc2626', fontSize:14, cursor:'pointer' }}><X size={12}/></button>
             </>
           )}
-          {review.status==='approved' && <span style={{ fontSize:11, fontWeight:700, color:'#16a34a', background:'#f0fdf4', padding:'4px 10px', borderRadius:20 }}>✓ Live</span>}
+          {review.status==='approved' && <span style={{ fontSize:13, fontWeight:700, color:'#16a34a', background:'#f0fdf4', padding:'4px 10px', borderRadius:20 }}>✓ Live</span>}
           <button onClick={()=>onFeature(review.id, !review.is_featured)} style={{ padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', color: review.is_featured?'#f59e0b':'#9ca3af' }}>
             <Star size={13} fill={review.is_featured?'#f59e0b':'none'}/>
           </button>
@@ -137,7 +137,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
 
       {/* Review text */}
       {review.review_text && (
-        <div style={{ padding:'0 20px 14px', fontSize:14, color:'#374151', lineHeight:1.7, fontStyle:'italic' }}>
+        <div style={{ padding:'0 20px 14px', fontSize:15, color:'#374151', lineHeight:1.7, fontStyle:'italic' }}>
           "{review.review_text}"
         </div>
       )}
@@ -146,26 +146,26 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
       {expanded && (
         <div style={{ padding:'14px 20px 18px', borderTop:'1px solid #f3f4f6', background:'#fafafa' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:'#111' }}>Response</span>
+            <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>Response</span>
             <button onClick={generateResponse} disabled={generating}
-              style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:12, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
               {generating ? <Loader2 size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Sparkles size={11}/>}
               {generating ? 'Generating…' : response ? 'Regenerate' : '🤖 AI Write Response'}
             </button>
-            {review.response_posted_at && <span style={{ fontSize:11, color:'#16a34a', fontWeight:600 }}>✓ Posted {format(new Date(review.response_posted_at), 'MMM d')}</span>}
+            {review.response_posted_at && <span style={{ fontSize:13, color:'#16a34a', fontWeight:700 }}>✓ Posted {format(new Date(review.response_posted_at), 'MMM d')}</span>}
           </div>
           <textarea value={response} onChange={e=>setResponse(e.target.value)} rows={4}
             placeholder="Write a response, or click AI Write Response to generate one in your brand voice…"
-            style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', resize:'vertical', lineHeight:1.65, color:'#111', background:'#fff', fontFamily:'inherit', boxSizing:'border-box' }}/>
+            style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', lineHeight:1.65, color:'#111', background:'#fff', fontFamily:'inherit', boxSizing:'border-box' }}/>
           <div style={{ display:'flex', gap:8, marginTop:8, justifyContent:'flex-end' }}>
-            <span style={{ fontSize:11, color:'#9ca3af', marginRight:'auto', alignSelf:'center' }}>{response.length}/150 chars recommended</span>
+            <span style={{ fontSize:13, color:'#9ca3af', marginRight:'auto', alignSelf:'center' }}>{response.length}/150 chars recommended</span>
             <button onClick={()=>{ navigator.clipboard.writeText(response); toast.success('Copied — paste in '+cfg.label) }}
-              style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', fontSize:12, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5 }}>
+              style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5 }}>
               <Copy size={11}/> Copy
             </button>
             {review.platform === 'google' && (
               <button onClick={postResponse} disabled={posting || !response}
-                style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#4285f4', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', opacity:posting||!response?.7:1, display:'flex', alignItems:'center', gap:5 }}>
+                style={{ padding:'7px 16px', borderRadius:8, border:'none', background:'#4285f4', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity:posting||!response?.7:1, display:'flex', alignItems:'center', gap:5 }}>
                 {posting ? <Loader2 size={11} style={{ animation:'spin 1s linear infinite' }}/> : null}
                 {posting ? 'Posting…' : 'Post to Google'}
               </button>
@@ -203,13 +203,13 @@ window._mooseReviews = {
       <div style={{ padding:'16px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:12, background: settings.widget_enabled?'#f0fdf4':'#fef2f2' }}>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>Review Widget — {clientName}</div>
-          <div style={{ fontSize:12, color: settings.widget_enabled?'#16a34a':'#dc2626', fontWeight:600, marginTop:2 }}>
+          <div style={{ fontSize:14, color: settings.widget_enabled?'#16a34a':'#dc2626', fontWeight:700, marginTop:2 }}>
             {settings.widget_enabled ? '● Active — showing on website' : '○ Disabled — hidden from website'}
           </div>
         </div>
         {/* Master ON/OFF toggle — payment gate */}
         <div>
-          <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5, textAlign:'center' }}>Widget {settings.widget_enabled?'ON':'OFF'}</div>
+          <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5, textAlign:'center' }}>Widget {settings.widget_enabled?'ON':'OFF'}</div>
           <div onClick={() => onChange('widget_enabled', !settings.widget_enabled)}
             style={{ width:56, height:28, borderRadius:14, background:settings.widget_enabled?'#16a34a':'#d1d5db', cursor:'pointer', position:'relative', transition:'background .2s' }}>
             <div style={{ position:'absolute', top:4, left:settings.widget_enabled?30:4, width:20, height:20, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 4px rgba(0,0,0,.2)' }}/>
@@ -221,7 +221,7 @@ window._mooseReviews = {
       <div style={{ display:'flex', borderBottom:'1px solid #f3f4f6' }}>
         {[['display','Display'],['filter','Filtering'],['embed','Embed Code']].map(([id,label])=>(
           <button key={id} onClick={()=>setTab(id)}
-            style={{ flex:1, padding:'10px 0', fontSize:13, fontWeight:tab===id?700:500, color:tab===id?ACCENT:'#6b7280', border:'none', background:'none', cursor:'pointer', borderBottom:`2px solid ${tab===id?ACCENT:'transparent'}` }}>
+            style={{ flex:1, padding:'10px 0', fontSize:15, fontWeight:tab===id?700:500, color:tab===id?ACCENT:'#6b7280', border:'none', background:'none', cursor:'pointer', borderBottom:`2px solid ${tab===id?ACCENT:'transparent'}` }}>
             {label}
           </button>
         ))}
@@ -232,11 +232,11 @@ window._mooseReviews = {
         {tab==='display' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div>
-              <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Display Mode</label>
+              <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Display Mode</label>
               <div style={{ display:'flex', gap:8 }}>
                 {[['carousel','🎠 Carousel'],['grid','⊞ Grid'],['list','≡ List'],['badge','🏅 Badge']].map(([v,l])=>(
                   <button key={v} onClick={()=>onChange('display_mode',v)}
-                    style={{ flex:1, padding:'9px 6px', borderRadius:10, border:`2px solid ${settings.display_mode===v?ACCENT:'#e5e7eb'}`, background:settings.display_mode===v?'#fff7f5':'#fff', color:settings.display_mode===v?ACCENT:'#374151', fontSize:12, fontWeight:settings.display_mode===v?700:500, cursor:'pointer' }}>
+                    style={{ flex:1, padding:'9px 6px', borderRadius:10, border:`2px solid ${settings.display_mode===v?ACCENT:'#e5e7eb'}`, background:settings.display_mode===v?'#fff7f5':'#fff', color:settings.display_mode===v?ACCENT:'#374151', fontSize:14, fontWeight:settings.display_mode===v?700:500, cursor:'pointer' }}>
                     {l}
                   </button>
                 ))}
@@ -244,11 +244,11 @@ window._mooseReviews = {
             </div>
             {settings.display_mode==='badge' && (
               <div>
-                <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Badge Position</label>
+                <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Badge Position</label>
                 <div style={{ display:'flex', gap:8 }}>
                   {[['bottom-left','↙ Bottom Left'],['bottom-right','↘ Bottom Right']].map(([v,l])=>(
                     <button key={v} onClick={()=>onChange('badge_position',v)}
-                      style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.badge_position===v?ACCENT:'#e5e7eb'}`, background:settings.badge_position===v?'#fff7f5':'#fff', color:settings.badge_position===v?ACCENT:'#374151', fontSize:13, fontWeight:settings.badge_position===v?700:500, cursor:'pointer' }}>
+                      style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.badge_position===v?ACCENT:'#e5e7eb'}`, background:settings.badge_position===v?'#fff7f5':'#fff', color:settings.badge_position===v?ACCENT:'#374151', fontSize:15, fontWeight:settings.badge_position===v?700:500, cursor:'pointer' }}>
                       {l}
                     </button>
                   ))}
@@ -256,23 +256,23 @@ window._mooseReviews = {
               </div>
             )}
             <div>
-              <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Theme</label>
+              <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Theme</label>
               <div style={{ display:'flex', gap:8 }}>
                 {[['light','☀️ Light'],['dark','🌙 Dark'],['auto','⚙️ Auto']].map(([v,l])=>(
                   <button key={v} onClick={()=>onChange('theme',v)}
-                    style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.theme===v?ACCENT:'#e5e7eb'}`, background:settings.theme===v?'#fff7f5':'#fff', color:settings.theme===v?ACCENT:'#374151', fontSize:13, fontWeight:settings.theme===v?700:500, cursor:'pointer' }}>
+                    style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.theme===v?ACCENT:'#e5e7eb'}`, background:settings.theme===v?'#fff7f5':'#fff', color:settings.theme===v?ACCENT:'#374151', fontSize:15, fontWeight:settings.theme===v?700:500, cursor:'pointer' }}>
                     {l}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:6, color:'#374151' }}>Accent Color</label>
+              <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:6, color:'#374151' }}>Accent Color</label>
               <div style={{ display:'flex', gap:10 }}>
                 <input type="color" value={settings.primary_color||ACCENT} onChange={e=>onChange('primary_color',e.target.value)}
                   style={{ width:44, height:40, borderRadius:9, border:'1.5px solid #e5e7eb', padding:2, cursor:'pointer' }}/>
                 <input value={settings.primary_color||ACCENT} onChange={e=>onChange('primary_color',e.target.value)}
-                  style={{ flex:1, padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', fontFamily:'monospace', color:'#111' }}/>
+                  style={{ flex:1, padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', fontFamily:'monospace', color:'#111' }}/>
               </div>
             </div>
             {/* Toggles */}
@@ -283,7 +283,7 @@ window._mooseReviews = {
               ['show_response','Show agency response'],
             ].map(([k,label])=>(
               <div key={k} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:'#f9fafb', borderRadius:10 }}>
-                <span style={{ fontSize:13, color:'#374151', fontWeight:500 }}>{label}</span>
+                <span style={{ fontSize:15, color:'#374151', fontWeight:600 }}>{label}</span>
                 <div onClick={()=>onChange(k,!settings[k])} style={{ width:38, height:21, borderRadius:11, background:settings[k]?ACCENT:'#d1d5db', cursor:'pointer', position:'relative', transition:'background .2s' }}>
                   <div style={{ position:'absolute', top:3, left:settings[k]?19:3, width:15, height:15, borderRadius:'50%', background:'#fff', transition:'left .2s' }}/>
                 </div>
@@ -296,7 +296,7 @@ window._mooseReviews = {
         {tab==='filter' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div>
-              <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Minimum Star Rating to Display</label>
+              <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Minimum Star Rating to Display</label>
               <div style={{ display:'flex', gap:8 }}>
                 {[1,2,3,4,5].map(n=>(
                   <button key={n} onClick={()=>onChange('min_stars',n)}
@@ -304,23 +304,23 @@ window._mooseReviews = {
                     <div style={{ display:'flex', justifyContent:'center', marginBottom:4 }}>
                       <StarRow rating={n} size={14}/>
                     </div>
-                    <div style={{ fontSize:11, fontWeight:700, color:settings.min_stars===n?'#d97706':'#9ca3af' }}>{n}+ stars</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:settings.min_stars===n?'#d97706':'#9ca3af' }}>{n}+ stars</div>
                   </button>
                 ))}
               </div>
-              <div style={{ fontSize:11, color:'#9ca3af', marginTop:8 }}>
+              <div style={{ fontSize:13, color:'#9ca3af', marginTop:8 }}>
                 Only reviews with {settings.min_stars}+ stars will appear on the website. Recommended: 4+
               </div>
             </div>
             <div>
-              <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:6, color:'#374151' }}>Max Reviews to Show</label>
+              <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:6, color:'#374151' }}>Max Reviews to Show</label>
               <select value={settings.max_reviews||20} onChange={e=>onChange('max_reviews',parseInt(e.target.value))}
-                style={{ width:'100%', padding:'10px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', cursor:'pointer', color:'#111' }}>
+                style={{ width:'100%', padding:'10px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', cursor:'pointer', color:'#111' }}>
                 {[5,10,15,20,30,50].map(n=><option key={n} value={n}>{n} reviews</option>)}
               </select>
             </div>
             <div>
-              <label style={{ fontSize:12, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Platforms to Show</label>
+              <label style={{ fontSize:14, fontWeight:700, display:'block', marginBottom:8, color:'#374151' }}>Platforms to Show</label>
               <div style={{ display:'flex', gap:8 }}>
                 {Object.entries(PLATFORM_CONFIG).map(([id,cfg])=>{
                   const active = settings.platforms?.includes(id)
@@ -331,7 +331,7 @@ window._mooseReviews = {
                     }}
                       style={{ flex:1, padding:'10px', borderRadius:10, border:`2px solid ${active?cfg.color:'#e5e7eb'}`, background:active?cfg.bg:'#fff', cursor:'pointer' }}>
                       <div style={{ fontSize:20, marginBottom:4 }}>{cfg.icon}</div>
-                      <div style={{ fontSize:12, fontWeight:700, color:active?cfg.color:'#9ca3af' }}>{cfg.label}</div>
+                      <div style={{ fontSize:14, fontWeight:700, color:active?cfg.color:'#9ca3af' }}>{cfg.label}</div>
                     </button>
                   )
                 })}
@@ -343,32 +343,32 @@ window._mooseReviews = {
         {/* Embed tab */}
         {tab==='embed' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, padding:'12px 14px', fontSize:13, color:'#166534' }}>
+            <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, padding:'12px 14px', fontSize:15, color:'#166534' }}>
               ✅ The Moose AI WordPress plugin automatically injects this widget. You don't need to paste code manually if the plugin is installed.
             </div>
             <div>
-              <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:8 }}>WordPress Shortcode</div>
-              <div style={{ background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', padding:'12px 14px', fontFamily:'monospace', fontSize:12, color:'#374151', position:'relative' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:8 }}>WordPress Shortcode</div>
+              <div style={{ background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', padding:'12px 14px', fontFamily:'monospace', fontSize:14, color:'#374151', position:'relative' }}>
                 {shortcode}
-                <button onClick={()=>copy(shortcode,'Shortcode')} style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'#fff', border:'1px solid #e5e7eb', borderRadius:7, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151' }}>
+                <button onClick={()=>copy(shortcode,'Shortcode')} style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'#fff', border:'1px solid #e5e7eb', borderRadius:7, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151' }}>
                   <Copy size={11}/> Copy
                 </button>
               </div>
             </div>
             <div>
-              <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:8 }}>HTML Embed Code</div>
-              <div style={{ background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', padding:'12px 14px', fontFamily:'monospace', fontSize:11, color:'#374151', position:'relative', whiteSpace:'pre-wrap', lineHeight:1.6 }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:8 }}>HTML Embed Code</div>
+              <div style={{ background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', padding:'12px 14px', fontFamily:'monospace', fontSize:13, color:'#374151', position:'relative', whiteSpace:'pre-wrap', lineHeight:1.6 }}>
                 {embedCode}
-                <button onClick={()=>copy(embedCode,'Embed code')} style={{ position:'absolute', right:10, top:10, background:'#fff', border:'1px solid #e5e7eb', borderRadius:7, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151' }}>
+                <button onClick={()=>copy(embedCode,'Embed code')} style={{ position:'absolute', right:10, top:10, background:'#fff', border:'1px solid #e5e7eb', borderRadius:7, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151' }}>
                   <Copy size={11}/> Copy
                 </button>
               </div>
             </div>
             <div>
-              <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:6 }}>API Endpoint (for developers)</div>
-              <div style={{ background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', padding:'10px 14px', fontFamily:'monospace', fontSize:11, color:'#374151', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:6 }}>API Endpoint (for developers)</div>
+              <div style={{ background:'#f9fafb', borderRadius:10, border:'1px solid #e5e7eb', padding:'10px 14px', fontFamily:'monospace', fontSize:13, color:'#374151', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <span>{window.location.origin}/api/reviews/embed?key={settings.embed_key}</span>
-                <button onClick={()=>copy(`${window.location.origin}/api/reviews/embed?key=${settings.embed_key}`,'API URL')} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:7, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:11, color:'#374151' }}>
+                <button onClick={()=>copy(`${window.location.origin}/api/reviews/embed?key=${settings.embed_key}`,'API URL')} style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:7, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151' }}>
                   <Copy size={11}/>
                 </button>
               </div>
@@ -504,14 +504,14 @@ export default function ReviewsPage() {
       <div style={{ width:240, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0 }}>
         <div style={{ padding:'16px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:10 }}>Reviews</div>
-          <div style={{ fontSize:11, color:'#9ca3af' }}>{clients.length} clients</div>
+          <div style={{ fontSize:13, color:'#9ca3af' }}>{clients.length} clients</div>
         </div>
         <div style={{ flex:1, overflowY:'auto' }}>
           {clients.map(c=>(
             <div key={c.id} onClick={()=>loadClientData(c)}
               style={{ padding:'11px 16px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#fff7f5':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
-              <div style={{ fontSize:13, fontWeight:600, color:'#111' }}>{c.name}</div>
-              <div style={{ fontSize:11, color:'#9ca3af' }}>{c.industry}</div>
+              <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
+              <div style={{ fontSize:13, color:'#9ca3af' }}>{c.industry}</div>
             </div>
           ))}
         </div>
@@ -522,7 +522,7 @@ export default function ReviewsPage() {
         {!selectedClient ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', flexDirection:'column', gap:12, color:'#9ca3af' }}>
             <Star size={48} strokeWidth={1}/>
-            <div style={{ fontSize:16, fontWeight:600 }}>Select a client to manage their reviews</div>
+            <div style={{ fontSize:16, fontWeight:700 }}>Select a client to manage their reviews</div>
           </div>
         ) : loading ? (
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%' }}>
@@ -534,12 +534,12 @@ export default function ReviewsPage() {
             <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 24px', display:'flex', alignItems:'center', gap:14, position:'sticky', top:0, zIndex:10 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>{selectedClient.name}</div>
-                <div style={{ fontSize:12, color:'#9ca3af' }}>{reviews.length} total reviews · {avgRating}★ average</div>
+                <div style={{ fontSize:14, color:'#9ca3af' }}>{reviews.length} total reviews · {avgRating}★ average</div>
               </div>
               <div style={{ display:'flex', gap:8 }}>
-                {reviews.length===0 && <button onClick={addSampleReviews} style={{ padding:'7px 14px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:12, cursor:'pointer', color:'#374151' }}>+ Add Sample Reviews</button>}
+                {reviews.length===0 && <button onClick={addSampleReviews} style={{ padding:'7px 14px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}>+ Add Sample Reviews</button>}
                 <button onClick={()=>setShowWidget(s=>!s)}
-                  style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:`1.5px solid ${showWidget?ACCENT:'#e5e7eb'}`, background:showWidget?'#fff7f5':'#fff', fontSize:12, fontWeight:600, cursor:'pointer', color:showWidget?ACCENT:'#374151' }}>
+                  style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:`1.5px solid ${showWidget?ACCENT:'#e5e7eb'}`, background:showWidget?'#fff7f5':'#fff', fontSize:14, fontWeight:700, cursor:'pointer', color:showWidget?ACCENT:'#374151' }}>
                   <Sliders size={13}/> Widget Settings
                 </button>
               </div>
@@ -558,7 +558,7 @@ export default function ReviewsPage() {
                   ].map(s=>(
                     <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
                       <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-                      <div style={{ fontSize:11, color:'#9ca3af', marginTop:3 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'#9ca3af', marginTop:3 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -567,8 +567,8 @@ export default function ReviewsPage() {
                 {negative > 0 && (
                   <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:12, padding:'12px 16px', marginBottom:16, display:'flex', gap:10, alignItems:'center' }}>
                     <AlertTriangle size={15} color="#dc2626"/>
-                    <div style={{ flex:1, fontSize:13, color:'#991b1b', fontWeight:600 }}>{negative} negative review{negative>1?'s':''} need a response — don't let them sit!</div>
-                    <button onClick={()=>setFilterStars(0)} style={{ fontSize:12, color:'#dc2626', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Show all</button>
+                    <div style={{ flex:1, fontSize:15, color:'#991b1b', fontWeight:700 }}>{negative} negative review{negative>1?'s':''} need a response — don't let them sit!</div>
+                    <button onClick={()=>setFilterStars(0)} style={{ fontSize:14, color:'#dc2626', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>Show all</button>
                   </div>
                 )}
 
@@ -576,19 +576,19 @@ export default function ReviewsPage() {
                 <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
                   <div style={{ position:'relative' }}>
                     <Search size={12} style={{ position:'absolute', left:9, top:'50%', transform:'translateY(-50%)', color:'#9ca3af' }}/>
-                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search reviews…" style={{ padding:'7px 10px 7px 26px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', width:180 }}/>
+                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search reviews…" style={{ padding:'7px 10px 7px 26px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', width:180 }}/>
                   </div>
-                  <select value={filterPlatform} onChange={e=>setFilterPlatform(e.target.value)} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, cursor:'pointer', outline:'none' }}>
+                  <select value={filterPlatform} onChange={e=>setFilterPlatform(e.target.value)} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, cursor:'pointer', outline:'none' }}>
                     <option value="all">All Platforms</option>
                     <option value="google">Google</option>
                     <option value="yelp">Yelp</option>
                     <option value="facebook">Facebook</option>
                   </select>
-                  <select value={filterStars} onChange={e=>setFilterStars(parseInt(e.target.value))} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, cursor:'pointer', outline:'none' }}>
+                  <select value={filterStars} onChange={e=>setFilterStars(parseInt(e.target.value))} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, cursor:'pointer', outline:'none' }}>
                     <option value={0}>All Stars</option>
                     {[5,4,3,2,1].map(n=><option key={n} value={n}>{n}★+</option>)}
                   </select>
-                  <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, cursor:'pointer', outline:'none' }}>
+                  <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{ padding:'7px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, cursor:'pointer', outline:'none' }}>
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
@@ -600,8 +600,8 @@ export default function ReviewsPage() {
                 {filtered.length===0 ? (
                   <div style={{ textAlign:'center', padding:'48px 20px', color:'#9ca3af' }}>
                     <Star size={40} strokeWidth={1} style={{ margin:'0 auto 12px' }}/>
-                    <div style={{ fontSize:15, fontWeight:600 }}>No reviews match your filters</div>
-                    <div style={{ fontSize:13, marginTop:6 }}>Reviews from Google, Yelp, and Facebook will appear here automatically once connected</div>
+                    <div style={{ fontSize:15, fontWeight:700 }}>No reviews match your filters</div>
+                    <div style={{ fontSize:15, marginTop:6 }}>Reviews from Google, Yelp, and Facebook will appear here automatically once connected</div>
                   </div>
                 ) : filtered.map(review=>(
                   <ReviewCard key={review.id} review={review} profile={clientProfile}
@@ -615,7 +615,7 @@ export default function ReviewsPage() {
               {showWidget && widgetSettings && (
                 <div style={{ borderLeft:'1px solid #e5e7eb', background:'#f9fafb', overflowY:'auto', padding:'20px 20px' }}>
                   <WidgetSettings settings={widgetSettings} onChange={updateWidgetSetting} clientName={selectedClient.name} appUrl={appUrl}/>
-                  {savingSettings && <div style={{ fontSize:11, color:'#9ca3af', textAlign:'center', marginTop:10 }}>↻ Auto-saving…</div>}
+                  {savingSettings && <div style={{ fontSize:13, color:'#9ca3af', textAlign:'center', marginTop:10 }}>↻ Auto-saving…</div>}
                 </div>
               )}
             </div>

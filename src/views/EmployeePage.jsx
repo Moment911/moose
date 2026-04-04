@@ -75,7 +75,7 @@ export default function EmployeePage() {
           </div>
           <div className="px-4 md:px-8 py-4 md:py-6">
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-              <div className="grid grid-cols-[1fr_180px_100px_100px_80px] gap-4 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b">
+              <div className="grid grid-cols-[1fr_180px_100px_100px_80px] gap-4 px-5 py-3 bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wider border-b">
                 <div>Name</div><div>Email</div><div>Role</div><div>Clients</div><div>Status</div>
               </div>
               {staff.length === 0 && <div className="py-16 text-center text-sm text-gray-400">No team members yet. Add them in Admin Portal.</div>}
@@ -85,13 +85,13 @@ export default function EmployeePage() {
                   <div key={s.id} className="grid grid-cols-[1fr_180px_100px_100px_80px] gap-4 px-5 py-3.5 items-center border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
                     onClick={() => navigate(`/employees/${s.id}`)}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-500 text-white text-xs font-bold flex items-center justify-center">{(s.name || s.email || '?')[0].toUpperCase()}</div>
+                      <div className="w-8 h-8 rounded-full bg-brand-500 text-white text-sm font-bold flex items-center justify-center">{(s.name || s.email || '?')[0].toUpperCase()}</div>
                       <span className="text-sm font-medium text-gray-900">{s.name || s.email}</span>
                     </div>
                     <div className="text-sm text-gray-500 truncate">{s.email}</div>
-                    <div><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[s.role] || ROLES_CLS.viewer}`}>{s.role}</span></div>
+                    <div><span className={`text-sm px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[s.role] || ROLES_CLS.viewer}`}>{s.role}</span></div>
                     <div className="text-sm text-gray-500">{clientCount} client{clientCount !== 1 ? 's' : ''}</div>
-                    <div><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{s.active ? 'Active' : 'Off'}</span></div>
+                    <div><span className={`text-sm px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{s.active ? 'Active' : 'Off'}</span></div>
                   </div>
                 )
               })}
@@ -121,7 +121,7 @@ export default function EmployeePage() {
             <div>
               <h1 className="text-2xl font-bold text-white">{selectedStaff.name || selectedStaff.email}</h1>
               <div className="flex items-center gap-3 mt-1">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[selectedStaff.role] || ROLES_CLS.viewer}`}>{selectedStaff.role}</span>
+                <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${ROLES_CLS[selectedStaff.role] || ROLES_CLS.viewer}`}>{selectedStaff.role}</span>
                 <span className="text-sm text-gray-400">{selectedStaff.email}</span>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function EmployeePage() {
               <div key={s.label} className="card p-4">
                 <I size={16} strokeWidth={1.5} className="text-brand-500 mb-2" />
                 <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                <p className="text-xs text-gray-500">{s.label}</p>
+                <p className="text-sm text-gray-500">{s.label}</p>
               </div>
             )})}
           </div>
@@ -158,9 +158,9 @@ export default function EmployeePage() {
                         {t.completed && <CheckSquare size={8} className="text-white" />}
                       </div>
                       <span className={`text-sm flex-1 ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>{t.title}</span>
-                      {t.due_date && <span className={`text-[10px] ${overdueTasks.includes(t) ? 'text-brand-500 font-medium' : 'text-gray-400'}`}>{format(new Date(t.due_date), 'MMM d')}</span>}
+                      {t.due_date && <span className={`text-[13px] ${overdueTasks.includes(t) ? 'text-brand-500 font-medium' : 'text-gray-400'}`}>{format(new Date(t.due_date), 'MMM d')}</span>}
                     </div>
-                    {t.projects?.name && <p className="text-[10px] text-gray-400 ml-6 mt-0.5">{t.projects.clients?.name} / {t.projects.name}</p>}
+                    {t.projects?.name && <p className="text-[13px] text-gray-400 ml-6 mt-0.5">{t.projects.clients?.name} / {t.projects.name}</p>}
                   </div>
                 ))}
               </div>
@@ -171,7 +171,7 @@ export default function EmployeePage() {
                 {staffClients.map(c => (
                   <div key={c.id} className="card px-4 py-3 flex items-center justify-between cursor-pointer hover:shadow-sm" onClick={() => navigate(`/client/${c.id}`)}>
                     <span className="text-sm font-medium text-gray-900">{c.name}</span>
-                    <span className="text-xs text-gray-400">{c.email}</span>
+                    <span className="text-sm text-gray-400">{c.email}</span>
                   </div>
                 ))}
                 {staffClients.length === 0 && <p className="text-sm text-gray-400">No clients assigned</p>}
@@ -199,8 +199,8 @@ export default function EmployeePage() {
                   <div>
                     <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-4 max-h-[300px] overflow-y-auto">{aiSummary}</div>
                     <div className="flex gap-2">
-                      <button onClick={() => { navigator.clipboard.writeText(aiSummary); toast.success('Copied!') }} className="btn-secondary text-xs flex-1"><Copy size={12} strokeWidth={1.5} /> Copy</button>
-                      <button onClick={async () => { await sendEmailSummary({ type: 'employee_summary', to: selectedStaff.email, subject: `${summaryType === 'daily' ? 'Daily' : 'Weekly'} Summary - ${selectedStaff.name}`, message: aiSummary }); toast.success('Emailed!') }} className="btn-secondary text-xs flex-1"><Mail size={12} strokeWidth={1.5} /> Email</button>
+                      <button onClick={() => { navigator.clipboard.writeText(aiSummary); toast.success('Copied!') }} className="btn-secondary text-sm flex-1"><Copy size={12} strokeWidth={1.5} /> Copy</button>
+                      <button onClick={async () => { await sendEmailSummary({ type: 'employee_summary', to: selectedStaff.email, subject: `${summaryType === 'daily' ? 'Daily' : 'Weekly'} Summary - ${selectedStaff.name}`, message: aiSummary }); toast.success('Emailed!') }} className="btn-secondary text-sm flex-1"><Mail size={12} strokeWidth={1.5} /> Email</button>
                     </div>
                   </div>
                 )}

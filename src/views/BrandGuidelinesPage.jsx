@@ -147,9 +147,9 @@ export default function BrandGuidelinesPage() {
         {/* Section nav */}
         <div className="w-52 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0">
           <div className="px-4 py-5 border-b border-gray-200">
-            <button onClick={() => navigate(`/client/${clientId}`)} className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1 mb-2"><ChevronLeft size={12} /> Back</button>
+            <button onClick={() => navigate(`/client/${clientId}`)} className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 mb-2"><ChevronLeft size={12} /> Back</button>
             <h2 className="text-base font-bold text-gray-900">{client?.name}</h2>
-            <p className="text-[10px] text-gray-400 mt-0.5">Brand Guidelines</p>
+            <p className="text-[13px] text-gray-400 mt-0.5">Brand Guidelines</p>
           </div>
           <nav className="flex-1 py-3 px-2">
             {SECTIONS.map(s => { const I = s.icon; return (
@@ -160,8 +160,8 @@ export default function BrandGuidelinesPage() {
             )})}
           </nav>
           <div className="p-3 border-t border-gray-200 space-y-1.5">
-            <button onClick={copyShareLink} className="w-full btn-secondary text-xs justify-center"><Share2 size={12} strokeWidth={1.5} /> Share</button>
-            <button onClick={exportBrandKit} className="w-full btn-primary text-xs justify-center"><Download size={12} strokeWidth={1.5} /> Export Kit</button>
+            <button onClick={copyShareLink} className="w-full btn-secondary text-sm justify-center"><Share2 size={12} strokeWidth={1.5} /> Share</button>
+            <button onClick={exportBrandKit} className="w-full btn-primary text-sm justify-center"><Download size={12} strokeWidth={1.5} /> Export Kit</button>
           </div>
         </div>
 
@@ -173,15 +173,15 @@ export default function BrandGuidelinesPage() {
             <section id="brand-colors">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><Palette size={20} strokeWidth={1.5} className="text-brand-500" /> Color Palette</h2>
-                <button onClick={() => setShowAddColor(true)} className="btn-secondary text-xs"><Plus size={12} /> Add Color</button>
+                <button onClick={() => setShowAddColor(true)} className="btn-secondary text-sm"><Plus size={12} /> Add Color</button>
               </div>
 
               {showAddColor && (
                 <div className="card p-5 mb-4">
                   <div className="flex gap-4 items-end">
                     <div className="w-32"><ColorPicker value={newColor} onChange={setNewColor} label="Color" /></div>
-                    <div className="flex-1"><label className="text-xs text-gray-500 block mb-1">Name</label><input className="input text-sm" placeholder="Brand Orange" value={newColorName} onChange={e => setNewColorName(e.target.value)} /></div>
-                    <div className="w-32"><label className="text-xs text-gray-500 block mb-1">Category</label><select className="input text-sm" value={newColorCat} onChange={e => setNewColorCat(e.target.value)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+                    <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Name</label><input className="input text-sm" placeholder="Brand Orange" value={newColorName} onChange={e => setNewColorName(e.target.value)} /></div>
+                    <div className="w-32"><label className="text-sm text-gray-500 block mb-1">Category</label><select className="input text-sm" value={newColorCat} onChange={e => setNewColorCat(e.target.value)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
                     <button onClick={addColor} className="btn-primary text-sm h-[38px]">Add</button>
                     <button onClick={() => setShowAddColor(false)} className="btn-secondary text-sm h-[38px]">Cancel</button>
                   </div>
@@ -197,8 +197,8 @@ export default function BrandGuidelinesPage() {
                   return (
                     <div key={i} className="card overflow-hidden group hover:shadow-lg transition-all hover:-translate-y-0.5">
                       <div className="h-32 relative cursor-pointer" style={{ background: c.hex }} onClick={() => { copyText(c.hex, `color-${i}`); toast.success(`${c.hex} copied!`) }}>
-                        <span className={`absolute bottom-2 left-3 text-xs font-mono font-medium ${luminance > 0.5 ? 'text-gray-900' : 'text-white'}`}>{c.hex}</span>
-                        <span className={`absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${wcagWhite === 'AAA' ? 'bg-green-500 text-white' : wcagWhite === 'AA' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'}`}>
+                        <span className={`absolute bottom-2 left-3 text-sm font-mono font-medium ${luminance > 0.5 ? 'text-gray-900' : 'text-white'}`}>{c.hex}</span>
+                        <span className={`absolute top-2 right-2 text-[12px] px-1.5 py-0.5 rounded-full font-medium ${wcagWhite === 'AAA' ? 'bg-green-500 text-white' : wcagWhite === 'AA' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'}`}>
                           {wcagWhite} on white
                         </span>
                         <button onClick={e => { e.stopPropagation(); deleteColor(i) }} className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 w-6 h-6 bg-white/80 rounded flex items-center justify-center text-brand-500"><Trash2 size={11} /></button>
@@ -206,9 +206,9 @@ export default function BrandGuidelinesPage() {
                       <div className="p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-semibold text-gray-900">{c.name}</span>
-                          <span className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">{c.category}</span>
+                          <span className="text-[12px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">{c.category}</span>
                         </div>
-                        <div className="space-y-0.5 text-[10px] text-gray-400 font-mono">
+                        <div className="space-y-0.5 text-[13px] text-gray-400 font-mono">
                           <div className="flex justify-between"><span>RGB</span><span className="cursor-pointer hover:text-gray-700" onClick={() => copyText(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`, `rgb-${i}`)}>{rgb.r}, {rgb.g}, {rgb.b} {copied === `rgb-${i}` ? '✓' : ''}</span></div>
                           <div className="flex justify-between"><span>CMYK</span><span>{cmyk.c}, {cmyk.m}, {cmyk.y}, {cmyk.k}</span></div>
                         </div>
@@ -224,15 +224,15 @@ export default function BrandGuidelinesPage() {
             <section id="brand-typography">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><Type size={20} strokeWidth={1.5} className="text-brand-500" /> Typography</h2>
-                <button onClick={() => setShowAddFont(true)} className="btn-secondary text-xs"><Plus size={12} /> Add Font</button>
+                <button onClick={() => setShowAddFont(true)} className="btn-secondary text-sm"><Plus size={12} /> Add Font</button>
               </div>
 
               {showAddFont && (
                 <div className="card p-5 mb-4">
                   <div className="flex gap-3 items-end">
-                    <div className="flex-1"><label className="text-xs text-gray-500 block mb-1">Font Name (Google Fonts)</label><input className="input text-sm" value={newFontName} onChange={e => setNewFontName(e.target.value)} /></div>
-                    <div className="w-28"><label className="text-xs text-gray-500 block mb-1">Category</label><select className="input text-sm" value={newFontCat} onChange={e => setNewFontCat(e.target.value)}><option>Primary</option><option>Secondary</option><option>Monospace</option></select></div>
-                    <div className="flex-1"><label className="text-xs text-gray-500 block mb-1">Usage</label><input className="input text-sm" value={newFontUsage} onChange={e => setNewFontUsage(e.target.value)} /></div>
+                    <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Font Name (Google Fonts)</label><input className="input text-sm" value={newFontName} onChange={e => setNewFontName(e.target.value)} /></div>
+                    <div className="w-28"><label className="text-sm text-gray-500 block mb-1">Category</label><select className="input text-sm" value={newFontCat} onChange={e => setNewFontCat(e.target.value)}><option>Primary</option><option>Secondary</option><option>Monospace</option></select></div>
+                    <div className="flex-1"><label className="text-sm text-gray-500 block mb-1">Usage</label><input className="input text-sm" value={newFontUsage} onChange={e => setNewFontUsage(e.target.value)} /></div>
                     <button onClick={addFont} className="btn-primary text-sm h-[38px]">Add</button>
                     <button onClick={() => setShowAddFont(false)} className="btn-secondary text-sm h-[38px]">Cancel</button>
                   </div>
@@ -248,13 +248,13 @@ export default function BrandGuidelinesPage() {
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">{f.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{f.category}</span>
-                            <span className="text-xs text-gray-400">{f.usage}</span>
+                            <span className="text-[13px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{f.category}</span>
+                            <span className="text-sm text-gray-400">{f.usage}</span>
                           </div>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                          <button onClick={() => { copyText(`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(f.name)}:wght@400;700&display=swap');`, 'css'); toast.success('CSS import copied!') }} className="text-xs text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100"><Copy size={12} /></button>
-                          <button onClick={() => deleteFont(i)} className="text-xs text-gray-400 hover:text-brand-500 p-1 rounded hover:bg-brand-50"><Trash2 size={12} /></button>
+                          <button onClick={() => { copyText(`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(f.name)}:wght@400;700&display=swap');`, 'css'); toast.success('CSS import copied!') }} className="text-sm text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100"><Copy size={12} /></button>
+                          <button onClick={() => deleteFont(i)} className="text-sm text-gray-400 hover:text-brand-500 p-1 rounded hover:bg-brand-50"><Trash2 size={12} /></button>
                         </div>
                       </div>
                       <div style={{ fontFamily: `'${f.name}', sans-serif` }}>
@@ -262,8 +262,8 @@ export default function BrandGuidelinesPage() {
                         <p className="text-xl text-gray-600 mb-2">The quick brown fox jumps over the lazy dog</p>
                         <p className="text-sm text-gray-400 font-mono tracking-wider">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</p>
                       </div>
-                      <div className="flex gap-3 mt-4 text-xs text-gray-400">
-                        {[100, 300, 400, 500, 700, 900].map(w => <span key={w} style={{ fontFamily: `'${f.name}'`, fontWeight: w }}>Aa <span className="text-[9px] text-gray-300">{w}</span></span>)}
+                      <div className="flex gap-3 mt-4 text-sm text-gray-400">
+                        {[100, 300, 400, 500, 700, 900].map(w => <span key={w} style={{ fontFamily: `'${f.name}'`, fontWeight: w }}>Aa <span className="text-[12px] text-gray-300">{w}</span></span>)}
                       </div>
                     </div>
                   )
@@ -276,7 +276,7 @@ export default function BrandGuidelinesPage() {
             <section id="brand-logos">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2"><ImageIcon size={20} strokeWidth={1.5} className="text-brand-500" /> Logo Library</h2>
-                <button onClick={() => logoInputRef.current?.click()} className="btn-secondary text-xs"><Upload size={12} /> Upload Logo</button>
+                <button onClick={() => logoInputRef.current?.click()} className="btn-secondary text-sm"><Upload size={12} /> Upload Logo</button>
                 <input ref={logoInputRef} type="file" accept="image/*,.svg,.pdf" className="hidden" onChange={handleLogoUpload} />
               </div>
 
@@ -288,8 +288,8 @@ export default function BrandGuidelinesPage() {
                     </div>
                     <div className="p-3 flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium text-gray-900 truncate">{logo.name}</p>
-                        <p className="text-[9px] text-gray-400">{logo.type} &middot; {logo.size ? `${(logo.size / 1024).toFixed(0)} KB` : ''}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{logo.name}</p>
+                        <p className="text-[12px] text-gray-400">{logo.type} &middot; {logo.size ? `${(logo.size / 1024).toFixed(0)} KB` : ''}</p>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100">
                         <a href={logo.url} download className="p-1.5 rounded hover:bg-gray-100 text-gray-400"><Download size={12} /></a>
@@ -302,7 +302,7 @@ export default function BrandGuidelinesPage() {
                   <div className="col-span-3 py-12 text-center border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-gray-300" onClick={() => logoInputRef.current?.click()}>
                     <Upload size={24} strokeWidth={1.5} className="text-gray-300 mx-auto mb-2" />
                     <p className="text-sm text-gray-400">Drag & drop logos here or click to upload</p>
-                    <p className="text-xs text-gray-300 mt-1">SVG, PNG, PDF, EPS</p>
+                    <p className="text-sm text-gray-300 mt-1">SVG, PNG, PDF, EPS</p>
                   </div>
                 )}
               </div>
@@ -324,7 +324,7 @@ export default function BrandGuidelinesPage() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={addDo} className="text-xs text-green-600 hover:text-green-800 mt-2 flex items-center gap-1"><Plus size={10} /> Add</button>
+                  <button onClick={addDo} className="text-sm text-green-600 hover:text-green-800 mt-2 flex items-center gap-1"><Plus size={10} /> Add</button>
                 </div>
 
                 <div className="card p-5">
@@ -338,7 +338,7 @@ export default function BrandGuidelinesPage() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={addDont} className="text-xs text-brand-600 hover:text-brand-800 mt-2 flex items-center gap-1"><Plus size={10} /> Add</button>
+                  <button onClick={addDont} className="text-sm text-brand-600 hover:text-brand-800 mt-2 flex items-center gap-1"><Plus size={10} /> Add</button>
                 </div>
               </div>
 

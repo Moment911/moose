@@ -24,22 +24,22 @@ function SidebarHelp() {
   const [openQ, setOpenQ] = useState(null)
   return (
     <>
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 text-gray-400 hover:text-gray-200 text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors w-full">
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors w-full">
         <HelpCircle size={13} /> Help & FAQ
       </button>
       {open && (
         <div className="mx-1 mb-1 bg-white/5 rounded-lg overflow-hidden">
           <div className="px-3 py-2 border-b border-white/5">
-            <p className="text-[9px] text-gray-400 uppercase font-semibold tracking-wider flex items-center gap-1"><BookOpen size={9} /> How to use</p>
+            <p className="text-[12px] text-gray-400 uppercase font-semibold tracking-wider flex items-center gap-1"><BookOpen size={9} /> How to use</p>
           </div>
           <div className="max-h-52 overflow-y-auto">
             {HELP_ITEMS.map((item, i) => (
               <div key={i}>
-                <button onClick={() => setOpenQ(openQ === i ? null : i)} className="w-full text-left px-3 py-1.5 text-[11px] text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-between">
+                <button onClick={() => setOpenQ(openQ === i ? null : i)} className="w-full text-left px-3 py-1.5 text-[13px] text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-between">
                   <span>{item.q}</span>
                   <ChevronRight size={9} className={`text-gray-500 transition-transform ${openQ === i ? 'rotate-90' : ''}`} />
                 </button>
-                {openQ === i && <p className="px-3 pb-2 text-[10px] text-gray-400 leading-relaxed">{item.a}</p>}
+                {openQ === i && <p className="px-3 pb-2 text-[13px] text-gray-400 leading-relaxed">{item.a}</p>}
               </div>
             ))}
           </div>
@@ -64,13 +64,13 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor }
     }`}>
       <Icon size={15} className={active ? 'text-orange-400' : ''} />
       <span>{label}</span>
-      {badge && <span style={{ marginLeft:'auto', fontSize:8, background: badgeColor||'#f97316', color:'#fff', padding:'1px 6px', borderRadius:20, fontWeight:800, letterSpacing:'.04em' }}>{badge}</span>}
+      {badge && <span style={{ marginLeft:'auto', fontSize:12, background: badgeColor||'#f97316', color:'#fff', padding:'1px 6px', borderRadius:20, fontWeight:800, letterSpacing:'.04em' }}>{badge}</span>}
     </Link>
   )
 }
 
 function SectionLabel({ label }) {
-  return <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 pt-3 pb-1">{label}</p>
+  return <p className="text-[12px] text-gray-500 uppercase font-semibold tracking-wider px-3 pt-3 pb-1">{label}</p>
 }
 
 function DevSection() {
@@ -85,14 +85,14 @@ function DevSection() {
       <button onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-gray-500 hover:text-gray-300 hover:bg-white/5">
         <BookOpen size={14} />
-        <span className="text-xs font-semibold tracking-wider uppercase">Dev / Preview</span>
+        <span className="text-sm font-semibold tracking-wider uppercase">Dev / Preview</span>
         <ChevronRight size={11} style={{ marginLeft:'auto', transform: open ? 'rotate(90deg)' : 'rotate(0)', transition:'transform .2s' }} />
       </button>
       {open && (
         <div className="ml-2 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
           {DEV_ITEMS.map(item => (
             <Link key={item.to} to={item.to}
-              className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-xs text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors">
+              className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors">
               <item.icon size={12} />
               {item.label}
             </Link>
@@ -194,7 +194,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
       {/* Logo */}
       <div className="px-4 py-4 border-b border-white/10">
         <img src="/moose-logo-white.svg" alt="Moose AI" style={{height:32,width:'auto',display:'block',marginBottom:2}}/>
-        <div className="text-gray-500 text-[10px]">Marketing Platform</div>
+        <div className="text-gray-500 text-[13px]">Marketing Platform</div>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
@@ -224,19 +224,19 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         {/* ── CLIENT LIST ── */}
         <div className="pt-3 pb-1">
           <div className="flex items-center justify-between px-3 mb-1">
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Clients</span>
+            <span className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider">Clients</span>
             <button onClick={() => setShowNewClient(v => !v)} className="text-gray-300 hover:text-white transition-colors" title="Add client"><Plus size={13} /></button>
           </div>
 
           {showNewClient && (
             <form onSubmit={handleAddClient} className="mx-2 mb-2 p-2.5 bg-white/10 rounded-lg space-y-1.5">
-              <input className="w-full bg-white/10 border-0 text-white text-xs px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-gray-500"
+              <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-gray-500"
                 placeholder="Client name" value={newClientName} onChange={e => setNewClientName(e.target.value)} autoFocus />
-              <input className="w-full bg-white/10 border-0 text-white text-xs px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-gray-500"
+              <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-gray-500"
                 placeholder="Client email (optional)" type="email" value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
               <div className="flex gap-1.5">
-                <button type="submit" className="flex-1 bg-brand-500 text-white text-xs py-1 rounded font-medium hover:bg-brand-600 transition-colors">Add</button>
-                <button type="button" onClick={() => setShowNewClient(false)} className="flex-1 bg-white/10 text-gray-300 text-xs py-1 rounded hover:bg-white/20 transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 bg-brand-500 text-white text-sm py-1 rounded font-medium hover:bg-brand-600 transition-colors">Add</button>
+                <button type="button" onClick={() => setShowNewClient(false)} className="flex-1 bg-white/10 text-gray-300 text-sm py-1 rounded hover:bg-white/20 transition-colors">Cancel</button>
               </div>
             </form>
           )}
@@ -245,7 +245,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
             <div key={client.id}>
               {editingClient === client.id ? (
                 <form onSubmit={handleRenameClient} className="mx-2 mb-1">
-                  <input className="w-full bg-white/10 border-0 text-white text-xs px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
                     value={editClientName} onChange={e => setEditClientName(e.target.value)} autoFocus
                     onBlur={() => setEditingClient(null)} onKeyDown={e => e.key === 'Escape' && setEditingClient(null)} />
                 </form>
@@ -266,12 +266,12 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
                   {(projects[client.id] || []).map(proj => (
                     editingProject === proj.id ? (
                       <form key={proj.id} onSubmit={handleRenameProject} className="mb-1">
-                        <input className="w-full bg-white/10 border-0 text-white text-xs px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        <input className="w-full bg-white/10 border-0 text-white text-sm px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
                           value={editProjectName} onChange={e => setEditProjectName(e.target.value)} autoFocus
                           onBlur={() => setEditingProject(null)} onKeyDown={e => e.key === 'Escape' && setEditingProject(null)} />
                       </form>
                     ) : (
-                      <div key={proj.id} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs transition-colors group/proj cursor-pointer ${
+                      <div key={proj.id} className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm transition-colors group/proj cursor-pointer ${
                         activeProjectId === proj.id ? 'bg-brand-500/20 text-brand-400 font-medium' : 'text-gray-300 hover:text-white hover:bg-white/5'
                       }`} onClick={() => navigate(`/project/${proj.id}`)}
                         onContextMenu={e => handleContextMenu(e, 'project', proj.id)}>
@@ -282,11 +282,11 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
                     )
                   ))}
                   <Link to={`/client/${client.id}/brand`}
-                    className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 transition-colors w-full">
+                    className="flex items-center gap-1.5 px-2 py-1 text-sm text-gray-400 hover:text-gray-200 transition-colors w-full">
                     <Palette size={11} /> Brand Guidelines
                   </Link>
                   <button onClick={() => setNewProjectClientId(client.id)}
-                    className="flex items-center gap-1.5 px-2 py-1 text-xs text-gray-400 hover:text-gray-200 transition-colors w-full">
+                    className="flex items-center gap-1.5 px-2 py-1 text-sm text-gray-400 hover:text-gray-200 transition-colors w-full">
                     <Plus size={11} /> New project
                   </button>
                 </div>
@@ -298,7 +298,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
 
       <div className="border-t border-white/10 p-2 space-y-0.5">
         <SidebarHelp />
-        <button onClick={handleSignOut} className="flex items-center gap-2 text-gray-400 hover:text-gray-200 text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors w-full">
+        <button onClick={handleSignOut} className="flex items-center gap-2 text-gray-400 hover:text-gray-200 text-sm px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors w-full">
           <LogOut size={13} /> Sign out
         </button>
       </div>

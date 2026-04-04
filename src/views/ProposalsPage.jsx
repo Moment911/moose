@@ -28,7 +28,7 @@ function StatusPill({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft
   const Icon = cfg.icon
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, background:cfg.bg, color:cfg.color }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background:cfg.bg, color:cfg.color }}>
       <Icon size={10} strokeWidth={2.5}/> {cfg.label}
     </span>
   )
@@ -122,15 +122,15 @@ export default function ProposalsPage() {
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
               <h1 style={{ fontSize:22, fontWeight:800, color:'#111', marginBottom:4 }}>Proposals & Agreements</h1>
-              <p style={{ fontSize:13, color:'#9ca3af' }}>Build proposals, convert to agreements, collect e-signatures</p>
+              <p style={{ fontSize:15, color:'#9ca3af' }}>Build proposals, convert to agreements, collect e-signatures</p>
             </div>
             <div style={{ display:'flex', gap:10 }}>
               <button onClick={() => navigate('/proposals/modules')}
-                style={{ padding:'9px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:7 }}>
+                style={{ padding:'9px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:7 }}>
                 <FileText size={14}/> Service Library
               </button>
               <button onClick={createNew}
-                style={{ padding:'9px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:7, boxShadow:`0 4px 14px ${ACCENT}40` }}>
+                style={{ padding:'9px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:7, boxShadow:`0 4px 14px ${ACCENT}40` }}>
                 <Plus size={14}/> New Proposal
               </button>
             </div>
@@ -149,7 +149,7 @@ export default function ProposalsPage() {
                 <div key={s.label} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                     <I size={16} color={s.color}/>
-                    <span style={{ fontSize:12, color:'#9ca3af' }}>{s.label}</span>
+                    <span style={{ fontSize:14, color:'#9ca3af' }}>{s.label}</span>
                   </div>
                   <div style={{ fontSize:24, fontWeight:800, color:'#111' }}>{s.value}</div>
                 </div>
@@ -162,12 +162,12 @@ export default function ProposalsPage() {
             <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1.5px solid #e5e7eb', borderRadius:10, padding:'8px 14px' }}>
               <Search size={14} color="#9ca3af"/>
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search proposals or clients…"
-                style={{ border:'none', outline:'none', fontSize:13, background:'transparent', flex:1, color:'#111' }}/>
+                style={{ border:'none', outline:'none', fontSize:15, background:'transparent', flex:1, color:'#111' }}/>
             </div>
             <div style={{ display:'flex', gap:6 }}>
               {['all','draft','sent','viewed','accepted','agreement'].map(s => (
                 <button key={s} onClick={()=>setStatusFilter(s)}
-                  style={{ padding:'7px 14px', borderRadius:20, border:`1.5px solid ${statusFilter===s?ACCENT:'#e5e7eb'}`, background:statusFilter===s?'#fff7f5':'#fff', color:statusFilter===s?ACCENT:'#6b7280', fontSize:12, fontWeight:statusFilter===s?700:500, cursor:'pointer', textTransform:'capitalize' }}>
+                  style={{ padding:'7px 14px', borderRadius:20, border:`1.5px solid ${statusFilter===s?ACCENT:'#e5e7eb'}`, background:statusFilter===s?'#fff7f5':'#fff', color:statusFilter===s?ACCENT:'#6b7280', fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer', textTransform:'capitalize' }}>
                   {s === 'all' ? 'All' : STATUS_CONFIG[s]?.label || s}
                 </button>
               ))}
@@ -183,11 +183,11 @@ export default function ProposalsPage() {
               <div style={{ fontSize:16, fontWeight:700, color:'#111', marginBottom:6 }}>
                 {proposals.length === 0 ? 'No proposals yet' : 'No proposals match your filters'}
               </div>
-              <div style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>
+              <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>
                 {proposals.length === 0 ? 'Create your first proposal using your service library or from scratch.' : 'Try adjusting your search or filter.'}
               </div>
               {proposals.length === 0 && (
-                <button onClick={createNew} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                <button onClick={createNew} style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                   Create First Proposal
                 </button>
               )}
@@ -209,11 +209,11 @@ export default function ProposalsPage() {
                   {/* Info */}
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:3 }}>
-                      <span style={{ fontSize:14, fontWeight:700, color:'#111', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:340 }}>{p.title}</span>
+                      <span style={{ fontSize:15, fontWeight:700, color:'#111', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:340 }}>{p.title}</span>
                       <StatusPill status={p.status}/>
-                      <span style={{ fontSize:11, color:'#9ca3af', background:'#f3f4f6', padding:'2px 8px', borderRadius:20, textTransform:'capitalize' }}>{p.type}</span>
+                      <span style={{ fontSize:13, color:'#9ca3af', background:'#f3f4f6', padding:'2px 8px', borderRadius:20, textTransform:'capitalize' }}>{p.type}</span>
                     </div>
-                    <div style={{ fontSize:12, color:'#9ca3af' }}>
+                    <div style={{ fontSize:14, color:'#9ca3af' }}>
                       {p.clients?.name ? <span style={{ color:'#6b7280' }}>{p.clients.name}</span> : <span style={{ color:'#d1d5db' }}>No client selected</span>}
                       {p.clients?.industry && <> · {p.clients.industry}</>}
                       {p.valid_until && <> · Valid until {new Date(p.valid_until).toLocaleDateString()}</>}
@@ -223,7 +223,7 @@ export default function ProposalsPage() {
                   {/* Value */}
                   <div style={{ textAlign:'right', flexShrink:0 }}>
                     <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>{fmt(p.total_value)}</div>
-                    <div style={{ fontSize:11, color:'#9ca3af' }}>{new Date(p.updated_at).toLocaleDateString()}</div>
+                    <div style={{ fontSize:13, color:'#9ca3af' }}>{new Date(p.updated_at).toLocaleDateString()}</div>
                   </div>
 
                   {/* Menu */}
@@ -235,26 +235,26 @@ export default function ProposalsPage() {
                     {menuOpen===p.id && (
                       <div style={{ position:'absolute', right:0, top:'100%', background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,.1)', zIndex:50, minWidth:170, padding:4 }}>
                         <button onClick={()=>navigate(`/proposals/${p.id}`)}
-                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#374151' }}>
+                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
                           <Edit size={13}/> Open & Edit
                         </button>
                         {p.status === 'accepted' && (
                           <button onClick={()=>navigate(`/proposals/${p.id}?convert=agreement`)}
-                            style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#7c3aed' }}>
+                            style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#7c3aed' }}>
                             <FileText size={13}/> Convert to Agreement
                           </button>
                         )}
                         <button onClick={()=>{ navigator.clipboard.writeText(`${window.location.origin}/p/${p.public_token}`); toast.success('Link copied!'); setMenuOpen(null) }}
-                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#374151' }}>
+                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
                           <Copy size={13}/> Copy Client Link
                         </button>
                         <button onClick={()=>duplicate(p)}
-                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#374151' }}>
+                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
                           <Copy size={13}/> Duplicate
                         </button>
                         <div style={{ height:'0.5px', background:'#f3f4f6', margin:'4px 0' }}/>
                         <button onClick={()=>deleteProposal(p.id)}
-                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#dc2626' }}>
+                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#dc2626' }}>
                           <Trash2 size={13}/> Delete
                         </button>
                       </div>

@@ -24,14 +24,14 @@ export default function ReportingPage() {
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'16px 24px', display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ flex:1 }}><h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin:0 }}>Reporting</h1><p style={{ fontSize:12, color:'#9ca3af', margin:0 }}>Custom reports across all clients and campaigns</p></div>
-          <select value={client} onChange={e=>setClient(e.target.value)} style={{ padding:'7px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, cursor:'pointer', outline:'none', background:'#fff' }}>
+          <div style={{ flex:1 }}><h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin:0 }}>Reporting</h1><p style={{ fontSize:14, color:'#9ca3af', margin:0 }}>Custom reports across all clients and campaigns</p></div>
+          <select value={client} onChange={e=>setClient(e.target.value)} style={{ padding:'7px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, cursor:'pointer', outline:'none', background:'#fff' }}>
             {CLIENTS.map(c=><option key={c}>{c}</option>)}
           </select>
-          <select value={period} onChange={e=>setPeriod(e.target.value)} style={{ padding:'7px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, cursor:'pointer', outline:'none', background:'#fff' }}>
+          <select value={period} onChange={e=>setPeriod(e.target.value)} style={{ padding:'7px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, cursor:'pointer', outline:'none', background:'#fff' }}>
             {PERIODS.map(p=><option key={p}>{p}</option>)}
           </select>
-          <button style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:12, cursor:'pointer', color:'#374151' }}><Download size={13}/> Export PDF</button>
+          <button style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}><Download size={13}/> Export PDF</button>
         </div>
 
         {/* Summary stats */}
@@ -39,9 +39,9 @@ export default function ReportingPage() {
           {REPORTS.map(r=>(
             <div key={r.id} onClick={()=>setActive(r.id)} style={{ background:'#fff', borderRadius:12, border:active===r.id?`2px solid ${r.color}`:'1px solid #e5e7eb', padding:'14px', cursor:'pointer', transition:'all .15s' }}>
               <div style={{ width:28, height:28, borderRadius:7, background:r.color+'15', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:8 }}><r.icon size={13} color={r.color}/></div>
-              <div style={{ fontSize:11, color:'#9ca3af', marginBottom:4 }}>{r.label}</div>
+              <div style={{ fontSize:13, color:'#9ca3af', marginBottom:4 }}>{r.label}</div>
               <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{r.metric}</div>
-              <div style={{ fontSize:11, color:'#16a34a', fontWeight:600 }}>{r.change} <span style={{ color:'#9ca3af', fontWeight:400 }}>{r.period}</span></div>
+              <div style={{ fontSize:13, color:'#16a34a', fontWeight:700 }}>{r.change} <span style={{ color:'#9ca3af', fontWeight:500 }}>{r.period}</span></div>
             </div>
           ))}
         </div>
@@ -53,17 +53,17 @@ export default function ReportingPage() {
             <div style={{ fontSize:16, fontWeight:700, color:'#374151', marginBottom:6 }}>
               {REPORTS.find(r=>r.id===active)?.label} — {period}
             </div>
-            <div style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>
+            <div style={{ fontSize:15, color:'#9ca3af', marginBottom:20 }}>
               {client} · Chart visualization would render here with real data from GA4, Google Ads, and Meta APIs
             </div>
             <div style={{ display:'flex', gap:12 }}>
               <div style={{ background:'#f9fafb', borderRadius:10, padding:'12px 20px', textAlign:'center' }}>
                 <div style={{ fontSize:24, fontWeight:900, color:REPORTS.find(r=>r.id===active)?.color }}>{REPORTS.find(r=>r.id===active)?.metric}</div>
-                <div style={{ fontSize:11, color:'#9ca3af' }}>Current Period</div>
+                <div style={{ fontSize:13, color:'#9ca3af' }}>Current Period</div>
               </div>
               <div style={{ background:'#f9fafb', borderRadius:10, padding:'12px 20px', textAlign:'center' }}>
                 <div style={{ fontSize:24, fontWeight:900, color:'#16a34a' }}>{REPORTS.find(r=>r.id===active)?.change}</div>
-                <div style={{ fontSize:11, color:'#9ca3af' }}>vs Previous</div>
+                <div style={{ fontSize:13, color:'#9ca3af' }}>vs Previous</div>
               </div>
             </div>
           </div>

@@ -130,33 +130,33 @@ export default function MessagesPage() {
             </div>
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-1.5">
               <Search size={13} className="text-gray-400" />
-              <input className="text-xs bg-transparent outline-none flex-1" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
           </div>
           <div className="flex border-b border-gray-100 px-2 py-1 gap-0.5">
             {['all', 'unread', 'archived'].map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={`flex-1 text-[10px] py-1 rounded font-medium capitalize ${filter === f ? 'bg-gray-200 text-gray-800' : 'text-gray-500 hover:bg-gray-100'}`}>{f}</button>
+              <button key={f} onClick={() => setFilter(f)} className={`flex-1 text-[13px] py-1 rounded font-medium capitalize ${filter === f ? 'bg-gray-200 text-gray-800' : 'text-gray-500 hover:bg-gray-100'}`}>{f}</button>
             ))}
           </div>
           <div className="flex-1 overflow-y-auto">
             {Object.entries(groups).map(([group, convos]) => (
               <div key={group}>
-                <p className="text-[9px] font-semibold text-gray-400 uppercase px-4 pt-3 pb-1">{group}</p>
+                <p className="text-[12px] font-semibold text-gray-400 uppercase px-4 pt-3 pb-1">{group}</p>
                 {convos.map(c => (
                   <div key={c.id} onClick={() => setSelectedConvo(c)}
                     className={`px-4 py-3 cursor-pointer border-b border-gray-50 transition-colors ${selectedConvo?.id === c.id ? 'bg-brand-50' : 'hover:bg-gray-50'}`}>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ background: TYPE_COLORS[c.type] || '#9ca3af' }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0" style={{ background: TYPE_COLORS[c.type] || '#9ca3af' }}>
                         {c.type === 'client' ? 'C' : c.type === 'internal' ? 'I' : 'P'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className={`text-xs truncate ${c.unread_count > 0 ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>{c.subject || 'No subject'}</span>
+                          <span className={`text-sm truncate ${c.unread_count > 0 ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>{c.subject || 'No subject'}</span>
                           {c.unread_count > 0 && <div className="w-2 h-2 bg-brand-500 rounded-full flex-shrink-0 ml-1" />}
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
-                          <span className="text-[10px] text-gray-400 truncate">{(c.participants || []).map(p => p.name).join(', ') || 'No participants'}</span>
-                          <span className="text-[9px] text-gray-400 flex-shrink-0 ml-1">{c.last_message_at ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true }).replace('about ', '') : ''}</span>
+                          <span className="text-[13px] text-gray-400 truncate">{(c.participants || []).map(p => p.name).join(', ') || 'No participants'}</span>
+                          <span className="text-[12px] text-gray-400 flex-shrink-0 ml-1">{c.last_message_at ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true }).replace('about ', '') : ''}</span>
                         </div>
                       </div>
                     </div>
@@ -164,7 +164,7 @@ export default function MessagesPage() {
                 ))}
               </div>
             ))}
-            {filtered.length === 0 && <div className="py-12 text-center text-xs text-gray-400">{loading ? 'Loading...' : 'No conversations'}</div>}
+            {filtered.length === 0 && <div className="py-12 text-center text-sm text-gray-400">{loading ? 'Loading...' : 'No conversations'}</div>}
           </div>
         </div>
 
@@ -173,12 +173,12 @@ export default function MessagesPage() {
           {selectedConvo ? (
             <>
               <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-3 flex-shrink-0">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: TYPE_COLORS[selectedConvo.type] || '#9ca3af' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: TYPE_COLORS[selectedConvo.type] || '#9ca3af' }}>
                   {selectedConvo.type === 'client' ? 'C' : selectedConvo.type === 'internal' ? 'I' : 'P'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-gray-900 truncate">{selectedConvo.subject || 'No subject'}</h3>
-                  <p className="text-[10px] text-gray-400">{(selectedConvo.participants || []).map(p => p.email).join(', ')}</p>
+                  <p className="text-[13px] text-gray-400">{(selectedConvo.participants || []).map(p => p.email).join(', ')}</p>
                 </div>
                 <button onClick={handleArchive} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100" title="Archive"><Archive size={14} /></button>
                 <button onClick={handleDeleteConvo} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50" title="Delete"><Trash2 size={14} /></button>
@@ -190,10 +190,10 @@ export default function MessagesPage() {
                   return (
                     <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[70%] ${m.is_internal ? 'bg-amber-50 border border-amber-200' : isMe ? 'bg-brand-500 text-white' : 'bg-gray-100'} rounded-xl px-4 py-3`}>
-                        {m.is_internal && <p className="text-[9px] text-amber-600 font-medium mb-1">🔒 Internal note</p>}
+                        {m.is_internal && <p className="text-[12px] text-amber-600 font-medium mb-1">🔒 Internal note</p>}
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-medium ${isMe && !m.is_internal ? 'text-white/80' : 'text-gray-700'}`}>{m.sender_name || 'Unknown'}</span>
-                          <span className={`text-[9px] ${isMe && !m.is_internal ? 'text-white/50' : 'text-gray-400'}`}>{m.created_at && format(new Date(m.created_at), 'MMM d h:mm a')}</span>
+                          <span className={`text-sm font-medium ${isMe && !m.is_internal ? 'text-white/80' : 'text-gray-700'}`}>{m.sender_name || 'Unknown'}</span>
+                          <span className={`text-[12px] ${isMe && !m.is_internal ? 'text-white/50' : 'text-gray-400'}`}>{m.created_at && format(new Date(m.created_at), 'MMM d h:mm a')}</span>
                         </div>
                         <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isMe && !m.is_internal ? 'text-white' : 'text-gray-800'}`}>{m.body}</p>
                       </div>
@@ -206,10 +206,10 @@ export default function MessagesPage() {
               {/* Composer */}
               <div className="px-5 py-3 border-t border-gray-200 flex-shrink-0">
                 <div className="flex gap-2 mb-2">
-                  <label className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg cursor-pointer ${isInternal ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-500 hover:bg-gray-100'}`}>
+                  <label className={`flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-lg cursor-pointer ${isInternal ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'text-gray-500 hover:bg-gray-100'}`}>
                     <input type="checkbox" checked={isInternal} onChange={e => setIsInternal(e.target.checked)} className="w-3 h-3" /> Internal note
                   </label>
-                  <label className="flex items-center gap-1.5 text-xs text-gray-500 px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-sm text-gray-500 px-2.5 py-1 rounded-lg hover:bg-gray-100 cursor-pointer">
                     <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} className="w-3 h-3" /> Also email
                   </label>
                 </div>
@@ -230,36 +230,36 @@ export default function MessagesPage() {
         {/* RIGHT — Context */}
         {selectedConvo && (
           <div className="w-72 border-l border-gray-200 overflow-y-auto flex-shrink-0 p-4">
-            <p className="text-[9px] font-semibold text-gray-400 uppercase mb-3">Conversation Details</p>
+            <p className="text-[12px] font-semibold text-gray-400 uppercase mb-3">Conversation Details</p>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Type</p>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: (TYPE_COLORS[selectedConvo.type] || '#9ca3af') + '18', color: TYPE_COLORS[selectedConvo.type] || '#9ca3af' }}>{selectedConvo.type}</span>
+                <p className="text-sm text-gray-500 mb-1">Type</p>
+                <span className="text-sm px-2 py-0.5 rounded-full font-medium" style={{ background: (TYPE_COLORS[selectedConvo.type] || '#9ca3af') + '18', color: TYPE_COLORS[selectedConvo.type] || '#9ca3af' }}>{selectedConvo.type}</span>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Participants</p>
+                <p className="text-sm text-gray-500 mb-1">Participants</p>
                 <div className="space-y-1">
                   {(selectedConvo.participants || []).map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[8px] font-bold flex items-center justify-center">{(p.name || p.email || '?')[0].toUpperCase()}</div>
-                      <span className="text-xs text-gray-700">{p.name || p.email}</span>
+                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center">{(p.name || p.email || '?')[0].toUpperCase()}</div>
+                      <span className="text-sm text-gray-700">{p.name || p.email}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Messages</p>
+                <p className="text-sm text-gray-500 mb-1">Messages</p>
                 <p className="text-sm font-medium text-gray-900">{messages.length}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Created</p>
-                <p className="text-xs text-gray-700">{selectedConvo.created_at && format(new Date(selectedConvo.created_at), 'MMM d yyyy h:mm a')}</p>
+                <p className="text-sm text-gray-500 mb-1">Created</p>
+                <p className="text-sm text-gray-700">{selectedConvo.created_at && format(new Date(selectedConvo.created_at), 'MMM d yyyy h:mm a')}</p>
               </div>
               {selectedConvo.reply_token && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Client Reply Link</p>
+                  <p className="text-sm text-gray-500 mb-1">Client Reply Link</p>
                   <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/reply/${selectedConvo.reply_token}`); toast.success('Copied!') }}
-                    className="text-xs text-brand-500 hover:text-brand-700">Copy magic link</button>
+                    className="text-sm text-brand-500 hover:text-brand-700">Copy magic link</button>
                 </div>
               )}
             </div>
@@ -280,7 +280,7 @@ export default function MessagesPage() {
                 {[{ key: 'client', label: 'Client', icon: Users }, { key: 'internal', label: 'Internal', icon: MessageSquare }, { key: 'project', label: 'Project', icon: Layers }].map(t => {
                   const I = t.icon; return (
                   <button key={t.key} onClick={() => setNewType(t.key)}
-                    className={`flex-1 text-xs py-2 rounded-lg font-medium border transition-colors flex items-center justify-center gap-1 ${newType === t.key ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-500'}`}>
+                    className={`flex-1 text-sm py-2 rounded-lg font-medium border transition-colors flex items-center justify-center gap-1 ${newType === t.key ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-500'}`}>
                     <I size={12} /> {t.label}
                   </button>
                 )})}

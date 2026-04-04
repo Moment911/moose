@@ -128,15 +128,15 @@ export default function CalendarPage() {
             <span className="text-sm font-semibold text-gray-900 min-w-[160px] text-center">{view === 'month' ? format(currentDate, 'MMMM yyyy') : `Week of ${format(weekStart, 'MMM d')}`}</span>
             <button onClick={() => setCurrentDate(v => view === 'month' ? addMonths(v, 1) : addDays(v, 7))} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><ChevronRight size={16} /></button>
           </div>
-          <button onClick={() => setCurrentDate(new Date())} className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-200">Today</button>
+          <button onClick={() => setCurrentDate(new Date())} className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-200">Today</button>
           <div className="flex bg-gray-100 rounded-lg p-0.5 ml-2">
             {['month', 'week'].map(v => (
-              <button key={v} onClick={() => setView(v)} className={`text-xs px-3 py-1.5 rounded-md font-medium capitalize ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{v}</button>
+              <button key={v} onClick={() => setView(v)} className={`text-sm px-3 py-1.5 rounded-md font-medium capitalize ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{v}</button>
             ))}
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <button onClick={exportIcal} className="btn-secondary text-xs"><Download size={12} strokeWidth={1.5} /> Export iCal</button>
-            <button onClick={() => openNew()} className="btn-primary text-xs"><Plus size={12} /> New Event</button>
+            <button onClick={exportIcal} className="btn-secondary text-sm"><Download size={12} strokeWidth={1.5} /> Export iCal</button>
+            <button onClick={() => openNew()} className="btn-primary text-sm"><Plus size={12} /> New Event</button>
           </div>
         </div>
 
@@ -146,7 +146,7 @@ export default function CalendarPage() {
           {view === 'month' && (
             <>
               <div className="grid grid-cols-7 border-b border-gray-200">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d} className="py-2 text-center text-xs font-semibold text-gray-500 uppercase">{d}</div>)}
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d} className="py-2 text-center text-sm font-semibold text-gray-500 uppercase">{d}</div>)}
               </div>
               <div className="grid grid-cols-7 flex-1" style={{ minHeight: 'calc(100vh - 120px)' }}>
                 {days.map((day, i) => {
@@ -157,17 +157,17 @@ export default function CalendarPage() {
                     <div key={i} className={`border-b border-r border-gray-100 p-1.5 min-h-[100px] cursor-pointer hover:bg-gray-50 transition-colors ${thisMonth ? 'bg-white' : 'bg-gray-50/50'} ${today ? 'ring-1 ring-inset ring-brand-200' : ''}`}
                       onClick={() => openNew(startOfDay(day))}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full ${today ? 'bg-brand-500 text-white' : thisMonth ? 'text-gray-900' : 'text-gray-400'}`}>{format(day, 'd')}</span>
+                        <span className={`text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full ${today ? 'bg-brand-500 text-white' : thisMonth ? 'text-gray-900' : 'text-gray-400'}`}>{format(day, 'd')}</span>
                       </div>
                       <div className="space-y-0.5">
                         {dayEvents.slice(0, 3).map(ev => (
-                          <div key={ev.id} className="text-[10px] px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
+                          <div key={ev.id} className="text-[13px] px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
                             style={{ background: (ev.color || '#3b82f6') + '20', color: ev.color || '#3b82f6', borderLeft: `2px solid ${ev.color || '#3b82f6'}` }}
                             onClick={e => { e.stopPropagation(); openEdit(ev) }}>
                             {ev.title}
                           </div>
                         ))}
-                        {dayEvents.length > 3 && <span className="text-[9px] text-gray-400 pl-1">+{dayEvents.length - 3} more</span>}
+                        {dayEvents.length > 3 && <span className="text-[12px] text-gray-400 pl-1">+{dayEvents.length - 3} more</span>}
                       </div>
                     </div>
                   )
@@ -181,7 +181,7 @@ export default function CalendarPage() {
             <div className="flex flex-1">
               {/* Time labels */}
               <div className="w-16 flex-shrink-0 border-r border-gray-200 pt-10">
-                {hours.map(h => <div key={h} className="h-12 text-[10px] text-gray-400 text-right pr-2 -mt-2">{h === 0 ? '' : `${h % 12 || 12}${h < 12 ? 'am' : 'pm'}`}</div>)}
+                {hours.map(h => <div key={h} className="h-12 text-[13px] text-gray-400 text-right pr-2 -mt-2">{h === 0 ? '' : `${h % 12 || 12}${h < 12 ? 'am' : 'pm'}`}</div>)}
               </div>
               {/* Day columns */}
               <div className="flex-1 flex">
@@ -190,7 +190,7 @@ export default function CalendarPage() {
                   const today = isToday(day)
                   return (
                     <div key={di} className="flex-1 border-r border-gray-100">
-                      <div className={`h-10 flex items-center justify-center text-xs font-semibold border-b border-gray-200 ${today ? 'text-brand-600 bg-brand-50' : 'text-gray-700'}`}>
+                      <div className={`h-10 flex items-center justify-center text-sm font-semibold border-b border-gray-200 ${today ? 'text-brand-600 bg-brand-50' : 'text-gray-700'}`}>
                         {format(day, 'EEE d')}
                       </div>
                       <div className="relative">
@@ -201,7 +201,7 @@ export default function CalendarPage() {
                           const startH = getHours(new Date(ev.start_at))
                           const endH = ev.end_at ? getHours(new Date(ev.end_at)) : startH + 1
                           return (
-                            <div key={ev.id} className="absolute left-1 right-1 rounded px-1.5 py-0.5 text-[10px] font-medium cursor-pointer hover:opacity-80 overflow-hidden"
+                            <div key={ev.id} className="absolute left-1 right-1 rounded px-1.5 py-0.5 text-[13px] font-medium cursor-pointer hover:opacity-80 overflow-hidden"
                               style={{ top: startH * 48, height: Math.max((endH - startH) * 48, 20), background: (ev.color || '#3b82f6') + '20', color: ev.color || '#3b82f6', borderLeft: `2px solid ${ev.color || '#3b82f6'}` }}
                               onClick={() => openEdit(ev)}>
                               {ev.title}
@@ -218,7 +218,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Status bar */}
-        <div className="h-8 bg-white border-t border-gray-100 px-4 flex items-center gap-4 text-xs text-gray-400 flex-shrink-0">
+        <div className="h-8 bg-white border-t border-gray-100 px-4 flex items-center gap-4 text-sm text-gray-400 flex-shrink-0">
           <span>{events.length} items this month</span>
           <div className="flex gap-3 ml-auto">
             {EVENT_TYPES.map(t => <span key={t.key} className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: t.color }} />{t.label}</span>)}
@@ -240,15 +240,15 @@ export default function CalendarPage() {
               <div className="flex gap-2">
                 {EVENT_TYPES.map(t => (
                   <button key={t.key} onClick={() => setForm(f => ({ ...f, type: t.key, color: t.color }))}
-                    className={`flex-1 text-xs py-2 rounded-lg font-medium border transition-colors ${form.type === t.key ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-500'}`}>
+                    className={`flex-1 text-sm py-2 rounded-lg font-medium border transition-colors ${form.type === t.key ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-500'}`}>
                     {t.label}
                   </button>
                 ))}
               </div>
 
               <div className="flex gap-3">
-                <div className="flex-1"><label className="text-xs text-gray-500 mb-1 block">Start</label><input className="input text-sm" type="datetime-local" value={form.start_at} onChange={e => setForm(f => ({ ...f, start_at: e.target.value }))} /></div>
-                <div className="flex-1"><label className="text-xs text-gray-500 mb-1 block">End</label><input className="input text-sm" type="datetime-local" value={form.end_at} onChange={e => setForm(f => ({ ...f, end_at: e.target.value }))} /></div>
+                <div className="flex-1"><label className="text-sm text-gray-500 mb-1 block">Start</label><input className="input text-sm" type="datetime-local" value={form.start_at} onChange={e => setForm(f => ({ ...f, start_at: e.target.value }))} /></div>
+                <div className="flex-1"><label className="text-sm text-gray-500 mb-1 block">End</label><input className="input text-sm" type="datetime-local" value={form.end_at} onChange={e => setForm(f => ({ ...f, end_at: e.target.value }))} /></div>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.all_day} onChange={e => setForm(f => ({ ...f, all_day: e.target.checked }))} className="w-4 h-4 rounded border-gray-300 text-brand-500" /> All day</label>
@@ -257,14 +257,14 @@ export default function CalendarPage() {
 
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 mb-1 block">Client</label>
+                  <label className="text-sm text-gray-500 mb-1 block">Client</label>
                   <select className="input text-sm" value={form.client_id} onChange={e => setForm(f => ({ ...f, client_id: e.target.value, project_id: '' }))}>
                     <option value="">None</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 mb-1 block">Project</label>
+                  <label className="text-sm text-gray-500 mb-1 block">Project</label>
                   <select className="input text-sm" value={form.project_id} onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))} disabled={!form.client_id}>
                     <option value="">None</option>
                     {projects.filter(p => !form.client_id || p.client_id === form.client_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -273,7 +273,7 @@ export default function CalendarPage() {
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-xs text-gray-500 mb-1 block">Reminder</label>
+                  <label className="text-sm text-gray-500 mb-1 block">Reminder</label>
                   <select className="input text-sm" value={form.reminder_minutes || ''} onChange={e => setForm(f => ({ ...f, reminder_minutes: e.target.value ? +e.target.value : null }))}>
                     <option value="">None</option>
                     <option value="15">15 min before</option>
@@ -285,7 +285,7 @@ export default function CalendarPage() {
               </div>
 
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Color</label>
+                <label className="text-sm text-gray-500 mb-1 block">Color</label>
                 <div className="flex gap-1.5">
                   {COLORS.map(c => (
                     <button key={c} onClick={() => setForm(f => ({ ...f, color: c }))} style={{ background: c }}
@@ -295,7 +295,7 @@ export default function CalendarPage() {
               </div>
             </div>
             <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
-              <div>{editEvent && <button onClick={handleDelete} className="text-xs text-brand-500 hover:text-brand-700 flex items-center gap-1"><Trash2 size={12} /> Delete</button>}</div>
+              <div>{editEvent && <button onClick={handleDelete} className="text-sm text-brand-500 hover:text-brand-700 flex items-center gap-1"><Trash2 size={12} /> Delete</button>}</div>
               <div className="flex gap-2">
                 <button onClick={() => setShowModal(false)} className="text-sm text-gray-500 px-3 py-1.5">Cancel</button>
                 <button onClick={handleSave} disabled={!form.title.trim()} className="btn-primary text-sm">{editEvent ? 'Save' : 'Create'}</button>
