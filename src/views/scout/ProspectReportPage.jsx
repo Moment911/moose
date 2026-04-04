@@ -62,7 +62,6 @@ function Stars({ rating }) {
         </svg>
       ))}
     </div>
-    </>
   )
 }
 
