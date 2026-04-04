@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Sparkles, X, Loader2, ArrowRight, Check, RefreshCw } from 'lucide-react'
 import { generateEmailContent } from '../../lib/ai'

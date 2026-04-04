@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Send, Eye, Wand2, Check, AlertTriangle, X, Plus, Trash2, ArrowUp, ArrowDown, Type, Image as ImageIcon, MousePointer, Minus, Columns, FileText, Layout, Square, Palette, Copy, Quote, List, Star, Search, Loader2, Sparkles, Code, Tag } from 'lucide-react'

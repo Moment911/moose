@@ -1,3 +1,4 @@
+"use client";
 export default function LucyLogo({ size = 'md', showText = true, white = false }) {
   const sizes = { sm: { icon: 28, text: 16 }, md: { icon: 36, text: 20 }, lg: { icon: 48, text: 28 } }
   const s = sizes[size] || sizes.md

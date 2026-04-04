@@ -1,3 +1,4 @@
+"use client";
 import { useState, useRef, useEffect } from 'react'
 import { Wand2, X, Send, Copy, Loader2 } from 'lucide-react'
 import { streamClaude, callClaude } from '../lib/ai'

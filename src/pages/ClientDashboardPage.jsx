@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileImage, Clock, MessageSquare, Send, ExternalLink, LogOut, Calendar, CheckCircle, AlertTriangle, Globe, Smartphone, Palette, Mail, Printer, Film, BarChart2, Folder } from 'lucide-react'

@@ -1,3 +1,4 @@
+"use client";
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Pipette } from 'lucide-react'
 import { hexToRgb, rgbToHex, rgbToCmyk, cmykToHex, hsvToRgb, rgbToHsv } from '../lib/colorUtils'

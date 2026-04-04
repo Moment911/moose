@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { Puzzle, Globe, Check, RefreshCw, ExternalLink, FileText, Zap, BarChart2, Link2, Send, Plus, Trash2, Loader2, TrendingUp, X } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'

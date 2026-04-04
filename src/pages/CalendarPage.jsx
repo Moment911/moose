@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Plus, X, Trash2, Download, Clock, Calendar as CalIcon } from 'lucide-react'
 import Sidebar from '../components/Sidebar'

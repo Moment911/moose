@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { Link, useLocation } from 'react-router-dom'
 import { Target, Search, ListFilter, Bookmark, BarChart3, Settings, ArrowLeft } from 'lucide-react'
 

@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { Target, Search, Users, Mail, DollarSign, TrendingUp, Flame } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'

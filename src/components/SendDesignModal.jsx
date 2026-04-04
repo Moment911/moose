@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { X, Send, Link, FileImage, Check } from 'lucide-react'
 import { sendEmailSummary, logSharing } from '../lib/supabase'

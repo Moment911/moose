@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Bug, X, Check, AlertTriangle, Loader2 } from 'lucide-react'
 

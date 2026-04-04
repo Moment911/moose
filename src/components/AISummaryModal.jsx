@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { X, Wand2, Copy, Send, Loader2 } from 'lucide-react'
 import { callClaude } from '../lib/ai'

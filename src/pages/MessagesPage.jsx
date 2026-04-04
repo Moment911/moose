@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef } from 'react'
 import { PenLine, Search, Star, Paperclip, Send, X, Plus, Archive, Trash2, MessageSquare, Users, Layers } from 'lucide-react'
 import Sidebar from '../components/Sidebar'

@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ChevronLeft, Save, Download, Upload, Undo2, Redo2, Trash2,

@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { X, Link, FileImage, FileText, Globe } from 'lucide-react'
 

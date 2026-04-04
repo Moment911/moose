@@ -1,3 +1,4 @@
+"use client";
 export default function PrivacyPolicyPage() {
   const lastUpdated = 'April 2, 2026'
   const companyName = 'Momenta Marketing LLC'

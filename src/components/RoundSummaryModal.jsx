@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { X, Send, CheckCircle, FileText, MessageSquare, AlertTriangle } from 'lucide-react'
 import { getRounds, getProjectAnnotations, createRound, updateAnnotationRound, logActivity, sendEmailSummary, fireWebhook } from '../lib/supabase'

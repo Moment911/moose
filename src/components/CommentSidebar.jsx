@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { MessageSquare, ChevronDown, ChevronUp, Reply, Send, CheckCircle, Check, Paperclip, ListTodo, Image as ImageIcon } from 'lucide-react'
 import { format } from 'date-fns'

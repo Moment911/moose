@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Globe, Lock, KeyRound, X, Copy, Check, Palette } from 'lucide-react'
 import { updateProject } from '../lib/supabase'

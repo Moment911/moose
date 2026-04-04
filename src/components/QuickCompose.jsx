@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { PenLine, X, Send } from 'lucide-react'
 import { supabase, sendEmailSummary } from '../lib/supabase'

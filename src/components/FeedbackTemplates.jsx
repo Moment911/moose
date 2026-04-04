@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { FileText, X, ChevronDown, ChevronRight } from 'lucide-react'
 

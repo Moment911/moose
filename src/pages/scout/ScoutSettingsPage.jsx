@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Target, Key, Check, AlertTriangle, ExternalLink, RefreshCw, Loader2 } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'

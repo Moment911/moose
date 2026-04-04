@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Pin, Send, ArrowRight, Check } from 'lucide-react'
 

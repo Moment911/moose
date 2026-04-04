@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef } from 'react'
 import { Bell, Check, MessageSquare, FileImage, Clock, CheckCircle, User } from 'lucide-react'
 import { supabase } from '../lib/supabase'

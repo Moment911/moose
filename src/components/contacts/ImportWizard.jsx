@@ -1,3 +1,4 @@
+"use client";
 import { useState, useRef, useCallback } from 'react'
 import { Upload, X, Check, AlertTriangle, FileText, ArrowRight, ArrowLeft, Loader2, Download, Tag, ChevronDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'

@@ -1,4 +1,5 @@
 "use client";
+"use client";
 import { Home, CheckSquare, Search, MessageSquare, Grid3X3 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 

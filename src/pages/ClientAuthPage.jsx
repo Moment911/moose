@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Mail, ArrowRight, Check } from 'lucide-react'
 import { signInWithMagicLink } from '../lib/supabase'

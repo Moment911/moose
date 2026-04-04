@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { MessageSquare, Mail, Zap, Calendar, Phone, Cloud, HardDrive, Plug, Check, X, ExternalLink, Settings } from 'lucide-react'
 import Sidebar from '../components/Sidebar'

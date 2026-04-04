@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef } from 'react'
 import { Palette, X, Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'

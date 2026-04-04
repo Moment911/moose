@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { Search, Globe, Zap, AlertTriangle, CheckCircle, TrendingUp, Download, Share2, Shield, FileText, Link2, Smartphone, BarChart2, Star, ChevronDown, ChevronUp, Loader2, Target, Plus, X } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'

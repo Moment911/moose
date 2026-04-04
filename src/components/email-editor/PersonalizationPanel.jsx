@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 import { X, Copy, Search, ChevronDown, ChevronRight, User, Building2, MapPin, Calendar, FileText, Code } from 'lucide-react'
 import toast from 'react-hot-toast'

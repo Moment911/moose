@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useCallback } from 'react'
 import { Search, X, Check, MapPin, ChevronRight, Building2, Navigation, Loader2, Users } from 'lucide-react'
 import { US_STATES, fetchCounties, fetchCities, formatPop, METRO_AREAS } from '../../data/usGeoData'

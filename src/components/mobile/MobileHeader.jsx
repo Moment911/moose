@@ -1,3 +1,4 @@
+"use client";
 import { Menu, ChevronLeft } from 'lucide-react'
 import LucyLogo from '../LucyLogo'
 
