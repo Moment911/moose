@@ -5,7 +5,8 @@ import {
   ChevronLeft, Building2, Globe, Phone, Mail, MapPin, Users, Calendar,
   DollarSign, Hash, Share2, Camera, AtSign, Briefcase, Video,
   Server, Palette, Target, UserPlus, Link2, Copy, Check, X, Plus, Trash2,
-  ExternalLink, Shield, CreditCard, Crown, Eye, EyeOff, Lock, Sparkles
+  ExternalLink, Shield, CreditCard, Crown, Eye, EyeOff, Lock, Sparkles,
+  ShoppingBag, TrendingUp, Building
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import {
