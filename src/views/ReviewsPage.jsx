@@ -394,16 +394,13 @@ export default function ReviewsPage() {
   const [search, setSearch] = useState('')
   const [showWidget, setShowWidget] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
-  const [agencyId, setAgencyId] = useState(null)
 
   const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
   useEffect(() => { init() }, [])
 
   async function init() {
-    // Use agencyId from auth context (works in bypass mode too)
     const aid = agencyId || '00000000-0000-0000-0000-000000000099'
-    setAgencyId(aid)
     loadClients(aid)
   }
 

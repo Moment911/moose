@@ -357,14 +357,12 @@ export default function AIAgentsPage() {
   const [selectedClient, setSelectedClient] = useState(null)
   const [agentStatus, setAgentStatus] = useState({}) // { agentId: boolean }
   const [loading, setLoading] = useState(true)
-  const [agencyId, setAgencyId] = useState(null)
   const [activeTab, setActiveTab] = useState('autopilot') // autopilot|standalone|activity
 
   useEffect(() => { init() }, [])
 
   async function init() {
     const aid = agencyId || '00000000-0000-0000-0000-000000000099'
-    setAgencyId(aid)
     const { data: cls } = await supabase.from('clients').select('id,name,industry').eq('agency_id', aid).order('name')
     setClients(cls || [])
     setLoading(false)
