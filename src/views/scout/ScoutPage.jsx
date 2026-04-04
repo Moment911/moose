@@ -588,58 +588,6 @@ export default function ScoutPage() {
       }, i * 800) // stagger to avoid rate limits
     })
   }
-    }
-
-    // ── AI-enrich Google leads with summaries ─────────────────────────────────
-    if (source === 'google' && leads.length > 0) {
-      try {
-        const names = leads.slice(0,8).map(l=>l.name).join(', ')
-        const summaryPrompt = 'For these ' + term + ' businesses in ' + location + ', write one short marketing opportunity sentence for each. Businesses: ' + names + '. Return a JSON array like [{"name":"Exact Business Name","summary":"one sentence, no internal quotes"}]. No markdown, no backticks.'
-        const raw = await callClaude('Return only a raw JSON array starting with [ and ending with ]. No markdown.', summaryPrompt, 1000)
-        let cleaned2 = raw.replace(/```json|```/g,'').trim()
-        const s2 = cleaned2.indexOf('['), e2 = cleaned2.lastIndexOf(']')
-        if (s2 === -1) throw new Error('no array')
-        cleaned2 = cleaned2.slice(s2, e2+1)
-        let summaries
-        try { summaries = JSON.parse(cleaned2) }
-        catch(_) { summaries = JSON.parse(cleaned2.replace(/,\s*}/g,'}').replace(/,\s*]/g,']')) }
-        const summaryMap = Object.fromEntries(summaries.map(s=>[s.name, s.summary]))
-        leads = leads.map(l=>({ ...l, ai_summary: summaryMap[l.name] || null }))
-      } catch(e) {
-        // Summaries are optional — don't fail the whole search
-      }
-    }
-
-    // ── Enrich all leads with provenance/confidence ───────────────────────────
-    const enriched = enrichLeads(leads, location || term)
-    setResults(enriched)
-    setDataSource(source)
-    setStats({
-      total:    enriched.length,
-      hot:      enriched.filter(l=>l.score>=75).length,
-      warm:     enriched.filter(l=>l.score>=50&&l.score<75).length,
-      avgScore: Math.round(enriched.reduce((s,l)=>s+l.score,0)/enriched.length),
-      verified: enriched.filter(l=>l._verified>=2||l._real_data).length,
-      realData: enriched.filter(l=>l._real_data).length,
-    })
-    setSearching(false)
-
-    // ── Run full pipeline on top 3 leads in background ────────────────────────
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || ''
-    const topLeads = enriched.slice(0, 3)
-    topLeads.forEach(async (lead, i) => {
-      setTimeout(async () => {
-        try {
-          const enriched2 = await runLeadPipeline(
-            lead, enriched.filter(x=>x.id!==lead.id), term, apiKey,
-            (msg, pct) => { if (i === 0) setPipelineProgress({ msg, pct }) }
-          )
-          setResults(prev => prev.map(r => r.id === lead.id ? { ...r, ...enriched2 } : r))
-          if (i === 0) setPipelineProgress(null)
-        } catch(e) { console.warn('Pipeline failed for', lead.name, e.message) }
-      }, i * 800) // stagger to avoid rate limits
-    })
-  }
 
   function toggleSaved(lead) {
     const next = new Set(saved)

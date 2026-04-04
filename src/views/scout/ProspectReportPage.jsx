@@ -62,6 +62,7 @@ function Stars({ rating }) {
         </svg>
       ))}
     </div>
+    </>
   )
 }
 
@@ -79,6 +80,7 @@ function ScoreBar({ label, value, max=100, color=RED }) {
           transition:'width 1.2s cubic-bezier(.22,1,.36,1)',transitionDelay:'.3s'}}/>
       </div>
     </div>
+    </>
   )
 }
 
@@ -94,6 +96,7 @@ function Section({ id, children, dark=false, style={} }) {
         {children}
       </div>
     </div>
+    </>
   )
 }
 
@@ -104,6 +107,7 @@ function SectionLabel({ text, light=false }) {
       <span style={{fontSize:11,fontWeight:800,color:light?'rgba(255,255,255,.5)':RED,
         textTransform:'uppercase',letterSpacing:'.1em'}}>{text}</span>
     </div>
+    </>
   )
 }
 
@@ -940,11 +944,9 @@ export default function ProspectReportPage() {
           #cover { min-height:100vh; page-break-after:always; }
           #overview, #gaps, #seo, #solutions, #roi, #cta { page-break-inside:avoid; }
         }
-        @media print {
-          .no-print { display:none!important; }
-          body { background:#fff; }
-        }
+
       `}</style>
     </div>
+    </>
   )
 }
