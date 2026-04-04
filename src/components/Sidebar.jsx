@@ -208,6 +208,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         {/* ── SEO / INTELLIGENCE ── */}
         <SectionLabel label="Intelligence" />
         <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#f97316" />
+        <NavLink to="/seo" icon={TrendingUp} label="SEO Hub" startsWith />
 
         {/* ── AGENCY ── */}
         <SectionLabel label="Agency" />
