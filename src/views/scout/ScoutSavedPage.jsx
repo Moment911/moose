@@ -30,7 +30,7 @@ export default function ScoutSavedPage() {
   return (
     <ScoutLayout>
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
+        <Target size={18} className="text-brand-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
         <span className="text-sm text-slate-400 ml-1">Saved Searches</span>
       </div>
@@ -40,7 +40,7 @@ export default function ScoutSavedPage() {
             <Bookmark size={40} className="text-slate-300 mx-auto mb-4" />
             <h3 className="text-base font-semibold text-slate-700 mb-1">No saved searches yet</h3>
             <p className="text-sm text-slate-400 mb-4">Your SCOUT searches will appear here automatically.</p>
-            <button onClick={() => navigate('/scout')} className="text-sm font-semibold text-orange-500 hover:text-orange-600">Run your first search →</button>
+            <button onClick={() => navigate('/scout')} className="text-sm font-semibold text-brand-500 hover:text-brand-600">Run your first search →</button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -56,7 +56,7 @@ export default function ScoutSavedPage() {
                 <div className="flex items-center gap-3 mb-3 text-sm text-slate-500">
                   <span>{s.result_count || 0} results</span>
                   {s.hot_count > 0 && <span className="text-red-500 flex items-center gap-1"><Flame size={11} /> {s.hot_count} hot</span>}
-                  {s.warm_count > 0 && <span className="text-orange-500">{s.warm_count} warm</span>}
+                  {s.warm_count > 0 && <span className="text-brand-500">{s.warm_count} warm</span>}
                 </div>
                 {(s.industries || []).length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">

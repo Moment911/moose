@@ -139,7 +139,7 @@ const CONNECTIONS = [
     name:    'Hunter.io',
     group:   'Scout Intelligence',
     icon:    Search,
-    color:   '#f97316',
+    color:   '#5bc6d0',
     env:     'NEXT_PUBLIC_HUNTER_API_KEY',
     desc:    'Finds verified email addresses for business contacts. Used to enrich Scout leads.',
     free:    'Free: 25 searches/mo',

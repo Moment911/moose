@@ -15,7 +15,7 @@ const STATUSES = [
   { key: 'in_progress', label: 'In Progress', color: '#f59e0b' },
   { key: 'more_info', label: 'More Info Needed', color: '#8b5cf6' },
   { key: 'in_review', label: 'In Review', color: '#06b6d4' },
-  { key: 'pending', label: 'Pending', color: '#f97316' },
+  { key: 'pending', label: 'Pending', color: '#5bc6d0' },
   { key: 'completed', label: 'Completed', color: '#22c55e' },
 ]
 

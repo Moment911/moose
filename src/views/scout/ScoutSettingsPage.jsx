@@ -35,7 +35,7 @@ export default function ScoutSettingsPage() {
   return (
     <ScoutLayout>
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
+        <Target size={18} className="text-brand-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
         <span className="text-sm text-slate-400 ml-1">Settings</span>
       </div>
@@ -95,7 +95,7 @@ export default function ScoutSettingsPage() {
                   <span className="text-sm font-bold text-slate-800 w-10 text-right">{weights[w.key]}%</span>
                 </div>
                 <input type="range" min={0} max={50} value={weights[w.key]} onChange={e => setWeights(prev => ({ ...prev, [w.key]: +e.target.value }))}
-                  className="w-full accent-orange-500" />
+                  className="w-full accent-brand-500" />
               </div>
             ))}
           </div>

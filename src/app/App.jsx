@@ -62,6 +62,7 @@ import ReportingPage from '../views/ReportingPage'
 import SocialPlannerPage from '../views/SocialPlannerPage'
 import ReviewsPage from '../views/ReviewsPage'
 import ProposalsPage from '../views/ProposalsPage'
+import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
 
@@ -88,6 +89,7 @@ export default function App() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
+          <Route path="/platform" element={<PlatformAdminPage />} />
           <Route path="/p/:token" element={<ProposalPublicPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
@@ -127,6 +129,7 @@ export default function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/scout/settings" element={<SettingsPage />} />
           <Route path="/seo" element={<SEOHubPage />} />
+          <Route path="/seo/:clientId" element={<SEOHubPage />} />
           <Route path="/seo/audit" element={<SEOAuditPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />

@@ -8,8 +8,8 @@ import { supabase } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import toast from 'react-hot-toast'
 
-function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f97316' : s >= 30 ? '#eab308' : '#3b82f6' }
-function tempLabel(s) { return s >= 75 ? { emoji: '🔥', label: 'Hot', cls: 'text-red-500 bg-red-50' } : s >= 50 ? { emoji: '🟠', label: 'Warm', cls: 'text-orange-500 bg-orange-50' } : s >= 30 ? { emoji: '🟡', label: 'Lukewarm', cls: 'text-yellow-600 bg-yellow-50' } : { emoji: '🔵', label: 'Cold', cls: 'text-blue-500 bg-blue-50' } }
+function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#5bc6d0' : s >= 30 ? '#eab308' : '#3b82f6' }
+function tempLabel(s) { return s >= 75 ? { emoji: '🔥', label: 'Hot', cls: 'text-red-500 bg-red-50' } : s >= 50 ? { emoji: '🟠', label: 'Warm', cls: 'text-brand-500 bg-red-50' } : s >= 30 ? { emoji: '🟡', label: 'Lukewarm', cls: 'text-yellow-600 bg-yellow-50' } : { emoji: '🔵', label: 'Cold', cls: 'text-blue-500 bg-blue-50' } }
 
 export default function CompanyProfilePage() {
   const { id } = useParams()
@@ -126,7 +126,7 @@ export default function CompanyProfilePage() {
 
       {/* Action bar */}
       <div className="px-4 sm:px-6 py-2 bg-white border-b border-slate-200 flex flex-wrap items-center gap-2">
-        <button onClick={handleImport} className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"><Plus size={12} /> Import to Contacts</button>
+        <button onClick={handleImport} className="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"><Plus size={12} /> Import to Contacts</button>
         {lead.email && <button onClick={() => copy(lead.email)} className="btn-secondary text-sm"><Mail size={11} /> Email</button>}
         {lead.phone && <button onClick={() => copy(lead.phone)} className="btn-secondary text-sm"><Phone size={11} /> Phone</button>}
       </div>
@@ -136,7 +136,7 @@ export default function CompanyProfilePage() {
         {TABS.map(t => {
           const I = t.icon
           return <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${tab === t.key ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${tab === t.key ? 'border-brand-500 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             <I size={13} /> <span className="hidden sm:inline">{t.label}</span>
           </button>
         })}
@@ -151,7 +151,7 @@ export default function CompanyProfilePage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-5" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-slate-800">Business Summary</h3>
-                  {!aiSummary && <button onClick={generateAISummary} disabled={loadingAI} className="text-[13px] text-orange-500 hover:text-orange-700 flex items-center gap-1">
+                  {!aiSummary && <button onClick={generateAISummary} disabled={loadingAI} className="text-[13px] text-brand-500 hover:text-red-700 flex items-center gap-1">
                     {loadingAI ? <Loader2 size={10} className="animate-spin" /> : <Target size={10} />} Generate with AI
                   </button>}
                 </div>
@@ -172,19 +172,19 @@ export default function CompanyProfilePage() {
                       <span className="text-sm text-slate-600">{s.label}</span>
                       <span className="text-sm font-medium text-slate-800">{s.val}/{s.max}</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full"><div className="h-full rounded-full transition-all" style={{ width: `${s.val / s.max * 100}%`, background: s.val / s.max > 0.6 ? '#22c55e' : s.val / s.max > 0.3 ? '#f97316' : '#ef4444' }} /></div>
+                    <div className="h-2 bg-slate-100 rounded-full"><div className="h-full rounded-full transition-all" style={{ width: `${s.val / s.max * 100}%`, background: s.val / s.max > 0.6 ? '#22c55e' : s.val / s.max > 0.3 ? '#5bc6d0' : '#ef4444' }} /></div>
                     <p className="text-[13px] text-slate-400 mt-0.5">{s.desc}</p>
                   </div>
                 ))}
               </div>
 
               {/* Opportunities */}
-              <div className="rounded-2xl p-5 border-2 border-orange-200 bg-orange-50">
+              <div className="rounded-2xl p-5 border-2 border-orange-200 bg-red-50">
                 <h3 className="text-sm font-bold text-orange-800 mb-3 flex items-center gap-2"><Target size={14} /> Marketing Opportunities</h3>
                 <div className="space-y-2">
                   {(lead.opportunities || ['No specific gaps identified']).map((o, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <span className="text-orange-500 text-sm font-bold mt-0.5">{i + 1}.</span>
+                      <span className="text-brand-500 text-sm font-bold mt-0.5">{i + 1}.</span>
                       <p className="text-sm text-orange-900">{o}</p>
                     </div>
                   ))}
@@ -305,7 +305,7 @@ export default function CompanyProfilePage() {
               <h3 className="text-sm font-semibold text-slate-800 mb-2">Estimated Deal Value</h3>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div><p className="text-lg font-extrabold text-slate-800">$1,500</p><p className="text-[13px] text-slate-400">Min/month</p></div>
-                <div><p className="text-lg font-extrabold text-orange-500">$4,500</p><p className="text-[13px] text-slate-400">Typical/month</p></div>
+                <div><p className="text-lg font-extrabold text-brand-500">$4,500</p><p className="text-[13px] text-slate-400">Typical/month</p></div>
                 <div><p className="text-lg font-extrabold text-green-600">$54,000</p><p className="text-[13px] text-slate-400">Annual value</p></div>
               </div>
             </div>
@@ -338,7 +338,7 @@ export default function CompanyProfilePage() {
               <div className="flex flex-wrap gap-2">
                 {['lead', 'contacted', 'interested', 'proposal', 'won', 'lost'].map(stage => (
                   <button key={stage} onClick={() => { setPipelineStage(stage); supabase.from('scout_leads').update({ pipeline_stage: stage }).eq('id', lead.id).catch(() => {}) }}
-                    className={`text-sm px-3 py-2 rounded-xl capitalize font-medium border transition-all ${pipelineStage === stage ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-200 text-slate-600 hover:border-orange-300'}`}>{stage}</button>
+                    className={`text-sm px-3 py-2 rounded-xl capitalize font-medium border transition-all ${pipelineStage === stage ? 'bg-brand-500 text-white border-brand-500' : 'border-slate-200 text-slate-600 hover:border-orange-300'}`}>{stage}</button>
                 ))}
               </div>
             </div>
@@ -355,11 +355,11 @@ function ContactRow({ icon: Icon, label, value, onCopy, link }) {
       <Icon size={14} className="text-slate-400 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         {label && <p className="text-[12px] text-slate-400 uppercase">{label}</p>}
-        {link ? <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-orange-500 hover:underline truncate block">{value}</a>
+        {link ? <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-500 hover:underline truncate block">{value}</a>
           : <p className="text-sm text-slate-700 truncate">{value}</p>}
       </div>
-      {onCopy && <button onClick={onCopy} className="text-slate-300 hover:text-orange-500 flex-shrink-0"><Copy size={12} /></button>}
-      {link && <a href={link} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-orange-500 flex-shrink-0"><ExternalLink size={12} /></a>}
+      {onCopy && <button onClick={onCopy} className="text-slate-300 hover:text-brand-500 flex-shrink-0"><Copy size={12} /></button>}
+      {link && <a href={link} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-brand-500 flex-shrink-0"><ExternalLink size={12} /></a>}
     </div>
   )
 }

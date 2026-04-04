@@ -25,7 +25,7 @@ const SECTIONS = [
   ]},
   { title: 'Intelligence', items: [
     { label: 'SCOUT Search', icon: Target, path: '/scout', color: '#ea2729', badge: 'NEW' },
-    { label: 'My Leads', icon: ListFilter, path: '/scout/leads', color: '#FF6B35' },
+    { label: 'My Leads', icon: ListFilter, path: '/scout/leads', color: '#ea2729' },
   ]},
   { title: 'Moose SEO', items: [
     { label: 'SEO Hub', icon: TrendingUp, path: '/seo', color: '#10b981' },

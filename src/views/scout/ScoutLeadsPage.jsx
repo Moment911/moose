@@ -7,7 +7,7 @@ import ScoutLayout from './ScoutLayout'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
-function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f97316' : s >= 30 ? '#eab308' : '#3b82f6' }
+function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#5bc6d0' : s >= 30 ? '#eab308' : '#3b82f6' }
 
 export default function ScoutLeadsPage() {
   const navigate = useNavigate()
@@ -41,7 +41,7 @@ export default function ScoutLeadsPage() {
   return (
     <ScoutLayout>
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
+        <Target size={18} className="text-brand-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
         <span className="text-sm text-slate-400 ml-1">My Leads</span>
       </div>
@@ -51,7 +51,7 @@ export default function ScoutLeadsPage() {
           {[
             { label: 'Total Leads', value: stats.total, color: '#0F172A' },
             { label: 'Hot Leads', value: stats.hot, color: '#ef4444' },
-            { label: 'Warm Leads', value: stats.warm, color: '#f97316' },
+            { label: 'Warm Leads', value: stats.warm, color: '#5bc6d0' },
             { label: 'Contacted', value: stats.contacted, color: '#22c55e' },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
@@ -72,7 +72,7 @@ export default function ScoutLeadsPage() {
               <button key={t} onClick={() => setFilterTemp(t)} className={`text-sm px-3 py-1.5 rounded-lg capitalize font-medium ${filterTemp === t ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}>{t}</button>
             ))}
           </div>
-          <button onClick={() => navigate('/scout')} className="btn-primary text-sm" style={{ background: '#f97316' }}><Target size={12} /> New Search</button>
+          <button onClick={() => navigate('/scout')} className="btn-primary text-sm" style={{ background: '#5bc6d0' }}><Target size={12} /> New Search</button>
         </div>
 
         {/* Table */}
@@ -86,9 +86,9 @@ export default function ScoutLeadsPage() {
               <div><p className="text-sm font-medium text-slate-800">{c.company || c.first_name || c.email}</p><p className="text-[13px] text-slate-400">{c.city}{c.state ? `, ${c.state}` : ''}</p></div>
               <span className="text-sm text-slate-500 truncate">{c.email}</span>
               <span className="text-sm font-bold px-2 py-0.5 rounded-full text-center" style={{ background: scoreColor(c.scout_score || 50) + '20', color: scoreColor(c.scout_score || 50) }}>{c.scout_score || '—'}</span>
-              <div className="flex flex-wrap gap-0.5">{(c.tags || []).filter(t => t.includes('Lead')).slice(0, 1).map(t => <span key={t} className="text-[12px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded-full">{t}</span>)}</div>
+              <div className="flex flex-wrap gap-0.5">{(c.tags || []).filter(t => t.includes('Lead')).slice(0, 1).map(t => <span key={t} className="text-[12px] bg-red-50 text-brand-600 px-1.5 py-0.5 rounded-full">{t}</span>)}</div>
               <span className="text-sm text-slate-500">⭐ {c.scout_review_rating || '—'}</span>
-              <button onClick={e => { e.stopPropagation(); navigate(`/marketing/contacts/${c.id}`) }} className="text-slate-400 hover:text-orange-500"><ExternalLink size={13} /></button>
+              <button onClick={e => { e.stopPropagation(); navigate(`/marketing/contacts/${c.id}`) }} className="text-slate-400 hover:text-brand-500"><ExternalLink size={13} /></button>
             </div>
           ))}
         </div>

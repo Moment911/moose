@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Plus, Mail, FileSignature, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
+import { Plus, Mail, FileSignature, Cpu, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings, Star, BarChart2, Workflow } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
@@ -64,7 +64,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor }
     }`}>
       <Icon size={15} className={active ? 'text-orange-400' : ''} />
       <span>{label}</span>
-      {badge && <span style={{ marginLeft:'auto', fontSize:12, background: badgeColor||'#f97316', color:'#fff', padding:'1px 6px', borderRadius:20, fontWeight:800, letterSpacing:'.04em' }}>{badge}</span>}
+      {badge && <span style={{ marginLeft:'auto', fontSize:12, background: badgeColor||'#5bc6d0', color:'#fff', padding:'1px 6px', borderRadius:20, fontWeight:800, letterSpacing:'.04em' }}>{badge}</span>}
     </Link>
   )
 }
@@ -224,7 +224,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
 
         {/* ── SEO / INTELLIGENCE ── */}
         <SectionLabel label="Intelligence" />
-        <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#f97316" />
+        <NavLink to="/scout" icon={Target} label="Scout" startsWith badge="NEW" badgeColor="#5bc6d0" />
         <NavLink to="/seo" icon={TrendingUp} label="SEO Hub" startsWith />
 
         {/* ── AGENCY ── */}
@@ -233,6 +233,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         <NavLink to="/setup" icon={Settings} label="Setup & Connections" />
         <NavLink to="/agency-settings" icon={Shield} label="Agency Settings" />
         <NavLink to="/settings" icon={Settings} label="Settings" exact />
+        <NavLink to="/platform" icon={Cpu} label="Platform Admin" startsWith />
 
         {/* ── DEV / COMING SOON ── */}
         <DevSection />

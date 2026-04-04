@@ -138,9 +138,9 @@ export default function GeoDrillDown({ onChange, className }) {
           { key: 'metros', label: '🌆 Metros' },
         ].map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)}
-            className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === t.key ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
+            className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === t.key ? 'border-brand-500 text-brand-600' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>
             {t.label}
-            {t.badge > 0 && <span className="bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{t.badge}</span>}
+            {t.badge > 0 && <span className="bg-brand-500 text-white text-[9px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{t.badge}</span>}
           </button>
         ))}
       </div>
@@ -154,22 +154,22 @@ export default function GeoDrillDown({ onChange, className }) {
                 <Search size={13} className="text-zinc-400" />
                 <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search states..." value={stateSearch} onChange={e => setStateSearch(e.target.value)} />
               </div>
-              <button onClick={() => setSelectedStates(US_STATES.map(s => s.code))} className="text-[10px] text-zinc-500 hover:text-orange-600 whitespace-nowrap">All</button>
-              <button onClick={() => setSelectedStates([])} className="text-[10px] text-zinc-500 hover:text-orange-600 whitespace-nowrap">None</button>
+              <button onClick={() => setSelectedStates(US_STATES.map(s => s.code))} className="text-[10px] text-zinc-500 hover:text-brand-600 whitespace-nowrap">All</button>
+              <button onClick={() => setSelectedStates([])} className="text-[10px] text-zinc-500 hover:text-brand-600 whitespace-nowrap">None</button>
             </div>
             {/* Region quick selects */}
             <div className="flex flex-wrap gap-1 mb-3">
               {Object.entries(REGIONS).map(([name, codes]) => (
-                <button key={name} onClick={() => selectRegion(codes)} className="text-[10px] px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-orange-50 hover:text-orange-600 transition-colors">{name}</button>
+                <button key={name} onClick={() => selectRegion(codes)} className="text-[10px] px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-red-50 hover:text-brand-600 transition-colors">{name}</button>
               ))}
-              <button onClick={() => setSelectedStates(US_STATES.map(s => s.code))} className="text-[10px] px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-orange-50 hover:text-orange-600 transition-colors">All US</button>
+              <button onClick={() => setSelectedStates(US_STATES.map(s => s.code))} className="text-[10px] px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-red-50 hover:text-brand-600 transition-colors">All US</button>
             </div>
             {/* Selected pills */}
             {selectedStates.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
                 {selectedStates.map(code => (
-                  <span key={code} className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 text-[10px] font-medium px-2 py-0.5 rounded-full">
-                    {code} <button onClick={() => toggleState(code)} className="hover:text-orange-900"><X size={9} /></button>
+                  <span key={code} className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-[10px] font-medium px-2 py-0.5 rounded-full">
+                    {code} <button onClick={() => toggleState(code)} className="hover:text-red-900"><X size={9} /></button>
                   </span>
                 ))}
               </div>
@@ -177,8 +177,8 @@ export default function GeoDrillDown({ onChange, className }) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
               {filteredStates.map(s => (
                 <button key={s.code} onClick={() => toggleState(s.code)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedStates.includes(s.code) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedStates.includes(s.code) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedStates.includes(s.code) ? 'bg-red-50 text-red-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedStates.includes(s.code) ? 'bg-brand-500 border-brand-500' : 'border-slate-300'}`}>
                     {selectedStates.includes(s.code) && <Check size={10} className="text-white" />}
                   </div>
                   {s.name} <span className="text-zinc-400 ml-auto">{s.code}</span>
@@ -200,10 +200,10 @@ export default function GeoDrillDown({ onChange, className }) {
                     <Search size={13} className="text-zinc-400" />
                     <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search counties..." value={countySearch} onChange={e => setCountySearch(e.target.value)} />
                   </div>
-                  <button onClick={selectAllCounties} className={`text-[10px] whitespace-nowrap px-2 py-0.5 rounded ${selectedCounties.length === filteredCounties.length && filteredCounties.length > 0 ? 'bg-orange-500 text-white' : 'text-zinc-500 hover:text-orange-600'}`}>
+                  <button onClick={selectAllCounties} className={`text-[10px] whitespace-nowrap px-2 py-0.5 rounded ${selectedCounties.length === filteredCounties.length && filteredCounties.length > 0 ? 'bg-brand-500 text-white' : 'text-zinc-500 hover:text-brand-600'}`}>
                     {selectedCounties.length === filteredCounties.length && filteredCounties.length > 0 ? `✅ All ${filteredCounties.length}` : `Select All ${filteredCounties.length}`}
                   </button>
-                  <button onClick={deselectAllCounties} className="text-[10px] text-zinc-500 hover:text-orange-600 whitespace-nowrap">Clear</button>
+                  <button onClick={deselectAllCounties} className="text-[10px] text-zinc-500 hover:text-brand-600 whitespace-nowrap">Clear</button>
                 </div>
                 {loadingCounties ? (
                   <div className="flex items-center justify-center py-8 gap-2 text-sm text-zinc-400"><Loader2 size={16} className="animate-spin" /> Loading counties...</div>
@@ -211,8 +211,8 @@ export default function GeoDrillDown({ onChange, className }) {
                   <div className="space-y-0.5 max-h-[280px] overflow-auto">
                     {filteredCounties.map(c => (
                       <button key={`${c.stateCode}-${c.name}`} onClick={() => toggleCounty(c)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-red-50 text-red-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-brand-500 border-brand-500' : 'border-slate-300'}`}>
                           {selectedCounties.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) && <Check size={10} className="text-white" />}
                         </div>
                         <span className="flex-1">{c.name}</span>
@@ -239,10 +239,10 @@ export default function GeoDrillDown({ onChange, className }) {
                     <Search size={13} className="text-zinc-400" />
                     <input className="text-sm bg-transparent outline-none flex-1" placeholder="Search cities..." value={citySearch} onChange={e => setCitySearch(e.target.value)} />
                   </div>
-                  <button onClick={selectAllCities} className={`text-[10px] whitespace-nowrap px-2 py-0.5 rounded ${selectedCities.length === filteredCitiesResult.length && filteredCitiesResult.length > 0 ? 'bg-orange-500 text-white' : 'text-zinc-500 hover:text-orange-600'}`}>
+                  <button onClick={selectAllCities} className={`text-[10px] whitespace-nowrap px-2 py-0.5 rounded ${selectedCities.length === filteredCitiesResult.length && filteredCitiesResult.length > 0 ? 'bg-brand-500 text-white' : 'text-zinc-500 hover:text-brand-600'}`}>
                     {selectedCities.length === filteredCitiesResult.length && filteredCitiesResult.length > 0 ? `✅ All ${filteredCitiesResult.length}` : `Select All ${filteredCitiesResult.length}`}
                   </button>
-                  <button onClick={deselectAllCities} className="text-[10px] text-zinc-500 hover:text-orange-600 whitespace-nowrap">Clear</button>
+                  <button onClick={deselectAllCities} className="text-[10px] text-zinc-500 hover:text-brand-600 whitespace-nowrap">Clear</button>
                 </div>
                 {loadingCities ? (
                   <div className="flex items-center justify-center py-8 gap-2 text-sm text-zinc-400"><Loader2 size={16} className="animate-spin" /> Loading cities...</div>
@@ -250,8 +250,8 @@ export default function GeoDrillDown({ onChange, className }) {
                   <div className="space-y-0.5 max-h-[280px] overflow-auto">
                     {filteredCitiesResult.map(c => (
                       <button key={`${c.stateCode}-${c.name}`} onClick={() => toggleCity(c)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-50 text-orange-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
-                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors ${selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-red-50 text-red-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50'}`}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) ? 'bg-brand-500 border-brand-500' : 'border-slate-300'}`}>
                           {selectedCities.some(sc => sc.name === c.name && sc.stateCode === c.stateCode) && <Check size={10} className="text-white" />}
                         </div>
                         <span className="flex-1">{c.name}</span>
@@ -277,12 +277,12 @@ export default function GeoDrillDown({ onChange, className }) {
                 <textarea className="flex-1 text-sm border border-zinc-200 rounded-lg px-3 py-2 resize-none" rows={2}
                   placeholder="Paste zips: 33101, 33102, 33103..." value={zipInput} onChange={e => setZipInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addZipsFromInput() } }} />
-                <button onClick={addZipsFromInput} className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-4 rounded-lg transition-colors self-end">Add</button>
+                <button onClick={addZipsFromInput} className="bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold px-4 rounded-lg transition-colors self-end">Add</button>
               </div>
               {zipCodes.length > 0 && (
                 <div className="flex items-center gap-2 mt-2 mb-1">
                   <span className="text-[10px] text-zinc-500 font-medium">{zipCodes.length} zip codes</span>
-                  <button onClick={copyAllZips} className="text-[10px] text-orange-500 hover:text-orange-700">📋 Copy All</button>
+                  <button onClick={copyAllZips} className="text-[10px] text-brand-500 hover:text-red-700">📋 Copy All</button>
                   <button onClick={() => setZipCodes([])} className="text-[10px] text-zinc-400 hover:text-red-500">Clear</button>
                 </div>
               )}
@@ -312,11 +312,11 @@ export default function GeoDrillDown({ onChange, className }) {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-zinc-500">Radius: <strong>{radiusMiles} miles</strong></span>
                 </div>
-                <input type="range" min={1} max={100} value={radiusMiles} onChange={e => setRadiusMiles(+e.target.value)} className="w-full accent-orange-500" />
+                <input type="range" min={1} max={100} value={radiusMiles} onChange={e => setRadiusMiles(+e.target.value)} className="w-full accent-brand-500" />
                 <div className="flex flex-wrap gap-1 mt-2">
                   {[5, 10, 15, 25, 50, 100].map(r => (
                     <button key={r} onClick={() => setRadiusMiles(r)}
-                      className={`text-[10px] px-2.5 py-1 rounded-lg font-medium transition-colors ${radiusMiles === r ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}>{r} mi</button>
+                      className={`text-[10px] px-2.5 py-1 rounded-lg font-medium transition-colors ${radiusMiles === r ? 'bg-brand-500 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'}`}>{r} mi</button>
                   ))}
                 </div>
               </div>
@@ -331,8 +331,8 @@ export default function GeoDrillDown({ onChange, className }) {
             <div className="grid grid-cols-2 gap-2">
               {METRO_AREAS.map(m => (
                 <button key={m.id} onClick={() => selectMetro(m)}
-                  className="text-left p-3 rounded-xl border border-zinc-200 hover:border-orange-300 hover:bg-orange-50 transition-all group">
-                  <p className="text-sm font-medium text-zinc-800 group-hover:text-orange-700">{m.name}</p>
+                  className="text-left p-3 rounded-xl border border-zinc-200 hover:border-orange-300 hover:bg-red-50 transition-all group">
+                  <p className="text-sm font-medium text-zinc-800 group-hover:text-red-700">{m.name}</p>
                   <p className="text-[10px] text-zinc-400">{m.counties.length} counties &middot; {formatPop(m.pop)} pop</p>
                 </button>
               ))}
@@ -344,7 +344,7 @@ export default function GeoDrillDown({ onChange, className }) {
       {/* Summary bar */}
       {totalSelections > 0 && (
         <div className="px-4 py-3 bg-zinc-50 border-t border-zinc-200 flex items-center gap-3">
-          <MapPin size={14} className="text-orange-500 flex-shrink-0" />
+          <MapPin size={14} className="text-brand-500 flex-shrink-0" />
           <div className="flex-1 text-xs text-zinc-600">
             {selectedStates.length > 0 && <span>{selectedStates.length} state{selectedStates.length > 1 ? 's' : ''}</span>}
             {selectedCounties.length > 0 && <span> &middot; {selectedCounties.length} counties</span>}

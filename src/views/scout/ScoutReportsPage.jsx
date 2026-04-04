@@ -30,7 +30,7 @@ export default function ScoutReportsPage() {
   return (
     <ScoutLayout>
       <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
-        <Target size={18} className="text-orange-500" />
+        <Target size={18} className="text-brand-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
         <span className="text-sm text-slate-400 ml-1">Reports</span>
       </div>
@@ -39,7 +39,7 @@ export default function ScoutReportsPage() {
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
             { label: 'Total Scouted', value: stats.scouted, icon: Search, color: '#0F172A' },
-            { label: 'Imported', value: stats.imported, icon: Users, color: '#f97316' },
+            { label: 'Imported', value: stats.imported, icon: Users, color: '#5bc6d0' },
             { label: 'Hot Leads', value: stats.hot, icon: Flame, color: '#ef4444' },
             { label: 'Contacted', value: stats.contacted, icon: Mail, color: '#22c55e' },
           ].map(s => { const I = s.icon; return (
@@ -59,7 +59,7 @@ export default function ScoutReportsPage() {
 
         {/* Recent searches */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-          <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2"><TrendingUp size={16} className="text-orange-500" /> Recent Searches</h3>
+          <h3 className="text-sm font-semibold text-slate-800 mb-4 flex items-center gap-2"><TrendingUp size={16} className="text-brand-500" /> Recent Searches</h3>
           {searches.length === 0 && <p className="text-sm text-slate-400 text-center py-4">No searches yet</p>}
           <div className="space-y-2">
             {searches.map(s => (

@@ -171,7 +171,7 @@ export default function SEOAuditPage() {
                 </div>
               ))}
             </div>
-            <button onClick={runAudit} disabled={loading || !url.trim()} className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #ea2729, #ff6b35)', boxShadow: loading ? 'none' : '0 4px 14px rgba(232,85,26,0.3)' }}>
+            <button onClick={runAudit} disabled={loading || !url.trim()} className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #ea2729, #ea2729)', boxShadow: loading ? 'none' : '0 4px 14px rgba(232,85,26,0.3)' }}>
               {loading ? <><Loader2 size={16} className="animate-spin" /> {step}</> : <><Search size={16} /> Run Full SEO Audit <span className="text-sm opacity-70">Claude + GPT-4o</span></>}
             </button>
           </div>
@@ -296,7 +296,7 @@ export default function SEOAuditPage() {
                     {audit.keywordOpps.length > 0 && <div className="mb-4"><p className="text-sm font-semibold text-gray-800 mb-2">Keyword Opportunities</p>{audit.keywordOpps.map((k, i) => (
                       <div key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 mb-2"><div><p className="text-sm font-medium text-gray-800">{k.keyword}</p><p className="text-[13px] text-gray-700">{k.intent} &middot; {k.opportunity}</p></div><span className={`text-[13px] px-2 py-0.5 rounded-full font-semibold ${k.difficulty === 'low' ? 'bg-green-100 text-green-700' : k.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{k.difficulty}</span></div>
                     ))}</div>}
-                    {audit.contentGaps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Content Gaps</p>{audit.contentGaps.map((g, i) => <p key={i} className="text-sm text-orange-700 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg px-3 py-2 mb-1">{g}</p>)}</div>}
+                    {audit.contentGaps.length > 0 && <div><p className="text-sm font-semibold text-gray-800 mb-2">Content Gaps</p>{audit.contentGaps.map((g, i) => <p key={i} className="text-sm text-red-700 bg-red-50 border-l-4 border-orange-400 rounded-r-lg px-3 py-2 mb-1">{g}</p>)}</div>}
                     {audit.trafficOpp && <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 text-center mt-4"><TrendingUp size={24} className="text-brand-500 mx-auto mb-2" /><p className="text-lg font-extrabold text-brand-600">{audit.trafficOpp}</p><p className="text-sm text-brand-400">Estimated additional traffic if issues fixed</p></div>}
                   </div>
                 )}
