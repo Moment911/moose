@@ -8,6 +8,7 @@ import {
   Sparkles, Loader2, Download, Share2, ChevronRight
 } from 'lucide-react'
 import { callClaude } from '../../lib/ai'
+import { runLeadPipeline, getIndustryBenchmark, calcRevenueImpact } from '../../lib/scoutPipeline'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import AIThinkingBox from '../../components/AIThinkingBox'
@@ -111,6 +112,7 @@ export default function ProspectReportPage() {
   const { agencyId } = useAuth()
 
   const lead    = location.state?.lead || null
+  const r       = report || lead?.ai_analysis || null  // resolved report data
   const allLeads = location.state?.allLeads || []
   const searchQuery = location.state?.query || ''
 
@@ -137,6 +139,12 @@ export default function ProspectReportPage() {
   }
 
   async function generateReport(ag, l) {
+    // If the lead already has pipeline data from Scout, use it directly
+    if (l.pipeline_complete && l.ai_analysis) {
+      setReport(l.ai_analysis)
+      setGenerating(false)
+      return
+    }
     setGenerating(true)
     try {
       const agName = ag?.brand_name || ag?.name || 'Your Marketing Agency'
@@ -316,12 +324,20 @@ export default function ProspectReportPage() {
                   <div style={{fontSize:12,color:'rgba(255,255,255,.5)',marginTop:4}}>Marketing gaps</div>
                   <div style={{fontSize:11,color:'rgba(255,255,255,.3)'}}>identified by AI</div>
                 </div>
-                {report && (
+                {(report||lead.ai_analysis) && (
                   <div style={{background:'rgba(255,255,255,.06)',border:`1px solid ${RED}40`,
                     borderRadius:12,padding:'14px 20px'}}>
-                    <div style={{fontSize:28,fontWeight:900,color:TEAL,letterSpacing:-1}}>{report.opportunityScore}</div>
+                    <div style={{fontSize:28,fontWeight:900,color:TEAL,letterSpacing:-1}}>{(report||lead.ai_analysis).opportunityScore}</div>
                     <div style={{fontSize:12,color:'rgba(255,255,255,.5)',marginTop:4}}>Opportunity score</div>
                     <div style={{fontSize:11,color:'rgba(255,255,255,.3)'}}>/100</div>
+                  </div>
+                )}
+                {lead.revenue && (
+                  <div style={{background:'rgba(255,255,255,.06)',border:`1px solid ${TEAL}40`,
+                    borderRadius:12,padding:'14px 20px'}}>
+                    <div style={{fontSize:22,fontWeight:900,color:'#fff',letterSpacing:-1}}>${Math.round(lead.revenue.annualRevenueAtRisk/1000)}K</div>
+                    <div style={{fontSize:12,color:'rgba(255,255,255,.5)',marginTop:4}}>Revenue at risk</div>
+                    <div style={{fontSize:11,color:'rgba(255,255,255,.3)'}}>per year</div>
                   </div>
                 )}
               </div>
@@ -376,7 +392,7 @@ export default function ProspectReportPage() {
         </div>
       )}
 
-      {report && (<>
+      {r && (<>
 
         {/* ── OVERVIEW ── */}
         <Section id="overview" dark>
@@ -387,25 +403,25 @@ export default function ProspectReportPage() {
                 The opportunity hiding in plain sight
               </h2>
               <p style={{fontSize:16,color:'rgba(255,255,255,.65)',lineHeight:1.8,marginBottom:24}}>
-                {report.executiveSummary}
+                {r.executiveSummary}
               </p>
-              {report.revenueAtRisk && (
+              {r.revenueAtRisk && (
                 <div style={{background:`linear-gradient(135deg,${RED}20,${RED}08)`,border:`1px solid ${RED}40`,
                   borderRadius:14,padding:'20px 24px'}}>
                   <div style={{fontSize:12,fontWeight:800,color:RED,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
                     Estimated revenue at risk
                   </div>
-                  <div style={{fontSize:32,fontWeight:900,color:'#fff',letterSpacing:-1}}>{report.revenueAtRisk}</div>
+                  <div style={{fontSize:32,fontWeight:900,color:'#fff',letterSpacing:-1}}>{r.revenueAtRisk}</div>
                   <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:4}}>being lost to competitors annually</div>
                 </div>
               )}
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
               {[
-                {label:'SEO Score',         value:report.seoScore,           color:RED},
-                {label:'AEO Score',          value:report.aeoScore,           color:TEAL},
-                {label:'Reputation Score',   value:report.reputationScore,    color:'#f59e0b'},
-                {label:'Local Visibility',   value:report.localVisibilityScore,color:'#8b5cf6'},
+                {label:'SEO Score',         value:r.seoScore,           color:RED},
+                {label:'AEO Score',          value:r.aeoScore,           color:TEAL},
+                {label:'Reputation Score',   value:r.reputationScore,    color:'#f59e0b'},
+                {label:'Local Visibility',   value:r.localVisibilityScore,color:'#8b5cf6'},
               ].map(m=>(
                 <div key={m.label} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',
                   borderRadius:14,padding:'20px',textAlign:'center'}}>
@@ -421,9 +437,9 @@ export default function ProspectReportPage() {
           </div>
 
           {/* Key findings */}
-          {report.keyFindings?.length > 0 && (
+          {r.keyFindings?.length > 0 && (
             <div style={{marginTop:48,display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
-              {report.keyFindings.slice(0,6).map((f,i)=>(
+              {r.keyFindings.slice(0,6).map((f,i)=>(
                 <div key={i} style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',
                   borderRadius:12,padding:'16px 18px',display:'flex',gap:12,alignItems:'flex-start'}}>
                   <div style={{width:24,height:24,borderRadius:'50%',background:RED,display:'flex',
@@ -446,15 +462,15 @@ export default function ProspectReportPage() {
                 Where {lead.name.split(' ')[0]} is losing ground
               </h2>
               <p style={{fontSize:15,color:'#374151',marginBottom:32,lineHeight:1.7}}>
-                Our analysis identified {(lead.gaps||[]).length + (report.seoGaps?.length||0)} critical gaps that are costing them customers and revenue every day.
+                Our analysis identified {(lead.gaps||[]).length + (r.seoGaps?.length||0)} critical gaps that are costing them customers and revenue every day.
               </p>
 
               {/* Gap bars */}
               <div style={{background:'#f9fafb',borderRadius:16,padding:'24px'}}>
-                <ScoreBar label="Online Visibility"       value={100-(report.localVisibilityScore||50)} color={RED}/>
-                <ScoreBar label="Reputation Management"   value={100-(report.reputationScore||60)}      color={RED}/>
-                <ScoreBar label="SEO Performance"         value={100-(report.seoScore||55)}              color='#f59e0b'/>
-                <ScoreBar label="AEO / AI Search Readiness" value={100-(report.aeoScore||40)}           color='#8b5cf6'/>
+                <ScoreBar label="Online Visibility"       value={100-(r.localVisibilityScore||50)} color={RED}/>
+                <ScoreBar label="Reputation Management"   value={100-(r.reputationScore||60)}      color={RED}/>
+                <ScoreBar label="SEO Performance"         value={100-(r.seoScore||55)}              color='#f59e0b'/>
+                <ScoreBar label="AEO / AI Search Readiness" value={100-(r.aeoScore||40)}           color='#8b5cf6'/>
                 <ScoreBar label="Social & Ad Presence"
                   value={lead.social_active||lead.running_ads?35:75} color={TEAL}/>
               </div>
@@ -475,13 +491,48 @@ export default function ProspectReportPage() {
                 ))}
               </div>
 
+              {/* Tech stack gaps */}
+              {lead.website_analysis?.tech && (
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:13,fontWeight:800,color:'#374151',textTransform:'uppercase',
+                    letterSpacing:'.07em',marginBottom:12}}>Tech stack audit</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                    {[
+                      {label:'CMS', value: lead.cms||'Unknown', good: !!lead.cms},
+                      {label:'SEO Plugin', value: lead.seo_plugin||'None detected', good: !!lead.seo_plugin},
+                      {label:'Analytics', value: lead.has_analytics?'Connected':'Not detected', good: lead.has_analytics},
+                      {label:'CRM', value: lead.has_crm?'Connected':'None detected', good: lead.has_crm},
+                      {label:'Call Tracking', value: lead.has_call_tracking?'Active':'None detected', good: lead.has_call_tracking},
+                      {label:'Schema Markup', value: lead.has_schema?(lead.has_local_schema?'LocalBusiness schema':'Generic schema'):'None', good: lead.has_local_schema},
+                      {label:'Facebook Pixel', value: lead.has_pixel?'Active':'None', good: lead.has_pixel},
+                      {label:'Booking Software', value: lead.booking_software||'None detected', good: !!lead.booking_software},
+                    ].map(item=>(
+                      <div key={item.label} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',
+                        background:item.good?'#f0fdf4':'#fef2f2',borderRadius:9}}>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:item.good?'#16a34a':RED,flexShrink:0}}/>
+                        <div>
+                          <div style={{fontSize:11,fontWeight:800,color:'#374151'}}>{item.label}</div>
+                          <div style={{fontSize:12,color:item.good?'#16a34a':'#374151'}}>{item.value}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {lead.sitemap_pages > 0 && (
+                    <div style={{marginTop:10,padding:'10px 14px',background:'#f9fafb',borderRadius:9,fontSize:13,color:'#374151'}}>
+                      Sitemap: <strong>{lead.sitemap_pages} pages indexed</strong>
+                      {lead.sitemap_pages < 10 ? ' — very thin content footprint' : 
+                       lead.sitemap_pages < 30 ? ' — moderate content depth' : ' — good content coverage'}
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Competitor threats */}
-              {report.competitorThreats?.length > 0 && (
+              {report?.competitorThreats?.length > 0 && (
                 <div>
                   <div style={{fontSize:13,fontWeight:800,color:'#374151',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:12}}>
                     Competitive threats
                   </div>
-                  {report.competitorThreats.map((t,i)=>(
+                  {r.competitorThreats.map((t,i)=>(
                     <div key={i} style={{display:'flex',alignItems:'flex-start',gap:10,padding:'10px 14px',
                       background:'#fff7ed',borderRadius:10,marginBottom:7,borderLeft:'3px solid #f59e0b'}}>
                       <Target size={14} color="#d97706" style={{flexShrink:0,marginTop:1}}/>
@@ -511,9 +562,9 @@ export default function ProspectReportPage() {
                 <TrendingUp size={18} color={RED}/>
                 <div style={{fontSize:15,fontWeight:900,color:'#111'}}>SEO Gaps</div>
               </div>
-              {(report.seoGaps||[]).map((g,i)=>(
+              {(r.seoGaps||[]).map((g,i)=>(
                 <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',
-                  borderBottom:i<(report.seoGaps||[]).length-1?'1px solid #f3f4f6':'none'}}>
+                  borderBottom:i<(r.seoGaps||[]).length-1?'1px solid #f3f4f6':'none'}}>
                   <div style={{width:20,height:20,borderRadius:6,background:`${RED}15`,display:'flex',
                     alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     <span style={{fontSize:10,fontWeight:900,color:RED}}>{i+1}</span>
@@ -531,9 +582,9 @@ export default function ProspectReportPage() {
                 <span style={{fontSize:10,fontWeight:800,color:'#8b5cf6',background:'#f5f3ff',
                   padding:'2px 8px',borderRadius:20,border:'1px solid #e9d5ff'}}>ChatGPT · Perplexity · Gemini</span>
               </div>
-              {(report.aeoGaps||[]).map((g,i)=>(
+              {(r.aeoGaps||[]).map((g,i)=>(
                 <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',
-                  borderBottom:i<(report.aeoGaps||[]).length-1?'1px solid #f3f4f6':'none'}}>
+                  borderBottom:i<(r.aeoGaps||[]).length-1?'1px solid #f3f4f6':'none'}}>
                   <div style={{width:20,height:20,borderRadius:6,background:'#f5f3ff',display:'flex',
                     alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     <Sparkles size={10} color='#8b5cf6'/>
@@ -545,7 +596,7 @@ export default function ProspectReportPage() {
           </div>
 
           {/* Keyword opportunities table */}
-          {report.keywordOpportunities?.length > 0 && (
+          {r.keywordOpportunities?.length > 0 && (
             <div style={{background:'#fff',borderRadius:16,border:'1px solid #e5e7eb',overflow:'hidden'}}>
               <div style={{padding:'18px 24px',borderBottom:'1px solid #f3f4f6',display:'flex',alignItems:'center',gap:10}}>
                 <Search size={16} color={RED}/>
@@ -561,8 +612,8 @@ export default function ProspectReportPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {report.keywordOpportunities.slice(0,6).map((kw,i)=>(
-                    <tr key={i} style={{borderBottom:i<report.keywordOpportunities.length-1?'1px solid #f9fafb':'none'}}>
+                  {r.keywordOpportunities.slice(0,6).map((kw,i)=>(
+                    <tr key={i} style={{borderBottom:i<r.keywordOpportunities.length-1?'1px solid #f9fafb':'none'}}>
                       <td style={{padding:'14px 20px',fontSize:14,fontWeight:800,color:'#111'}}>{kw.keyword}</td>
                       <td style={{padding:'14px 20px',fontSize:14,fontWeight:700,color:RED}}>{kw.volume}</td>
                       <td style={{padding:'14px 20px'}}>
@@ -592,13 +643,13 @@ export default function ProspectReportPage() {
           </p>
 
           {/* Quick wins */}
-          {report.quickWins?.length > 0 && (
+          {r.quickWins?.length > 0 && (
             <div style={{marginBottom:40}}>
               <div style={{fontSize:13,fontWeight:800,color:TEAL,textTransform:'uppercase',letterSpacing:'.08em',marginBottom:16}}>
                 Quick wins — first 30 days
               </div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
-                {report.quickWins.map((w,i)=>(
+                {r.quickWins.map((w,i)=>(
                   <div key={i} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.08)',
                     borderRadius:14,padding:'18px 20px',display:'grid',gridTemplateColumns:'auto 1fr',gap:12}}>
                     <div style={{width:36,height:36,borderRadius:10,background:TEAL+'20',border:`1px solid ${TEAL}40`,
@@ -623,9 +674,9 @@ export default function ProspectReportPage() {
           )}
 
           {/* Proposed services */}
-          {report.proposedSolutions?.length > 0 && (
+          {r.proposedSolutions?.length > 0 && (
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
-              {report.proposedSolutions.map((s,i)=>(
+              {r.proposedSolutions.map((s,i)=>(
                 <div key={i} style={{background:'rgba(255,255,255,.04)',border:`1px solid ${i===0?RED+'60':'rgba(255,255,255,.08)'}`,
                   borderRadius:16,padding:'22px',position:'relative',overflow:'hidden'}}>
                   {i===0 && <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:RED}}/>}
@@ -642,6 +693,46 @@ export default function ProspectReportPage() {
           )}
         </Section>
 
+        {/* ── REVENUE MODEL ── */}
+        {lead.revenue && (
+          <Section id="roi" style={{background:'#f8f8f8'}}>
+            <SectionLabel text="Revenue Opportunity Model"/>
+            <h2 style={{fontSize:34,fontWeight:900,color:'#111',letterSpacing:-1,marginBottom:8}}>
+              The real numbers
+            </h2>
+            <p style={{fontSize:15,color:'#374151',lineHeight:1.7,marginBottom:32}}>
+              Based on real Google data, competitor benchmarks, and industry averages for {searchQuery||'this category'}.
+            </p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:28}}>
+              {[
+                {label:'Current monthly leads (est.)', value:lead.revenue.currentMonthlyLeads, suffix:'', color:RED},
+                {label:'Potential monthly leads', value:lead.revenue.optimizedMonthlyLeads, suffix:'', color:TEAL},
+                {label:'Avg job value', value:'$'+lead.revenue.avgJobValue.toLocaleString(), suffix:'', color:'#f59e0b'},
+                {label:'Annual revenue at risk', value:'$'+Math.round(lead.revenue.annualRevenueAtRisk/1000)+'K', suffix:'', color:RED},
+              ].map(m=>(
+                <div key={m.label} style={{background:'#fff',borderRadius:14,border:'1px solid #e5e7eb',padding:'20px',textAlign:'center'}}>
+                  <div style={{fontSize:28,fontWeight:900,color:m.color,letterSpacing:-1}}>{m.value}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#374151',marginTop:6}}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:'#fff',borderRadius:16,border:`1.5px solid ${TEAL}40`,padding:'24px',
+              display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:20,textAlign:'center'}}>
+              {[
+                {label:'Month 3 projection', value:'$'+Math.round(lead.revenue.monthlyRevenueGain*0.4).toLocaleString()+'/mo', sub:'additional revenue'},
+                {label:'Month 6 projection', value:'$'+Math.round(lead.revenue.monthlyRevenueGain*0.75).toLocaleString()+'/mo', sub:'growing momentum'},
+                {label:'Month 12 projection', value:'$'+lead.revenue.monthlyRevenueGain.toLocaleString()+'/mo', sub:'full program results'},
+              ].map(m=>(
+                <div key={m.label}>
+                  <div style={{fontSize:26,fontWeight:900,color:'#111'}}>{m.value}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#374151',marginTop:4}}>{m.label}</div>
+                  <div style={{fontSize:12,color:'#9ca3af'}}>{m.sub}</div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
         {/* ── ROI ── */}
         <Section id="roi">
           <SectionLabel text="Return on Investment"/>
@@ -653,7 +744,7 @@ export default function ProspectReportPage() {
               <p style={{fontSize:15,color:'#374151',lineHeight:1.7,marginBottom:32}}>
                 Based on comparable businesses in {searchQuery||'this industry'}, here's what a structured marketing program delivers.
               </p>
-              {report.roi && Object.entries(report.roi).map(([k,v],i)=>(
+              {r.roi && Object.entries(r.roi).map(([k,v],i)=>(
                 <div key={k} style={{display:'flex',alignItems:'flex-start',gap:14,marginBottom:18}}>
                   <div style={{width:44,height:44,borderRadius:12,
                     background:i===0?`${RED}15`:i===1?`${TEAL}15`:'#f3f4f6',
@@ -716,7 +807,7 @@ export default function ProspectReportPage() {
             </h2>
 
             <p style={{fontSize:16,color:'rgba(255,255,255,.55)',lineHeight:1.8,marginBottom:40}}>
-              {report.closingStatement}
+              {r.closingStatement}
             </p>
 
             {/* Agency contact */}

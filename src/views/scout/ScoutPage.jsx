@@ -14,6 +14,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
+import { runLeadPipeline } from '../../lib/scoutPipeline'
 import { scoutWithPlaces, placeToLead, hasGoogleKey } from '../../lib/googlePlaces'
 import toast from 'react-hot-toast'
 import AIThinkingBox from '../../components/AIThinkingBox'
@@ -411,6 +412,8 @@ export default function ScoutPage() {
   const [stats, setStats]       = useState(null)
   const [dataSource, setDataSource] = useState(null) // 'google'|'ai'|'mixed'
   const [searchError, setSearchError] = useState(null)
+  const [pipelineProgress, setPipelineProgress] = useState(null)
+  const [selectedLead, setSelectedLead] = useState(null)
 
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
   const googleKeyAvailable = hasGoogleKey()
@@ -568,6 +571,22 @@ export default function ScoutPage() {
       realData: enriched.filter(l=>l._real_data).length,
     })
     setSearching(false)
+
+    // ── Run full pipeline on top 3 leads in background ────────────────────────
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || ''
+    const topLeads = enriched.slice(0, 3)
+    topLeads.forEach(async (lead, i) => {
+      setTimeout(async () => {
+        try {
+          const enriched2 = await runLeadPipeline(
+            lead, enriched.filter(x=>x.id!==lead.id), term, apiKey,
+            (msg, pct) => { if (i === 0) setPipelineProgress({ msg, pct }) }
+          )
+          setResults(prev => prev.map(r => r.id === lead.id ? { ...r, ...enriched2 } : r))
+          if (i === 0) setPipelineProgress(null)
+        } catch(e) { console.warn('Pipeline failed for', lead.name, e.message) }
+      }, i * 800) // stagger to avoid rate limits
+    })
   }
     }
 
@@ -604,6 +623,22 @@ export default function ScoutPage() {
       realData: enriched.filter(l=>l._real_data).length,
     })
     setSearching(false)
+
+    // ── Run full pipeline on top 3 leads in background ────────────────────────
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || ''
+    const topLeads = enriched.slice(0, 3)
+    topLeads.forEach(async (lead, i) => {
+      setTimeout(async () => {
+        try {
+          const enriched2 = await runLeadPipeline(
+            lead, enriched.filter(x=>x.id!==lead.id), term, apiKey,
+            (msg, pct) => { if (i === 0) setPipelineProgress({ msg, pct }) }
+          )
+          setResults(prev => prev.map(r => r.id === lead.id ? { ...r, ...enriched2 } : r))
+          if (i === 0) setPipelineProgress(null)
+        } catch(e) { console.warn('Pipeline failed for', lead.name, e.message) }
+      }, i * 800) // stagger to avoid rate limits
+    })
   }
 
   function toggleSaved(lead) {
@@ -825,7 +860,20 @@ export default function ScoutPage() {
           {/* Results */}
           {hasResults && (
             <>
-              {/* Data source banner */}
+              {/* Pipeline progress */}
+              {pipelineProgress && (
+                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', marginBottom:12, background:'#f0fbfc', borderRadius:12, border:`1px solid ${TEAL}40` }}>
+                  <div style={{ width:8, height:8, borderRadius:'50%', background:TEAL, animation:'pulse 1s infinite', flexShrink:0 }}/>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#0e7490' }}>{pipelineProgress.msg}</div>
+                    <div style={{ height:4, background:'#e5e7eb', borderRadius:2, marginTop:4, overflow:'hidden' }}>
+                      <div style={{ height:'100%', width:`${pipelineProgress.pct}%`, background:TEAL, borderRadius:2, transition:'width .4s ease' }}/>
+                    </div>
+                  </div>
+                  <div style={{ fontSize:12, fontWeight:800, color:TEAL }}>{pipelineProgress.pct}%</div>
+                </div>
+              )}
+              {/* Data source banner */}}
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: (dataSource==='mixed'||dataSource==='google')?'#e8f9fa':'#f9fafb', border:`1px solid ${(dataSource==='mixed'||dataSource==='google')?TEAL+'60':ACCENT+'30'}` }}>
                 <Database size={14} color={(dataSource==='mixed'||dataSource==='google')?TEAL:ACCENT}/>
                 <span style={{ fontSize:15, fontWeight:700, color:(dataSource==='mixed'||dataSource==='google')?'#0e7490':'#374151' }}>
