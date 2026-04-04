@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Mail, Phone, MapPin, Building2, Globe, Link2, Share2, Camera, Globe, Edit2, Trash2, Tag, Plus, X, Send, Eye, MousePointer, Ban, FileText, Clock, Check, ExternalLink } from 'lucide-react'
+import { ChevronLeft, Mail, Phone, MapPin, Building2, Globe, Link2, Share2, Camera, Edit2, Trash2, Tag, Plus, X, Send, Eye, MousePointer, Ban, FileText, Clock, Check, ExternalLink } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { TagAutocomplete } from '../components/contacts/TagManager'
 import { supabase } from '../lib/supabase'
