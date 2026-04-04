@@ -61,8 +61,8 @@ const SETUP_STEPS = [
   },
   {
     id:       'vercel',
-    label:    'Vercel Deployment',
-    sublabel: 'Hosts your platform',
+    label:    'Vercel (Your Host)',
+    sublabel: 'Platform hosting & env vars',
     icon:     Server,
     color:    '#000',
     required: true,
@@ -349,8 +349,8 @@ export default function AgencySetupPage() {
         {/* ── Header ── */}
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'14px 24px', display:'flex', alignItems:'center', gap:16, flexShrink:0 }}>
           <div>
-            <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>Agency Setup</div>
-            <div style={{ fontSize:12, color:'#9ca3af' }}>Connect your data sources — follow each step to activate all features</div>
+            <div style={{ fontSize:17, fontWeight:800, color:'#111' }}>Platform Setup</div>
+            <div style={{ fontSize:12, color:'#9ca3af' }}>Owner-only — connect backend infrastructure to activate all platform features</div>
           </div>
           <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:12 }}>
             <div style={{ fontSize:13, color:'#6b7280' }}>{totalComplete} / {SETUP_STEPS.length} connected</div>
