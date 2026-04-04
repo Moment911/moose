@@ -10,16 +10,23 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-brand-50: #FFF3EE;
-  --color-brand-100: #FFE4D6;
-  --color-brand-200: #FFC5A8;
-  --color-brand-300: #FF9E70;
-  --color-brand-400: #F07030;
-  --color-brand-500: #E8551A;
-  --color-brand-600: #D04510;
-  --color-brand-700: #AC350A;
-  --color-brand-800: #8A2B0F;
-  --color-brand-900: #702710;
+
+  /* Brand: #ea2729 red ramp */
+  --color-brand-50:  #fff0f0;
+  --color-brand-100: #ffd6d6;
+  --color-brand-200: #ffaaaa;
+  --color-brand-300: #f97474;
+  --color-brand-400: #f24444;
+  --color-brand-500: #ea2729;
+  --color-brand-600: #c91f21;
+  --color-brand-700: #a81719;
+  --color-brand-800: #871113;
+  --color-brand-900: #6b0c0d;
+
+  /* Teal accent */
+  --color-teal-400: #5bc6d0;
+  --color-teal-500: #3fb8c4;
+  --color-teal-600: #2a9aa6;
 }
 
 @media (prefers-color-scheme: dark) {

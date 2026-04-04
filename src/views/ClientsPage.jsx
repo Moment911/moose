@@ -12,11 +12,12 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const STATUS_COLORS = {
   active:   { bg:'#f0fdf4', color:'#16a34a', dot:'#16a34a' },
-  prospect: { bg:'#fff7f5', color:ACCENT,    dot:ACCENT },
+  prospect: { bg:'#f0fbfc', color:ACCENT,    dot:ACCENT },
   inactive: { bg:'#f9fafb', color:'#9ca3af', dot:'#9ca3af' },
   paused:   { bg:'#fffbeb', color:'#d97706', dot:'#d97706' },
 }
@@ -171,7 +172,7 @@ export default function ClientsPage() {
 
           {/* Add/Edit form */}
           {showAdd && (
-            <div style={{ background:'#fff', borderRadius:16, border:`2px solid ${ACCENT}`, padding:'24px', marginBottom:20 }}>
+            <div className="animate-fade-up" style={{ background:'#fff', borderRadius:16, border:`2px solid ${ACCENT}`, padding:'24px', marginBottom:20 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
                 <h2 style={{ fontSize:17, fontWeight:800, color:'#111', margin:0 }}>
                   {editingId ? 'Edit Client' : 'New Client'}
@@ -286,7 +287,7 @@ export default function ClientsPage() {
               )}
             </div>
           ) : (
-            <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
+            <div className="animate-fade-up" style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
               <table style={{ width:'100%', borderCollapse:'collapse' }}>
                 <thead>
                   <tr>
@@ -310,8 +311,8 @@ export default function ClientsPage() {
                   {filtered.map((client, i) => (
                     <tr key={client.id}
                       style={{ borderBottom: i < filtered.length-1 ? '1px solid #f3f4f6' : 'none', cursor:'pointer', transition:'background .1s' }}
-                      onMouseEnter={e => e.currentTarget.style.background='#fafafa'}
-                      onMouseLeave={e => e.currentTarget.style.background=''}
+                      onMouseEnter={e => { e.currentTarget.style.background='#fafafa'; e.currentTarget.style.transform='translateX(2px)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background=''; e.currentTarget.style.transform='' }}
                       onClick={() => navigate(`/clients/${client.id}`)}>
 
                       {/* Name */}

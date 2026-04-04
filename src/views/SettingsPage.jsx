@@ -12,7 +12,8 @@ import {
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const TABS = [
   { key: 'connections', label: 'API Connections', icon: Link2 },
@@ -458,7 +459,7 @@ export default function SettingsPage() {
                   style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 18px', fontSize: 15, fontWeight: tab === t.key ? 700 : 500, color: tab === t.key ? ACCENT : '#6b7280', border: 'none', background: 'none', cursor: 'pointer', borderBottom: `2px solid ${tab === t.key ? ACCENT : 'transparent'}`, marginBottom: -1, transition: 'all .15s' }}>
                   <I size={14} /> {t.label}
                   {t.key === 'connections' && (
-                    <span style={{ fontSize: 13, fontWeight: 800, padding: '1px 7px', borderRadius: 20, background: connectedCount === CONNECTIONS.length ? '#f0fdf4' : '#fff7f5', color: connectedCount === CONNECTIONS.length ? '#16a34a' : ACCENT }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, padding: '1px 7px', borderRadius: 20, background: connectedCount === CONNECTIONS.length ? '#f0fdf4' : '#f0fbfc', color: connectedCount === CONNECTIONS.length ? '#16a34a' : ACCENT }}>
                       {connectedCount}/{CONNECTIONS.length}
                     </span>
                   )}
@@ -477,7 +478,7 @@ export default function SettingsPage() {
                     {connectedCount} of {CONNECTIONS.length} connections configured
                   </div>
                   <div style={{ height: 6, background: '#f3f4f6', borderRadius: 3, overflow: 'hidden', maxWidth: 300 }}>
-                    <div style={{ height: '100%', width: `${(connectedCount / CONNECTIONS.length) * 100}%`, background: connectedCount === CONNECTIONS.length ? '#16a34a' : ACCENT, borderRadius: 3, transition: 'width .4s' }} />
+                    <div style={{ height: '100%', width: `${(connectedCount / CONNECTIONS.length) * 100}%`, background: connectedCount === CONNECTIONS.length ? '#5bc6d0' : ACCENT, borderRadius: 3, transition: 'width .4s' }} />
                   </div>
                 </div>
                 <button onClick={() => navigate('/setup')}
@@ -494,7 +495,7 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                 {['All', ...GROUPS].map(g => (
                   <button key={g} onClick={() => setGroupFilter(g)}
-                    style={{ padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${groupFilter === g ? ACCENT : '#e5e7eb'}`, background: groupFilter === g ? '#fff7f5' : '#fff', color: groupFilter === g ? ACCENT : '#6b7280', fontSize: 14, fontWeight: groupFilter === g ? 700 : 500, cursor: 'pointer' }}>
+                    style={{ padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${groupFilter === g ? ACCENT : '#e5e7eb'}`, background: groupFilter === g ? '#f0fbfc' : '#fff', color: groupFilter === g ? ACCENT : '#6b7280', fontSize: 14, fontWeight: groupFilter === g ? 700 : 500, cursor: 'pointer' }}>
                     {g}
                   </button>
                 ))}

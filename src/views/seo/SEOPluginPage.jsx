@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
 const QUICK_ACTIONS = [
-  { key: 'generateBatch', label: 'Generate Local Pages', icon: FileText, color: '#E8551A', desc: 'AI-write geo-targeted service pages' },
+  { key: 'generateBatch', label: 'Generate Local Pages', icon: FileText, color: '#ea2729', desc: 'AI-write geo-targeted service pages' },
   { key: 'generateRecommendations', label: 'AI Recommendations', icon: Zap, color: '#10b981', desc: 'Claude analyzes site and generates SEO priorities' },
   { key: 'generateStrategy', label: 'Build SEO Strategy', icon: TrendingUp, color: '#3b82f6', desc: 'Full SEO roadmap for this site' },
   { key: 'runAutomation', label: 'Run Automation', icon: RefreshCw, color: '#8b5cf6', desc: 'Execute automation queue now' },

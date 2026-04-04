@@ -7,8 +7,8 @@
    ============================================ */
 
 :root {
-  --brand: #E8551A;
-  --brand-light: #FFF3EE;
+  --brand: #ea2729;
+  --brand-light: #f0fbfc;
   --gray-1: #1a1a1a;
   --gray-2: #3d3d3d;
   --gray-3: #6b7280;
@@ -105,7 +105,7 @@
   .m-btn-secondary { background: var(--gray-6); color: var(--gray-1); }
   .m-btn-full { width: 100%; }
   .m-badge { background: var(--brand); color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; min-width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; padding: 0 5px; }
-  .m-opp { background: #FFF3EE; border-left: 3px solid var(--brand); border-radius: 0 8px 8px 0; padding: 6px 10px; font-size: 12px; font-weight: 500; color: #92400E; }
+  .m-opp { background: #f0fbfc; border-left: 3px solid var(--brand); border-radius: 0 8px 8px 0; padding: 6px 10px; font-size: 12px; font-weight: 500; color: #0e7490; }
   .m-stories { display: flex; gap: 14px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; background: #fff; border-bottom: 1px solid var(--border); }
   .m-stories::-webkit-scrollbar { display: none; }
   .m-avatar { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0; }

@@ -60,7 +60,7 @@ export default function DraggableComposeFAB() {
       style={{
         position: 'fixed', left: pos.x, top: pos.y, zIndex: 35,
         width: 54, height: 54, borderRadius: 27,
-        background: '#E8551A', color: '#fff', border: 'none',
+        background: '#ea2729', color: '#fff', border: 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 4px 16px rgba(232,85,26,0.35)',
         transform: isDragging ? 'scale(1.12)' : 'scale(1)',

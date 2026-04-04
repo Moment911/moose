@@ -2,7 +2,7 @@
 export default function LucyLogo({ size = 'md', showText = true, white = false }) {
   const sizes = { sm: { icon: 28, text: 16 }, md: { icon: 36, text: 20 }, lg: { icon: 48, text: 28 } }
   const s = sizes[size] || sizes.md
-  const color = white ? '#ffffff' : '#E8551A'
+  const color = white ? '#ffffff' : '#ea2729'
   const textColor = white ? '#ffffff' : '#1a1a1a'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

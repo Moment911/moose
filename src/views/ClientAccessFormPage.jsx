@@ -6,7 +6,8 @@ import { supabase } from '../lib/supabase'
 import { ACCESS_SECTIONS, STATUS_CONFIG } from '../data/accountAccessTemplate'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 const INP = { width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', boxSizing:'border-box', color:'#111111' }
 
 const TYPE_GUIDE = {
@@ -66,7 +67,7 @@ function ItemCard({ item, data, onChange, agencyEmail }) {
               {item.link&&<a href={item.link} target="_blank" rel="noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:4, marginTop:7, fontSize:14, color:'#0369a1', textDecoration:'none', fontWeight:600 }}>View Instructions<ExternalLink size={10}/></a>}
             </div>
             {item.type==='invite'&&agencyEmail&&(
-              <div style={{ background:'#fff7f5', border:`1px solid ${ACCENT}30`, borderRadius:9, padding:'9px 13px', marginBottom:12, fontSize:15, color:'#92400e', display:'flex', gap:7, alignItems:'center' }}>
+              <div style={{ background:'#f0fbfc', border:`1px solid ${ACCENT}30`, borderRadius:9, padding:'9px 13px', marginBottom:12, fontSize:15, color:'#92400e', display:'flex', gap:7, alignItems:'center' }}>
                 <span style={{ fontWeight:700 }}>Agency Email to Invite:</span>
                 <code style={{ background:'rgba(0,0,0,.06)', padding:'2px 8px', borderRadius:5, fontWeight:700 }}>{agencyEmail}</code>
                 <span style={{ color:'#9ca3af', fontSize:13 }}>Role: {item.access_level}</span>
@@ -175,7 +176,7 @@ export default function ClientAccessFormPage() {
           <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'26px 30px', marginBottom:20 }}>
             <div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Welcome, {client.name}! 🔑</div>
             <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.7, marginBottom:18 }}>To launch your marketing campaigns, we need access to your business accounts. Takes about 15–20 minutes and saves automatically as you go.</p>
-            <div style={{ background:'#fff7f5', border:`1px solid ${ACCENT}25`, borderRadius:10, padding:'11px 14px', fontSize:15, color:'#92400e' }}>🔴 <strong>Required items</strong> are needed for launch · 🟡 Important · ⚪ Optional</div>
+            <div style={{ background:'#f0fbfc', border:`1px solid ${ACCENT}25`, borderRadius:10, padding:'11px 14px', fontSize:15, color:'#92400e' }}>🔴 <strong>Required items</strong> are needed for launch · 🟡 Important · ⚪ Optional</div>
           </div>
         )}
         {pct===100&&<div style={{ background:'#f0fdf4', border:'2px solid #22c55e', borderRadius:14, padding:'24px', marginBottom:20, textAlign:'center' }}><CheckCircle size={40} color="#22c55e" style={{ margin:'0 auto 10px' }}/><div style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:5 }}>All done! 🎉</div><div style={{ fontSize:15, color:'#6b7280' }}>Your agency has been notified and will verify each item shortly.</div></div>}
@@ -187,7 +188,7 @@ export default function ClientAccessFormPage() {
             const pct2=Math.round((done2/s.items.length)*100)
             const active=i===activeSection
             return (
-              <button key={s.id} onClick={()=>setActiveSection(i)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'9px 14px', borderRadius:12, border:active?`2px solid ${ACCENT}`:'1.5px solid #e5e7eb', background:active?'#fff7f5':'#fff', cursor:'pointer', flexShrink:0, minWidth:90 }}>
+              <button key={s.id} onClick={()=>setActiveSection(i)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'9px 14px', borderRadius:12, border:active?`2px solid ${ACCENT}`:'1.5px solid #e5e7eb', background:active?'#f0fbfc':'#fff', cursor:'pointer', flexShrink:0, minWidth:90 }}>
                 <span style={{ fontSize:18 }}>{s.icon}</span>
                 <span style={{ fontSize:13, fontWeight:700, color:active?ACCENT:'#374151', textAlign:'center', lineHeight:1.3 }}>{s.label}</span>
                 <div style={{ height:3, width:36, background:'#f3f4f6', borderRadius:2, overflow:'hidden' }}><div style={{ height:'100%', width:`${pct2}%`, background:pct2===100?'#22c55e':s.color, borderRadius:2 }}/></div>

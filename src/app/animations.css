@@ -1,0 +1,177 @@
+/* ═══════════════════════════════════════════════════════════════
+   MOOSE MOTION SYSTEM
+   Purposeful animations — entrance, hover, feedback, data
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Entrance animations ────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.8); }
+  70%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ── Utility loaders ────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position: 400px 0; }
+}
+
+/* ── Progress / data ────────────────────────────────────────── */
+@keyframes growWidth {
+  from { width: 0%; }
+  to   { width: var(--target-width, 100%); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scoreRing {
+  from { stroke-dashoffset: 999; }
+  to   { stroke-dashoffset: var(--dash-offset, 0); }
+}
+
+/* ── Micro-interactions ─────────────────────────────────────── */
+@keyframes checkPop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.4; }
+  to   { transform: scale(2.5); opacity: 0; }
+}
+
+/* ── Page / card entrance classes ───────────────────────────── */
+.animate-fade-up  { animation: fadeUp .35s cubic-bezier(.22,1,.36,1) both; }
+.animate-fade-in  { animation: fadeIn .25s ease both; }
+.animate-scale-in { animation: scaleIn .25s cubic-bezier(.22,1,.36,1) both; }
+.animate-pop-in   { animation: popIn .3s cubic-bezier(.22,1,.36,1) both; }
+.animate-slide-right { animation: slideInRight .3s cubic-bezier(.22,1,.36,1) both; }
+.animate-slide-left  { animation: slideInLeft .3s cubic-bezier(.22,1,.36,1) both; }
+
+/* Stagger helpers */
+.stagger-1 { animation-delay: .05s; }
+.stagger-2 { animation-delay: .10s; }
+.stagger-3 { animation-delay: .15s; }
+.stagger-4 { animation-delay: .20s; }
+.stagger-5 { animation-delay: .25s; }
+.stagger-6 { animation-delay: .30s; }
+
+/* ── Interactive states ─────────────────────────────────────── */
+.hover-lift {
+  transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.10);
+}
+.hover-scale {
+  transition: transform .15s cubic-bezier(.22,1,.36,1);
+}
+.hover-scale:hover  { transform: scale(1.02); }
+.hover-scale:active { transform: scale(0.98); }
+
+.btn-press {
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* ── Shimmer skeleton ───────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+/* ── Status indicator pulse ─────────────────────────────────── */
+.pulse-dot {
+  animation: pulse 1.8s ease infinite;
+}
+
+/* ── Sidebar nav link ───────────────────────────────────────── */
+.nav-link-animate {
+  transition: background .15s ease, color .15s ease, transform .15s cubic-bezier(.22,1,.36,1);
+}
+.nav-link-animate:hover {
+  transform: translateX(2px);
+}
+
+/* ── Card hover ─────────────────────────────────────────────── */
+.card-hover {
+  transition: border-color .15s ease, box-shadow .15s ease, transform .18s cubic-bezier(.22,1,.36,1);
+}
+.card-hover:hover {
+  border-color: #ea2729 !important;
+  box-shadow: 0 4px 20px rgba(234,39,41,.10);
+  transform: translateY(-1px);
+}
+
+/* ── Progress bar animated fill ─────────────────────────────── */
+.progress-bar {
+  transition: width .6s cubic-bezier(.22,1,.36,1);
+}
+
+/* ── Tab underline slide ────────────────────────────────────── */
+.tab-active-line {
+  transition: all .2s cubic-bezier(.22,1,.36,1);
+}
+
+/* ── Teal glow for data/live badges ────────────────────────── */
+.teal-badge {
+  background: #e8f9fa;
+  color: #0e7490;
+  border: 1px solid #5bc6d0;
+  transition: all .15s ease;
+}
+.teal-badge:hover {
+  background: #5bc6d0;
+  color: #fff;
+}
+
+/* ── Check mark pop ─────────────────────────────────────────── */
+.check-pop {
+  animation: checkPop .25s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* ── Score ring SVG ─────────────────────────────────────────── */
+.score-ring-fill {
+  animation: scoreRing .8s cubic-bezier(.22,1,.36,1) both;
+  animation-delay: .1s;
+}

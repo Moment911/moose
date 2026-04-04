@@ -17,7 +17,8 @@ import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/sc
 import { scoutWithPlaces, placeToLead, hasGoogleKey } from '../../lib/googlePlaces'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 // ── Search modes ──────────────────────────────────────────────────────────────
 const SEARCH_MODES = [
@@ -105,7 +106,7 @@ const QUICK_SEARCHES = {
 function scoreColor(s) { return s>=75?'#dc2626':s>=50?ACCENT:s>=30?'#f59e0b':'#3b82f6' }
 function tempLabel(s) {
   return s>=75 ? { label:'Hot Lead',  color:'#dc2626', bg:'#fef2f2', icon:'' }
-       : s>=50 ? { label:'Warm',      color:ACCENT,    bg:'#fff7f5', icon:'' }
+       : s>=50 ? { label:'Warm',      color:ACCENT,    bg:'#f0fbfc', icon:'' }
        : s>=30 ? { label:'Lukewarm',  color:'#d97706', bg:'#fffbeb', icon:'' }
        :         { label:'Cold',      color:'#3b82f6', bg:'#eff6ff', icon:'' }
 }
@@ -117,7 +118,7 @@ function ScoreRing({ score, size=52 }) {
     <div style={{ position:'relative', width:size, height:size, flexShrink:0 }}>
       <svg width={size} height={size} style={{ transform:'rotate(-90deg)' }}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f3f4f6" strokeWidth={5}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5}
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5} className="score-ring-fill"
           strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"/>
       </svg>
       <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:size>44?14:11, fontWeight:900, color }}>{score}</div>
@@ -140,11 +141,11 @@ function ConfidenceBadge({ lead, small }) {
 // ── Source badge ──────────────────────────────────────────────────────────────
 function SourceBadge({ realData }) {
   return realData ? (
-    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#eff6ff', color:'#1d4ed8', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
+    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#e8f9fa', color:'#0e7490', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
       Live Google Data
     </span>
   ) : (
-    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25`, display:'inline-flex', alignItems:'center', gap:4 }}>
+    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fbfc', color:ACCENT, border:`1px solid ${ACCENT}25`, display:'inline-flex', alignItems:'center', gap:4 }}>
       AI Estimated
     </span>
   )
@@ -212,7 +213,7 @@ function ProvenancePanel({ lead }) {
               </div>
             </div>
           ))}
-          <div style={{ padding:'10px 14px', background:'#fff7f5', borderTop:'1px solid #f3f4f6', display:'flex', gap:8 }}>
+          <div style={{ padding:'10px 14px', background:'#f0fbfc', borderTop:'1px solid #f3f4f6', display:'flex', gap:8 }}>
             <Info size={12} color={ACCENT} style={{ flexShrink:0, marginTop:1 }}/>
             <div style={{ fontSize:13, color:'#92400e', lineHeight:1.5 }}>
               {lead._real_data
@@ -258,7 +259,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
         </div>
         {lead.gaps?.length>0 && (
           <div style={{ display:'flex', gap:5, marginTop:6, flexWrap:'wrap' }}>
-            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
+            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fbfc', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
           </div>
         )}
       </div>
@@ -275,8 +276,8 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
 
   return (
     <div style={{ background:'#fff', borderRadius:16, border:`1.5px solid ${expanded?ACCENT+'40':'#e5e7eb'}`, overflow:'hidden', cursor:'pointer' }}
-      onMouseEnter={e=>{ if(!expanded) e.currentTarget.style.boxShadow='0 6px 24px rgba(0,0,0,.1)' }}
-      onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}
+      onMouseEnter={e=>{ if(!expanded) { e.currentTarget.style.boxShadow='0 8px 28px rgba(234,39,41,.12)'; e.currentTarget.style.transform='translateY(-2px)' } }}
+      onMouseLeave={e=>{ e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='' }}
       onClick={()=>setExpanded(e=>!e)}>
       <div style={{ height:3, background:`linear-gradient(90deg, ${scoreColor(score)}, ${scoreColor(score)}80)`, width:`${score}%` }}/>
       {lead._real_data && <div style={{ height:2, background:'linear-gradient(90deg,#4285f4,#1d4ed8)', width:'100%' }}/>}
@@ -311,7 +312,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
         {lead.gaps?.length>0 && (
           <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
             {lead.gaps.map(g=>(
-              <span key={g} style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>
+              <span key={g} style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:'#f0fbfc', color:ACCENT, border:`1px solid ${ACCENT}25` }}>
                  {g}
               </span>
             ))}
@@ -751,7 +752,7 @@ Be specific about why each business needs marketing help based on their likely s
           {hasResults && (
             <>
               {/* Data source banner */}
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: stats?.realData>0?'#eff6ff':'#fff7f5', border:`1px solid ${stats?.realData>0?'#bfdbfe':ACCENT+'30'}` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: stats?.realData>0?'#eff6ff':'#f0fbfc', border:`1px solid ${stats?.realData>0?'#bfdbfe':ACCENT+'30'}` }}>
                 <Database size={14} color={stats?.realData>0?'#1d4ed8':ACCENT}/>
                 <span style={{ fontSize:15, fontWeight:700, color:stats?.realData>0?'#1d4ed8':'#92400e' }}>
                   {stats?.realData>0
@@ -795,7 +796,7 @@ Be specific about why each business needs marketing help based on their likely s
               {/* Results grid/list */}
               <div style={view==='grid'
                 ? { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }
-                : { display:'flex', flexDirection:'column', gap:10 }}>
+                : { display:'flex', flexDirection:'column', gap:10 }} className="animate-fade-up">
                 {displayed.map(lead=>(
                   <LeadCard key={lead.id} lead={lead} mode={mode} view={view}
                     saved={saved.has(lead.id)}

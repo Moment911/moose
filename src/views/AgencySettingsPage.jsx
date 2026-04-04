@@ -6,7 +6,8 @@ import Sidebar from '../components/Sidebar'
 import { Save, Plus, Trash2, Copy, Check, Users, CreditCard, Globe, Palette, Shield, Zap, Mail, BarChart2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 const INP = { width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', color:'#111', boxSizing:'border-box' }
 
 const TABS = [
@@ -103,7 +104,7 @@ export default function AgencySettingsPage() {
             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
               {TABS.map(t => (
                 <button key={t.id} onClick={()=>setTab(t.id)}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:tab===t.id?'#fff7f5':'transparent', border:'none', cursor:'pointer', color:tab===t.id?ACCENT:'#374151', fontWeight:tab===t.id?700:500, fontSize:15, borderLeft:`3px solid ${tab===t.id?ACCENT:'transparent'}`, textAlign:'left' }}>
+                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:tab===t.id?'#f0fbfc':'transparent', border:'none', cursor:'pointer', color:tab===t.id?ACCENT:'#374151', fontWeight:tab===t.id?700:500, fontSize:15, borderLeft:`3px solid ${tab===t.id?ACCENT:'transparent'}`, textAlign:'left' }}>
                   <t.icon size={14}/> {t.label}
                 </button>
               ))}
@@ -181,7 +182,7 @@ export default function AgencySettingsPage() {
                         <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{m.user?.email}</div>
                         <div style={{ fontSize:13, color:'#9ca3af' }}>{m.accepted_at?'Active':'Pending'}</div>
                       </div>
-                      <span style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:m.role==='owner'?'#fff7f5':m.role==='admin'?'#eff6ff':'#f3f4f6', color:m.role==='owner'?ACCENT:m.role==='admin'?'#1d4ed8':'#6b7280' }}>{m.role}</span>
+                      <span style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:m.role==='owner'?'#f0fbfc':m.role==='admin'?'#eff6ff':'#f3f4f6', color:m.role==='owner'?ACCENT:m.role==='admin'?'#1d4ed8':'#6b7280' }}>{m.role}</span>
                       {m.user_id!==user?.id&&<button onClick={async()=>{ await supabase.from('agency_members').delete().eq('id',m.id); loadData(); toast.success('Member removed') }} style={{ padding:'5px 8px', borderRadius:7, border:'none', background:'#fef2f2', color:'#dc2626', cursor:'pointer' }}><Trash2 size={13}/></button>}
                     </div>
                   ))}

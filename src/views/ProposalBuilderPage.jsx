@@ -15,7 +15,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const PRICE_LABELS = { monthly:'/ mo', one_time:'one-time', hourly:'/ hr', custom:'custom' }
 
@@ -109,7 +110,7 @@ function SectionCard({ section, index, total, clientContext, onChange, onDelete,
   return (
     <div style={{ background:'#fff', borderRadius:14, border:`1.5px solid ${expanded?ACCENT+'30':'#e5e7eb'}`, overflow:'hidden', marginBottom:10 }}>
       {/* Card header */}
-      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'13px 16px', cursor:'pointer', background: expanded?'#fff7f5':'#fff' }}
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'13px 16px', cursor:'pointer', background: expanded?'#f0fbfc':'#fff' }}
         onClick={()=>setExpanded(e=>!e)}>
         <GripVertical size={14} color="#d1d5db" style={{ flexShrink:0 }}/>
         <div style={{ flex:1, minWidth:0 }}>
@@ -239,7 +240,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
                 </div>
                 {items.map(m => (
                   <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px', borderRadius:12, border:'1.5px solid #e5e7eb', marginBottom:8, cursor:'pointer', transition:'all .12s' }}
-                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=ACCENT; e.currentTarget.style.background='#fff7f5' }}
+                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=ACCENT; e.currentTarget.style.background='#f0fbfc' }}
                     onMouseLeave={e=>{ e.currentTarget.style.borderColor='#e5e7eb'; e.currentTarget.style.background='#fff' }}
                     onClick={()=>{ onAdd(m); onClose() }}>
                     <div style={{ flex:1 }}>
@@ -259,7 +260,7 @@ function ModulePicker({ modules, onAdd, onClose }) {
             )
           })}
           <button onClick={()=>{ onAdd(null); onClose() }}
-            style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:15, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
+            style={{ width:'100%', padding:'12px', borderRadius:12, border:`1.5px dashed ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:15, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
             <Plus size={14}/> Add blank section
           </button>
         </div>
@@ -568,7 +569,7 @@ export default function ProposalBuilderPage() {
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
                     <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em' }}>Services & Deliverables</div>
                     <button onClick={()=>setShowModulePicker(true)}
-                      style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                      style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer' }}>
                       <Plus size={13}/> Add Service
                     </button>
                   </div>

@@ -3,7 +3,8 @@
 // For each AI-generated lead, verify and enrich via public web sources
 // ══════════════════════════════════════════════════════════════════════════════
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 // ── Source definitions ────────────────────────────────────────────────────────
 export const SOURCES = {
@@ -319,7 +320,7 @@ export function calcConfidence(provenance) {
 export function confidenceLabel(score) {
   if (score >= 85) return { label: 'High Confidence',   color: '#16a34a', bg: '#f0fdf4' }
   if (score >= 65) return { label: 'Good Confidence',   color: '#d97706', bg: '#fffbeb' }
-  if (score >= 45) return { label: 'Moderate',          color: ACCENT,    bg: '#fff7f5' }
+  if (score >= 45) return { label: 'Moderate',          color: ACCENT,    bg: '#f0fbfc' }
   return              { label: 'Low Confidence',    color: '#dc2626', bg: '#fef2f2' }
 }
 

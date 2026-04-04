@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { DollarSign, Plus, Search, Filter, Download, CreditCard, FileText, Clock, Check, X, ChevronRight, TrendingUp, AlertCircle } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const MOCK_INVOICES = [
   { id:'INV-2026-001', client:'Acme Plumbing', amount:2500, status:'paid',    due:'2026-03-01', paid:'2026-03-01', description:'Monthly Retainer — March 2026' },
@@ -67,7 +68,7 @@ export default function PaymentsPage() {
         {/* Tabs + filters */}
         <div style={{ padding:'16px 24px 0', display:'flex', gap:4, overflowX:'auto' }}>
           {TABS.map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{ padding:'7px 16px', borderRadius:8, border:tab===t?`2px solid ${ACCENT}`:'1.5px solid #e5e7eb', background:tab===t?'#fff7f5':'#fff', color:tab===t?ACCENT:'#6b7280', fontSize:15, fontWeight:tab===t?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>{t}</button>
+            <button key={t} onClick={()=>setTab(t)} style={{ padding:'7px 16px', borderRadius:8, border:tab===t?`2px solid ${ACCENT}`:'1.5px solid #e5e7eb', background:tab===t?'#f0fbfc':'#fff', color:tab===t?ACCENT:'#6b7280', fontSize:15, fontWeight:tab===t?700:500, cursor:'pointer', whiteSpace:'nowrap' }}>{t}</button>
           ))}
           <div style={{ marginLeft:'auto', display:'flex', gap:7 }}>
             <div style={{ position:'relative' }}>

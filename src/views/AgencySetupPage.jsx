@@ -11,7 +11,8 @@ import {
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 // ── All connection steps ──────────────────────────────────────────────────────
 const SETUP_STEPS = [
@@ -381,7 +382,7 @@ export default function AgencySetupPage() {
                 const Icon    = s.icon
                 return (
                   <button key={s.id} onClick={()=>goTo(i)}
-                    style={{ width:'100%', textAlign:'left', padding:'14px 16px', border:'none', borderBottom:'1px solid #f9fafb', background:active?'#fff7f5':'#fff', cursor:'pointer', borderLeft:`3px solid ${active?ACCENT:'transparent'}`, transition:'all .15s' }}>
+                    style={{ width:'100%', textAlign:'left', padding:'14px 16px', border:'none', borderBottom:'1px solid #f9fafb', background:active?'#f0fbfc':'#fff', cursor:'pointer', borderLeft:`3px solid ${active?ACCENT:'transparent'}`, transition:'all .15s' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:11 }}>
                       <div style={{ width:34, height:34, borderRadius:10, background:active?ACCENT+'15':status==='complete'?'#f0fdf4':'#f9fafb', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, position:'relative' }}>
                         <Icon size={16} color={active?s.color:status==='complete'?'#16a34a':'#9ca3af'}/>
@@ -394,7 +395,7 @@ export default function AgencySetupPage() {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:15, fontWeight:700, color:active?'#111':'#374151', display:'flex', alignItems:'center', gap:6 }}>
                           {s.label}
-                          {s.required && <span style={{ fontSize:12, fontWeight:800, color:ACCENT, background:'#fff7f5', padding:'1px 5px', borderRadius:4, border:`1px solid ${ACCENT}30` }}>REQ</span>}
+                          {s.required && <span style={{ fontSize:12, fontWeight:800, color:ACCENT, background:'#f0fbfc', padding:'1px 5px', borderRadius:4, border:`1px solid ${ACCENT}30` }}>REQ</span>}
                         </div>
                         <div style={{ fontSize:13, color:'#9ca3af', marginTop:1 }}>{s.sublabel}</div>
                       </div>
@@ -484,7 +485,7 @@ export default function AgencySetupPage() {
             </div>
 
             {/* Env var inputs */}
-            <div style={{ flex:1, overflowY:'auto', padding:'16px 20px' }}>
+            <div className="animate-fade-in" style={{ flex:1, overflowY:'auto', padding:'16px 20px' }}>
               <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>
                 Vercel Environment Variables
               </div>

@@ -13,13 +13,14 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const STATUS_CONFIG = {
   draft:     { label: 'Draft',     color: '#9ca3af', bg: '#f9fafb', icon: Edit },
   sent:      { label: 'Sent',      color: '#3b82f6', bg: '#eff6ff', icon: Send },
   viewed:    { label: 'Viewed',    color: '#d97706', bg: '#fffbeb', icon: Eye },
-  accepted:  { label: 'Accepted',  color: '#16a34a', bg: '#f0fdf4', icon: CheckCircle },
+  accepted:  { label: 'Accepted',  color: '#0e7490', bg: '#e8f9fa', icon: CheckCircle },
   declined:  { label: 'Declined',  color: '#dc2626', bg: '#fef2f2', icon: XCircle },
   agreement: { label: 'Agreement', color: '#7c3aed', bg: '#f5f3ff', icon: FileText },
 }
@@ -146,7 +147,7 @@ export default function ProposalsPage() {
             ].map(s => {
               const I = s.icon
               return (
-                <div key={s.label} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
+                <div key={s.label} className="animate-fade-up hover-lift" style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                     <I size={16} color={s.color}/>
                     <span style={{ fontSize:14, color:'#9ca3af' }}>{s.label}</span>
@@ -167,7 +168,7 @@ export default function ProposalsPage() {
             <div style={{ display:'flex', gap:6 }}>
               {['all','draft','sent','viewed','accepted','agreement'].map(s => (
                 <button key={s} onClick={()=>setStatusFilter(s)}
-                  style={{ padding:'7px 14px', borderRadius:20, border:`1.5px solid ${statusFilter===s?ACCENT:'#e5e7eb'}`, background:statusFilter===s?'#fff7f5':'#fff', color:statusFilter===s?ACCENT:'#6b7280', fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer', textTransform:'capitalize' }}>
+                  style={{ padding:'7px 14px', borderRadius:20, border:`1.5px solid ${statusFilter===s?ACCENT:'#e5e7eb'}`, background:statusFilter===s?'#f0fbfc':'#fff', color:statusFilter===s?ACCENT:'#6b7280', fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer', textTransform:'capitalize' }}>
                   {s === 'all' ? 'All' : STATUS_CONFIG[s]?.label || s}
                 </button>
               ))}
@@ -202,7 +203,7 @@ export default function ProposalsPage() {
                   onClick={() => navigate(`/proposals/${p.id}`)}>
 
                   {/* Type icon */}
-                  <div style={{ width:40, height:40, borderRadius:10, background: p.type==='agreement'?'#f5f3ff': p.type==='sow'?'#f0fdf4':'#fff7f5', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <div style={{ width:40, height:40, borderRadius:10, background: p.type==='agreement'?'#f5f3ff': p.type==='sow'?'#f0fdf4':'#f0fbfc', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <FileText size={18} color={p.type==='agreement'?'#7c3aed':p.type==='sow'?'#16a34a':ACCENT}/>
                   </div>
 

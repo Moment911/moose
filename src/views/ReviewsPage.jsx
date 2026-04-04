@@ -15,7 +15,8 @@ import { callClaude } from '../lib/ai'
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const PLATFORM_CONFIG = {
@@ -148,7 +149,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
             <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>Response</span>
             <button onClick={generateResponse} disabled={generating}
-              style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#fff7f5', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
               {generating ? <Loader2 size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Sparkles size={11}/>}
               {generating ? 'Generating…' : response ? 'Regenerate' : '🤖 AI Write Response'}
             </button>
@@ -236,7 +237,7 @@ window._mooseReviews = {
               <div style={{ display:'flex', gap:8 }}>
                 {[['carousel','🎠 Carousel'],['grid','⊞ Grid'],['list','≡ List'],['badge','🏅 Badge']].map(([v,l])=>(
                   <button key={v} onClick={()=>onChange('display_mode',v)}
-                    style={{ flex:1, padding:'9px 6px', borderRadius:10, border:`2px solid ${settings.display_mode===v?ACCENT:'#e5e7eb'}`, background:settings.display_mode===v?'#fff7f5':'#fff', color:settings.display_mode===v?ACCENT:'#374151', fontSize:14, fontWeight:settings.display_mode===v?700:500, cursor:'pointer' }}>
+                    style={{ flex:1, padding:'9px 6px', borderRadius:10, border:`2px solid ${settings.display_mode===v?ACCENT:'#e5e7eb'}`, background:settings.display_mode===v?'#f0fbfc':'#fff', color:settings.display_mode===v?ACCENT:'#374151', fontSize:14, fontWeight:settings.display_mode===v?700:500, cursor:'pointer' }}>
                     {l}
                   </button>
                 ))}
@@ -248,7 +249,7 @@ window._mooseReviews = {
                 <div style={{ display:'flex', gap:8 }}>
                   {[['bottom-left','↙ Bottom Left'],['bottom-right','↘ Bottom Right']].map(([v,l])=>(
                     <button key={v} onClick={()=>onChange('badge_position',v)}
-                      style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.badge_position===v?ACCENT:'#e5e7eb'}`, background:settings.badge_position===v?'#fff7f5':'#fff', color:settings.badge_position===v?ACCENT:'#374151', fontSize:15, fontWeight:settings.badge_position===v?700:500, cursor:'pointer' }}>
+                      style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.badge_position===v?ACCENT:'#e5e7eb'}`, background:settings.badge_position===v?'#f0fbfc':'#fff', color:settings.badge_position===v?ACCENT:'#374151', fontSize:15, fontWeight:settings.badge_position===v?700:500, cursor:'pointer' }}>
                       {l}
                     </button>
                   ))}
@@ -260,7 +261,7 @@ window._mooseReviews = {
               <div style={{ display:'flex', gap:8 }}>
                 {[['light','☀️ Light'],['dark','🌙 Dark'],['auto','⚙️ Auto']].map(([v,l])=>(
                   <button key={v} onClick={()=>onChange('theme',v)}
-                    style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.theme===v?ACCENT:'#e5e7eb'}`, background:settings.theme===v?'#fff7f5':'#fff', color:settings.theme===v?ACCENT:'#374151', fontSize:15, fontWeight:settings.theme===v?700:500, cursor:'pointer' }}>
+                    style={{ flex:1, padding:'9px', borderRadius:10, border:`2px solid ${settings.theme===v?ACCENT:'#e5e7eb'}`, background:settings.theme===v?'#f0fbfc':'#fff', color:settings.theme===v?ACCENT:'#374151', fontSize:15, fontWeight:settings.theme===v?700:500, cursor:'pointer' }}>
                     {l}
                   </button>
                 ))}
@@ -509,7 +510,7 @@ export default function ReviewsPage() {
         <div style={{ flex:1, overflowY:'auto' }}>
           {clients.map(c=>(
             <div key={c.id} onClick={()=>loadClientData(c)}
-              style={{ padding:'11px 16px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#fff7f5':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
+              style={{ padding:'11px 16px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#f0fbfc':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
               <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
               <div style={{ fontSize:13, color:'#9ca3af' }}>{c.industry}</div>
             </div>
@@ -539,7 +540,7 @@ export default function ReviewsPage() {
               <div style={{ display:'flex', gap:8 }}>
                 {reviews.length===0 && <button onClick={addSampleReviews} style={{ padding:'7px 14px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}>+ Add Sample Reviews</button>}
                 <button onClick={()=>setShowWidget(s=>!s)}
-                  style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:`1.5px solid ${showWidget?ACCENT:'#e5e7eb'}`, background:showWidget?'#fff7f5':'#fff', fontSize:14, fontWeight:700, cursor:'pointer', color:showWidget?ACCENT:'#374151' }}>
+                  style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:`1.5px solid ${showWidget?ACCENT:'#e5e7eb'}`, background:showWidget?'#f0fbfc':'#fff', fontSize:14, fontWeight:700, cursor:'pointer', color:showWidget?ACCENT:'#374151' }}>
                   <Sliders size={13}/> Widget Settings
                 </button>
               </div>

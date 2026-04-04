@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { BarChart2, TrendingUp, Users, Globe, DollarSign, Phone, Star, Calendar, Download, Filter, ChevronDown } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 const REPORTS = [
   { id:'traffic',   label:'Website Traffic',      icon:Globe,     color:'#3b82f6', metric:'12,847 visits', change:'+18%', period:'vs last month' },
   { id:'leads',     label:'Lead Generation',       icon:Users,     color:'#10b981', metric:'234 leads',     change:'+31%', period:'vs last month' },

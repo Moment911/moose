@@ -5,7 +5,8 @@ import { Check, CheckCircle, Loader2, FileText, Clock, Shield } from 'lucide-rea
 import { supabase } from '../lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 const PRICE_LABELS = { monthly:'/ mo', one_time:'one-time', hourly:'/ hr', custom:'' }
 
 export default function ProposalPublicPage() {

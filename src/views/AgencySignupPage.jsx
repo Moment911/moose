@@ -8,7 +8,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const INP = {
   width: '100%', padding: '13px 16px', borderRadius: 10,
@@ -382,7 +383,7 @@ export default function AgencySignupPage() {
                       const current = setupProgress.length === i
                       const Icon = item.icon
                       return (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 12, background: done ? '#f0fdf4' : current ? '#fff7f5' : '#f9fafb', border: `1px solid ${done ? '#bbf7d0' : current ? ACCENT + '30' : '#f3f4f6'}`, transition: 'all .3s' }}>
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 12, background: done ? '#f0fdf4' : current ? '#f0fbfc' : '#f9fafb', border: `1px solid ${done ? '#bbf7d0' : current ? ACCENT + '30' : '#f3f4f6'}`, transition: 'all .3s' }}>
                           <div style={{ width: 32, height: 32, borderRadius: '50%', background: done ? '#16a34a' : current ? ACCENT + '20' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .3s' }}>
                             {done
                               ? <Check size={15} color="#fff" strokeWidth={3} />

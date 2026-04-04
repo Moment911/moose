@@ -8,7 +8,8 @@ import {
   MessageSquare, Phone, Mail, Building, Cpu, RefreshCw
 } from 'lucide-react'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 const DARK   = '#0f0f11'
 const DARK2  = '#18181b'
 

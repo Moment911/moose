@@ -15,13 +15,14 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 function statusPill(status) {
   const s = {
     active:    { label: 'Active',     bg: '#f0fdf4', color: '#16a34a' },
-    prospect:  { label: 'Prospect',   bg: '#fff7f5', color: ACCENT },
+    prospect:  { label: 'Prospect',   bg: '#f0fbfc', color: ACCENT },
     inactive:  { label: 'Inactive',   bg: '#f9fafb', color: '#9ca3af' },
     paused:    { label: 'Paused',     bg: '#fffbeb', color: '#d97706' },
   }[status] || { label: status || 'Active', bg: '#f0fdf4', color: '#16a34a' }
@@ -43,7 +44,7 @@ function ClientCard({ client, active, onSelect }) {
   const initial = (client.name || '?')[0].toUpperCase()
   return (
     <button onClick={() => onSelect(client)}
-      style={{ width: '100%', textAlign: 'left', padding: '11px 14px', border: 'none', borderLeft: `3px solid ${active ? ACCENT : 'transparent'}`, background: active ? '#fff7f5' : '#fff', cursor: 'pointer', borderBottom: '1px solid #f9fafb', transition: 'all .12s' }}>
+      className="nav-link-animate" style={{ width: '100%', textAlign: 'left', padding: '11px 14px', border: 'none', borderLeft: `3px solid ${active ? ACCENT : 'transparent'}`, background: active ? '#f0fbfc' : '#fff', cursor: 'pointer', borderBottom: '1px solid #f9fafb', transition: 'all .15s' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ width: 34, height: 34, borderRadius: 10, background: active ? ACCENT : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, color: active ? '#fff' : '#6b7280', flexShrink: 0 }}>
           {initial}
@@ -321,7 +322,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Tab content */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }} className="animate-fade-up">
 
                 {/* ── PROJECTS TAB ── */}
                 {tab === 'projects' && (

@@ -13,7 +13,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 // ── Agent definitions ─────────────────────────────────────────────────────────
 const AGENTS = [
@@ -426,7 +427,7 @@ export default function AIAgentsPage() {
         </div>
 
         {/* Agency-wide stats */}
-        <div style={{ padding:'12px 14px', background:'#fff7f5', borderBottom:'1px solid #f3f4f6' }}>
+        <div style={{ padding:'12px 14px', background:'#f0fbfc', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ fontSize:13, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8 }}>Agency Overview</div>
           <div style={{ display:'flex', gap:8 }}>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
@@ -447,7 +448,7 @@ export default function AIAgentsPage() {
             const count = Object.values(status).filter(Boolean).length
             return (
               <div key={c.id} onClick={() => handleSelectClient(c)}
-                style={{ padding:'11px 14px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#fff7f5':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
+                style={{ padding:'11px 14px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#f0fbfc':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
                   {count > 0 && <span style={{ fontSize:12, fontWeight:800, color:'#22c55e', background:'#f0fdf4', borderRadius:20, padding:'1px 6px' }}>{count} ON</span>}

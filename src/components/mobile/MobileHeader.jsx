@@ -9,8 +9,8 @@ export default function MobileHeader({ title, onMenuPress, onBack, backLabel, ri
         {/* Left */}
         <div style={{ width: 80, display: 'flex', alignItems: 'center' }}>
           {onBack ? (
-            <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 2, color: '#E8551A', background: 'none', border: 'none', fontSize: 17, cursor: 'pointer', padding: '8px 0', WebkitTapHighlightColor: 'transparent' }}>
-              <ChevronLeft size={26} strokeWidth={2.5} color="#E8551A" />
+            <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 2, color: '#ea2729', background: 'none', border: 'none', fontSize: 17, cursor: 'pointer', padding: '8px 0', WebkitTapHighlightColor: 'transparent' }}>
+              <ChevronLeft size={26} strokeWidth={2.5} color="#ea2729" />
               {backLabel && <span>{backLabel}</span>}
             </button>
           ) : onMenuPress ? (

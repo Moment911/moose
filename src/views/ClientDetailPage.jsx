@@ -16,7 +16,8 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const TABS = [
   { key: 'overview', label: 'Overview' },
@@ -75,7 +76,7 @@ function DataRow({ label, value, masked, link, mono }) {
       <div>
         {masked ? <MaskedPw value={displayVal} /> : link && value ? (
           <a href={value.startsWith('http') ? value : 'https://' + value} target="_blank" rel="noreferrer"
-            style={{ fontSize: 15, color: '#E8551A', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 700, wordBreak: 'break-all' }}>
+            style={{ fontSize: 15, color: '#ea2729', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontWeight: 700, wordBreak: 'break-all' }}>
             {displayVal.length > 60 ? displayVal.slice(0, 60) + '…' : displayVal} <ExternalLink size={13} />
           </a>
         ) : (
@@ -88,7 +89,7 @@ function DataRow({ label, value, masked, link, mono }) {
   )
 }
 
-function DataPills({ label, value, color = '#E8551A' }) {
+function DataPills({ label, value, color = '#ea2729' }) {
   const arr = Array.isArray(value) ? value : (value || '').split(',').map(s => s.trim()).filter(Boolean)
   if (!arr.length) return null
   return (
@@ -103,7 +104,7 @@ function DataPills({ label, value, color = '#E8551A' }) {
   )
 }
 
-function DataSection({ title, icon: Icon, color = '#E8551A', children }) {
+function DataSection({ title, icon: Icon, color = '#ea2729', children }) {
   return (
     <div style={{ background: '#fff', borderRadius: 16, border: `1.5px solid ${color}25`, overflow: 'hidden', marginBottom: 20 }}>
       <div style={{ padding: '16px 22px', borderBottom: `1.5px solid ${color}20`, display: 'flex', alignItems: 'center', gap: 12, background: `linear-gradient(135deg, ${color}08, transparent)` }}>
@@ -700,7 +701,7 @@ export default function ClientDetailPage() {
             </button>
           </div>
           {!p.business_name && !p.description && (
-            <div style={{ background: '#fff7f5', borderRadius: 14, border: `1.5px dashed #E8551A40`, padding: 40, textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ background: '#f0fbfc', borderRadius: 14, border: `1.5px dashed #ea272940`, padding: 40, textAlign: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
               <div style={{ fontSize: 15, color: '#9ca3af', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
@@ -732,7 +733,7 @@ export default function ClientDetailPage() {
 
           <DataSection title="Products & Services" icon={ShoppingBag} color={ACCENT}>
             <DataRow label="Description" value={products.description} />
-            <DataPills label="Top Services" value={products.top_services} color="#E8551A" />
+            <DataPills label="Top Services" value={products.top_services} color="#ea2729" />
             <DataRow label="Pricing Model" value={products.pricing_model} />
             <DataRow label="Avg Transaction" value={products.avg_transaction ? "$" + products.avg_transaction : null} />
             <DataRow label="Avg Project Value" value={products.avg_project ? "$" + products.avg_project : null} />
@@ -871,7 +872,7 @@ export default function ClientDetailPage() {
     access: (
       <Section title="Account Access Checklist" description="Track all platform logins, invites, and credentials needed for this client's campaigns.">
         <a href={`/clients/${clientId}/access`}
-          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#E8551A', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:15, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
+          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#ea2729', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:15, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
           🔑 Open Access Checklist
         </a>
         <p style={{ fontSize:14, color:'#9ca3af', marginTop:10, marginBottom:0 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>

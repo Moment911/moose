@@ -27,7 +27,8 @@ function StepIcon({ name, size=14, color }) {
   return I ? <I size={size} color={color}/> : null
 }
 
-const ACCENT = '#E8551A';
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -45,7 +46,7 @@ const T = {
   cardBody: { padding: '24px 28px' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 },
   grid3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 },
-  stepTag: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: ACCENT, background: '#fff7f5', border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: '4px 12px', marginBottom: 12 },
+  stepTag: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: ACCENT, background: '#f0fbfc', border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: '4px 12px', marginBottom: 12 },
 };
 
 function F({ label, hint, children, required, span2 }) {
@@ -190,7 +191,7 @@ function AIAssist({ prompt, onResult, label = 'AI Suggest', small }) {
   }
   return (
     <button type="button" onClick={run} disabled={loading}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: small ? '6px 12px' : '9px 18px', borderRadius: 10, border: `2px solid ${ACCENT}`, background: '#fff7f5', color: ACCENT, fontSize: small ? 12 : 14, fontWeight: 700, cursor: 'pointer', opacity: loading ? .7 : 1, whiteSpace: 'nowrap' }}>
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: small ? '6px 12px' : '9px 18px', borderRadius: 10, border: `2px solid ${ACCENT}`, background: '#f0fbfc', color: ACCENT, fontSize: small ? 12 : 14, fontWeight: 700, cursor: 'pointer', opacity: loading ? .7 : 1, whiteSpace: 'nowrap' }}>
       {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
       {loading ? 'Thinking…' : label}
     </button>
@@ -713,7 +714,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 </span>
               ))}
             </div>
-            <div style={{ background: '#fff7f5', border: `1px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 12 }}>
+            <div style={{ background: '#f0fbfc', border: `1px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 12 }}>
               <Sparkles size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
               <div style={{ fontSize: 15, color: '#92400e', lineHeight: 1.65 }}>
                 <strong>Pro tip:</strong> Look for the <span style={{ color: ACCENT, fontWeight: 800 }}>AI Suggest</span> buttons throughout. They generate smart suggestions based on your industry that you can tweak — no staring at a blank field.
@@ -757,7 +758,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <F label="Your First Name" required>
                   <FocusInput large value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="John" autoFocus />
                   {form.first_name.trim() && (
-                    <div style={{ marginTop: 10, padding: '10px 16px', background: '#fff7f5', borderRadius: 10, border: `1px solid ${ACCENT}25`, display: 'flex', alignItems: 'center', gap: 9, animation: 'fadeIn .3s ease' }}>
+                    <div style={{ marginTop: 10, padding: '10px 16px', background: '#f0fbfc', borderRadius: 10, border: `1px solid ${ACCENT}25`, display: 'flex', alignItems: 'center', gap: 9, animation: 'fadeIn .3s ease' }}>
                       <span style={{ fontSize: 20 }}></span>
                       <span style={{ fontSize: 15, color: '#374151', fontWeight: 600 }}>Hi <strong style={{ color: ACCENT }}>{form.first_name.trim().split(' ')[0]}</strong>! Great to meet you.</span>
                     </div>
@@ -1122,7 +1123,7 @@ Product: Water filtration systems — sale and installation..." />
                   <div style={{ display: 'flex', gap: 10 }}>
                     <input type="color" value={form.brand_accent_color} onChange={e => set('brand_accent_color', e.target.value)}
                       style={{ width: 56, height: 52, borderRadius: 10, border: '2px solid #e5e7eb', padding: 3, cursor: 'pointer', flexShrink: 0 }} />
-                    <FocusInput value={form.brand_accent_color} onChange={e => set('brand_accent_color', e.target.value)} placeholder="#E8551A" />
+                    <FocusInput value={form.brand_accent_color} onChange={e => set('brand_accent_color', e.target.value)} placeholder="#ea2729" />
                   </div>
                 </F>
                 <F label="Brand Fonts" hint="What typefaces does your brand use?">
@@ -1263,7 +1264,7 @@ Product: Water filtration systems — sale and installation..." />
               </p>
             </div>
             <div style={T.cardBody}>
-              <div style={{ background: '#fff7f5', border: `2px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', gap: 12 }}>
+              <div style={{ background: '#f0fbfc', border: `2px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 24, display: 'flex', gap: 12 }}>
                 <Shield size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
                 <div style={{ fontSize: 15, color: '#92400e', lineHeight: 1.65 }}>
                   <strong>Agency email to use for all invitations:</strong><br />
@@ -1514,7 +1515,7 @@ Product: Water filtration systems — sale and installation..." />
             <div style={T.cardBody}>
               {!personaResult && !personaLoading && (
                 <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#fff7f5', border: `2px solid ${ACCENT}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 36 }}></div>
+                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#f0fbfc', border: `2px solid ${ACCENT}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 36 }}></div>
                   <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111', marginBottom: 10 }}>Ready to generate your persona</h3>
                   <p style={{ fontSize: 15, color: '#6b7280', marginBottom: 24, maxWidth: 440, margin: '0 auto 24px', lineHeight: 1.6 }}>
                     We'll analyze everything you've told us and build a detailed profile of your ideal customer — including demographics, psychology, ad targeting, and messaging that resonates with them.
@@ -1599,7 +1600,7 @@ Product: Water filtration systems — sale and installation..." />
                   )}
 
                   {personaResult.ad_headline_angles?.length > 0 && (
-                    <div style={{ background: '#fff7f5', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
+                    <div style={{ background: '#f0fbfc', borderRadius: 14, padding: '18px 20px', marginBottom: 16 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>Ad Headlines That Stop Them Scrolling</div>
                       {personaResult.ad_headline_angles.map((h, i) => (
                         <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '10px 14px', background: '#fff', borderRadius: 10, border: `1px solid ${ACCENT}20`, alignItems: 'center' }}>

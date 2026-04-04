@@ -9,7 +9,8 @@ import { ACCESS_SECTIONS, PRIORITY_CONFIG, STATUS_CONFIG, TYPE_CONFIG } from '..
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 const INP = { width:'100%', padding:'8px 11px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', boxSizing:'border-box', color:'#111' }
 
 function PwField({ value, onChange }) {
@@ -113,7 +114,7 @@ function AccessItem({ item, data, onChange, agencyEmail, expanded, onToggle, cli
             <span style={{ fontSize:15, fontWeight:700, color:status==='complete'?'#9ca3af':'#111', textDecoration:status==='complete'?'line-through':'' }}>{item.label}</span>
             <span style={{ fontSize:13, padding:'1px 5px', borderRadius:6, background:'#f3f4f6', color:'#6b7280' }}>{typeCfg.icon}</span>
             {isVerified&&<ShieldCheck size={12} color="#16a34a"/>}
-            {d.client_completed_at&&<span style={{ fontSize:12, background:'#eff6ff', color:'#1d4ed8', padding:'1px 5px', borderRadius:6, fontWeight:700 }}>CLIENT ✓</span>}
+            {d.client_completed_at&&<span style={{ fontSize:12, background:'#e8f9fa', color:'#0e7490', padding:'1px 5px', borderRadius:6, fontWeight:700 }}>CLIENT ✓</span>}
           </div>
           {clientAct.length>0&&<div style={{ fontSize:13, color:'#9ca3af' }}>Client updated {formatDistanceToNow(new Date(clientAct[0].created_at),{addSuffix:true})}</div>}
         </div>
@@ -137,7 +138,7 @@ function AccessItem({ item, data, onChange, agencyEmail, expanded, onToggle, cli
             {item.link&&<a href={item.link} target="_blank" rel="noreferrer" style={{ color:'#1d4ed8', marginLeft:6, display:'inline-flex', alignItems:'center', gap:2 }}>Docs<ExternalLink size={9}/></a>}
           </div>
           {agencyEmail&&item.type==='invite'&&(
-            <div style={{ background:'#fff7f5', border:`1px solid ${ACCENT}30`, borderRadius:9, padding:'8px 12px', marginBottom:10, fontSize:14, color:'#92400e', display:'flex', gap:8 }}>
+            <div style={{ background:'#f0fbfc', border:`1px solid ${ACCENT}30`, borderRadius:9, padding:'8px 12px', marginBottom:10, fontSize:14, color:'#92400e', display:'flex', gap:8 }}>
               <span style={{ fontWeight:700 }}>Agency Email:</span>
               <code style={{ background:'rgba(0,0,0,.06)', padding:'1px 7px', borderRadius:5, fontWeight:700 }}>{agencyEmail}</code>
               <span style={{ color:'#9ca3af' }}>Role: {item.access_level}</span>
@@ -269,12 +270,12 @@ export default function AccountAccessPage() {
           <div style={{ display:'flex', gap:7 }}>
             <button onClick={()=>setShowSettings(s=>!s)} style={{ padding:'6px 9px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer' }}><Settings size={13}/></button>
             <button onClick={copyClientLink} style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}><Link2 size={12}/> Client Link</button>
-            <button onClick={()=>setShowActivity(s=>!s)} style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 12px', borderRadius:8, border:`1.5px solid ${showActivity?ACCENT:'#e5e7eb'}`, background:showActivity?'#fff7f5':'#fff', fontSize:14, cursor:'pointer', color:showActivity?ACCENT:'#374151' }}><Activity size={12}/> Feed</button>
+            <button onClick={()=>setShowActivity(s=>!s)} style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 12px', borderRadius:8, border:`1.5px solid ${showActivity?ACCENT:'#e5e7eb'}`, background:showActivity?'#f0fbfc':'#fff', fontSize:14, cursor:'pointer', color:showActivity?ACCENT:'#374151' }}><Activity size={12}/> Feed</button>
             <button onClick={saveAll} disabled={saving} style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 14px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}><Save size={12}/>{saving?'Saving…':'Save'}</button>
           </div>
         </div>
 
-        {showSettings&&<div style={{ background:'#fff7f5', borderBottom:'1px solid #fed7aa', padding:'9px 20px', display:'flex', alignItems:'center', gap:10 }}><span style={{ fontSize:14, fontWeight:700, color:'#92400e' }}>Agency Invite Email:</span><input value={agencyEmail} onChange={e=>setAgencyEmail(e.target.value)} style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #fcd34d', fontSize:14, outline:'none', width:280, background:'#fff' }}/></div>}
+        {showSettings&&<div style={{ background:'#f0fbfc', borderBottom:'1px solid #fed7aa', padding:'9px 20px', display:'flex', alignItems:'center', gap:10 }}><span style={{ fontSize:14, fontWeight:700, color:'#92400e' }}>Agency Invite Email:</span><input value={agencyEmail} onChange={e=>setAgencyEmail(e.target.value)} style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #fcd34d', fontSize:14, outline:'none', width:280, background:'#fff' }}/></div>}
 
         {/* Stats */}
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'9px 20px', display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>

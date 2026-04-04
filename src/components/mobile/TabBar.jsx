@@ -20,14 +20,14 @@ export default function TabBar({ onMorePress, unreadCount = 0 }) {
         {TABS.map(tab => {
           const isActive = tab.path && (tab.path === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.path))
           const I = tab.icon
-          const color = isActive ? '#E8551A' : '#8E8E93'
+          const color = isActive ? '#ea2729' : '#8E8E93'
 
           const inner = (
             <>
               <div style={{ position: 'relative' }}>
                 <I size={24} strokeWidth={isActive ? 2.5 : 1.8} color={color} />
                 {tab.label === 'Inbox' && unreadCount > 0 && (
-                  <span style={{ position: 'absolute', top: -5, right: -8, background: '#E8551A', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 8, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', border: '1.5px solid #fff' }}>
+                  <span style={{ position: 'absolute', top: -5, right: -8, background: '#ea2729', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 8, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', border: '1.5px solid #fff' }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}

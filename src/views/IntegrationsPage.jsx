@@ -12,7 +12,8 @@ import {
   ChevronRight, Globe, Shield, Database, Webhook
 } from 'lucide-react'
 
-const ACCENT = '#E8551A'
+const ACCENT = '#ea2729'
+const TEAL = '#5bc6d0'
 
 const PROVIDERS = [
   {

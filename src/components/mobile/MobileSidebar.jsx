@@ -8,7 +8,7 @@ import LucyLogo from '../LucyLogo'
 
 const SECTIONS = [
   { title: null, items: [
-    { label: 'Project Hub', icon: LayoutDashboard, path: '/', color: '#E8551A' },
+    { label: 'Project Hub', icon: LayoutDashboard, path: '/', color: '#ea2729' },
     { label: 'Messages', icon: MessageSquare, path: '/messages', color: '#5856D6' },
     { label: 'Tasks', icon: CheckSquare, path: '/tasks', color: '#FF3B30' },
     { label: 'Calendar', icon: Calendar, path: '/calendar', color: '#007AFF' },
@@ -24,7 +24,7 @@ const SECTIONS = [
     { label: 'Templates', icon: FileText, path: '/marketing/templates', color: '#06b6d4' },
   ]},
   { title: 'Intelligence', items: [
-    { label: 'SCOUT Search', icon: Target, path: '/scout', color: '#E8551A', badge: 'NEW' },
+    { label: 'SCOUT Search', icon: Target, path: '/scout', color: '#ea2729', badge: 'NEW' },
     { label: 'My Leads', icon: ListFilter, path: '/scout/leads', color: '#FF6B35' },
   ]},
   { title: 'Moose SEO', items: [
@@ -63,12 +63,12 @@ export default function MobileSidebar({ isOpen, onClose }) {
         {/* Profile */}
         <div style={{ padding: '20px 20px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 26, background: 'linear-gradient(135deg,#E8551A,#ff8c42)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 26, background: 'linear-gradient(135deg,#ea2729,#ff8c42)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>{initial}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 17, fontWeight: 700, color: '#f4f4f5', margin: 0, textTransform: 'capitalize' }}>{name}</p>
-              <p style={{ fontSize: 12, color: '#E8551A', fontWeight: 600, margin: '2px 0 0' }}>Moose AI</p>
+              <p style={{ fontSize: 12, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Moose AI</p>
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 6, cursor: 'pointer' }}><X size={20} color="#71717a" /></button>
           </div>
@@ -88,8 +88,8 @@ export default function MobileSidebar({ isOpen, onClose }) {
                     <div style={{ width: 34, height: 34, borderRadius: 9, background: item.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <I size={17} strokeWidth={1.5} style={{ color: item.color }} />
                     </div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: active ? 600 : 500, color: active ? '#E8551A' : '#d4d4d8' }}>{item.label}</span>
-                    {item.badge && <span style={{ fontSize: 9, background: '#E8551A', color: '#fff', padding: '2px 6px', borderRadius: 10, fontWeight: 700 }}>{item.badge}</span>}
+                    <span style={{ flex: 1, fontSize: 15, fontWeight: active ? 600 : 500, color: active ? '#ea2729' : '#d4d4d8' }}>{item.label}</span>
+                    {item.badge && <span style={{ fontSize: 9, background: '#ea2729', color: '#fff', padding: '2px 6px', borderRadius: 10, fontWeight: 700 }}>{item.badge}</span>}
                     {!item.badge && <ChevronRight size={15} color="#52525b" />}
                   </Link>
                 )

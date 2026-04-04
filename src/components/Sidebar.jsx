@@ -59,7 +59,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor }
     ? location.pathname.startsWith(to)
     : location.pathname === to
   return (
-    <Link to={to} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+    <Link to={to} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 nav-link-animate ${
       active ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
     }`}>
       <Icon size={15} className={active ? 'text-orange-400' : ''} />
