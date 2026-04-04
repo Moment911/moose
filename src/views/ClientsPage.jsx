@@ -1,208 +1,400 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Trash2, Edit2, MoreHorizontal, Folder, Mail, Phone, Globe, X } from 'lucide-react'
+import {
+  Plus, Search, ChevronUp, ChevronDown, MoreHorizontal,
+  Edit2, Trash2, ExternalLink, Mail, Phone, Globe,
+  Users, Filter, X, Check, ArrowRight
+} from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import { getClients, createClient_, updateClient, deleteClient } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { getClients, createClient_, updateClient, deleteClient, getProjects } from '../lib/supabase'
-import { formatDistanceToNow } from 'date-fns'
+import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
+const ACCENT = '#E8551A'
+
+const STATUS_COLORS = {
+  active:   { bg:'#f0fdf4', color:'#16a34a', dot:'#16a34a' },
+  prospect: { bg:'#fff7f5', color:ACCENT,    dot:ACCENT },
+  inactive: { bg:'#f9fafb', color:'#9ca3af', dot:'#9ca3af' },
+  paused:   { bg:'#fffbeb', color:'#d97706', dot:'#d97706' },
+}
+
+const INDUSTRIES = [
+  'Plumbing','HVAC','Dental','Law Firm','Gym / Fitness','Roofing',
+  'Auto Dealer','Landscaping','Restaurant','Real Estate','Medical',
+  'Salon / Spa','Childcare','Veterinary','Electrician','Contractor','Other'
+]
+
+function StatusDot({ status }) {
+  const cfg = STATUS_COLORS[status] || STATUS_COLORS.active
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:600, padding:'3px 10px', borderRadius:20, background:cfg.bg, color:cfg.color }}>
+      <span style={{ width:6, height:6, borderRadius:'50%', background:cfg.dot, display:'inline-block' }}/>
+      {status ? status.charAt(0).toUpperCase()+status.slice(1) : 'Active'}
+    </span>
+  )
+}
+
+function SortIcon({ field, sortKey, sortDir }) {
+  if (sortKey !== field) return <ChevronUp size={12} color="#d1d5db"/>
+  return sortDir === 'asc' ? <ChevronUp size={12} color={ACCENT}/> : <ChevronDown size={12} color={ACCENT}/>
+}
+
 export default function ClientsPage() {
-  const { agencyId } = useAuth()
   const navigate = useNavigate()
-  const [clients, setClients] = useState([])
-  const [projects, setProjects] = useState({})
-  const [search, setSearch] = useState('')
-  const [showAdd, setShowAdd] = useState(false)
-  const [editingId, setEditingId] = useState(null)
-  const [form, setForm] = useState({ name: '', email: '', phone: '', website: '' })
+  const { agencyId } = useAuth()
+  const { refreshClients } = useClient()
+
+  const [clients, setClients]   = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [search, setSearch]     = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [industryFilter, setIndustryFilter] = useState('all')
+  const [sortKey, setSortKey]   = useState('name')
+  const [sortDir, setSortDir]   = useState('asc')
+  const [showAdd, setShowAdd]   = useState(false)
   const [menuOpen, setMenuOpen] = useState(null)
+  const [editingId, setEditingId] = useState(null)
 
-  useEffect(() => { loadClients() }, [])
+  const [form, setForm] = useState({
+    name:'', email:'', phone:'', website:'', industry:'', status:'active'
+  })
 
-  async function loadClients() {
+  useEffect(() => { load() }, [agencyId])
+
+  async function load() {
+    setLoading(true)
     const { data } = await getClients(agencyId)
     setClients(data || [])
-    const projMap = {}
-    for (const c of (data || [])) {
-      const { data: p } = await getProjects(c.id)
-      projMap[c.id] = p || []
-    }
-    setProjects(projMap)
+    setLoading(false)
   }
 
-  async function handleAdd(e) {
-    e.preventDefault()
+  function setF(k, v) { setForm(f => ({ ...f, [k]: v })) }
+
+  async function handleSave() {
     if (!form.name.trim()) { toast.error('Name is required'); return }
-    const { data, error } = await createClient_(form.name.trim(), form.email.trim(), agencyId)
-    if (error) {
-      if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
-        toast.error('Setup required: Run the SQL seed file in Supabase to create your agency record first. See supabase/migrations/20260411_fix_fk_and_seed.sql')
-      } else {
-        toast.error(error.message)
+    if (editingId) {
+      const { error } = await updateClient(editingId, form)
+      if (error) { toast.error(error.message); return }
+      toast.success('Client updated')
+    } else {
+      const { error } = await createClient_(form.name.trim(), form.email.trim(), agencyId)
+      if (error) {
+        if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
+          toast.error('Run the seed SQL in Supabase first — see supabase/migrations/20260411_fix_fk_and_seed.sql')
+        } else {
+          toast.error(error.message)
+        }
+        return
       }
-      return
-    }
-    toast.success('Client created')
-    setForm({ name: '', email: '', phone: '', website: '' })
-    setShowAdd(false)
-    loadClients()
-  }
-
-  async function handleUpdate(id) {
-    const { error } = await updateClient(id, {
-      name: form.name.trim(),
-      email: form.email.trim(),
-    })
-    if (error) {
-      if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
-        toast.error('Setup required: Run the SQL seed file in Supabase to create your agency record first. See supabase/migrations/20260411_fix_fk_and_seed.sql')
-      } else {
-        toast.error(error.message)
+      // Update with extra fields
+      if (form.phone || form.website || form.industry || form.status !== 'active') {
+        const { data: latest } = await getClients(agencyId)
+        const newest = latest?.find(c => c.name === form.name.trim())
+        if (newest) await updateClient(newest.id, { phone:form.phone, website:form.website, industry:form.industry, status:form.status })
       }
-      return
+      toast.success('Client added')
     }
-    toast.success('Client updated')
-    setEditingId(null)
-    setForm({ name: '', email: '', phone: '', website: '' })
-    loadClients()
+    setShowAdd(false); setEditingId(null)
+    setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active' })
+    await load()
+    await refreshClients()
   }
 
   async function handleDelete(id, name) {
-    if (!confirm(`Delete "${name}" and all their projects?`)) return
-    const { error } = await deleteClient(id)
-    if (error) {
-      if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
-        toast.error('Setup required: Run the SQL seed file in Supabase to create your agency record first. See supabase/migrations/20260411_fix_fk_and_seed.sql')
-      } else {
-        toast.error(error.message)
-      }
-      return
-    }
-    toast.success('Client deleted')
-    loadClients()
+    if (!confirm(`Delete ${name}? This cannot be undone.`)) return
+    await deleteClient(id)
+    toast.success('Deleted')
+    await load()
+    await refreshClients()
+    setMenuOpen(null)
   }
 
-  const filtered = clients.filter(c =>
-    c.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.email?.toLowerCase().includes(search.toLowerCase())
-  )
+  function startEdit(client) {
+    setEditingId(client.id)
+    setForm({ name:client.name||'', email:client.email||'', phone:client.phone||'',
+      website:client.website||'', industry:client.industry||'', status:client.status||'active' })
+    setShowAdd(true)
+    setMenuOpen(null)
+  }
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  const filtered = clients
+    .filter(c => {
+      const q = search.toLowerCase()
+      const matchSearch = !q || c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q) ||
+        c.phone?.includes(q) || c.industry?.toLowerCase().includes(q)
+      const matchStatus = statusFilter === 'all' || c.status === statusFilter
+      const matchIndustry = industryFilter === 'all' || c.industry === industryFilter
+      return matchSearch && matchStatus && matchIndustry
+    })
+    .sort((a, b) => {
+      const av = (a[sortKey] || '').toString().toLowerCase()
+      const bv = (b[sortKey] || '').toString().toLowerCase()
+      return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
+    })
+
+  const industries = [...new Set(clients.map(c => c.industry).filter(Boolean))]
+
+  const THstyle = (field) => ({
+    padding:'11px 14px', fontSize:12, fontWeight:700, color:'#6b7280',
+    textAlign:'left', background:'#f9fafb', borderBottom:'1px solid #e5e7eb',
+    cursor:'pointer', userSelect:'none', whiteSpace:'nowrap'
+  })
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto px-6 py-8">
+    <div style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
+      <Sidebar/>
+
+      <main style={{ flex:1, overflowY:'auto' }}>
+        <div style={{ maxWidth:1200, margin:'0 auto', padding:'28px 28px' }}>
+
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
-              <p className="text-sm text-gray-500 mt-1">{clients.length} total clients</p>
+              <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>Clients</h1>
+              <p style={{ fontSize:13, color:'#9ca3af', margin:'4px 0 0' }}>
+                {clients.length} total · {clients.filter(c=>c.status==='active').length} active
+              </p>
             </div>
-            <button onClick={() => { setShowAdd(true); setForm({ name: '', email: '', phone: '', website: '' }) }}
-              className="btn-primary">
-              <Plus size={16} /> Add Client
+            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active' }) }}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
+              <Plus size={16}/> Add Client
             </button>
           </div>
 
-          {/* Search */}
-          <div className="relative mb-6">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Search clients..." value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="input pl-9" />
-          </div>
-
-          {/* Add/Edit Modal */}
-          {(showAdd || editingId) && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => { setShowAdd(false); setEditingId(null) }}>
-              <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">{editingId ? 'Edit Client' : 'New Client'}</h2>
-                  <button onClick={() => { setShowAdd(false); setEditingId(null) }} className="text-gray-400 hover:text-gray-600">
-                    <X size={18} />
-                  </button>
+          {/* Add/Edit form */}
+          {showAdd && (
+            <div style={{ background:'#fff', borderRadius:16, border:`2px solid ${ACCENT}`, padding:'24px', marginBottom:20 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
+                <h2 style={{ fontSize:17, fontWeight:800, color:'#111', margin:0 }}>
+                  {editingId ? 'Edit Client' : 'New Client'}
+                </h2>
+                <button onClick={() => { setShowAdd(false); setEditingId(null) }}
+                  style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:4 }}>
+                  <X size={18}/>
+                </button>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14, marginBottom:14 }}>
+                {[
+                  { label:'Client Name *', key:'name', placeholder:'Apex Dental Studio', type:'text' },
+                  { label:'Email', key:'email', placeholder:'info@client.com', type:'email' },
+                  { label:'Phone', key:'phone', placeholder:'(305) 555-0100', type:'tel' },
+                  { label:'Website', key:'website', placeholder:'https://client.com', type:'url' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>{f.label}</label>
+                    <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)}
+                      placeholder={f.placeholder}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=ACCENT}
+                      onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                  </div>
+                ))}
+                <div>
+                  <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Industry</label>
+                  <select value={form.industry} onChange={e=>setF('industry',e.target.value)}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    <option value="">Select industry…</option>
+                    {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
+                  </select>
                 </div>
-                <form onSubmit={editingId ? (e) => { e.preventDefault(); handleUpdate(editingId) } : handleAdd}>
-                  <div className="space-y-3">
-                    <input type="text" placeholder="Client name *" value={form.name}
-                      onChange={e => setForm({ ...form, name: e.target.value })}
-                      className="input" autoFocus />
-                    <input type="email" placeholder="Email" value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                      className="input" />
-                  </div>
-                  <div className="flex gap-3 mt-5">
-                    <button type="button" onClick={() => { setShowAdd(false); setEditingId(null) }}
-                      className="btn-secondary flex-1">Cancel</button>
-                    <button type="submit" className="btn-primary flex-1">
-                      {editingId ? 'Save Changes' : 'Create Client'}
-                    </button>
-                  </div>
-                </form>
+                <div>
+                  <label style={{ fontSize:12, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Status</label>
+                  <select value={form.status} onChange={e=>setF('status',e.target.value)}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    <option value="active">Active</option>
+                    <option value="prospect">Prospect</option>
+                    <option value="paused">Paused</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display:'flex', gap:10 }}>
+                <button onClick={handleSave}
+                  style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                  {editingId ? 'Save Changes' : 'Add Client'}
+                </button>
+                <button onClick={() => { setShowAdd(false); setEditingId(null) }}
+                  style={{ padding:'10px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:14, cursor:'pointer' }}>
+                  Cancel
+                </button>
               </div>
             </div>
           )}
 
-          {/* Client Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(client => (
-              <div key={client.id}
-                className="card p-5 hover:shadow-md transition-shadow cursor-pointer group relative"
-                onClick={() => navigate(`/clients/${client.id}`)}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-semibold text-sm">
-                      {client.name?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{client.name}</h3>
-                      {client.email && (
-                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                          <Mail size={11} /> {client.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <button onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === client.id ? null : client.id) }}
-                      className="p-1 rounded hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal size={16} className="text-gray-400" />
-                    </button>
-                    {menuOpen === client.id && (
-                      <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 w-36"
-                        onClick={e => e.stopPropagation()}>
-                        <button onClick={() => {
-                          setEditingId(client.id)
-                          setForm({ name: client.name || '', email: client.email || '', phone: '', website: '' })
-                          setMenuOpen(null)
-                        }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2">
-                          <Edit2 size={13} /> Edit
-                        </button>
-                        <button onClick={() => { handleDelete(client.id, client.name); setMenuOpen(null) }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 flex items-center gap-2">
-                          <Trash2 size={13} /> Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Folder size={12} /> {(projects[client.id] || []).length} projects
-                  </span>
-                  {client.created_at && (
-                    <span>Added {formatDistanceToNow(new Date(client.created_at), { addSuffix: true })}</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          {/* Search + filters */}
+          <div style={{ display:'flex', gap:10, marginBottom:16, alignItems:'center', flexWrap:'wrap' }}>
+            <div style={{ flex:1, minWidth:200, display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1.5px solid #e5e7eb', borderRadius:11, padding:'9px 14px' }}>
+              <Search size={15} color="#9ca3af"/>
+              <input value={search} onChange={e=>setSearch(e.target.value)}
+                placeholder="Search by name, email, phone, industry…"
+                style={{ border:'none', outline:'none', fontSize:14, background:'transparent', flex:1, color:'#111' }}/>
+              {search && <button onClick={()=>setSearch('')} style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:2 }}><X size={13}/></button>}
+            </div>
+
+            <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}
+              style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', fontSize:13, background:'#fff', color:'#374151', outline:'none', cursor:'pointer' }}>
+              <option value="all">All statuses</option>
+              <option value="active">Active</option>
+              <option value="prospect">Prospect</option>
+              <option value="paused">Paused</option>
+              <option value="inactive">Inactive</option>
+            </select>
+
+            <select value={industryFilter} onChange={e=>setIndustryFilter(e.target.value)}
+              style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', fontSize:13, background:'#fff', color:'#374151', outline:'none', cursor:'pointer' }}>
+              <option value="all">All industries</option>
+              {industries.map(i=><option key={i} value={i}>{i}</option>)}
+            </select>
+
+            {(search || statusFilter !== 'all' || industryFilter !== 'all') && (
+              <button onClick={()=>{ setSearch(''); setStatusFilter('all'); setIndustryFilter('all') }}
+                style={{ padding:'9px 14px', borderRadius:11, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, color:'#6b7280', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                <X size={13}/> Clear
+              </button>
+            )}
+
+            <div style={{ fontSize:13, color:'#9ca3af', marginLeft:'auto' }}>
+              {filtered.length} of {clients.length} clients
+            </div>
           </div>
 
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-gray-400">
-              {search ? 'No clients match your search' : 'No clients yet — add your first one above'}
+          {/* Table */}
+          {loading ? (
+            <div style={{ textAlign:'center', padding:60, color:'#9ca3af', fontSize:14 }}>Loading clients…</div>
+          ) : filtered.length === 0 ? (
+            <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'64px 24px', textAlign:'center' }}>
+              <Users size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
+              <div style={{ fontSize:17, fontWeight:700, color:'#111', marginBottom:6 }}>
+                {clients.length === 0 ? 'No clients yet' : 'No clients match your filters'}
+              </div>
+              <div style={{ fontSize:13, color:'#9ca3af', marginBottom:20 }}>
+                {clients.length === 0 ? 'Add your first client to get started.' : 'Try adjusting your search or filters.'}
+              </div>
+              {clients.length === 0 && (
+                <button onClick={() => setShowAdd(true)}
+                  style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}>
+                  Add First Client
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                <thead>
+                  <tr>
+                    {[
+                      { key:'name',     label:'Client Name' },
+                      { key:'industry', label:'Industry' },
+                      { key:'status',   label:'Status' },
+                      { key:'email',    label:'Contact' },
+                    ].map(col => (
+                      <th key={col.key} style={THstyle(col.key)} onClick={() => toggleSort(col.key)}>
+                        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                          {col.label}
+                          <SortIcon field={col.key} sortKey={sortKey} sortDir={sortDir}/>
+                        </div>
+                      </th>
+                    ))}
+                    <th style={{ ...THstyle(''), cursor:'default', width:100 }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((client, i) => (
+                    <tr key={client.id}
+                      style={{ borderBottom: i < filtered.length-1 ? '1px solid #f3f4f6' : 'none', cursor:'pointer', transition:'background .1s' }}
+                      onMouseEnter={e => e.currentTarget.style.background='#fafafa'}
+                      onMouseLeave={e => e.currentTarget.style.background=''}
+                      onClick={() => navigate(`/clients/${client.id}`)}>
+
+                      {/* Name */}
+                      <td style={{ padding:'14px 14px' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                          <div style={{ width:38, height:38, borderRadius:10, background:ACCENT+'18', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:900, color:ACCENT, flexShrink:0 }}>
+                            {(client.name||'?')[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>{client.name}</div>
+                            {client.website && (
+                              <a href={client.website} target="_blank" rel="noreferrer"
+                                onClick={e=>e.stopPropagation()}
+                                style={{ fontSize:11, color:'#9ca3af', display:'flex', alignItems:'center', gap:3, textDecoration:'none' }}>
+                                <Globe size={10}/> {client.website.replace(/^https?:\/\//,'').slice(0,30)}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Industry */}
+                      <td style={{ padding:'14px 14px' }}>
+                        <span style={{ fontSize:13, color:'#374151', fontWeight:500 }}>
+                          {client.industry || <span style={{ color:'#d1d5db' }}>—</span>}
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td style={{ padding:'14px 14px' }}>
+                        <StatusDot status={client.status}/>
+                      </td>
+
+                      {/* Contact */}
+                      <td style={{ padding:'14px 14px' }}>
+                        <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                          {client.email && (
+                            <a href={`mailto:${client.email}`} onClick={e=>e.stopPropagation()}
+                              style={{ fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
+                              <Mail size={11}/> {client.email}
+                            </a>
+                          )}
+                          {client.phone && (
+                            <a href={`tel:${client.phone}`} onClick={e=>e.stopPropagation()}
+                              style={{ fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', gap:5, textDecoration:'none' }}>
+                              <Phone size={11}/> {client.phone}
+                            </a>
+                          )}
+                          {!client.email && !client.phone && <span style={{ fontSize:12, color:'#d1d5db' }}>No contact info</span>}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding:'14px 14px' }} onClick={e=>e.stopPropagation()}>
+                        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                          <button onClick={() => navigate(`/clients/${client.id}`)}
+                            style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:11, fontWeight:600, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:4 }}>
+                            Open <ArrowRight size={11}/>
+                          </button>
+                          <div style={{ position:'relative' }}>
+                            <button onClick={() => setMenuOpen(menuOpen===client.id ? null : client.id)}
+                              style={{ padding:'5px 7px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#9ca3af', display:'flex', alignItems:'center' }}>
+                              <MoreHorizontal size={14}/>
+                            </button>
+                            {menuOpen===client.id && (
+                              <div style={{ position:'absolute', right:0, top:'100%', marginTop:4, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,.1)', zIndex:50, minWidth:150, padding:4 }}>
+                                <button onClick={()=>startEdit(client)}
+                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#374151' }}>
+                                  <Edit2 size={13}/> Edit
+                                </button>
+                                <button onClick={()=>handleDelete(client.id, client.name)}
+                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#dc2626' }}>
+                                  <Trash2 size={13}/> Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

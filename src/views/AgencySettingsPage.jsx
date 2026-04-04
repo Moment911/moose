@@ -26,7 +26,7 @@ const PLAN_DETAILS = {
 }
 
 export default function AgencySettingsPage() {
-  const { user } = useAuth()
+  const { user, agencyId } = useAuth()
   const [tab, setTab] = useState('general')
   const [agency, setAgency] = useState(null)
   const [members, setMembers] = useState([])
@@ -43,9 +43,9 @@ export default function AgencySettingsPage() {
     if (!memberData) return
     const agencyId = memberData.agency_id
     const [{ data: ag }, { data: mem }, { data: feat }] = await Promise.all([
-      supabase.from('agencies').select('*').eq('id', agencyId).single(),
-      supabase.from('agency_members').select('*, user:user_id(email)').eq('agency_id', agencyId),
-      supabase.from('agency_features').select('*').eq('agency_id', agencyId).single(),
+      supabase.from('agencies').select('*').eq('id', aid).single(),
+      supabase.from('agency_members').select('*, user:user_id(email)').eq('agency_id', aid),
+      supabase.from('agency_features').select('*').eq('agency_id', aid).single(),
     ])
     setAgency(ag); setMembers(mem||[]); setFeatures(feat)
   }

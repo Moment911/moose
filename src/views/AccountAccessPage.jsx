@@ -28,12 +28,11 @@ function ActivityEntry({ entry }) {
   const isClient = entry.change_type==='access_item_updated'
   const isStaff  = entry.change_type==='access_verified'
   const color = isClient?'#3b82f6':isStaff?'#10b981':'#9ca3af'
-  const icon  = isClient?'👤':isStaff?'✅':'🔔'
   const section = ACCESS_SECTIONS.flatMap(s=>s.items).find(i=>i.id===entry.field_name)
   const itemLabel = section?.label || entry.field_name || 'item'
   return (
     <div style={{ display:'flex', gap:10, padding:'10px 0', borderBottom:'1px solid #f9fafb' }}>
-      <div style={{ width:28, height:28, borderRadius:'50%', background:color+'15', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, flexShrink:0 }}>{icon}</div>
+      <div style={{ width:28, height:28, borderRadius:'50%', background:color+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{isStaff?<CheckCircle size={13} color={color}/>:isClient?<User size={13} color={color}/>:<Bell size={13} color={color}/>}</div>
       <div style={{ flex:1 }}>
         <div style={{ fontSize:12, color:'#374151', fontWeight:500 }}>
           <strong style={{ color }}>{isStaff?`Staff: ${entry.changed_by}`:isClient?'Client':entry.changed_by}</strong>{' '}
@@ -203,7 +202,7 @@ export default function AccountAccessPage() {
         if (e.change_type==='access_item_updated'||e.change_type==='access_verified') {
           setLiveActivity(prev=>[e,...prev].slice(0,50))
           if (e.change_type==='access_item_updated') setAccessData(prev=>({...prev,[e.field_name]:{...prev[e.field_name],status:e.new_value}}))
-          toast.success(e.change_type==='access_item_updated'?`🔴 Live: Client updated ${e.field_name}`:`✅ ${e.changed_by} verified ${e.field_name}`,{duration:4000})
+          toast.success(e.change_type==='access_item_updated'?`Live: Client updated ${e.field_name}`:`${e.changed_by} verified ${e.field_name}`,{duration:4000})
         }
       }).subscribe(s=>setIsLive(s==='SUBSCRIBED'))
     return ()=>{ supabase.removeChannel(channel); setIsLive(false) }

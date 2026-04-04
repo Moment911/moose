@@ -24,7 +24,7 @@ const SEARCH_MODES = [
   {
     id:    'prospect',
     icon:  Target,
-    emoji: '🎯',
+    emoji: '',
     label: 'Find New Clients',
     desc:  'Discover local businesses with marketing gaps to pitch as new agency clients',
     color: ACCENT,
@@ -34,7 +34,7 @@ const SEARCH_MODES = [
   {
     id:    'competitor',
     icon:  BarChart,
-    emoji: '🥊',
+    emoji: '',
     label: 'Competitor Analysis',
     desc:  'Analyze a specific business or industry to understand the competitive landscape in a market',
     color: '#8b5cf6',
@@ -44,7 +44,7 @@ const SEARCH_MODES = [
   {
     id:    'market',
     icon:  Eye,
-    emoji: '📊',
+    emoji: '',
     label: 'Market Research',
     desc:  'Research any industry or market segment — trends, saturation, opportunity gaps',
     color: '#10b981',
@@ -54,22 +54,22 @@ const SEARCH_MODES = [
 ]
 
 const INDUSTRIES = [
-  { key:'restaurant',  label:'Restaurant',    emoji:'🍕' },
-  { key:'law_firm',    label:'Law Firm',       emoji:'⚖️' },
-  { key:'dental',      label:'Dental',         emoji:'🦷' },
-  { key:'real_estate', label:'Real Estate',    emoji:'🏠' },
-  { key:'gym',         label:'Gym / Fitness',  emoji:'💪' },
-  { key:'salon',       label:'Salon / Spa',    emoji:'💅' },
-  { key:'medical',     label:'Medical',        emoji:'🏥' },
-  { key:'hvac',        label:'HVAC',           emoji:'❄️' },
-  { key:'plumber',     label:'Plumber',        emoji:'🔧' },
-  { key:'roofing',     label:'Roofing',        emoji:'🏗️' },
-  { key:'auto_dealer', label:'Auto Dealer',    emoji:'🚗' },
-  { key:'landscaping', label:'Landscaping',    emoji:'🌿' },
-  { key:'childcare',   label:'Childcare',      emoji:'👶' },
-  { key:'veterinary',  label:'Veterinary',     emoji:'🐾' },
-  { key:'electrician', label:'Electrician',    emoji:'⚡' },
-  { key:'contractor',  label:'Contractor',     emoji:'🏛️' },
+  { key:'restaurant',  label:'Restaurant' },
+  { key:'law_firm',    label:'Law Firm' },
+  { key:'dental',      label:'Dental' },
+  { key:'real_estate', label:'Real Estate' },
+  { key:'gym',         label:'Gym / Fitness' },
+  { key:'salon',       label:'Salon / Spa' },
+  { key:'medical',     label:'Medical' },
+  { key:'hvac',        label:'HVAC' },
+  { key:'plumber',     label:'Plumber' },
+  { key:'roofing',     label:'Roofing' },
+  { key:'auto_dealer', label:'Auto Dealer' },
+  { key:'landscaping', label:'Landscaping' },
+  { key:'childcare',   label:'Childcare' },
+  { key:'veterinary',  label:'Veterinary' },
+  { key:'electrician', label:'Electrician' },
+  { key:'contractor',  label:'Contractor' },
 ]
 
 const GAPS = [
@@ -104,10 +104,10 @@ const QUICK_SEARCHES = {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function scoreColor(s) { return s>=75?'#dc2626':s>=50?ACCENT:s>=30?'#f59e0b':'#3b82f6' }
 function tempLabel(s) {
-  return s>=75 ? { label:'Hot Lead',  color:'#dc2626', bg:'#fef2f2', icon:'🔥' }
-       : s>=50 ? { label:'Warm',      color:ACCENT,    bg:'#fff7f5', icon:'🟠' }
-       : s>=30 ? { label:'Lukewarm',  color:'#d97706', bg:'#fffbeb', icon:'🟡' }
-       :         { label:'Cold',      color:'#3b82f6', bg:'#eff6ff', icon:'🔵' }
+  return s>=75 ? { label:'Hot Lead',  color:'#dc2626', bg:'#fef2f2', icon:'' }
+       : s>=50 ? { label:'Warm',      color:ACCENT,    bg:'#fff7f5', icon:'' }
+       : s>=30 ? { label:'Lukewarm',  color:'#d97706', bg:'#fffbeb', icon:'' }
+       :         { label:'Cold',      color:'#3b82f6', bg:'#eff6ff', icon:'' }
 }
 
 function ScoreRing({ score, size=52 }) {
@@ -141,11 +141,11 @@ function ConfidenceBadge({ lead, small }) {
 function SourceBadge({ realData }) {
   return realData ? (
     <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#eff6ff', color:'#1d4ed8', border:'1px solid #bfdbfe', display:'inline-flex', alignItems:'center', gap:4 }}>
-      🔵 Live Google Data
+      Live Google Data
     </span>
   ) : (
     <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25`, display:'inline-flex', alignItems:'center', gap:4 }}>
-      🤖 AI Estimated
+      AI Estimated
     </span>
   )
 }
@@ -158,7 +158,7 @@ function ProvenancePanel({ lead }) {
   const confLabel = lead._confLabel || { label:'Unverified', color:'#9ca3af', bg:'#f3f4f6' }
   const verified  = lead._provenance.filter(p => p.status==='verified')
   const mismatches = lead._provenance.filter(p => p.status==='mismatch')
-  const statusIcon  = { verified:'✅', estimated:'🔵', mismatch:'⚠️', not_found:'⚪', generated:'🤖', not_checked:'⚪', unknown:'❓' }
+  const statusIcon  = { verified:'✓', estimated:'·', mismatch:'!', not_found:'-', generated:'·', not_checked:'-', unknown:'?' }
   const statusColor = { verified:'#16a34a', estimated:'#3b82f6', mismatch:'#dc2626', not_found:'#9ca3af', generated:ACCENT, not_checked:'#9ca3af', unknown:'#9ca3af' }
 
   return (
@@ -183,15 +183,15 @@ function ProvenancePanel({ lead }) {
               <div style={{ height:'100%', width:`${conf}%`, background:confLabel.color, borderRadius:3 }}/>
             </div>
             <div style={{ fontSize:10, color:'#9ca3af', marginTop:5 }}>
-              {lead._real_data ? '🔵 Live data from Google Places API — verified business' :
-               verified.length>=2 ? `✅ ${verified.length} data points verified locally` :
-               '🤖 AI-generated — verify before outreach'}
-              {mismatches.length>0 && ` · ⚠ ${mismatches.length} flag${mismatches.length>1?'s':''} detected`}
+              {lead._real_data ? 'Live data from Google Places API — verified business' :
+               verified.length>=2 ? `${verified.length} data points verified locally` :
+               'AI-generated — verify before outreach'}
+              {mismatches.length>0 && ` · ${mismatches.length} flag${mismatches.length>1?'s':''} detected`}
             </div>
           </div>
           {lead._real_data && (
             <div style={{ padding:'10px 14px', borderBottom:'1px solid #f3f4f6', background:'#eff6ff' }}>
-              <div style={{ fontSize:12, fontWeight:700, color:'#1d4ed8', marginBottom:3 }}>🔵 Live Google Places Data</div>
+              <div style={{ fontSize:12, fontWeight:700, color:'#1d4ed8', marginBottom:3 }}>Live Google Places Data</div>
               <div style={{ fontSize:11, color:'#374151' }}>Name, address, phone, rating, and reviews pulled in real time from Google Maps. Business is live and operational.</div>
               {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" style={{ fontSize:11, color:'#1d4ed8', display:'inline-flex', alignItems:'center', gap:4, marginTop:4 }}>View on Google Maps ↗</a>}
             </div>
@@ -208,7 +208,7 @@ function ProvenancePanel({ lead }) {
                   {p.confidence && <span style={{ fontSize:10, color:'#9ca3af', marginLeft:'auto' }}>{p.confidence}%</span>}
                 </div>
                 <div style={{ fontSize:11, color:'#6b7280', lineHeight:1.5 }}>{p.detail}</div>
-                {p.upgrade && <div style={{ fontSize:10, color:ACCENT, marginTop:3, fontStyle:'italic' }}>💡 {p.upgrade}</div>}
+                {p.upgrade && <div style={{ fontSize:10, color:ACCENT, marginTop:3, fontStyle:'italic' }}>{p.upgrade}</div>}
               </div>
             </div>
           ))}
@@ -247,18 +247,18 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
           <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{lead.name}</span>
-          {!isMarket && <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>}
+          {!isMarket && <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
           <SourceBadge realData={lead._real_data}/>
           <ConfidenceBadge lead={lead} small/>
         </div>
         <div style={{ display:'flex', gap:12, fontSize:12, color:'#9ca3af', flexWrap:'wrap' }}>
-          {lead.address && <span>📍 {lead.address}</span>}
-          {lead.phone   && <span>📞 {lead.phone}</span>}
+          {lead.address && <span>{lead.address}</span>}
+          {lead.phone   && <span>{lead.phone}</span>}
           {lead.rating  > 0 && <span>⭐ {lead.rating} ({lead.review_count} reviews)</span>}
         </div>
         {lead.gaps?.length>0 && (
           <div style={{ display:'flex', gap:5, marginTop:6, flexWrap:'wrap' }}>
-            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>⚠ {g}</span>)}
+            {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
           </div>
         )}
       </div>
@@ -286,7 +286,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:4, lineHeight:1.3 }}>{lead.name}</div>
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-              {!isMarket && <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.icon} {temp.label}</span>}
+              {!isMarket && <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
               <SourceBadge realData={lead._real_data}/>
               <ConfidenceBadge lead={lead} small/>
             </div>
@@ -312,7 +312,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, saved, view }) {
           <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
             {lead.gaps.map(g=>(
               <span key={g} style={{ fontSize:10, fontWeight:600, padding:'3px 9px', borderRadius:20, background:'#fff7f5', color:ACCENT, border:`1px solid ${ACCENT}25` }}>
-                {isCompetitor ? '📊' : '⚠'} {g}
+                 {g}
               </span>
             ))}
           </div>
@@ -353,9 +353,9 @@ function MarketSummaryCard({ results, query, location }) {
   return (
     <div style={{ background:'linear-gradient(135deg,#18181b,#27272a)', borderRadius:16, padding:'22px 24px', marginBottom:20, color:'#fff' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
-        <Eye size={18} color="#10b981"/>
+        <BarChart2 size={18} color="#10b981"/>
         <div style={{ fontSize:16, fontWeight:800 }}>Market Overview: {query} in {location}</div>
-        {hasRealData && <span style={{ fontSize:10, fontWeight:700, background:'#4285f4', color:'#fff', padding:'2px 8px', borderRadius:20, marginLeft:'auto' }}>🔵 Live Google Data</span>}
+        {hasRealData && <span style={{ fontSize:10, fontWeight:700, background:'#4285f4', color:'#fff', padding:'2px 8px', borderRadius:20, marginLeft:'auto' }}>Live Google Data</span>}
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12 }}>
         {[
@@ -573,7 +573,7 @@ Be specific about why each business needs marketing help based on their likely s
             {SEARCH_MODES.map(m=>(
               <button key={m.id} onClick={()=>{ setMode(m.id); setResults([]); setStats(null) }}
                 style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:8, border:'none', background:mode===m.id?'#fff':'transparent', cursor:'pointer', boxShadow:mode===m.id?'0 1px 3px rgba(0,0,0,.1)':'none', transition:'all .15s' }}>
-                <span style={{ fontSize:14 }}>{m.emoji}</span>
+                <span style={{ fontSize:14 }}></span>
                 <span style={{ fontSize:12, fontWeight:mode===m.id?700:500, color:mode===m.id?m.color:'#6b7280', whiteSpace:'nowrap' }}>{m.label}</span>
               </button>
             ))}
@@ -643,7 +643,7 @@ Be specific about why each business needs marketing help based on their likely s
                   {INDUSTRIES.map(ind=>(
                     <button key={ind.key} onClick={()=>setSelectedIndustries(prev=>prev.includes(ind.key)?prev.filter(k=>k!==ind.key):[...prev,ind.key])}
                       style={{ fontSize:12, padding:'5px 10px', borderRadius:20, border:`1.5px solid ${selectedIndustries.includes(ind.key)?modeConfig.color:'#e5e7eb'}`, background:selectedIndustries.includes(ind.key)?modeConfig.color+'12':'#fff', color:selectedIndustries.includes(ind.key)?modeConfig.color:'#374151', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
-                      {ind.emoji} {ind.label}
+                      {ind.label}
                     </button>
                   ))}
                 </div>
@@ -710,23 +710,22 @@ Be specific about why each business needs marketing help based on their likely s
               {/* Data source info */}
               <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'20px 24px', marginBottom:20, display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:8 }}>🔵 Live Google Places Data</div>
+                  <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:8 }}>Live Google Places Data</div>
                   <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>
                     {googleKeyAvailable
-                      ? '✅ Google Places API connected — results will show real businesses with verified ratings, reviews, phone numbers, and websites.'
-                      : '⚠ Google Places API key not configured. Add NEXT_PUBLIC_GOOGLE_PLACES_KEY to Vercel for real business data.'}
+                      ? 'Google Places API connected — results will show real businesses with verified ratings, reviews, phone numbers, and websites.'
+                      : 'Google Places API key not configured. Add NEXT_PUBLIC_GOOGLE_PLACES_KEY to Vercel for real business data.'}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:8 }}>🤖 AI Fallback</div>
+                  <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:8 }}>AI Fallback</div>
                   <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>When Google Places is unavailable, Claude AI generates market-calibrated leads with ZIP/area code cross-referencing and data confidence scoring.</div>
                 </div>
               </div>
               {/* Hero */}
               <div style={{ background:'linear-gradient(135deg,#18181b,#27272a)', borderRadius:20, padding:'40px', textAlign:'center' }}>
                 <div style={{ width:64, height:64, borderRadius:'50%', background:modeConfig.color, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28 }}>
-                  {modeConfig.emoji}
-                </div>
+                  </div>
                 <h2 style={{ fontSize:26, fontWeight:900, color:'#fff', marginBottom:10, letterSpacing:-.5 }}>{modeConfig.label}</h2>
                 <p style={{ fontSize:15, color:'#a1a1aa', lineHeight:1.65, maxWidth:500, margin:'0 auto' }}>{modeConfig.desc}</p>
               </div>
@@ -756,8 +755,8 @@ Be specific about why each business needs marketing help based on their likely s
                 <Database size={14} color={stats?.realData>0?'#1d4ed8':ACCENT}/>
                 <span style={{ fontSize:13, fontWeight:600, color:stats?.realData>0?'#1d4ed8':'#92400e' }}>
                   {stats?.realData>0
-                    ? `🔵 ${stats.realData} live businesses from Google Places · ${results.length-stats.realData} AI-estimated`
-                    : `🤖 AI-generated leads · cross-referenced against USPS ZIP + NANP area codes`}
+                    ? `${stats.realData} live businesses from Google Places · ${results.length-stats.realData} AI-estimated`
+                    : `AI-generated leads · cross-referenced against USPS ZIP + NANP area codes`}
                 </span>
                 <span style={{ marginLeft:'auto', fontSize:11, color:'#9ca3af' }}>{results.length} results for "{query}" in {location}</span>
               </div>
@@ -770,7 +769,7 @@ Be specific about why each business needs marketing help based on their likely s
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:18 }}>
                   {[
                     { label:'Total Found',   value:stats.total,                color:'#111' },
-                    { label:'Hot Leads 🔥',  value:stats.hot,                  color:'#dc2626' },
+                    { label:'Hot Leads',  value:stats.hot,                  color:'#dc2626' },
                     { label:'Warm Leads',    value:stats.warm,                 color:ACCENT },
                     { label:'Avg Score',     value:stats.avgScore,             color:scoreColor(stats.avgScore) },
                     { label:'Data Verified', value:`${stats.verified}/${stats.total}`, color:'#16a34a' },
