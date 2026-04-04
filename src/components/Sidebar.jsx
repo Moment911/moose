@@ -209,7 +209,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
           </Link>
           <p className="text-[9px] text-gray-500 uppercase font-semibold tracking-wider px-3 mt-2 mb-1">SEO</p>
           <Link to="/seo" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
-            <TrendingUp size={14} className={location.pathname === '/seo' ? 'text-green-400' : ''} /> Project Hub
+            <TrendingUp size={14} className={location.pathname === '/seo' ? 'text-green-400' : ''} /> SEO Hub
           </Link>
           <Link to="/seo/audit" className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${location.pathname === '/seo/audit' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
             <Zap size={14} className={location.pathname === '/seo/audit' ? 'text-yellow-400' : ''} /> URL Audit
