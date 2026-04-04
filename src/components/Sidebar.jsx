@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Plus, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe } from 'lucide-react'
+import { Plus, ChevronRight, ChevronDown, LayoutGrid, LogOut, Folder, FolderOpen, Trash2, Edit2, MoreHorizontal, HelpCircle, BookOpen, CheckSquare, Shield, Calendar, Users, MessageSquare, DollarSign, Plug, Palette, Megaphone, Target, TrendingUp, Link2, Zap, Puzzle, Globe, Settings } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, updateClient, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import NewProjectModal from './NewProjectModal'
 import toast from 'react-hot-toast'
@@ -188,6 +188,10 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
         <Link to="/integrations" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/integrations' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
         }`}><Plug size={15} className={location.pathname === '/integrations' ? 'text-brand-500' : ''} /> Integrations</Link>
+
+        <Link to="/settings" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          location.pathname === '/settings' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'
+        }`}><Settings size={15} className={location.pathname === '/settings' ? 'text-brand-500' : ''} /> Settings</Link>
 
         <Link to="/admin" className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === '/admin' ? 'bg-white/10 text-white' : 'text-gray-300 hover:text-white hover:bg-white/5'

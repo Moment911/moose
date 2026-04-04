@@ -1,13 +1,12 @@
 "use client"
 import { Link, useLocation } from 'react-router-dom'
-import { Target, Search, ListFilter, Bookmark, BarChart3, Settings, ArrowLeft } from 'lucide-react'
+import { Target, Search, ListFilter, Bookmark, BarChart3, ArrowLeft } from 'lucide-react'
 
 const NAV = [
   { path: '/scout', icon: Search, label: 'Search' },
   { path: '/scout/leads', icon: ListFilter, label: 'My Leads' },
   { path: '/scout/saved', icon: Bookmark, label: 'Saved' },
   { path: '/scout/reports', icon: BarChart3, label: 'Reports' },
-  { path: '/scout/settings', icon: Settings, label: 'Settings' },
 ]
 
 export default function ScoutLayout({ children }) {

@@ -44,6 +44,7 @@ import SEOAuditPage from '../views/seo/SEOAuditPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
 import WordPressPage from '../views/WordPressPage'
+import SettingsPage from '../views/SettingsPage'
 
 export default function App() {
   return (
@@ -90,7 +91,8 @@ export default function App() {
           <Route path="/scout/saved" element={<ScoutSavedPage />} />
           <Route path="/scout/company/:id" element={<CompanyProfilePage />} />
           <Route path="/scout/reports" element={<ScoutReportsPage />} />
-          <Route path="/scout/settings" element={<ScoutSettingsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/scout/settings" element={<SettingsPage />} />
           <Route path="/seo" element={<SEOHubPage />} />
           <Route path="/seo/audit" element={<SEOAuditPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
