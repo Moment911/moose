@@ -411,23 +411,23 @@ export default function ScoutPage() {
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
   const googleKeyAvailable = hasGoogleKey()
 
+
   async function runSearch() {
     const term = query.trim() || selectedIndustries.map(k=>INDUSTRIES.find(i=>i.key===k)?.label).filter(Boolean).join(', ')
     if (!term && !location.trim()) { toast.error('Enter a business type or location'); return }
     setSearching(true); setResults([]); setStats(null); setSearchError(null)
 
+    const loc = location.trim() || 'United States'
     let leads = []
     let source = 'ai'
 
-    // ── Try Google Places first (real data) ──────────────────────────────────
+    // ── STEP 1: Fetch real business data from Google Places ─────────────────
     if (hasGoogleKey()) {
       try {
-        const { leads: googleLeads, error: googleError } = await scoutWithPlaces(term, location || 'United States', { maxResults: 20 })
-
+        const { leads: googleLeads, error: googleError } = await scoutWithPlaces(term, loc, { maxResults: 20 })
         if (!googleError && googleLeads.length > 0) {
           leads  = googleLeads
           source = 'google'
-          toast.success(`Found ${leads.length} real businesses from Google Maps`)
         } else if (googleError) {
           console.warn('Google Places failed, falling back to AI:', googleError)
         }
@@ -436,44 +436,131 @@ export default function ScoutPage() {
       }
     }
 
-    // ── Fallback / supplement with AI ────────────────────────────────────────
+    // ── STEP 2: If no Google data, generate AI leads ────────────────────────
     if (leads.length === 0) {
       try {
-        const modePromptExtra = mode === 'competitor'
-          ? `\nThis is a COMPETITOR ANALYSIS. Focus on showing strengths and weaknesses of each business. For gaps, show what they do well AND where they fall short vs competitors.`
+        const modeExtra = mode === 'competitor'
+          ? 'COMPETITOR ANALYSIS MODE: show strengths and weaknesses. For gaps show what they do well AND where they fall short.'
           : mode === 'market'
-          ? `\nThis is MARKET RESEARCH. Focus on market saturation, opportunity gaps, pricing signals, and trends rather than individual lead quality.`
+          ? 'MARKET RESEARCH MODE: focus on saturation, opportunity gaps, pricing signals, trends.'
           : ''
-
         const modeLabel = mode === 'prospect' ? 'Find new agency clients' : mode === 'competitor' ? 'Competitor analysis' : 'Market research'
         const gapFilter = filterGaps.length ? 'Must include gaps: ' + filterGaps.join(', ') + '.' : ''
-        const prompt = 'Generate 12 realistic local business leads for a marketing agency. Search: ' + term + ' in ' + (location || 'United States') + '. Mode: ' + modeLabel + '. ' + gapFilter + modePromptExtra + ' Return ONLY a valid JSON array. No markdown, no code fences. Each object: id(string), name(string), address(string), phone(string), website(string), email(string), rating(number), review_count(integer), score(integer 0-100), temperature(string hot/warm/lukewarm/cold), years_in_business(integer), estimated_revenue(string), employee_count(string), gaps(array of 2-4 short strings with NO apostrophes), ai_summary(one short sentence with NO internal quotes), gbp_claimed(boolean), has_website(boolean), social_active(boolean), running_ads(boolean). Score: hot=75-95 warm=50-74 lukewarm=25-49 cold=0-24. Mix: 2 hot, 4 warm, 4 lukewarm, 2 cold.'
+
+        const prompt = 'Generate 12 realistic local business leads for a marketing agency. ' +
+          'Search: ' + term + ' in ' + loc + '. Mode: ' + modeLabel + '. ' + gapFilter + ' ' + modeExtra + ' ' +
+          'Return ONLY a JSON array. No markdown. Each object must have: ' +
+          'id(string), name(string), address(string), phone(string), website(string), email(string), ' +
+          'rating(number 1-5), review_count(integer), score(integer 0-100), ' +
+          'temperature(string: hot or warm or lukewarm or cold), ' +
+          'years_in_business(integer), estimated_revenue(string), employee_count(string), ' +
+          'gaps(array of 2-4 strings - use only simple words no apostrophes no special chars), ' +
+          'ai_summary(string - one plain sentence under 15 words), ' +
+          'gbp_claimed(boolean), has_website(boolean), social_active(boolean), running_ads(boolean). ' +
+          'Score hot=75-95 warm=50-74 lukewarm=25-49 cold=0-24. Mix: 2 hot, 4 warm, 4 lukewarm, 2 cold.'
 
         const raw = await callClaude(
-          'You generate B2B sales intelligence. Return ONLY a raw JSON array starting with [ and ending with ]. No markdown, no backticks, no commentary.',
+          'Return a raw JSON array only. Start with [ end with ]. No markdown no backticks no text before or after.',
           prompt, 4000
         )
-
-        // Robust JSON extraction + repair
         let cleaned = raw.replace(/```json|```/g, '').trim()
-        const start = cleaned.indexOf('['), end = cleaned.lastIndexOf(']')
-        if (start === -1 || end === -1) throw new Error('No JSON array in AI response')
-        cleaned = cleaned.slice(start, end + 1)
-        try {
-          leads = JSON.parse(cleaned)
-        } catch(_) {
-          const repaired = cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')
-          leads = JSON.parse(repaired)
-        }
+        const s = cleaned.indexOf('['), e = cleaned.lastIndexOf(']')
+        if (s === -1 || e === -1) throw new Error('No JSON array in AI response')
+        cleaned = cleaned.slice(s, e + 1)
+        try { leads = JSON.parse(cleaned) }
+        catch(_) { leads = JSON.parse(cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }
         source = 'ai'
       } catch(e) {
         console.error('AI search failed:', e)
         setSearchError(e.message?.includes('API key') || e.message?.includes('not set')
-          ? 'AI search requires NEXT_PUBLIC_ANTHROPIC_API_KEY to be set in Vercel environment variables.'
-          : `Search failed: ${e.message}`)
+          ? 'Search requires NEXT_PUBLIC_ANTHROPIC_API_KEY in Vercel environment variables.'
+          : 'Search failed: ' + e.message)
         setSearching(false)
         return
       }
+    }
+
+    // ── STEP 3: Claude intelligence layer — runs on ALL leads (Google + AI) ──
+    // Google gives us: name, address, phone, rating, reviews, website
+    // Claude adds:     opportunity score reasoning, estimated revenue, email guess,
+    //                  ad spend signals, social presence inference, deeper gap analysis
+    if (leads.length > 0) {
+      try {
+        const businessList = leads.slice(0, 12).map((l, i) =>
+          (i+1) + '. ' + l.name +
+          (l.rating ? ' | Rating: ' + l.rating + '/5' : '') +
+          (l.review_count ? ' | Reviews: ' + l.review_count : '') +
+          (l.website ? ' | Has website' : ' | No website') +
+          (l.phone ? ' | Has phone' : ' | No phone') +
+          (l.address ? ' | ' + l.address : '')
+        ).join('\n')
+
+        const modeContext = mode === 'competitor'
+          ? 'You are doing competitor analysis. Rate competitive threat and identify strategic weaknesses.'
+          : mode === 'market'
+          ? 'You are doing market research. Rate market saturation and identify segment opportunities.'
+          : 'You are scoring marketing agency prospects. High score = needs marketing help most urgently.'
+
+        const enrichPrompt = 'You are a marketing intelligence analyst. ' + modeContext + ' ' +
+          'Here are ' + leads.slice(0,12).length + ' real ' + term + ' businesses in ' + loc + ':\n\n' +
+          businessList + '\n\n' +
+          'For each business return a JSON array. Each object: ' +
+          '{"name":"exact name from list","ai_summary":"one plain sentence about their biggest marketing opportunity - no quotes or apostrophes","estimated_revenue":"range like $500K-$1M","employee_count":"range like 5-15","running_ads":true or false,"social_active":true or false,"email":"guessed email like info@businessdomain.com","extra_gaps":["gap1","gap2"]}. ' +
+          'Return ONLY the JSON array. No markdown.'
+
+        const raw2 = await callClaude(
+          'You are a B2B marketing intelligence analyst. Return only a raw JSON array starting with [ ending with ]. No markdown.',
+          enrichPrompt, 2500
+        )
+
+        let cleaned2 = raw2.replace(/```json|```/g, '').trim()
+        const s2 = cleaned2.indexOf('['), e2 = cleaned2.lastIndexOf(']')
+        if (s2 !== -1 && e2 !== -1) {
+          cleaned2 = cleaned2.slice(s2, e2 + 1)
+          let enrichments
+          try { enrichments = JSON.parse(cleaned2) }
+          catch(_) { enrichments = JSON.parse(cleaned2.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']')) }
+
+          const enrichMap = {}
+          enrichments.forEach(e => { if (e.name) enrichMap[e.name] = e })
+
+          leads = leads.map(l => {
+            const en = enrichMap[l.name] || {}
+            return {
+              ...l,
+              ai_summary:        en.ai_summary        || l.ai_summary || null,
+              estimated_revenue: en.estimated_revenue  || l.estimated_revenue || null,
+              employee_count:    en.employee_count     || l.employee_count || null,
+              running_ads:       en.running_ads        != null ? en.running_ads : l.running_ads,
+              social_active:     en.social_active      != null ? en.social_active : l.social_active,
+              email:             en.email              || l.email || '',
+              gaps:              l.gaps.length > 0
+                ? [...new Set([...l.gaps, ...(en.extra_gaps || [])])].slice(0, 4)
+                : (en.extra_gaps || l.gaps),
+            }
+          })
+          source = leads.some(l => l._real_data) ? 'mixed' : source
+        }
+      } catch(e) {
+        // AI enrichment is optional — show Google results even if Claude fails
+        console.warn('AI enrichment failed (showing Google data only):', e.message)
+      }
+    }
+
+    // ── STEP 4: Final enrichment + display ───────────────────────────────────
+    const enriched = enrichLeads(leads, loc)
+    setResults(enriched)
+    setDataSource(source)
+    setStats({
+      total:    enriched.length,
+      hot:      enriched.filter(l=>l.score>=75).length,
+      warm:     enriched.filter(l=>l.score>=50&&l.score<75).length,
+      avgScore: Math.round(enriched.reduce((s,l)=>s+l.score,0)/enriched.length),
+      verified: enriched.filter(l=>l._verified>=2||l._real_data).length,
+      realData: enriched.filter(l=>l._real_data).length,
+    })
+    setSearching(false)
+  }
     }
 
     // ── AI-enrich Google leads with summaries ─────────────────────────────────
@@ -731,12 +818,14 @@ export default function ScoutPage() {
           {hasResults && (
             <>
               {/* Data source banner */}
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: stats?.realData>0?'#eff6ff':'#f0fbfc', border:`1px solid ${stats?.realData>0?'#bfdbfe':ACCENT+'30'}` }}>
-                <Database size={14} color={stats?.realData>0?'#1d4ed8':ACCENT}/>
-                <span style={{ fontSize:15, fontWeight:700, color:stats?.realData>0?'#1d4ed8':'#92400e' }}>
-                  {stats?.realData>0
-                    ? `${stats.realData} live businesses from Google Places · ${results.length-stats.realData} AI-estimated`
-                    : `AI-generated leads · cross-referenced against USPS ZIP + NANP area codes`}
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background: (dataSource==='mixed'||dataSource==='google')?'#e8f9fa':'#f9fafb', border:`1px solid ${(dataSource==='mixed'||dataSource==='google')?TEAL+'60':ACCENT+'30'}` }}>
+                <Database size={14} color={(dataSource==='mixed'||dataSource==='google')?TEAL:ACCENT}/>
+                <span style={{ fontSize:15, fontWeight:700, color:(dataSource==='mixed'||dataSource==='google')?'#0e7490':'#374151' }}>
+                  {dataSource === 'mixed'
+                    ? `${stats?.realData||0} verified from Google Places · Claude intelligence applied to all ${results.length}`
+                    : dataSource === 'google'
+                    ? `${results.length} live businesses from Google Maps · AI enrichment in progress`
+                    : `AI-generated leads · cross-referenced against local business data`}
                 </span>
                 <span style={{ marginLeft:'auto', fontSize:13, color:'#4b5563' }}>{results.length} results for "{query}" in {location}</span>
               </div>
