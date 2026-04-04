@@ -229,6 +229,7 @@ export default function Sidebar({ activeClientId, activeProjectId, onRefresh }) 
 
         {/* ── AGENCY ── */}
         <SectionLabel label="Agency" />
+        <NavLink to="/setup" icon={Settings} label="Setup & Connections" />
         <NavLink to="/agency-settings" icon={Shield} label="Agency Settings" />
         <NavLink to="/settings" icon={Settings} label="Settings" exact />
 

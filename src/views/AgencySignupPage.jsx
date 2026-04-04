@@ -54,8 +54,8 @@ export default function AgencySignupPage() {
       if (agErr) {
         // DB not migrated yet — still let them in
         console.warn('Agency table error (run migrations):', agErr.message)
-        toast.success('Account created! Please run DB migrations to enable all features.')
-        navigate('/')
+        toast.success('Account created!')
+        navigate('/setup')
         setLoading(false)
         return
       }
@@ -77,8 +77,8 @@ export default function AgencySignupPage() {
         max_ai_calls_month: plan==='starter'?500:plan==='growth'?2000:10000,
       }).catch(e => console.warn('Features table:', e.message))
 
-      toast.success('Agency created! Welcome to Moose AI 🎉')
-      navigate('/')
+      toast.success('Agency created! Time to connect your data sources.')
+      navigate('/setup')
     } catch(e) {
       toast.error(e.message || 'Signup failed — please try again')
     }
