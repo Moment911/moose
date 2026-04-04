@@ -307,3 +307,21 @@ export const uploadOnboardingFile = async (file, clientId) => {
 // ─── Email (via Supabase Edge Function) ──────────────────────────────────────
 export const sendEmailSummary = (payload) =>
   supabase.functions.invoke('send-email', { body: payload })
+
+// ─── Prospect Reports ─────────────────────────────────────────────────────────
+export const saveProspectReport = (data) =>
+  supabase.from('prospect_reports').insert(data).select().single()
+
+export const getProspectReport = (token) =>
+  supabase.from('prospect_reports').select('*').eq('token', token).single()
+
+export const updateProspectReport = (id, data) =>
+  supabase.from('prospect_reports').update({ ...data, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+
+export const claimProspectReport = (id, { name, email, phone, company, prospect_id }) =>
+  supabase.from('prospect_reports').update({
+    prospect_name: name, prospect_email: email,
+    prospect_phone: phone, prospect_company: company,
+    prospect_id, claimed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('id', id).select().single()

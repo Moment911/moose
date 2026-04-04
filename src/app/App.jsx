@@ -37,6 +37,7 @@ import ESignaturePage from '../views/ESignaturePage'
 import PrivacyPolicyPage from '../views/PrivacyPolicyPage'
 import ScoutPage from '../views/scout/ScoutPage'
 import ProspectReportPage from '../views/scout/ProspectReportPage'
+import PublicReportPage from '../views/scout/PublicReportPage'
 import ScoutLeadsPage from '../views/scout/ScoutLeadsPage'
 import ScoutSavedPage from '../views/scout/ScoutSavedPage'
 import CompanyProfilePage from '../views/scout/CompanyProfilePage'
@@ -127,6 +128,7 @@ export default function App() {
           <Route path="/scout/saved" element={<ScoutSavedPage />} />
           <Route path="/scout/company/:id" element={<CompanyProfilePage />} />
           <Route path="/scout/report" element={<ProspectReportPage />} />
+          <Route path="/r/:token" element={<PublicReportPage />} />
           <Route path="/scout/reports" element={<ScoutReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/scout/settings" element={<SettingsPage />} />

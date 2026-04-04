@@ -5,13 +5,15 @@ import {
   Star, Globe, Phone, Mail, MapPin, TrendingUp, AlertCircle, Search,
   CheckCircle, ArrowRight, Target, BarChart2, Zap, Shield,
   ChevronDown, ExternalLink, Award, Users, DollarSign,
-  Sparkles, Loader2, Download, Share2, ChevronRight
+  Sparkles, Loader2, Download, Share2, ChevronRight, Link, Check, Printer
 } from 'lucide-react'
 import { callClaude } from '../../lib/ai'
+import { saveProspectReport, updateProspectReport } from '../../lib/supabase'
 import { runLeadPipeline, getIndustryBenchmark, calcRevenueImpact } from '../../lib/scoutPipeline'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import AIThinkingBox from '../../components/AIThinkingBox'
+import toast, { Toaster } from 'react-hot-toast'
 
 const RED   = '#ea2729'
 const TEAL  = '#5bc6d0'
@@ -121,6 +123,9 @@ export default function ProspectReportPage() {
   const [loading,  setLoading]  = useState(true)
   const [generating, setGenerating] = useState(false)
   const [activeSection, setActiveSection] = useState('cover')
+  const [savedReport, setSavedReport] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => { init() }, [])
 
@@ -187,6 +192,44 @@ export default function ProspectReportPage() {
     setGenerating(false)
   }
 
+  async function saveReport() {
+    if (saving || savedReport) return
+    setSaving(true)
+    try {
+      const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+      const payload = {
+        agency_id:        aid,
+        business_name:    lead.name,
+        business_address: lead.address || '',
+        business_phone:   lead.phone || '',
+        business_website: lead.website || '',
+        business_type:    (lead.types || []).join(', '),
+        google_rating:    lead.rating || null,
+        google_reviews:   lead.review_count || null,
+        place_id:         lead.place_id || null,
+        lead_data:        lead,
+        ai_analysis:      report || lead.ai_analysis || {},
+        revenue_data:     lead.revenue || {},
+      }
+      const { data, error } = await saveProspectReport(payload)
+      if (error) throw error
+      setSavedReport(data)
+      toast.success('Report saved — shareable link ready!')
+    } catch(e) {
+      toast.error('Save failed: ' + e.message)
+    }
+    setSaving(false)
+  }
+
+  function copyShareLink() {
+    if (!savedReport) return
+    const url = window.location.origin + '/r/' + savedReport.token
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+    toast.success('Link copied!')
+  }
+
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'})
     setActiveSection(id)
@@ -219,6 +262,7 @@ export default function ProspectReportPage() {
   ]
 
   return (
+    <><Toaster position="top-right"/>
     <div style={{fontFamily:'"DM Sans", system-ui, -apple-system, sans-serif', background:'#f8f8f8', minHeight:'100vh'}}>
 
       {/* ── Sticky nav ── */}
@@ -243,10 +287,29 @@ export default function ProspectReportPage() {
                 {n.label}
               </button>
             ))}
+            {!savedReport ? (
+              <button onClick={saveReport} disabled={saving || !r}
+                style={{display:'flex',alignItems:'center',gap:6,padding:'6px 16px',borderRadius:20,
+                  border:'none',background:r?RED:'#e5e7eb',color:r?'#fff':'#9ca3af',
+                  fontSize:12,fontWeight:700,cursor:r?'pointer':'default',marginLeft:8,
+                  boxShadow:r?`0 2px 8px ${RED}40`:'none',opacity:saving?.7:1}}>
+                {saving
+                  ? <><Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/> Saving…</>
+                  : <><Share2 size={11}/> Share Report</>}
+              </button>
+            ) : (
+              <button onClick={copyShareLink}
+                style={{display:'flex',alignItems:'center',gap:6,padding:'6px 16px',borderRadius:20,
+                  border:'none',background:copied?'#16a34a':TEAL,color:'#fff',
+                  fontSize:12,fontWeight:700,cursor:'pointer',marginLeft:8,transition:'background .2s'}}>
+                {copied ? <><Check size={11}/> Copied!</> : <><Link size={11}/> Copy Link</>}
+              </button>
+            )}
             <button onClick={()=>window.print()}
-              style={{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:20,border:`1.5px solid ${RED}`,
-                background:'#fff',color:RED,fontSize:12,fontWeight:700,cursor:'pointer',marginLeft:8}}>
-              <Download size={11}/> Export
+              style={{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:20,
+                border:`1.5px solid ${RED}`,background:'#fff',color:RED,
+                fontSize:12,fontWeight:700,cursor:'pointer'}}>
+              <Printer size={11}/> PDF
             </button>
           </div>
         </div>
@@ -871,6 +934,12 @@ export default function ProspectReportPage() {
         @keyframes slide { from{background-position:0% 0%} to{background-position:200% 0%} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+        @media print {
+          .no-print, nav { display:none!important; }
+          body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+          #cover { min-height:100vh; page-break-after:always; }
+          #overview, #gaps, #seo, #solutions, #roi, #cta { page-break-inside:avoid; }
+        }
         @media print {
           .no-print { display:none!important; }
           body { background:#fff; }
