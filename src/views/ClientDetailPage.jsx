@@ -24,6 +24,7 @@ const TABS = [
   { key: 'marketing', label: 'Marketing' },
   { key: 'contacts', label: 'Contacts' },
   { key: 'onboarding', label: 'Onboarding' },
+  { key: 'access', label: '🔑 Access Checklist' },
 ]
 
 const REVENUE_RANGES = [
@@ -588,6 +589,15 @@ export default function ClientDetailPage() {
     marketing: <MarketingTab />,
     contacts: <ContactsTab />,
     onboarding: <OnboardingTab />,
+    access: (
+      <Section title="Account Access Checklist" description="Track all platform logins, invites, and credentials needed for this client's campaigns.">
+        <a href={`/clients/${clientId}/access`}
+          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#E8551A', color:'#fff', border:'none', borderRadius:10, padding:'11px 24px', fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none' }}>
+          🔑 Open Access Checklist
+        </a>
+        <p style={{ fontSize:12, color:'#9ca3af', marginTop:10 }}>40+ platforms tracked: Website, Analytics, Ads, SEO, Social, CRM. Real-time updates when clients fill out their form.</p>
+      </Section>
+    ),
   }
 
   return (

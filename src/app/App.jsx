@@ -47,6 +47,8 @@ import WordPressPage from '../views/WordPressPage'
 import SettingsPage from '../views/SettingsPage'
 import ClientDetailPage from '../views/ClientDetailPage'
 import OnboardingPage from '../views/OnboardingPage'
+import AccountAccessPage from '../views/AccountAccessPage'
+import ClientAccessFormPage from '../views/ClientAccessFormPage'
 
 export default function App() {
   return (
@@ -60,6 +62,8 @@ export default function App() {
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
+          <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />
+          <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />

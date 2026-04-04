@@ -52,3 +52,26 @@ create table if not exists onboarding_tokens (
 create index if not exists idx_client_profiles_client on client_profiles(client_id);
 create index if not exists idx_onboarding_tokens_token on onboarding_tokens(token);
 create index if not exists idx_onboarding_tokens_client on onboarding_tokens(client_id);
+
+-- Account access checklist
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS access_checklist jsonb DEFAULT '{}';
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS access_form_token text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS agency_email_override text;
+
+-- Change history for access events
+CREATE TABLE IF NOT EXISTS client_change_history (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  client_id uuid REFERENCES clients(id) ON DELETE CASCADE,
+  changed_by text NOT NULL,
+  changed_by_email text,
+  change_type text NOT NULL,
+  field_name text,
+  old_value text,
+  new_value text,
+  description text,
+  staff_note text,
+  metadata jsonb DEFAULT '{}',
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_client_change_history_client_id ON client_change_history(client_id);
+CREATE INDEX IF NOT EXISTS idx_client_change_history_type ON client_change_history(client_id, change_type);
