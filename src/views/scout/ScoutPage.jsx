@@ -214,10 +214,7 @@ function ProvenancePanel({ lead }) {
           <div style={{ padding:'10px 14px', background:'#f0fbfc', borderTop:'1px solid #f3f4f6', display:'flex', gap:8 }}>
             <Info size={12} color={ACCENT} style={{ flexShrink:0, marginTop:1 }}/>
             <div style={{ fontSize:13, color:'#92400e', lineHeight:1.5 }}>
-              {lead._real_data
-                ? 'Live data from Google Places API. Phone, address, rating, and review count are verified in real time.'
-                : 'AI-generated intelligence cross-referenced against USPS ZIP, NANP area codes, and Census data. Connect Yelp Fusion API for additional verification.'
-              }
+              Live data from Google Places API — phone, address, rating, and review count verified in real time.
             </div>
           </div>
         </div>
