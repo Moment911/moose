@@ -24,17 +24,17 @@ async function fetchPage(url: string) {
     const metaDesc    = html.match(/name=["']description["'][^>]*content=["']([^"']{1,500})/i)?.[1]?.trim()
                      || html.match(/content=["']([^"']{1,500})["'][^>]*name=["']description["']/i)?.[1]?.trim() || ''
     const canonical   = html.match(/<link[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)/i)?.[1] || ''
-    const h1s         = [...html.matchAll(/<h1[^>]*>([^<]+)<\/h1>/gi)].map(m => m[1].trim())
-    const h2s         = [...html.matchAll(/<h2[^>]*>([^<]+)<\/h2>/gi)].map(m => m[1].trim()).slice(0, 10)
-    const imgs        = [...html.matchAll(/<img[^>]*>/gi)].map(m => m[0])
-    const imgsNoAlt   = imgs.filter(img => !img.match(/alt=["'][^"']/i))
-    const links       = [...html.matchAll(/href=["']([^"'#?]+)/gi)].map(m => m[1])
-    const internalLinks = links.filter(l => l.startsWith('/') || l.includes(new URL(url).hostname))
-    const externalLinks = links.filter(l => l.startsWith('http') && !l.includes(new URL(url).hostname))
+    const h1s         = [...html.matchAll(/<h1[^>]*>([^<]+)<\/h1>/gi)].map((m: RegExpMatchArray) => m[1].trim())
+    const h2s         = [...html.matchAll(/<h2[^>]*>([^<]+)<\/h2>/gi)].map((m: RegExpMatchArray) => m[1].trim()).slice(0, 10)
+    const imgs        = [...html.matchAll(/<img[^>]*>/gi)].map((m: RegExpMatchArray) => m[0])
+    const imgsNoAlt   = imgs.filter((img: string) => !img.match(/alt=["'][^"']/i))
+    const links       = [...html.matchAll(/href=["']([^"'#?]+)/gi)].map((m: RegExpMatchArray) => m[1])
+    const internalLinks = links.filter((l: string) => l.startsWith('/') || l.includes(new URL(url).hostname))
+    const externalLinks = links.filter((l: string) => l.startsWith('http') && !l.includes(new URL(url).hostname))
     const hasSchema   = html.includes('application/ld+json')
     const hasOGTitle  = html.includes('og:title')
     const hasViewport = html.includes('name="viewport"')
-    const wordCount   = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(w => w.length > 2).length
+    const wordCount   = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter((w: string) => w.length > 2).length
     const robotsMeta  = html.match(/name=["']robots["'][^>]*content=["']([^"']+)/i)?.[1] || ''
     const hasCanonical = !!canonical
     const hasGTag     = html.includes('gtag') || html.includes('googletagmanager')
@@ -125,7 +125,7 @@ function scorePage(page: any, speed: any) {
     // H2s
     { category:'on-page',   severity:'info',     weight:4,  label:'H2 subheadings used',
       pass: page.h2Count >= 2,
-      detail: `${page.h2Count} H2 tags found${page.h2s.length > 0 ? ': ' + page.h2s.slice(0,3).map(h=>`"${h.slice(0,30)}"`).join(', ') : ''}`,
+      detail: `${page.h2Count} H2 tags found${(page.h2s as string[]).length > 0 ? ': ' + (page.h2s as string[]).slice(0,3).map((h: string)=>`"${h.slice(0,30)}"`).join(', ') : ''}`,
       fix: 'Add H2 subheadings to structure content and target secondary keywords' },
     // Content
     { category:'content',   severity:'warning',  weight:7,  label:'Sufficient content (300+ words)',
