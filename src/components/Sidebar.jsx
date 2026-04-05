@@ -6,7 +6,7 @@ import {
   BarChart2, TrendingUp, Target, Plug, Settings, Shield,
   Cpu, Workflow, Star, ChevronDown, ChevronRight,
   LogOut, Plus, Folder, Trash2, Edit2, MoreHorizontal, Zap,
-  CreditCard, Database, MapPin, Globe, Search, FileText, BookOpen, Code2, Download
+  CreditCard, Database, Layers, MapPin, Globe, Search, FileText, BookOpen, Code2, Download
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -118,6 +118,7 @@ export default function Sidebar() {
           <NavLink to="/clients"     startsWith icon={Users}    label="Clients"/>
           <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
           <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
+        <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
           <NavLink to="/automations" icon={Workflow}            label="Automations"/>
 
           <Section label="Intelligence"/>

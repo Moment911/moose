@@ -36,6 +36,12 @@
     },
     "src/app/api/integrations/ghl/sync/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/proposals/parse/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/proposals/generate/route.ts": {
+      "maxDuration": 60
     }
   }
 }

@@ -96,6 +96,7 @@ import ReviewsPage from '../views/ReviewsPage'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
+import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
 
 export default function App() {
