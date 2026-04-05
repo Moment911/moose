@@ -30,6 +30,9 @@ const REQUIRED_TABLES = [
   { name:'perf_campaigns',           category:'Performance', desc:'Campaign data' },
   { name:'perf_keywords',            category:'Performance', desc:'PPC keywords' },
   { name:'perf_recommendations',     category:'Performance', desc:'AI recommendations' },
+  { name:'reviews',                  category:'Reviews',     desc:'Google reviews + AI responses' },
+  { name:'client_portal_sessions',   category:'Client Portal', desc:'Portal access tokens' },
+  { name:'subscriptions',            category:'Billing',     desc:'Stripe subscription data' },
 ]
 
 export default function DbSetupPage() {

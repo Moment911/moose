@@ -353,3 +353,63 @@ CREATE INDEX IF NOT EXISTS idx_rank_scans_keyword ON local_rank_scans(client_id,
 CREATE INDEX IF NOT EXISTS idx_rank_scans_scanned ON local_rank_scans(scanned_at DESC);
 ALTER TABLE local_rank_scans ENABLE ROW LEVEL SECURITY;
 CREATE POLICY IF NOT EXISTS "allow_all_rank_scans" ON local_rank_scans FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Reviews management ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS reviews (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id       uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id       uuid REFERENCES agencies(id) ON DELETE CASCADE,
+  platform        text NOT NULL DEFAULT 'google',
+  reviewer_name   text,
+  reviewer_photo  text,
+  rating          int,
+  review_text     text,
+  review_date     timestamptz,
+  review_id       text,
+  response_text   text,
+  responded_at    timestamptz,
+  ai_response     text,
+  sentiment       text,
+  is_responded    boolean DEFAULT false,
+  source_url      text,
+  created_at      timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_reviews_client   ON reviews(client_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_platform ON reviews(client_id, platform);
+CREATE INDEX IF NOT EXISTS idx_reviews_rating   ON reviews(client_id, rating);
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "allow_all_reviews" ON reviews FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Client portal sessions ────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS client_portal_sessions (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id       uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id       uuid REFERENCES agencies(id) ON DELETE CASCADE,
+  token           text UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
+  email           text,
+  name            text,
+  expires_at      timestamptz DEFAULT now() + interval '30 days',
+  last_accessed_at timestamptz,
+  created_at      timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_portal_sessions_client ON client_portal_sessions(client_id);
+CREATE INDEX IF NOT EXISTS idx_portal_sessions_token  ON client_portal_sessions(token);
+ALTER TABLE client_portal_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "allow_all_portal_sessions" ON client_portal_sessions FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Stripe subscriptions ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agency_id               uuid REFERENCES agencies(id) ON DELETE CASCADE,
+  stripe_customer_id      text,
+  stripe_subscription_id  text,
+  plan                    text DEFAULT 'starter',
+  status                  text DEFAULT 'trialing',
+  current_period_start    timestamptz,
+  current_period_end      timestamptz,
+  cancel_at_period_end    boolean DEFAULT false,
+  created_at              timestamptz DEFAULT now(),
+  updated_at              timestamptz DEFAULT now()
+);
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "allow_all_subscriptions" ON subscriptions FOR ALL USING (true) WITH CHECK (true);
