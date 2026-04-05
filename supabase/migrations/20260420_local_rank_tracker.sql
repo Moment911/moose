@@ -21,4 +21,5 @@ CREATE INDEX IF NOT EXISTS idx_rank_scans_scanned   ON local_rank_scans(scanned_
 
 -- Enable RLS
 ALTER TABLE local_rank_scans ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_rank_scans" ON local_rank_scans;
 CREATE POLICY "allow_all_rank_scans" ON local_rank_scans FOR ALL USING (true) WITH CHECK (true);
