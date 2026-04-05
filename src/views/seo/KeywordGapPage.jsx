@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Search, TrendingUp, Target, Sparkles, Loader2, ChevronDown, ChevronUp, Calendar, BookOpen, MapPin, Zap, BarChart2, ArrowRight, ExternalLink, RefreshCw } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import ClientSearchSelect from '../../components/ClientSearchSelect'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
@@ -183,11 +184,12 @@ export default function KeywordGapPage() {
               </p>
             </div>
             <div style={{ display:'flex', gap:10 }}>
-              <select value={clientId} onChange={e=>setClientId(e.target.value)}
-                style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH, minWidth:200 }}>
-                <option value="">Select client</option>
-                {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
-              </select>
+              <ClientSearchSelect
+              value={clientId}
+              onChange={(id, cl) => {
+                setClientId(id)
+              }}
+            />
               <button onClick={runAnalysis} disabled={loading||!clientId}
                 style={{ padding:'9px 20px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:7, boxShadow:`0 3px 12px ${RED}40` }}>
                 {loading ? <Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/> : <Sparkles size={14}/>}

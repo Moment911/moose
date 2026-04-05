@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { FileText, Sparkles, Download, Mail, RefreshCw, Loader2, Star, TrendingUp, Target, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Calendar, BarChart2, Send } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import ClientSearchSelect from '../../components/ClientSearchSelect'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
@@ -144,11 +145,12 @@ export default function MonthlyReportPage() {
               </p>
             </div>
             <div style={{ display:'flex', gap:10 }}>
-              <select value={clientId} onChange={e => setClientId(e.target.value)}
-                style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH, minWidth:200 }}>
-                <option value="">Select client</option>
-                {clients.map(c => <option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
-              </select>
+              <ClientSearchSelect
+              value={clientId}
+              onChange={(id, cl) => {
+                setClientId(id)
+              }}
+            />
               <input type="month" value={month} onChange={e => setMonth(e.target.value)}
                 style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH }}/>
               <button onClick={generateReport} disabled={loading || !clientId}

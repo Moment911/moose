@@ -7,6 +7,7 @@ import {
   Target, TrendingUp, Search, Clock, Shield
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
+import ClientSearchSelect from '../../components/ClientSearchSelect'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
@@ -197,11 +198,13 @@ export default function OnPageAuditPage() {
                 20+ technical checks · PageSpeed · AI recommendations
               </p>
             </div>
-            <select value={clientId} onChange={e=>{setClientId(e.target.value);const cl=clients.find(c=>c.id===e.target.value);if(cl?.website)setUrl(cl.website)}}
-              style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH, minWidth:200 }}>
-              <option value="">Select client</option>
-              {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
-            </select>
+            <ClientSearchSelect
+              value={clientId}
+              onChange={(id, cl) => {
+                setClientId(id)
+                setUrl(cl.website)
+              }}
+            />
           </div>
           {history.length > 0 && (
             <div style={{ display:'flex', gap:8, paddingBottom:12, overflowX:'auto' }}>

@@ -1,5 +1,6 @@
 "use client"
 import { SIC_CODES, SIC_DIVISIONS, getSICContext } from '../lib/sicCodes'
+import SearchableSelect from '../components/SearchableSelect'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -30,6 +31,17 @@ const INDUSTRIES = [
   'Auto Dealer','Landscaping','Restaurant','Real Estate','Medical',
   'Salon / Spa','Childcare','Veterinary','Electrician','Contractor','Other'
 ]
+
+// Build SIC options for SearchableSelect
+const SIC_OPTIONS = SIC_CODES.map(s => ({
+  value:    s.code + '|' + s.label,   // unique key: code|label
+  label:    s.code + ' — ' + s.label,
+  sub:      s.keywords,
+  group:    s.division,
+  keywords: s.keywords,
+  code:     s.code,
+  sicLabel: s.label,
+}))
 
 function StatusDot({ status }) {
   const cfg = STATUS_COLORS[status] || STATUS_COLORS.active
@@ -429,31 +441,18 @@ export default function ClientsPage() {
                 ))}
                 <div>
                   <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Industry / SIC Code</label>
-                  <select
-                    value={form.sic_code}
-                    onChange={e => {
-                      const code = e.target.value
-                      const sic = SIC_CODES.find(s => s.code+s.label === code+e.target.options[e.target.selectedIndex].text.replace(/^\d+ — /,''))
-                           || SIC_CODES.filter(s => s.code === code)[0]
-                      setF('sic_code', code)
-                      setF('sic_label', sic?.label || '')
-                      setF('industry', sic?.label || form.industry)
+                  <SearchableSelect
+                    value={form.sic_code ? form.sic_code + '|' + form.sic_label : ''}
+                    onChange={(val, opt) => {
+                      setF('sic_code',  opt?.code    || '')
+                      setF('sic_label', opt?.sicLabel || '')
+                      setF('industry',  opt?.sicLabel || '')
                     }}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff', boxSizing:'border-box' }}>
-                    <option value="">Select industry / SIC code…</option>
-                    {SIC_DIVISIONS.map(div => (
-                      <optgroup key={div} label={div}>
-                        {SIC_CODES.filter(s => s.division === div).map(s => (
-                          <option key={s.code+s.label} value={s.code}>{s.code} — {s.label}</option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  {form.sic_code && (
-                    <div style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>
-                      {SIC_CODES.find(s=>s.code===form.sic_code)?.keywords?.slice(0,70)}
-                    </div>
-                  )}
+                    options={SIC_OPTIONS}
+                    grouped={true}
+                    placeholder="Select industry / SIC code…"
+                    searchPlaceholder="Type to search — e.g. plumber, dentist, salon…"
+                  />
                 </div>
               </div>
 
