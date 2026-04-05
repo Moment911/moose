@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const ANTHROPIC_KEY = process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
 const PSI_KEY       = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || '' // reuse same key
 const SUPABASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''

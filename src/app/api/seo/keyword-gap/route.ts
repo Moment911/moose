@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const ANTHROPIC_KEY = process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
 const GOOGLE_KEY    = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
 
 function getSupabase() {
@@ -198,7 +198,10 @@ export async function POST(req: NextRequest) {
     // Run AI analysis
     const analysis = await analyzeKeywordGap(gscKeywords, biz || '', ind || '', loc || '', web || '')
     if (!analysis) {
-      return NextResponse.json({ error: 'AI analysis failed — check ANTHROPIC_API_KEY' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'AI analysis failed',
+        hint: 'Add ANTHROPIC_API_KEY (without NEXT_PUBLIC_ prefix) to Vercel environment variables for server-side API routes'
+      }, { status: 500 })
     }
 
     const result = {
