@@ -675,3 +675,7 @@ ALTER TABLE clients ADD COLUMN IF NOT EXISTS sic_label text;
 -- Add trial columns to subscriptions
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS trial_start timestamptz;
 ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS trial_end   timestamptz;
+
+-- White-label branding fields on agencies
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS custom_domain  text;
+ALTER TABLE agencies ADD COLUMN IF NOT EXISTS support_email  text;

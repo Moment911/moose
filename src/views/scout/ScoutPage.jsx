@@ -268,6 +268,33 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
 
   function copy(text) { navigator.clipboard.writeText(text); toast.success('Copied!') }
 
+  function copyOutreach() {
+    const gaps = []
+    if (!lead.has_website && !lead.website)     gaps.push('no website')
+    if ((lead.review_count||0) < 20)            gaps.push('few online reviews')
+    if ((lead.rating||0) < 4.2 && lead.rating)  gaps.push('low review rating')
+    if (lead.missing_tech?.includes('Google Analytics')) gaps.push('no analytics tracking')
+
+    const gapLine = gaps.length ? 'I noticed ' + gaps.slice(0,2).join(' and ') + ', and thought there might be an opportunity to help.' : 'I came across your business and wanted to reach out.'
+
+    const email = [
+      'Subject: Quick question for ' + lead.name,
+      '',
+      'Hi ' + (lead.name?.split(' ')[0] || 'there') + ',',
+      '',
+      gapLine,
+      '',
+      'We help local businesses like yours get more visibility online — more Google reviews, better search rankings, and a stronger online presence.',
+      '',
+      'Would you be open to a quick 15-minute call to see if we could help?',
+      '',
+      'Best,',
+      '[Your Name]',
+    ].join('\n')
+    navigator.clipboard.writeText(email)
+    toast.success('Outreach email copied!')
+  }
+
   const isCompetitor = mode === 'competitor'
   const isMarket     = mode === 'market'
 
@@ -447,6 +474,10 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
             </button>
           )}
           {isCompetitor && <button onClick={()=>onAddClient({...lead, status:'competitor'})} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px', borderRadius:8, border:'none', background:'#8b5cf6', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer' }}><BarChart size={13}/> Save Competitor</button>}
+          <button onClick={copyOutreach}
+            style={{ display:'flex', alignItems:'center', gap:4, padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+            <Mail size={11}/> Outreach
+          </button>
           <button onClick={()=>onReport&&onReport(lead)}
             style={{ display:'flex', alignItems:'center', gap:4, padding:'7px 10px', borderRadius:8, border:`1px solid ${ACCENT}`, background:`${ACCENT}12`, color:ACCENT, fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
             <Sparkles size={11}/> Report
@@ -687,18 +718,14 @@ export default function ScoutPage() {
 
   async function addAsClient(lead) {
     try {
-      // Detect industry from types or query
-      const rawIndustry = lead.types?.[0] || query || ''
-      const industryMap = {
-        plumbing:'Plumbing', hvac:'HVAC', dental:'Dental', roofing:'Roofing',
-        law:'Law Firm', landscaping:'Landscaping', gym:'Gym / Fitness',
-        fitness:'Gym / Fitness', auto:'Auto Dealer', electrician:'Electrician',
-        contractor:'Contractor', restaurant:'Restaurant', medical:'Medical',
-        salon:'Salon / Spa', childcare:'Childcare',
-      }
-      const detectedIndustry = Object.entries(industryMap).find(([k]) =>
-        rawIndustry.toLowerCase().includes(k)
-      )?.[1] || selectedIndustries[0] || ''
+      // Detect industry + SIC code from lead types and query
+      const searchTerms = [lead.types?.[0], query, ...selectedIndustries].filter(Boolean).join(' ').toLowerCase()
+      const matchedSIC  = SIC_CODES.find(s =>
+        s.keywords.split(', ').some(kw => searchTerms.includes(kw.toLowerCase())) ||
+        s.label.toLowerCase().split(' ').some(w => w.length > 4 && searchTerms.includes(w))
+      )
+      const detectedIndustry = matchedSIC?.label || selectedIndustries[0] || ''
+      const detectedSICCode  = matchedSIC?.code  || ''
 
       const { data, error } = await supabase.from('clients').insert({
         name:       lead.name,
@@ -707,6 +734,7 @@ export default function ScoutPage() {
         website:    lead.website || '',
         status:     'prospect',
         industry:   detectedIndustry,
+        sic_code:   detectedSICCode || null,
         notes:      lead.ai_summary || '',
         agency_id:  agencyId || null,
       }).select().single()

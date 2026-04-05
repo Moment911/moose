@@ -227,10 +227,13 @@ export default function AgencySettingsPage() {
   async function saveBranding() {
     setSaving(true)
     await supabase.from('agencies').update({
-      brand_name: agency.brand_name, brand_color: agency.brand_color,
+      brand_name:     agency.brand_name,
+      brand_color:    agency.brand_color,
       brand_logo_url: agency.brand_logo_url,
+      custom_domain:  agency.custom_domain  || null,
+      support_email:  agency.support_email  || null,
     }).eq('id', aid)
-    toast.success('Branding saved')
+    toast.success('Branding saved ✓')
     setSaving(false)
   }
 
@@ -316,20 +319,103 @@ export default function AgencySettingsPage() {
 
       case 'branding': return (
         <SectionCard title="White-Label Branding" subtitle="Your clients see your brand, not Koto" onAction={saveBranding}>
-          <Field label="Brand Name" hint="Shown to clients in the portal"><input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} style={INP} placeholder={agency.name||'Your Agency'}/></Field>
-          <Field label="Logo URL"><input value={agency.brand_logo_url||''} onChange={e=>setAgency(a=>({...a,brand_logo_url:e.target.value}))} style={INP} placeholder="https://youragency.com/logo.png"/>
-            {agency.brand_logo_url && <img src={agency.brand_logo_url} alt="preview" style={{marginTop:8,height:44,objectFit:'contain',border:'1px solid #ececea',borderRadius:8,padding:8,background:'#f8f8f6'}} onError={e=>e.target.style.display='none'}/>}
-          </Field>
-          <Field label="Brand Color">
-            <div style={{ display:'flex', gap:10 }}>
-              <input type="color" value={agency.brand_color||R} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{ width:46, height:44, borderRadius:9, border:'1px solid #ececea', padding:3, cursor:'pointer' }}/>
-              <input value={agency.brand_color||R} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{...INP,flex:1,fontFamily:'monospace'}}/>
+
+          {/* Live preview */}
+          <div style={{ marginBottom:20, borderRadius:14, border:'2px solid #f0f0ee', overflow:'hidden' }}>
+            <div style={{ background:'#f8f8f6', padding:'8px 14px', fontSize:11, fontWeight:800, color:'#9a9a96', textTransform:'uppercase', letterSpacing:'.08em' }}>Live Portal Preview</div>
+            <div style={{ background: agency.brand_color||R, padding:'18px 20px', display:'flex', alignItems:'center', gap:12 }}>
+              {agency.brand_logo_url
+                ? <img src={agency.brand_logo_url} alt="logo" style={{height:32,maxWidth:140,objectFit:'contain'}} onError={e=>e.currentTarget.style.display='none'}/>
+                : <div style={{fontFamily:FH,fontSize:18,fontWeight:900,color:'#fff',letterSpacing:'-.03em'}}>{agency.brand_name||agency.name||'Your Agency'}</div>
+              }
+              <div style={{marginLeft:'auto',display:'flex',gap:8}}>
+                {['Dashboard','Reports','Reviews'].map(tab=>(
+                  <div key={tab} style={{padding:'5px 12px',borderRadius:20,background:'rgba(255,255,255,.18)',color:'#fff',fontSize:12,fontWeight:700}}>{tab}</div>
+                ))}
+              </div>
             </div>
-            <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'#f8f8f6', borderRadius:9, border:'1px solid #ececea' }}>
-              <div style={{ width:28, height:28, borderRadius:7, background:agency.brand_color||R, flexShrink:0 }}/>
-              <span style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>Buttons, highlights, and accent colors</span>
+            <div style={{ padding:'14px 20px', background:'#fff', display:'flex', gap:12 }}>
+              {[['⭐ 4.8','Avg Rating'],['24','Reviews'],['92','SEO Score']].map(([v,l])=>(
+                <div key={l} style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid #f0f0ee',textAlign:'center'}}>
+                  <div style={{fontWeight:900,fontSize:18,color:agency.brand_color||R}}>{v}</div>
+                  <div style={{fontSize:12,color:'#9a9a96',marginTop:2}}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Brand Name */}
+          <Field label="Brand Name" hint="Shown to clients instead of 'Koto'">
+            <input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} style={INP} placeholder={agency.name||'Your Agency'}/>
+          </Field>
+
+          {/* Logo upload */}
+          <Field label="Logo" hint="Upload file or paste URL — shown in client portal header">
+            <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+              <label style={{padding:'8px 14px',borderRadius:9,border:'1.5px solid #ececea',cursor:'pointer',fontSize:13,fontWeight:700,color:'#374151',background:'#f9f9f7',display:'inline-flex',alignItems:'center',gap:6,flexShrink:0}}>
+                📁 Upload File
+                <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  if (file.size > 500000) { alert('Logo must be under 500KB'); return }
+                  const reader = new FileReader()
+                  reader.onload = ev => setAgency(a=>({...a,brand_logo_url:ev.target.result}))
+                  reader.readAsDataURL(file)
+                }}/>
+              </label>
+              <span style={{fontSize:12,color:'#9ca3af',flexShrink:0}}>or URL</span>
+              <input
+                value={agency.brand_logo_url?.startsWith('data:') ? '' : (agency.brand_logo_url||'')}
+                onChange={e=>setAgency(a=>({...a,brand_logo_url:e.target.value}))}
+                style={{...INP,flex:1}} placeholder="https://youragency.com/logo.png"/>
+            </div>
+            {agency.brand_logo_url && (
+              <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px',background:'#f8f8f6',borderRadius:9,border:'1px solid #ececea'}}>
+                <img src={agency.brand_logo_url} alt="preview" style={{height:36,maxWidth:180,objectFit:'contain'}} onError={e=>e.currentTarget.style.display='none'}/>
+                <button onClick={()=>setAgency(a=>({...a,brand_logo_url:''}))}
+                  style={{marginLeft:'auto',fontSize:12,color:'#9ca3af',background:'none',border:'none',cursor:'pointer',padding:'4px 8px'}}>
+                  ✕ Remove
+                </button>
+              </div>
+            )}
+          </Field>
+
+          {/* Brand color */}
+          <Field label="Brand Color" hint="Primary color for buttons, headers, and accents">
+            <div style={{display:'flex',gap:10,alignItems:'center'}}>
+              <input type="color" value={agency.brand_color||R}
+                onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))}
+                style={{width:46,height:40,borderRadius:9,border:'1px solid #ececea',padding:3,cursor:'pointer',flexShrink:0}}/>
+              <input value={agency.brand_color||R}
+                onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))}
+                style={{...INP,flex:1,fontFamily:'monospace'}}/>
+            </div>
+            <div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
+              {['#ea2729','#5bc6d0','#0a0a0a','#7c3aed','#2563eb','#16a34a','#d97706','#db2777'].map(col=>(
+                <button key={col} onClick={()=>setAgency(a=>({...a,brand_color:col}))}
+                  style={{width:26,height:26,borderRadius:6,background:col,border:agency.brand_color===col?'3px solid #fff':agency.brand_color===col?'3px solid #333':'2px solid transparent',
+                  boxShadow:agency.brand_color===col?'0 0 0 2px '+col:'none',cursor:'pointer',outline:'none'}}/>
+              ))}
             </div>
           </Field>
+
+          {/* Custom domain */}
+          <Field label="Custom Portal Domain" hint="Optional — clients visit your domain instead of hellokoto.com">
+            <input value={agency.custom_domain||''} onChange={e=>setAgency(a=>({...a,custom_domain:e.target.value}))}
+              style={INP} placeholder="portal.youragency.com"/>
+            {agency.custom_domain && (
+              <div style={{marginTop:6,padding:'8px 12px',borderRadius:8,background:'#f0fdf4',border:'1px solid #bbf7d0',fontSize:13,color:'#166534'}}>
+                Point <code style={{fontFamily:'monospace',background:'#dcfce7',padding:'1px 5px',borderRadius:4}}>{agency.custom_domain}</code> CNAME → <code style={{fontFamily:'monospace',background:'#dcfce7',padding:'1px 5px',borderRadius:4}}>hellokoto.com</code> in your DNS settings.
+              </div>
+            )}
+          </Field>
+
+          {/* Support email */}
+          <Field label="Client-Facing Support Email" hint="Reply-to for automated emails sent to your clients">
+            <input value={agency.support_email||''} onChange={e=>setAgency(a=>({...a,support_email:e.target.value}))}
+              style={INP} placeholder="support@youragency.com"/>
+          </Field>
+
         </SectionCard>
       )
 

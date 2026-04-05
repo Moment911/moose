@@ -18,32 +18,39 @@ const FB  = "'Raleway','Helvetica Neue',sans-serif"
 const TABS = [
   { to:'/',        icon:LayoutGrid, label:'Home'    },
   { to:'/clients', icon:Users,      label:'Clients' },
-  { to:'/desk',    icon:Inbox,      label:'Desk'    },
-  { to:'/perf',    icon:TrendingUp, label:'Perf'    },
+  { to:'/reviews', icon:Star,       label:'Reviews' },
   { to:'/scout',   icon:Target,     label:'Scout'   },
+  { to:'/seo',     icon:BarChart2,  label:'SEO'     },
 ]
 
 const DRAWER_SECTIONS = [
   { title:'Workspace', items:[
-    { to:'/',                icon:LayoutGrid,    label:'Dashboard'     },
-    { to:'/clients',         icon:Users,         label:'Clients'       },
-    { to:'/reviews',         icon:Star,          label:'Reviews'       },
-    { to:'/proposals',       icon:FileSignature, label:'Proposals'     },
+    { to:'/',                icon:LayoutGrid,    label:'Dashboard'         },
+    { to:'/clients',         icon:Users,         label:'Clients'           },
+    { to:'/reviews',         icon:Star,          label:'Reviews'           },
+    { to:'/proposals',       icon:FileSignature, label:'Proposals'         },
+    { to:'/tasks',           icon:Clock,         label:'Tasks'             },
+  ]},
+  { title:'SEO Tools', items:[
+    { to:'/seo',             icon:BarChart2,     label:'SEO Hub'           },
+    { to:'/seo/gbp-audit',   icon:Star,          label:'GBP Audit'         },
+    { to:'/seo/onpage',      icon:Target,        label:'On-Page Audit'     },
+    { to:'/seo/keyword-gap', icon:TrendingUp,    label:'Keyword Gap'       },
+    { to:'/seo/citations',   icon:LayoutGrid,    label:'Citation Tracker'  },
+    { to:'/seo/monthly-report',icon:FileSignature,label:'Monthly Report'   },
   ]},
   { title:'Intelligence', items:[
-    { to:'/perf',            icon:TrendingUp,    label:'Performance',  badge:'AI'  },
-    { to:'/scout',           icon:Target,        label:'Scout',        badge:'NEW' },
-    { to:'/scout/history',   icon:Clock,         label:'Scout History'             },
-    { to:'/seo',             icon:BarChart2,     label:'SEO Hub'                   },
+    { to:'/scout',           icon:Target,        label:'Scout',      badge:'AI' },
+    { to:'/perf',            icon:TrendingUp,    label:'Performance',badge:'AI' },
   ]},
   { title:'Support', items:[
-    { to:'/desk',            icon:Inbox,         label:'KotoDesk'      },
-    { to:'/desk/knowledge',  icon:Brain,         label:'Q&A Knowledge' },
-    { to:'/desk/reports',    icon:BarChart2,     label:'Desk Reports'  },
+    { to:'/desk',            icon:Inbox,         label:'KotoDesk'          },
+    { to:'/desk/knowledge',  icon:Brain,         label:'Knowledge Base'    },
   ]},
   { title:'Agency', items:[
-    { to:'/agency-settings', icon:Settings,      label:'Settings'      },
-    { to:'/integrations',    icon:Plug,          label:'Integrations'  },
+    { to:'/agency-settings', icon:Settings,      label:'Settings'          },
+    { to:'/billing',         icon:TrendingUp,    label:'Billing & Plans'   },
+    { to:'/integrations',    icon:Plug,          label:'Integrations'      },
   ]},
 ]
 
@@ -295,17 +302,19 @@ export default function MobileShell({ children }) {
         </div>
 
         {/* ── Scrollable content ── */}
-        <div id="koto-mobile-content">
+        <div id="koto-mobile-content" style={{ paddingBottom: 'calc(50px + env(safe-area-inset-bottom, 0px))' }}>
           {children}
         </div>
 
         {/* ── Bottom tab bar ── */}
         <div style={{
-          background: BLK, flexShrink: 0, zIndex: 100,
-          borderTop: '1px solid #e5e7eb',
+          background: '#fff',
+          borderTop: '0.5px solid #d1d1d6',
+          flexShrink: 0, zIndex: 100,
           paddingBottom: 'env(safe-area-inset-bottom,0px)',
+          boxShadow: '0 -1px 0 rgba(0,0,0,.06)',
         }}>
-          <div style={{ display:'flex', height:56 }}>
+          <div style={{ display:'flex', height:50 }}>
             {TABS.map((tab, i) => {
               const Icon   = tab.icon
               const active = i === activeIdx
@@ -313,25 +322,27 @@ export default function MobileShell({ children }) {
                 <button key={tab.to} onClick={() => navigate(tab.to)}
                   style={{
                     flex:1, display:'flex', flexDirection:'column',
-                    alignItems:'center', justifyContent:'center', gap:3,
+                    alignItems:'center', justifyContent:'center', gap:2,
                     background:'transparent', border:'none',
                     cursor:'pointer', WebkitTapHighlightColor:'transparent',
-                    padding:'6px 0', transition:'opacity .1s',
+                    padding:'5px 0',
                   }}>
                   <div style={{
-                    width:34, height:28, borderRadius:9,
+                    width:32, height:26, borderRadius:8,
                     display:'flex', alignItems:'center', justifyContent:'center',
-                    background: active ? R+'22' : 'transparent',
+                    background: active ? R+'15' : 'transparent',
                     transition:'background .15s',
                   }}>
-                    <Icon size={21}
-                      color={active ? R : '#9ca3af'}
-                      strokeWidth={active ? 2.5 : 1.7}/>
+                    <Icon size={20}
+                      color={active ? R : '#8e8e93'}
+                      strokeWidth={active ? 2.5 : 1.7}
+                      fill={active && ['Star'].includes(tab.icon?.displayName) ? R : 'none'}
+                    />
                   </div>
                   <span style={{
-                    fontFamily: FH, fontSize:10, fontWeight: active ? 700 : 500,
-                    color: active ? R : '#9ca3af',
-                    letterSpacing:'.02em', lineHeight:1,
+                    fontFamily: FH, fontSize:9.5, fontWeight: active ? 700 : 500,
+                    color: active ? R : '#8e8e93',
+                    letterSpacing:'.01em', lineHeight:1,
                   }}>{tab.label}</span>
                 </button>
               )
@@ -363,14 +374,7 @@ export default function MobileShell({ children }) {
             <div style={{ display:'flex', alignItems:'center',
               justifyContent:'space-between', padding:'14px 16px 12px',
               borderBottom:'1px solid #f3f4f6', flexShrink:0 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-                <div style={{ width:26, height:26, borderRadius:7, background:R,
-                  display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <Zap size={13} color="#fff" strokeWidth={2.5}/>
-                </div>
-                <span style={{ fontFamily:FH, fontSize:17, fontWeight:800,
-                  color:'#111', letterSpacing:'-.03em' }}>Koto</span>
-              </div>
+              <img src="/koto_logo.svg" alt="Koto" style={{ height:24, width:'auto' }}/>
               <button onClick={() => setDrawerOpen(false)}
                 style={{ width:32, height:32, borderRadius:8,
                   background:'rgba(0,0,0,.05)', border:'none',
