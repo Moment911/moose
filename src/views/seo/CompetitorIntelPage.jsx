@@ -349,7 +349,7 @@ export default function CompetitorIntelPage() {
                         <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: GREEN, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
                           <ArrowUp size={14}/> Your Advantages
                         </div>
-                        {(intel.strengths || []).map((s: string, i: number) => (
+                        {(intel.strengths || []).map((s, i) => (
                           <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 13, color: '#374151', fontFamily: FB, lineHeight: 1.5 }}>
                             <span style={{ color: GREEN, fontWeight: 700, flexShrink: 0 }}>✓</span> {s}
                           </div>
@@ -359,7 +359,7 @@ export default function CompetitorIntelPage() {
                         <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: RED, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
                           <ArrowDown size={14}/> Where They Beat You
                         </div>
-                        {(intel.weaknesses || []).map((w: string, i: number) => (
+                        {(intel.weaknesses || []).map((w, i) => (
                           <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 13, color: '#374151', fontFamily: FB, lineHeight: 1.5 }}>
                             <span style={{ color: RED, fontWeight: 700, flexShrink: 0 }}>→</span> {w}
                           </div>
@@ -376,7 +376,7 @@ export default function CompetitorIntelPage() {
                         <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>Quick Wins</div>
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        {intel.quick_wins.map((w: string, i: number) => (
+                        {intel.quick_wins.map((w, i) => (
                           <span key={i} style={{ fontSize: 13, padding: '6px 12px', borderRadius: 20, background: AMBER + '15', color: '#92400e', fontFamily: FB, border: `1px solid ${AMBER}30` }}>
                             {w}
                           </span>
@@ -405,7 +405,7 @@ export default function CompetitorIntelPage() {
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {(intel?.recommended_actions || []).map((action: any, i: number) => {
+                      {(intel?.recommended_actions || []).map((action, i) => {
                         const impactColor = action.impact === 'high' ? RED : action.impact === 'medium' ? AMBER : TEAL
                         return (
                           <div key={i} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
