@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader } from '../components/mobile/MobilePage'
 import {
-  AlertTriangle, ArrowRight, BarChart2, Check, CheckCircle, ChevronRight, Circle, Clock, Code2, Database, ExternalLink, Globe, Loader2, Plug, RefreshCw, Users, Webhook, Zap
+  AlertTriangle, ArrowRight, BarChart2, Check, CheckCircle, ChevronRight, Circle, Clock, Code2, HardDrive, ExternalLink, Globe, Loader2, Plug, RefreshCw, Users, Webhook, Zap
 } from 'lucide-react'
 
 const R    = '#ea2729'
@@ -37,7 +37,7 @@ const PROVIDERS = [
   },
   {
     id: 'salesforce', name: 'Salesforce', short: 'SF',
-    Icon: Database, color: '#0ea5e9',
+    Icon: HardDrive, color: '#0ea5e9',
     desc: 'Enterprise-grade sync. Leads, contacts, accounts, and opportunities with Apex trigger support.',
     features: ['Leads & Contacts sync', 'Accounts mapping', 'Opportunities sync', 'Custom objects', 'SOQL query integration'],
     category: 'CRM', comingSoon: true,

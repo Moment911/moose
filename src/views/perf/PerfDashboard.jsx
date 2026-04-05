@@ -510,7 +510,7 @@ export default function PerfDashboard() {
                   <div style={{display:'flex',gap:10}}>
                     <button onClick={()=>window.location.href='/db-setup'}
                       style={{flex:1,padding:'11px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
-                      Go to Database Setup →
+                      Go to HardDrive Setup →
                     </button>
                     <button onClick={()=>{setDbError(null);loadClientData()}}
                       style={{padding:'11px 18px',borderRadius:10,border:'1px solid #e5e7eb',background:'#fff',color:'#374151',fontSize:14,fontWeight:700,cursor:'pointer'}}>

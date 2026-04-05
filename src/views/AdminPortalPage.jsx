@@ -6,7 +6,7 @@ import {
   ChevronLeft, Mail, Search, Settings, Layers, Activity,
   BarChart3, MessageSquare, ArrowUpRight, TrendingUp,
   DollarSign, Zap, Star, Target, Building2, FileText,
-  RefreshCw, Eye, Lock, Database, Globe, AlertCircle
+  RefreshCw, Eye, Lock, HardDrive, Globe, AlertCircle
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase, getClients, createClient_, updateClient, deleteClient, getProjects } from '../lib/supabase'
@@ -403,7 +403,7 @@ export default function AdminPortalPage() {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
               {[
                 { label:'Bypass auth mode', desc:'BYPASS_AUTH = true in useAuth.jsx. Disable before going live.', icon:Lock, status:'ON', warn:true },
-                { label:'Supabase connection', desc:'Database connected and running.', icon:Database, status:'Connected', warn:false },
+                { label:'Supabase connection', desc:'HardDrive connected and running.', icon:HardDrive, status:'Connected', warn:false },
                 { label:'Google Places API', desc:process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY?'API key configured.':'No key set — Scout uses AI fallback.', icon:Globe, status:process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY?'Active':'Missing', warn:!process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY },
                 { label:'Claude AI API', desc:process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY?'API key configured.':'No key — AI features disabled.', icon:Zap, status:process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY?'Active':'Missing', warn:!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY },
               ].map(item=>{

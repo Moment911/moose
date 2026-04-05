@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Check, ChevronRight, ChevronLeft, ExternalLink,
   Circle, CheckCircle, AlertCircle, Loader2,
-  Key, Zap, Globe, Database, BarChart2, Settings,
+  Key, Zap, Globe, HardDrive, BarChart2, Settings,
   ArrowRight, Copy, RefreshCw, Monitor, Lock,
   Link2, Server, Shield
 } from 'lucide-react'
@@ -38,9 +38,9 @@ const SETUP_STEPS = [
   },
   {
     id:       'supabase',
-    label:    'Supabase Database',
+    label:    'Supabase HardDrive',
     sublabel: 'Stores all your data',
-    icon:     Database,
+    icon:     HardDrive,
     color:    '#3ecf8e',
     required: true,
     url:      'https://app.supabase.com',

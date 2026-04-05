@@ -6,7 +6,7 @@ import {
   Plus, Trash2, Edit2, Save, X, ChevronRight, Check,
   Sparkles, Loader2, Copy, Eye, EyeOff, RefreshCw,
   ToggleLeft, ToggleRight, Key, AlertCircle, Users,
-  DollarSign, BarChart2, Lock, Database, Building2
+  DollarSign, BarChart2, Lock, HardDrive, Building2
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import AIThinkingBox from '../components/AIThinkingBox'

@@ -46,7 +46,7 @@ const DEFAULT_META = {
 // What happens automatically when an agency signs up
 const AUTO_SETUP = [
   { icon: Shield,   label: 'Secure account created',          desc: 'Email + password authentication' },
-  { icon: Database, label: 'Agency workspace provisioned',    desc: 'Private data environment, scoped to your agency' },
+  { icon: HardDrive, label: 'Agency workspace provisioned',    desc: 'Private data environment, scoped to your agency' },
   { icon: Users,    label: 'Team management enabled',         desc: 'Invite unlimited team members up to your seat limit' },
   { icon: Zap,      label: 'AI features activated',           desc: 'Claude AI connected — all features ready to use' },
   { icon: BarChart2,label: 'Client portal ready',             desc: 'Onboarding forms, access checklists, and AI personas' },

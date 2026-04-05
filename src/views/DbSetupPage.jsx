@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { CheckCircle, AlertCircle, Copy, Check, ExternalLink, Database, RefreshCw, Loader2 } from 'lucide-react'
+import { CheckCircle, AlertCircle, Copy, Check, ExternalLink, HardDrive, RefreshCw, Loader2 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
@@ -115,9 +115,9 @@ export default function DbSetupPage() {
           {/* Header */}
           <div style={{ marginBottom:28 }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
-              <Database size={22} color={RED}/>
+              <HardDrive size={22} color={RED}/>
               <h1 style={{ fontFamily:FH, fontSize:24, fontWeight:800, color:BLK, margin:0, letterSpacing:'-.03em' }}>
-                Database Setup
+                HardDrive Setup
               </h1>
             </div>
             <p style={{ fontSize:15, color:'#6b7280', fontFamily:FB, margin:0 }}>

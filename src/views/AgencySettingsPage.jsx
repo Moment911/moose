@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Building2, Palette, Users, CreditCard, Zap, Shield, Bell,
   Target, Inbox, ClipboardList, FileText, Plug, Settings,
-  Key, Globe, Database, MapPin, Link2, Star, Search,
+  Key, Globe, HardDrive, MapPin, Link2, Star, Search,
   Wrench, Check, AlertTriangle, ExternalLink, Copy,
   RefreshCw, Loader2, Info, Sliders, Save, Plus,
   Trash2, ChevronRight, ArrowRight, ToggleLeft, ToggleRight,
@@ -44,7 +44,7 @@ const SECTIONS = [
 // ── API Connections data ──────────────────────────────────────────
 const CONNECTIONS = [
   { id:'anthropic',    name:'Claude AI',         group:'Core',         icon:Zap,      color:R,        env:'NEXT_PUBLIC_ANTHROPIC_API_KEY',  free:'~$0.003/1K tokens', setupUrl:'https://console.anthropic.com/settings/keys',         desc:'Powers all AI features across the platform.' },
-  { id:'supabase',     name:'Supabase',           group:'Core',         icon:Database, color:'#3ecf8e',env:'NEXT_PUBLIC_SUPABASE_URL',         free:'Free tier: 500MB',  setupUrl:'https://app.supabase.com',                            desc:'Database for all clients, tickets, and agency data.' },
+  { id:'supabase',     name:'Supabase',           group:'Core',         icon:HardDrive, color:'#3ecf8e',env:'NEXT_PUBLIC_SUPABASE_URL',         free:'Free tier: 500MB',  setupUrl:'https://app.supabase.com',                            desc:'HardDrive for all clients, tickets, and agency data.' },
   { id:'google_places',name:'Google Places',      group:'Scout',        icon:MapPin,   color:'#4285f4',env:'NEXT_PUBLIC_GOOGLE_PLACES_KEY',   free:'$200/mo credit',    setupUrl:'https://console.cloud.google.com/apis/credentials',  desc:'Real business data for Scout lead searches.' },
   { id:'google_oauth', name:'Google OAuth',       group:'Analytics',    icon:Globe,    color:'#34a853',env:'NEXT_PUBLIC_GOOGLE_CLIENT_ID',    free:'Free',              setupUrl:'https://console.cloud.google.com/apis/credentials',  desc:'Login + Search Console + GA4 for SEO Hub.' },
   { id:'ghl',          name:'GoHighLevel',        group:'CRM',          icon:Link2,    color:'#f59e0b',env:'NEXT_PUBLIC_GHL_CLIENT_ID',       free:'GHL subscription',  setupUrl:'https://marketplace.gohighlevel.com/',                desc:'Two-way CRM sync for contacts and opportunities.' },

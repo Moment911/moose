@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   AlertTriangle, CheckCircle, XCircle, Clock, RefreshCw,
-  Users, Star, CreditCard, Database, Server, Globe, Zap, Shield,
+  Users, Star, CreditCard, HardDrive, Server, Globe, Zap, Shield,
   TrendingUp, FileText, Settings, ChevronDown, ChevronUp,
   Terminal, Bell, BarChart2, Loader2, Circle, ArrowRight,
   Eye, Trash2, Download, Search, Filter, X, AlertCircle,

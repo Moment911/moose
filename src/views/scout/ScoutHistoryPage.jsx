@@ -6,7 +6,7 @@ import {
   Search, MapPin, Calendar, TrendingUp, Target, BarChart2,
   ChevronRight, Flame, Thermometer, Star, Globe, Phone,
   FileText, Eye, ArrowRight, RefreshCw, Filter, X,
-  Sparkles, Loader2, AlertCircle, Clock, Database,
+  Sparkles, Loader2, AlertCircle, Clock, HardDrive,
   GitCompare, CheckCircle, ArrowUp, ArrowDown, Minus
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
@@ -666,7 +666,7 @@ export default function ScoutHistoryPage() {
               {tab === 'businesses' && (
                 businessGroups.length === 0 ? (
                   <div style={{textAlign:'center',padding:'60px 24px'}}>
-                    <Database size={40} color="#e5e7eb" style={{margin:'0 auto 16px'}}/>
+                    <HardDrive size={40} color="#e5e7eb" style={{margin:'0 auto 16px'}}/>
                     <div style={{fontSize:17,fontWeight:800,color:'#111',marginBottom:6}}>
                       No saved reports yet
                     </div>

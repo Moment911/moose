@@ -7,7 +7,7 @@ import {
   BarChart2, Bookmark, BookmarkCheck, ArrowRight,
   Sparkles, RefreshCw, Shield, Info, ChevronRight,
   Users, TrendingUp, AlertCircle, Building, Zap,
-  BarChart, Eye, Database
+  BarChart, Eye, HardDrive
 } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'
 import { useAuth } from '../../hooks/useAuth'
@@ -1066,7 +1066,7 @@ export default function ScoutPage() {
               )}
               {/* Data source banner */}
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background:'#e8f9fa', border:`1px solid ${TEAL}60` }}>
-                <Database size={14} color={TEAL}/>
+                <HardDrive size={14} color={TEAL}/>
                 <span style={{ fontSize:15, fontWeight:700, color:'#0e7490' }}>
                   {dataSource === 'mixed'
                     ? `${stats?.realData||0} real businesses from Google Maps · Claude intelligence applied`
