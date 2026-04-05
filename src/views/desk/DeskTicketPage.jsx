@@ -536,13 +536,41 @@ export default function DeskTicketPage() {
             {/* Reply box */}
             <MobileCard style={{padding:'14px'}}>
               <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Reply</div>
-              <textarea value={replyText||''} onChange={e=>setReplyText&&setReplyText(e.target.value)}
+              <textarea value={mReplyText} onChange={e=>setMReplyText(e.target.value)}
                 placeholder="Type your reply…" rows={3}
                 style={{width:'100%',border:'1px solid #ececea',borderRadius:10,padding:'10px 12px',fontSize:16,outline:'none',resize:'none',boxSizing:'border-box',fontFamily:"'Raleway',sans-serif",color:'#0a0a0a'}}
                 onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
               <div style={{display:'flex',gap:8,marginTop:10}}>
-                <MobileButton label="Send Reply" onPress={()=>submitReply&&submitReply()}/>
-                <MobileButton label="Resolve" onPress={()=>resolveTicket&&resolveTicket()} secondary/>
+                <MobileButton label={mReplySending?'Sending…':'Send Reply'} disabled={!mReplyText.trim()||mReplySending}
+                  onPress={async()=>{
+                    if(!mReplyText.trim()||!ticket) return
+                    setMReplySending(true)
+                    try {
+                      await supabase.from('desk_replies').insert({
+                        ticket_id: ticket.id,
+                        body: mReplyText.trim(),
+                        author_type: 'agent',
+                        author_name: agentMe?.name || 'Agent',
+                        is_internal: false,
+                        created_at: new Date().toISOString(),
+                      })
+                      if (ticket.status === 'new') {
+                        await supabase.from('desk_tickets').update({status:'in_progress'}).eq('id',ticket.id)
+                      }
+                      setMReplyText('')
+                      const {data:r} = await supabase.from('desk_replies').select('*').eq('ticket_id',ticket.id).order('created_at')
+                      setReplies(r||[])
+                      toast.success('Reply sent')
+                    } catch(e) { toast.error(e.message) }
+                    setMReplySending(false)
+                  }}/>
+                <MobileButton label="Resolve" secondary
+                  onPress={async()=>{
+                    if(!ticket) return
+                    await supabase.from('desk_tickets').update({status:'resolved', resolved_at: new Date().toISOString()}).eq('id',ticket.id)
+                    toast.success('Ticket resolved')
+                    navigate('/desk')
+                  }}/>
               </div>
             </MobileCard>
           </div>

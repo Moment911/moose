@@ -78,6 +78,7 @@ export default function SEOHubPage() {
   const [sites, setSites]           = useState([])
   const [loading, setLoading]       = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [syncing,    setSyncing]    = useState(false)
   const [liveData,   setLiveData]   = useState(null)
   const [analysis, setAnalysis]     = useState(null)
   const [newSiteUrl, setNewSiteUrl] = useState('')
@@ -302,6 +303,35 @@ Return ONLY valid JSON (no markdown):
       toast.error('Report failed: ' + e.message)
     }
     setGenerating(false)
+  }
+
+  async function syncKeywords() {
+    if (!selectedClient) return
+    const gscConn = connections.find(c => c.provider === 'search_console' && c.connected)
+    if (!gscConn?.site_url) {
+      toast.error('Connect Search Console first to sync positions')
+      setTab('connect')
+      return
+    }
+    setSyncing(true)
+    toast.loading('Syncing keyword positions from Search Console…', { id: 'sync-kw' })
+    try {
+      const res = await fetch('/api/seo/sync-keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: selectedClient.id }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      toast.success(`Synced ${data.synced} keywords · ${data.notFound} not yet ranking`, { id: 'sync-kw' })
+      // Reload keywords
+      const { data: kws } = await supabase.from('seo_keyword_tracking').select('*')
+        .eq('client_id', selectedClient.id).order('position').limit(200)
+      setKeywords(kws || [])
+    } catch(e) {
+      toast.error('Sync failed: ' + e.message, { id: 'sync-kw' })
+    }
+    setSyncing(false)
   }
 
   async function addKeyword(keyword) {
@@ -803,6 +833,11 @@ Return ONLY valid JSON (no markdown):
                              disabled={!newKw.trim()||!selectedClient}
                              style={{ padding:'9px 20px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, flexShrink:0, whiteSpace:'nowrap', opacity:!newKw.trim()||!selectedClient?.5:1 }}>
                              <Plus size={14}/> Add Keyword
+                           </button>
+                           <button onClick={syncKeywords} disabled={syncing||!selectedClient}
+                             style={{ padding:'9px 16px', borderRadius:11, border:'1.5px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, flexShrink:0, whiteSpace:'nowrap', opacity:!selectedClient?.5:1 }}>
+                             {syncing ? <Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/> : <RefreshCw size={14}/>}
+                             Sync Positions
                            </button>
                          </div>
                         <div style={{ display:'flex', gap:12, marginBottom:16, alignItems:'center' }}>

@@ -27,10 +27,10 @@ const TABS = [
   { key: 'google', label: 'Google' },
   { key: 'marketing', label: 'Marketing' },
   { key: 'contacts', label: 'Contacts' },
-  { key: 'profile', label: '📋 Full Profile' },
+  { key: 'profile', label: 'Full Profile' },
   { key: 'onboarding', label: 'Onboarding' },
-  { key: 'access', label: '🔑 Access Checklist' },
-  { key: 'persona', label: '✨ AI Persona' },
+  { key: 'access', label: 'Access' },
+  { key: 'persona', label: 'AI Persona' },
 ]
 
 const REVENUE_RANGES = [
@@ -702,7 +702,7 @@ export default function ClientDetailPage() {
           </div>
           {!p.business_name && !p.description && (
             <div style={{ background: '#f0fbfc', borderRadius: 14, border: `1.5px dashed #ea272940`, padding: 40, textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
               <div style={{ fontSize: 15, color: '#4b5563', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
                 Go to the <strong>Onboarding</strong> tab to generate a link, then send it to your client to fill out. All their data will appear here automatically once submitted.
@@ -802,7 +802,7 @@ export default function ClientDetailPage() {
           <DataSection title="Website & Hosting" icon={Server} color="#6b7280">
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 9, padding: '8px 12px', display: 'flex', gap: 7, marginBottom: 12, alignItems: 'center' }}>
               <Lock size={12} color="#dc2626" />
-              <span style={{ fontSize: 14, color: '#991b1b', fontWeight: 700 }}>Credentials are encrypted — click 👁 to reveal and 📋 to copy</span>
+              <span style={{ fontSize: 14, color: '#991b1b', fontWeight: 700 }}>Credentials are encrypted — click the eye to reveal and copy icon to copy</span>
             </div>
             <DataRow label="Hosting Provider" value={hosting.provider} />
             <DataRow label="Hosting URL" value={hosting.url} link />

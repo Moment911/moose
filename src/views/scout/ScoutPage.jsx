@@ -687,19 +687,74 @@ export default function ScoutPage() {
 
   async function addAsClient(lead) {
     try {
+      // Detect industry from types or query
+      const rawIndustry = lead.types?.[0] || query || ''
+      const industryMap = {
+        plumbing:'Plumbing', hvac:'HVAC', dental:'Dental', roofing:'Roofing',
+        law:'Law Firm', landscaping:'Landscaping', gym:'Gym / Fitness',
+        fitness:'Gym / Fitness', auto:'Auto Dealer', electrician:'Electrician',
+        contractor:'Contractor', restaurant:'Restaurant', medical:'Medical',
+        salon:'Salon / Spa', childcare:'Childcare',
+      }
+      const detectedIndustry = Object.entries(industryMap).find(([k]) =>
+        rawIndustry.toLowerCase().includes(k)
+      )?.[1] || selectedIndustries[0] || ''
+
       const { data, error } = await supabase.from('clients').insert({
-        name:     lead.name,
-        email:    lead.email || '',
-        phone:    lead.phone || '',
-        website:  lead.website || '',
-        status:   lead.status || 'prospect',
-        industry: query || selectedIndustries[0] || '',
-        notes:    lead.ai_summary || '',
-        agency_id: agencyId || null,
+        name:       lead.name,
+        email:      lead.email || '',
+        phone:      lead.phone || '',
+        website:    lead.website || '',
+        status:     'prospect',
+        industry:   detectedIndustry,
+        notes:      lead.ai_summary || '',
+        agency_id:  agencyId || null,
       }).select().single()
       if (error) throw error
-      setAddedClients(prev=>new Set([...prev, lead.id]))
-      toast.success(`${lead.name} added as client!`)
+
+      // Pre-populate client_profiles with Scout data
+      if (data?.id) {
+        const profileData = {
+          client_id:        data.id,
+          business_name:    lead.name,
+          phone:            lead.phone || '',
+          website:          lead.website || '',
+          address: {
+            formatted: lead.address || '',
+          },
+          google_data: {
+            place_id:     lead.place_id || '',
+            rating:       lead.rating || null,
+            review_count: lead.review_count || 0,
+            maps_url:     lead.maps_url || '',
+          },
+          seo_data: {
+            cms:              lead.cms || null,
+            seo_plugin:       lead.seo_plugin || null,
+            has_analytics:    lead.has_analytics || false,
+            has_schema:       lead.has_schema || false,
+            has_crm:          lead.has_crm || false,
+            has_call_tracking:lead.has_call_tracking || false,
+            sitemap_pages:    lead.sitemap_pages || 0,
+            page_title:       lead.page_title || '',
+          },
+          scout_data: {
+            opportunity_score: lead.score || null,
+            gaps:              lead.gaps || [],
+            revenue_at_risk:   lead.revenue?.annualRevenueAtRisk || null,
+            ai_summary:        lead.ai_summary || '',
+            searched_at:       new Date().toISOString(),
+          },
+        }
+        // Try to upsert profile — ignore error if table doesn't exist yet
+        await supabase.from('client_profiles').upsert(profileData, { onConflict: 'client_id' })
+          .catch(() => {}) // graceful if table not yet run
+      }
+
+      setAddedClients(prev => new Set([...prev, lead.id]))
+      toast.success(`${lead.name} added! Opening client profile…`)
+      // Navigate to client profile so agent can complete the details
+      if (data?.id) setTimeout(() => navigate(`/clients/${data.id}`), 800)
     } catch(e) {
       toast.error('Failed to add: ' + e.message)
     }

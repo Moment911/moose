@@ -13,6 +13,8 @@ import AIThinkingBox from '../components/AIThinkingBox'
 import { supabase } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileButton } from '../components/mobile/MobilePage'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
@@ -311,6 +313,20 @@ export default function ProposalBuilderPage() {
   }, [proposal, searchParams.get('convert')])
 
   async function load() {
+    // Handle 'new' - create proposal and redirect to it
+    if (id === 'new') {
+      const { data: newProp, error } = await supabase.from('proposals').insert({
+        agency_id:   agencyId,
+        title:       'New Proposal',
+        status:      'draft',
+        type:        'proposal',
+        created_at:  new Date().toISOString(),
+        updated_at:  new Date().toISOString(),
+      }).select().single()
+      if (error) { toast.error('Could not create proposal'); setLoading(false); return }
+      navigate(`/proposals/${newProp.id}`, { replace: true })
+      return
+    }
     const [{ data: prop }, { data: secs }, { data: mods }] = await Promise.all([
       supabase.from('proposals').select('*, clients(*)').eq('id', id).single(),
       supabase.from('proposal_sections').select('*').eq('proposal_id', id).order('sort_order'),
@@ -437,6 +453,29 @@ export default function ProposalBuilderPage() {
       </div>
     </div>
   )
+
+  const isMobile = useMobile()
+
+  /* ─── MOBILE: redirect to proposals list (builder not suited for mobile) ─── */
+  if (isMobile && !loading) {
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Proposal Builder" subtitle={proposal?.title||'Loading…'}/>
+        <div style={{padding:'24px 16px'}}>
+          <MobileCard style={{padding:'20px',textAlign:'center'}}>
+            <div style={{fontSize:32,marginBottom:12}}>💻</div>
+            <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a',marginBottom:8}}>
+              Best on Desktop
+            </div>
+            <p style={{fontSize:14,color:'#6b7280',marginBottom:16,lineHeight:1.6}}>
+              The proposal builder works best on a larger screen. You can view and manage proposals from your phone.
+            </p>
+            <MobileButton label="View All Proposals" onPress={()=>navigate('/proposals')}/>
+          </MobileCard>
+        </div>
+      </MobilePage>
+    )
+  }
 
   return (
     <div style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
