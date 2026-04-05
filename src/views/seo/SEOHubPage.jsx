@@ -1256,6 +1256,22 @@ Return ONLY valid JSON (no markdown):
                       </div>
                     )}
 
+                    {tab === 'citations' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <div style={{ fontSize:40, marginBottom:16 }}>📍</div>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Citation Tracker</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Check 20 top directories for missing listings and NAP inconsistencies. Get an AI-ranked fix list to boost local rankings.
+                          </div>
+                          <button onClick={()=>navigate('/seo/citations')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            Open Citation Tracker →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {tab === 'reports' && (
                       <div className="animate-fade-up">
 
