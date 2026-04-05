@@ -6,7 +6,7 @@ import {
   BarChart2, TrendingUp, Target, Plug, Settings, Shield,
   Cpu, Workflow, Star, ChevronDown, ChevronRight,
   LogOut, Plus, Folder, Trash2, Edit2, MoreHorizontal, Zap,
-  CreditCard, Database, MapPin, Globe, Search, FileText, BookOpen, Code2
+  CreditCard, Database, MapPin, Globe, Search, FileText, BookOpen, Code2, Download
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
