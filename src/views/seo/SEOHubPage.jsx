@@ -808,7 +808,7 @@ Return ONLY valid JSON (no markdown):
                          )}
 
           {/* Stat cards */}
-                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
                           <Stat label="Keywords tracked"  value={keywords.length||0} sub={keywords.length?`${topKws} in top 10`:'None yet'} icon={Search}   accent/>
                           <Stat label="Avg. position"     value={avgPos?`#${avgPos}`:'—'}   sub="across all keywords"  icon={Target}/>
                           <Stat label="WP sites"          value={sites.filter(s=>s.is_active).length} sub={`${sites.length} total connected`} icon={Globe}  teal/>
@@ -884,7 +884,7 @@ Return ONLY valid JSON (no markdown):
                         </div>
 
                         {/* ── LOCAL RANK TRACKER — inline ── */}
-                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginTop:4 }}>
+                        <div id="rank-tracker-panel" style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginTop:4 }}>
                           <div style={{ padding:'16px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                               <MapPin size={15} color={RED}/>
