@@ -1,5 +1,6 @@
 "use client"
-import { useState, useEffect } from 'react'
+import {
+  MapPin, useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   LayoutGrid, Users, FileSignature, Clock, Inbox, Brain,

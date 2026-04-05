@@ -939,7 +939,7 @@ Return ONLY valid JSON (no markdown):
                             <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:2 }}>Koto SEO Plugin for WordPress</div>
                             <div style={{ fontSize:13, color:'#374151' }}>Install on your client's WordPress site to enable full SEO sync and automation.</div>
                           </div>
-                          <a href="https://hellokoto.com/koto-seo.zip" download
+                          <a href="/koto-seo.zip" download
                             style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px',
                               borderRadius:10, border:'none', background:TEAL, color:'#fff',
                               fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none',

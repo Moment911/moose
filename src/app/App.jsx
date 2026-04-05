@@ -53,6 +53,7 @@ import CompanyProfilePage from '../views/scout/CompanyProfilePage'
 import ScoutReportsPage from '../views/scout/ScoutReportsPage'
 import ScoutSettingsPage from '../views/scout/ScoutSettingsPage'
 import SEOHubPage from '../views/seo/SEOHubPage'
+import LocalRankTrackerPage from '../views/seo/LocalRankTrackerPage'
 import SEOAuditPage from '../views/seo/SEOAuditPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
@@ -153,6 +154,7 @@ export default function App() {
           <Route path="/scout/settings" element={<SettingsPage />} />
           <Route path="/seo" element={<SEOHubPage />} />
           <Route path="/seo/:clientId" element={<SEOHubPage />} />
+          <Route path="/seo/local-rank" element={<LocalRankTrackerPage />} />
           <Route path="/seo/audit" element={<SEOAuditPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
