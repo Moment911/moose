@@ -82,6 +82,7 @@ import AgencySignupPage from '../views/AgencySignupPage'
 import AgencySettingsPage from '../views/AgencySettingsPage'
 import DbSetupPage from '../views/DbSetupPage'
 import BillingPage from '../views/BillingPage'
+import AgentPage from '../views/AgentPage'
 import ClientPortalPage from '../views/ClientPortalPage'
 import AgencySetupPage from '../views/AgencySetupPage'
 import AccountAccessPage from '../views/AccountAccessPage'
@@ -114,6 +115,7 @@ export default function App() {
           <Route path="/signup" element={<AgencySignupPage />} />
           <Route path="/db-setup" element={<DbSetupPage />} />
           <Route path="/billing" element={<BillingPage />} />
+          <Route path="/agent" element={<AgentPage />} />
           <Route path="/portal/:token" element={<ClientPortalPage />} />
           <Route path="/portal/preview/:clientId" element={<ClientPortalPage />} />
           <Route path="/agency-settings" element={<AgencySettingsPage />} />

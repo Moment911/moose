@@ -114,6 +114,7 @@ export default function Sidebar() {
 
           <Section label="Workspace"/>
           <NavLink to="/"            exact icon={LayoutGrid}    label="Dashboard"/>
+        <NavLink to="/agent"        startsWith icon={Brain}   label="CMO Agent" badge="AI"/>
           <NavLink to="/clients"     startsWith icon={Users}    label="Clients"/>
           <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
           <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
