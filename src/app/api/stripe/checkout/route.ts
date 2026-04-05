@@ -4,9 +4,9 @@ const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || ''
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
 const PRICE_IDS: Record<string, string> = {
-  starter: process.env.STRIPE_PRICE_STARTER || '',
-  growth:  process.env.STRIPE_PRICE_GROWTH  || '',
-  agency:  process.env.STRIPE_PRICE_AGENCY  || '',
+  starter: process.env.STRIPE_PRICE_STARTER || 'price_1TIrSOHLHCf3QhQXZ8tJZ0c0',
+  growth:  process.env.STRIPE_PRICE_GROWTH  || 'price_1TIrSpHLHCf3QhQXSN1Ju9Rt',
+  agency:  process.env.STRIPE_PRICE_AGENCY  || 'price_1TIrTOHLHCf3QhQXTONbAybZ',
 }
 
 export async function POST(req: NextRequest) {
