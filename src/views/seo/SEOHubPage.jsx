@@ -865,21 +865,31 @@ Return ONLY valid JSON (no markdown):
                     {/* ── WP SITES ── */}
                     {tab === 'sites' && (
                       <div className="animate-fade-up">
+                        {/* Download plugin banner */}
+                        <div style={{ background:`linear-gradient(135deg, ${TEAL}18, ${TEAL}08)`, borderRadius:14, border:`1.5px solid ${TEAL}40`, padding:'16px 20px', marginBottom:14, display:'flex', alignItems:'center', gap:14 }}>
+                          <div style={{ width:40, height:40, borderRadius:10, background:TEAL+'25', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                            <Globe size={20} color={TEAL}/>
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:2 }}>Koto SEO Plugin for WordPress</div>
+                            <div style={{ fontSize:13, color:'#374151' }}>Install on your client's WordPress site to enable full SEO sync and automation.</div>
+                          </div>
+                          <a href="https://hellokoto.com/koto-seo.zip" download
+                            style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px',
+                              borderRadius:10, border:'none', background:TEAL, color:'#fff',
+                              fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none',
+                              flexShrink:0 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download Plugin (.zip)
+                          </a>
+                        </div>
                         {/* Add form */}
                         <div style={{ background:'#fff', borderRadius:16, border:`1.5px solid ${RED}30`, padding:'20px 24px', marginBottom:16 }}>
                           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:4 }}>
                             <div style={{ fontSize:15, fontWeight:900, color:'#111' }}>Connect a WordPress site</div>
-                            <a
-                              href="https://github.com/Moment911/koto-seo-plugin/releases/latest/download/koto-seo.zip"
-                              download
-                              style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px',
-                                borderRadius:9, border:'none', background:TEAL, color:'#fff',
-                                fontSize:13, fontWeight:700, cursor:'pointer', textDecoration:'none',
-                                flexShrink:0, fontFamily:"var(--font-heading)" }}>
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                              </svg>
-                              Download Koto SEO Plugin
+wnload Koto SEO Plugin
                             </a>
                           </div>
                           <div style={{ fontSize:13, color:'#374151', marginBottom:14 }}>
