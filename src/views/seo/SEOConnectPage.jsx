@@ -143,31 +143,65 @@ export default function SEOConnectPage() {
       }
 
       // Fetch GA4 accounts + properties
-      const accRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accounts', {
+      // Try v1beta/accounts first, then fallback to accountSummaries
+      let ga4Fetched = false
+
+      // Method 1: accountSummaries (most reliable — returns accounts + properties in one call)
+      const summaryRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', {
         headers: { Authorization: `Bearer ${accessToken}` }
       })
-      if (accRes.ok) {
-        const accData = await accRes.json()
-        const accounts = accData.accounts || []
-        const withProps = []
-        for (const acc of accounts.slice(0, 10)) {
-          const propRes = await fetch(
-            `https://analyticsadmin.googleapis.com/v1beta/${acc.name}/properties?filter=parent:${acc.name}`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          )
-          if (propRes.ok) {
-            const propData = await propRes.json()
-            withProps.push({
-              account: acc,
-              properties: (propData.properties || []).filter(p => p.propertyType === 'PROPERTY_TYPE_ORDINARY')
-            })
+      if (summaryRes.ok) {
+        const summaryData = await summaryRes.json()
+        const summaries = summaryData.accountSummaries || []
+        if (summaries.length > 0) {
+          const withProps = summaries.map(acc => ({
+            account: { name: acc.name, displayName: acc.displayName },
+            properties: (acc.propertySummaries || []).map(p => ({
+              name: p.property,
+              displayName: p.displayName,
+              propertyType: p.propertyType || 'PROPERTY_TYPE_ORDINARY',
+            }))
+          })).filter(a => a.properties.length > 0)
+          setGa4Accounts(withProps)
+          const allProps = withProps.flatMap(a => a.properties)
+          if (allProps.length === 1) {
+            setSelectedGa4(allProps[0].name.replace('properties/', ''))
           }
+          ga4Fetched = true
         }
-        setGa4Accounts(withProps)
-        // Auto-select if only one property total
-        const allProps = withProps.flatMap(a => a.properties)
-        if (allProps.length === 1) {
-          setSelectedGa4(allProps[0].name.replace('properties/', ''))
+      }
+
+      // Method 2: fallback — fetch accounts then properties separately
+      if (!ga4Fetched) {
+        const accRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accounts', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        if (accRes.ok) {
+          const accData = await accRes.json()
+          const accounts = accData.accounts || []
+          const withProps = []
+          for (const acc of accounts.slice(0, 10)) {
+            // Use accountSummaries filter instead of properties?filter= (more reliable)
+            const propRes = await fetch(
+              `https://analyticsadmin.googleapis.com/v1beta/properties?filter=parent:${acc.name}`,
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            )
+            if (propRes.ok) {
+              const propData = await propRes.json()
+              const props = (propData.properties || [])
+                // Don't filter by type — show all properties
+              if (props.length > 0) {
+                withProps.push({ account: acc, properties: props })
+              }
+            }
+          }
+          if (withProps.length > 0) {
+            setGa4Accounts(withProps)
+            const allProps = withProps.flatMap(a => a.properties)
+            if (allProps.length === 1) {
+              setSelectedGa4(allProps[0].name.replace('properties/', ''))
+            }
+          }
         }
       }
     } catch(e) {
@@ -428,9 +462,14 @@ export default function SEOConnectPage() {
               padding:'24px', marginBottom:16 }}>
               <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#0a0a0a',
                 marginBottom:6 }}>Choose Your Accounts</div>
-              <p style={{ fontSize:14, color:'#6b7280', fontFamily:FB, margin:'0 0 20px' }}>
+              <p style={{ fontSize:14, color:'#6b7280', fontFamily:FB, margin:'0 0 4px' }}>
                 Select which Search Console site and GA4 property belong to this client.
+                Each is saved independently — you can connect one without the other.
               </p>
+              <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, margin:'0 0 20px',
+                padding:'8px 12px', background:'#f9fafb', borderRadius:8, border:'1px solid #f3f4f6' }}>
+                💡 Use the "Skip" option in each dropdown if you only want to connect one service.
+              </div>
 
               {loadingProps ? (
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
@@ -449,11 +488,17 @@ export default function SEOConnectPage() {
                       Search Console Site
                     </label>
                     {gscSites.length === 0 ? (
-                      <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB,
-                        padding:'10px 14px', background:'#f9fafb', borderRadius:9,
-                        border:'1px solid #f3f4f6' }}>
-                        No verified sites found in this Google account.
-                        Make sure your client's site is verified in Search Console.
+                      <div style={{ fontSize:13, color:'#374151', fontFamily:FB,
+                        padding:'12px 14px', background:'#fef3c7', borderRadius:9,
+                        border:'1px solid #fde68a' }}>
+                        <strong style={{ fontFamily:FH, color:'#92400e' }}>No verified sites found.</strong>
+                        <div style={{ marginTop:6, lineHeight:1.7, color:'#78350f' }}>
+                          Make sure the site is added and verified in Google Search Console.
+                        </div>
+                        <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer"
+                          style={{ fontSize:13, color:'#d97706', fontFamily:FH, fontWeight:700 }}>
+                          Open Search Console ↗
+                        </a>
                       </div>
                     ) : (
                       <select value={selectedGsc} onChange={e=>setSelectedGsc(e.target.value)}
@@ -485,10 +530,22 @@ export default function SEOConnectPage() {
                       Google Analytics 4 Property
                     </label>
                     {ga4Accounts.length === 0 ? (
-                      <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB,
-                        padding:'10px 14px', background:'#f9fafb', borderRadius:9,
-                        border:'1px solid #f3f4f6' }}>
-                        No GA4 properties found in this Google account.
+                      <div style={{ fontSize:13, color:'#374151', fontFamily:FB,
+                        padding:'12px 14px', background:'#fef3c7', borderRadius:9,
+                        border:'1px solid #fde68a' }}>
+                        <strong style={{ fontFamily:FH, color:'#92400e' }}>No GA4 properties found.</strong>
+                        <div style={{ marginTop:6, lineHeight:1.7, color:'#78350f' }}>
+                          This can happen if:<br/>
+                          • The Google account has Universal Analytics (UA) but not GA4<br/>
+                          • The account has no Analytics properties at all<br/>
+                          • You need to sign in with a different Google account
+                        </div>
+                        <div style={{ marginTop:8 }}>
+                          <a href="https://analytics.google.com" target="_blank" rel="noreferrer"
+                            style={{ fontSize:13, color:'#d97706', fontFamily:FH, fontWeight:700 }}>
+                            Open Google Analytics → check your properties ↗
+                          </a>
+                        </div>
                       </div>
                     ) : (
                       <select value={selectedGa4} onChange={e=>setSelectedGa4(e.target.value)}
