@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, Search, Loader2, ChevronUp, ChevronDown, MoreHorizontal,
@@ -70,6 +70,7 @@ export default function ClientsPage() {
   const [bizSearching, setBizSearching] = useState(false)
   const [bizSearched,  setBizSearched]  = useState(false)
   const [bizDebug,     setBizDebug]     = useState(null)
+  const bizResultsRef = useRef([])
 
   useEffect(() => { load() }, [agencyId])
 
@@ -96,6 +97,7 @@ export default function ClientsPage() {
       if (data.error) toast.error(data.error)
       const results = data.results || []
       console.log('[Koto] setting bizResults:', results.length, 'items')
+      bizResultsRef.current = results
       setBizResults(results)
       setBizSearched(true)
     } catch(e) {
@@ -368,9 +370,9 @@ export default function ClientsPage() {
                       {bizSearching ? '…' : 'Search'}
                     </button>
                   </div>
-                  {bizResults.length > 0 && (
+                  {(bizResults.length > 0 || bizResultsRef.current.length > 0) && (
                     <div style={{ marginTop:8, display:'flex', flexDirection:'column', gap:6 }}>
-                      {bizResults.map((biz,i)=>(
+                      {(bizResults.length > 0 ? bizResults : bizResultsRef.current).map((biz,i)=>(
                         <div key={i}
                           onClick={()=>autofillFromGoogle(biz)}
                           style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', cursor:'pointer', background:'#fff', transition:'all .1s' }}
@@ -387,12 +389,12 @@ export default function ClientsPage() {
                       ))}
                     </div>
                   )}
-                  {bizResults.length > 0 && (
+                  {(bizResults.length > 0 || bizResultsRef.current.length > 0) && (
                     <div style={{ fontSize:12, color:'#6b7280', padding:'4px 0', fontWeight:600 }}>
-                      {bizResults.length} result{bizResults.length>1?'s':''} — click one to fill the form
+                      {(bizResults.length||bizResultsRef.current.length)} result{(bizResults.length||bizResultsRef.current.length)>1?'s':''} — click one to fill the form
                     </div>
                   )}
-                  {bizSearched && bizResults.length===0 && !bizSearching && (
+                  {bizSearched && bizResults.length===0 && bizResultsRef.current.length===0 && !bizSearching && (
                     <div style={{ marginTop:8 }}>
                       <div style={{ fontSize:13, color:'#9ca3af', marginBottom:6 }}>No results — fill in details manually below</div>
                       {bizDebug && (

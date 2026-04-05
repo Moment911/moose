@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       rating:       p.rating,
       review_count: p.userRatingCount,
       photo: p.photos?.[0]?.name
-        ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=120&key=${GOOGLE_KEY}`
+        ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=120&key=${GOOGLE_KEY}`.trim()
         : null,
     }))
 
