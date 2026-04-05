@@ -166,12 +166,19 @@ Analyze these keywords and generate a comprehensive keyword gap analysis. Return
       messages: [{ role: 'user', content: prompt }],
     }),
   })
-  if (!res.ok) return null
+  if (!res.ok) {
+    const errBody = await res.text()
+    console.error('[keyword-gap] Anthropic API error:', res.status, errBody.slice(0, 200))
+    throw new Error(`Anthropic API ${res.status}: ${errBody.slice(0, 100)}`)
+  }
   const d = await res.json()
   try {
     const text = d.content?.[0]?.text?.trim() || '{}'
     return JSON.parse(text)
-  } catch { return null }
+  } catch (e) {
+    console.error('[keyword-gap] JSON parse error:', e)
+    return null
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -231,6 +238,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+    return NextResponse.json({ 
+      error: e.message,
+      hint: e.message.includes('401') ? 'Invalid API key — check ANTHROPIC_API_KEY in Vercel' :
+            e.message.includes('403') ? 'API key lacks permissions' :
+            e.message.includes('529') ? 'Anthropic API overloaded — try again in a moment' :
+            'Check Vercel function logs for details'
+    }, { status: 500 })
   }
 }

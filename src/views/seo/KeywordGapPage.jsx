@@ -143,7 +143,10 @@ export default function KeywordGapPage() {
       })
       const data = await res.json()
       clearInterval(iv)
-      if (data.error) throw new Error(data.error)
+      if (data.error) {
+        const msg = data.error + (data.hint ? '\n\nHint: ' + data.hint : '') + (data.debug ? '\n\nKey status: ' + JSON.stringify(data.debug) : '')
+        throw new Error(msg)
+      }
       setResult(data)
       toast.success(`Found ${data.analysis?.gap_opportunities?.length || 0} keyword opportunities`)
     } catch(e) { clearInterval(iv); toast.error('Analysis failed: ' + e.message) }
