@@ -69,6 +69,7 @@ export default function ClientsPage() {
   const [bizResults,   setBizResults]   = useState([])
   const [bizSearching, setBizSearching] = useState(false)
   const [bizSearched,  setBizSearched]  = useState(false)
+  const [bizDebug,     setBizDebug]     = useState(null)
 
   useEffect(() => { load() }, [agencyId])
 
@@ -346,7 +347,15 @@ export default function ClientsPage() {
                     </div>
                   )}
                   {bizSearched && bizResults.length===0 && !bizSearching && (
-                    <div style={{ marginTop:6, fontSize:13, color:'#9ca3af' }}>No results — fill in details manually below</div>
+                    <div style={{ marginTop:8 }}>
+                      <div style={{ fontSize:13, color:'#9ca3af', marginBottom:6 }}>No results — fill in details manually below</div>
+                      {bizDebug && (
+                        <div style={{ fontSize:11, fontFamily:'monospace', background:'#1a1a2e', color:'#a3e635', padding:'10px 14px', borderRadius:9, wordBreak:'break-all', lineHeight:1.8 }}>
+                          <div style={{ color:'#94a3b8', marginBottom:4, fontFamily:'sans-serif', fontSize:11, fontWeight:700 }}>DEBUG — API response:</div>
+                          {JSON.stringify(bizDebug, null, 2)}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
@@ -605,19 +614,21 @@ export default function ClientsPage() {
 
   async function searchBusiness(query) {
     if (!query.trim()) return
-    setBizSearching(true); setBizResults([]); setBizSearched(false)
+    setBizSearching(true); setBizResults([]); setBizSearched(false); setBizDebug(null)
     try {
       const res = await fetch('/api/places/search', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ query: query.trim() }),
       })
       const data = await res.json()
-      if (data.error) {
-        toast.error(data.error + (data.hint ? ' — ' + data.hint : ''))
-      }
+      setBizDebug(data)
+      if (data.error) toast.error(data.error)
       setBizResults(data.results || [])
       setBizSearched(true)
-    } catch(e) { toast.error('Search failed: ' + e.message) }
+    } catch(e) {
+      setBizDebug({ error: e.message })
+      toast.error('Search failed: ' + e.message)
+    }
     setBizSearching(false)
   }
 
