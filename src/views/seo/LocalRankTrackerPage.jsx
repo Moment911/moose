@@ -42,45 +42,104 @@ function RankBadge({ rank, prev }) {
   )
 }
 
-function ResultRow({ result, targetBusiness, index }) {
+const PRICE_LABELS = { PRICE_LEVEL_FREE:'Free', PRICE_LEVEL_INEXPENSIVE:'$', PRICE_LEVEL_MODERATE:'$$', PRICE_LEVEL_EXPENSIVE:'$$$', PRICE_LEVEL_VERY_EXPENSIVE:'$$$$' }
+
+function ResultRow({ result, targetBusiness, expanded, onToggle }) {
   const isTarget = targetBusiness && result.name?.toLowerCase().includes(targetBusiness.toLowerCase())
+  const rankColor = result.rank<=3?'#16a34a':result.rank<=7?TEAL:result.rank<=15?'#f59e0b':'#9ca3af'
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 20px',
-      borderBottom:'1px solid #f3f4f6', background:isTarget?RED+'08':'transparent',
+    <div style={{ borderBottom:'1px solid #f3f4f6', background:isTarget?RED+'06':'transparent',
       borderLeft:isTarget?`3px solid ${RED}`:'3px solid transparent' }}>
-      <div style={{ width:34, height:34, borderRadius:9, background:isTarget?RED:'#f3f4f6',
-        display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-        fontFamily:FH, fontSize:15, fontWeight:900, color:isTarget?'#fff':'#6b7280' }}>
-        {result.rank}
-      </div>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:isTarget?RED:BLK,
-          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-          {result.name} {isTarget && <span style={{ fontSize:11, background:RED, color:'#fff', padding:'1px 6px', borderRadius:20, marginLeft:4 }}>YOUR CLIENT</span>}
+      {/* Main row */}
+      <div style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 20px', cursor:'pointer' }}
+        onClick={onToggle}>
+        {/* Rank */}
+        <div style={{ width:32, height:32, borderRadius:9, background:isTarget?RED:rankColor+'18', flexShrink:0,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontFamily:FH, fontSize:14, fontWeight:900, color:isTarget?'#fff':rankColor }}>
+          {result.rank}
         </div>
-        <div style={{ fontSize:12, color:'#9ca3af', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{result.address}</div>
-      </div>
-      <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
-        {result.rating && (
-          <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151' }}>
-            <Star size={12} color="#f59e0b" fill="#f59e0b"/>
-            <span style={{ fontWeight:700 }}>{result.rating}</span>
-            <span style={{ color:'#9ca3af' }}>({result.review_count?.toLocaleString()})</span>
+        {/* Photo thumbnail */}
+        {result.photos?.[0] ? (
+          <img src={result.photos[0]} alt={result.name}
+            style={{ width:36, height:36, borderRadius:8, objectFit:'cover', flexShrink:0, border:'1px solid #f3f4f6' }}
+            onError={e=>e.target.style.display='none'}/>
+        ) : (
+          <div style={{ width:36, height:36, borderRadius:8, background:'#f3f4f6', flexShrink:0,
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Globe size={14} color="#d0d0cc"/>
           </div>
         )}
-        {result.website && (
-          <a href={result.website} target="_blank" rel="noreferrer"
-            style={{ color:'#9ca3af', display:'flex', alignItems:'center' }}>
-            <Globe size={13}/>
-          </a>
-        )}
-        {result.maps_url && (
-          <a href={result.maps_url} target="_blank" rel="noreferrer"
-            style={{ color:'#4285f4', display:'flex', alignItems:'center' }}>
-            <MapPin size={13}/>
-          </a>
-        )}
+        {/* Name + address */}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+            <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:isTarget?RED:BLK }}>{result.name}</span>
+            {isTarget && <span style={{ fontSize:10, background:RED, color:'#fff', padding:'1px 6px', borderRadius:20, fontFamily:FH, fontWeight:700, flexShrink:0 }}>CLIENT</span>}
+            {result.is_open_now === true  && <span style={{ fontSize:10, background:'#f0fdf4', color:'#16a34a', padding:'1px 6px', borderRadius:20, fontFamily:FH, fontWeight:700 }}>Open</span>}
+            {result.is_open_now === false && <span style={{ fontSize:10, background:'#fef2f2', color:RED,      padding:'1px 6px', borderRadius:20, fontFamily:FH, fontWeight:700 }}>Closed</span>}
+            {result.price_level && <span style={{ fontSize:10, color:'#9ca3af', fontFamily:FH }}>{PRICE_LABELS[result.price_level]||''}</span>}
+          </div>
+          <div style={{ fontSize:11, color:'#9ca3af', marginTop:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{result.address}</div>
+        </div>
+        {/* Rating + review count */}
+        <div style={{ flexShrink:0, textAlign:'right' }}>
+          {result.rating && (
+            <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:13, justifyContent:'flex-end' }}>
+              <Star size={11} color="#f59e0b" fill="#f59e0b"/>
+              <span style={{ fontWeight:700, color:'#374151' }}>{result.rating}</span>
+            </div>
+          )}
+          <div style={{ fontSize:11, color:'#9ca3af' }}>{result.review_count?.toLocaleString()} reviews</div>
+        </div>
+        {/* Links */}
+        <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+          {result.website && <a href={result.website} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ color:'#9ca3af' }}><Globe size={13}/></a>}
+          {result.maps_url && <a href={result.maps_url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ color:'#4285f4' }}><MapPin size={13}/></a>}
+        </div>
+        {/* Expand chevron */}
+        <ChevronDown size={14} color="#d0d0cc" style={{ flexShrink:0, transform:expanded?'rotate(180deg)':'none', transition:'transform .2s' }}/>
       </div>
+
+      {/* Expanded detail panel */}
+      {expanded && (
+        <div style={{ padding:'0 20px 14px 20px', borderTop:'1px solid #f9fafb' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginTop:10 }}>
+            {/* Hours */}
+            {result.hours?.length > 0 && (
+              <div style={{ background:'#f9fafb', borderRadius:9, padding:'10px 12px' }}>
+                <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:6 }}>Hours</div>
+                {result.hours.map((h,i)=>(
+                  <div key={i} style={{ fontSize:12, color:'#374151', lineHeight:1.8 }}>{h}</div>
+                ))}
+              </div>
+            )}
+            {/* Photos row */}
+            {result.photos?.length > 1 && (
+              <div>
+                <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:6 }}>Photos</div>
+                <div style={{ display:'flex', gap:6 }}>
+                  {result.photos.slice(0,3).map((url,i)=>(
+                    <img key={i} src={url} alt="" style={{ width:64, height:64, borderRadius:8, objectFit:'cover', border:'1px solid #e5e7eb' }}
+                      onError={e=>e.target.style.display='none'}/>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Editorial summary */}
+            {result.editorial && (
+              <div style={{ gridColumn:'1/-1', background:TEAL+'10', borderRadius:9, padding:'10px 12px', border:`1px solid ${TEAL}30` }}>
+                <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>Google Summary</div>
+                <div style={{ fontSize:13, color:'#374151', fontFamily:FB, lineHeight:1.6 }}>"{result.editorial}"</div>
+              </div>
+            )}
+            {/* Phone + type */}
+            <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+              {result.phone && <div style={{ fontSize:12, color:'#374151', display:'flex', alignItems:'center', gap:6 }}><Phone size={11} color="#9ca3af"/>{result.phone}</div>}
+              {result.type_label && <div style={{ fontSize:12, color:'#6b7280', display:'flex', alignItems:'center', gap:6 }}><Globe size={11} color="#9ca3af"/>{result.type_label}</div>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -107,6 +166,7 @@ export default function LocalRankTrackerPage() {
 
   // Tracked keywords (saved searches for a client)
   const [tracked,  setTracked]  = useState([])
+  const [expandedRow, setExpandedRow] = useState(null)
 
   useEffect(() => { loadClients() }, [agencyId])
   useEffect(() => { if (clientId) { loadHistory(); loadTracked() } }, [clientId])
@@ -479,12 +539,13 @@ export default function LocalRankTrackerPage() {
                   <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
                     {/* Rank highlight */}
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12 }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10 }}>
                       {[
-                        { label:'Client Rank', value:results.target_rank?`#${results.target_rank}`:'Not found', color:results.target_rank?results.target_rank<=3?'#16a34a':results.target_rank<=7?TEAL:RED:RED },
-                        { label:'Total Results', value:results.total_results, color:BLK },
-                        { label:'Top Business', value:results.google_local?.[0]?.rating?`${results.google_local[0].name.split(' ')[0]} (★${results.google_local[0].rating})`:'—', color:'#374151' },
-                        { label:'Scan Time', value:`${(results.duration_ms/1000).toFixed(1)}s`, color:'#9ca3af' },
+                        { label:'Client Rank',    value:results.target_rank?`#${results.target_rank}`:'Not found', color:results.target_rank?results.target_rank<=3?'#16a34a':results.target_rank<=7?TEAL:RED:RED },
+                        { label:'Avg Rating',      value:results.competitive_stats?.avg_rating?`★${results.competitive_stats.avg_rating}`:'—', color:'#f59e0b' },
+                        { label:'Avg Reviews',     value:results.competitive_stats?.avg_reviews?.toLocaleString()||'—', color:'#374151' },
+                        { label:'Top 3 Avg Reviews', value:results.competitive_stats?.top3_avg_reviews?.toLocaleString()||'—', color:BLK },
+                        { label:'Open Now',        value:results.competitive_stats?.open_now_count!=null?`${results.competitive_stats.open_now_count}/${results.total_results}`:'—', color:'#16a34a' },
                       ].map((stat,i)=>(
                         <div key={i} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
                           <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>{stat.label}</div>
@@ -494,6 +555,18 @@ export default function LocalRankTrackerPage() {
                     </div>
 
                     {/* Results table */}
+                    {/* Geocoded location */}
+                    {results.geocoded_location && (
+                      <div style={{ background:'#f0fbfc', border:`1px solid ${TEAL}40`, borderRadius:10, padding:'8px 14px', display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                        <MapPin size={13} color={TEAL}/>
+                        <span style={{ fontSize:13, color:'#0e7490', fontFamily:FH, fontWeight:600 }}>
+                          Searching near: {results.geocoded_location.formatted}
+                        </span>
+                        <span style={{ fontSize:11, color:TEAL, marginLeft:'auto', fontFamily:FH }}>
+                          {results.search_mode === 'nearby' ? 'Nearby Search (precise)' : 'Text Search'}
+                        </span>
+                      </div>
+                    )}
                     <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
                       <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                         <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK }}>
@@ -504,7 +577,7 @@ export default function LocalRankTrackerPage() {
                         </div>
                       </div>
                       {results.google_local.map((r,i)=>(
-                        <ResultRow key={i} result={r} targetBusiness={results.target_business} index={i}/>
+                        <ResultRow key={i} result={r} targetBusiness={results.target_business} index={i} expanded={expandedRow===i} onToggle={()=>setExpandedRow(expandedRow===i?null:i)}/>
                       ))}
                     </div>
 
@@ -569,6 +642,26 @@ export default function LocalRankTrackerPage() {
                           {results.ai_analysis.estimated_time_to_rank && (
                             <div style={{ marginTop:12, fontSize:13, color:'#6b7280', fontFamily:FB, display:'flex', alignItems:'center', gap:6 }}>
                               <Clock size={13}/> Estimated time to rank: <strong style={{ color:BLK }}>{results.ai_analysis.estimated_time_to_rank}</strong>
+                            </div>
+                          )}
+                          {results.ai_analysis.review_strategy && (
+                            <div style={{ marginTop:10, background:'#fffbeb', borderRadius:9, padding:'10px 14px', border:'1px solid #fde68a' }}>
+                              <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#d97706', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Review Strategy</div>
+                              <div style={{ fontSize:13, color:'#374151', fontFamily:FB }}>{results.ai_analysis.review_strategy}</div>
+                            </div>
+                          )}
+                          {results.ai_analysis.hours_insight && (
+                            <div style={{ marginTop:10, fontSize:13, color:'#6b7280', fontFamily:FB, display:'flex', alignItems:'flex-start', gap:6 }}>
+                              <Clock size={13} style={{ marginTop:2, flexShrink:0 }}/> <span>{results.ai_analysis.hours_insight}</span>
+                            </div>
+                          )}
+                          {results.ai_analysis.competitive_gap && (
+                            <div style={{ marginTop:10, background:'#fef2f2', borderRadius:9, padding:'10px 14px', border:`1px solid ${RED}30`, display:'flex', gap:16 }}>
+                              <div style={{ textAlign:'center' }}>
+                                <div style={{ fontFamily:FH, fontSize:20, fontWeight:900, color:RED }}>{results.ai_analysis.competitive_gap.review_gap>0?'+'+results.ai_analysis.competitive_gap.review_gap:results.ai_analysis.competitive_gap.review_gap}</div>
+                                <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>reviews to catch #1</div>
+                              </div>
+                              <div style={{ fontSize:13, color:'#374151', fontFamily:FB, flex:1 }}>{results.ai_analysis.competitive_gap.summary}</div>
                             </div>
                           )}
                         </div>
