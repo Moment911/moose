@@ -134,6 +134,7 @@ export default function Sidebar() {
           <NavLink to="/scout"         startsWith icon={Target}     label="Scout"        badge="NEW" badgeColor={T}/>
           <NavLink to="/scout/history" startsWith icon={Clock}      label="Scout History" sub/>
           <NavLink to="/seo"           startsWith icon={BarChart2}  label="SEO Hub"/>
+        <NavLink to="/seo/gbp-audit"            icon={MapPin}    label="GBP Audit"/>
 
           <Section label="Support"/>
           <NavLink to="/desk"          startsWith icon={Inbox}      label="KotoDesk"/>

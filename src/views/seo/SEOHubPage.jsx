@@ -1224,6 +1224,35 @@ Return ONLY valid JSON (no markdown):
                     )}
 
                     {/* ── REPORTS ── */}
+                    {tab === 'gbp' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <MapPin size={40} color={RED} style={{ margin:'0 auto 16px', display:'block' }}/>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>GBP Audit & Optimizer</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Score your Google Business Profile, compare against nearby competitors, and get an AI-generated action plan to climb the local map pack.
+                          </div>
+                          <button onClick={()=>navigate('/seo/gbp-audit')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", boxShadow:`0 4px 16px ${RED}40` }}>
+                            Open GBP Audit →
+                          </button>
+                        </div>
+                        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+                          {[
+                            { icon:'🎯', label:'12-Point Check', desc:'Profile completeness scored across all key GBP fields' },
+                            { icon:'🏆', label:'Competitor Comparison', desc:'Side-by-side vs 4 nearest competitors in ratings, reviews, photos' },
+                            { icon:'🤖', label:'AI Action Plan', desc:'Specific prioritized steps to improve local map pack ranking' },
+                          ].map((item,i)=>(
+                            <div key={i} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 16px' }}>
+                              <div style={{ fontSize:24, marginBottom:8 }}>{item.icon}</div>
+                              <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:14, fontWeight:800, color:'#111', marginBottom:4 }}>{item.label}</div>
+                              <div style={{ fontSize:13, color:'#6b7280' }}>{item.desc}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {tab === 'reports' && (
                       <div className="animate-fade-up">
 

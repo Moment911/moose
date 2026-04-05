@@ -446,3 +446,81 @@ ALTER TABLE clients ADD COLUMN IF NOT EXISTS state         text;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS zip           text;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS notes         text;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS monthly_value numeric;
+
+-- ── GBP Audits ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS gbp_audits (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id       uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id       uuid,
+  place_id        text NOT NULL,
+  business_name   text,
+  score           int,
+  completeness    int,
+  audit_data      jsonb DEFAULT '{}',
+  competitors     jsonb DEFAULT '[]',
+  recommendations jsonb DEFAULT '[]',
+  audited_at      timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_gbp_audits_client ON gbp_audits(client_id);
+CREATE INDEX IF NOT EXISTS idx_gbp_audits_date   ON gbp_audits(client_id, audited_at DESC);
+
+-- ── Keyword tracking (for keyword gap tool) ───────────────────────────────────
+CREATE TABLE IF NOT EXISTS seo_tracked_keywords (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id   uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id   uuid,
+  keyword     text NOT NULL,
+  location    text,
+  volume      int,
+  difficulty  int,
+  rank        int,
+  rank_url    text,
+  opportunity text,
+  source      text DEFAULT 'gsc',
+  tracked_at  timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_seo_kw_client ON seo_tracked_keywords(client_id);
+
+-- ── Citation tracking ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS citation_checks (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id     uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id     uuid,
+  directory     text NOT NULL,
+  directory_url text,
+  found         boolean DEFAULT false,
+  name_match    boolean,
+  phone_match   boolean,
+  address_match boolean,
+  listing_url   text,
+  checked_at    timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_citations_client ON citation_checks(client_id);
+
+-- ── Competitor snapshots ───────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS competitor_snapshots (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id       uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id       uuid,
+  competitor_name text,
+  place_id        text,
+  rating          numeric,
+  review_count    int,
+  snapshot_data   jsonb DEFAULT '{}',
+  snapped_at      timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_competitor_snaps_client ON competitor_snapshots(client_id);
+
+-- ── SEO monthly reports ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS seo_monthly_reports (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id    uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id    uuid,
+  month        text NOT NULL,
+  report_data  jsonb DEFAULT '{}',
+  ai_narrative text,
+  pdf_url      text,
+  emailed_at   timestamptz,
+  created_at   timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_seo_reports_client ON seo_monthly_reports(client_id);
