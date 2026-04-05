@@ -404,6 +404,7 @@ export default function LocalRankTrackerPage() {
   const [tracked, setTracked]   = useState([])
   const [gridHistory, setGridHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [dbError, setDbError] = useState(null)
 
   useEffect(() => { loadClients() }, [agencyId])
   useEffect(() => {
@@ -471,7 +472,13 @@ export default function LocalRankTrackerPage() {
         loadHistory(); loadTracked()
       }
       toast.success(`Found ${data.total_results} businesses${data.target_rank?` · ${targetBiz||'client'} ranked #${data.target_rank}`:''}`)
-    } catch(e) { toast.error('Scan failed: ' + e.message) }
+    } catch(e) {
+      if (e.message?.includes('relation') || e.message?.includes('does not exist')) {
+        setDbError('local_rank_scans')
+      } else {
+        toast.error('Scan failed: ' + e.message)
+      }
+    }
     setScanning(false)
   }
 
@@ -509,7 +516,13 @@ export default function LocalRankTrackerPage() {
         })
         loadGridHistory()
       }
-    } catch(e) { toast.error('Grid scan failed: ' + e.message, { id:'grid' }) }
+    } catch(e) {
+      if (e.message?.includes('relation') || e.message?.includes('does not exist')) {
+        setDbError('local_rank_grid_scans')
+      } else {
+        toast.error('Grid scan failed: ' + e.message, { id:'grid' })
+      }
+    }
     setGridLoading(false)
   }
 
@@ -763,6 +776,26 @@ export default function LocalRankTrackerPage() {
                     : (gridLoading?`Scanning ${gridSize}×${gridSize}…`:`Run ${gridSize}×${gridSize} Grid`)}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* DB Setup Banner */}
+          {dbError && (
+            <div style={{ background:'#fef3c7', border:'1px solid #fde68a', borderRadius:14, padding:'16px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:14 }}>
+              <AlertCircle size={20} color="#d97706"/>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:'#92400e', marginBottom:3 }}>
+                  Database table not set up yet
+                </div>
+                <div style={{ fontSize:13, color:'#78350f', fontFamily:FB }}>
+                  Run <strong>RUN_THIS_NOW_consolidated.sql</strong> in your Supabase SQL Editor to create all required tables.
+                </div>
+              </div>
+              <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer"
+                style={{ padding:'8px 16px', borderRadius:9, background:'#d97706', color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:FH, flexShrink:0, whiteSpace:'nowrap' }}>
+                Open Supabase →
+              </a>
+              <button onClick={()=>setDbError(null)} style={{ border:'none', background:'none', cursor:'pointer', color:'#9ca3af', padding:4 }}>✕</button>
             </div>
           )}
 
