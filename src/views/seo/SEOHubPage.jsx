@@ -2,11 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  TrendingUp, Search, MapPin, FileText, Sparkles,
-  Globe, DollarSign, ArrowUp, ArrowDown, Minus,
-  Plus, RefreshCw, Loader2, Check, Copy, Link2,
-  Target, Key, CheckCircle, XCircle, AlertCircle,
-  ExternalLink, ChevronRight, Zap, Shield, Map
+  AlertCircle, ArrowDown, ArrowUp, BarChart2, Check, CheckCircle, ChevronRight, Copy, DollarSign, ExternalLink, FileText, Globe, Key, Link2, Loader2, Map, MapPin, Minus, Plus, RefreshCw, Search, Shield, Sparkles, Target, TrendingUp, XCircle, Zap
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import AIThinkingBox from '../../components/AIThinkingBox'

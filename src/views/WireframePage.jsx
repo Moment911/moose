@@ -1,10 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Save, Download, Upload, Undo2, Redo2, Trash2,
-         Square, Type, Image as ImageIcon, Circle, Minus, MousePointer,
-         Layout, FormInput, CreditCard, Star, PenLine, Plus, X, FileText,
-         Layers, Grid3X3, Code2, Eye, EyeOff, Lock, Unlock, Wand2, Copy, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  ChevronDown, ChevronLeft, ChevronUp, Circle, Code2, Copy, CreditCard, Download, Eye, EyeOff, FileText, FormInput, Grid3X3, Image, ImageIcon, Layers, Layout, Link, Lock, Minus, MousePointer, PenLine, Plus, Redo2, Save, Square, Star, Trash2, Type, Undo2, Unlock, Upload, Wand2
+} from 'lucide-react'
 import { supabase, createWireframeRecord, updateWireframeRecord, uploadFile, createFile } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import Sidebar from '../components/Sidebar'

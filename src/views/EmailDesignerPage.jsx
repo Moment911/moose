@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Save, Download, Code2, Eye, Type, Image as ImageIcon, MousePointer,
-         Minus, ArrowUp, ArrowDown, Trash2, Plus, Mail, Columns, FileText, Square } from 'lucide-react'
+import {
+  ArrowDown, ArrowUp, ChevronLeft, Code2, Columns, Download, Eye, FileText, Image, ImageIcon, Link, Mail, Minus, MousePointer, Plus, Save, Square, Trash2, Type
+} from 'lucide-react'
 import { supabase, createEmailDesign, updateEmailDesign } from '../lib/supabase'
 import ColorPicker from '../components/ColorPicker'
 import FontPicker from '../components/FontPicker'

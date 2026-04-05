@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import {
-  Check, Loader2, ArrowRight, Eye, EyeOff,
-  Zap, Users, BarChart2, Shield, Star, Globe
+  ArrowRight, BarChart2, Check, Database, Eye, EyeOff, Globe, Loader2, Shield, Star, Users, Zap
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 

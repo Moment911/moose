@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Check, CheckCircle, Bell, ChevronDown, ExternalLink, Eye, EyeOff, Copy, Save, Link2, Settings, AlertTriangle, RefreshCw, Shield, ShieldCheck, Activity, Radio, Stamp, X } from 'lucide-react'
+import {
+  Activity, AlertTriangle, Bell, Check, CheckCircle, ChevronDown, ChevronLeft, Copy, ExternalLink, Eye, EyeOff, Link2, Radio, RefreshCw, Save, Settings, Shield, ShieldCheck, Stamp, User
+} from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
