@@ -74,7 +74,7 @@ export default function SEOConnectPage() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim()
     if (!clientId) { toast.error('NEXT_PUBLIC_GOOGLE_CLIENT_ID not configured'); return }
 
-    const redirectUri = window.location.origin + '/seo/connect'
+    const redirectUri = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim() + '/seo/connect'
     const state = encodeURIComponent(JSON.stringify({ clientId: selectedClient, ts: Date.now() }))
     const params = new URLSearchParams({
       client_id: clientId, redirect_uri: redirectUri, response_type: 'code',
@@ -86,7 +86,7 @@ export default function SEOConnectPage() {
   async function handleOAuthCallback(code, clientId) {
     setConnecting(true)
     try {
-      const redirectUri = window.location.origin + '/seo/connect'
+      const redirectUri = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim() + '/seo/connect'
       // Exchange code via edge function (keeps secret server-side)
       const res = await fetch(`${SUPABASE_URL}/functions/v1/google-oauth-exchange`, {
         method: 'POST',
