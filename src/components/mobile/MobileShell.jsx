@@ -91,6 +91,33 @@ export default function MobileShell({ children }) {
     }
   }, [drawerOpen])
 
+  // DOM patch — must be before any early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!isMobile) return
+    const patch = () => {
+      document.querySelectorAll('.page-shell').forEach(el => {
+        el.style.cssText += ';height:auto!important;min-height:auto!important;overflow:visible!important;display:block!important;'
+      })
+      document.querySelectorAll('.desktop-sidebar').forEach(el => {
+        el.style.display = 'none'
+      })
+      document.querySelectorAll('.page-shell > div:not(.desktop-sidebar), .page-shell > main').forEach(el => {
+        el.style.cssText += ';width:100%!important;height:auto!important;min-height:auto!important;overflow:visible!important;'
+      })
+      document.querySelectorAll('.page-shell.h-screen, .page-shell.flex').forEach(el => {
+        el.style.height = 'auto'
+        el.style.overflow = 'visible'
+      })
+      document.querySelectorAll('.reviews-client-col').forEach(el => {
+        el.style.display = 'none'
+      })
+    }
+    patch()
+    const t = setTimeout(patch, 150)
+    return () => clearTimeout(t)
+  }, [isMobile, path])
+
+
   // Always render children on desktop
   if (!isMobile) return children
 
@@ -115,51 +142,6 @@ export default function MobileShell({ children }) {
     return 'Koto'
   })()
 
-
-  // Directly patch page layout on mobile — CSS alone can't override inline styles
-  useEffect(() => {
-    if (!isMobile) return
-    
-    const patch = () => {
-      // Remove height:100vh from all page shells
-      document.querySelectorAll('.page-shell').forEach(el => {
-        el.style.height = 'auto'
-        el.style.minHeight = 'auto'
-        el.style.overflow = 'visible'
-        el.style.display = 'block'
-      })
-      // Hide all desktop sidebars
-      document.querySelectorAll('.desktop-sidebar').forEach(el => {
-        el.style.display = 'none'
-      })
-      // Fix inner flex containers that trap content
-      document.querySelectorAll('.page-shell > div:not(.desktop-sidebar)').forEach(el => {
-        el.style.width = '100%'
-        el.style.height = 'auto'
-        el.style.minHeight = 'auto'
-        el.style.overflow = 'visible'
-        el.style.flex = ''
-      })
-      // Fix Tailwind h-screen on page-shell
-      document.querySelectorAll('.page-shell.h-screen, .page-shell.flex').forEach(el => {
-        el.style.height = 'auto'
-        el.style.overflow = 'visible'
-        el.style.flexDirection = 'column'
-      })
-      // Hide fixed-width side panels (client lists, nav rails)
-      document.querySelectorAll('[style*="width: 220px"], [style*="width:220px"], [style*="width: 240px"], [style*="width:240px"]').forEach(el => {
-        // Only hide if it's a sibling panel, not main content
-        if (!el.closest('#koto-mobile-content > * > *:last-child')) {
-          el.style.display = 'none'
-        }
-      })
-    }
-    
-    patch()
-    // Re-patch on route changes (children change)
-    const timer = setTimeout(patch, 100)
-    return () => clearTimeout(timer)
-  }, [isMobile, path])
 
   return (
     <>
