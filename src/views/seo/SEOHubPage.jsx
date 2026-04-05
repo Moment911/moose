@@ -867,8 +867,24 @@ Return ONLY valid JSON (no markdown):
                       <div className="animate-fade-up">
                         {/* Add form */}
                         <div style={{ background:'#fff', borderRadius:16, border:`1.5px solid ${RED}30`, padding:'20px 24px', marginBottom:16 }}>
-                          <div style={{ fontSize:15, fontWeight:900, color:'#111', marginBottom:4 }}>Connect a WordPress site</div>
-                          <div style={{ fontSize:13, color:'#374151', marginBottom:14 }}>Install the Hyper-Local SEO plugin, then add the site URL below to get your API token.</div>
+                          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:4 }}>
+                            <div style={{ fontSize:15, fontWeight:900, color:'#111' }}>Connect a WordPress site</div>
+                            <a
+                              href="https://github.com/Moment911/koto-seo-plugin/releases/latest/download/koto-seo.zip"
+                              download
+                              style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px',
+                                borderRadius:9, border:'none', background:TEAL, color:'#fff',
+                                fontSize:13, fontWeight:700, cursor:'pointer', textDecoration:'none',
+                                flexShrink:0, fontFamily:"var(--font-heading)" }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                              </svg>
+                              Download Koto SEO Plugin
+                            </a>
+                          </div>
+                          <div style={{ fontSize:13, color:'#374151', marginBottom:14 }}>
+                            Download and install the Koto SEO Plugin on your client's WordPress site, then add the site URL below to get your API token.
+                          </div>
                           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto', gap:10, alignItems:'end' }}>
                             <div>
                               <label style={{ fontSize:13, fontWeight:800, color:'#111', display:'block', marginBottom:5 }}>Site URL</label>
@@ -892,7 +908,7 @@ Return ONLY valid JSON (no markdown):
                         {/* How-to */}
                         <div style={{ background:'#e8f9fa', borderRadius:14, border:`1px solid ${TEAL}50`, padding:'14px 18px', marginBottom:16 }}>
                           <div style={{ fontSize:14, fontWeight:900, color:'#0e7490', marginBottom:6 }}>Setup guide</div>
-                          {['Install the Hyper-Local SEO plugin on the WordPress site','Go to HLSEO → Agency Connect in WordPress admin','Paste the Agency Dashboard URL and API token from below','Save — the plugin verifies and begins syncing automatically'].map((s,i)=>(
+                          {['Install the Koto SEO Plugin on the WordPress site','Go to Koto SEO → Agency Connect in WordPress admin','Paste the Agency Dashboard URL and API token from below','Save — the plugin verifies and begins syncing automatically'].map((s,i)=>(
                             <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, marginBottom:4 }}>
                               <span style={{ width:18, height:18, borderRadius:'50%', background:TEAL, color:'#fff', fontSize:13, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>{i+1}</span>
                               <span style={{ fontSize:14, color:'#0e7490' }}>{s}</span>
@@ -940,7 +956,7 @@ Return ONLY valid JSON (no markdown):
                             {/* Token */}
                             <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 14px', border:'1px solid #f3f4f6' }}>
                               <div style={{ fontSize:13, fontWeight:800, color:'#374151', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
-                                <Key size={11}/> API TOKEN — paste into WordPress → HLSEO → Agency Connect
+                                <Key size={11}/> API TOKEN — paste into WordPress → Koto SEO → Agency Connect
                               </div>
                               <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                                 <code style={{ flex:1, fontSize:13, fontFamily:'monospace', color:'#111', background:'#fff', padding:'7px 12px', borderRadius:8, border:'1px solid #e5e7eb', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>

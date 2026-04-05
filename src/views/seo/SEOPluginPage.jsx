@@ -92,7 +92,7 @@ export default function SEOPluginPage() {
           <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
             <div>
               <h1 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2"><Puzzle size={22} className="text-purple-500" /> WordPress Plugin</h1>
-              <p className="text-sm text-gray-700 mt-0.5">Connect WordPress sites with HyperLocal SEO Pro</p>
+              <p className="text-sm text-gray-700 mt-0.5">Connect WordPress sites with Koto SEO Plugin</p>
             </div>
             <button onClick={() => setAdding(true)} className="btn-primary text-sm"><Plus size={14} /> Connect Site</button>
           </div>
@@ -103,7 +103,7 @@ export default function SEOPluginPage() {
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Connect WordPress Site</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                 <div><label className="text-sm text-gray-700 block mb-1">Site URL *</label><input className="input text-sm" placeholder="https://clientsite.com" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} /></div>
-                <div><label className="text-sm text-gray-700 block mb-1">Plugin API Key *</label><input className="input text-sm" type="password" placeholder="From WP → HyperLocal SEO → Agency" value={form.apiKey} onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))} /></div>
+                <div><label className="text-sm text-gray-700 block mb-1">Plugin API Key *</label><input className="input text-sm" type="password" placeholder="From WP → Koto SEO → Agency" value={form.apiKey} onChange={e => setForm(f => ({ ...f, apiKey: e.target.value }))} /></div>
                 <div><label className="text-sm text-gray-700 block mb-1">Client</label><select className="input text-sm" value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}><option value="">— None —</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
               </div>
               <div className="flex gap-2">
@@ -118,10 +118,10 @@ export default function SEOPluginPage() {
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
               <Puzzle size={48} className="text-gray-600 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-gray-700 mb-2">No Sites Connected</h3>
-              <p className="text-sm text-gray-700 mb-6">Connect WordPress sites with the HyperLocal SEO Pro plugin to manage everything from Koto.</p>
+              <p className="text-sm text-gray-700 mb-6">Connect WordPress sites with the Koto SEO Plugin plugin to manage everything from Koto.</p>
               <div className="bg-gray-50 rounded-xl p-4 max-w-md mx-auto text-left mb-6">
                 <p className="text-sm font-semibold text-gray-600 mb-2">Setup Steps:</p>
-                {['Install HyperLocal SEO Pro on WordPress', 'Go to WordPress → HyperLocal SEO → Agency Connect', 'Generate API key and copy it', 'Click "Connect Site" and paste the key'].map((s, i) => (
+                {['Install Koto SEO Plugin on WordPress', 'Go to WordPress → Koto SEO → Agency Connect', 'Generate API key and copy it', 'Click "Connect Site" and paste the key'].map((s, i) => (
                   <div key={i} className="flex items-start gap-2 mb-1.5"><span className="w-5 h-5 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span><span className="text-sm text-gray-600">{s}</span></div>
                 ))}
               </div>
