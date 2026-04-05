@@ -138,6 +138,10 @@ export default function Sidebar() {
         <NavLink to="/seo/onpage"               icon={Globe}     label="On-Page Audit"/>
         <NavLink to="/seo/keyword-gap"          icon={Search}    label="Keyword Gap"/>
         <NavLink to="/seo/monthly-report"       icon={FileText}  label="Monthly Report"/>
+        <NavLink to="/seo/content-gap"          icon={BookOpen}  label="Content Gap"/>
+        <NavLink to="/seo/technical-audit"      icon={Code2}     label="Tech Audit"/>
+        <NavLink to="/seo/ai-visibility"        icon={Brain}     label="AI Visibility"/>
+        <NavLink to="/seo/white-label"          icon={Download}  label="White-Label Report"/>
         <NavLink to="/seo/competitor-intel"    icon={BarChart2} label="Competitor Intel"/>
         <NavLink to="/seo/citations"            icon={MapPin}    label="Citation Tracker"/>
 

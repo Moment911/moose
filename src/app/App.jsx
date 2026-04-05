@@ -64,6 +64,10 @@ import GBPAuditPage from '../views/seo/GBPAuditPage'
 import OnPageAuditPage from '../views/seo/OnPageAuditPage'
 import KeywordGapPage from '../views/seo/KeywordGapPage'
 import MonthlyReportPage from '../views/seo/MonthlyReportPage'
+import ContentGapPage from '../views/seo/ContentGapPage'
+import TechnicalAuditPage from '../views/seo/TechnicalAuditPage'
+import AIVisibilityPage from '../views/seo/AIVisibilityPage'
+import WhiteLabelReportPage from '../views/seo/WhiteLabelReportPage'
 import CompetitorIntelPage from '../views/seo/CompetitorIntelPage'
 import CitationTrackerPage from '../views/seo/CitationTrackerPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
@@ -184,6 +188,10 @@ export default function App() {
           <Route path="/seo/onpage" element={<OnPageAuditPage />} />
           <Route path="/seo/keyword-gap" element={<KeywordGapPage />} />
           <Route path="/seo/monthly-report" element={<MonthlyReportPage />} />
+          <Route path="/seo/content-gap" element={<ContentGapPage />} />
+          <Route path="/seo/technical-audit" element={<TechnicalAuditPage />} />
+          <Route path="/seo/ai-visibility" element={<AIVisibilityPage />} />
+          <Route path="/seo/white-label" element={<WhiteLabelReportPage />} />
           <Route path="/seo/competitor-intel" element={<CompetitorIntelPage />} />
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
