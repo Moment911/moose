@@ -1336,7 +1336,7 @@ Return ONLY valid JSON (no markdown):
                           )
 
                           if (d.report_type === 'keywords') {
-                            const prevMap: Record<string,any> = {}
+                            const prevMap = {}
                             gscPRows.forEach((r)=>{ prevMap[r.keys?.[0]||'']=r })
                             return (
                               <DataTable title={`Keywords — ${gscRows.length} total`}
@@ -1360,7 +1360,7 @@ Return ONLY valid JSON (no markdown):
                           }
 
                           if (d.report_type === 'pages') {
-                            const ga4PageMap: Record<string,any> = {}
+                            const ga4PageMap = {}
                             ga4Rows.forEach((r)=>{ ga4PageMap[r.dimensionValues?.[0]?.value||'']=r })
                             const rows = gscRows.length ? gscRows : ga4Rows
                             return (
@@ -1390,7 +1390,7 @@ Return ONLY valid JSON (no markdown):
                           }
 
                           if (d.report_type === 'channels') {
-                            const prevMap: Record<string,any> = {}
+                            const prevMap = {}
                             ga4PRows.forEach((r)=>{ prevMap[r.dimensionValues?.[0]?.value||'']=r })
                             return (
                               <DataTable title="Traffic Channels"
@@ -1413,7 +1413,7 @@ Return ONLY valid JSON (no markdown):
                           }
 
                           if (d.report_type === 'devices') {
-                            const ga4DevMap: Record<string,any> = {}
+                            const ga4DevMap = {}
                             ga4Rows.forEach((r)=>{ ga4DevMap[r.dimensionValues?.[0]?.value?.toLowerCase()||'']=r })
                             return (
                               <DataTable title="Device Breakdown"
@@ -1463,11 +1463,11 @@ Return ONLY valid JSON (no markdown):
 
                           if (d.report_type === 'daily_trend') {
                             // Build day-by-day table with both GSC and GA4
-                            const gscDayMap: Record<string,any> = {}
+                            const gscDayMap = {}
                             gscRows.forEach((r)=>{ gscDayMap[r.keys?.[0]||'']=r })
-                            const gscPDayMap: Record<string,any> = {}
+                            const gscPDayMap = {}
                             gscPRows.forEach((r)=>{ gscPDayMap[r.keys?.[0]||'']=r })
-                            const ga4DayMap: Record<string,any> = {}
+                            const ga4DayMap = {}
                             ga4Rows.forEach((r)=>{ ga4DayMap[r.dimensionValues?.[0]?.value||'']=r })
                             // Merge all dates
                             const allDates = [...new Set([...Object.keys(gscDayMap),...Object.keys(ga4DayMap)])].sort().reverse()
