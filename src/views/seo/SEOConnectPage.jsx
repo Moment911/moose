@@ -88,7 +88,7 @@ export default function SEOConnectPage() {
     try {
       const redirectUri = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim() + '/seo/connect'
       // Exchange code via edge function (keeps secret server-side)
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/google-oauth-exchange`, {
+      const res = await fetch('/api/seo/google-exchange', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, redirect_uri: redirectUri }),
