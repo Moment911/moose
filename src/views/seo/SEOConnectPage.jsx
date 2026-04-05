@@ -56,7 +56,7 @@ export default function SEOConnectPage() {
   useEffect(() => { loadClients() }, [])
   useEffect(() => { if (selectedClient) loadConnections() }, [selectedClient])
 
-  // Handle OAuth callback
+  // Handle OAuth callback — page remounts after redirect, restore state from URL params
   useEffect(() => {
     const code  = searchParams.get('code')
     const state = searchParams.get('state')
@@ -67,6 +67,7 @@ export default function SEOConnectPage() {
         const parsed = JSON.parse(decodeURIComponent(state))
         if (parsed.clientId) {
           setSelectedClient(parsed.clientId)
+          // loadConnections will fire via the useEffect watching selectedClient
           handleOAuthCallback(code, parsed.clientId)
         }
       } catch(e) { toast.error('Invalid OAuth state') }
@@ -215,10 +216,10 @@ export default function SEOConnectPage() {
         }, { onConflict: 'client_id,provider' })
       }
 
-      toast.success('Google accounts connected!')
+      await loadConnections()  // reload first so cards update immediately
       setStep('complete')
       setTempTokens(null)
-      loadConnections()
+      toast.success('Google accounts connected!')
     } catch(e) {
       toast.error('Failed to save: ' + e.message)
     }
@@ -283,10 +284,70 @@ export default function SEOConnectPage() {
             </select>
           </div>
 
+          {/* ── Connect / Reconnect button — always at top ── */}
+          {selectedClient && step !== 'pick-properties' && step !== 'complete' && (
+            <div style={{ background:'#0a0a0a', borderRadius:14, padding:'24px',
+              display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
+              <div>
+                <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#fff',
+                  marginBottom:4 }}>
+                  {hasAnyConnection ? 'Update Google Connection' : 'Connect Google Account'}
+                </div>
+                <div style={{ fontSize:13, color:'rgba(255,255,255,.45)', fontFamily:FB }}>
+                  {hasAnyConnection
+                    ? 'Sign in again to change which Search Console site or GA4 property is linked'
+                    : 'One sign-in connects Search Console + Analytics. You\'ll choose the exact accounts.'}
+                </div>
+              </div>
+              <button onClick={startGoogleOAuth} disabled={connecting}
+                style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 22px',
+                  borderRadius:11, border:'none', background:'#fff', cursor:'pointer',
+                  fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a',
+                  flexShrink:0, opacity:connecting?.7:1 }}>
+                {connecting
+                  ? <Loader2 size={16} style={{animation:'spin 1s linear infinite'}}/>
+                  : <svg width="18" height="18" viewBox="0 0 48 48">
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                }
+                {hasAnyConnection ? 'Reconnect Google' : 'Sign in with Google'}
+              </button>
+            </div>
+          )}
+
           {/* ── STEP: Current connections ── */}
           {selectedClient && step !== 'pick-properties' && (
             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb',
               padding:'20px 24px', marginBottom:16 }}>
+
+              {/* Success banner — inline at top when just connected */}
+              {step === 'complete' && (
+                <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px',
+                  background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, marginBottom:16 }}>
+                  <div style={{ width:32, height:32, borderRadius:'50%', background:'#16a34a',
+                    display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <Check size={16} color="#fff"/>
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:'#15803d' }}>
+                      Connected successfully
+                    </div>
+                    <div style={{ fontSize:13, color:'#16a34a', fontFamily:FB }}>
+                      Services below are now live — generate a report in the SEO Hub to see your data.
+                    </div>
+                  </div>
+                  <button onClick={()=>navigate('/seo')}
+                    style={{ padding:'8px 16px', borderRadius:9, border:'none',
+                      background:'#16a34a', color:'#fff', fontSize:13, fontWeight:700,
+                      cursor:'pointer', fontFamily:FH, flexShrink:0, whiteSpace:'nowrap' }}>
+                    Go to SEO Hub →
+                  </button>
+                </div>
+              )}
+
               <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:'#0a0a0a',
                 marginBottom:16 }}>Google Services</div>
 
@@ -480,65 +541,8 @@ export default function SEOConnectPage() {
             </div>
           )}
 
-          {/* ── Connect / Reconnect buttons ── */}
-          {selectedClient && step !== 'pick-properties' && (
-            <div style={{ background:'#0a0a0a', borderRadius:14, padding:'24px',
-              display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
-              <div>
-                <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#fff',
-                  marginBottom:4 }}>
-                  {hasAnyConnection ? 'Update Google Connection' : 'Connect Google Account'}
-                </div>
-                <div style={{ fontSize:13, color:'rgba(255,255,255,.45)', fontFamily:FB }}>
-                  {hasAnyConnection
-                    ? 'Sign in again to change which Search Console site or GA4 property is linked'
-                    : 'One sign-in connects Search Console + Analytics. You\'ll choose the exact accounts.'}
-                </div>
-              </div>
-              <button onClick={startGoogleOAuth} disabled={connecting}
-                style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 22px',
-                  borderRadius:11, border:'none', background:'#fff', cursor:'pointer',
-                  fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a',
-                  flexShrink:0, opacity:connecting?.7:1 }}>
-                {connecting
-                  ? <Loader2 size={16} style={{animation:'spin 1s linear infinite'}}/>
-                  : <svg width="18" height="18" viewBox="0 0 48 48">
-                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    </svg>
-                }
-                {hasAnyConnection ? 'Reconnect Google' : 'Sign in with Google'}
-              </button>
-            </div>
-          )}
 
-          {/* ── Complete state ── */}
-          {step === 'complete' && (
-            <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:14,
-              padding:'20px 24px', display:'flex', alignItems:'center', gap:14, marginTop:12 }}>
-              <div style={{ width:40, height:40, borderRadius:'50%', background:'#16a34a',
-                display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <Check size={20} color="#fff"/>
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:'#15803d',
-                  marginBottom:2 }}>
-                  Accounts connected successfully
-                </div>
-                <div style={{ fontSize:13, color:'#16a34a', fontFamily:FB }}>
-                  Data will be synced automatically. Generate a report in SEO Hub to see insights.
-                </div>
-              </div>
-              <button onClick={()=>navigate('/seo')}
-                style={{ padding:'10px 20px', borderRadius:10, border:'none',
-                  background:'#16a34a', color:'#fff', fontSize:14, fontWeight:700,
-                  cursor:'pointer', fontFamily:FH, flexShrink:0 }}>
-                View Dashboard →
-              </button>
-            </div>
-          )}
+
 
           {/* Security note */}
           <div style={{ display:'flex', alignItems:'flex-start', gap:10, marginTop:20,
