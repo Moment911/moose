@@ -12,7 +12,7 @@ const supabase = createClient(
 const ai     = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '' })
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM   = process.env.DESK_EMAIL_FROM || 'Koto <reports@momentamktg.com>'
-const APP    = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
+const APP    = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
 function fmt(n: number|null, type='num'): string {
   if (n == null || isNaN(n)) return '—'

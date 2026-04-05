@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   }
 
   const results = []
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
   for (const conn of connections) {
     try {

@@ -5,7 +5,7 @@ export const runtime = 'nodejs'
 
 const resend  = new Resend(process.env.RESEND_API_KEY)
 const FROM    = process.env.DESK_EMAIL_FROM || 'Koto <desk@hellokoto.com>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
 function base(body: string, pre: string) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
