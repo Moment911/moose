@@ -679,3 +679,15 @@ ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS trial_end   timestamptz;
 -- White-label branding fields on agencies
 ALTER TABLE agencies ADD COLUMN IF NOT EXISTS custom_domain  text;
 ALTER TABLE agencies ADD COLUMN IF NOT EXISTS support_email  text;
+
+-- ── System health log ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS system_health_log (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  status       text NOT NULL DEFAULT 'ok',
+  error_count  int  DEFAULT 0,
+  warn_count   int  DEFAULT 0,
+  checks       jsonb DEFAULT '[]',
+  ai_analysis  text,
+  created_at   timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_health_log_created ON system_health_log(created_at DESC);
