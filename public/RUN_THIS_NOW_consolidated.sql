@@ -524,3 +524,16 @@ CREATE TABLE IF NOT EXISTS seo_monthly_reports (
   created_at   timestamptz DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_seo_reports_client ON seo_monthly_reports(client_id);
+
+-- ── On-page SEO audits ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS seo_page_audits (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id   uuid REFERENCES clients(id) ON DELETE CASCADE,
+  agency_id   uuid,
+  url         text NOT NULL,
+  score       int,
+  audit_data  jsonb DEFAULT '{}',
+  audited_at  timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_seo_page_audits_client ON seo_page_audits(client_id);
+CREATE INDEX IF NOT EXISTS idx_seo_page_audits_date   ON seo_page_audits(client_id, audited_at DESC);

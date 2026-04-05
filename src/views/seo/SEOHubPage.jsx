@@ -1224,6 +1224,22 @@ Return ONLY valid JSON (no markdown):
                     )}
 
                     {/* ── REPORTS ── */}
+                    {tab === 'onpage' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <Globe size={40} color={TEAL} style={{ margin:'0 auto 16px', display:'block' }}/>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>On-Page SEO Checker</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Audit any URL for 20+ technical SEO issues. Get live PageSpeed scores and AI-powered recommendations tailored for local businesses.
+                          </div>
+                          <button onClick={()=>navigate('/seo/onpage')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:TEAL, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>
+                            Open On-Page Checker →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {tab === 'gbp' && (
                       <div className="animate-fade-up">
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>

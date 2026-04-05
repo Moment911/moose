@@ -56,6 +56,7 @@ import SEOHubPage from '../views/seo/SEOHubPage'
 import LocalRankTrackerPage from '../views/seo/LocalRankTrackerPage'
 import SEOAuditPage from '../views/seo/SEOAuditPage'
 import GBPAuditPage from '../views/seo/GBPAuditPage'
+import OnPageAuditPage from '../views/seo/OnPageAuditPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
 import WordPressPage from '../views/WordPressPage'
@@ -164,6 +165,7 @@ export default function App() {
           <Route path="/seo/local-rank" element={<LocalRankTrackerPage />} />
           <Route path="/seo/audit" element={<SEOAuditPage />} />
           <Route path="/seo/gbp-audit" element={<GBPAuditPage />} />
+          <Route path="/seo/onpage" element={<OnPageAuditPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
           <Route path="/wordpress" element={<WordPressPage />} />
