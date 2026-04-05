@@ -140,6 +140,7 @@ export default function App() {
           <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
+          <Route path="/proposal-library" element={<ProposalLibraryPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
           <Route path="/p/:token" element={<ProposalPublicPage />} />
           <Route path="/" element={<DashboardPage />} />

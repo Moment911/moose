@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  BarChart2, BookOpen, Brain, CheckCircle, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  BarChart2, BookOpen, Brain, CheckCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -118,11 +118,13 @@ export default function Sidebar() {
           <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
         <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
           <NavLink to="/automations" icon={Workflow}            label="Automations"/>
+        <NavLink to="/tasks"        startsWith icon={CheckSquare} label="Tasks"/>
 
           <Section label="Intelligence"/>
           <NavLink to="/perf"          startsWith icon={TrendingUp} label="Performance"  badge="AI" badgeColor={R}/>
           <NavLink to="/scout"         startsWith icon={Target}     label="Scout"        badge="NEW" badgeColor={T}/>
           <NavLink to="/scout/history" startsWith icon={Clock}      label="Scout History" sub/>
+        <NavLink to="/scout/pipeline"  startsWith icon={Target}     label="Pipeline CRM"  sub/>
           <NavLink to="/seo"           startsWith icon={BarChart2}  label="SEO Hub"/>
         <NavLink to="/seo/gbp-audit"            icon={MapPin}    label="GBP Audit"/>
         <NavLink to="/seo/onpage"               icon={Globe}     label="On-Page Audit"/>
@@ -180,9 +182,11 @@ export default function Sidebar() {
 
           <Section label="Agency"/>
           <NavLink to="/billing"     icon={CreditCard} label="Billing"/>
+        <NavLink to="/marketplace"   icon={Sparkles}  label="Marketplace"/>
         <NavLink to="/master-admin"    icon={Shield}   label="Master Admin"/>
         <NavLink to="/platform-admin"  icon={Shield}   label="Platform Admin"/>
         <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
+          <NavLink to="/wordpress"    icon={Globe} label="WP Plugin"/>
           <NavLink to="/integrations" icon={Plug} label="Integrations"/>
         </div>
 
