@@ -95,6 +95,7 @@ import SocialPlannerPage from '../views/SocialPlannerPage'
 import ReviewsPage from '../views/ReviewsPage'
 import ReviewCampaignsPage from '../views/ReviewCampaignsPage'
 import OnboardingDashboardPage from '../views/OnboardingDashboardPage'
+import ScoutPipelinePage from '../views/scout/ScoutPipelinePage'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
@@ -133,6 +134,7 @@ export default function App() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/review-campaigns" element={<ReviewCampaignsPage />} />
           <Route path="/onboarding-dashboard" element={<OnboardingDashboardPage />} />
+          <Route path="/scout/pipeline" element={<ScoutPipelinePage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
