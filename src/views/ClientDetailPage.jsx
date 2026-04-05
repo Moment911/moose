@@ -127,7 +127,10 @@ export default function ClientDetailPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [loading, setLoading] = useState(true)
   const [projects, setProjects] = useState([])
-  const [tokens, setTokens] = useState([])
+  const [tokens,      setTokens]      = useState([])
+  const [portalLink,  setPortalLink]  = useState('')
+  const [portalCopied,setPortalCopied]= useState(false)
+  const [genPortal,   setGenPortal]   = useState(false)
   const [copiedToken, setCopiedToken] = useState(null)
 
   // ─── Load data ──────────────────────────────────────────────────────────────
@@ -606,6 +609,25 @@ export default function ClientDetailPage() {
       }
     }
 
+    async function generatePortalLink() {
+      setGenPortal(true)
+      try {
+        const res = await fetch('/api/client-portal', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ action:'generate_link', client_id: clientId, agency_id: agencyId }),
+        })
+        const data = await res.json()
+        if (data.portal_url) {
+          setPortalLink(data.portal_url)
+          navigator.clipboard.writeText(data.portal_url)
+          setPortalCopied(true)
+          toast.success('Portal link copied!')
+          setTimeout(()=>setPortalCopied(false), 3000)
+        } else { toast.error(data.error || 'Failed to generate') }
+      } catch(e) { toast.error('Failed: ' + e.message) }
+      setGenPortal(false)
+    }
+
     function copyLink(token) {
       const url = `${window.location.origin}/onboarding/${token}`
       navigator.clipboard.writeText(url)
@@ -619,6 +641,24 @@ export default function ClientDetailPage() {
         <button onClick={handleGenerate} disabled={generating} className="btn-primary text-sm inline-flex items-center gap-1.5 mb-6">
           <Link2 className="w-4 h-4" /> {generating ? 'Generating...' : 'Generate Onboarding Link'}
         </button>
+
+        {/* Client Portal Link */}
+        <div style={{ background:'#f0fbfc', borderRadius:12, border:'1px solid #5bc6d040', padding:'14px 16px', marginBottom:16, display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:'#0e7490', marginBottom:3 }}>🔗 Client Portal Link</div>
+            {portalLink ? (
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <code style={{ fontSize:12, color:'#374151', background:'#f3f4f6', padding:'4px 8px', borderRadius:6, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{portalLink}</code>
+              </div>
+            ) : (
+              <div style={{ fontSize:13, color:'#6b7280' }}>Generate a shareable link — your client can view projects, reviews, and submit requests without logging in.</div>
+            )}
+          </div>
+          <button onClick={generatePortalLink} disabled={genPortal}
+            style={{ display:'flex', alignItems:'center', gap:5, padding:'8px 14px', borderRadius:9, border:'none', background:'#5bc6d0', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}>
+            {genPortal ? '…' : portalCopied ? '✓ Copied!' : portalLink ? '↻ Refresh' : '🔗 Generate Portal Link'}
+          </button>
+        </div>
 
         <div className="space-y-3">
           {tokens.map(t => (

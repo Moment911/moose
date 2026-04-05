@@ -1,5 +1,6 @@
 "use client"
 import {
+  CreditCard,
   Database,
   MapPin, useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
@@ -180,7 +181,8 @@ export default function Sidebar() {
           )}
 
           <Section label="Agency"/>
-          <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
+          <NavLink to="/billing"     icon={CreditCard} label="Billing"/>
+        <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
           <NavLink to="/integrations" icon={Plug} label="Integrations"/>
         </div>
 
