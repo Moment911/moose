@@ -293,7 +293,7 @@ export default function MooseDeskPage() {
               </p>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button onClick={()=>navigate('/desk/settings')}
+              <button onClick={()=>navigate('/agency-settings?section=desk')}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
                   border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
                   color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>

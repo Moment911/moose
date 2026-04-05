@@ -1,275 +1,761 @@
 "use client";
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import {
+  Building2, Palette, Users, CreditCard, Zap, Shield, Bell,
+  Target, Inbox, ClipboardList, FileText, Plug, Settings,
+  Key, Globe, Database, MapPin, Link2, Star, Search,
+  Wrench, Check, AlertTriangle, ExternalLink, Copy,
+  RefreshCw, Loader2, Info, Sliders, Save, Plus,
+  Trash2, ChevronRight, ArrowRight, ToggleLeft, ToggleRight,
+  Lock, BarChart2
+} from 'lucide-react'
+import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import Sidebar from '../components/Sidebar'
-import { Save, Plus, Trash2, Copy, Check, Users, CreditCard, Globe, Palette, Shield, Zap, Mail, BarChart2 } from 'lucide-react'
+import { CATEGORIES } from '../lib/moosedesk'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
-const INP = { width:'100%', padding:'11px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', color:'#111', boxSizing:'border-box' }
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
-const TABS = [
-  { id:'general',  label:'General',   icon:Globe },
-  { id:'branding', label:'Branding',  icon:Palette },
-  { id:'team',     label:'Team',      icon:Users },
-  { id:'billing',  label:'Billing',   icon:CreditCard },
-  { id:'features', label:'Features',  icon:Zap },
-  { id:'security', label:'Security',  icon:Shield },
+// ── Nav sections ──────────────────────────────────────────────────
+const SECTIONS = [
+  { key:'agency',       label:'Agency',          icon:Building2, group:'Agency' },
+  { key:'branding',     label:'Branding',         icon:Palette,   group:'Agency' },
+  { key:'team',         label:'Team & Access',    icon:Users,     group:'Agency' },
+  { key:'billing',      label:'Plan & Billing',   icon:CreditCard,group:'Agency' },
+  { key:'connections',  label:'API Connections',  icon:Plug,      group:'Platform' },
+  { key:'notifications',label:'Notifications',    icon:Bell,      group:'Platform' },
+  { key:'security',     label:'Security',         icon:Shield,    group:'Platform' },
+  { key:'onboarding',   label:'Onboarding',       icon:ClipboardList, group:'Platform' },
+  { key:'proposals',    label:'Proposals & SOW',  icon:FileText,  group:'Platform' },
+  { key:'scout',        label:'Scout Score',      icon:Target,    group:'Intelligence' },
+  { key:'desk',         label:'Support Agents',   icon:Inbox,     group:'Intelligence' },
+  { key:'routing',      label:'Ticket Routing',   icon:Settings,  group:'Intelligence' },
 ]
 
-const PLAN_DETAILS = {
-  starter: { name:'Starter', price:297, seats:3, clients:25, color:'#374151' },
-  growth:  { name:'Growth',  price:497, seats:10, clients:100, color:ACCENT },
-  pro:     { name:'Pro',     price:897, seats:25, clients:500, color:'#8b5cf6' },
-  enterprise: { name:'Enterprise', price:null, seats:'∞', clients:'∞', color:'#111' },
+// ── API Connections data ──────────────────────────────────────────
+const CONNECTIONS = [
+  { id:'anthropic',    name:'Claude AI',         group:'Core',         icon:Zap,      color:R,        env:'NEXT_PUBLIC_ANTHROPIC_API_KEY',  free:'~$0.003/1K tokens', setupUrl:'https://console.anthropic.com/settings/keys',         desc:'Powers all AI features across the platform.' },
+  { id:'supabase',     name:'Supabase',           group:'Core',         icon:Database, color:'#3ecf8e',env:'NEXT_PUBLIC_SUPABASE_URL',         free:'Free tier: 500MB',  setupUrl:'https://app.supabase.com',                            desc:'Database for all clients, tickets, and agency data.' },
+  { id:'google_places',name:'Google Places',      group:'Scout',        icon:MapPin,   color:'#4285f4',env:'NEXT_PUBLIC_GOOGLE_PLACES_KEY',   free:'$200/mo credit',    setupUrl:'https://console.cloud.google.com/apis/credentials',  desc:'Real business data for Scout lead searches.' },
+  { id:'google_oauth', name:'Google OAuth',       group:'Analytics',    icon:Globe,    color:'#34a853',env:'NEXT_PUBLIC_GOOGLE_CLIENT_ID',    free:'Free',              setupUrl:'https://console.cloud.google.com/apis/credentials',  desc:'Login + Search Console + GA4 for SEO Hub.' },
+  { id:'ghl',          name:'GoHighLevel',        group:'CRM',          icon:Link2,    color:'#f59e0b',env:'NEXT_PUBLIC_GHL_CLIENT_ID',       free:'GHL subscription',  setupUrl:'https://marketplace.gohighlevel.com/',                desc:'Two-way CRM sync for contacts and opportunities.' },
+  { id:'yelp',         name:'Yelp Fusion',        group:'Scout',        icon:Star,     color:'#d32323',env:'NEXT_PUBLIC_YELP_API_KEY',         free:'5,000 calls/day',   setupUrl:'https://www.yelp.com/developers/v3/manage_app',       desc:'Yelp reviews and ratings in Scout.' },
+  { id:'hunter',       name:'Hunter.io',          group:'Scout',        icon:Search,   color:T,        env:'NEXT_PUBLIC_HUNTER_API_KEY',       free:'25 searches/mo',    setupUrl:'https://hunter.io/api-keys',                          desc:'Email finder for Scout lead enrichment.' },
+  { id:'apollo',       name:'Apollo.io',          group:'Scout',        icon:Users,    color:'#7c3aed',env:'NEXT_PUBLIC_APOLLO_API_KEY',        free:'50 credits/mo',     setupUrl:'https://app.apollo.io/#/settings/integrations/api',   desc:'Executive contacts and company data.' },
+  { id:'google_ads',   name:'Google Ads',         group:'Performance',  icon:BarChart2,color:'#fbbc04',env:'GOOGLE_ADS_DEVELOPER_TOKEN',        free:'Requires Ads account',setupUrl:'https://developers.google.com/google-ads/api/docs/get-started/dev-token', desc:'Ad campaigns, keywords, and AI optimization.' },
+  { id:'resend',       name:'Resend (Email)',      group:'Email',        icon:Bell,     color:'#6366f1',env:'RESEND_API_KEY',                    free:'3,000/mo free',     setupUrl:'https://resend.com/api-keys',                         desc:'Transactional email for tickets and reports.' },
+]
+
+const WEIGHT_DEFAULTS = { social:25, website:30, gmb:20, reviews:15, ads:10 }
+const WEIGHT_LABELS = [
+  { key:'social',  label:'Social Media',  desc:'Facebook, Instagram followers and activity' },
+  { key:'website', label:'Website & Tech',desc:'Analytics, CRM, CMS, marketing tools' },
+  { key:'gmb',     label:'GMB Health',    desc:'Optimization, posts, photos, Q&A' },
+  { key:'reviews', label:'Reviews',       desc:'Rating, count, response rate, sentiment' },
+  { key:'ads',     label:'Advertising',   desc:'Facebook Pixel, Google Ads, retargeting' },
+]
+const NOTIFS = [
+  { key:'negative_reviews',  label:'New negative reviews',        desc:'1 or 2-star reviews for any client',          on:true  },
+  { key:'hot_leads',         label:'Hot Scout leads',             desc:'Leads scoring 75+ in a search',               on:true  },
+  { key:'onboarding_done',   label:'Onboarding completed',        desc:'Client finishes their onboarding form',        on:true  },
+  { key:'agent_digest',      label:'Agent activity digest',       desc:'Daily summary of AI agent activity',           on:false },
+  { key:'team_mentions',     label:'Team mentions',               desc:'Someone mentions you in a comment',            on:true  },
+  { key:'perf_alerts',       label:'Performance alerts',          desc:'ROAS drops or spend spikes abnormally',        on:true  },
+  { key:'ticket_new',        label:'New support tickets',         desc:'Client submits a MooseDesk ticket',            on:true  },
+  { key:'monthly_report',    label:'Monthly report generated',    desc:'AI Report agent sends a client report',        on:false },
+]
+const SKILLS = ['SEO','Paid Ads','Social Media','Content','Design','Development','Email','Reporting','Billing','Support','Strategy','Video']
+const AVATAR_COLORS = [R,'#3b82f6','#16a34a','#d97706','#8b5cf6',T,'#ec4899','#14b8a6']
+
+// ── Shared components ─────────────────────────────────────────────
+const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1px solid #ececea',
+  fontSize:14, outline:'none', color:'#0a0a0a', boxSizing:'border-box',
+  fontFamily:FB, background:'#fff', transition:'border-color .15s' }
+
+function SectionCard({ title, subtitle, children, action, onAction, actionLabel='Save changes' }) {
+  return (
+    <div style={{ background:'#fff', borderRadius:14, border:'1px solid #ececea', overflow:'hidden', marginBottom:16 }}>
+      <div style={{ padding:'18px 22px', borderBottom:'1px solid #f2f2f0',
+        display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
+        <div>
+          <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#0a0a0a',
+            letterSpacing:'-.02em', marginBottom:2 }}>{title}</div>
+          {subtitle && <div style={{ fontSize:14, color:'#9a9a96', fontFamily:FB }}>{subtitle}</div>}
+        </div>
+        {onAction && (
+          <button onClick={onAction}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px',
+              borderRadius:9, border:'none', background:R, color:'#fff',
+              fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, flexShrink:0 }}>
+            <Save size={13}/> {actionLabel}
+          </button>
+        )}
+      </div>
+      <div style={{ padding:'20px 22px' }}>{children}</div>
+    </div>
+  )
 }
 
+function Field({ label, hint, children }) {
+  return (
+    <div style={{ marginBottom:16 }}>
+      <label style={{ display:'block', fontFamily:FH, fontSize:14, fontWeight:700,
+        color:'#0a0a0a', marginBottom:5 }}>{label}</label>
+      {hint && <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, marginBottom:6 }}>{hint}</div>}
+      {children}
+    </div>
+  )
+}
+
+function Toggle({ on, onChange }) {
+  return (
+    <button role="switch" aria-checked={on} onClick={()=>onChange(!on)}
+      style={{ width:44, height:24, borderRadius:12, border:'none',
+        background:on?R:'#d1d5db', position:'relative', cursor:'pointer',
+        flexShrink:0, transition:'background .2s', padding:0 }}>
+      <span style={{ position:'absolute', top:3, left:on?23:3,
+        width:18, height:18, borderRadius:'50%', background:'#fff',
+        boxShadow:'0 1px 4px rgba(0,0,0,.25)', transition:'left .2s', display:'block' }}/>
+    </button>
+  )
+}
+
+function PillToggle({ label, active, onChange }) {
+  return (
+    <button onClick={()=>onChange(!active)}
+      style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 12px',
+        borderRadius:20, border:'none', cursor:'pointer', transition:'all .15s',
+        background:active?R:'#f2f2f0', color:active?'#fff':'#5a5a58',
+        fontSize:13, fontWeight:700, fontFamily:FH }}>
+      {active ? <Check size={11}/> : <span style={{ width:11, height:11, borderRadius:'50%', background:'#d1d5db', display:'inline-block' }}/>}
+      {label}
+    </button>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════
 export default function AgencySettingsPage() {
-  const { user, agencyId, firstName, greeting, agencyName } = useAuth()
-  const [tab, setTab] = useState('general')
-  const [agency, setAgency] = useState(null)
+  const navigate   = useNavigate()
+  const { agencyId } = useAuth()
+  const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+
+  const [searchParams] = useSearchParams()
+  const [section, setSection] = useState(searchParams.get('section')||'agency')
+  const [saving,  setSaving]  = useState(false)
+
+  // Agency / branding
+  const [agency, setAgency]   = useState({ name:'', slug:'', billing_email:'', brand_domain:'',
+    brand_name:'', brand_color:R, brand_logo_url:'', plan:'growth', metadata:{} })
+
+  // Team
   const [members, setMembers] = useState([])
-  const [features, setFeatures] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('member')
+
+  // Notifications
+  const [notifs, setNotifs]   = useState(Object.fromEntries(NOTIFS.map(n=>[n.key,n.on])))
+
+  // Scout weights
+  const [weights, setWeights] = useState({...WEIGHT_DEFAULTS})
+
+  // Desk agents + routing
+  const [agents,  setAgents]  = useState([])
+  const [rules,   setRules]   = useState([])
+  const [newAgent,setNewAgent]= useState({ name:'', email:'', role:'agent', hourly_rate:0, skills:[], avatar_color:R })
+  const [newRule, setNewRule] = useState({ name:'', match_category:[], match_keywords:'', match_priority:[], auto_reply:'', is_active:true })
+
+  // API connections
+  const [testResult, setTestResult] = useState({})
+  const [testing,    setTesting]    = useState({})
+
+  // Onboarding / proposals
+  const [onboardingTitle, setOnboardingTitle] = useState('Tell us about your business')
+  const [onboardingIntro, setOnboardingIntro] = useState('')
+  const [modules, setModules] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
+
   const [copied, setCopied] = useState(false)
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
-  useEffect(() => { loadData() }, [])
+  useEffect(() => { loadAll() }, [aid])
 
-  async function loadData() {
-    const { data: memberData } = await supabase.from('agency_members').select('agency_id, role').eq('user_id', user?.id).single()
-    if (!memberData) return
-    const agencyId = memberData.agency_id
-    const [{ data: ag }, { data: mem }, { data: feat }] = await Promise.all([
-      supabase.from('agencies').select('*').eq('id', aid).single(),
-      supabase.from('agency_members').select('*, user:user_id(email)').eq('agency_id', aid),
-      supabase.from('agency_features').select('*').eq('agency_id', aid).single(),
-    ])
-    setAgency(ag); setMembers(mem||[]); setFeatures(feat)
+  async function loadAll() {
+    setLoadingData(true)
+    try {
+      const [
+        {data:ag}, {data:mem}, {data:mods},
+        {data:aa}, {data:rr}
+      ] = await Promise.all([
+        supabase.from('agencies').select('*').eq('id', aid).single(),
+        supabase.from('agency_members').select('*, user:user_id(email)').eq('agency_id', aid),
+        supabase.from('service_modules').select('*').eq('agency_id', aid).order('sort_order'),
+        supabase.from('desk_agents').select('*').eq('agency_id', aid).order('created_at'),
+        supabase.from('desk_routing_rules').select('*').eq('agency_id', aid).order('priority'),
+      ])
+      if (ag) {
+        setAgency(ag)
+        const meta = ag.metadata || {}
+        setOnboardingTitle(meta.onboarding_title || 'Tell us about your business')
+        setOnboardingIntro(meta.onboarding_intro || '')
+      }
+      setMembers(mem||[])
+      setModules(mods||[])
+      setAgents(aa||[])
+      setRules(rr||[])
+    } catch(e) { console.warn(e) }
+    setLoadingData(false)
   }
 
   async function saveAgency() {
     setSaving(true)
-    await supabase.from('agencies').update({ ...agency, updated_at: new Date().toISOString() }).eq('id', agency.id)
-    toast.success('Settings saved'); setSaving(false)
+    await supabase.from('agencies').update({
+      name: agency.name, slug: agency.slug,
+      billing_email: agency.billing_email, brand_domain: agency.brand_domain,
+    }).eq('id', aid)
+    toast.success('Agency settings saved')
+    setSaving(false)
   }
 
-  async function inviteMember() {
-    if (!inviteEmail.trim()) return
-    await supabase.from('agency_invitations').insert({ agency_id: agency.id, email: inviteEmail, role: inviteRole, invited_by: user.id })
-    toast.success(`Invitation sent to ${inviteEmail}`)
-    setInviteEmail('')
+  async function saveBranding() {
+    setSaving(true)
+    await supabase.from('agencies').update({
+      brand_name: agency.brand_name, brand_color: agency.brand_color,
+      brand_logo_url: agency.brand_logo_url,
+    }).eq('id', aid)
+    toast.success('Branding saved')
+    setSaving(false)
   }
 
-  function copyPortalLink() {
-    const link = `${window.location.origin}/signup?ref=${agency?.slug}`
-    navigator.clipboard.writeText(link)
-    setCopied(true); setTimeout(() => setCopied(false), 2000)
-    toast.success('Referral link copied!')
+  async function saveOnboarding() {
+    setSaving(true)
+    const {data:ag} = await supabase.from('agencies').select('metadata').eq('id', aid).single()
+    const meta = ag?.metadata || {}
+    await supabase.from('agencies').update({ metadata:{...meta, onboarding_title:onboardingTitle, onboarding_intro:onboardingIntro} }).eq('id', aid)
+    toast.success('Onboarding template saved')
+    setSaving(false)
   }
 
-  if (!agency) return (
-    <div style={{ display:'flex', minHeight:'100vh' }}>
-      <Sidebar/>
-      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div style={{ fontSize:15, color:'#4b5563' }}>Loading agency settings…</div>
-      </div>
-    </div>
-  )
+  async function addAgent() {
+    if (!newAgent.name.trim() || !newAgent.email.trim()) { toast.error('Name and email required'); return }
+    setSaving(true)
+    const {error} = await supabase.from('desk_agents').insert({ agency_id:aid, ...newAgent, hourly_rate:parseFloat(newAgent.hourly_rate)||0 })
+    if (error) toast.error(error.message)
+    else { toast.success('Agent added'); setNewAgent({name:'',email:'',role:'agent',hourly_rate:0,skills:[],avatar_color:R}); loadAll() }
+    setSaving(false)
+  }
 
-  const plan = PLAN_DETAILS[agency.plan] || PLAN_DETAILS.starter
+  async function deleteAgent(id) {
+    if (!confirm('Remove this agent?')) return
+    await supabase.from('desk_agents').delete().eq('id',id)
+    setAgents(prev=>prev.filter(a=>a.id!==id))
+    toast.success('Agent removed')
+  }
 
-  return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
-      <Sidebar/>
-      <div style={{ flex:1, overflowY:'auto' }}>
-        {/* Header */}
-        <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'18px 28px', display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ flex:1 }}>
-            <h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin:0 }}>Agency Settings</h1>
-            <p style={{ fontSize:14, color:'#4b5563', margin:'3px 0 0' }}>{agency.name} · {plan.name} Plan</p>
-          </div>
-          <button onClick={saveAgency} disabled={saving}
-            style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 20px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', opacity:saving?.7:1 }}>
-            <Save size={13}/> {saving?'Saving…':'Save Changes'}
-          </button>
-        </div>
+  async function updateAgent(id, field, value) {
+    await supabase.from('desk_agents').update({[field]:value}).eq('id',id)
+    setAgents(prev=>prev.map(a=>a.id===id?{...a,[field]:value}:a))
+  }
 
-        <div style={{ display:'flex', maxWidth:1100, margin:'0 auto', padding:'24px 28px', gap:24 }}>
-          {/* Tab sidebar */}
-          <div style={{ width:200, flexShrink:0 }}>
-            <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
-              {TABS.map(t => (
-                <button key={t.id} onClick={()=>setTab(t.id)}
-                  style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'12px 16px', background:tab===t.id?'#f0fbfc':'transparent', border:'none', cursor:'pointer', color:tab===t.id?ACCENT:'#374151', fontWeight:tab===t.id?700:500, fontSize:15, borderLeft:`3px solid ${tab===t.id?ACCENT:'transparent'}`, textAlign:'left' }}>
-                  <t.icon size={14}/> {t.label}
-                </button>
-              ))}
+  async function addRule() {
+    if (!newRule.name.trim()) { toast.error('Rule name required'); return }
+    setSaving(true)
+    const {error} = await supabase.from('desk_routing_rules').insert({
+      agency_id:aid, ...newRule,
+      match_keywords: newRule.match_keywords ? newRule.match_keywords.split(',').map(k=>k.trim()).filter(Boolean) : [],
+      priority: rules.length,
+    })
+    if (error) toast.error(error.message)
+    else { toast.success('Rule saved'); setNewRule({name:'',match_category:[],match_keywords:'',match_priority:[],auto_reply:'',is_active:true}); loadAll() }
+    setSaving(false)
+  }
+
+  async function testConn(conn) {
+    setTesting(t=>({...t,[conn.id]:true}))
+    setTestResult(r=>({...r,[conn.id]:null}))
+    await new Promise(r=>setTimeout(r,700))
+    const pass = !!process.env[conn.env]
+    setTestResult(r=>({...r,[conn.id]:pass?'pass':'fail'}))
+    setTesting(t=>({...t,[conn.id]:false}))
+    pass ? toast.success(conn.name+' connected') : toast.error(conn.name+': key not configured in Vercel')
+  }
+
+  const connGroups = [...new Set(CONNECTIONS.map(c=>c.group))]
+  const totalWeight = Object.values(weights).reduce((a,b)=>a+b,0)
+
+  // ── Section renderer ────────────────────────────────────────────
+  function renderSection() {
+    switch(section) {
+
+      case 'agency': return (
+        <SectionCard title="Agency Settings" subtitle="Your agency name, slug, and billing details" onAction={saveAgency}>
+          <Field label="Agency Name"><input value={agency.name||''} onChange={e=>setAgency(a=>({...a,name:e.target.value}))} style={INP} placeholder="Unified Marketing Group"/></Field>
+          <Field label="Slug" hint="Used in your referral link and portal URL"><input value={agency.slug||''} onChange={e=>setAgency(a=>({...a,slug:e.target.value}))} style={INP} placeholder="unified-marketing"/></Field>
+          <Field label="Billing Email"><input type="email" value={agency.billing_email||''} onChange={e=>setAgency(a=>({...a,billing_email:e.target.value}))} style={INP} placeholder="billing@youragency.com"/></Field>
+          <Field label="Custom Domain" hint="Pro plan only — white-label portal domain"><input value={agency.brand_domain||''} onChange={e=>setAgency(a=>({...a,brand_domain:e.target.value}))} style={INP} placeholder="app.youragency.com"/></Field>
+          <div style={{ marginTop:8, background:'#f8f8f6', borderRadius:11, padding:'14px 16px', border:'1px solid #ececea' }}>
+            <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:4 }}>Referral Link</div>
+            <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, marginBottom:8 }}>Earn 20% recurring commission on referred agencies</div>
+            <div style={{ display:'flex', gap:8 }}>
+              <input readOnly value={`${appUrl}/signup?ref=${agency.slug||''}`} style={{...INP,flex:1,color:'#9a9a96',fontSize:13}}/>
+              <button onClick={()=>{navigator.clipboard.writeText(`${appUrl}/signup?ref=${agency.slug||''}`);setCopied(true);setTimeout(()=>setCopied(false),2000)}}
+                style={{ padding:'9px 14px', borderRadius:9, border:`1px solid ${R}`, background:'#fff', color:R, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, flexShrink:0, display:'flex', alignItems:'center', gap:5 }}>
+                {copied?<><Check size={12}/> Copied</>:<><Copy size={12}/> Copy</>}
+              </button>
             </div>
           </div>
+        </SectionCard>
+      )
 
-          {/* Tab content */}
-          <div style={{ flex:1 }}>
+      case 'branding': return (
+        <SectionCard title="White-Label Branding" subtitle="Your clients see your brand, not Moose AI" onAction={saveBranding}>
+          <Field label="Brand Name" hint="Shown to clients in the portal"><input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} style={INP} placeholder={agency.name||'Your Agency'}/></Field>
+          <Field label="Logo URL"><input value={agency.brand_logo_url||''} onChange={e=>setAgency(a=>({...a,brand_logo_url:e.target.value}))} style={INP} placeholder="https://youragency.com/logo.png"/>
+            {agency.brand_logo_url && <img src={agency.brand_logo_url} alt="preview" style={{marginTop:8,height:44,objectFit:'contain',border:'1px solid #ececea',borderRadius:8,padding:8,background:'#f8f8f6'}} onError={e=>e.target.style.display='none'}/>}
+          </Field>
+          <Field label="Brand Color">
+            <div style={{ display:'flex', gap:10 }}>
+              <input type="color" value={agency.brand_color||R} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{ width:46, height:44, borderRadius:9, border:'1px solid #ececea', padding:3, cursor:'pointer' }}/>
+              <input value={agency.brand_color||R} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{...INP,flex:1,fontFamily:'monospace'}}/>
+            </div>
+            <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'#f8f8f6', borderRadius:9, border:'1px solid #ececea' }}>
+              <div style={{ width:28, height:28, borderRadius:7, background:agency.brand_color||R, flexShrink:0 }}/>
+              <span style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>Buttons, highlights, and accent colors</span>
+            </div>
+          </Field>
+        </SectionCard>
+      )
 
-            {/* General */}
-            {tab==='general'&&(
-              <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
-                <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:20 }}>General Settings</h2>
-                <div style={{ display:'grid', gap:16 }}>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Agency Name</label><input value={agency.name||''} onChange={e=>setAgency(a=>({...a,name:e.target.value}))} style={INP}/></div>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Slug (subdomain)</label>
-                    <div style={{ display:'flex', alignItems:'center', borderRadius:10, border:'1.5px solid #e5e7eb', overflow:'hidden' }}>
-                      <input value={agency.slug||''} onChange={e=>setAgency(a=>({...a,slug:e.target.value}))} style={{ ...INP, border:'none', borderRadius:0, flex:1 }}/>
-                      <span style={{ padding:'11px 14px', background:'#f9fafb', fontSize:15, color:'#4b5563', borderLeft:'1px solid #e5e7eb' }}>.mooseai.com</span>
-                    </div>
+      case 'team': return (
+        <SectionCard title="Team & Access" subtitle="Manage who has access to your Moose AI platform">
+          {members.length > 0 ? (
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+              {members.map(m=>(
+                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+                  <div style={{ width:36, height:36, borderRadius:'50%', background:R, flexShrink:0,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontFamily:FH, fontSize:14, fontWeight:700, color:'#fff' }}>
+                    {(m.user?.email||'?')[0].toUpperCase()}
                   </div>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Billing Email</label><input type="email" value={agency.billing_email||''} onChange={e=>setAgency(a=>({...a,billing_email:e.target.value}))} style={INP}/></div>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Custom Domain <span style={{ fontSize:13, color:'#4b5563', fontWeight:500 }}>(Pro+ only)</span></label><input value={agency.brand_domain||''} onChange={e=>setAgency(a=>({...a,brand_domain:e.target.value}))} placeholder="app.youragency.com" style={INP} disabled={agency.plan==='starter'}/></div>
-                </div>
-                {/* Referral link */}
-                <div style={{ marginTop:24, background:'#f9fafb', borderRadius:12, padding:'16px 18px', border:'1px solid #f3f4f6' }}>
-                  <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:6 }}>Your Referral Link</div>
-                  <div style={{ fontSize:14, color:'#374151', marginBottom:10 }}>Share this to earn 20% recurring commission on referred agencies</div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    <input readOnly value={`${window.location.origin}/signup?ref=${agency.slug}`} style={{ ...INP, flex:1, fontSize:14, color:'#4b5563', background:'#fff' }}/>
-                    <button onClick={copyPortalLink} style={{ padding:'10px 14px', borderRadius:9, border:`1.5px solid ${ACCENT}`, background:'#fff', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', flexShrink:0, display:'flex', alignItems:'center', gap:5 }}>
-                      {copied?<><Check size={12}/> Copied!</>:<><Copy size={12}/> Copy</>}
-                    </button>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{m.user?.email}</div>
+                    <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, textTransform:'capitalize' }}>{m.role}</div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign:'center', padding:'32px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No team members yet</div>
+          )}
+          <button onClick={()=>navigate('/agency-settings')}
+            style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px',
+              borderRadius:10, border:`1px solid ${R}`, background:R,
+              color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+            <Users size={14}/> Manage Full Team Settings
+          </button>
+        </SectionCard>
+      )
+
+      case 'billing': return (
+        <SectionCard title="Plan & Billing" subtitle="Your current plan and usage limits">
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:20 }}>
+            {[
+              { label:'Current Plan', value:(agency.plan||'growth').charAt(0).toUpperCase()+(agency.plan||'growth').slice(1) },
+              { label:'Clients', value:`${members.length} / unlimited` },
+              { label:'Status', value:'Active', green:true },
+            ].map(s=>(
+              <div key={s.label} style={{ background:'#f8f8f6', borderRadius:11, padding:'14px 16px', border:'1px solid #ececea', textAlign:'center' }}>
+                <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:s.green?'#16a34a':'#0a0a0a', letterSpacing:'-.02em' }}>{s.value}</div>
+                <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, marginTop:3 }}>{s.label}</div>
               </div>
-            )}
+            ))}
+          </div>
+          <a href="https://mooseai.com/billing" target="_blank" rel="noreferrer"
+            style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 18px',
+              borderRadius:10, border:`1px solid ${R}`, background:'#fff',
+              color:R, fontSize:14, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
+            <ExternalLink size={14}/> Manage Subscription
+          </a>
+        </SectionCard>
+      )
 
-            {/* Branding */}
-            {tab==='branding'&&(
-              <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
-                <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:6 }}>White-Label Branding</h2>
-                <p style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>Your clients will see your brand, not Moose AI</p>
-                <div style={{ display:'grid', gap:16 }}>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Brand Name (shown to clients)</label><input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} placeholder={agency.name} style={INP}/></div>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Logo URL</label>
-                    <input value={agency.brand_logo_url||''} onChange={e=>setAgency(a=>({...a,brand_logo_url:e.target.value}))} placeholder="https://youragency.com/logo.png" style={INP}/>
-                    {agency.brand_logo_url&&<img src={agency.brand_logo_url} alt="logo preview" style={{ marginTop:8, height:48, objectFit:'contain', border:'1px solid #e5e7eb', borderRadius:8, padding:8, background:'#f9fafb' }} onError={e=>e.target.style.display='none'}/>}
-                  </div>
-                  <div><label style={{ fontSize:15, fontWeight:700, display:'block', marginBottom:6 }}>Brand Color</label>
-                    <div style={{ display:'flex', gap:10 }}>
-                      <input type="color" value={agency.brand_color||ACCENT} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{ width:46, height:44, borderRadius:9, border:'1.5px solid #e5e7eb', padding:3, cursor:'pointer' }}/>
-                      <input value={agency.brand_color||ACCENT} onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))} style={{ ...INP, flex:1, fontFamily:'monospace' }}/>
-                    </div>
-                    {/* Color preview */}
-                    <div style={{ marginTop:10, padding:'12px 16px', borderRadius:10, background:'#f9fafb', border:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:10 }}>
-                      <div style={{ width:32, height:32, borderRadius:8, background:agency.brand_color||ACCENT }}/>
-                      <div style={{ fontSize:15, color:'#374151' }}>Buttons, highlights, and accent colors across the platform</div>
-                    </div>
-                  </div>
-                </div>
+      case 'connections': return (
+        <div>
+          <div style={{ background:'#fff', borderRadius:14, border:'1px solid #ececea',
+            padding:'16px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:14 }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#0a0a0a', marginBottom:6 }}>
+                {CONNECTIONS.filter(c=>!!process.env[c.env]).length} of {CONNECTIONS.length} connections configured
               </div>
-            )}
-
-            {/* Team */}
-            {tab==='team'&&(
-              <div>
-                <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px', marginBottom:16 }}>
-                  <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:4 }}>Team Members</h2>
-                  <p style={{ fontSize:15, color:'#4b5563', marginBottom:18 }}>{members.length} of {plan.seats} seats used</p>
-                  {members.map(m=>(
-                    <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderBottom:'1px solid #f3f4f6' }}>
-                      <div style={{ width:36, height:36, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:700, fontSize:15, flexShrink:0 }}>{m.user?.email?.[0]?.toUpperCase()||'?'}</div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{m.user?.email}</div>
-                        <div style={{ fontSize:13, color:'#4b5563' }}>{m.accepted_at?'Active':'Pending'}</div>
-                      </div>
-                      <span style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:m.role==='owner'?'#f0fbfc':m.role==='admin'?'#eff6ff':'#f3f4f6', color:m.role==='owner'?ACCENT:m.role==='admin'?'#1d4ed8':'#6b7280' }}>{m.role}</span>
-                      {m.user_id!==user?.id&&<button onClick={async()=>{ await supabase.from('agency_members').delete().eq('id',m.id); loadData(); toast.success('Member removed') }} style={{ padding:'5px 8px', borderRadius:7, border:'none', background:'#fef2f2', color:'#dc2626', cursor:'pointer' }}><Trash2 size={13}/></button>}
-                    </div>
-                  ))}
-                </div>
-                <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
-                  <h3 style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:14 }}>Invite Team Member</h3>
-                  <div style={{ display:'flex', gap:10 }}>
-                    <input value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} placeholder="colleague@youragency.com" style={{ ...INP, flex:1 }}/>
-                    <select value={inviteRole} onChange={e=>setInviteRole(e.target.value)} style={{ ...INP, width:120, cursor:'pointer' }}>
-                      <option value="admin">Admin</option>
-                      <option value="member">Member</option>
-                      <option value="viewer">Viewer</option>
-                    </select>
-                    <button onClick={inviteMember} style={{ padding:'11px 18px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', flexShrink:0 }}><Plus size={14}/></button>
-                  </div>
-                </div>
+              <div style={{ height:5, background:'#f2f2f0', borderRadius:3, overflow:'hidden', maxWidth:240 }}>
+                <div style={{ height:'100%', borderRadius:3, background:R, transition:'width .4s',
+                  width:`${(CONNECTIONS.filter(c=>!!process.env[c.env]).length/CONNECTIONS.length)*100}%` }}/>
               </div>
-            )}
-
-            {/* Billing */}
-            {tab==='billing'&&(
-              <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
-                <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:20 }}>Billing & Plan</h2>
-                <div style={{ background:`linear-gradient(135deg, ${plan.color}10, transparent)`, border:`1.5px solid ${plan.color}30`, borderRadius:14, padding:'20px 22px', marginBottom:20 }}>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                    <div>
-                      <div style={{ fontSize:20, fontWeight:900, color:'#111' }}>{plan.name} Plan</div>
-                      <div style={{ fontSize:15, color:'#374151' }}>{plan.seats} seats · {plan.clients} clients · {agency.status==='trial'?'Free trial':'Active'}</div>
-                    </div>
-                    {plan.price&&<div style={{ fontSize:28, fontWeight:900, color:plan.color }}>${plan.price}<span style={{ fontSize:15, fontWeight:600, color:'#4b5563' }}>/mo</span></div>}
-                  </div>
-                  <button style={{ padding:'8px 18px', borderRadius:9, border:`1.5px solid ${plan.color}`, background:'#fff', color:plan.color, fontSize:15, fontWeight:700, cursor:'pointer' }}>
-                    Upgrade Plan
-                  </button>
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
-                  {[
-                    { label:'Seats Used', value:`${members.length}/${plan.seats}` },
-                    { label:'Clients', value:`—/${plan.clients}` },
-                    { label:'Trial Ends', value:agency.trial_ends_at?new Date(agency.trial_ends_at).toLocaleDateString():'N/A' },
-                  ].map(s=>(
-                    <div key={s.label} style={{ background:'#f9fafb', borderRadius:10, padding:'14px', textAlign:'center' }}>
-                      <div style={{ fontSize:20, fontWeight:800, color:'#111' }}>{s.value}</div>
-                      <div style={{ fontSize:13, color:'#4b5563', marginTop:3 }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Features */}
-            {tab==='features'&&features&&(
-              <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'24px 26px' }}>
-                <h2 style={{ fontSize:17, fontWeight:800, color:'#111', marginBottom:6 }}>AI Features</h2>
-                <p style={{ fontSize:15, color:'#4b5563', marginBottom:20 }}>Toggle which AI features are active for your agency</p>
-                {[
-                  { key:'ai_personas', label:'AI Persona Builder', desc:'Generate ideal customer personas from onboarding data', plans:['starter','growth','pro'] },
-                  { key:'ai_social_posts', label:'AI Social Planner', desc:'Auto-generate and schedule social media posts', plans:['growth','pro'] },
-                  { key:'ai_review_responses', label:'AI Review Response Bot', desc:'Automatically respond to Google and Yelp reviews', plans:['growth','pro'] },
-                  { key:'ai_lead_qualifier', label:'AI Lead Qualifier', desc:'SMS-based lead qualification and appointment booking', plans:['pro'] },
-                  { key:'white_label', label:'White-Label Branding', desc:'Remove all Moose AI branding from the client experience', plans:['growth','pro'] },
-                  { key:'api_access', label:'API Access', desc:'Programmatic access to all agency data and AI features', plans:['pro'] },
-                ].map(f=>{
-                  const available = f.plans.includes(agency.plan)
+            </div>
+            <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer"
+              style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px',
+                borderRadius:10, border:'1px solid #ececea', background:'#fff',
+                color:'#5a5a58', fontSize:14, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
+              <ExternalLink size={13}/> Vercel Env Vars
+            </a>
+          </div>
+          {connGroups.map(grp=>(
+            <div key={grp} style={{ marginBottom:20 }}>
+              <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:'#9a9a96',
+                textTransform:'uppercase', letterSpacing:'.09em', marginBottom:10 }}>{grp}</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:10 }}>
+                {CONNECTIONS.filter(c=>c.group===grp).map(conn=>{
+                  const ok = !!process.env[conn.env]
+                  const Icon = conn.icon
                   return (
-                    <div key={f.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 0', borderBottom:'1px solid #f3f4f6' }}>
-                      <div>
-                        <div style={{ fontSize:15, fontWeight:700, color: available?'#111':'#9ca3af' }}>{f.label}</div>
-                        <div style={{ fontSize:14, color:'#4b5563', marginTop:2 }}>{f.desc}</div>
-                        {!available&&<div style={{ fontSize:13, fontWeight:700, color:ACCENT, marginTop:3 }}>Requires {f.plans[0]} plan</div>}
+                    <div key={conn.id} style={{ background:'#fff', borderRadius:12,
+                      border:`1px solid ${ok?conn.color+'35':'#ececea'}`, padding:'16px' }}>
+                      <div style={{ display:'flex', alignItems:'flex-start', gap:11, marginBottom:10 }}>
+                        <div style={{ width:36, height:36, borderRadius:10, flexShrink:0,
+                          background:conn.color+'15', border:`1px solid ${conn.color}25`,
+                          display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <Icon size={17} color={conn.color}/>
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:3, flexWrap:'wrap' }}>
+                            <span style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{conn.name}</span>
+                            {ok
+                              ? <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, padding:'1px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', display:'flex', alignItems:'center', gap:4 }}><Check size={10} strokeWidth={3}/> Connected</span>
+                              : <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, padding:'1px 8px', borderRadius:20, background:'#fffbeb', color:'#d97706', display:'flex', alignItems:'center', gap:4 }}><AlertTriangle size={10}/> Not set</span>}
+                          </div>
+                          <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{conn.free}</div>
+                        </div>
                       </div>
-                      <div onClick={()=>available&&setFeatures(prev=>({...prev,[f.key]:!prev[f.key]}))}
-                        style={{ width:40, height:22, borderRadius:11, background:features[f.key]&&available?ACCENT:'#d1d5db', cursor:available?'pointer':'not-allowed', position:'relative', transition:'background .2s', flexShrink:0 }}>
-                        <div style={{ position:'absolute', top:3, left:features[f.key]&&available?20:3, width:16, height:16, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }}/>
+                      <div style={{ background:'#f8f8f6', borderRadius:7, padding:'6px 10px', marginBottom:10, display:'flex', alignItems:'center', gap:7 }}>
+                        <code style={{ fontSize:12, color:'#5a5a58', fontFamily:'monospace', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{conn.env}</code>
+                        <button onClick={()=>{navigator.clipboard.writeText(conn.env);toast.success('Copied!')}} style={{ padding:'2px 8px', borderRadius:5, border:'1px solid #ececea', background:'#fff', cursor:'pointer', fontSize:12, color:'#9a9a96', fontFamily:FH, fontWeight:600, flexShrink:0, display:'flex', alignItems:'center', gap:3 }}>
+                          <Copy size={10}/> Copy
+                        </button>
+                      </div>
+                      <div style={{ display:'flex', gap:7 }}>
+                        <a href={conn.setupUrl} target="_blank" rel="noreferrer"
+                          style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                            padding:'7px', borderRadius:8, border:`1px solid ${ok?'#ececea':conn.color}`,
+                            background:ok?'#fff':conn.color+'08', color:ok?'#5a5a58':conn.color,
+                            fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
+                          <ExternalLink size={11}/> {ok?'Manage':'Get Key'}
+                        </a>
+                        <button onClick={()=>testConn(conn)} disabled={testing[conn.id]}
+                          style={{ padding:'7px 12px', borderRadius:8, border:'1px solid #ececea', background:'#fff',
+                            cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, fontFamily:FH,
+                            color: testResult[conn.id]==='pass'?'#16a34a': testResult[conn.id]==='fail'?R: '#9a9a96' }}>
+                          {testing[conn.id] ? <Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/> : <RefreshCw size={11}/>}
+                          Test
+                        </button>
                       </div>
                     </div>
                   )
                 })}
-                <button onClick={async()=>{ await supabase.from('agency_features').update(features).eq('agency_id',agency.id); toast.success('Features updated') }}
-                  style={{ marginTop:16, padding:'10px 20px', borderRadius:9, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
-                  Save Feature Settings
-                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+
+      case 'notifications': return (
+        <SectionCard title="Notification Preferences" subtitle="Choose what you want to be alerted about">
+          {NOTIFS.map((n,i)=>(
+            <div key={n.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+              padding:'14px 0', borderBottom:i<NOTIFS.length-1?'1px solid #f2f2f0':'none' }}>
+              <div style={{ flex:1, paddingRight:20 }}>
+                <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:2 }}>{n.label}</div>
+                <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{n.desc}</div>
+              </div>
+              <Toggle on={notifs[n.key]} onChange={()=>{ setNotifs(p=>({...p,[n.key]:!p[n.key]})); toast.success('Saved') }}/>
+            </div>
+          ))}
+        </SectionCard>
+      )
+
+      case 'security': return (
+        <SectionCard title="Security" subtitle="Authentication and access controls">
+          {[
+            { label:'Two-factor authentication', desc:'Require 2FA for all team members', icon:Shield, action:'Configure', href:null },
+            { label:'Team access management',    desc:'Roles, permissions, and seats',    icon:Users,  action:'Team Settings', href:'/agency-settings' },
+            { label:'API key rotation',          desc:'Rotate Vercel environment variables', icon:Key, action:'Open Vercel', href:'https://vercel.com/dashboard' },
+            { label:'Audit log',                 desc:'All changes across the platform',  icon:BarChart2, action:'View log', href:'/admin' },
+          ].map((item,i)=>{
+            const I = item.icon
+            return (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 0', borderBottom:i<3?'1px solid #f2f2f0':'none' }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:'#f2f2f0', border:'1px solid #ececea', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <I size={15} color="#9a9a96"/>
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{item.label}</div>
+                  <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{item.desc}</div>
+                </div>
+                {item.href?.startsWith('http') ? (
+                  <a href={item.href} target="_blank" rel="noreferrer" style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 13px', borderRadius:9, border:'1px solid #ececea', background:'#fff', color:'#5a5a58', fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:FH, whiteSpace:'nowrap' }}><ExternalLink size={11}/> {item.action}</a>
+                ) : item.href ? (
+                  <button onClick={()=>navigate(item.href)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 13px', borderRadius:9, border:'1px solid #ececea', background:'#fff', color:'#5a5a58', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap' }}><ChevronRight size={11}/> {item.action}</button>
+                ) : (
+                  <button onClick={()=>toast('Coming soon')} style={{ padding:'7px 13px', borderRadius:9, border:'1px solid #ececea', background:'#fff', color:'#9a9a96', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>{item.action}</button>
+                )}
+              </div>
+            )
+          })}
+        </SectionCard>
+      )
+
+      case 'onboarding': return (
+        <SectionCard title="Onboarding Template" subtitle="Customize what clients fill out when they first connect" onAction={saveOnboarding}>
+          <Field label="Form Title"><input value={onboardingTitle} onChange={e=>setOnboardingTitle(e.target.value)} style={INP}/></Field>
+          <Field label="Introduction Text" hint="Shown above the form to new clients">
+            <textarea value={onboardingIntro} onChange={e=>setOnboardingIntro(e.target.value)} rows={4}
+              style={{...INP,resize:'vertical',lineHeight:1.65}}
+              placeholder="We'd love to learn more about your business so we can hit the ground running…"/>
+          </Field>
+          <div style={{ padding:'14px 16px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+            <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:4 }}>Default fields collected</div>
+            <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, lineHeight:1.65 }}>
+              Business name · Industry · Website · Phone · Service area · Key goals · Monthly budget · Who's the decision maker
+            </div>
+          </div>
+        </SectionCard>
+      )
+
+      case 'proposals': return (
+        <SectionCard title="Service Modules & SOW Library" subtitle="Pre-built services you can add to proposals">
+          {modules.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'28px 0', color:'#9a9a96', fontSize:14, fontFamily:FB }}>
+              No service modules yet — add your first below
+            </div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+              {modules.map(m=>(
+                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{m.name}</div>
+                    <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{m.category} · ${m.price}/{m.price_type}</div>
+                  </div>
+                  <button onClick={async()=>{ if(!confirm('Delete?'))return; await supabase.from('service_modules').delete().eq('id',m.id); loadAll() }}
+                    style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #fecaca', background:'#fef2f2', color:R, cursor:'pointer', display:'flex', alignItems:'center' }}>
+                    <Trash2 size={13}/>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #ececea', padding:'16px' }}>
+            <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:12 }}>Add Service Module</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+              <Field label="Name"><input placeholder="SEO Management" value={''} style={INP} onChange={()=>{}}/></Field>
+              <Field label="Monthly Price"><input type="number" placeholder="1500" value={''} style={INP} onChange={()=>{}}/></Field>
+            </div>
+            <button onClick={()=>navigate('/proposals')} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:9, border:`1px solid ${R}`, background:R, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+              <ArrowRight size={13}/> Manage in Proposals
+            </button>
+          </div>
+        </SectionCard>
+      )
+
+      case 'scout': return (
+        <SectionCard title="Scout Score Weights" subtitle="Adjust how each factor contributes to the lead opportunity score">
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+            <div style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:totalWeight===100?'#16a34a':R, letterSpacing:'-.03em' }}>
+              {totalWeight}% total {totalWeight!==100&&<span style={{fontSize:14,fontWeight:600}}>(must equal 100)</span>}
+            </div>
+            <button onClick={()=>{setWeights({...WEIGHT_DEFAULTS});toast.success('Reset')}}
+              style={{ padding:'7px 14px', borderRadius:9, border:'1px solid #ececea', background:'#fff', fontSize:14, cursor:'pointer', color:'#5a5a58', fontFamily:FH, fontWeight:600 }}>Reset</button>
+          </div>
+          {WEIGHT_LABELS.map(w=>(
+            <div key={w.key} style={{ marginBottom:20 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                <div>
+                  <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{w.label}</div>
+                  <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{w.desc}</div>
+                </div>
+                <span style={{ fontFamily:FH, fontSize:18, fontWeight:900, color:R, minWidth:44, textAlign:'right' }}>{weights[w.key]}%</span>
+              </div>
+              <input type="range" min={0} max={50} value={weights[w.key]}
+                onChange={e=>setWeights(p=>({...p,[w.key]:+e.target.value}))}
+                style={{ width:'100%', accentColor:R }}/>
+            </div>
+          ))}
+        </SectionCard>
+      )
+
+      case 'desk': return (
+        <div>
+          <SectionCard title="Support Agents" subtitle="Team members who handle MooseDesk tickets">
+            {agents.length===0 ? (
+              <div style={{ textAlign:'center', padding:'20px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No agents yet</div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+                {agents.map(a=>(
+                  <div key={a.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+                    <div style={{ width:34, height:34, borderRadius:'50%', background:a.avatar_color||R, flexShrink:0,
+                      display:'flex', alignItems:'center', justifyContent:'center', fontFamily:FH, fontSize:13, fontWeight:700, color:'#fff' }}>
+                      {a.name[0].toUpperCase()}
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{a.name}</div>
+                      <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{a.email} · {a.role} · ${a.hourly_rate||0}/hr</div>
+                    </div>
+                    <Toggle on={a.is_active} onChange={v=>updateAgent(a.id,'is_active',v)}/>
+                    <button onClick={()=>deleteAgent(a.id)} style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #fecaca', background:'#fef2f2', color:R, cursor:'pointer', display:'flex', alignItems:'center' }}><Trash2 size={13}/></button>
+                  </div>
+                ))}
               </div>
             )}
+            {/* Add agent */}
+            <div style={{ background:'#f8f8f6', borderRadius:12, border:'1px solid #ececea', padding:'16px' }}>
+              <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:12 }}>Add Agent</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+                <Field label="Name"><input value={newAgent.name} onChange={e=>setNewAgent(a=>({...a,name:e.target.value}))} style={INP} placeholder="Sarah Johnson"/></Field>
+                <Field label="Email"><input type="email" value={newAgent.email} onChange={e=>setNewAgent(a=>({...a,email:e.target.value}))} style={INP} placeholder="sarah@agency.com"/></Field>
+                <Field label="Role">
+                  <select value={newAgent.role} onChange={e=>setNewAgent(a=>({...a,role:e.target.value}))} style={INP}>
+                    <option value="agent">Agent</option>
+                    <option value="senior">Senior Agent</option>
+                    <option value="manager">Manager</option>
+                    <option value="owner">Owner</option>
+                  </select>
+                </Field>
+                <Field label="Hourly Rate ($)"><input type="number" value={newAgent.hourly_rate} onChange={e=>setNewAgent(a=>({...a,hourly_rate:e.target.value}))} style={INP} placeholder="75"/></Field>
+              </div>
+              <Field label="Skills">
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                  {SKILLS.map(s=>(
+                    <PillToggle key={s} label={s} active={newAgent.skills.includes(s)}
+                      onChange={()=>setNewAgent(a=>({...a,skills:a.skills.includes(s)?a.skills.filter(x=>x!==s):[...a.skills,s]}))}/>
+                  ))}
+                </div>
+              </Field>
+              <button onClick={addAgent} disabled={saving}
+                style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:9, border:'none', background:R, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                <Plus size={13}/> Add Agent
+              </button>
+            </div>
+          </SectionCard>
+        </div>
+      )
+
+      case 'routing': return (
+        <SectionCard title="Ticket Routing Rules" subtitle="Auto-assign tickets to agents based on conditions">
+          {rules.length===0 ? (
+            <div style={{ textAlign:'center', padding:'20px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No rules yet — tickets will be unassigned by default</div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+              {rules.map(r=>(
+                <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f8f8f6', borderRadius:11, border:`1px solid ${r.is_active?T+'40':'#ececea'}` }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:2 }}>{r.name}</div>
+                    <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>
+                      {r.match_category?.length>0 && `Category: ${r.match_category.join(', ')} · `}
+                      {r.match_keywords?.length>0 && `Keywords: ${r.match_keywords.join(', ')} · `}
+                      Priority {r.priority}
+                    </div>
+                  </div>
+                  <Toggle on={r.is_active} onChange={()=>{ supabase.from('desk_routing_rules').update({is_active:!r.is_active}).eq('id',r.id); setRules(prev=>prev.map(x=>x.id===r.id?{...x,is_active:!x.is_active}:x)) }}/>
+                  <button onClick={async()=>{ if(!confirm('Delete?'))return; await supabase.from('desk_routing_rules').delete().eq('id',r.id); loadAll() }}
+                    style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #fecaca', background:'#fef2f2', color:R, cursor:'pointer', display:'flex', alignItems:'center' }}><Trash2 size={13}/></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ background:'#f8f8f6', borderRadius:12, border:'1px solid #ececea', padding:'16px' }}>
+            <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:12 }}>Add Routing Rule</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+              <Field label="Rule Name"><input value={newRule.name} onChange={e=>setNewRule(r=>({...r,name:e.target.value}))} style={INP} placeholder="Billing tickets → Sarah"/></Field>
+              <Field label="Keywords (comma-separated)"><input value={newRule.match_keywords} onChange={e=>setNewRule(r=>({...r,match_keywords:e.target.value}))} style={INP} placeholder="invoice, payment, billing"/></Field>
+            </div>
+            <Field label="Match Categories">
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {(CATEGORIES||['general','billing','technical','seo','ads','content','design','social']).map(c=>(
+                  <PillToggle key={c} label={c} active={newRule.match_category.includes(c)}
+                    onChange={()=>setNewRule(r=>({...r,match_category:r.match_category.includes(c)?r.match_category.filter(x=>x!==c):[...r.match_category,c]}))}/>
+                ))}
+              </div>
+            </Field>
+            <Field label="Auto-Reply (optional)"><textarea value={newRule.auto_reply} onChange={e=>setNewRule(r=>({...r,auto_reply:e.target.value}))} rows={2} style={{...INP,resize:'vertical'}} placeholder="Thanks for reaching out! We'll respond within 2 hours…"/></Field>
+            <button onClick={addRule} disabled={saving}
+              style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:9, border:'none', background:R, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+              <Plus size={13}/> Add Rule
+            </button>
+          </div>
+        </SectionCard>
+      )
+
+      default: return null
+    }
+  }
+
+  return (
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0', fontFamily:FB }}>
+      <Sidebar/>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+        {/* Header */}
+        <div style={{ background:BLK, padding:'0 28px', flexShrink:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12, padding:'20px 0 16px' }}>
+            <div style={{ width:32, height:32, borderRadius:9, background:R, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Settings size={16} color="#fff"/>
+            </div>
+            <div>
+              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>Agency Settings</h1>
+              <p style={{ fontSize:14, color:'rgba(255,255,255,.4)', margin:0, fontFamily:FB }}>All platform settings in one place</p>
+            </div>
+          </div>
+          <div style={{ height:1, background:'rgba(255,255,255,.06)' }}/>
+        </div>
+
+        {/* Body: left nav + content */}
+        <div style={{ flex:1, overflow:'hidden', display:'grid', gridTemplateColumns:'220px 1fr' }}>
+
+          {/* Left nav */}
+          <div style={{ background:'#fff', borderRight:'1px solid #ececea', overflowY:'auto', padding:'16px 10px' }}>
+            {['Agency','Platform','Intelligence'].map(group=>{
+              const items = SECTIONS.filter(s=>s.group===group)
+              return (
+                <div key={group} style={{ marginBottom:8 }}>
+                  <div style={{ padding:'8px 10px 4px', fontFamily:FH, fontSize:11, fontWeight:700,
+                    color:'#d0d0cc', textTransform:'uppercase', letterSpacing:'.1em' }}>{group}</div>
+                  {items.map(s=>{
+                    const I = s.icon
+                    const active = section===s.key
+                    return (
+                      <button key={s.key} onClick={()=>setSection(s.key)}
+                        style={{ width:'100%', display:'flex', alignItems:'center', gap:9,
+                          padding:'8px 10px', borderRadius:9, border:'none',
+                          background:active?R+'12':'transparent',
+                          color:active?R:'#5a5a58',
+                          fontSize:14, fontWeight:active?700:500,
+                          cursor:'pointer', fontFamily:FH, textAlign:'left',
+                          transition:'all .12s', marginBottom:1,
+                          borderLeft:`2.5px solid ${active?R:'transparent'}` }}
+                        onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='#f8f8f6';e.currentTarget.style.color='#0a0a0a'}}}
+                        onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color='#5a5a58'}}}>
+                        <I size={14} style={{ flexShrink:0 }}/> {s.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Content */}
+          <div style={{ overflowY:'auto', padding:'24px 28px' }}>
+            {loadingData ? (
+              <div style={{ display:'flex', justifyContent:'center', padding:60 }}>
+                <Loader2 size={24} color={R} style={{ animation:'spin 1s linear infinite' }}/>
+              </div>
+            ) : renderSection()}
           </div>
         </div>
       </div>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }

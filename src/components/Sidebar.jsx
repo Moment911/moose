@@ -178,9 +178,8 @@ export default function Sidebar() {
           )}
 
           <Section label="Agency"/>
-          <NavLink to="/integrations" icon={Plug}     label="Integrations"/>
-          <NavLink to="/platform"     startsWith icon={Cpu} label="Platform Admin"/>
-          <NavLink to="/settings"     exact icon={Settings} label="Settings"/>
+          <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
+          <NavLink to="/integrations" icon={Plug} label="Integrations"/>
         </div>
 
         {/* Footer */}

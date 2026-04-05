@@ -88,7 +88,7 @@ export default function App() {
           <Route path="/welcome" element={<MarketingSitePage />} />
           <Route path="/signup" element={<AgencySignupPage />} />
           <Route path="/agency-settings" element={<AgencySettingsPage />} />
-          <Route path="/setup" element={<AgencySetupPage />} />
+          <Route path="/setup" element={<AgencySettingsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
@@ -99,7 +99,7 @@ export default function App() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
-          <Route path="/platform" element={<PlatformAdminPage />} />
+          <Route path="/platform" element={<AgencySettingsPage />} />
           <Route path="/p/:token" element={<ProposalPublicPage />} />
           <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
@@ -141,7 +141,7 @@ export default function App() {
           <Route path="/scout/history" element={<ScoutHistoryPage />} />
           <Route path="/desk" element={<MooseDeskPage />} />
           <Route path="/desk/ticket/:id" element={<DeskTicketPage />} />
-          <Route path="/desk/settings" element={<DeskSettingsPage />} />
+          <Route path="/desk/settings" element={<AgencySettingsPage />} />
           <Route path="/desk/analytics" element={<DeskAnalyticsPage />} />
           <Route path="/desk/reports" element={<DeskReportsPage />} />
           <Route path="/desk/knowledge" element={<QAKnowledgePage />} />
