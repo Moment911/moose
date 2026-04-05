@@ -145,6 +145,16 @@ export default function ClientsPage() {
       if (error) { toast.error(error.message); return }
       toast.success('Client updated')
     } else {
+      // Check plan limits before adding
+      const enforceRes = await fetch('/api/billing/enforce', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agency_id: agencyId, check: 'add_client' }),
+      })
+      const enforceData = await enforceRes.json()
+      if (!enforceData.allowed) {
+        toast.error(enforceData.reason || 'Client limit reached — upgrade your plan')
+        return
+      }
       const { error } = await supabase.from('clients').insert({
         name:          form.name.trim(),
         email:         form.email.trim() || null,

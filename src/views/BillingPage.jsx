@@ -48,8 +48,18 @@ export default function BillingPage() {
   const [openingPortal,setOpeningPortal]= useState(false)
   const [agency,       setAgency]       = useState(null)
   const [PLANS,        setPLANS]        = useState(DEFAULT_PLANS)
+  const [usage,        setUsage]        = useState(null)
 
-  useEffect(() => { if (agencyId) loadBilling() }, [agencyId])
+  useEffect(() => { if (agencyId) { loadBilling(); loadUsage() } }, [agencyId])
+
+  async function loadUsage() {
+    const res  = await fetch('/api/billing/enforce', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agency_id: agencyId }),
+    })
+    const data = await res.json()
+    setUsage(data.usage || null)
+  }
 
   // Load live pricing from platform_config
   useEffect(() => {
