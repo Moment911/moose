@@ -2,11 +2,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  TrendingUp, Search, BarChart2, MapPin, FileText, Sparkles,
+  TrendingUp, Search, MapPin, FileText, Sparkles,
   Globe, DollarSign, ArrowUp, ArrowDown, Minus,
   Plus, RefreshCw, Loader2, Check, Copy, Link2,
-  Target, Key, Wifi, WifiOff, AlertCircle,
-  ExternalLink, Activity, ChevronRight, Zap, Shield, Map
+  Target, Key, CheckCircle, XCircle, AlertCircle,
+  ExternalLink, ChevronRight, Zap, Shield, Map
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import AIThinkingBox from '../../components/AIThinkingBox'
@@ -798,7 +798,7 @@ Return ONLY valid JSON (no markdown):
                           <Stat label="Keywords tracked"  value={keywords.length||0} sub={keywords.length?`${topKws} in top 10`:'None yet'} icon={Search}   accent/>
                           <Stat label="Avg. position"     value={avgPos?`#${avgPos}`:'—'}   sub="across all keywords"  icon={Target}/>
                           <Stat label="WP sites"          value={sites.filter(s=>s.is_active).length} sub={`${sites.length} total connected`} icon={Globe}  teal/>
-                          <Stat label="Data sources"      value={`${connections.filter(c=>c.connected).length}/4`} sub="Google integrations" icon={Activity}/>
+                          <Stat label="Data sources"      value={`${connections.filter(c=>c.connected).length}/4`} sub="Google integrations" icon={BarChart2}/>
                         </div>
 
                         {/* Connections + Sites in 2-col */}
@@ -824,7 +824,7 @@ Return ONLY valid JSON (no markdown):
                                   </div>
                                   {c ? (
                                     <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:13, fontWeight:800, color:'#0e7490', background:TEAL+'20', padding:'3px 10px', borderRadius:20 }}>
-                                      <Wifi size={10}/> Connected
+                                      <CheckCircle size={10}/> Connected
                                     </span>
                                   ) : (
                                     <button onClick={()=>setTab('connect')}

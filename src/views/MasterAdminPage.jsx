@@ -1,8 +1,8 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  Activity, AlertTriangle, CheckCircle, XCircle, Clock, RefreshCw,
-  Users, Star, CreditCard, Database, Cpu, Globe, Zap, Shield,
+  AlertTriangle, CheckCircle, XCircle, Clock, RefreshCw,
+  Users, Star, CreditCard, Database, Server, Globe, Zap, Shield,
   TrendingUp, FileText, Settings, ChevronDown, ChevronUp,
   Terminal, Bell, BarChart2, Loader2, Circle, ArrowRight,
   Eye, Trash2, Download, Search, Filter, X, AlertCircle,
@@ -208,7 +208,7 @@ export default function MasterAdminPage() {
               </div>
               <button onClick={()=>runHealthCheck('full')} disabled={checking}
                 style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
-                {checking ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <Activity size={13}/>}
+                {checking ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <BarChart2 size={13}/>}
                 {checking ? 'Checking…' : 'Run Health Check'}
               </button>
             </div>
@@ -351,7 +351,7 @@ export default function MasterAdminPage() {
                 {health?.checks?.map((check, i) => <CheckRow key={i} check={check}/>)}
                 {!health && !checking && (
                   <div style={{ padding:'40px', textAlign:'center' }}>
-                    <Activity size={32} color="#e5e7eb" style={{ margin:'0 auto 12px', display:'block' }}/>
+                    <BarChart2 size={32} color="#e5e7eb" style={{ margin:'0 auto 12px', display:'block' }}/>
                     <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#9ca3af', marginBottom:8 }}>No health data yet</div>
                     <button onClick={()=>runHealthCheck('full')}
                       style={{ padding:'9px 22px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
@@ -554,7 +554,7 @@ export default function MasterAdminPage() {
                 </div>
                 <button onClick={runFullAudit} disabled={runningAudit}
                   style={{ padding:'12px 32px', borderRadius:12, border:'none', background:runningAudit?'#f3f4f6':RED, color:runningAudit?'#9ca3af':'#fff', fontSize:15, fontWeight:700, cursor:runningAudit?'default':'pointer', fontFamily:FH, display:'inline-flex', alignItems:'center', gap:8 }}>
-                  {runningAudit ? <Loader2 size={16} style={{animation:'spin 1s linear infinite'}}/> : <Activity size={16}/>}
+                  {runningAudit ? <Loader2 size={16} style={{animation:'spin 1s linear infinite'}}/> : <BarChart2 size={16}/>}
                   {runningAudit ? 'Running Audit…' : 'Run Full System Audit'}
                 </button>
               </div>

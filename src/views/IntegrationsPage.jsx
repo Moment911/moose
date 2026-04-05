@@ -9,10 +9,18 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader } from '../components/mobile/MobilePage'
 import {
-  Check, RefreshCw, ExternalLink, ArrowRight, Loader2,
-  Activity, Plug, Globe, Database, Webhook, Zap,
-  AlertTriangle, X, ChevronRight, Code2, Radio,
-  CheckCircle, Circle, Clock, Users
+  Check,
+  RefreshCw,
+  ExternalLink,
+  ArrowRight,
+  Loader2,
+  BarChart2,
+  Plug,
+  Globe,
+  AlertTriangle,
+  Circle,
+  CheckCircle,
+  Clock
 } from 'lucide-react'
 
 const R    = '#ea2729'
@@ -422,7 +430,7 @@ export default function IntegrationsPage() {
                   {[
                     { n:'1', title:'Create GHL App',   desc:'Go to marketplace.gohighlevel.com → My Apps → Create App', Icon:Globe },
                     { n:'2', title:'Set Redirect URI', desc:`Add ${appUrl}/api/integrations/ghl/callback to your app`, Icon:ChevronRight },
-                    { n:'3', title:'Add Webhook URL',  desc:`Set ${appUrl}/api/webhooks/ghl in GHL Webhooks`, Icon:Radio },
+                    { n:'3', title:'Add Webhook URL',  desc:`Set ${appUrl}/api/webhooks/ghl in GHL Webhooks`, Icon:Circle },
                     { n:'4', title:'Click Connect',    desc:'Authorize via OAuth 2.0 above', Icon:CheckCircle },
                   ].map(s => (
                     <div key={s.n} style={{ background:'#f8f8f6', borderRadius:12,
@@ -517,9 +525,9 @@ export default function IntegrationsPage() {
             display:'flex', flexDirection:'column', overflow:'hidden' }}>
             <div style={{ padding:'16px 18px', borderBottom:'1px solid #f2f2f0',
               display:'flex', alignItems:'center', gap:9, flexShrink:0 }}>
-              <Activity size={14} color={R}/>
+              <BarChart2 size={14} color={R}/>
               <span style={{ fontFamily:FONT_HEAD, fontSize:15, fontWeight:700,
-                color:'#0a0a0a' }}>Sync Activity</span>
+                color:'#0a0a0a' }}>Sync BarChart2</span>
               <span style={{ fontSize:13, color:'#9a9a96', marginLeft:'auto',
                 fontFamily:FONT_BODY }}>{syncLogs.length} events</span>
             </div>

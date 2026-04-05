@@ -2,11 +2,36 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  Star, Globe, Phone, Mail, MapPin, TrendingUp, AlertCircle, Search,
-  CheckCircle, ArrowRight, Target, BarChart2, Zap, Shield,
-  ChevronDown, ExternalLink, Award, Users, DollarSign,
-  Sparkles, Loader2, Download, Share2, ChevronRight, Link, Check, Printer,
-  Wifi, WifiOff, FileText, Clock, Activity
+  Star,
+  Globe,
+  Phone,
+  Mail,
+  MapPin,
+  TrendingUp,
+  AlertCircle,
+  Search,
+  ArrowRight,
+  Target,
+  BarChart2,
+  Zap,
+  Shield,
+  ChevronDown,
+  ExternalLink,
+  Award,
+  Users,
+  DollarSign,
+  Sparkles,
+  Loader2,
+  Download,
+  Share2,
+  ChevronRight,
+  Link,
+  Check,
+  Printer,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Clock
 } from 'lucide-react'
 import { callClaude } from '../../lib/ai'
 import { saveProspectReport, updateProspectReport } from '../../lib/supabase'
@@ -91,7 +116,7 @@ function PipelineProgress({ steps }) {
   return (
     <div style={{background:BLACK,borderRadius:20,padding:'28px 32px',margin:'0 0 24px'}}>
       <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:20}}>
-        <Activity size={18} color={TEAL}/>
+        <TrendingUp size={18} color={TEAL}/>
         <div style={{fontSize:16,fontWeight:900,color:'#fff'}}>
           Building your intelligence report
         </div>
@@ -469,8 +494,8 @@ export default function ProspectReportPage() {
                   borderRadius:20,background:lead._real_data?`${TEAL}20`:'rgba(255,255,255,.08)',
                   border:`1px solid ${lead._real_data?TEAL+'40':'rgba(255,255,255,.1)'}`}}>
                   {lead._real_data
-                    ? <><Wifi size={12} color={TEAL}/><span style={{fontSize:13,fontWeight:700,color:TEAL}}>Live Google Places data</span></>
-                    : <><WifiOff size={12} color="#9ca3af"/><span style={{fontSize:13,color:'#9ca3af'}}>Estimated data</span></>
+                    ? <><CheckCircle size={12} color={TEAL}/><span style={{fontSize:13,fontWeight:700,color:TEAL}}>Live Google Places data</span></>
+                    : <><XCircle size={12} color="#9ca3af"/><span style={{fontSize:13,color:'#9ca3af'}}>Estimated data</span></>
                   }
                 </div>
                 {lead.website_analysis?.success && (
