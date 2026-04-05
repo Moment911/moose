@@ -48,13 +48,9 @@ async function validateCoupon(code: string, plan: string) {
 async function redeemCoupon(couponId: string, agencyId: string, code: string, discountApplied: number, plan: string) {
   const sb = getSupabase()
   await sb.from('coupon_redemptions').insert({ coupon_id: couponId, agency_id: agencyId, code, discount_applied: discountApplied, plan })
-  await sb.from('coupons').update({ uses_count: sb.rpc('increment', { x: 1 }) }).eq('id', couponId)
-  // Simple increment
-  await sb.rpc('increment_coupon_uses', { coupon_id: couponId }).catch(() =>
-    sb.from('coupons').select('uses_count').eq('id', couponId).single().then(({ data }) =>
-      sb.from('coupons').update({ uses_count: (data?.uses_count || 0) + 1 }).eq('id', couponId)
-    )
-  )
+  // Increment uses_count directly
+  const { data: existing } = await sb.from('coupons').select('uses_count').eq('id', couponId).single()
+  await sb.from('coupons').update({ uses_count: (existing?.uses_count || 0) + 1 }).eq('id', couponId)
 }
 
 export async function POST(req: NextRequest) {
