@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, CheckCircle, AlertCircle, FileText, MessageSquare, Star, Globe, Clock, ChevronRight, Send, X } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
 
 const RED  = '#ea2729'
