@@ -136,7 +136,7 @@ export default function OnPageAuditPage() {
   useEffect(() => { if (clientId) loadHistory() }, [clientId])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name,website,city,state').order('name')
+    const { data } = await supabase.from('clients').select('id,name,website,city,state,sic_code,industry').order('name')
     setClients(data || [])
   }
 
@@ -162,6 +162,7 @@ export default function OnPageAuditPage() {
           agency_id: agencyId,
           business_name: client?.name || '',
           location: location || (client?.city ? client.city + (client.state?', '+client.state:'') : ''),
+          sic_code: client?.sic_code || '',
         }),
       })
       const data = await res.json()

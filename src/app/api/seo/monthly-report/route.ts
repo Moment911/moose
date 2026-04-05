@@ -31,7 +31,7 @@ async function gatherClientData(clientId: string, monthStr: string) {
     { data: tickets },
     { data: projects },
   ] = await Promise.all([
-    sb.from('clients').select('*').eq('id', clientId).single(),
+    sb.from('clients').select('*,sic_code').eq('id', clientId).single(),
     sb.from('reviews').select('*').eq('client_id', clientId).gte('created_at', start).lte('created_at', end),
     sb.from('reviews').select('*').eq('client_id', clientId).gte('created_at', prev).lt('created_at', start),
     sb.from('gbp_audits').select('*').eq('client_id', clientId).order('audited_at', { ascending: false }).limit(1),
@@ -100,7 +100,7 @@ async function generateNarrative(data: any, agencyName: string) {
 Agency: ${agencyName}
 Client: ${d.client?.name}
 Month: ${monthLabel}
-Industry: ${d.client?.industry || 'Unknown'}
+Industry: ${d.client?.industry || 'Unknown'}${d.client?.sic_code ? ` (SIC ${d.client.sic_code})` : ''}
 
 PERFORMANCE DATA:
 

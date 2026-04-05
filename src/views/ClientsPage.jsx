@@ -1,4 +1,5 @@
 "use client"
+import { SIC_CODES, SIC_DIVISIONS, getSICContext } from '../lib/sicCodes'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -137,7 +138,8 @@ export default function ClientsPage() {
         email:         form.email.trim() || null,
         phone:         form.phone.trim() || null,
         website:       form.website.trim() || null,
-        industry:      form.industry || null,
+        industry:      form.sic_label || form.industry || null,
+        sic_code:      form.sic_code || null,
         status:        form.status || 'active',
         address:       form.address || null,
         city:          form.city || null,
@@ -159,12 +161,12 @@ export default function ClientsPage() {
       if (form.phone || form.website || form.industry || form.status !== 'active') {
         const { data: latest } = await getClients(agencyId)
         const newest = latest?.find(c => c.name === form.name.trim())
-        if (newest) await updateClient(newest.id, { phone:form.phone, website:form.website, industry:form.industry, status:form.status })
+        if (newest) await updateClient(newest.id, { phone:form.phone, website:form.website, industry:form.sic_label || form.industry, sic_code:form.sic_code, status:form.status })
       }
       toast.success('Client added')
     }
     setShowAdd(false); setEditingId(null)
-    setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
+    setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
     await load()
     await refreshClients()
   }
@@ -181,7 +183,7 @@ export default function ClientsPage() {
   function startEdit(client) {
     setEditingId(client.id)
     setForm({ name:client.name||'', email:client.email||'', phone:client.phone||'',
-      website:client.website||'', industry:client.industry||'', status:client.status||'active' })
+      website:client.website||'', industry:client.industry||'', sic_code:client.sic_code||'', sic_label:client.industry||'', status:client.status||'active' })
     setShowAdd(true)
     setMenuOpen(null)
   }
@@ -333,7 +335,7 @@ export default function ClientsPage() {
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
-            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
+            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
               style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
               <Plus size={16}/> Add Client
             </button>
@@ -426,12 +428,32 @@ export default function ClientsPage() {
                   </div>
                 ))}
                 <div>
-                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Industry</label>
-                  <select value={form.industry} onChange={e=>setF('industry',e.target.value)}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, color:'#111', background:'#fff', boxSizing:'border-box' }}>
-                    <option value="">Select industry…</option>
-                    {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Industry / SIC Code</label>
+                  <select
+                    value={form.sic_code}
+                    onChange={e => {
+                      const code = e.target.value
+                      const sic = SIC_CODES.find(s => s.code+s.label === code+e.target.options[e.target.selectedIndex].text.replace(/^\d+ — /,''))
+                           || SIC_CODES.filter(s => s.code === code)[0]
+                      setF('sic_code', code)
+                      setF('sic_label', sic?.label || '')
+                      setF('industry', sic?.label || form.industry)
+                    }}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    <option value="">Select industry / SIC code…</option>
+                    {SIC_DIVISIONS.map(div => (
+                      <optgroup key={div} label={div}>
+                        {SIC_CODES.filter(s => s.division === div).map(s => (
+                          <option key={s.code+s.label} value={s.code}>{s.code} — {s.label}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
+                  {form.sic_code && (
+                    <div style={{ fontSize:11, color:'#9ca3af', marginTop:4 }}>
+                      {SIC_CODES.find(s=>s.code===form.sic_code)?.keywords?.slice(0,70)}
+                    </div>
+                  )}
                 </div>
               </div>
 

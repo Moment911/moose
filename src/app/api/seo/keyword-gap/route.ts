@@ -81,7 +81,8 @@ async function analyzeKeywordGap(
   businessName: string,
   industry: string,
   location: string,
-  website: string
+  website: string,
+  sicCode?: string
 ) {
   if (!ANTHROPIC_KEY) throw new Error('No Anthropic API key found. Add ANTHROPIC_API_KEY to Vercel environment variables (Settings → Environment Variables). Same value as NEXT_PUBLIC_ANTHROPIC_API_KEY but without the prefix.')
 
@@ -94,7 +95,7 @@ async function analyzeKeywordGap(
   const prompt = `You are a local SEO strategist analyzing keyword opportunities for a local business.
 
 Business: ${businessName}
-Industry: ${industry}
+Industry: ${industry}${sicCode ? ` (SIC Code: ${sicCode})` : ''}
 Location: ${location}
 Website: ${website}
 
@@ -189,15 +190,16 @@ export async function POST(req: NextRequest) {
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
     // Get client info if not provided
-    let biz = business_name, ind = industry, loc = location, web = website
+    let biz = business_name, ind = industry, loc = location, web = website, sic = ''
     if (!biz) {
       const { data: client } = await getSupabase().from('clients')
-        .select('name,industry,city,state,website').eq('id', client_id).maybeSingle()
+        .select('name,industry,sic_code,city,state,website').eq('id', client_id).maybeSingle()
       if (client) {
         biz = client.name
         ind = client.industry || ''
         loc = [client.city, client.state].filter(Boolean).join(', ')
         web = client.website || ''
+        sic = client.sic_code || ''
       }
     }
 
@@ -205,7 +207,7 @@ export async function POST(req: NextRequest) {
     const gscKeywords = await getGSCKeywords(client_id)
 
     // Run AI analysis
-    const analysis = await analyzeKeywordGap(gscKeywords, biz || '', ind || '', loc || '', web || '')
+    const analysis = await analyzeKeywordGap(gscKeywords, biz || '', ind || '', loc || '', web || '', sic || '')
     if (!analysis) {
       return NextResponse.json({ 
         error: 'AI analysis returned empty — check Vercel function logs',

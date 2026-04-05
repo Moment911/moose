@@ -209,12 +209,12 @@ function scorePage(page: any, speed: any) {
 }
 
 // ── Claude AI analysis ───────────────────────────────────────────────────────
-async function claudeAnalysis(page: any, speed: any, scoreData: any, businessName: string, location: string) {
+async function claudeAnalysis(page: any, speed: any, scoreData: any, businessName: string, location: string, sicCode?: string) {
   if (!ANTHROPIC_KEY || page.error) return null
   const prompt = `You are a senior SEO specialist auditing a local business website.
 
 Business: ${businessName || page.url}
-Location: ${location || 'Unknown'}
+Location: ${location || 'Unknown'}${sicCode ? `\nIndustry SIC: ${sicCode}` : ''}
 URL: ${page.url}
 On-Page Score: ${scoreData.score}/100
 Title: "${page.title}"
@@ -260,7 +260,7 @@ Return ONLY valid JSON:
 
 export async function POST(req: NextRequest) {
   try {
-    const { url, client_id, agency_id, business_name, location } = await req.json()
+    const { url, client_id, agency_id, business_name, location, sic_code } = await req.json()
     if (!url?.trim()) return NextResponse.json({ error: 'url required' }, { status: 400 })
 
     const cleanUrl = url.trim().startsWith('http') ? url.trim() : `https://${url.trim()}`
@@ -276,7 +276,7 @@ export async function POST(req: NextRequest) {
     }
 
     const scoreData = scorePage(page, speed)
-    const ai = await claudeAnalysis(page, speed, scoreData, business_name || '', location || '')
+    const ai = await claudeAnalysis(page, speed, scoreData, business_name || '', location || '', sic_code || '')
 
     const result = {
       url: cleanUrl,

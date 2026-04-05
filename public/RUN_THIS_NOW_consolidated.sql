@@ -667,3 +667,7 @@ CREATE TABLE IF NOT EXISTS coupon_redemptions (
   plan        text,
   redeemed_at timestamptz DEFAULT now()
 );
+
+-- ── Add SIC code to clients ───────────────────────────────────────────────────
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS sic_code text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS sic_label text;
