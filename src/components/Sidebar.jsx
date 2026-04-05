@@ -136,6 +136,7 @@ export default function Sidebar() {
           <NavLink to="/seo"           startsWith icon={BarChart2}  label="SEO Hub"/>
         <NavLink to="/seo/gbp-audit"            icon={MapPin}    label="GBP Audit"/>
         <NavLink to="/seo/onpage"               icon={Globe}     label="On-Page Audit"/>
+        <NavLink to="/seo/keyword-gap"          icon={Search}    label="Keyword Gap"/>
 
           <Section label="Support"/>
           <NavLink to="/desk"          startsWith icon={Inbox}      label="KotoDesk"/>
