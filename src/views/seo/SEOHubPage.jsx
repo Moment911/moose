@@ -196,7 +196,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
       <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
 
         {/* ── Left panel: client list ─────────────────────────────────── */}
-        <div style={{ width:220, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <div  className="reviews-client-col"style={{ width:220, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ padding:'18px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
             <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>SEO Hub</div>
             <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>Clients</div>

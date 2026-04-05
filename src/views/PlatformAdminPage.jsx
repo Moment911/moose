@@ -181,7 +181,7 @@ export default function PlatformAdminPage() {
   const CATEGORIES = ['reputation','local_seo','web','social','paid_ads','retainer','general','seo','email','video']
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f4f4f5' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f4f4f5' }}>
       <Sidebar/>
 
       {/* Inner admin nav */}

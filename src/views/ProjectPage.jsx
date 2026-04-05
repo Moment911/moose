@@ -270,7 +270,7 @@ export default function ProjectPage() {
   const maxRounds = project?.max_rounds || 2
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar activeClientId={client?.id} activeProjectId={projectId} onRefresh={refresh} />
       <main className="flex-1 flex flex-col overflow-hidden bg-gray-50">
         {/* Header */}

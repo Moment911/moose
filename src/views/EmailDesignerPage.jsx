@@ -147,7 +147,7 @@ export default function EmailDesignerPage() {
   if (loading) return <div className="flex h-screen"><Sidebar activeProjectId={projectId} /><div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></div>
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar activeProjectId={projectId} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}

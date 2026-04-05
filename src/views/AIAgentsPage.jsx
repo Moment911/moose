@@ -406,7 +406,7 @@ export default function AIAgentsPage() {
   const estimatedValue = clients.length * (activeCount > 0 ? 497 : 0)
 
   if (loading) return (
-    <div style={{ display:'flex', minHeight:'100vh' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <Loader2 size={28} color={ACCENT} style={{ animation:'spin 1s linear infinite' }}/>

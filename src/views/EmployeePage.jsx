@@ -66,7 +66,7 @@ export default function EmployeePage() {
   if (!staffId) {
     const getTaskCount = (email) => 0 // Would need async, skip for now
     return (
-      <div className="flex h-screen overflow-hidden">
+      <div className="page-shell flex h-screen overflow-hidden">
         <Sidebar />
         <main className="flex-1 overflow-y-auto bg-white">
           <div style={{ background: "#231f20" }} className="hidden md:block px-8 py-6">

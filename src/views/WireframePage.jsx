@@ -290,7 +290,7 @@ export default function WireframePage() {
 
   const sel = components.find(c => c.id === selectedId)
 
-  if (loading) return <div className="flex h-screen overflow-hidden"><Sidebar activeProjectId={projectId} /><div className="flex-1 flex items-center justify-center bg-gray-50"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></div>
+  if (loading) return <div className="page-shell flex h-screen overflow-hidden"><Sidebar activeProjectId={projectId} /><div className="flex-1 flex items-center justify-center bg-gray-50"><div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" /></div></div>
 
   return (
     <div className="flex h-screen overflow-hidden">

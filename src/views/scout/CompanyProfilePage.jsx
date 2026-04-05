@@ -77,7 +77,7 @@ export default function CompanyProfilePage() {
 
   if (!lead) return (
     <ScoutLayout>
-      <div className="flex-1 flex items-center justify-center">
+      <div className="page-shell flex-1 flex items-center justify-center">
         <div className="text-center"><Loader2 size={24} className="animate-spin text-slate-400 mx-auto mb-2" /><p className="text-sm text-slate-400">Loading profile...</p></div>
       </div>
     </ScoutLayout>

@@ -112,7 +112,7 @@ export default function AdminPortalPage() {
   )
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f4f4f5' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f4f4f5' }}>
       <Sidebar/>
 
       {/* Admin inner sidebar */}

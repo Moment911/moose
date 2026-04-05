@@ -143,7 +143,7 @@ export default function TasksPage() {
   const boardColumns = STATUSES.map(s => ({ ...s, tasks: filteredTasks.filter(t => (t.status || 'todo') === s.key) }))
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden bg-white">
         {/* Header */}

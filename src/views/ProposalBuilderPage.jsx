@@ -430,7 +430,7 @@ export default function ProposalBuilderPage() {
   const totalOneTime = sections.filter(s=>s.price_type==='one_time').reduce((sum,s)=>sum+(s.price||0),0)
 
   if (loading) return (
-    <div style={{ display:'flex', height:'100vh' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <Loader2 size={28} color={ACCENT} style={{ animation:'spin 1s linear infinite' }}/>

@@ -29,7 +29,7 @@ export default function ScoutSavedPage() {
 
   return (
     <ScoutLayout>
-      <div className="h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
+      <div className="page-shell h-14 bg-white border-b border-slate-200 px-6 flex items-center gap-3 flex-shrink-0">
         <Target size={18} className="text-brand-500" />
         <span className="text-sm font-bold tracking-widest" style={{ color: '#0F172A' }}>SCOUT</span>
         <span className="text-sm text-slate-400 ml-1">Saved Searches</span>

@@ -130,7 +130,7 @@ export default function TaskDetailPage() {
   const priority = PRIORITIES.find(p => p.key === task.priority) || PRIORITIES[0]
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden bg-white">
         {/* Header */}

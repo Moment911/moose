@@ -297,7 +297,7 @@ export default function CampaignBuilderPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden" style={{ background: '#F8F9FC' }}>
         {/* Header */}

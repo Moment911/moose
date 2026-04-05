@@ -63,7 +63,7 @@ export default function RevenuePage() {
   const thisMonth = records.filter(r => r.created_at && new Date(r.created_at).getMonth() === new Date().getMonth() && new Date(r.created_at).getFullYear() === new Date().getFullYear()).reduce((a, r) => a + (parseFloat(r.amount) || 0), 0)
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />
       <main className="flex-1 overflow-y-auto bg-white">
         <div style={{ background: '#231f20' }} className="px-4 md:px-8 py-4 md:py-6">

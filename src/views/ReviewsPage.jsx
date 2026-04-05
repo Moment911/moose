@@ -503,7 +503,7 @@ export default function ReviewsPage() {
       <Sidebar/>
 
       {/* Client list */}
-      <div style={{ width:240, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0 }}>
+      <div  className="reviews-client-col"style={{ width:240, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0 }}>
         <div style={{ padding:'16px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
           <div style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:10 }}>Reviews</div>
           <div style={{ fontSize:13, color:'#4b5563' }}>{clients.length} clients</div>

@@ -21,7 +21,7 @@ export default function ReportingPage() {
   const [active, setActive] = useState('traffic')
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'16px 24px', display:'flex', alignItems:'center', gap:14 }}>

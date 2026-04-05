@@ -118,7 +118,7 @@ export default function MessagesPage() {
   filtered.forEach(c => { const g = getGroup(c.last_message_at || c.created_at); if (!groups[g]) groups[g] = []; groups[g].push(c) })
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex overflow-hidden bg-white">
         {/* LEFT — Conversations */}
