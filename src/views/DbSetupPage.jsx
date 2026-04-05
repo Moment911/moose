@@ -51,7 +51,8 @@ export default function DbSetupPage() {
     const results = {}
     await Promise.all(REQUIRED_TABLES.map(async t => {
       const { error } = await supabase.from(t.name).select('count').limit(0)
-      results[t.name] = !error || error.code !== '42P01'
+      // 42P01 = relation does not exist, PGRST116 = table not found
+      results[t.name] = !error || (error.code !== '42P01' && error.code !== 'PGRST116' && !error.message?.includes('does not exist'))
     }))
     setStatus(results)
     setLoading(false)
@@ -138,7 +139,7 @@ export default function DbSetupPage() {
                 </div>
                 <div style={{ fontSize:13, color:allReady?'#16a34a':'#78350f', fontFamily:FB }}>
                   {allReady
-                    ? `${ready.length} tables verified · All Koto features are fully operational`
+                    ? `${ready.length} tables verified · If features aren't working, run the SQL anyway — it's safe to run multiple times`
                     : `${ready.length} of ${REQUIRED_TABLES.length} tables exist · Run the SQL below to fix`}
                 </div>
               </div>
@@ -159,7 +160,7 @@ export default function DbSetupPage() {
           )}
 
           {/* Setup steps — shown when tables are missing */}
-          {!loading && missing.length > 0 && (
+          {!loading && (
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', marginBottom:20, overflow:'hidden' }}>
               <div style={{ padding:'16px 20px', borderBottom:'1px solid #f3f4f6', fontFamily:FH, fontSize:15, fontWeight:800, color:BLK }}>
                 How to set up
