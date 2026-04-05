@@ -483,24 +483,43 @@ export default function PerfDashboard() {
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             </div>
           ) : dbError ? (
-            <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:16,padding:32,textAlign:'center',maxWidth:560,margin:'40px auto'}}>
-              <AlertCircle size={36} color={RED} style={{margin:'0 auto 14px',display:'block'}}/>
-              <div style={{fontSize:17,fontWeight:800,color:'#111',marginBottom:8}}>Database tables not ready</div>
-              <div style={{fontSize:14,color:'#374151',marginBottom:20,lineHeight:1.7}}>{dbError}</div>
-              <div style={{background:'#111',borderRadius:12,padding:'16px 20px',textAlign:'left',marginBottom:16}}>
-                <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginBottom:8,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>Steps to fix:</div>
-                <div style={{fontSize:13,color:'rgba(255,255,255,.8)',lineHeight:1.8}}>
-                  1. Go to <strong style={{color:'#5bc6d0'}}>Supabase → SQL Editor</strong><br/>
-                  2. Open the file: <code style={{background:'rgba(255,255,255,.1)',padding:'1px 6px',borderRadius:4}}>supabase/migrations/RUN_THIS_NOW_consolidated.sql</code><br/>
-                  3. Paste and run the entire file
+            <div style={{maxWidth:600,margin:'40px auto'}}>
+              <div style={{background:'#fff',borderRadius:20,border:'1px solid #e5e7eb',overflow:'hidden'}}>
+                <div style={{background:RED,padding:'20px 24px',display:'flex',alignItems:'center',gap:12}}>
+                  <AlertCircle size={24} color='#fff'/>
+                  <div style={{fontSize:17,fontWeight:800,color:'#fff'}}>Performance tables need setup</div>
+                </div>
+                <div style={{padding:'24px'}}>
+                  <p style={{fontSize:15,color:'#374151',lineHeight:1.7,margin:'0 0 20px'}}>
+                    The Performance module uses 10 database tables that haven't been created yet.
+                    Run the consolidated SQL in Supabase — it takes about 10 seconds.
+                  </p>
+                  <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:24}}>
+                    {[
+                      {step:'1',label:'Copy the SQL file',action:()=>{fetch('/RUN_THIS_NOW_consolidated.sql').then(r=>r.text()).then(t=>{navigator.clipboard.writeText(t);toast.success('SQL copied!')})},'btn':'Copy SQL','color':TEAL},
+                      {step:'2',label:'Open Supabase SQL Editor',action:()=>window.open('https://supabase.com/dashboard','_blank'),'btn':'Open Supabase →','color':'#3ecf8e'},
+                      {step:'3',label:'Paste and click Run',action:null,'btn':null,'color':'#9ca3af'},
+                    ].map(({step,label,action,btn,color})=>(
+                      <div key={step} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 16px',background:'#f9fafb',borderRadius:12}}>
+                        <div style={{width:28,height:28,borderRadius:8,background:color,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:14,color:'#fff',flexShrink:0}}>{step}</div>
+                        <div style={{flex:1,fontSize:14,color:'#374151',fontWeight:600}}>{label}</div>
+                        {btn && action && <button onClick={action} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${color}`,background:'transparent',color:color,fontSize:13,fontWeight:700,cursor:'pointer'}}>{btn}</button>}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{display:'flex',gap:10}}>
+                    <button onClick={()=>window.location.href='/db-setup'}
+                      style={{flex:1,padding:'11px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                      Go to Database Setup →
+                    </button>
+                    <button onClick={()=>{setDbError(null);loadClientData()}}
+                      style={{padding:'11px 18px',borderRadius:10,border:'1px solid #e5e7eb',background:'#fff',color:'#374151',fontSize:14,fontWeight:700,cursor:'pointer'}}>
+                      Retry
+                    </button>
+                  </div>
                 </div>
               </div>
-              <button onClick={()=>{setDbError(null);loadClientData()}}
-                style={{padding:'9px 22px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>
-                Retry
-              </button>
-            </div>
-          ) : !selClient ? (
+            </div>) : !selClient ? (
             <div style={{textAlign:'center',padding:60}}>
               <TrendingUp size={40} color="#e5e7eb" style={{margin:'0 auto 16px',display:'block'}}/>
               <div style={{fontSize:17,fontWeight:800,color:'#111',marginBottom:8}}>No clients found</div>
