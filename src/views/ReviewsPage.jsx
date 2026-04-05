@@ -117,7 +117,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
           </div>
           <StarRow rating={review.star_rating} />
           <div style={{ fontSize:14, color:'#4b5563', marginTop:4 }}>
-            {review.reviewed_at ? formatDistanceToNow(new Date(review.reviewed_at), { addSuffix:true }) : 'Recently'}
+            {review.review_date ? formatDistanceToNow(new Date(review.review_date), { addSuffix:true }) : 'Recently'}
             {review.review_url && <a href={review.review_url} target="_blank" rel="noreferrer" style={{ marginLeft:10, color:cfg.color, fontSize:13 }}>View on {cfg.label} ↗</a>}
           </div>
         </div>
@@ -403,6 +403,7 @@ export default function ReviewsPage() {
   const [widgetSettings, setWidgetSettings] = useState(null)
   const [clientProfile, setClientProfile] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [filterPlatform, setFilterPlatform] = useState('all')
   const [filterStars, setFilterStars] = useState(0)
   const [filterStatus, setFilterStatus] = useState('all')
@@ -417,11 +418,65 @@ export default function ReviewsPage() {
     if (selectedClient) loadClientData(selectedClient)
   }, [selectedClient?.id])
 
+  async function syncGoogleReviews(client) {
+    if (!client) return
+    setSyncing(true)
+    toast.loading('Pulling reviews from Google…', { id:'sync' })
+    try {
+      // First search for Place ID if not stored
+      let placeId = client.google_place_id
+      if (!placeId) {
+        const searchRes = await fetch('/api/reviews', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'search', query: client.name + ' ' + (client.city || '') }),
+        })
+        const searchData = await searchRes.json()
+        if (searchData.results?.[0]) {
+          placeId = searchData.results[0].place_id
+          // Save place_id to client record
+          await supabase.from('clients').update({ google_place_id: placeId }).eq('id', client.id)
+        }
+      }
+      if (!placeId) { toast.error('Could not find this business on Google', { id:'sync' }); setSyncing(false); return }
+
+      // Fetch reviews from Google
+      const fetchRes = await fetch('/api/reviews', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fetch', place_id: placeId }),
+      })
+      const fetchData = await fetchRes.json()
+      if (fetchData.error) { toast.error(fetchData.error, { id:'sync' }); setSyncing(false); return }
+
+      // Save each review to DB (upsert by review_id)
+      const reviewsToSave = (fetchData.reviews || []).map((r) => ({
+        client_id:     client.id,
+        agency_id:     agencyId,
+        platform:      'google',
+        reviewer_name: r.reviewer_name,
+        reviewer_photo:r.reviewer_photo,
+        rating:        r.rating,
+        review_text:   r.review_text,
+        review_date:   r.review_date,
+        review_id:     r.review_id,
+        sentiment:     r.sentiment,
+        source_url:    fetchData.maps_url,
+      }))
+
+      if (reviewsToSave.length > 0) {
+        await supabase.from('reviews').upsert(reviewsToSave, { onConflict: 'review_id', ignoreDuplicates: true })
+      }
+
+      toast.success(`Synced ${reviewsToSave.length} reviews from Google`, { id:'sync' })
+      loadClientData(client)
+    } catch(e) { toast.error('Sync failed: ' + e.message, { id:'sync' }) }
+    setSyncing(false)
+  }
+
   async function loadClientData(client) {
     setSelectedClient(client)  // update global context
     setLoading(true)
     const [{ data: revs }, { data: widget }, { data: prof }] = await Promise.all([
-      supabase.from('moose_review_queue').select('*').eq('client_id', client.id).order('reviewed_at', { ascending:false }),
+      supabase.from('reviews').select('*').eq('client_id', client.id).order('review_date', { ascending:false }),
       supabase.from('review_widget_settings').select('*').eq('client_id', client.id).maybeSingle(),
       supabase.from('client_profiles').select('*').eq('client_id', client.id).maybeSingle(),
     ])
@@ -451,37 +506,37 @@ export default function ReviewsPage() {
       { platform:'google',   reviewer_name:'David H.',   star_rating:2, review_text:'Came out, gave a quote, then never showed up for the job. Had to call three times to get a response. Very disappointed.', status:'pending', reviewed_at: new Date(Date.now()-3600000*6).toISOString() },
       { platform:'yelp',     reviewer_name:'Lisa M.',    star_rating:5, review_text:'Third time using them and they never disappoint. Consistent, reliable, and always professional. My go-to recommendation for everyone.', status:'approved', reviewed_at: new Date(Date.now()-86400000*14).toISOString() },
     ]
-    await supabase.from('moose_review_queue').insert(samples.map(r=>({ ...r, client_id: selectedClient.id, agency_id: agencyId })))
+    await supabase.from('reviews').insert(samples.map(r=>({ ...r, client_id: selectedClient.id, agency_id: agencyId })))
     toast.success('Sample reviews added!')
     if (selectedClient) loadClientData(selectedClient)
   }
 
   async function handleApprove(reviewId) {
-    await supabase.from('moose_review_queue').update({ status:'approved' }).eq('id', reviewId)
+    await supabase.from('reviews').update({ status:'approved' }).eq('id', reviewId)
     setReviews(r => r.map(rev => rev.id===reviewId ? {...rev, status:'approved'} : rev))
     toast.success('Review approved — now showing on website')
   }
 
   async function handleReject(reviewId) {
-    await supabase.from('moose_review_queue').update({ status:'rejected' }).eq('id', reviewId)
+    await supabase.from('reviews').update({ status:'rejected' }).eq('id', reviewId)
     setReviews(r => r.map(rev => rev.id===reviewId ? {...rev, status:'rejected'} : rev))
     toast.success('Review hidden')
   }
 
   async function handleGenerateResponse(reviewId, text) {
-    await supabase.from('moose_review_queue').update({ response_text: text }).eq('id', reviewId)
+    await supabase.from('reviews').update({ response_text: text }).eq('id', reviewId)
     setReviews(r => r.map(rev => rev.id===reviewId ? {...rev, response_text:text} : rev))
   }
 
   async function handlePostResponse(reviewId, text) {
     // In production: call Google My Business API to post the response
-    await supabase.from('moose_review_queue').update({ response_text:text, response_posted_at:new Date().toISOString(), status:'responded' }).eq('id', reviewId)
+    await supabase.from('reviews').update({ response_text:text, response_posted_at:new Date().toISOString(), status:'responded' }).eq('id', reviewId)
     setReviews(r => r.map(rev => rev.id===reviewId ? {...rev, response_text:text, response_posted_at:new Date().toISOString()} : rev))
     toast.success('Response posted! ✓')
   }
 
   async function handleFeature(reviewId, featured) {
-    await supabase.from('moose_review_queue').update({ is_featured:featured }).eq('id', reviewId)
+    await supabase.from('reviews').update({ is_featured:featured }).eq('id', reviewId)
     setReviews(r => r.map(rev => rev.id===reviewId ? {...rev, is_featured:featured} : rev))
   }
 
@@ -863,6 +918,11 @@ export default function ReviewsPage() {
               </div>
               <div style={{ display:'flex', gap:8 }}>
                 {reviews.length===0 && <button onClick={addSampleReviews} style={{ padding:'7px 14px', borderRadius:9, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151' }}>+ Add Sample Reviews</button>}
+                <button onClick={()=>syncGoogleReviews(selectedClient)} disabled={syncing}
+                  style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:'none', background:'#4285f4', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                  {syncing ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <RefreshCw size={13}/>}
+                  {syncing ? 'Syncing…' : 'Sync Google Reviews'}
+                </button>
                 <button onClick={()=>setShowWidget(s=>!s)}
                   style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:9, border:`1.5px solid ${showWidget?ACCENT:'#e5e7eb'}`, background:showWidget?'#f0fbfc':'#fff', fontSize:14, fontWeight:700, cursor:'pointer', color:showWidget?ACCENT:'#374151' }}>
                   <Sliders size={13}/> Widget Settings
