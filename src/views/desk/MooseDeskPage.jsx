@@ -18,6 +18,19 @@ const RED = '#ea2729'
 const TEAL = '#5bc6d0'
 const BLACK = '#0a0a0a'
 
+// SLA thresholds in hours per priority
+const SLA_HOURS = { urgent:2, high:8, normal:24, low:72 }
+
+function getSLAStatus(ticket) {
+  if (['resolved','closed'].includes(ticket.status)) return null
+  const sla = SLA_HOURS[ticket.priority] || 24
+  const ageH = (Date.now() - new Date(ticket.created_at)) / 3600000
+  const pct   = ageH / sla
+  if (pct >= 1)   return { label:'SLA Breached', color:'#ef4444', bg:'#fef2f2', icon:'🔴' }
+  if (pct >= 0.75) return { label:'SLA Warning',  color:'#f59e0b', bg:'#fffbeb', icon:'🟡' }
+  return null
+}
+
 const STATUS_CFG = {
   new:         { label:'New',          color:'#8b5cf6', bg:'#f5f3ff' },
   open:        { label:'Open',         color:'#3b82f6', bg:'#eff6ff' },
@@ -40,13 +53,14 @@ function TicketCard({ ticket, onClick, agents }) {
   const st  = STATUS_CFG[ticket.status]    || STATUS_CFG.new
   const pr  = PRI_CFG[ticket.priority]     || PRI_CFG.normal
   const agent = agents.find(a => a.id === ticket.assigned_agent_id)
-  const age   = Math.round((Date.now() - new Date(ticket.created_at)) / 3600000)
+  const sla = getSLAStatus(ticket)
+  const age    = Math.round((Date.now() - new Date(ticket.created_at)) / 3600000)
   const ageStr = age < 1 ? 'Just now' : age < 24 ? age + 'h ago' : Math.round(age/24) + 'd ago'
   return (
     <div onClick={() => onClick(ticket)} style={{
       background:'#fff', borderRadius:14, border:'1px solid #ececea',
       padding:'16px 18px', cursor:'pointer', transition:'all .15s',
-      borderLeft:'3px solid ' + pr.color,
+      borderLeft:'3px solid ' + (sla?.color === '#ef4444' ? '#ef4444' : pr.color),
     }}
     onMouseEnter={e=>{e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,.08)';e.currentTarget.style.transform='translateY(-1px)'}}
     onMouseLeave={e=>{e.currentTarget.style.boxShadow='none';e.currentTarget.style.transform='none'}}>
@@ -71,6 +85,11 @@ function TicketCard({ ticket, onClick, agents }) {
             )}
             {ticket.ai_sentiment && <span style={{fontSize:13}}>{SENT_EMOJI[ticket.ai_sentiment]||''}</span>}
             <span style={{fontSize:13,color:'#9ca3af',marginLeft:'auto'}}>{ageStr}</span>
+            {sla && (
+              <span style={{fontSize:11,fontWeight:800,padding:'2px 8px',borderRadius:20,background:sla.bg,color:sla.color,display:'flex',alignItems:'center',gap:3}}>
+                {sla.icon} {sla.label}
+              </span>
+            )}
           </div>
         </div>
         <div style={{flexShrink:0}}>
