@@ -343,8 +343,9 @@ export default function SEOConnectPage() {
                             <Check size={11}/> Connected
                           </span>
                           <button onClick={()=>disconnect(svc.key)}
-                            style={{ fontSize:12, color:'#9ca3af', background:'none', border:'none',
-                              cursor:'pointer', fontFamily:FH, textDecoration:'underline' }}>
+                            style={{ fontSize:12, fontWeight:700, color:'#ef4444', background:'#fef2f2',
+                              border:'1px solid #fecaca', borderRadius:8, padding:'4px 10px',
+                              cursor:'pointer', fontFamily:FH }}>
                             Disconnect
                           </button>
                         </div>
