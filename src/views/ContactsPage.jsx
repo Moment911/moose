@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react'
+import { useMobile } from '../hooks/useMobile'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Trash2, Mail, Upload, Download, X, Check, Tag, Users, ChevronLeft } from 'lucide-react'
 import Sidebar from '../components/Sidebar'

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react'
+import { useMobile } from '../../hooks/useMobile'
 import { useNavigate } from 'react-router-dom'
 import {
   ChevronLeft, BarChart2, TrendingUp, TrendingDown, Minus,

@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
+import { useMobile } from '../hooks/useMobile'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ChevronLeft, Building2, Globe, Phone, Mail, MapPin, Users, Calendar,

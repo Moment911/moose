@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react'
+import { useAuth } from '../hooks/useAuth'
 import { DollarSign, Plus, Trash2, Check, Download, Search, X, TrendingUp, Clock, AlertTriangle } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase, getClients } from '../lib/supabase'
