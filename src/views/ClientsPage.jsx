@@ -82,6 +82,47 @@ export default function ClientsPage() {
 
   function setF(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
+  async function searchBusiness(query) {
+    if (!query.trim()) return
+    setBizSearching(true); setBizResults([]); setBizSearched(false); setBizDebug(null)
+    try {
+      const res = await fetch('/api/places/search', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ query: query.trim() }),
+      })
+      const data = await res.json()
+      console.log('[Koto] places search response:', data)
+      setBizDebug(data)
+      if (data.error) toast.error(data.error)
+      const results = data.results || []
+      console.log('[Koto] setting bizResults:', results.length, 'items')
+      setBizResults(results)
+      setBizSearched(true)
+    } catch(e) {
+      console.error('[Koto] search error:', e)
+      setBizDebug({ error: e.message })
+      toast.error('Search failed: ' + e.message)
+    }
+    setBizSearching(false)
+  }
+
+  function autofillFromGoogle(biz) {
+    const parts = (biz.address || '').split(',').map(s => s.trim())
+    const stateZip = (parts[2] || '').trim().split(' ')
+    setForm(prev => ({
+      ...prev,
+      name:    prev.name || biz.name || '',
+      phone:   prev.phone || '',
+      website: prev.website || '',
+      address: parts[0] || '',
+      city:    parts[1] || '',
+      state:   stateZip[0] || '',
+      zip:     stateZip[1] || '',
+    }))
+    setBizResults([]); setBizSearch('')
+    toast.success('Auto-filled from Google Maps!')
+  }
+
   async function handleSave() {
     if (!form.name.trim()) { toast.error('Name is required'); return }
     if (editingId) {
@@ -617,43 +658,3 @@ export default function ClientsPage() {
   )
 }
 
-  async function searchBusiness(query) {
-    if (!query.trim()) return
-    setBizSearching(true); setBizResults([]); setBizSearched(false); setBizDebug(null)
-    try {
-      const res = await fetch('/api/places/search', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ query: query.trim() }),
-      })
-      const data = await res.json()
-      console.log('[Koto] places search response:', data)
-      setBizDebug(data)
-      if (data.error) toast.error(data.error)
-      const results = data.results || []
-      console.log('[Koto] setting bizResults:', results.length, 'items')
-      setBizResults(results)
-      setBizSearched(true)
-    } catch(e) {
-      console.error('[Koto] search error:', e)
-      setBizDebug({ error: e.message })
-      toast.error('Search failed: ' + e.message)
-    }
-    setBizSearching(false)
-  }
-
-  function autofillFromGoogle(biz) {
-    const parts = (biz.address || '').split(',').map(s => s.trim())
-    const stateZip = (parts[2] || '').trim().split(' ')
-    setForm(prev => ({
-      ...prev,
-      name:    prev.name || biz.name || '',
-      phone:   prev.phone || '',
-      website: prev.website || '',
-      address: parts[0] || '',
-      city:    parts[1] || '',
-      state:   stateZip[0] || '',
-      zip:     stateZip[1] || '',
-    }))
-    setBizResults([]); setBizSearch('')
-    toast.success('Auto-filled from Google Maps!')
-  }
