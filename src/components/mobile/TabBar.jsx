@@ -27,12 +27,12 @@ export default function TabBar({ onMorePress, unreadCount = 0 }) {
               <div style={{ position: 'relative' }}>
                 <I size={24} strokeWidth={isActive ? 2.5 : 1.8} color={color} />
                 {tab.label === 'Inbox' && unreadCount > 0 && (
-                  <span style={{ position: 'absolute', top: -5, right: -8, background: '#ea2729', color: '#fff', fontSize: 9, fontWeight: 700, borderRadius: 8, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', border: '1.5px solid #fff' }}>
+                  <span style={{ position: 'absolute', top: -5, right: -8, background: '#ea2729', color: '#fff', fontSize:13, fontWeight: 700, borderRadius: 8, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', border: '1.5px solid #fff' }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </div>
-              <span style={{ fontSize: 10, fontWeight: isActive ? 600 : 500, color, lineHeight: 1 }}>{tab.label}</span>
+              <span style={{ fontSize:13, fontWeight: isActive ? 600 : 500, color, lineHeight: 1 }}>{tab.label}</span>
             </>
           )
 

@@ -36,7 +36,7 @@ export default function HotspotLinkModal({ files, currentFileId, onSave, onCance
 
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Button label <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <input
@@ -49,14 +49,14 @@ export default function HotspotLinkModal({ files, currentFileId, onSave, onCance
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Links to
             </label>
             {otherFiles.length === 0 ? (
               <div className="text-center py-6 bg-gray-50 rounded-xl">
                 <FileImage size={24} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">No other files in this project.</p>
-                <p className="text-xs text-gray-400 mt-1">Upload more files first.</p>
+                <p className="text-sm text-gray-500">No other files in this project.</p>
+                <p className="text-sm text-gray-400 mt-1">Upload more files first.</p>
               </div>
             ) : (
               <div className="space-y-1.5 max-h-52 overflow-y-auto">
@@ -79,7 +79,7 @@ export default function HotspotLinkModal({ files, currentFileId, onSave, onCance
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-sm text-gray-400">
                         {file.type?.startsWith('image/') ? 'Image' : file.type === 'application/pdf' ? 'PDF' : 'HTML'}
                       </p>
                     </div>

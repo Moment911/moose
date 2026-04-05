@@ -48,7 +48,7 @@ export default function ClientOnboarding({ projectId, projectName, maxRounds, on
       <h2 className="text-xl font-bold text-gray-900 mb-2">Submit your feedback</h2>
       <p className="text-sm text-gray-500 mb-2">When you're done reviewing, click the <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded font-medium">Submit Changes</span> button</p>
       {maxRounds && <p className="text-sm text-gray-400 mb-2">You have <strong>{maxRounds}</strong> revision round{maxRounds !== 1 ? 's' : ''} included with your project</p>}
-      <p className="text-xs text-gray-400 mb-8">Each submission counts as one round</p>
+      <p className="text-sm text-gray-400 mb-8">Each submission counts as one round</p>
       <button onClick={finish} className="bg-green-500 text-white font-semibold px-8 py-3 rounded-xl hover:bg-green-600 text-sm">Let's go! <Check size={14} className="inline ml-1" /></button>
     </div>,
   ]
@@ -57,7 +57,7 @@ export default function ClientOnboarding({ projectId, projectName, maxRounds, on
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
         {/* Skip */}
-        <button onClick={finish} className="absolute top-4 right-4 text-xs text-gray-400 hover:text-gray-600">Skip</button>
+        <button onClick={finish} className="absolute top-4 right-4 text-sm text-gray-400 hover:text-gray-600">Skip</button>
 
         {steps[step]}
 

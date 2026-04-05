@@ -118,7 +118,7 @@ export default function TemplatesPage() {
                     {tpl.preview.body && <div style={{ padding: '8px 12px' }}><div className="h-1.5 bg-gray-200 rounded-full mb-1.5 w-full" /><div className="h-1.5 bg-gray-200 rounded-full mb-1.5 w-4/5" /><div className="h-1.5 bg-gray-200 rounded-full w-3/5" /></div>}
                     {tpl.preview.quote && <div style={{ padding: '6px 12px', borderLeft: '3px solid #ea2729', margin: '4px 12px', background: '#f9fafb' }}><div className="h-1 bg-gray-200 rounded-full w-full" /></div>}
                     {tpl.preview.cols && <div style={{ padding: '6px 12px', display: 'flex', gap: 8 }}><div className="flex-1"><div className="h-1 bg-gray-200 rounded-full mb-1" /><div className="h-1 bg-gray-200 rounded-full w-4/5" /></div><div className="flex-1"><div className="h-1 bg-gray-200 rounded-full mb-1" /><div className="h-1 bg-gray-200 rounded-full w-4/5" /></div></div>}
-                    {tpl.preview.cta && <div style={{ padding: '6px 12px', textAlign: 'center' }}><span style={{ display: 'inline-block', background: '#ea2729', color: '#fff', fontSize: 12, padding: '3px 12px', borderRadius: 4 }}>Button</span></div>}
+                    {tpl.preview.cta && <div style={{ padding: '6px 12px', textAlign: 'center' }}><span style={{ display: 'inline-block', background: '#ea2729', color: '#fff', fontSize:13, padding: '3px 12px', borderRadius: 4 }}>Button</span></div>}
                     {tpl.preview.footer && <div style={{ background: '#f5f5f5', padding: '4px 12px', textAlign: 'center' }}><div className="h-1 bg-gray-300 rounded-full w-1/3 mx-auto" /></div>}
                     {Object.keys(tpl.preview).length === 0 && <div className="h-full flex items-center justify-center text-gray-600 text-sm py-8">Blank</div>}
                   </div>
@@ -126,7 +126,7 @@ export default function TemplatesPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-1">
                     <h3 className="text-sm font-semibold text-gray-900">{tpl.name}</h3>
-                    <span className="text-[12px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{tpl.category}</span>
+                    <span className="text-[13px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">{tpl.category}</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-3">{tpl.desc}</p>
                   <p className="text-[13px] text-gray-700 mb-3">{tpl.blocks.length} blocks</p>

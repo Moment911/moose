@@ -149,7 +149,7 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 size={32} className="animate-spin text-brand-500 mb-4" />
               <p className="text-sm font-medium text-gray-700">Writing your email...</p>
-              <p className="text-xs text-gray-400 mt-1">This takes about 10-15 seconds</p>
+              <p className="text-sm text-gray-400 mt-1">This takes about 10-15 seconds</p>
             </div>
           )}
 
@@ -158,8 +158,8 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
             <div className="p-8 text-center">
               <p className="text-sm text-red-500 mb-3">{error}</p>
               <div className="flex gap-2 justify-center">
-                <button onClick={() => { setError(null); handleGenerate() }} className="btn-primary text-xs"><RefreshCw size={12} /> Retry</button>
-                <button onClick={reset} className="btn-secondary text-xs">Start Over</button>
+                <button onClick={() => { setError(null); handleGenerate() }} className="btn-primary text-sm"><RefreshCw size={12} /> Retry</button>
+                <button onClick={reset} className="btn-secondary text-sm">Start Over</button>
               </div>
             </div>
           )}
@@ -168,9 +168,9 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
           {result && !generating && !error && (
             <div className="p-6">
               <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-1">Subject Line</p>
+                <p className="text-sm text-gray-500 mb-1">Subject Line</p>
                 <p className="text-sm font-semibold text-gray-900">{result.subject}</p>
-                {result.preview && <p className="text-xs text-gray-400 mt-1">Preview: {result.preview}</p>}
+                {result.preview && <p className="text-sm text-gray-400 mt-1">Preview: {result.preview}</p>}
               </div>
               <div className="border border-gray-200 rounded-xl overflow-hidden mb-4" style={{ maxHeight: 400 }}>
                 <div className="overflow-auto" style={{ maxHeight: 400 }}>
@@ -178,7 +178,7 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
                     const d = b.data || {}
                     return (
                       <div key={i}>
-                        {b.type === 'header' && <div style={{ background: d.bgColor, padding: '24px 32px', textAlign: 'center' }}><h1 style={{ margin: 0, color: d.textColor, fontSize: 22, fontWeight: 700 }}>{d.logoText}</h1>{d.tagline && <p style={{ margin: '6px 0 0', color: d.textColor, opacity: 0.7, fontSize: 12 }}>{d.tagline}</p>}</div>}
+                        {b.type === 'header' && <div style={{ background: d.bgColor, padding: '24px 32px', textAlign: 'center' }}><h1 style={{ margin: 0, color: d.textColor, fontSize: 22, fontWeight: 700 }}>{d.logoText}</h1>{d.tagline && <p style={{ margin: '6px 0 0', color: d.textColor, opacity: 0.7, fontSize:13 }}>{d.tagline}</p>}</div>}
                         {b.type === 'heading' && <div style={{ background: d.bgColor || '#fff', padding: `${d.padding || 24}px 32px`, textAlign: d.align || 'center' }}><h2 style={{ margin: 0, color: d.textColor || '#1a1a1a', fontSize: d.fontSize || 28, fontWeight: 700 }}>{d.content}</h2></div>}
                         {b.type === 'text' && <div style={{ background: d.bgColor || '#fff', padding: `${d.padding || 24}px 32px`, textAlign: d.align || 'left' }}><p style={{ margin: 0, color: d.textColor || '#333', fontSize: d.fontSize || 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{d.content}</p></div>}
                         {b.type === 'button' && <div style={{ background: d.bgColor || '#fff', padding: `${d.padding || 24}px 32px`, textAlign: d.align || 'center' }}><span style={{ display: 'inline-block', background: d.btnColor || '#ea2729', color: d.textColor || '#fff', padding: '12px 28px', borderRadius: d.borderRadius || 8, fontWeight: 600, fontSize: 14 }}>{d.text}</span></div>}
@@ -188,7 +188,7 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
                         {b.type === 'divider' && <div style={{ background: d.bgColor || '#fff', padding: '16px 32px' }}><hr style={{ border: 'none', borderTop: '1px solid #e5e7eb' }} /></div>}
                         {b.type === 'spacer' && <div style={{ height: d.height || 24 }} />}
                         {b.type === 'twocol' && <div style={{ background: d.bgColor || '#fff', padding: `${d.padding || 24}px 32px`, display: 'flex', gap: 16 }}><div style={{ flex: 1, color: d.textColor || '#333', fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{d.leftContent}</div><div style={{ flex: 1, color: d.textColor || '#333', fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{d.rightContent}</div></div>}
-                        {b.type === 'footer' && <div style={{ background: d.bgColor || '#f5f5f5', padding: `${d.padding || 24}px 32px`, textAlign: 'center' }}><p style={{ margin: 0, color: d.textColor || '#999', fontSize: 12 }}>{d.text}</p>{d.links && <p style={{ margin: '6px 0 0', color: d.textColor || '#999', fontSize: 10 }}>{d.links}</p>}</div>}
+                        {b.type === 'footer' && <div style={{ background: d.bgColor || '#f5f5f5', padding: `${d.padding || 24}px 32px`, textAlign: 'center' }}><p style={{ margin: 0, color: d.textColor || '#999', fontSize:13 }}>{d.text}</p>{d.links && <p style={{ margin: '6px 0 0', color: d.textColor || '#999', fontSize:13 }}>{d.links}</p>}</div>}
                       </div>
                     )
                   })}
@@ -212,7 +212,7 @@ export default function AIEmailAssistant({ open, onClose, onApply }) {
                 ))}
               </div>
 
-              <p className="text-xs text-gray-400 mb-1">Question {step + 1} of {QUESTIONS.length}</p>
+              <p className="text-sm text-gray-400 mb-1">Question {step + 1} of {QUESTIONS.length}</p>
               <h3 className="text-base font-semibold text-gray-900 mb-4">{q.label}</h3>
 
               {q.type === 'text' && (

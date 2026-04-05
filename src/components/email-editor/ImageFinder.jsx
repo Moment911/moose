@@ -157,7 +157,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
           <div>
             <h3 className="font-semibold text-gray-900 flex items-center gap-2"><ImageIcon size={16} /> Find Images</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 mt-0.5">
               {availableApis.length > 0
                 ? `Search ${availableApis.join(', ')}`
                 : 'No image API keys configured. Add NEXT_PUBLIC_UNSPLASH_ACCESS_KEY, NEXT_PUBLIC_PEXELS_API_KEY, or NEXT_PUBLIC_PIXABAY_API_KEY to .env'}
@@ -185,7 +185,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
               { key: 'pixabay', label: 'Pixabay', disabled: !PIXABAY_KEY },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} disabled={t.disabled}
-                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${tab === t.key ? 'bg-gray-900 text-white' : t.disabled ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
+                className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-colors ${tab === t.key ? 'bg-gray-900 text-white' : t.disabled ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}>
                 {t.label}
               </button>
             ))}
@@ -204,7 +204,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
           {!loading && error && (
             <div className="text-center py-16">
               <p className="text-sm text-red-500 mb-2">{error}</p>
-              <p className="text-xs text-gray-400">Check your API keys in .env file</p>
+              <p className="text-sm text-gray-400">Check your API keys in .env file</p>
             </div>
           )}
 
@@ -212,7 +212,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
             <div className="text-center py-16">
               <ImageIcon size={32} className="text-gray-300 mx-auto mb-3" />
               <p className="text-sm text-gray-500">No images found for "{query}"</p>
-              <p className="text-xs text-gray-400 mt-1">Try a different search term</p>
+              <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
             </div>
           )}
 
@@ -222,7 +222,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
               <p className="text-sm text-gray-500">Search for free stock images</p>
               <div className="flex flex-wrap gap-2 justify-center mt-4">
                 {['Marketing', 'Business', 'Technology', 'Nature', 'Office', 'Abstract'].map(s => (
-                  <button key={s} onClick={() => { setQuery(s); }} className="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">{s}</button>
+                  <button key={s} onClick={() => { setQuery(s); }} className="text-sm px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">{s}</button>
                 ))}
               </div>
             </div>
@@ -236,8 +236,8 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
                     <img src={img.thumb || img.small} alt={img.alt} loading="lazy" className="w-full h-full object-cover" />
                   </div>
                   <div className="p-2.5">
-                    <p className="text-[10px] text-gray-400 flex items-center gap-1">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${img.source === 'unsplash' ? 'bg-gray-900 text-white' : img.source === 'pexels' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+                    <p className="text-[13px] text-gray-400 flex items-center gap-1">
+                      <span className={`px-1.5 py-0.5 rounded text-[13px] font-medium ${img.source === 'unsplash' ? 'bg-gray-900 text-white' : img.source === 'pexels' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
                         {img.source}
                       </span>
                       by {img.credit}
@@ -245,7 +245,7 @@ export default function ImageFinder({ open, onClose, onSelect, suggestedQuery })
                   </div>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                     <button onClick={() => handleUse(img)}
-                      className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 text-xs font-semibold px-4 py-2 rounded-lg shadow-lg hover:bg-brand-500 hover:text-white transition-all transform scale-90 group-hover:scale-100">
+                      className="opacity-0 group-hover:opacity-100 bg-white text-gray-900 text-sm font-semibold px-4 py-2 rounded-lg shadow-lg hover:bg-brand-500 hover:text-white transition-all transform scale-90 group-hover:scale-100">
                       Use this image
                     </button>
                   </div>

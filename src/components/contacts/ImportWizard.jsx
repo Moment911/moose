@@ -282,7 +282,7 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                 <Upload size={40} className={`mx-auto mb-4 transition-transform ${dragOver ? 'text-brand-500 scale-110' : 'text-gray-400'}`} />
                 <p className="text-base font-medium text-gray-700">Drag your CSV file here</p>
                 <p className="text-sm text-gray-400 mt-1">or <span className="text-brand-500 underline">click to browse</span></p>
-                <p className="text-xs text-gray-300 mt-3">Supports CSV, TSV &middot; Max 50MB</p>
+                <p className="text-sm text-gray-300 mt-3">Supports CSV, TSV &middot; Max 50MB</p>
               </div>
               <input ref={fileRef} type="file" accept=".csv,.tsv,.txt" className="hidden" onChange={e => handleFile(e.target.files?.[0])} />
             </div>
@@ -294,9 +294,9 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900">Map Fields</h3>
-                  <p className="text-xs text-gray-500">Found {parsed.rows.length} contacts in {parsed.filename}</p>
+                  <p className="text-sm text-gray-500">Found {parsed.rows.length} contacts in {parsed.filename}</p>
                 </div>
-                <div className="text-xs text-gray-400">{parsed.headers.length} columns detected</div>
+                <div className="text-sm text-gray-400">{parsed.headers.length} columns detected</div>
               </div>
               <div className="space-y-2 mb-4">
                 {parsed.headers.map(header => {
@@ -306,7 +306,7 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                     <div key={header} className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{header}</p>
-                        <p className="text-[10px] text-gray-400 truncate">{samples.join(' · ') || 'no data'}</p>
+                        <p className="text-[13px] text-gray-400 truncate">{samples.join(' · ') || 'no data'}</p>
                       </div>
                       <ArrowRight size={14} className="text-gray-300 flex-shrink-0" />
                       <div className="flex items-center gap-2">
@@ -331,9 +331,9 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                 return null
               })()}
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-3">
-                <div className="text-[9px] font-semibold text-gray-500 uppercase tracking-wider px-3 py-2 bg-gray-50 border-b border-gray-100">Preview (first 3 rows)</div>
+                <div className="text-[13px] font-semibold text-gray-500 uppercase tracking-wider px-3 py-2 bg-gray-50 border-b border-gray-100">Preview (first 3 rows)</div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                  <table className="w-full text-sm">
                     <thead><tr className="border-b border-gray-100">
                       {Object.entries(mapping).filter(([,v]) => v.field !== '_skip').map(([h, v]) => (
                         <th key={h} className="px-3 py-1.5 text-left font-medium text-gray-600">{CONTACT_FIELDS.flatMap(g=>g.fields).find(f=>f.key===v.field)?.label || v.field}</th>
@@ -371,7 +371,7 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                     <button key={opt.key} onClick={() => setDupMode(opt.key)}
                       className={`text-left p-3 rounded-xl border transition-all ${dupMode === opt.key ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:border-gray-300'}`}>
                       <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-full border-2 ${dupMode === opt.key ? 'border-brand-500 bg-brand-500' : 'border-gray-300'}`} /><span className="text-sm font-medium text-gray-800">{opt.label}</span></div>
-                      <p className="text-[10px] text-gray-400 ml-5">{opt.desc}</p>
+                      <p className="text-[13px] text-gray-400 ml-5">{opt.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -381,7 +381,7 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Tags to Apply</h3>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {importTags.map(t => (
-                    <span key={t} className="inline-flex items-center gap-1 bg-brand-50 text-brand-700 text-xs px-2.5 py-1 rounded-full">
+                    <span key={t} className="inline-flex items-center gap-1 bg-brand-50 text-brand-700 text-sm px-2.5 py-1 rounded-full">
                       <Tag size={10} />{t}
                       <button onClick={() => setImportTags(prev => prev.filter(x => x !== t))} className="text-brand-400 hover:text-brand-700"><X size={10} /></button>
                     </span>
@@ -389,13 +389,13 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                 </div>
                 <div className="flex gap-2">
                   <input className="input text-sm flex-1" placeholder="Add a tag..." value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }} />
-                  <button onClick={addTag} className="btn-secondary text-xs">Add</button>
+                  <button onClick={addTag} className="btn-secondary text-sm">Add</button>
                 </div>
                 <div className="flex gap-4 mt-3">
-                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                     <input type="checkbox" checked={addDateTag} onChange={e => setAddDateTag(e.target.checked)} className="rounded border-gray-300" /> Tag with import date
                   </label>
-                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                  <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                     <input type="checkbox" checked={addFileTag} onChange={e => setAddFileTag(e.target.checked)} className="rounded border-gray-300" /> Tag with filename
                   </label>
                 </div>
@@ -422,15 +422,15 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
                 <div className="bg-brand-500 h-2 rounded-full transition-all" style={{ width: `${progress.total ? (progress.current / progress.total * 100) : 0}%` }} />
               </div>
               <div className="grid grid-cols-4 gap-3">
-                <div className="bg-green-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-green-700">{progress.imported}</p><p className="text-[10px] text-green-600">Imported</p></div>
-                <div className="bg-blue-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-blue-700">{progress.updated}</p><p className="text-[10px] text-blue-600">Updated</p></div>
-                <div className="bg-gray-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-gray-600">{progress.skipped}</p><p className="text-[10px] text-gray-500">Skipped</p></div>
-                <div className="bg-red-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-red-600">{progress.errors}</p><p className="text-[10px] text-red-500">Errors</p></div>
+                <div className="bg-green-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-green-700">{progress.imported}</p><p className="text-[13px] text-green-600">Imported</p></div>
+                <div className="bg-blue-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-blue-700">{progress.updated}</p><p className="text-[13px] text-blue-600">Updated</p></div>
+                <div className="bg-gray-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-gray-600">{progress.skipped}</p><p className="text-[13px] text-gray-500">Skipped</p></div>
+                <div className="bg-red-50 rounded-xl p-3 text-center"><p className="text-lg font-bold text-red-600">{progress.errors}</p><p className="text-[13px] text-red-500">Errors</p></div>
               </div>
               {progress.errorLog.length > 0 && (
                 <div className="mt-4 bg-red-50 rounded-xl p-3 max-h-32 overflow-auto">
-                  <p className="text-[10px] font-semibold text-red-600 uppercase mb-1">Error Log</p>
-                  {progress.errorLog.map((e, i) => <p key={i} className="text-xs text-red-500">Row {e.row}: {e.reason}</p>)}
+                  <p className="text-[13px] font-semibold text-red-600 uppercase mb-1">Error Log</p>
+                  {progress.errorLog.map((e, i) => <p key={i} className="text-sm text-red-500">Row {e.row}: {e.reason}</p>)}
                 </div>
               )}
             </div>
@@ -443,12 +443,12 @@ export default function ImportWizard({ open, onClose, onComplete, existingLists 
               <h3 className="text-lg font-bold text-gray-900 mb-1">Import Complete!</h3>
               <p className="text-sm text-gray-500 mb-6">{progress.total} rows processed</p>
               <div className="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                <div className="text-center"><p className="text-2xl font-bold text-green-600">{progress.imported}</p><p className="text-[10px] text-gray-500">New</p></div>
-                <div className="text-center"><p className="text-2xl font-bold text-blue-600">{progress.updated}</p><p className="text-[10px] text-gray-500">Updated</p></div>
-                <div className="text-center"><p className="text-2xl font-bold text-gray-500">{progress.skipped}</p><p className="text-[10px] text-gray-500">Skipped</p></div>
-                <div className="text-center"><p className="text-2xl font-bold text-red-500">{progress.errors}</p><p className="text-[10px] text-gray-500">Errors</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-green-600">{progress.imported}</p><p className="text-[13px] text-gray-500">New</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-blue-600">{progress.updated}</p><p className="text-[13px] text-gray-500">Updated</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-gray-500">{progress.skipped}</p><p className="text-[13px] text-gray-500">Skipped</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-red-500">{progress.errors}</p><p className="text-[13px] text-gray-500">Errors</p></div>
               </div>
-              {importTags.length > 0 && <p className="text-xs text-gray-400 mb-4">Tags applied: {importTags.join(', ')}</p>}
+              {importTags.length > 0 && <p className="text-sm text-gray-400 mb-4">Tags applied: {importTags.join(', ')}</p>}
               <div className="flex gap-2 justify-center">
                 <button onClick={() => { onComplete?.(); onClose() }} className="btn-primary text-sm">View Contacts</button>
                 <button onClick={() => { setStep(1); setFile(null); setParsed(null); setMapping({}); setProgress({ current:0, total:0, imported:0, updated:0, skipped:0, errors:0, errorLog:[] }) }} className="btn-secondary text-sm">Import Another</button>

@@ -102,21 +102,21 @@ export default function ColorPicker({ value = '#000000', onChange, label, mode =
       {/* Format tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5 mb-2">
         {['hex', 'rgb', 'cmyk'].map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`flex-1 text-[10px] py-1 rounded-md font-semibold uppercase transition-colors ${tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} className={`flex-1 text-[13px] py-1 rounded-md font-semibold uppercase transition-colors ${tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}>{t}</button>
         ))}
       </div>
 
       {/* Format inputs */}
       {tab === 'hex' && (
-        <input className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
+        <input className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
           value={hex} onChange={e => handleHexInput(e.target.value)} />
       )}
       {tab === 'rgb' && (
         <div className="flex gap-1.5">
           {['r', 'g', 'b'].map(f => (
             <div key={f} className="flex-1">
-              <label className="text-[9px] text-gray-400 uppercase block mb-0.5 text-center">{f}</label>
-              <input className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-center font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
+              <label className="text-[13px] text-gray-400 uppercase block mb-0.5 text-center">{f}</label>
+              <input className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 text-center font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
                 type="number" min={0} max={255} value={rgb[f]} onChange={e => handleRgbChange(f, e.target.value)} />
             </div>
           ))}
@@ -126,8 +126,8 @@ export default function ColorPicker({ value = '#000000', onChange, label, mode =
         <div className="flex gap-1.5">
           {['c', 'm', 'y', 'k'].map(f => (
             <div key={f} className="flex-1">
-              <label className="text-[9px] text-gray-400 uppercase block mb-0.5 text-center">{f}</label>
-              <input className="w-full text-xs border border-gray-200 rounded-lg px-1.5 py-1.5 text-center font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
+              <label className="text-[13px] text-gray-400 uppercase block mb-0.5 text-center">{f}</label>
+              <input className="w-full text-sm border border-gray-200 rounded-lg px-1.5 py-1.5 text-center font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
                 type="number" min={0} max={100} value={cmyk[f]} onChange={e => handleCmykChange(f, e.target.value)} />
             </div>
           ))}
@@ -147,10 +147,10 @@ export default function ColorPicker({ value = '#000000', onChange, label, mode =
 
   return (
     <div>
-      {label && <label className="text-[10px] text-gray-500 mb-1 block">{label}</label>}
+      {label && <label className="text-[13px] text-gray-500 mb-1 block">{label}</label>}
       <div className="flex items-center gap-2">
         <button onClick={() => setOpen(!open)} style={{ background: value }} className="w-8 h-8 rounded-lg border border-gray-200 shadow-sm flex-shrink-0 hover:scale-105 transition-transform" />
-        <input className="flex-1 text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
+        <input className="flex-1 text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 font-mono focus:outline-none focus:ring-1 focus:ring-brand-400"
           value={hex} onChange={e => handleHexInput(e.target.value)} />
       </div>
       {open && <div className="mt-2">{picker}</div>}

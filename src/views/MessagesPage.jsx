@@ -141,7 +141,7 @@ export default function MessagesPage() {
           <div className="flex-1 overflow-y-auto">
             {Object.entries(groups).map(([group, convos]) => (
               <div key={group}>
-                <p className="text-[12px] font-semibold text-gray-700 uppercase px-4 pt-3 pb-1">{group}</p>
+                <p className="text-[13px] font-semibold text-gray-700 uppercase px-4 pt-3 pb-1">{group}</p>
                 {convos.map(c => (
                   <div key={c.id} onClick={() => setSelectedConvo(c)}
                     className={`px-4 py-3 cursor-pointer border-b border-gray-50 transition-colors ${selectedConvo?.id === c.id ? 'bg-brand-50' : 'hover:bg-gray-50'}`}>
@@ -156,7 +156,7 @@ export default function MessagesPage() {
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
                           <span className="text-[13px] text-gray-700 truncate">{(c.participants || []).map(p => p.name).join(', ') || 'No participants'}</span>
-                          <span className="text-[12px] text-gray-700 flex-shrink-0 ml-1">{c.last_message_at ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true }).replace('about ', '') : ''}</span>
+                          <span className="text-[13px] text-gray-700 flex-shrink-0 ml-1">{c.last_message_at ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true }).replace('about ', '') : ''}</span>
                         </div>
                       </div>
                     </div>
@@ -190,10 +190,10 @@ export default function MessagesPage() {
                   return (
                     <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[70%] ${m.is_internal ? 'bg-amber-50 border border-amber-200' : isMe ? 'bg-brand-500 text-white' : 'bg-gray-100'} rounded-xl px-4 py-3`}>
-                        {m.is_internal && <p className="text-[12px] text-amber-600 font-medium mb-1">🔒 Internal note</p>}
+                        {m.is_internal && <p className="text-[13px] text-amber-600 font-medium mb-1">🔒 Internal note</p>}
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-medium ${isMe && !m.is_internal ? 'text-white/80' : 'text-gray-700'}`}>{m.sender_name || 'Unknown'}</span>
-                          <span className={`text-[12px] ${isMe && !m.is_internal ? 'text-white/50' : 'text-gray-700'}`}>{m.created_at && format(new Date(m.created_at), 'MMM d h:mm a')}</span>
+                          <span className={`text-[13px] ${isMe && !m.is_internal ? 'text-white/50' : 'text-gray-700'}`}>{m.created_at && format(new Date(m.created_at), 'MMM d h:mm a')}</span>
                         </div>
                         <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isMe && !m.is_internal ? 'text-white' : 'text-gray-800'}`}>{m.body}</p>
                       </div>
@@ -230,7 +230,7 @@ export default function MessagesPage() {
         {/* RIGHT — Context */}
         {selectedConvo && (
           <div className="w-72 border-l border-gray-200 overflow-y-auto flex-shrink-0 p-4">
-            <p className="text-[12px] font-semibold text-gray-700 uppercase mb-3">Conversation Details</p>
+            <p className="text-[13px] font-semibold text-gray-700 uppercase mb-3">Conversation Details</p>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-700 mb-1">Type</p>
@@ -241,7 +241,7 @@ export default function MessagesPage() {
                 <div className="space-y-1">
                   {(selectedConvo.participants || []).map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center">{(p.name || p.email || '?')[0].toUpperCase()}</div>
+                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center">{(p.name || p.email || '?')[0].toUpperCase()}</div>
                       <span className="text-sm text-gray-700">{p.name || p.email}</span>
                     </div>
                   ))}

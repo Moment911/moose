@@ -331,7 +331,7 @@ export default function WireframePage() {
           {/* Left palette */}
           <div className="w-44 bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0">
             <div className="p-2.5">
-              <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-1.5 px-1">Components</p>
+              <p className="text-[13px] font-semibold text-gray-700 uppercase tracking-wider mb-1.5 px-1">Components</p>
               {PALETTE.map(p => { const I = p.icon; return (
                 <button key={p.type} onClick={() => addComponent(p.type)} className="w-full flex items-center gap-2 px-2 py-1.5 text-[13px] text-gray-600 hover:bg-gray-100 rounded transition-colors">
                   <I size={12} className="text-gray-700" /> {p.label}
@@ -339,7 +339,7 @@ export default function WireframePage() {
               )})}
             </div>
             <div className="p-2.5 border-t border-gray-100">
-              <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-1.5 px-1">Draw</p>
+              <p className="text-[13px] font-semibold text-gray-700 uppercase tracking-wider mb-1.5 px-1">Draw</p>
               <div className="flex gap-1 mb-2">
                 <button onClick={() => setActiveTool('select')} className={`flex-1 text-[13px] py-1 rounded border ${activeTool === 'select' ? 'bg-gray-100 border-gray-300 text-gray-800 font-medium' : 'border-gray-200 text-gray-700'}`}><MousePointer size={10} className="inline mr-0.5" />V</button>
                 <button onClick={() => setActiveTool('freehand')} className={`flex-1 text-[13px] py-1 rounded border ${activeTool === 'freehand' ? 'bg-brand-50 border-brand-300 text-brand-700 font-medium' : 'border-gray-200 text-gray-700'}`}><PenLine size={10} className="inline mr-0.5" />D</button>
@@ -352,7 +352,7 @@ export default function WireframePage() {
             {/* Text Style Presets */}
             {textStyles.length > 0 && (
               <div className="p-2.5 border-t border-gray-100">
-                <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-1.5 px-1">Text Styles</p>
+                <p className="text-[13px] font-semibold text-gray-700 uppercase tracking-wider mb-1.5 px-1">Text Styles</p>
                 {textStyles.map((s, i) => (
                   <button key={i} onClick={() => applyTextStyle(s)} className="w-full text-left px-2 py-1.5 text-[13px] hover:bg-gray-100 rounded transition-colors flex items-center justify-between group">
                     <span style={{ fontFamily: s.fontFamily, fontSize: Math.min(s.fontSize, 14), fontWeight: s.bold ? 700 : 400, fontStyle: s.italic ? 'italic' : 'normal', color: s.textColor }}>{s.name}</span>
@@ -373,7 +373,7 @@ export default function WireframePage() {
             <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto flex-shrink-0">
               <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
                 <p className="text-[13px] font-semibold text-gray-700 uppercase">Layers</p>
-                <span className="text-[12px] text-gray-700">{components.length}</span>
+                <span className="text-[13px] text-gray-700">{components.length}</span>
               </div>
               {[...components].reverse().map((c, i) => {
                 const Icon = TYPE_ICONS[c.type] || Square
@@ -452,16 +452,16 @@ export default function WireframePage() {
           {/* Properties panel */}
           {sel && (
             <div className="w-52 bg-white border-l border-gray-100 p-3 overflow-y-auto flex-shrink-0">
-              <p className="text-[12px] font-semibold text-gray-700 uppercase mb-2">Properties</p>
+              <p className="text-[13px] font-semibold text-gray-700 uppercase mb-2">Properties</p>
               <div className="space-y-2.5">
-                <div><label className="text-[12px] text-gray-700 mb-0.5 block">Name</label><input className="input text-[13px] py-1" value={sel.name || ''} onChange={e => updateComp(sel.id, { name: e.target.value })} onBlur={pushHistory} /></div>
-                <div><label className="text-[12px] text-gray-700 mb-0.5 block">Position</label><div className="flex gap-1.5"><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.x)} onChange={e => updateComp(sel.id, { x: +e.target.value || 0 })} onBlur={pushHistory} /><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.y)} onChange={e => updateComp(sel.id, { y: +e.target.value || 0 })} onBlur={pushHistory} /></div></div>
-                <div><label className="text-[12px] text-gray-700 mb-0.5 block">Size</label><div className="flex gap-1.5"><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.width)} onChange={e => updateComp(sel.id, { width: +e.target.value || 20 })} onBlur={pushHistory} /><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.height)} onChange={e => updateComp(sel.id, { height: +e.target.value || 10 })} onBlur={pushHistory} /></div></div>
-                {sel.text !== undefined && <div><label className="text-[12px] text-gray-700 mb-0.5 block">Text</label><textarea className="input text-[13px] py-1 w-full resize-none" rows={2} value={sel.text} onChange={e => updateComp(sel.id, { text: e.target.value })} onBlur={pushHistory} /></div>}
+                <div><label className="text-[13px] text-gray-700 mb-0.5 block">Name</label><input className="input text-[13px] py-1" value={sel.name || ''} onChange={e => updateComp(sel.id, { name: e.target.value })} onBlur={pushHistory} /></div>
+                <div><label className="text-[13px] text-gray-700 mb-0.5 block">Position</label><div className="flex gap-1.5"><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.x)} onChange={e => updateComp(sel.id, { x: +e.target.value || 0 })} onBlur={pushHistory} /><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.y)} onChange={e => updateComp(sel.id, { y: +e.target.value || 0 })} onBlur={pushHistory} /></div></div>
+                <div><label className="text-[13px] text-gray-700 mb-0.5 block">Size</label><div className="flex gap-1.5"><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.width)} onChange={e => updateComp(sel.id, { width: +e.target.value || 20 })} onBlur={pushHistory} /><input className="input text-[13px] py-1 w-full" type="number" value={Math.round(sel.height)} onChange={e => updateComp(sel.id, { height: +e.target.value || 10 })} onBlur={pushHistory} /></div></div>
+                {sel.text !== undefined && <div><label className="text-[13px] text-gray-700 mb-0.5 block">Text</label><textarea className="input text-[13px] py-1 w-full resize-none" rows={2} value={sel.text} onChange={e => updateComp(sel.id, { text: e.target.value })} onBlur={pushHistory} /></div>}
                 {sel.type === 'text' && (<>
                   <div className="flex gap-1.5">
-                    <div className="flex-1"><label className="text-[12px] text-gray-700 mb-0.5 block">Size</label><input className="input text-[13px] py-1 w-full" type="number" min={8} max={120} value={sel.fontSize || 14} onChange={e => updateComp(sel.id, { fontSize: +e.target.value || 14 })} onBlur={pushHistory} /></div>
-                    <div className="flex-1"><label className="text-[12px] text-gray-700 mb-0.5 block">Weight</label>
+                    <div className="flex-1"><label className="text-[13px] text-gray-700 mb-0.5 block">Size</label><input className="input text-[13px] py-1 w-full" type="number" min={8} max={120} value={sel.fontSize || 14} onChange={e => updateComp(sel.id, { fontSize: +e.target.value || 14 })} onBlur={pushHistory} /></div>
+                    <div className="flex-1"><label className="text-[13px] text-gray-700 mb-0.5 block">Weight</label>
                       <select className="input text-[13px] py-1 w-full" value={sel.fontWeight || (sel.bold ? 700 : 400)} onChange={e => { updateComp(sel.id, { fontWeight: +e.target.value, bold: +e.target.value >= 600 }); pushHistory() }}>
                         {[{v:100,l:'Thin'},{v:200,l:'ExLight'},{v:300,l:'Light'},{v:400,l:'Regular'},{v:500,l:'Medium'},{v:600,l:'SemiBold'},{v:700,l:'Bold'},{v:800,l:'ExBold'},{v:900,l:'Black'}].map(w => (
                           <option key={w.v} value={w.v} style={{ fontWeight: w.v }}>{w.v} {w.l}</option>
@@ -474,15 +474,15 @@ export default function WireframePage() {
                     <button onClick={() => { updateComp(sel.id, { underline: !sel.underline }); pushHistory() }} className={`flex-1 text-[13px] py-1 rounded border ${sel.underline ? 'bg-gray-200 border-gray-400' : 'border-gray-200 text-gray-700'}`}>Underline</button>
                   </div>
                   <div className="flex gap-1.5">
-                    <div className="flex-1"><label className="text-[12px] text-gray-700 mb-0.5 block">Align</label>
+                    <div className="flex-1"><label className="text-[13px] text-gray-700 mb-0.5 block">Align</label>
                       <div className="flex">
                         {['left','center','right'].map(a => (
                           <button key={a} onClick={() => { updateComp(sel.id, { textAlign: a }); pushHistory() }}
-                            className={`flex-1 text-[12px] py-1 border ${(sel.textAlign || 'left') === a ? 'bg-gray-200 border-gray-400 font-medium' : 'border-gray-200 text-gray-700'} ${a === 'left' ? 'rounded-l' : a === 'right' ? 'rounded-r' : ''}`}>{a[0].toUpperCase()}</button>
+                            className={`flex-1 text-[13px] py-1 border ${(sel.textAlign || 'left') === a ? 'bg-gray-200 border-gray-400 font-medium' : 'border-gray-200 text-gray-700'} ${a === 'left' ? 'rounded-l' : a === 'right' ? 'rounded-r' : ''}`}>{a[0].toUpperCase()}</button>
                         ))}
                       </div>
                     </div>
-                    <div className="flex-1"><label className="text-[12px] text-gray-700 mb-0.5 block">Line H</label>
+                    <div className="flex-1"><label className="text-[13px] text-gray-700 mb-0.5 block">Line H</label>
                       <input className="input text-[13px] py-1 w-full" type="number" min={1} max={3} step={0.1} value={sel.lineHeight || 1.5} onChange={e => updateComp(sel.id, { lineHeight: +e.target.value || 1.5 })} onBlur={pushHistory} />
                     </div>
                   </div>
@@ -497,12 +497,12 @@ export default function WireframePage() {
                 {['rect','button','card','circle'].includes(sel.type) && (<>
                   <ColorPicker label="Background" value={sel.bgColor || (sel.type === 'button' ? '#231f20' : '#e5e7eb')} onChange={c => { updateComp(sel.id, { bgColor: c }); pushHistory() }} />
                   <div className="flex gap-1.5">
-                    <div className="flex-1"><label className="text-[12px] text-gray-700 mb-0.5 block">Border W</label><input className="input text-[13px] py-1 w-full" type="number" min={0} max={10} value={sel.borderWidth ?? 1} onChange={e => { updateComp(sel.id, { borderWidth: +e.target.value }); pushHistory() }} /></div>
-                    <div className="flex-1"><label className="text-[12px] text-gray-700 mb-0.5 block">Radius</label><input className="input text-[13px] py-1 w-full" type="number" min={0} max={100} value={sel.borderRadius ?? 4} onChange={e => { updateComp(sel.id, { borderRadius: +e.target.value }); pushHistory() }} /></div>
+                    <div className="flex-1"><label className="text-[13px] text-gray-700 mb-0.5 block">Border W</label><input className="input text-[13px] py-1 w-full" type="number" min={0} max={10} value={sel.borderWidth ?? 1} onChange={e => { updateComp(sel.id, { borderWidth: +e.target.value }); pushHistory() }} /></div>
+                    <div className="flex-1"><label className="text-[13px] text-gray-700 mb-0.5 block">Radius</label><input className="input text-[13px] py-1 w-full" type="number" min={0} max={100} value={sel.borderRadius ?? 4} onChange={e => { updateComp(sel.id, { borderRadius: +e.target.value }); pushHistory() }} /></div>
                   </div>
                   <ColorPicker label="Border Color" value={sel.borderColor || '#d1d5db'} onChange={c => { updateComp(sel.id, { borderColor: c }); pushHistory() }} />
                 </>)}
-                <div><label className="text-[12px] text-gray-700 mb-0.5 block">Opacity</label><input className="input text-[13px] py-1 w-full" type="range" min={0} max={1} step={0.05} value={sel.opacity ?? 1} onChange={e => { updateComp(sel.id, { opacity: +e.target.value }); pushHistory() }} /><span className="text-[12px] text-gray-700">{Math.round((sel.opacity ?? 1) * 100)}%</span></div>
+                <div><label className="text-[13px] text-gray-700 mb-0.5 block">Opacity</label><input className="input text-[13px] py-1 w-full" type="range" min={0} max={1} step={0.05} value={sel.opacity ?? 1} onChange={e => { updateComp(sel.id, { opacity: +e.target.value }); pushHistory() }} /><span className="text-[13px] text-gray-700">{Math.round((sel.opacity ?? 1) * 100)}%</span></div>
                 <div className="flex gap-1.5">
                   <button onClick={() => { const idx = components.findIndex(c => c.id === sel.id); if (idx < components.length - 1) { const next = [...components]; const [item] = next.splice(idx, 1); next.push(item); updatePage(activePageId, { components: next }); pushHistory() } }} className="flex-1 text-[13px] py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100"><ChevronUp size={9} className="inline" /> Front</button>
                   <button onClick={() => { const idx = components.findIndex(c => c.id === sel.id); if (idx > 0) { const next = [...components]; const [item] = next.splice(idx, 1); next.unshift(item); updatePage(activePageId, { components: next }); pushHistory() } }} className="flex-1 text-[13px] py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100"><ChevronDown size={9} className="inline" /> Back</button>

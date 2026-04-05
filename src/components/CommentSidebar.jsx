@@ -37,12 +37,12 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
       <div className="px-4 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between mb-2.5">
           <h3 className="font-semibold text-gray-900 text-[13px]">Comments</h3>
-          <span className="text-[11px] text-gray-400">{openCount} open &middot; {resolvedCount} resolved</span>
+          <span className="text-[13px] text-gray-400">{openCount} open &middot; {resolvedCount} resolved</span>
         </div>
         <div className="flex bg-gray-100 rounded-lg p-0.5">
           {['all', 'open', 'resolved'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`flex-1 text-[11px] py-1 rounded-md font-medium transition-colors capitalize ${
+              className={`flex-1 text-[13px] py-1 rounded-md font-medium transition-colors capitalize ${
                 filter === f ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}>{f}</button>
           ))}
@@ -54,7 +54,7 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
         {filtered.length === 0 && (
           <div className="text-center py-16 px-4">
             <MessageSquare size={24} className="text-gray-200 mx-auto mb-2" />
-            <p className="text-[12px] text-gray-400">{filter === 'all' ? 'No comments yet' : `No ${filter} comments`}</p>
+            <p className="text-[13px] text-gray-400">{filter === 'all' ? 'No comments yet' : `No ${filter} comments`}</p>
           </div>
         )}
 
@@ -78,16 +78,16 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                   {ann.type === 'approve' ? (
                     <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5"><Check size={12} className="text-white" /></div>
                   ) : num !== null ? (
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ background: ann.color || avatarColor }}>{num}</div>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0 mt-0.5" style={{ background: ann.color || avatarColor }}>{num}</div>
                   ) : (
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5" style={{ background: avatarColor }}>{initials}</div>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0 mt-0.5" style={{ background: avatarColor }}>{initials}</div>
                   )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[12px] font-medium text-gray-800">{ann.author || 'Anonymous'}</span>
+                      <span className="text-[13px] font-medium text-gray-800">{ann.author || 'Anonymous'}</span>
                       <div className="flex items-center gap-1.5">
-                        {ann.resolved && <span className="text-[9px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-medium">Resolved</span>}
+                        {ann.resolved && <span className="text-[13px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-medium">Resolved</span>}
                         <button onClick={e => { e.stopPropagation(); setCollapsed(c => ({ ...c, [ann.id]: isOpen })) }} className="text-gray-300 hover:text-gray-500">
                           {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
@@ -97,10 +97,10 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                     {isOpen && (
                       <>
                         {ann.type === 'approve' ? (
-                          <p className="text-[12px] text-green-600 font-medium mt-1">Approved this section</p>
+                          <p className="text-[13px] text-green-600 font-medium mt-1">Approved this section</p>
                         ) : ann.text ? (
                           <div className="mt-1">
-                            <p className="text-[12px] text-gray-600 leading-relaxed whitespace-pre-wrap" style={{ textDecoration: ann.resolved ? 'line-through' : 'none' }}>
+                            <p className="text-[13px] text-gray-600 leading-relaxed whitespace-pre-wrap" style={{ textDecoration: ann.resolved ? 'line-through' : 'none' }}>
                               {ann.text.replace(/\[Screenshot:.*?\]/g, '').trim()}
                             </p>
                             {/* Render attached screenshots */}
@@ -110,10 +110,10 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                             })}
                           </div>
                         ) : (
-                          <p className="text-[12px] text-gray-400 italic mt-1">No comment</p>
+                          <p className="text-[13px] text-gray-400 italic mt-1">No comment</p>
                         )}
 
-                        {ann.created_at && <p className="text-[10px] text-gray-400 mt-1.5">{format(new Date(ann.created_at), 'MMM d, h:mm a')}</p>}
+                        {ann.created_at && <p className="text-[13px] text-gray-400 mt-1.5">{format(new Date(ann.created_at), 'MMM d, h:mm a')}</p>}
 
                         {/* Replies */}
                         {annReplies.length > 0 && (
@@ -122,10 +122,10 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                               <div key={r.id} className="pl-3 border-l-2 border-gray-200">
                                 <div className="flex items-center gap-1.5">
                                   <div className="w-4 h-4 rounded-full text-white text-[7px] font-bold flex items-center justify-center flex-shrink-0" style={{ background: getAvatarColor(r.author) }}>{getInitials(r.author)}</div>
-                                  <span className="text-[11px] font-medium text-gray-700">{r.author}</span>
-                                  {r.created_at && <span className="text-[9px] text-gray-400">{format(new Date(r.created_at), 'MMM d, h:mm a')}</span>}
+                                  <span className="text-[13px] font-medium text-gray-700">{r.author}</span>
+                                  {r.created_at && <span className="text-[13px] text-gray-400">{format(new Date(r.created_at), 'MMM d, h:mm a')}</span>}
                                 </div>
-                                <p className="text-[11px] text-gray-600 mt-0.5 leading-relaxed">{r.text}</p>
+                                <p className="text-[13px] text-gray-600 mt-0.5 leading-relaxed">{r.text}</p>
                               </div>
                             ))}
                           </div>
@@ -135,18 +135,18 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                         <div className="flex items-center gap-2 mt-1.5">
                           {onAddReply && ann.type !== 'approve' && (
                             <button onClick={e => { e.stopPropagation(); setReplyingTo(replyingTo === ann.id ? null : ann.id); setReplyText('') }}
-                              className="text-[10px] text-gray-400 hover:text-brand-500 flex items-center gap-1 transition-colors">
+                              className="text-[13px] text-gray-400 hover:text-brand-500 flex items-center gap-1 transition-colors">
                               <Reply size={9} /> Reply{annReplies.length > 0 ? ` (${annReplies.length})` : ''}
                             </button>
                           )}
                           {onCreateTask && ann.type !== 'approve' && (
                             <button onClick={e => { e.stopPropagation(); onCreateTask(ann) }}
-                              className="text-[10px] text-gray-400 hover:text-blue-500 flex items-center gap-1 transition-colors">
+                              className="text-[13px] text-gray-400 hover:text-blue-500 flex items-center gap-1 transition-colors">
                               <ListTodo size={9} /> Task
                             </button>
                           )}
                           {onUploadScreenshot && (
-                            <label className="text-[10px] text-gray-400 hover:text-gray-600 flex items-center gap-1 cursor-pointer transition-colors" onClick={e => e.stopPropagation()}>
+                            <label className="text-[13px] text-gray-400 hover:text-gray-600 flex items-center gap-1 cursor-pointer transition-colors" onClick={e => e.stopPropagation()}>
                               <Paperclip size={9} /> Attach
                               <input type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files?.[0]) onUploadScreenshot(e.target.files[0], ann); e.target.value = '' }} />
                             </label>
@@ -155,12 +155,12 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
 
                         {replyingTo === ann.id && (
                           <div className="mt-2 flex gap-1.5" onClick={e => e.stopPropagation()}>
-                            <input className="flex-1 text-[11px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                            <input className="flex-1 text-[13px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
                               placeholder="Reply..." value={replyText} onChange={e => setReplyText(e.target.value)}
                               onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') handleReplySubmit(ann.id); if (e.key === 'Escape') setReplyingTo(null) }}
                               autoFocus />
                             <button onClick={() => handleReplySubmit(ann.id)} disabled={!replyText.trim()}
-                              className="text-[11px] bg-brand-500 text-white px-2.5 py-1.5 rounded-lg disabled:opacity-40 transition-colors"><Send size={10} /></button>
+                              className="text-[13px] bg-brand-500 text-white px-2.5 py-1.5 rounded-lg disabled:opacity-40 transition-colors"><Send size={10} /></button>
                           </div>
                         )}
                       </>
@@ -176,7 +176,7 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
       {/* Typing indicator */}
       {typingUser && (
         <div className="px-4 py-2 border-t border-gray-100 flex-shrink-0">
-          <span className="text-[11px] text-gray-400 flex items-center gap-1">
+          <span className="text-[13px] text-gray-400 flex items-center gap-1">
             {typingUser} is typing
             <span className="inline-flex gap-0.5"><span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} /><span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} /><span className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} /></span>
           </span>

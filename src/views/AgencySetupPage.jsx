@@ -395,7 +395,7 @@ export default function AgencySetupPage() {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontSize:15, fontWeight:700, color:active?'#111':'#374151', display:'flex', alignItems:'center', gap:6 }}>
                           {s.label}
-                          {s.required && <span style={{ fontSize:12, fontWeight:800, color:ACCENT, background:'#f0fbfc', padding:'1px 5px', borderRadius:4, border:`1px solid ${ACCENT}30` }}>REQ</span>}
+                          {s.required && <span style={{ fontSize:13, fontWeight:800, color:ACCENT, background:'#f0fbfc', padding:'1px 5px', borderRadius:4, border:`1px solid ${ACCENT}30` }}>REQ</span>}
                         </div>
                         <div style={{ fontSize:13, color:'#4b5563', marginTop:1 }}>{s.sublabel}</div>
                       </div>

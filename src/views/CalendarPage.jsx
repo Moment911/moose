@@ -167,7 +167,7 @@ export default function CalendarPage() {
                             {ev.title}
                           </div>
                         ))}
-                        {dayEvents.length > 3 && <span className="text-[12px] text-gray-700 pl-1">+{dayEvents.length - 3} more</span>}
+                        {dayEvents.length > 3 && <span className="text-[13px] text-gray-700 pl-1">+{dayEvents.length - 3} more</span>}
                       </div>
                     </div>
                   )

@@ -354,7 +354,7 @@ function ContactRow({ icon: Icon, label, value, onCopy, link }) {
     <div className="flex items-center gap-3">
       <Icon size={14} className="text-slate-400 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        {label && <p className="text-[12px] text-slate-400 uppercase">{label}</p>}
+        {label && <p className="text-[13px] text-slate-400 uppercase">{label}</p>}
         {link ? <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-500 hover:underline truncate block">{value}</a>
           : <p className="text-sm text-slate-700 truncate">{value}</p>}
       </div>

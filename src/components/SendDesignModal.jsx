@@ -51,15 +51,15 @@ export default function SendDesignModal({ project, files, direction = 'to-client
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">To</label>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">To</label>
             <input className="input text-sm" type="email" placeholder="client@company.com" value={to} onChange={e => setTo(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Subject</label>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Subject</label>
             <input className="input text-sm" value={subject} onChange={e => setSubject(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Message</label>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Message</label>
             <textarea className="input text-sm resize-none" rows={5} value={message} onChange={e => setMessage(e.target.value)} />
           </div>
 
@@ -72,7 +72,7 @@ export default function SendDesignModal({ project, files, direction = 'to-client
 
           {files && files.length > 0 && (
             <div>
-              <label className="text-xs font-medium text-gray-700 mb-2 block">Attach files</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Attach files</label>
               <div className="space-y-1 max-h-32 overflow-y-auto">
                 {files.filter(f => !f.type?.startsWith('video/')).map(f => (
                   <label key={f.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer">

@@ -76,7 +76,7 @@ export default function PDFViewer({ url, onDimensionsChange }) {
         >
           <ZoomOut size={15} />
         </button>
-        <span className="text-xs text-gray-500 w-10 text-center">{Math.round(scale * 100)}%</span>
+        <span className="text-sm text-gray-500 w-10 text-center">{Math.round(scale * 100)}%</span>
         <button
           onClick={() => setScale(s => Math.min(3, s + 0.2))}
           className="text-gray-500 hover:text-gray-900"

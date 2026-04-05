@@ -66,8 +66,8 @@ Be concise, actionable, and professional. Format responses with markdown headers
       .replace(/# (.*)/g, '<h1 class="font-bold text-lg mt-3 mb-2">$1</h1>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^- (.*)/gm, '<li class="ml-4 list-disc text-xs leading-relaxed">$1</li>')
-      .replace(/^(\d+)\. (.*)/gm, '<li class="ml-4 list-decimal text-xs leading-relaxed">$2</li>')
+      .replace(/^- (.*)/gm, '<li class="ml-4 list-disc text-sm leading-relaxed">$1</li>')
+      .replace(/^(\d+)\. (.*)/gm, '<li class="ml-4 list-decimal text-sm leading-relaxed">$2</li>')
       .replace(/\n\n/g, '<br/><br/>')
       .replace(/\n/g, '<br/>')
   }
@@ -94,7 +94,7 @@ Be concise, actionable, and professional. Format responses with markdown headers
             <div className="flex flex-wrap gap-1.5 justify-center">
               {SUGGESTED_PROMPTS.map(p => (
                 <button key={p} onClick={() => handleSend(p)}
-                  className="text-xs px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors border border-brand-200">
+                  className="text-sm px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors border border-brand-200">
                   {p}
                 </button>
               ))}
@@ -105,18 +105,18 @@ Be concise, actionable, and professional. Format responses with markdown headers
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-xl px-3.5 py-2.5 ${
-              m.role === 'user' ? 'bg-brand-500 text-white text-xs' : 'bg-gray-100 text-gray-800'
+              m.role === 'user' ? 'bg-brand-500 text-white text-sm' : 'bg-gray-100 text-gray-800'
             }`}>
               {m.role === 'user' ? (
-                <p className="text-xs">{m.content}</p>
+                <p className="text-sm">{m.content}</p>
               ) : m.content ? (
                 <div className="relative group">
-                  <div className="text-xs leading-relaxed prose-sm" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
+                  <div className="text-sm leading-relaxed prose-sm" dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
                   <button onClick={() => copyMessage(m.content)}
                     className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 p-1 transition-opacity"><Copy size={10} /></button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-xs text-gray-400"><Loader2 size={12} className="animate-spin" /> Thinking...</div>
+                <div className="flex items-center gap-2 text-sm text-gray-400"><Loader2 size={12} className="animate-spin" /> Thinking...</div>
               )}
             </div>
           </div>
@@ -127,7 +127,7 @@ Be concise, actionable, and professional. Format responses with markdown headers
       {messages.length > 0 && !loading && (
         <div className="px-4 py-2 flex gap-1.5 overflow-x-auto flex-shrink-0 border-t border-gray-50">
           {SUGGESTED_PROMPTS.slice(0, 3).map(p => (
-            <button key={p} onClick={() => handleSend(p)} className="text-[10px] px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors whitespace-nowrap">{p}</button>
+            <button key={p} onClick={() => handleSend(p)} className="text-[13px] px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors whitespace-nowrap">{p}</button>
           ))}
         </div>
       )}

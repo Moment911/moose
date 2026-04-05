@@ -51,7 +51,7 @@ function TemplateField({ label, value, onChange, rows=6, aiContext='' }) {
         <label style={{ fontSize:13, fontWeight:800, color:'#111' }}>{label}</label>
         {value?.trim() && (
           <button onClick={aiEnhance} disabled={generating}
-            style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+            style={{ display:'flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:7, border:'none', background:'#7c3aed', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
             {generating?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>} {generating?'Enhancing…':'AI Enhance'}
           </button>
         )}
@@ -187,7 +187,7 @@ export default function PlatformAdminPage() {
       {/* Inner admin nav */}
       <div style={{ width:240, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ padding:'20px 18px 14px', borderBottom:'1px solid #f3f4f6' }}>
-          <div style={{ fontSize:11, fontWeight:800, color:ACCENT, textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>Platform Admin</div>
+          <div style={{ fontSize:13, fontWeight:800, color:ACCENT, textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>Platform Admin</div>
           <div style={{ fontSize:20, fontWeight:900, color:'#111' }}>Agency Controls</div>
           <div style={{ fontSize:13, color:'#374151', marginTop:2 }}>{agencyName}</div>
         </div>
@@ -200,7 +200,7 @@ export default function PlatformAdminPage() {
                 <I size={16} color={section===s.key?ACCENT:'#374151'}/>
                 <div>
                   <div>{s.label}</div>
-                  <div style={{ fontSize:12, color:'#374151', fontWeight:500 }}>{s.desc}</div>
+                  <div style={{ fontSize:13, color:'#374151', fontWeight:500 }}>{s.desc}</div>
                 </div>
               </button>
             )

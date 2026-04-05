@@ -97,12 +97,12 @@ ${context}`
         {loaded && (
           <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
             <button onClick={() => { navigator.clipboard.writeText(result); toast.success('Copied!') }}
-              className="btn-secondary text-xs"><Copy size={13} /> Copy to Clipboard</button>
+              className="btn-secondary text-sm"><Copy size={13} /> Copy to Clipboard</button>
             <button onClick={async () => {
               await sendEmailSummary({ type: 'ai_summary', project_name: projectName, summary: result })
               toast.success('Emailed!')
-            }} className="btn-secondary text-xs"><Send size={13} /> Email to Myself</button>
-            <button onClick={onClose} className="btn-primary text-xs">Done</button>
+            }} className="btn-secondary text-sm"><Send size={13} /> Email to Myself</button>
+            <button onClick={onClose} className="btn-primary text-sm">Done</button>
           </div>
         )}
       </div>

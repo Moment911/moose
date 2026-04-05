@@ -108,7 +108,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
             <h2 className="font-semibold text-gray-900">
               {submitted ? 'Feedback Submitted!' : `Submit Feedback \u2014 Round ${roundNumber}`}
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">{project.name}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{project.name}</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
@@ -130,12 +130,12 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                 Moose has been notified and will review your feedback.
               </p>
               {roundNumber < maxRounds && (
-                <p className="text-xs text-gray-400 mt-4">
+                <p className="text-sm text-gray-400 mt-4">
                   You have {maxRounds - roundNumber} revision round{maxRounds - roundNumber !== 1 ? 's' : ''} remaining.
                 </p>
               )}
               {roundNumber >= maxRounds && (
-                <div className="mt-4 bg-amber-50 text-amber-800 text-xs px-4 py-3 rounded-xl">
+                <div className="mt-4 bg-amber-50 text-amber-800 text-sm px-4 py-3 rounded-xl">
                   All revision rounds complete. Contact Moose for additional revisions.
                 </div>
               )}
@@ -159,7 +159,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
               <div className="bg-brand-50 rounded-xl px-4 py-3 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-brand-800">Round {roundNumber} of {maxRounds}</span>
-                  <span className="text-xs text-brand-600">{maxRounds - roundNumber} round{maxRounds - roundNumber !== 1 ? 's' : ''} remaining after this</span>
+                  <span className="text-sm text-brand-600">{maxRounds - roundNumber} round{maxRounds - roundNumber !== 1 ? 's' : ''} remaining after this</span>
                 </div>
               </div>
 
@@ -167,7 +167,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                 <div className="text-center py-8">
                   <MessageSquare size={32} className="text-gray-300 mx-auto mb-3" />
                   <p className="text-sm text-gray-500">No new comments to submit.</p>
-                  <p className="text-xs text-gray-400 mt-1">Add comments to the design files before submitting.</p>
+                  <p className="text-sm text-gray-400 mt-1">Add comments to the design files before submitting.</p>
                 </div>
               ) : (
                 <>
@@ -184,18 +184,18 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                       <div key={file.id} className="border border-gray-200 rounded-xl overflow-hidden">
                         <div className="bg-gray-50 px-4 py-2.5 flex items-center gap-2">
                           <FileText size={13} className="text-gray-400" />
-                          <span className="text-xs font-medium text-gray-700 flex-1 truncate">{file.name}</span>
-                          <span className="text-xs text-gray-500">{anns.length} comment{anns.length !== 1 ? 's' : ''}</span>
+                          <span className="text-sm font-medium text-gray-700 flex-1 truncate">{file.name}</span>
+                          <span className="text-sm text-gray-500">{anns.length} comment{anns.length !== 1 ? 's' : ''}</span>
                         </div>
                         <div className="divide-y divide-gray-100">
                           {anns.map(a => (
                             <div key={a.id} className="px-4 py-2 flex items-start gap-2">
-                              <span className="text-xs text-gray-400 flex-shrink-0 mt-0.5">
+                              <span className="text-sm text-gray-400 flex-shrink-0 mt-0.5">
                                 {a.type === 'pin' ? '\ud83d\udccd' : a.type === 'arrow' ? '\u2197' : a.type === 'circle' ? '\u25ef' : a.type === 'rect' ? '\u25ad' : '\u270f\ufe0f'}
                               </span>
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs text-gray-700 truncate">{a.text || '(no text)'}</p>
-                                <p className="text-[10px] text-gray-400">{a.author || 'Unknown'}</p>
+                                <p className="text-sm text-gray-700 truncate">{a.text || '(no text)'}</p>
+                                <p className="text-[13px] text-gray-400">{a.author || 'Unknown'}</p>
                               </div>
                             </div>
                           ))}
@@ -206,7 +206,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
 
                   {/* Name confirmation */}
                   <div className="mb-4">
-                    <label className="text-xs font-medium text-gray-700 mb-1.5 block">Your name (to confirm submission)</label>
+                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Your name (to confirm submission)</label>
                     <input
                       className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
                       placeholder="Enter your full name..."
@@ -216,7 +216,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                   </div>
 
                   {error && (
-                    <div className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-4">{error}</div>
+                    <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-4">{error}</div>
                   )}
                 </>
               )}

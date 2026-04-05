@@ -42,7 +42,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
       <Icon size={sub?13:14} style={{flexShrink:0,color:active?R:'inherit',opacity:active?1:.65}}/>
       <span style={{flex:1,lineHeight:1.2}}>{label}</span>
       {badge && (
-        <span style={{fontSize:9,fontWeight:800,padding:'2px 6px',borderRadius:20,
+        <span style={{fontSize:13,fontWeight:800,padding:'2px 6px',borderRadius:20,
           background:badgeColor||T,color:'#fff',letterSpacing:'.07em',lineHeight:1.4}}>
           {badge}
         </span>
@@ -53,7 +53,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
 
 function Section({ label }) {
   return (
-    <div style={{padding:'18px 14px 4px',fontSize:9,fontWeight:800,
+    <div style={{padding:'18px 14px 4px',fontSize:13,fontWeight:800,
       color:'rgba(255,255,255,.2)',textTransform:'uppercase',letterSpacing:'.12em'}}>
       {label}
     </div>
@@ -97,7 +97,7 @@ export default function Sidebar() {
         display:'flex',flexDirection:'column',
         height:'100vh',overflow:'hidden',flexShrink:0,
         borderRight:'1px solid rgba(255,255,255,.06)',
-        fontFamily:"'DM Sans',sans-serif",
+        fontFamily:"var(--font-body)",
       }}>
 
         {/* Logo */}
@@ -108,9 +108,9 @@ export default function Sidebar() {
               <Zap size={15} color="#fff" strokeWidth={2.5}/>
             </div>
             <div>
-              <div style={{fontFamily:"'Syne',sans-serif",fontSize:16,fontWeight:800,
+              <div style={{fontFamily:"var(--font-display)",fontSize:16,fontWeight:800,
                 color:W,letterSpacing:'-.03em',lineHeight:1}}>Moose</div>
-              <div style={{fontSize:10,color:'rgba(255,255,255,.3)',letterSpacing:'.04em',marginTop:1}}>
+              <div style={{fontSize:13,color:'rgba(255,255,255,.3)',letterSpacing:'.04em',marginTop:1}}>
                 AI Platform
               </div>
             </div>
@@ -164,7 +164,7 @@ export default function Sidebar() {
                       display:'flex',alignItems:'center',gap:8,
                       padding:'5px 14px 5px 36px',borderRadius:8,
                       textDecoration:'none',color:'rgba(255,255,255,.38)',
-                      fontSize:12,transition:'all .12s',
+                      fontSize:13,transition:'all .12s',
                     }}
                       onMouseEnter={e=>{e.currentTarget.style.color='rgba(255,255,255,.75)'}}
                       onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,255,255,.38)'}}>
@@ -189,15 +189,15 @@ export default function Sidebar() {
             background:'rgba(255,255,255,.04)'}}>
             <div style={{width:28,height:28,borderRadius:'50%',background:R,flexShrink:0,
               display:'flex',alignItems:'center',justifyContent:'center',
-              fontSize:12,fontWeight:800,color:'#fff'}}>
+              fontSize:13,fontWeight:800,color:'#fff'}}>
               {(firstName||'A')[0].toUpperCase()}
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:12,fontWeight:700,color:W,
+              <div style={{fontSize:13,fontWeight:700,color:W,
                 overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                 {firstName||user?.email?.split('@')[0]||'Agent'}
               </div>
-              <div style={{fontSize:10,color:'rgba(255,255,255,.3)'}}>Agency</div>
+              <div style={{fontSize:13,color:'rgba(255,255,255,.3)'}}>Agency</div>
             </div>
             <button onClick={()=>signOut().then(()=>navigate('/login'))}
               style={{padding:5,border:'none',background:'none',cursor:'pointer',

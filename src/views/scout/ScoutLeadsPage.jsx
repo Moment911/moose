@@ -77,7 +77,7 @@ export default function ScoutLeadsPage() {
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" style={{ overflowX: 'auto' }}>
-          <div className="grid grid-cols-[1fr_120px_80px_100px_80px_60px] gap-3 px-5 py-2.5 bg-slate-50 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b">
+          <div className="grid grid-cols-[1fr_120px_80px_100px_80px_60px] gap-3 px-5 py-2.5 bg-slate-50 text-[13px] font-semibold text-slate-500 uppercase tracking-wider border-b">
             <div>Business</div><div>Email</div><div>Score</div><div>Temperature</div><div>Reviews</div><div></div>
           </div>
           {filtered.length === 0 && <div className="py-16 text-center text-sm text-slate-400">{contacts.length === 0 ? 'No SCOUT leads yet. Run a search to find leads!' : 'No leads match your filters'}</div>}
@@ -86,7 +86,7 @@ export default function ScoutLeadsPage() {
               <div><p className="text-sm font-medium text-slate-800">{c.company || c.first_name || c.email}</p><p className="text-[13px] text-slate-400">{c.city}{c.state ? `, ${c.state}` : ''}</p></div>
               <span className="text-sm text-slate-500 truncate">{c.email}</span>
               <span className="text-sm font-bold px-2 py-0.5 rounded-full text-center" style={{ background: scoreColor(c.scout_score || 50) + '20', color: scoreColor(c.scout_score || 50) }}>{c.scout_score || '—'}</span>
-              <div className="flex flex-wrap gap-0.5">{(c.tags || []).filter(t => t.includes('Lead')).slice(0, 1).map(t => <span key={t} className="text-[12px] bg-red-50 text-brand-600 px-1.5 py-0.5 rounded-full">{t}</span>)}</div>
+              <div className="flex flex-wrap gap-0.5">{(c.tags || []).filter(t => t.includes('Lead')).slice(0, 1).map(t => <span key={t} className="text-[13px] bg-red-50 text-brand-600 px-1.5 py-0.5 rounded-full">{t}</span>)}</div>
               <span className="text-sm text-slate-500">⭐ {c.scout_review_rating || '—'}</span>
               <button onClick={e => { e.stopPropagation(); navigate(`/marketing/contacts/${c.id}`) }} className="text-slate-400 hover:text-brand-500"><ExternalLink size={13} /></button>
             </div>

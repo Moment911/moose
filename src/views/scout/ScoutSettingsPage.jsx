@@ -54,7 +54,7 @@ export default function ScoutSettingsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-semibold text-slate-800">{api.name}</h3>
-                          {hasKey ? <span className="text-[12px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex items-center gap-0.5"><Check size={8} /> Connected</span> : <span className="text-[12px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium flex items-center gap-0.5"><AlertTriangle size={8} /> Not configured</span>}
+                          {hasKey ? <span className="text-[13px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex items-center gap-0.5"><Check size={8} /> Connected</span> : <span className="text-[13px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium flex items-center gap-0.5"><AlertTriangle size={8} /> Not configured</span>}
                         </div>
                         <p className="text-sm text-slate-500 mt-0.5">{api.desc}</p>
                         <p className="text-[13px] text-slate-400 mt-0.5">{api.free}</p>
@@ -66,7 +66,7 @@ export default function ScoutSettingsPage() {
                         {testing[api.key] ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />} Test
                       </button>
                     </div>
-                    <p className="text-[12px] text-slate-400 mt-2">Set <code className="bg-slate-100 px-1 rounded">{api.env}</code> in .env.local</p>
+                    <p className="text-[13px] text-slate-400 mt-2">Set <code className="bg-slate-100 px-1 rounded">{api.env}</code> in .env.local</p>
                   </div>
                 )
               })}

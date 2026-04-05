@@ -79,17 +79,17 @@ export default function DevApiDebug() {
 
   return (
     <div className="fixed bottom-4 left-4 z-[60]">
-      <button onClick={() => setOpen(!open)} className={`w-8 h-8 rounded-full shadow-lg flex items-center justify-center text-xs ${open ? 'bg-red-500 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`} title="API Debug">
+      <button onClick={() => setOpen(!open)} className={`w-8 h-8 rounded-full shadow-lg flex items-center justify-center text-sm ${open ? 'bg-red-500 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`} title="API Debug">
         <Bug size={14} />
       </button>
       {open && (
-        <div className="absolute bottom-12 left-0 w-80 bg-gray-900 text-white rounded-xl shadow-2xl overflow-hidden text-xs">
+        <div className="absolute bottom-12 left-0 w-80 bg-gray-900 text-white rounded-xl shadow-2xl overflow-hidden text-sm">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
             <span className="font-semibold">API Debug Panel</span>
             <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-white"><X size={12} /></button>
           </div>
           <div className="p-3 space-y-2">
-            <p className="text-[9px] text-gray-400 uppercase font-semibold">API Keys</p>
+            <p className="text-[13px] text-gray-400 uppercase font-semibold">API Keys</p>
             {Object.entries(keys).map(([name, key]) => (
               <div key={name} className="flex items-center gap-2">
                 {key ? <Check size={10} className="text-green-400 flex-shrink-0" /> : <AlertTriangle size={10} className="text-amber-400 flex-shrink-0" />}
@@ -99,7 +99,7 @@ export default function DevApiDebug() {
             ))}
           </div>
           <div className="p-3 border-t border-white/10 space-y-2">
-            <p className="text-[9px] text-gray-400 uppercase font-semibold">Test Connections</p>
+            <p className="text-[13px] text-gray-400 uppercase font-semibold">Test Connections</p>
             {[
               { name: 'Claude API', fn: testClaude, key: 'claude', hasKey: !!keys['Anthropic (Claude AI)'] },
               { name: 'Unsplash', fn: testUnsplash, key: 'unsplash', hasKey: !!keys['Unsplash'] },
@@ -109,15 +109,15 @@ export default function DevApiDebug() {
               <div key={t.key}>
                 <div className="flex items-center gap-2">
                   <button onClick={t.fn} disabled={!t.hasKey || testing[t.key]}
-                    className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30 text-[10px]">
+                    className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30 text-[13px]">
                     {testing[t.key] ? <Loader2 size={10} className="animate-spin inline" /> : 'Test'} {t.name}
                   </button>
                 </div>
-                {tests[t.key] && <p className={`text-[10px] mt-0.5 ml-1 ${tests[t.key].startsWith('OK') ? 'text-green-400' : 'text-red-400'}`}>{tests[t.key]}</p>}
+                {tests[t.key] && <p className={`text-[13px] mt-0.5 ml-1 ${tests[t.key].startsWith('OK') ? 'text-green-400' : 'text-red-400'}`}>{tests[t.key]}</p>}
               </div>
             ))}
           </div>
-          <div className="px-3 py-2 bg-white/5 text-[9px] text-gray-500">
+          <div className="px-3 py-2 bg-white/5 text-[13px] text-gray-500">
             Add keys to .env: NEXT_PUBLIC_ANTHROPIC_API_KEY, NEXT_PUBLIC_UNSPLASH_ACCESS_KEY, etc.
           </div>
         </div>

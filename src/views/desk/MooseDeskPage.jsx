@@ -51,7 +51,7 @@ function TicketCard({ ticket, onClick, agents }) {
       <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
         <div style={{flexShrink:0,minWidth:60}}>
           <div style={{fontSize:18}}>{pr.icon}</div>
-          <div style={{fontSize:11,color:'#9ca3af',fontWeight:700,marginTop:2}}>{ticket.ticket_number}</div>
+          <div style={{fontSize:13,color:'#9ca3af',fontWeight:700,marginTop:2}}>{ticket.ticket_number}</div>
         </div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:15,fontWeight:800,color:'#111',marginBottom:4,
@@ -60,15 +60,15 @@ function TicketCard({ ticket, onClick, agents }) {
             <div style={{fontSize:13,color:'#374151',marginBottom:8,lineHeight:1.5}}>{ticket.ai_summary}</div>
           )}
           <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-            <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:st.bg,color:st.color}}>{st.label}</span>
-            <span style={{fontSize:12,color:'#374151'}}>{ticket.submitter_name}</span>
+            <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,background:st.bg,color:st.color}}>{st.label}</span>
+            <span style={{fontSize:13,color:'#374151'}}>{ticket.submitter_name}</span>
             {ticket.ai_category && (
-              <span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#f2f2f0',color:'#374151',textTransform:'capitalize'}}>
+              <span style={{fontSize:13,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#f2f2f0',color:'#374151',textTransform:'capitalize'}}>
                 {ticket.ai_category.replace(/_/g,' ')}
               </span>
             )}
             {ticket.ai_sentiment && <span style={{fontSize:13}}>{SENT_EMOJI[ticket.ai_sentiment]||''}</span>}
-            <span style={{fontSize:12,color:'#9ca3af',marginLeft:'auto'}}>{ageStr}</span>
+            <span style={{fontSize:13,color:'#9ca3af',marginLeft:'auto'}}>{ageStr}</span>
           </div>
         </div>
         <div style={{flexShrink:0}}>
@@ -90,9 +90,9 @@ function TicketCard({ ticket, onClick, agents }) {
         <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f3f4f6',
           display:'flex',alignItems:'center',gap:12}}>
           <Timer size={12} color={TEAL}/>
-          <span style={{fontSize:12,color:'#374151'}}>{ticket.total_time_minutes}m logged</span>
+          <span style={{fontSize:13,color:'#374151'}}>{ticket.total_time_minutes}m logged</span>
           {ticket.total_cost > 0 && (
-            <span style={{fontSize:12,fontWeight:700,color:'#16a34a'}}>${ticket.total_cost.toFixed(2)}</span>
+            <span style={{fontSize:13,fontWeight:700,color:'#16a34a'}}>${ticket.total_cost.toFixed(2)}</span>
           )}
         </div>
       )}
@@ -275,7 +275,7 @@ export default function MooseDeskPage() {
   ]
 
   return (
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"'DM Sans',sans-serif"}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{background:'#0a0a0a',padding:'18px 28px 0',flexShrink:0}}>
@@ -285,8 +285,8 @@ export default function MooseDeskPage() {
                 <div style={{width:34,height:34,borderRadius:10,background:RED,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Inbox size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>MooseDesk</h1>
-                <span style={{fontSize:11,fontWeight:800,color:TEAL,background:TEAL+'20',padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>AI-Powered</span>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>MooseDesk</h1>
+                <span style={{fontSize:13,fontWeight:800,color:TEAL,background:TEAL+'20',padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>AI-Powered</span>
               </div>
               <p style={{fontSize:14,color:'rgba(255,255,255,.4)',margin:0}}>
                 {stats.total||0} tickets · {stats.open||0} open · {stats.unassigned||0} unassigned
@@ -323,7 +323,7 @@ export default function MooseDeskPage() {
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
                 <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#fff',lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -336,7 +336,7 @@ export default function MooseDeskPage() {
                   fontSize:14,fontWeight:tab===t.key?800:600,cursor:'pointer',transition:'all .15s'}}>
                 {t.label}
                 {(t.count||0) > 0 && (
-                  <span style={{fontSize:11,fontWeight:800,padding:'1px 6px',borderRadius:20,
+                  <span style={{fontSize:13,fontWeight:800,padding:'1px 6px',borderRadius:20,
                     background:tab===t.key?RED+'40':'rgba(255,255,255,.1)',
                     color:tab===t.key?'#fff':'rgba(255,255,255,.5)'}}>{t.count}</span>
                 )}

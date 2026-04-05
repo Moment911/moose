@@ -127,7 +127,7 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
       <div className="px-3 py-2 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center gap-2 bg-white/10 rounded-lg px-2.5 py-1.5">
           <Search size={12} className="text-gray-400" />
-          <input className="text-xs bg-transparent outline-none flex-1 text-white placeholder-gray-500" placeholder="Search tokens..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="text-sm bg-transparent outline-none flex-1 text-white placeholder-gray-500" placeholder="Search tokens..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
             {filtered.map(t => (
               <TokenRow key={t.token} token={t} onInsert={handleInsert} onCopy={handleCopy} previewContact={previewContact} campaign={campaign} />
             ))}
-            {filtered.length === 0 && <p className="text-xs text-gray-500 text-center py-4">No matching tokens</p>}
+            {filtered.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No matching tokens</p>}
           </div>
         ) : (
           TOKEN_CATEGORIES.map(cat => {
@@ -147,11 +147,11 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
             return (
               <div key={cat.name}>
                 <button onClick={() => setExpanded(e => ({ ...e, [cat.name]: !isExpanded }))}
-                  className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
                   {isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                   <I size={12} />
                   {cat.name}
-                  <span className="ml-auto text-gray-600 text-[10px]">{cat.tokens.length}</span>
+                  <span className="ml-auto text-gray-600 text-[13px]">{cat.tokens.length}</span>
                 </button>
                 {isExpanded && (
                   <div className="px-2 pb-1 space-y-0.5">
@@ -167,12 +167,12 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
 
         {/* Fallback guide */}
         <div className="px-4 py-3 border-t border-white/10 mt-2">
-          <p className="text-[9px] text-gray-500 uppercase font-semibold mb-1.5">Fallback Values</p>
-          <p className="text-[10px] text-gray-400 leading-relaxed">
+          <p className="text-[13px] text-gray-500 uppercase font-semibold mb-1.5">Fallback Values</p>
+          <p className="text-[13px] text-gray-400 leading-relaxed">
             Use <code className="bg-white/10 px-1 rounded text-brand-300">{'{{first_name|Friend}}'}</code> to show "Friend" when name is empty.
           </p>
-          <p className="text-[9px] text-gray-500 mt-2 uppercase font-semibold mb-1.5">Conditionals</p>
-          <p className="text-[10px] text-gray-400 leading-relaxed">
+          <p className="text-[13px] text-gray-500 mt-2 uppercase font-semibold mb-1.5">Conditionals</p>
+          <p className="text-[13px] text-gray-400 leading-relaxed">
             <code className="bg-white/10 px-1 rounded text-brand-300">{'{{#if company}}At {{company}}{{/if}}'}</code>
           </p>
         </div>
@@ -180,8 +180,8 @@ export default function PersonalizationPanel({ open, onClose, onInsert, contacts
 
       {/* Preview with contact */}
       <div className="px-3 py-2.5 border-t border-white/10 flex-shrink-0">
-        <p className="text-[9px] text-gray-500 uppercase font-semibold mb-1">Preview with:</p>
-        <select className="w-full text-xs bg-white/10 border-0 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
+        <p className="text-[13px] text-gray-500 uppercase font-semibold mb-1">Preview with:</p>
+        <select className="w-full text-sm bg-white/10 border-0 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:ring-1 focus:ring-brand-400"
           value={previewContact?.id || ''} onChange={e => setPreviewContact(contacts.find(c => c.id === e.target.value) || null)}>
           <option value="">Example values</option>
           {contacts.slice(0, 20).map(c => <option key={c.id} value={c.id}>{c.first_name ? `${c.first_name} ${c.last_name || ''}` : c.email}</option>)}
@@ -196,8 +196,8 @@ function TokenRow({ token: t, onInsert, onCopy, previewContact, campaign }) {
   return (
     <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors group cursor-pointer" onClick={() => onInsert(t.token)}>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-gray-200 font-mono">{t.token}</p>
-        <p className="text-[10px] text-gray-500 truncate">{previewValue || <span className="italic">empty</span>}</p>
+        <p className="text-sm text-gray-200 font-mono">{t.token}</p>
+        <p className="text-[13px] text-gray-500 truncate">{previewValue || <span className="italic">empty</span>}</p>
       </div>
       <button onClick={e => { e.stopPropagation(); onCopy(t.token) }} className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-white p-0.5"><Copy size={10} /></button>
     </div>

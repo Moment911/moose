@@ -93,7 +93,7 @@ export default function TagManager({ open, contacts }) {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-        <div className="grid grid-cols-[auto_1fr_80px_60px] gap-3 px-5 py-2.5 bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+        <div className="grid grid-cols-[auto_1fr_80px_60px] gap-3 px-5 py-2.5 bg-gray-50/50 text-[13px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
           <div></div><div>Tag</div><div>Contacts</div><div></div>
         </div>
         {filtered.length === 0 && <div className="py-12 text-center text-sm text-gray-400">No tags found</div>}
@@ -107,7 +107,7 @@ export default function TagManager({ open, contacts }) {
               ) : (
                 <span className="text-sm font-medium text-gray-900">{tag.name}</span>
               )}
-              {tag.description && <p className="text-[10px] text-gray-400">{tag.description}</p>}
+              {tag.description && <p className="text-[13px] text-gray-400">{tag.description}</p>}
             </div>
             <span className="text-sm text-gray-500">{tag.count}</span>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -124,10 +124,10 @@ export default function TagManager({ open, contacts }) {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <div className="px-5 py-4 border-b border-gray-100"><h3 className="font-semibold text-gray-900">New Tag</h3></div>
             <form onSubmit={handleCreate} className="px-5 py-4 space-y-3">
-              <div><label className="text-xs text-gray-500 block mb-1">Name *</label><input className="input text-sm" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
-              <div><label className="text-xs text-gray-500 block mb-1">Description</label><input className="input text-sm" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
+              <div><label className="text-sm text-gray-500 block mb-1">Name *</label><input className="input text-sm" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus /></div>
+              <div><label className="text-sm text-gray-500 block mb-1">Description</label><input className="input text-sm" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
               <div>
-                <label className="text-xs text-gray-500 block mb-1">Color</label>
+                <label className="text-sm text-gray-500 block mb-1">Color</label>
                 <div className="flex flex-wrap gap-1.5">
                   {TAG_COLORS.map(c => (
                     <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
@@ -167,7 +167,7 @@ export function TagAutocomplete({ value = [], onChange, contacts, placeholder })
     <div className="relative">
       <div className="flex flex-wrap gap-1 mb-1">
         {value.map(t => (
-          <span key={t} className="inline-flex items-center gap-1 bg-brand-50 text-brand-700 text-xs px-2 py-0.5 rounded-full">
+          <span key={t} className="inline-flex items-center gap-1 bg-brand-50 text-brand-700 text-sm px-2 py-0.5 rounded-full">
             {t}<button onClick={() => removeTag(t)} className="hover:text-brand-900"><X size={9} /></button>
           </span>
         ))}

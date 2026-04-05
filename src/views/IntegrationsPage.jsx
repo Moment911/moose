@@ -327,7 +327,7 @@ export default function IntegrationsPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ fontSize: 15, fontWeight: 800, color: '#111' }}>{provider.name}</span>
-                          {provider.comingSoon && <span style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', background: '#f3f4f6', borderRadius: 20, padding: '1px 7px' }}>SOON</span>}
+                          {provider.comingSoon && <span style={{ fontSize:13, fontWeight: 700, color: '#4b5563', background: '#f3f4f6', borderRadius: 20, padding: '1px 7px' }}>SOON</span>}
                           {integration && <StatusBadge status={integration.status} />}
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 700, color: '#4b5563', background: '#f3f4f6', borderRadius: 20, padding: '2px 8px' }}>{provider.category}</span>

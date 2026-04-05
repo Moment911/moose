@@ -216,10 +216,10 @@ export default function ContactProfilePage() {
                         {I && <I size={12} className="text-gray-700 flex-shrink-0" />}
                         {!I && <div className="w-3" />}
                         {editing ? (
-                          <div className="flex-1"><label className="text-[12px] text-gray-700 uppercase">{f.label}</label><input className="input text-sm py-1 w-full" value={val} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} /></div>
+                          <div className="flex-1"><label className="text-[13px] text-gray-700 uppercase">{f.label}</label><input className="input text-sm py-1 w-full" value={val} onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))} /></div>
                         ) : (
                           <div className="flex-1 min-w-0">
-                            <p className="text-[12px] text-gray-700 uppercase">{f.label}</p>
+                            <p className="text-[13px] text-gray-700 uppercase">{f.label}</p>
                             <p className="text-sm text-gray-800 truncate">{val || <span className="text-gray-600">—</span>}</p>
                           </div>
                         )}

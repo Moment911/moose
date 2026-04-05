@@ -203,7 +203,7 @@ export default function ContactsPage() {
                     </div>
                     <span className="text-sm text-gray-700 truncate">{c.email}</span>
                     <span className="text-sm text-gray-700 truncate">{c.company || '\u2014'}</span>
-                    <div className="flex gap-0.5 flex-wrap">{(c.tags || []).slice(0, 2).map((t, i) => <span key={i} className="text-[12px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{t}</span>)}{(c.tags || []).length > 2 && <span className="text-[12px] text-gray-700">+{c.tags.length - 2}</span>}</div>
+                    <div className="flex gap-0.5 flex-wrap">{(c.tags || []).slice(0, 2).map((t, i) => <span key={i} className="text-[13px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{t}</span>)}{(c.tags || []).length > 2 && <span className="text-[13px] text-gray-700">+{c.tags.length - 2}</span>}</div>
                     <button onClick={() => handleToggleStatus(c)} className={`text-[13px] px-2 py-0.5 rounded-full font-medium cursor-pointer ${c.status === 'subscribed' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{c.status}</button>
                     <button onClick={() => handleDelete(c.id)} className="text-gray-600 hover:text-brand-500 opacity-0 group-hover:opacity-100"><Trash2 size={12} strokeWidth={1.5} /></button>
                   </div>
@@ -260,7 +260,7 @@ export default function ContactsPage() {
 
                 {showMoreFields && (
                   <div className="space-y-3 pt-1">
-                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider">Details</p>
+                    <p className="text-[13px] text-gray-700 uppercase font-semibold tracking-wider">Details</p>
                     <div className="grid grid-cols-3 gap-3">
                       <div><label className="text-sm text-gray-700 block mb-1">Prefix</label><input className="input text-sm" placeholder="Mr." value={form.prefix} onChange={e => setForm(f => ({ ...f, prefix: e.target.value }))} /></div>
                       <div><label className="text-sm text-gray-700 block mb-1">Department</label><input className="input text-sm" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} /></div>
@@ -268,7 +268,7 @@ export default function ContactsPage() {
                     </div>
                     <div><label className="text-sm text-gray-700 block mb-1">Website</label><input className="input text-sm" placeholder="https://..." value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} /></div>
 
-                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Address</p>
+                    <p className="text-[13px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Address</p>
                     <div><input className="input text-sm" placeholder="Street address" value={form.address_line1} onChange={e => setForm(f => ({ ...f, address_line1: e.target.value }))} /></div>
                     <div className="grid grid-cols-3 gap-3">
                       <div><input className="input text-sm" placeholder="City" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} /></div>
@@ -276,13 +276,13 @@ export default function ContactsPage() {
                       <div><input className="input text-sm" placeholder="Zip" value={form.zip_code} onChange={e => setForm(f => ({ ...f, zip_code: e.target.value }))} /></div>
                     </div>
 
-                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Social</p>
+                    <p className="text-[13px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Social</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div><input className="input text-sm" placeholder="LinkedIn URL" value={form.linkedin_url} onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))} /></div>
                       <div><input className="input text-sm" placeholder="Twitter @handle" value={form.twitter_handle} onChange={e => setForm(f => ({ ...f, twitter_handle: e.target.value }))} /></div>
                     </div>
 
-                    <p className="text-[12px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Lead Info</p>
+                    <p className="text-[13px] text-gray-700 uppercase font-semibold tracking-wider pt-1">Lead Info</p>
                     <div className="grid grid-cols-3 gap-3">
                       <div><select className="input text-sm" value={form.lead_source} onChange={e => setForm(f => ({ ...f, lead_source: e.target.value }))}>
                         <option value="">Source</option><option>Website</option><option>Referral</option><option>Social Media</option><option>Cold Outreach</option><option>Event</option><option>Other</option>

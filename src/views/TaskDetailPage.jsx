@@ -274,7 +274,7 @@ export default function TaskDetailPage() {
                 <div className="absolute bottom-full left-5 right-5 bg-white rounded-xl border border-gray-200 shadow-lg mb-1 max-h-32 overflow-y-auto z-10">
                   {staffMembers.filter(s => !mentionQuery || (s.name || s.email).toLowerCase().includes(mentionQuery)).slice(0, 5).map(s => (
                     <button key={s.id} onClick={() => insertMention(s)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left">
-                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
+                      <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center">{(s.name || s.email)[0].toUpperCase()}</div>
                       <span className="text-gray-800">{s.name || s.email}</span>
                       <span className="text-sm text-gray-700 ml-auto">{s.role}</span>
                     </button>

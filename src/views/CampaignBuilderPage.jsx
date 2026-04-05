@@ -359,7 +359,7 @@ export default function CampaignBuilderPage() {
                 <button onClick={() => setShowAIAssistant(true)} className="w-full flex items-center gap-2 px-3 py-2.5 mb-1.5 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-xl transition-colors"><Sparkles size={13} /> Design with AI</button>
                 <button onClick={() => setShowTemplates(true)} className="w-full flex items-center gap-2 px-3 py-2 mb-1.5 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-xl transition-colors"><Layout size={13} /> Templates</button>
                 <button onClick={() => setShowImageFinder(true)} className="w-full flex items-center gap-2 px-3 py-2 mb-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"><Search size={13} /> Find Images</button>
-                <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-2">Add Block</p>
+                <p className="text-[13px] font-semibold text-gray-700 uppercase tracking-wider mb-2">Add Block</p>
                 {BLOCK_TYPES.map(bt => { const I = bt.icon; return (
                   <button key={bt.type} onClick={() => addBlock(bt.type)} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                     <I size={13} className="text-gray-700" /> {bt.label}
@@ -368,14 +368,14 @@ export default function CampaignBuilderPage() {
                 {/* Brand Assets */}
                 {brandAssets.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1"><Palette size={9} /> Brand Assets</p>
+                    <p className="text-[13px] font-semibold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1"><Palette size={9} /> Brand Assets</p>
                     {brandAssets.map((ba, bi) => (
                       <div key={bi} className="mb-3">
                         <p className="text-[13px] font-medium text-gray-600 mb-1.5">{ba.clients?.name || 'Client'}</p>
                         {/* Colors */}
                         {(ba.primary_colors || []).length > 0 && (
                           <div className="mb-2">
-                            <p className="text-[12px] text-gray-700 mb-1">Colors</p>
+                            <p className="text-[13px] text-gray-700 mb-1">Colors</p>
                             <div className="flex flex-wrap gap-1">
                               {(ba.primary_colors || []).map((c, ci) => (
                                 <button key={ci} onClick={() => { navigator.clipboard.writeText(c.hex); toast.success(`${c.hex} copied`) }} title={`${c.name}: ${c.hex} — click to copy`}
@@ -387,7 +387,7 @@ export default function CampaignBuilderPage() {
                         {/* Fonts */}
                         {(ba.fonts || []).length > 0 && (
                           <div className="mb-2">
-                            <p className="text-[12px] text-gray-700 mb-1">Fonts</p>
+                            <p className="text-[13px] text-gray-700 mb-1">Fonts</p>
                             {(ba.fonts || []).map((f, fi) => (
                               <p key={fi} className="text-[13px] text-gray-600 cursor-pointer hover:text-brand-600" onClick={() => { navigator.clipboard.writeText(f.name); toast.success(`${f.name} copied`) }} title="Click to copy font name">{f.name} <span className="text-gray-600">({f.category})</span></p>
                             ))}
@@ -396,7 +396,7 @@ export default function CampaignBuilderPage() {
                         {/* Logos */}
                         {(ba.logo_files || []).length > 0 && (
                           <div>
-                            <p className="text-[12px] text-gray-700 mb-1">Logos</p>
+                            <p className="text-[13px] text-gray-700 mb-1">Logos</p>
                             <div className="flex flex-wrap gap-1">
                               {(ba.logo_files || []).slice(0, 4).map((logo, li) => (
                                 <button key={li} onClick={() => { if (selectedBlockId) { updateBlock(selectedBlockId, { src: logo.url }); toast.success('Logo inserted') } else { navigator.clipboard.writeText(logo.url); toast.success('Logo URL copied') } }} title={`${logo.name} — click to insert into selected image block`}
@@ -413,7 +413,7 @@ export default function CampaignBuilderPage() {
                 )}
 
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-[12px] text-gray-700">Click a block to add it. Click any block in the email to edit its properties.</p>
+                  <p className="text-[13px] text-gray-700">Click a block to add it. Click any block in the email to edit its properties.</p>
                 </div>
               </div>
 
@@ -511,7 +511,7 @@ export default function CampaignBuilderPage() {
                     {/* Brand quick colors */}
                     {brandAssets.some(ba => ba.primary_colors?.length) && (
                       <div className="border-t border-gray-100 pt-2 mt-1">
-                        <p className="text-[12px] text-gray-700 mb-1.5">Brand Colors</p>
+                        <p className="text-[13px] text-gray-700 mb-1.5">Brand Colors</p>
                         <div className="flex flex-wrap gap-1">
                           {brandAssets.flatMap(ba => ba.primary_colors || []).map((c, i) => (
                             <button key={i} onClick={() => {

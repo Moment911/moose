@@ -82,7 +82,7 @@ function DonutSlice({ data, total }) {
         <text x={cx} y={cy+1} textAnchor="middle" dominantBaseline="middle"
           style={{fontSize:20,fontWeight:900,fill:'#111'}}>{total}</text>
         <text x={cx} y={cy+16} textAnchor="middle" dominantBaseline="middle"
-          style={{fontSize:10,fill:'#9ca3af'}}>total</text>
+          style={{fontSize:13,fill:'#9ca3af'}}>total</text>
       </svg>
       <div style={{flex:1}}>
         {data.map((d,i)=>(
@@ -92,7 +92,7 @@ function DonutSlice({ data, total }) {
               {d.label.replace(/_/g,' ')}
             </span>
             <span style={{fontSize:13,fontWeight:800,color:'#111'}}>{d.value}</span>
-            <span style={{fontSize:12,color:'#9ca3af'}}>{Math.round(d.value/total*100)}%</span>
+            <span style={{fontSize:13,color:'#9ca3af'}}>{Math.round(d.value/total*100)}%</span>
           </div>
         ))}
       </div>
@@ -239,7 +239,7 @@ export default function DeskReportsPage() {
     }))
 
   return (
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"'DM Sans',sans-serif"}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
@@ -252,7 +252,7 @@ export default function DeskReportsPage() {
               color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <ChevronLeft size={14}/> Back
           </button>
-          <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0}}>Desk Reports</h1>
+          <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0}}>Desk Reports</h1>
           <div style={{marginLeft:'auto',display:'flex',gap:6}}>
             {RANGES.map(r=>(
               <button key={r.key} onClick={()=>setRange(r.key)}
@@ -292,13 +292,13 @@ export default function DeskReportsPage() {
               {/* Row 2: Category + Priority donuts */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:24}}>
                 <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'22px'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
+                  <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
                     Tickets by Category
                   </div>
                   <DonutSlice data={catData} total={total}/>
                 </div>
                 <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'22px'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
+                  <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
                     Client Sentiment (AI)
                   </div>
                   <DonutSlice data={sentData.filter(d=>d.value>0)} total={filtered.filter(t=>t.ai_sentiment).length}/>
@@ -310,7 +310,7 @@ export default function DeskReportsPage() {
                 overflow:'hidden',marginBottom:24}}>
                 <div style={{padding:'18px 22px',borderBottom:'1px solid #f3f4f6',
                   display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em'}}>
+                  <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em'}}>
                     Inquiry Type Breakdown — Where Effort is Being Spent
                   </div>
                   <span style={{fontSize:13,color:'#9ca3af'}}>{inquiryTable.length} categories</span>
@@ -319,7 +319,7 @@ export default function DeskReportsPage() {
                   <thead>
                     <tr style={{background:'#f8f8f6'}}>
                       {['Category','Volume','% of Total','Avg Resolution','Urgent %','Effort Bar'].map(h=>(
-                        <th key={h} style={{padding:'11px 18px',fontSize:12,fontWeight:800,
+                        <th key={h} style={{padding:'11px 18px',fontSize:13,fontWeight:800,
                           color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>
                           {h}
                         </th>
@@ -341,7 +341,7 @@ export default function DeskReportsPage() {
                             </span>
                           </div>
                         </td>
-                        <td style={{padding:'13px 18px',fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em'}}>
+                        <td style={{padding:'13px 18px',fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em'}}>
                           {row.count}
                         </td>
                         <td style={{padding:'13px 18px'}}>
@@ -372,7 +372,7 @@ export default function DeskReportsPage() {
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,marginBottom:24}}>
                 {/* Volume chart */}
                 <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'22px'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
+                  <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
                     Ticket Volume Over Time
                   </div>
                   {dailyData.length === 0 ? (
@@ -384,7 +384,7 @@ export default function DeskReportsPage() {
                           <div style={{width:'100%',background:RED,borderRadius:'4px 4px 0 0',
                             height:Math.round(count/maxDaily*100)+'px',minHeight:4,
                             transition:'height .5s ease'}}/>
-                          <span style={{fontSize:9,color:'#9ca3af',transform:'rotate(-45deg)',
+                          <span style={{fontSize:13,color:'#9ca3af',transform:'rotate(-45deg)',
                             transformOrigin:'top center',whiteSpace:'nowrap'}}>{day}</span>
                         </div>
                       ))}
@@ -394,7 +394,7 @@ export default function DeskReportsPage() {
 
                 {/* Priority bars */}
                 <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'22px'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
+                  <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:18}}>
                     Priority Distribution
                   </div>
                   {priData.map(d=>(
@@ -409,7 +409,7 @@ export default function DeskReportsPage() {
               <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',
                 overflow:'hidden',marginBottom:24}}>
                 <div style={{padding:'18px 22px',borderBottom:'1px solid #f3f4f6'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em'}}>Agent Effort Report</div>
+                  <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em'}}>Agent Effort Report</div>
                 </div>
                 {agentLeaderboard.length===0 ? (
                   <div style={{padding:'32px',textAlign:'center',color:'#9ca3af',fontSize:14}}>
@@ -420,7 +420,7 @@ export default function DeskReportsPage() {
                     <thead>
                       <tr style={{background:'#f8f8f6'}}>
                         {['Agent','Sessions','Total Time','Avg/Session','Cost'].map(h=>(
-                          <th key={h} style={{padding:'11px 18px',fontSize:12,fontWeight:800,
+                          <th key={h} style={{padding:'11px 18px',fontSize:13,fontWeight:800,
                             color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
                         ))}
                       </tr>
@@ -468,13 +468,13 @@ export default function DeskReportsPage() {
 
               {/* Status breakdown */}
               <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'22px'}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:16}}>Current Status Snapshot</div>
+                <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:800,color:'#0a0a0a',letterSpacing:'-.02em',marginBottom:16}}>Current Status Snapshot</div>
                 <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
                   {Object.entries(byStatus).map(([status,count])=>(
                     <div key={status} style={{background:'#f8f8f6',borderRadius:12,
                       padding:'14px 20px',textAlign:'center',minWidth:110}}>
                       <div style={{fontSize:26,fontWeight:900,color:'#111'}}>{count}</div>
-                      <div style={{fontSize:12,fontWeight:700,color:'#374151',
+                      <div style={{fontSize:13,fontWeight:700,color:'#374151',
                         textTransform:'capitalize',marginTop:4}}>
                         {status.replace(/_/g,' ')}
                       </div>

@@ -130,8 +130,8 @@ function AskInterface({ agencyId }) {
           <div style={{background:'#0a0a0a',padding:'22px 26px'}}>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
               <Brain size={15} color={TEAL}/>
-              <span style={{fontSize:12,fontWeight:800,color:TEAL,textTransform:'uppercase',letterSpacing:'.08em'}}>AI Answer</span>
-              <span style={{fontSize:12,fontWeight:700,color:'rgba(255,255,255,.3)',marginLeft:'auto'}}>
+              <span style={{fontSize:13,fontWeight:800,color:TEAL,textTransform:'uppercase',letterSpacing:'.08em'}}>AI Answer</span>
+              <span style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.3)',marginLeft:'auto'}}>
                 Confidence: {Math.round((result.confidence||0.85)*100)}%
               </span>
             </div>
@@ -147,7 +147,7 @@ function AskInterface({ agencyId }) {
             {/* Web sources */}
             {result.web_sources?.length > 0 && (
               <div style={{marginTop:20,paddingTop:18,borderTop:'1px solid #f3f4f6'}}>
-                <div style={{fontSize:12,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',
+                <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',
                   letterSpacing:'.07em',marginBottom:10}}>Sources</div>
                 <div style={{display:'flex',flexDirection:'column',gap:7}}>
                   {result.web_sources.slice(0,4).map((s,i)=>(
@@ -163,7 +163,7 @@ function AskInterface({ agencyId }) {
                           whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
                           {s.title}
                         </div>
-                        <div style={{fontSize:12,color:'#374151',marginTop:2,
+                        <div style={{fontSize:13,color:'#374151',marginTop:2,
                           overflow:'hidden',display:'-webkit-box',
                           WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>
                           {s.snippet}
@@ -180,7 +180,7 @@ function AskInterface({ agencyId }) {
             {result.existing_matches?.length > 0 && (
               <div style={{marginTop:16,padding:'14px 16px',background:'#f0fdf4',
                 borderRadius:12,border:'1px solid #bbf7d0'}}>
-                <div style={{fontSize:12,fontWeight:800,color:'#16a34a',marginBottom:6}}>
+                <div style={{fontSize:13,fontWeight:800,color:'#16a34a',marginBottom:6}}>
                   ✓ {result.existing_matches.length} related entries found in your knowledge base
                 </div>
                 {result.existing_matches.slice(0,2).map((m,i)=>(
@@ -197,7 +197,7 @@ function AskInterface({ agencyId }) {
             display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{display:'flex',gap:8}}>
               {result.tags?.map((tag,i)=>(
-                <span key={i} style={{fontSize:12,fontWeight:600,padding:'3px 10px',borderRadius:20,
+                <span key={i} style={{fontSize:13,fontWeight:600,padding:'3px 10px',borderRadius:20,
                   background:'#f2f2f0',color:'#374151'}}>#{tag}</span>
               ))}
             </div>
@@ -254,28 +254,28 @@ function KnowledgeCard({ entry, onEdit, onDelete, onToggleVerified, onTogglePubl
             </div>
           )}
           <div style={{display:'flex',alignItems:'center',gap:8,marginTop:8,flexWrap:'wrap'}}>
-            <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+            <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
               background:src.bg,color:src.color}}>{src.label}</span>
-            <span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:20,
+            <span style={{fontSize:13,fontWeight:600,padding:'2px 8px',borderRadius:20,
               background:'#f2f2f0',color:'#374151',textTransform:'capitalize'}}>
               {entry.category}
             </span>
             {entry.is_verified && (
-              <span style={{fontSize:11,fontWeight:700,color:'#16a34a',
+              <span style={{fontSize:13,fontWeight:700,color:'#16a34a',
                 display:'flex',alignItems:'center',gap:3}}>
                 <CheckCircle size={11}/> Verified
               </span>
             )}
             {!entry.is_public && (
-              <span style={{fontSize:11,fontWeight:700,color:'#9ca3af',
+              <span style={{fontSize:13,fontWeight:700,color:'#9ca3af',
                 display:'flex',alignItems:'center',gap:3}}>
                 <EyeOff size={11}/> Internal
               </span>
             )}
             {entry.tags?.slice(0,3).map((t,i)=>(
-              <span key={i} style={{fontSize:11,color:'#9ca3af'}}>#{t}</span>
+              <span key={i} style={{fontSize:13,color:'#9ca3af'}}>#{t}</span>
             ))}
-            <span style={{fontSize:11,color:'#9ca3af',marginLeft:'auto'}}>
+            <span style={{fontSize:13,color:'#9ca3af',marginLeft:'auto'}}>
               {entry.use_count||0} uses · {entry.helpful_count||0} 👍
             </span>
           </div>
@@ -310,10 +310,10 @@ function KnowledgeCard({ entry, onEdit, onDelete, onToggleVerified, onTogglePubl
           <MarkdownText text={entry.answer}/>
           {entry.web_sources?.length > 0 && (
             <div style={{marginTop:14}}>
-              <div style={{fontSize:11,fontWeight:800,color:'#9ca3af',marginBottom:8}}>Sources</div>
+              <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',marginBottom:8}}>Sources</div>
               {(entry.web_sources||[]).map((s,i)=>(
                 <a key={i} href={s.url} target="_blank" rel="noreferrer"
-                  style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:TEAL,
+                  style={{display:'flex',alignItems:'center',gap:6,fontSize:13,color:TEAL,
                     textDecoration:'none',marginBottom:5}}>
                   <Globe size={11}/> {s.title||s.url}
                 </a>
@@ -536,7 +536,7 @@ export default function QAKnowledgePage() {
   ]
 
   return (
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"'DM Sans',sans-serif"}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
@@ -549,10 +549,10 @@ export default function QAKnowledgePage() {
                   display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Brain size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>
                   Q&A Knowledge Base
                 </h1>
-                <span style={{fontSize:11,fontWeight:800,color:TEAL,background:TEAL+'20',
+                <span style={{fontSize:13,fontWeight:800,color:TEAL,background:TEAL+'20',
                   padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>
                   Self-Learning AI
                 </span>
@@ -580,7 +580,7 @@ export default function QAKnowledgePage() {
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
                 <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#fff',lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -596,7 +596,7 @@ export default function QAKnowledgePage() {
                 <t.icon size={14}/>
                 {t.label}
                 {(t.count||0) > 0 && (
-                  <span style={{fontSize:11,fontWeight:800,padding:'1px 6px',borderRadius:20,
+                  <span style={{fontSize:13,fontWeight:800,padding:'1px 6px',borderRadius:20,
                     background:t.alert&&tab!==t.key?RED+'90':tab===t.key?RED+'40':'rgba(255,255,255,.1)',
                     color:'#fff'}}>{t.count}</span>
                 )}
@@ -633,7 +633,7 @@ export default function QAKnowledgePage() {
                 <button key={s.key} onClick={()=>setFilterSrc(s.key)}
                   style={{padding:'5px 12px',borderRadius:20,border:'none',cursor:'pointer',
                     background:filterSrc===s.key?'#374151':'#f3f4f6',
-                    color:filterSrc===s.key?'#fff':'#374151',fontSize:12,fontWeight:600}}>
+                    color:filterSrc===s.key?'#fff':'#374151',fontSize:13,fontWeight:600}}>
                   {s.label}
                 </button>
               ))}
@@ -724,8 +724,8 @@ export default function QAKnowledgePage() {
                     display:'flex',alignItems:'flex-start',gap:14}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                        <span style={{fontSize:12,fontWeight:800,color:TEAL}}>{ticket.ticket_number}</span>
-                        <span style={{fontSize:12,fontWeight:600,padding:'2px 8px',borderRadius:20,
+                        <span style={{fontSize:13,fontWeight:800,color:TEAL}}>{ticket.ticket_number}</span>
+                        <span style={{fontSize:13,fontWeight:600,padding:'2px 8px',borderRadius:20,
                           background:'#f0fdf4',color:'#16a34a'}}>Resolved</span>
                       </div>
                       <div style={{fontSize:15,fontWeight:800,color:'#111',marginBottom:4}}>
@@ -734,7 +734,7 @@ export default function QAKnowledgePage() {
                       {ticket.ai_summary && (
                         <div style={{fontSize:13,color:'#374151',lineHeight:1.5}}>{ticket.ai_summary}</div>
                       )}
-                      <div style={{fontSize:12,color:'#9ca3af',marginTop:6}}>
+                      <div style={{fontSize:13,color:'#9ca3af',marginTop:6}}>
                         From {ticket.submitter_name} · Resolved {ticket.resolved_at
                           ? new Date(ticket.resolved_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})
                           : 'recently'}

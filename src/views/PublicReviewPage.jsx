@@ -516,7 +516,7 @@ export default function PublicReviewPage() {
             <button onClick={() => setSidebarOpen(!sidebarOpen)}
               className="w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-white border border-gray-200 text-gray-700">
               <MessageSquare size={18} />
-              {annotations.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white text-[12px] font-bold rounded-full flex items-center justify-center">{annotations.length}</span>}
+              {annotations.length > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white text-[13px] font-bold rounded-full flex items-center justify-center">{annotations.length}</span>}
             </button>
           </div>
         )}

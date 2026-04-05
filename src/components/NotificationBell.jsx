@@ -54,10 +54,10 @@ export default function NotificationBell() {
         <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">Notifications</span>
-            {unread > 0 && <button onClick={markAllRead} className="text-[10px] text-brand-500 hover:text-brand-700 font-medium">Mark all read</button>}
+            {unread > 0 && <button onClick={markAllRead} className="text-[13px] text-brand-500 hover:text-brand-700 font-medium">Mark all read</button>}
           </div>
           <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 && <div className="py-8 text-center text-xs text-gray-400">No notifications</div>}
+            {notifications.length === 0 && <div className="py-8 text-center text-sm text-gray-400">No notifications</div>}
             {notifications.map(n => {
               const Icon = ICONS[n.type] || ICONS.default
               return (
@@ -65,8 +65,8 @@ export default function NotificationBell() {
                   onClick={async () => { if (!n.read) { await supabase.from('notifications').update({ read: true }).eq('id', n.id); loadNotifications() }; if (n.link) window.location.href = n.link }}>
                   <Icon size={14} strokeWidth={1.5} className="text-brand-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs leading-relaxed ${n.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>{n.message || n.title}</p>
-                    <p className="text-[9px] text-gray-400 mt-0.5">{n.created_at && formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
+                    <p className={`text-sm leading-relaxed ${n.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>{n.message || n.title}</p>
+                    <p className="text-[13px] text-gray-400 mt-0.5">{n.created_at && formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
                   </div>
                   {!n.read && <div className="w-2 h-2 bg-brand-500 rounded-full flex-shrink-0 mt-1" />}
                 </div>

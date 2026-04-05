@@ -20,7 +20,7 @@ export default function Tooltip({ children, text, position = 'top' }) {
       {children}
       {show && text && (
         <div className={`absolute ${pos[position] || pos.top} z-50 pointer-events-none`}>
-          <div className="bg-gray-900 text-white text-[11px] px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap font-medium max-w-[200px]" style={{ lineHeight: 1.4 }}>
+          <div className="bg-gray-900 text-white text-[13px] px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap font-medium max-w-[200px]" style={{ lineHeight: 1.4 }}>
             {text}
           </div>
         </div>

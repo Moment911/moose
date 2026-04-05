@@ -60,7 +60,7 @@ export default function ScoutSavedPage() {
                 </div>
                 {(s.industries || []).length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {(s.industries || []).map(i => <span key={i} className="text-[12px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{i}</span>)}
+                    {(s.industries || []).map(i => <span key={i} className="text-[13px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{i}</span>)}
                   </div>
                 )}
                 <button onClick={() => navigate('/scout')} className="w-full btn-secondary text-sm justify-center"><Play size={12} /> Run Again</button>

@@ -99,7 +99,7 @@ function KBSuggestions({ ticket, onUse }) {
 
   return (
     <div>
-      <div style={{fontSize:12,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',
+      <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',
         letterSpacing:'.07em',marginBottom:8}}>
         {matches.length} knowledge base match{matches.length!==1?'es':''}
       </div>
@@ -113,7 +113,7 @@ function KBSuggestions({ ticket, onUse }) {
               <div style={{fontSize:13,fontWeight:800,color:'#111',marginBottom:2}}>
                 {m.question || m.subject_pattern}
               </div>
-              <div style={{fontSize:12,color:'#374151',overflow:'hidden',
+              <div style={{fontSize:13,color:'#374151',overflow:'hidden',
                 display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>
                 {m.answer_short || (m.answer||m.resolution||'').slice(0,120)}
               </div>
@@ -122,7 +122,7 @@ function KBSuggestions({ ticket, onUse }) {
               {m.is_verified && <CheckCircle size={13} color="#16a34a"/>}
               <button onClick={e=>{e.stopPropagation();onUse(m.answer||m.resolution||'')}}
                 style={{padding:'4px 10px',borderRadius:8,border:'none',
-                  background:RED,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                  background:RED,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 Use
               </button>
             </div>
@@ -278,12 +278,12 @@ function ReplyBox({ ticket, replies, agents, agentMe, onSent }) {
                   <div style={{width:28,height:28,borderRadius:'50%',
                     background:a.avatar_color||RED,flexShrink:0,
                     display:'flex',alignItems:'center',justifyContent:'center',
-                    fontSize:12,fontWeight:900,color:'#fff'}}>
+                    fontSize:13,fontWeight:900,color:'#fff'}}>
                     {a.name[0].toUpperCase()}
                   </div>
                   <div>
                     <div>{a.name}</div>
-                    <div style={{fontSize:11,color:'#9ca3af'}}>{a.role}</div>
+                    <div style={{fontSize:13,color:'#9ca3af'}}>{a.role}</div>
                   </div>
                   {actingAs===a.id && <CheckCircle size={13} color={RED} style={{marginLeft:'auto'}}/>}
                 </button>
@@ -334,7 +334,7 @@ function ReplyBox({ ticket, replies, agents, agentMe, onSent }) {
           </button>
 
           {body.trim() && (
-            <span style={{fontSize:12,color:'#9ca3af'}}>{body.length} chars</span>
+            <span style={{fontSize:13,color:'#9ca3af'}}>{body.length} chars</span>
           )}
 
           {/* Send */}
@@ -491,7 +491,7 @@ export default function DeskTicketPage() {
               <h2 style={{fontSize:17,fontWeight:900,color:'#fff',margin:0,
                 overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ticket.subject}</h2>
             </div>
-            <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:2}}>
+            <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:2}}>
               From {ticket.submitter_name} · {new Date(ticket.created_at).toLocaleString()}
               {ticket.ai_sentiment && <span style={{marginLeft:8}}>{SENT_EMOJI[ticket.ai_sentiment]||''}</span>}
             </div>
@@ -553,9 +553,9 @@ export default function DeskTicketPage() {
                       </div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{ticket.submitter_name}</div>
-                        <div style={{fontSize:12,color:'#9ca3af'}}>{ticket.submitter_email}</div>
+                        <div style={{fontSize:13,color:'#9ca3af'}}>{ticket.submitter_email}</div>
                       </div>
-                      <span style={{fontSize:12,color:'#9ca3af'}}>{new Date(ticket.created_at).toLocaleString()}</span>
+                      <span style={{fontSize:13,color:'#9ca3af'}}>{new Date(ticket.created_at).toLocaleString()}</span>
                     </div>
                     <p style={{fontSize:15,color:'#374151',lineHeight:1.75,margin:0,whiteSpace:'pre-wrap'}}>
                       {ticket.description}
@@ -577,7 +577,7 @@ export default function DeskTicketPage() {
                         <div style={{background:'rgba(255,255,255,.07)',borderRadius:10,padding:'12px 14px',
                           border:'1px solid rgba(255,255,255,.1)'}}>
                           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
-                            <span style={{fontSize:11,fontWeight:800,color:'rgba(255,255,255,.4)',
+                            <span style={{fontSize:13,fontWeight:800,color:'rgba(255,255,255,.4)',
                               textTransform:'uppercase',letterSpacing:'.06em'}}>Suggested response</span>
                             <button onClick={()=>{
                               // This will be picked up by ReplyBox via a custom event trick
@@ -586,7 +586,7 @@ export default function DeskTicketPage() {
                               toast.success('Copied to reply box')
                             }} style={{display:'flex',alignItems:'center',gap:4,padding:'3px 10px',
                               borderRadius:8,border:'none',background:TEAL,color:'#fff',
-                              fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                              fontSize:13,fontWeight:700,cursor:'pointer'}}>
                               <Copy size={10}/> Use this
                             </button>
                           </div>
@@ -608,7 +608,7 @@ export default function DeskTicketPage() {
                         <div style={{width:30,height:30,borderRadius:'50%',
                           background:r.author_type==='client'?'#6b7280':r.author_type==='ai'?TEAL:RED,
                           display:'flex',alignItems:'center',justifyContent:'center',
-                          fontSize:12,fontWeight:900,color:'#fff',flexShrink:0}}>
+                          fontSize:13,fontWeight:900,color:'#fff',flexShrink:0}}>
                           {r.author_name[0].toUpperCase()}
                         </div>
                         <div style={{flex:1}}>
@@ -616,10 +616,10 @@ export default function DeskTicketPage() {
                             color:r.author_type==='ai'?'#fff':'#111'}}>{r.author_name}</div>
                         </div>
                         {r.is_internal && (
-                          <span style={{fontSize:11,fontWeight:700,color:'#d97706',
+                          <span style={{fontSize:13,fontWeight:700,color:'#d97706',
                             background:'#fef3c7',padding:'2px 8px',borderRadius:20}}>Internal</span>
                         )}
-                        <span style={{fontSize:12,color:r.author_type==='ai'?'rgba(255,255,255,.4)':'#9ca3af'}}>
+                        <span style={{fontSize:13,color:r.author_type==='ai'?'rgba(255,255,255,.4)':'#9ca3af'}}>
                           {new Date(r.created_at).toLocaleString()}
                         </span>
                       </div>
@@ -645,7 +645,7 @@ export default function DeskTicketPage() {
                   <div style={{width:28,height:28,borderRadius:'50%',flexShrink:0,
                     background:a.actor_type==='ai'?TEAL:a.actor_type==='system'?'#6b7280':RED,
                     display:'flex',alignItems:'center',justifyContent:'center',
-                    fontSize:12,color:'#fff',fontWeight:800}}>
+                    fontSize:13,color:'#fff',fontWeight:800}}>
                     {a.actor_type==='ai'?'AI':a.actor_type==='system'?'⚙':a.actor_name[0].toUpperCase()}
                   </div>
                   <div style={{flex:1}}>
@@ -654,7 +654,7 @@ export default function DeskTicketPage() {
                       <span style={{color:'#374151'}}>{a.action.replace(/_/g,' ')}</span>
                       {a.detail&&<span style={{color:'#9ca3af'}}> — {a.detail}</span>}
                     </div>
-                    <div style={{fontSize:12,color:'#9ca3af',marginTop:2}}>
+                    <div style={{fontSize:13,color:'#9ca3af',marginTop:2}}>
                       {new Date(a.created_at).toLocaleString()}
                     </div>
                   </div>
@@ -693,7 +693,7 @@ export default function DeskTicketPage() {
                       </div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{log.agent_name}</div>
-                        <div style={{fontSize:12,color:'#9ca3af'}}>
+                        <div style={{fontSize:13,color:'#9ca3af'}}>
                           {new Date(log.started_at).toLocaleString()}
                           {log.stopped_at&&' → '+new Date(log.stopped_at).toLocaleTimeString()}
                           {log.is_running&&<span style={{color:TEAL,fontWeight:700}}> · Running</span>}
@@ -717,7 +717,7 @@ export default function DeskTicketPage() {
           {/* Right sidebar */}
           <div style={{overflowY:'auto',padding:'20px',background:'#fff',borderLeft:'1px solid #e5e7eb'}}>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:11,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Status</div>
+              <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Status</div>
               <select value={ticket.status} onChange={e=>updateField('status',e.target.value)}
                 style={{width:'100%',padding:'9px 12px',borderRadius:10,border:'1.5px solid #e5e7eb',
                   fontSize:14,outline:'none',background:'#fff',color:'#111',fontFamily:'inherit'}}>
@@ -725,7 +725,7 @@ export default function DeskTicketPage() {
               </select>
             </div>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:11,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Priority</div>
+              <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Priority</div>
               <select value={ticket.priority} onChange={e=>updateField('priority',e.target.value)}
                 style={{width:'100%',padding:'9px 12px',borderRadius:10,border:'1.5px solid #e5e7eb',
                   fontSize:14,outline:'none',background:'#fff',color:'#111',fontFamily:'inherit'}}>
@@ -733,7 +733,7 @@ export default function DeskTicketPage() {
               </select>
             </div>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:11,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Assigned Agent</div>
+              <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Assigned Agent</div>
               <select value={ticket.assigned_agent_id||''}
                 onChange={e=>updateField('assigned_agent_id',e.target.value||null)}
                 style={{width:'100%',padding:'9px 12px',borderRadius:10,border:'1.5px solid #e5e7eb',
@@ -744,13 +744,13 @@ export default function DeskTicketPage() {
             </div>
             {ticket.ai_category && (
               <div style={{marginBottom:20,padding:'14px',background:'#f5f3ff',borderRadius:12,border:'1px solid #e9d5ff'}}>
-                <div style={{fontSize:11,fontWeight:800,color:'#7c3aed',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>AI Classification</div>
+                <div style={{fontSize:13,fontWeight:800,color:'#7c3aed',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>AI Classification</div>
                 <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                  <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:20,
+                  <span style={{fontSize:13,fontWeight:700,padding:'3px 10px',borderRadius:20,
                     background:'#7c3aed',color:'#fff',textTransform:'capitalize'}}>
                     {ticket.ai_category.replace(/_/g,' ')}
                   </span>
-                  <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:20,
+                  <span style={{fontSize:13,fontWeight:700,padding:'3px 10px',borderRadius:20,
                     background:'#f5f3ff',color:'#7c3aed',border:'1px solid #e9d5ff',textTransform:'capitalize'}}>
                     {ticket.ai_priority}
                   </span>
@@ -758,7 +758,7 @@ export default function DeskTicketPage() {
               </div>
             )}
             <div style={{padding:'14px',background:'#f9fafb',borderRadius:12,border:'1px solid #e5e7eb'}}>
-              <div style={{fontSize:11,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:10}}>Time & Cost</div>
+              <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:10}}>Time & Cost</div>
               {[
                 {label:'Time logged',value:totalMins+'m'},
                 {label:'Cost',value:'$'+totalCost.toFixed(2)},

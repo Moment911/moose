@@ -108,7 +108,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
                   <Icon size={18} className={selected ? opt.color : 'text-gray-400'} />
                   <div className="flex-1">
                     <div className={`text-sm font-medium ${selected ? opt.color : 'text-gray-700'}`}>{opt.title}</div>
-                    <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">{opt.desc}</div>
+                    <div className="text-sm text-gray-500 mt-0.5 leading-relaxed">{opt.desc}</div>
                     {opt.key === 'password' && selected && (
                       <input
                         className="input mt-3 text-sm"
@@ -132,61 +132,61 @@ export default function AccessModal({ project, onClose, onUpdate }) {
 
           {/* Due date */}
           <div className="mt-4 p-3 bg-gray-50 rounded-xl">
-            <div className="text-xs font-medium text-gray-500 mb-2">Client feedback due by</div>
+            <div className="text-sm font-medium text-gray-500 mb-2">Client feedback due by</div>
             <input type="date" className="input text-sm" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-            {dueDate && <p className="text-[10px] text-gray-400 mt-1">Client will see a countdown on their review page</p>}
+            {dueDate && <p className="text-[13px] text-gray-400 mt-1">Client will see a countdown on their review page</p>}
           </div>
 
           {/* White label branding */}
           <div className="mt-4 p-3 bg-gray-50 rounded-xl space-y-3">
-            <div className="text-xs font-medium text-gray-500 flex items-center gap-1"><Palette size={11} /> White Label Branding</div>
+            <div className="text-sm font-medium text-gray-500 flex items-center gap-1"><Palette size={11} /> White Label Branding</div>
             <div>
-              <label className="text-[10px] text-gray-400 mb-1 block">Brand Name (replaces "Moose")</label>
-              <input className="input text-xs" placeholder="Your Agency Name" value={brandName} onChange={e => setBrandName(e.target.value)} />
+              <label className="text-[13px] text-gray-400 mb-1 block">Brand Name (replaces "Moose")</label>
+              <input className="input text-sm" placeholder="Your Agency Name" value={brandName} onChange={e => setBrandName(e.target.value)} />
             </div>
             {brandName && (
               <>
                 <ColorPicker label="Brand Color" value={brandColor} onChange={setBrandColor} />
                 <div>
-                  <label className="text-[10px] text-gray-400 mb-1 block">Logo URL (optional)</label>
-                  <input className="input text-xs" placeholder="https://yoursite.com/logo.png" value={brandLogo} onChange={e => setBrandLogo(e.target.value)} />
+                  <label className="text-[13px] text-gray-400 mb-1 block">Logo URL (optional)</label>
+                  <input className="input text-sm" placeholder="https://yoursite.com/logo.png" value={brandLogo} onChange={e => setBrandLogo(e.target.value)} />
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-gray-200">
-                  <p className="text-[10px] text-gray-400 mb-2">Preview</p>
+                  <p className="text-[13px] text-gray-400 mb-2">Preview</p>
                   <div className="flex items-center gap-2 p-2 rounded-lg" style={{ background: '#231f20' }}>
                     {brandLogo ? <img src={brandLogo} alt="" className="h-5 object-contain" /> : <div className="w-5 h-5 rounded" style={{ background: brandColor }} />}
-                    <span className="text-white text-xs font-medium">{brandName}</span>
+                    <span className="text-white text-sm font-medium">{brandName}</span>
                   </div>
                 </div>
               </>
             )}
-            <p className="text-[10px] text-gray-400">Client portal will show your brand instead of Moose</p>
+            <p className="text-[13px] text-gray-400">Client portal will show your brand instead of Moose</p>
           </div>
 
           {/* Webhook integrations */}
           <div className="mt-4 p-3 bg-gray-50 rounded-xl space-y-3">
-            <div className="text-xs font-medium text-gray-500">Integrations</div>
+            <div className="text-sm font-medium text-gray-500">Integrations</div>
             <div>
-              <label className="text-[10px] text-gray-400 mb-1 block">Zapier / Make / n8n Webhook URL</label>
-              <input className="input text-xs" placeholder="https://hooks.zapier.com/..." value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} />
+              <label className="text-[13px] text-gray-400 mb-1 block">Zapier / Make / n8n Webhook URL</label>
+              <input className="input text-sm" placeholder="https://hooks.zapier.com/..." value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} />
             </div>
             <div>
-              <label className="text-[10px] text-gray-400 mb-1 block">Slack Incoming Webhook URL</label>
-              <input className="input text-xs" placeholder="https://hooks.slack.com/services/..." value={slackUrl} onChange={e => setSlackUrl(e.target.value)} />
+              <label className="text-[13px] text-gray-400 mb-1 block">Slack Incoming Webhook URL</label>
+              <input className="input text-sm" placeholder="https://hooks.slack.com/services/..." value={slackUrl} onChange={e => setSlackUrl(e.target.value)} />
             </div>
             <div>
-              <label className="text-[10px] text-gray-400 mb-1 block">Slack Channel URL (direct link to channel)</label>
-              <input className="input text-xs" placeholder="https://app.slack.com/client/T00/C00..." value={slackChannel} onChange={e => setSlackChannel(e.target.value)} />
+              <label className="text-[13px] text-gray-400 mb-1 block">Slack Channel URL (direct link to channel)</label>
+              <input className="input text-sm" placeholder="https://app.slack.com/client/T00/C00..." value={slackChannel} onChange={e => setSlackChannel(e.target.value)} />
             </div>
-            <p className="text-[10px] text-gray-400">Webhook: auto-posts on events. Channel URL: adds "Open in Slack" button.</p>
+            <p className="text-[13px] text-gray-400">Webhook: auto-posts on events. Channel URL: adds "Open in Slack" button.</p>
           </div>
 
           {/* Share link */}
           {access !== 'private' && (
             <div className="mt-4 p-3 bg-gray-50 rounded-xl">
-              <div className="text-xs font-medium text-gray-500 mb-2">Client review link</div>
+              <div className="text-sm font-medium text-gray-500 mb-2">Client review link</div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 truncate">
+                <code className="flex-1 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-2 truncate">
                   {publicUrl}
                 </code>
                 <button onClick={copyLink} className="btn-secondary py-2 px-3 flex-shrink-0">

@@ -26,7 +26,7 @@ export default function LoginPage() {
     background:'rgba(255,255,255,.06)',
     border:'1px solid rgba(255,255,255,.1)',
     borderRadius:10,fontSize:15,color:'#fff',
-    outline:'none',fontFamily:"'DM Sans',sans-serif",
+    outline:'none',fontFamily:"var(--font-body)",
     transition:'border-color .15s',
     boxSizing:'border-box',
   }
@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div style={{
       minHeight:'100vh',background:'#0a0a0a',
       display:'flex',alignItems:'center',justifyContent:'center',
-      fontFamily:"'DM Sans',sans-serif",
+      fontFamily:"var(--font-body)",
       padding:24,
     }}>
       {/* Background grid */}
@@ -51,7 +51,7 @@ export default function LoginPage() {
             margin:'0 auto 16px',boxShadow:`0 8px 24px ${R}50`}}>
             <Zap size={24} color="#fff" strokeWidth={2.5}/>
           </div>
-          <div style={{fontFamily:"'Syne',sans-serif",fontSize:28,fontWeight:800,
+          <div style={{fontFamily:"var(--font-display)",fontSize:28,fontWeight:800,
             color:'#fff',letterSpacing:'-.04em',lineHeight:1,marginBottom:8}}>
             Moose AI
           </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
           backdropFilter:'blur(20px)'}}>
           <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:16}}>
             <div>
-              <label style={{display:'block',fontSize:12,fontWeight:700,
+              <label style={{display:'block',fontSize:13,fontWeight:700,
                 color:'rgba(255,255,255,.5)',textTransform:'uppercase',
                 letterSpacing:'.08em',marginBottom:8}}>
                 Email
@@ -81,7 +81,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label style={{display:'block',fontSize:12,fontWeight:700,
+              <label style={{display:'block',fontSize:13,fontWeight:700,
                 color:'rgba(255,255,255,.5)',textTransform:'uppercase',
                 letterSpacing:'.08em',marginBottom:8}}>
                 Password
@@ -101,7 +101,7 @@ export default function LoginPage() {
                 cursor:loading?'not-allowed':'pointer',
                 display:'flex',alignItems:'center',justifyContent:'center',gap:8,
                 boxShadow:loading?'none':`0 4px 16px ${R}40`,
-                transition:'all .2s',fontFamily:"'DM Sans',sans-serif"}}>
+                transition:'all .2s',fontFamily:"var(--font-body)"}}>
               {loading
                 ? <><Loader2 size={16} style={{animation:'spin 1s linear infinite'}}/> Signing in…</>
                 : 'Sign In'}

@@ -31,7 +31,7 @@ function DeltaBadge({ pct }) {
   const good = pct >= 0
   return (
     <span style={{display:'inline-flex',alignItems:'center',gap:3,
-      fontSize:11,fontWeight:700,padding:'2px 7px',borderRadius:20,
+      fontSize:13,fontWeight:700,padding:'2px 7px',borderRadius:20,
       background:good?'#f0fdf4':'#fef2f2',
       color:good?GREEN:RED}}>
       {good?<ArrowUp size={9}/>:<ArrowDown size={9}/>}
@@ -55,7 +55,7 @@ function KPICard({ label, value, sub, delta, color=RED, icon:Icon, onClick }) {
       </div>
       <div style={{fontSize:26,fontWeight:900,color:'#111',lineHeight:1,marginBottom:6}}>{value}</div>
       <div style={{display:'flex',alignItems:'center',gap:8}}>
-        {sub && <span style={{fontSize:12,color:'#9ca3af'}}>{sub}</span>}
+        {sub && <span style={{fontSize:13,color:'#9ca3af'}}>{sub}</span>}
         {delta != null && <DeltaBadge pct={delta}/>}
       </div>
     </div>
@@ -78,7 +78,7 @@ function RecommendationCard({ rec, onApply, onDismiss }) {
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
             <span style={{fontSize:14,fontWeight:800,color:'#111'}}>{rec.title}</span>
-            <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+            <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
               background:priBg,color:priColor,textTransform:'capitalize'}}>{rec.priority}</span>
           </div>
           <p style={{fontSize:13,color:'#374151',lineHeight:1.6,margin:'0 0 10px'}}>{rec.description}</p>
@@ -87,11 +87,11 @@ function RecommendationCard({ rec, onApply, onDismiss }) {
               <div style={{display:'inline-flex',alignItems:'center',gap:5,padding:'4px 10px',
                 borderRadius:20,background:'#f0fdf4',border:'1px solid #bbf7d0'}}>
                 <TrendingUp size={12} color={GREEN}/>
-                <span style={{fontSize:12,fontWeight:800,color:GREEN}}>{rec.est_impact}</span>
+                <span style={{fontSize:13,fontWeight:800,color:GREEN}}>{rec.est_impact}</span>
               </div>
             )}
             {rec.recommended?.action_this_week && (
-              <div style={{fontSize:12,color:'#7c3aed',background:'#f5f3ff',
+              <div style={{fontSize:13,color:'#7c3aed',background:'#f5f3ff',
                 padding:'4px 10px',borderRadius:20,border:'1px solid #e9d5ff'}}>
                 This week: {rec.recommended.action_this_week}
               </div>
@@ -101,7 +101,7 @@ function RecommendationCard({ rec, onApply, onDismiss }) {
         <div style={{display:'flex',gap:6,flexShrink:0}}>
           <button onClick={()=>onApply(rec)}
             style={{padding:'6px 14px',borderRadius:9,border:'none',background:GREEN,
-              color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>Apply</button>
+              color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>Apply</button>
           <button onClick={()=>onDismiss(rec.id)}
             style={{padding:'6px 8px',borderRadius:9,border:'1px solid #e5e7eb',
               background:'#fff',color:'#9ca3af',cursor:'pointer',display:'flex',alignItems:'center'}}>
@@ -289,7 +289,7 @@ export default function PerfDashboard() {
                 <TrendingUp size={17} color="#fff"/>
               </div>
               <div>
-                <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:'#fff',margin:0,letterSpacing:'-.03em'}}>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color:'#fff',margin:0,letterSpacing:'-.03em'}}>
                   Performance Marketing
                 </h1>
                 <p style={{fontSize:13,color:'rgba(255,255,255,.4)',margin:0}}>
@@ -352,7 +352,7 @@ export default function PerfDashboard() {
                 {alerts.length} alert{alerts.length!==1?'s':''}: {alerts[0].title}
               </span>
               <button onClick={()=>setTab('recs')}
-                style={{marginLeft:'auto',fontSize:12,color:RED,background:'none',border:'none',cursor:'pointer',fontWeight:700}}>
+                style={{marginLeft:'auto',fontSize:13,color:RED,background:'none',border:'none',cursor:'pointer',fontWeight:700}}>
                 View →
               </button>
             </div>
@@ -368,7 +368,7 @@ export default function PerfDashboard() {
                   fontSize:14,fontWeight:tab===t.key?800:600,cursor:'pointer'}}>
                 {t.label}
                 {(t.count||0)>0&&(
-                  <span style={{fontSize:11,fontWeight:800,padding:'1px 6px',borderRadius:20,
+                  <span style={{fontSize:13,fontWeight:800,padding:'1px 6px',borderRadius:20,
                     background:t.alert&&tab!==t.key?RED+'80':tab===t.key?RED+'40':'rgba(255,255,255,.1)',
                     color:'#fff'}}>{t.count}</span>
                 )}
@@ -390,7 +390,7 @@ export default function PerfDashboard() {
               <div style={{fontSize:17,fontWeight:800,color:'#111',marginBottom:8}}>Database tables not ready</div>
               <div style={{fontSize:14,color:'#374151',marginBottom:20,lineHeight:1.7}}>{dbError}</div>
               <div style={{background:'#111',borderRadius:12,padding:'16px 20px',textAlign:'left',marginBottom:16}}>
-                <div style={{fontSize:12,color:'rgba(255,255,255,.5)',marginBottom:8,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>Steps to fix:</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginBottom:8,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>Steps to fix:</div>
                 <div style={{fontSize:13,color:'rgba(255,255,255,.8)',lineHeight:1.8}}>
                   1. Go to <strong style={{color:'#5bc6d0'}}>Supabase → SQL Editor</strong><br/>
                   2. Open the file: <code style={{background:'rgba(255,255,255,.1)',padding:'1px 6px',borderRadius:4}}>supabase/migrations/RUN_THIS_NOW_consolidated.sql</code><br/>
@@ -443,7 +443,7 @@ export default function PerfDashboard() {
                       <table style={{width:'100%',borderCollapse:'collapse'}}>
                         <thead><tr style={{background:'#f9fafb'}}>
                           {['Campaign','Status','Spend','ROAS','CPA','Clicks','Conv','IS%'].map(h=>(
-                            <th key={h} style={{padding:'10px 16px',fontSize:11,fontWeight:800,
+                            <th key={h} style={{padding:'10px 16px',fontSize:13,fontWeight:800,
                               color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
                           ))}
                         </tr></thead>
@@ -452,7 +452,7 @@ export default function PerfDashboard() {
                             <tr key={c.id} style={{borderBottom:i<4?'1px solid #f9fafb':'none'}}>
                               <td style={{padding:'12px 16px',fontSize:14,fontWeight:800,color:'#111'}}>{c.name}</td>
                               <td style={{padding:'12px 16px'}}>
-                                <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                                <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                                   background:c.status==='ENABLED'?'#f0fdf4':'#f9fafb',
                                   color:c.status==='ENABLED'?GREEN:'#374151'}}>{c.status}</span>
                               </td>
@@ -501,7 +501,7 @@ export default function PerfDashboard() {
                       <table style={{width:'100%',borderCollapse:'collapse'}}>
                         <thead><tr style={{background:'#f9fafb'}}>
                           {['Campaign','Type','Budget/day','Bidding','Spend','ROAS','CPA','Clicks','Conv','IS%','Lost (Budget)','Lost (Rank)'].map(h=>(
-                            <th key={h} style={{padding:'11px 14px',fontSize:11,fontWeight:800,color:'#374151',
+                            <th key={h} style={{padding:'11px 14px',fontSize:13,fontWeight:800,color:'#374151',
                               textAlign:'left',textTransform:'uppercase',letterSpacing:'.04em',whiteSpace:'nowrap'}}>{h}</th>
                           ))}
                         </tr></thead>
@@ -512,21 +512,21 @@ export default function PerfDashboard() {
                               onMouseLeave={e=>e.currentTarget.style.background=''}>
                               <td style={{padding:'12px 14px'}}>
                                 <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{c.name}</div>
-                                <span style={{fontSize:11,fontWeight:700,padding:'1px 7px',borderRadius:20,
+                                <span style={{fontSize:13,fontWeight:700,padding:'1px 7px',borderRadius:20,
                                   background:c.status==='ENABLED'?'#f0fdf4':'#f9fafb',
                                   color:c.status==='ENABLED'?GREEN:'#374151'}}>{c.status}</span>
                               </td>
-                              <td style={{padding:'12px 14px',fontSize:12,color:'#374151'}}>{c.campaign_type}</td>
+                              <td style={{padding:'12px 14px',fontSize:13,color:'#374151'}}>{c.campaign_type}</td>
                               <td style={{padding:'12px 14px',fontSize:13,fontWeight:700,color:'#111'}}>{fmt(c.budget_amount,'currency')}</td>
-                              <td style={{padding:'12px 14px',fontSize:12,color:'#374151',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.bidding_strategy}</td>
+                              <td style={{padding:'12px 14px',fontSize:13,color:'#374151',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.bidding_strategy}</td>
                               <td style={{padding:'12px 14px',fontSize:14,fontWeight:700,color:'#111'}}>{fmt(c.cost,'currency')}</td>
                               <td style={{padding:'12px 14px',fontSize:14,fontWeight:800,color:(c.roas||0)>=3?GREEN:(c.roas||0)>=1?'#f59e0b':RED}}>{fmt(c.roas,'roas')}</td>
                               <td style={{padding:'12px 14px',fontSize:13,color:'#374151'}}>{fmt(c.cpa,'currency')}</td>
                               <td style={{padding:'12px 14px',fontSize:13,color:'#374151'}}>{fmt(c.clicks)}</td>
                               <td style={{padding:'12px 14px',fontSize:13,color:'#374151'}}>{fmt(c.conversions)}</td>
                               <td style={{padding:'12px 14px',fontSize:13,color:(c.impression_share||0)>=70?GREEN:'#f59e0b'}}>{fmt(c.impression_share,'pct')}</td>
-                              <td style={{padding:'12px 14px',fontSize:12,color:RED}}>{fmt(c.lost_is_budget,'pct')}</td>
-                              <td style={{padding:'12px 14px',fontSize:12,color:'#f59e0b'}}>{fmt(c.lost_is_rank,'pct')}</td>
+                              <td style={{padding:'12px 14px',fontSize:13,color:RED}}>{fmt(c.lost_is_budget,'pct')}</td>
+                              <td style={{padding:'12px 14px',fontSize:13,color:'#f59e0b'}}>{fmt(c.lost_is_rank,'pct')}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -543,7 +543,7 @@ export default function PerfDashboard() {
                     <table style={{width:'100%',borderCollapse:'collapse',minWidth:900}}>
                       <thead><tr style={{background:'#f9fafb'}}>
                         {['Keyword','Match','Status','Bid','Avg CPC','Impressions','Clicks','Conv','Cost','QS','First Page Bid'].map(h=>(
-                          <th key={h} style={{padding:'11px 14px',fontSize:11,fontWeight:800,color:'#374151',
+                          <th key={h} style={{padding:'11px 14px',fontSize:13,fontWeight:800,color:'#374151',
                             textAlign:'left',textTransform:'uppercase',letterSpacing:'.04em',whiteSpace:'nowrap'}}>{h}</th>
                         ))}
                       </tr></thead>
@@ -552,10 +552,10 @@ export default function PerfDashboard() {
                           <tr key={kw.id} style={{borderBottom:i<keywords.length-1?'1px solid #f9fafb':'none'}}>
                             <td style={{padding:'11px 14px',fontSize:14,fontWeight:800,color:'#111'}}>{kw.keyword}</td>
                             <td style={{padding:'11px 14px'}}>
-                              <span style={{fontSize:11,padding:'2px 7px',borderRadius:20,background:'#f3f4f6',color:'#374151',fontWeight:600}}>{kw.match_type}</span>
+                              <span style={{fontSize:13,padding:'2px 7px',borderRadius:20,background:'#f3f4f6',color:'#374151',fontWeight:600}}>{kw.match_type}</span>
                             </td>
                             <td style={{padding:'11px 14px'}}>
-                              <span style={{fontSize:11,fontWeight:700,color:kw.status==='ENABLED'?GREEN:'#9ca3af'}}>{kw.status}</span>
+                              <span style={{fontSize:13,fontWeight:700,color:kw.status==='ENABLED'?GREEN:'#9ca3af'}}>{kw.status}</span>
                             </td>
                             <td style={{padding:'11px 14px',fontSize:13,fontWeight:700,color:'#111'}}>{fmt(kw.bid,'cpc')}</td>
                             <td style={{padding:'11px 14px',fontSize:13,color:'#374151'}}>{fmt(kw.avg_cpc,'cpc')}</td>
@@ -569,7 +569,7 @@ export default function PerfDashboard() {
                                   <div style={{height:'100%',width:((kw.quality_score||0)/10*100)+'%',
                                     background:(kw.quality_score||0)>=7?GREEN:(kw.quality_score||0)>=5?'#f59e0b':RED}}/>
                                 </div>
-                                <span style={{fontSize:12,fontWeight:700,
+                                <span style={{fontSize:13,fontWeight:700,
                                   color:(kw.quality_score||0)>=7?GREEN:(kw.quality_score||0)>=5?'#f59e0b':RED}}>
                                   {kw.quality_score||'—'}
                                 </span>
@@ -624,7 +624,7 @@ export default function PerfDashboard() {
                               color:(page.ai_score||0)>=70?GREEN:(page.ai_score||0)>=50?TEAL:RED}}>
                               {page.ai_score||0}
                             </div>
-                            <div style={{fontSize:9,color:'#9ca3af'}}>score</div>
+                            <div style={{fontSize:13,color:'#9ca3af'}}>score</div>
                           </div>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
@@ -637,18 +637,18 @@ export default function PerfDashboard() {
                                 <ExternalLink size={12}/>
                               </a>
                             </div>
-                            <div style={{fontSize:12,color:'#9ca3af',marginBottom:6,
+                            <div style={{fontSize:13,color:'#9ca3af',marginBottom:6,
                               overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{page.url}</div>
                             {page.ai_summary && (
                               <div style={{fontSize:13,color:'#374151',marginBottom:8}}>{page.ai_summary}</div>
                             )}
                             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                              {page.has_cta && <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:GREEN}}>✓ Has CTA</span>}
-                              {page.has_form && <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#eff6ff',color:'#3b82f6'}}>✓ Has Form</span>}
-                              {page.has_phone && <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f5f3ff',color:'#7c3aed'}}>✓ Has Phone</span>}
-                              {page.word_count>0 && <span style={{fontSize:11,color:'#9ca3af'}}>{page.word_count} words</span>}
+                              {page.has_cta && <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:GREEN}}>✓ Has CTA</span>}
+                              {page.has_form && <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#eff6ff',color:'#3b82f6'}}>✓ Has Form</span>}
+                              {page.has_phone && <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f5f3ff',color:'#7c3aed'}}>✓ Has Phone</span>}
+                              {page.word_count>0 && <span style={{fontSize:13,color:'#9ca3af'}}>{page.word_count} words</span>}
                               {(page.primary_keywords||[]).slice(0,3).map((kw,j)=>(
-                                <span key={j} style={{fontSize:11,padding:'2px 7px',borderRadius:20,background:'#f3f4f6',color:'#374151'}}>#{kw}</span>
+                                <span key={j} style={{fontSize:13,padding:'2px 7px',borderRadius:20,background:'#f3f4f6',color:'#374151'}}>#{kw}</span>
                               ))}
                             </div>
                           </div>
@@ -662,7 +662,7 @@ export default function PerfDashboard() {
                               ].map(m=>(
                                 <div key={m.label} style={{background:'#f9fafb',borderRadius:8,padding:'6px 8px',textAlign:'center'}}>
                                   <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{m.value||'—'}</div>
-                                  <div style={{fontSize:10,color:'#9ca3af'}}>{m.label}</div>
+                                  <div style={{fontSize:13,color:'#9ca3af'}}>{m.label}</div>
                                 </div>
                               ))}
                             </div>
@@ -714,7 +714,7 @@ export default function PerfDashboard() {
                         if (!priRecs.length) return null
                         return (
                           <div key={pri}>
-                            <div style={{fontSize:12,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',
+                            <div style={{fontSize:13,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',
                               letterSpacing:'.07em',marginBottom:8,marginTop:pri!=='high'?16:0}}>
                               {pri} priority ({priRecs.length})
                             </div>
@@ -747,7 +747,7 @@ export default function PerfDashboard() {
                       <table style={{width:'100%',borderCollapse:'collapse'}}>
                         <thead><tr style={{background:'#f9fafb'}}>
                           {['Change','Applied by','Date','Status','Detail'].map(h=>(
-                            <th key={h} style={{padding:'11px 16px',fontSize:11,fontWeight:800,color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
+                            <th key={h} style={{padding:'11px 16px',fontSize:13,fontWeight:800,color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
                           ))}
                         </tr></thead>
                         <tbody>
@@ -755,14 +755,14 @@ export default function PerfDashboard() {
                             <tr key={log.id} style={{borderBottom:i<execLog.length-1?'1px solid #f9fafb':'none'}}>
                               <td style={{padding:'13px 16px'}}>
                                 <div style={{fontSize:14,fontWeight:700,color:'#111'}}>{log.rec_title}</div>
-                                <div style={{fontSize:11,color:'#9ca3af',textTransform:'capitalize'}}>{log.rec_type?.replace(/_/g,' ')}</div>
+                                <div style={{fontSize:13,color:'#9ca3af',textTransform:'capitalize'}}>{log.rec_type?.replace(/_/g,' ')}</div>
                               </td>
                               <td style={{padding:'13px 16px',fontSize:13,color:'#374151'}}>{log.applied_by||'Agency'}</td>
                               <td style={{padding:'13px 16px',fontSize:13,color:'#9ca3af',whiteSpace:'nowrap'}}>
                                 {new Date(log.applied_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
                               </td>
                               <td style={{padding:'13px 16px'}}>
-                                <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                                <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                                   background:log.status==='success'?'#f0fdf4':log.status==='failed'?'#fef2f2':'#f9fafb',
                                   color:log.status==='success'?GREEN:log.status==='failed'?RED:'#374151'}}>
                                   {log.dry_run?'Advisory':log.status}

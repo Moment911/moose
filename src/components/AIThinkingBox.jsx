@@ -160,7 +160,7 @@ export default function AIThinkingBox({ active, task='default', label, onStop, i
           {quips[idx]}
         </span>
         <DotWave/>
-        <span style={{ fontSize:12, fontWeight:800, color: dark?'rgba(255,255,255,.4)':'#9ca3af', fontVariantNumeric:'tabular-nums', flexShrink:0 }}>
+        <span style={{ fontSize:13, fontWeight:800, color: dark?'rgba(255,255,255,.4)':'#9ca3af', fontVariantNumeric:'tabular-nums', flexShrink:0 }}>
           {formatTime(elapsed)}
         </span>
         {onStop && (
@@ -191,7 +191,7 @@ export default function AIThinkingBox({ active, task='default', label, onStop, i
 
         <div style={{ flex:1, minWidth:0 }}>
           {/* Label */}
-          <div style={{ fontSize:12, fontWeight:800, color:TEAL, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:5 }}>
+          <div style={{ fontSize:13, fontWeight:800, color:TEAL, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:5 }}>
             {label || 'AI is working'}
           </div>
 
@@ -218,7 +218,7 @@ export default function AIThinkingBox({ active, task='default', label, onStop, i
             </div>
             {onStop && (
               <button onClick={onStop}
-                style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 12px', borderRadius:20, border:`1px solid ${RED}40`, background:'transparent', color:RED, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 12px', borderRadius:20, border:`1px solid ${RED}40`, background:'transparent', color:RED, fontSize:13, fontWeight:700, cursor:'pointer' }}>
                 <StopCircle size={11}/> Stop
               </button>
             )}

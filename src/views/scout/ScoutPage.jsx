@@ -201,7 +201,7 @@ function ProvenancePanel({ lead }) {
               <div style={{ flex:1 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:3 }}>
                   <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{p.source.label}</span>
-                  <span style={{ fontSize:12, fontWeight:800, color:statusColor[p.status], background:statusColor[p.status]+'15', padding:'1px 7px', borderRadius:20, textTransform:'uppercase' }}>
+                  <span style={{ fontSize:13, fontWeight:800, color:statusColor[p.status], background:statusColor[p.status]+'15', padding:'1px 7px', borderRadius:20, textTransform:'uppercase' }}>
                     {statusIcon[p.status]} {p.status.replace('_',' ')}
                   </span>
                   {p.confidence && <span style={{ fontSize:13, color:'#4b5563', marginLeft:'auto' }}>{p.confidence}%</span>}
@@ -368,7 +368,7 @@ function MarketSummaryCard({ results, query, location }) {
           <div key={s.label} style={{ background:'rgba(255,255,255,.07)', borderRadius:12, padding:'12px', textAlign:'center' }}>
             <div style={{ fontSize:20, fontWeight:900, color:s.color }}>{s.value}</div>
             <div style={{ fontSize:13, color:'rgba(255,255,255,.5)', marginTop:3, lineHeight:1.3 }}>{s.label}</div>
-            {s.note && <div style={{ fontSize:12, color:'#34d399', marginTop:2 }}>↑ {s.note}</div>}
+            {s.note && <div style={{ fontSize:13, color:'#34d399', marginTop:2 }}>↑ {s.note}</div>}
           </div>
         ))}
       </div>
@@ -777,7 +777,7 @@ export default function ScoutPage() {
                       <div style={{ height:'100%', width:`${pipelineProgress.pct}%`, background:TEAL, borderRadius:2, transition:'width .4s ease' }}/>
                     </div>
                   </div>
-                  <div style={{ fontSize:12, fontWeight:800, color:TEAL }}>{pipelineProgress.pct}%</div>
+                  <div style={{ fontSize:13, fontWeight:800, color:TEAL }}>{pipelineProgress.pct}%</div>
                 </div>
               )}
               {/* Data source banner */}

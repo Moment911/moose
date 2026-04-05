@@ -179,7 +179,7 @@ export default function DeskSettingsPage() {
                       <div style={{fontSize:13,color:'#374151'}}>{agent.email}</div>
                     </div>
                     <div>
-                      <div style={{fontSize:12,color:'#9ca3af',marginBottom:4}}>Hourly rate</div>
+                      <div style={{fontSize:13,color:'#9ca3af',marginBottom:4}}>Hourly rate</div>
                       <div style={{display:'flex',alignItems:'center',gap:6}}>
                         <DollarSign size={13} color="#374151"/>
                         <input type="number" value={agent.hourly_rate||0}
@@ -189,7 +189,7 @@ export default function DeskSettingsPage() {
                       </div>
                     </div>
                     <div>
-                      <div style={{fontSize:12,color:'#9ca3af',marginBottom:6}}>Active</div>
+                      <div style={{fontSize:13,color:'#9ca3af',marginBottom:6}}>Active</div>
                       <button onClick={()=>updateAgent(agent.id,'is_active',!agent.is_active)}
                         style={{border:'none',background:'none',cursor:'pointer',padding:0}}>
                         {agent.is_active
@@ -205,7 +205,7 @@ export default function DeskSettingsPage() {
                   </div>
                   {/* Skills */}
                   <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid #f3f4f6'}}>
-                    <div style={{fontSize:12,color:'#9ca3af',marginBottom:8}}>Skills</div>
+                    <div style={{fontSize:13,color:'#9ca3af',marginBottom:8}}>Skills</div>
                     <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                       {SKILLS.map(skill=>(
                         <PillToggle key={skill} label={skill}
@@ -225,28 +225,28 @@ export default function DeskSettingsPage() {
                 <div style={{fontSize:15,fontWeight:800,color:'#111',marginBottom:14}}>Add Team Member</div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
                   <div>
-                    <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Name *</label>
+                    <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Name *</label>
                     <input value={newAgent.name} onChange={e=>setNewAgent(a=>({...a,name:e.target.value}))} placeholder="Jane Smith" style={INP}/>
                   </div>
                   <div>
-                    <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Email *</label>
+                    <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Email *</label>
                     <input value={newAgent.email} onChange={e=>setNewAgent(a=>({...a,email:e.target.value}))} placeholder="jane@agency.com" style={INP}/>
                   </div>
                   <div>
-                    <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Role</label>
+                    <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Role</label>
                     <select value={newAgent.role} onChange={e=>setNewAgent(a=>({...a,role:e.target.value}))} style={INP}>
                       {['agent','senior','lead','manager'].map(r=><option key={r} value={r}>{r.charAt(0).toUpperCase()+r.slice(1)}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Hourly Rate ($)</label>
+                    <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Hourly Rate ($)</label>
                     <input type="number" value={newAgent.hourly_rate}
                       onChange={e=>setNewAgent(a=>({...a,hourly_rate:parseFloat(e.target.value)||0}))}
                       placeholder="75" style={INP}/>
                   </div>
                 </div>
                 <div style={{marginBottom:12}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#374151',marginBottom:8}}>Avatar Color</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#374151',marginBottom:8}}>Avatar Color</div>
                   <div style={{display:'flex',gap:8}}>
                     {AVATAR_COLORS.map(c=>(
                       <button key={c} onClick={()=>setNewAgent(a=>({...a,avatar_color:c}))}
@@ -255,7 +255,7 @@ export default function DeskSettingsPage() {
                   </div>
                 </div>
                 <div style={{marginBottom:14}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#374151',marginBottom:8}}>Skills</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#374151',marginBottom:8}}>Skills</div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                     {SKILLS.map(skill=>(
                       <PillToggle key={skill} label={skill}
@@ -288,20 +288,20 @@ export default function DeskSettingsPage() {
                   <div style={{display:'flex',alignItems:'center',gap:12}}>
                     <div style={{width:26,height:26,borderRadius:'50%',background:'#f3f4f6',
                       display:'flex',alignItems:'center',justifyContent:'center',
-                      fontSize:12,fontWeight:900,color:'#374151',flexShrink:0}}>{i+1}</div>
+                      fontSize:13,fontWeight:900,color:'#374151',flexShrink:0}}>{i+1}</div>
                     <div style={{flex:1}}>
                       <div style={{fontSize:15,fontWeight:800,color:'#111',marginBottom:4}}>{rule.name}</div>
                       <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                         {rule.match_category?.map(c=>(
-                          <span key={c} style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                          <span key={c} style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                             background:'#eff6ff',color:'#3b82f6',textTransform:'capitalize'}}>{c.replace(/_/g,' ')}</span>
                         ))}
                         {rule.match_priority?.map(p=>(
-                          <span key={p} style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                          <span key={p} style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                             background:'#fef2f2',color:RED,textTransform:'capitalize'}}>{p}</span>
                         ))}
                         {rule.match_keywords?.map(k=>(
-                          <span key={k} style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                          <span key={k} style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                             background:'#f9fafb',color:'#374151'}}>"{k}"</span>
                         ))}
                       </div>
@@ -324,12 +324,12 @@ export default function DeskSettingsPage() {
               <div style={{background:'#f9fafb',borderRadius:14,border:'2px dashed #e5e7eb',padding:'20px',marginTop:16}}>
                 <div style={{fontSize:15,fontWeight:800,color:'#111',marginBottom:14}}>Add Routing Rule</div>
                 <div style={{marginBottom:12}}>
-                  <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Rule Name *</label>
+                  <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Rule Name *</label>
                   <input value={newRule.name} onChange={e=>setNewRule(r=>({...r,name:e.target.value}))}
                     placeholder="e.g. Urgent bugs → Lead dev" style={INP}/>
                 </div>
                 <div style={{marginBottom:12}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#374151',marginBottom:8}}>Match Category (any)</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#374151',marginBottom:8}}>Match Category (any)</div>
                   <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
                     {CATEGORIES.map(c=>(
                       <PillToggle key={c} label={c.replace(/_/g,' ')}
@@ -339,7 +339,7 @@ export default function DeskSettingsPage() {
                   </div>
                 </div>
                 <div style={{marginBottom:12}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#374151',marginBottom:8}}>Match Priority (any)</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#374151',marginBottom:8}}>Match Priority (any)</div>
                   <div style={{display:'flex',gap:6}}>
                     {['low','normal','high','urgent','critical'].map(p=>(
                       <PillToggle key={p} label={p}
@@ -349,13 +349,13 @@ export default function DeskSettingsPage() {
                   </div>
                 </div>
                 <div style={{marginBottom:12}}>
-                  <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Match Keywords (comma-separated)</label>
+                  <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Match Keywords (comma-separated)</label>
                   <input value={newRule.match_keywords}
                     onChange={e=>setNewRule(r=>({...r,match_keywords:e.target.value}))}
                     placeholder="crash, broken, urgent, refund" style={INP}/>
                 </div>
                 <div style={{marginBottom:14}}>
-                  <label style={{fontSize:12,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Auto-reply message (optional)</label>
+                  <label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Auto-reply message (optional)</label>
                   <textarea value={newRule.auto_reply}
                     onChange={e=>setNewRule(r=>({...r,auto_reply:e.target.value}))}
                     rows={3} placeholder="We received your request and are treating it as urgent…"

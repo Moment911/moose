@@ -45,23 +45,23 @@ export default function FeedbackTemplates({ onSelect, onClose }) {
   return (
     <div className="border-t border-gray-100">
       <div className="px-4 py-2.5 flex items-center justify-between bg-gray-50">
-        <span className="text-xs font-semibold text-gray-600 flex items-center gap-1"><FileText size={12} /> Feedback Templates</span>
+        <span className="text-sm font-semibold text-gray-600 flex items-center gap-1"><FileText size={12} /> Feedback Templates</span>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={13} /></button>
       </div>
       <div className="max-h-64 overflow-y-auto">
         {CATEGORIES.map(cat => (
           <div key={cat.name}>
             <button onClick={() => setExpanded(expanded === cat.name ? null : cat.name)}
-              className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50">
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
               {expanded === cat.name ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
               {cat.name}
-              <span className="text-[9px] text-gray-400 ml-auto">{cat.templates.length}</span>
+              <span className="text-[13px] text-gray-400 ml-auto">{cat.templates.length}</span>
             </button>
             {expanded === cat.name && (
               <div className="pb-1">
                 {cat.templates.map((t, i) => (
                   <button key={i} onClick={() => onSelect(t)}
-                    className="w-full text-left px-6 py-1.5 text-[11px] text-gray-600 hover:bg-brand-50 hover:text-brand-700 transition-colors leading-relaxed">
+                    className="w-full text-left px-6 py-1.5 text-[13px] text-gray-600 hover:bg-brand-50 hover:text-brand-700 transition-colors leading-relaxed">
                     {t}
                   </button>
                 ))}

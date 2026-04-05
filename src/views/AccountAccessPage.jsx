@@ -114,7 +114,7 @@ function AccessItem({ item, data, onChange, agencyEmail, expanded, onToggle, cli
             <span style={{ fontSize:15, fontWeight:700, color:status==='complete'?'#9ca3af':'#111', textDecoration:status==='complete'?'line-through':'' }}>{item.label}</span>
             <span style={{ fontSize:13, padding:'1px 5px', borderRadius:6, background:'#f3f4f6', color:'#374151' }}>{typeCfg.icon}</span>
             {isVerified&&<ShieldCheck size={12} color="#16a34a"/>}
-            {d.client_completed_at&&<span style={{ fontSize:12, background:'#e8f9fa', color:'#0e7490', padding:'1px 5px', borderRadius:6, fontWeight:700 }}>CLIENT ✓</span>}
+            {d.client_completed_at&&<span style={{ fontSize:13, background:'#e8f9fa', color:'#0e7490', padding:'1px 5px', borderRadius:6, fontWeight:700 }}>CLIENT ✓</span>}
           </div>
           {clientAct.length>0&&<div style={{ fontSize:13, color:'#4b5563' }}>Client updated {formatDistanceToNow(new Date(clientAct[0].created_at),{addSuffix:true})}</div>}
         </div>
@@ -311,7 +311,7 @@ export default function AccountAccessPage() {
                     <div style={{ fontSize:15, fontWeight:700, color:pct2===100?'#16a34a':section.color, minWidth:32, textAlign:'right' }}>{pct2}%</div>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'26px 1fr 110px 90px 120px 110px 28px', gap:0, padding:'5px 14px', background:'#f8f9fa', borderBottom:'1px solid #e5e7eb' }}>
-                    {['','Platform','Access Level','Priority','Status','Verified By',''].map((h,i)=><div key={i} style={{ fontSize:12, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.04em' }}>{h}</div>)}
+                    {['','Platform','Access Level','Priority','Status','Verified By',''].map((h,i)=><div key={i} style={{ fontSize:13, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.04em' }}>{h}</div>)}
                   </div>
                   {filteredItems.map(item=>(
                     <AccessItem key={item.id} item={item} data={accessData[item.id]} onChange={data=>handleItemChange(item.id,data)} agencyEmail={agencyEmail} expanded={expandedId===item.id} onToggle={()=>setExpandedId(prev=>prev===item.id?null:item.id)} clientId={clientId} user={user} history={liveActivity}/>

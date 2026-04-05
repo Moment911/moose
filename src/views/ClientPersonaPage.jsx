@@ -244,7 +244,7 @@ Return ONLY valid JSON with these keys:
                     {persona.recommended_channels.map((ch,i)=>(
                       <div key={i} style={{ marginBottom:12 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
-                          <div><span style={{ fontSize:15, fontWeight:700, color:'#111' }}>{ch.channel}</span><span style={{ fontSize:12, fontWeight:700, padding:'1px 6px', borderRadius:8, marginLeft:6, background:ch.priority==='high'?'#fef2f2':ch.priority==='mid'?'#fffbeb':'#f0fdf4', color:ch.priority==='high'?'#dc2626':ch.priority==='mid'?'#d97706':'#16a34a' }}>{ch.priority?.toUpperCase()}</span></div>
+                          <div><span style={{ fontSize:15, fontWeight:700, color:'#111' }}>{ch.channel}</span><span style={{ fontSize:13, fontWeight:700, padding:'1px 6px', borderRadius:8, marginLeft:6, background:ch.priority==='high'?'#fef2f2':ch.priority==='mid'?'#fffbeb':'#f0fdf4', color:ch.priority==='high'?'#dc2626':ch.priority==='mid'?'#d97706':'#16a34a' }}>{ch.priority?.toUpperCase()}</span></div>
                           <span style={{ fontSize:13, fontWeight:700, color:'#4b5563' }}>{ch.budget_allocation}</span>
                         </div>
                         <div style={{ fontSize:13, color:'#4b5563' }}>{ch.rationale}</div>

@@ -251,9 +251,9 @@ export default function TasksPage() {
                               <p className={`text-sm flex-1 ${t.completed ? 'line-through text-gray-700' : 'text-gray-900'}`}>{t.title}</p>
                             </div>
                             <div className="flex items-center gap-2 mt-2 ml-6">
-                              {t.priority !== 'none' && <span className="text-[12px] px-1.5 py-0.5 rounded font-medium" style={{ background: priority.color + '18', color: priority.color }}>{priority.label}</span>}
-                              {t.due_date && <span className="text-[12px] text-gray-700 flex items-center gap-0.5"><Calendar size={8} />{format(new Date(t.due_date), 'MMM d')}</span>}
-                              {t.assignee_name && <span className="text-[12px] text-gray-700 ml-auto flex items-center gap-0.5"><User size={8} />{t.assignee_name}</span>}
+                              {t.priority !== 'none' && <span className="text-[13px] px-1.5 py-0.5 rounded font-medium" style={{ background: priority.color + '18', color: priority.color }}>{priority.label}</span>}
+                              {t.due_date && <span className="text-[13px] text-gray-700 flex items-center gap-0.5"><Calendar size={8} />{format(new Date(t.due_date), 'MMM d')}</span>}
+                              {t.assignee_name && <span className="text-[13px] text-gray-700 ml-auto flex items-center gap-0.5"><User size={8} />{t.assignee_name}</span>}
                             </div>
                           </div>
                         )
@@ -315,7 +315,7 @@ export default function TasksPage() {
                   <div className="space-y-1 mb-2">
                     {(selectedTask.assignees || []).map((a, i) => (
                       <div key={i} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2.5 py-1.5">
-                        <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[12px] font-bold flex items-center justify-center flex-shrink-0">{(a.name || a.email || '?')[0].toUpperCase()}</div>
+                        <div className="w-5 h-5 rounded-full bg-brand-500 text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">{(a.name || a.email || '?')[0].toUpperCase()}</div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-800 truncate">{a.name || a.email}</p>
                           {a.name && <p className="text-[13px] text-gray-700 truncate">{a.email}</p>}
@@ -385,7 +385,7 @@ export default function TasksPage() {
                       <div key={c.id} className="bg-gray-50 rounded-lg px-3 py-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-700">{c.author_name}</span>
-                          <span className="text-[12px] text-gray-700">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                          <span className="text-[13px] text-gray-700">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">{c.text}</p>
                       </div>

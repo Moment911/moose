@@ -34,7 +34,7 @@ function Stat({ label, value, sub, color=R, icon:Icon, onClick }) {
       onMouseLeave={e=>{ if(onClick){e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}}>
       <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:color,opacity:.7}}/>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:12}}>
-        <span style={{fontSize:11,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.08em'}}>
+        <span style={{fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.08em'}}>
           {label}
         </span>
         <div style={{width:30,height:30,borderRadius:8,background:color+'12',
@@ -42,11 +42,11 @@ function Stat({ label, value, sub, color=R, icon:Icon, onClick }) {
           <Icon size={14} color={color}/>
         </div>
       </div>
-      <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,fontWeight:800,
+      <div style={{fontFamily:"var(--font-display)",fontSize:32,fontWeight:800,
         color:'#0a0a0a',lineHeight:1,letterSpacing:'-.03em',marginBottom:4}}>
         {value}
       </div>
-      {sub && <div style={{fontSize:12,color:'#9a9a96'}}>{sub}</div>}
+      {sub && <div style={{fontSize:13,color:'#9a9a96'}}>{sub}</div>}
     </div>
   )
 }
@@ -68,7 +68,7 @@ function QuickAction({ icon:Icon, label, desc, color, to, onClick }) {
       </div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:14,fontWeight:700,color:'#0a0a0a',marginBottom:1}}>{label}</div>
-        <div style={{fontSize:12,color:'#9a9a96',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{desc}</div>
+        <div style={{fontSize:13,color:'#9a9a96',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{desc}</div>
       </div>
       <ArrowUpRight size={14} color="#d0d0cc"/>
     </div>
@@ -91,13 +91,13 @@ function ProjectCard({ project, client, onClick }) {
       onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}>
       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}}>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700,
+          <div style={{fontFamily:"var(--font-display)",fontSize:15,fontWeight:700,
             color:'#0a0a0a',marginBottom:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
             {project.name}
           </div>
-          <div style={{fontSize:12,color:'#9a9a96'}}>{client?.name||'—'}</div>
+          <div style={{fontSize:13,color:'#9a9a96'}}>{client?.name||'—'}</div>
         </div>
-        <span style={{fontSize:10,fontWeight:800,padding:'3px 8px',borderRadius:20,flexShrink:0,
+        <span style={{fontSize:13,fontWeight:800,padding:'3px 8px',borderRadius:20,flexShrink:0,
           background:statusColor+'15',color:statusColor,textTransform:'uppercase',letterSpacing:'.07em'}}>
           {client?.status||'active'}
         </span>
@@ -114,11 +114,11 @@ function ProjectCard({ project, client, onClick }) {
         ].map((m,i)=>(
           <div key={i} style={{display:'flex',alignItems:'center',gap:5}}>
             <m.icon size={11} color="#9a9a96"/>
-            <span style={{fontSize:12,fontWeight:600,color:'#5a5a58'}}>{m.val} {m.label}</span>
+            <span style={{fontSize:13,fontWeight:600,color:'#5a5a58'}}>{m.val} {m.label}</span>
           </div>
         ))}
         {project.due_date && (
-          <div style={{marginLeft:'auto',fontSize:11,color:'#9a9a96'}}>
+          <div style={{marginLeft:'auto',fontSize:13,color:'#9a9a96'}}>
             Due {new Date(project.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
           </div>
         )}
@@ -178,7 +178,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',
-      fontFamily:"'DM Sans',sans-serif"}}>
+      fontFamily:"var(--font-body)"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
@@ -187,11 +187,11 @@ export default function DashboardPage() {
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
             padding:'20px 0 0'}}>
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.3)',
+              <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.3)',
                 textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>
                 {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
               </div>
-              <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:26,fontWeight:800,
+              <h1 style={{fontFamily:"var(--font-display)",fontSize:26,fontWeight:800,
                 color:'#fff',margin:0,letterSpacing:'-.03em',lineHeight:1}}>
                 {greeting}
               </h1>
@@ -215,9 +215,9 @@ export default function DashboardPage() {
               {label:'Open tickets',  value:stats.tickets, color:stats.tickets>0?R:'rgba(255,255,255,.9)'},
             ].map(s=>(
               <div key={s.label} style={{paddingBottom:16}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,
+                <div style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,
                   color:s.color,lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,.3)',marginTop:3}}>{s.label}</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,.3)',marginTop:3}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -249,7 +249,7 @@ export default function DashboardPage() {
           {/* Main: projects */}
           <div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-              <div style={{fontFamily:"'Syne',sans-serif",fontSize:17,fontWeight:800,
+              <div style={{fontFamily:"var(--font-display)",fontSize:17,fontWeight:800,
                 color:'#0a0a0a',letterSpacing:'-.02em'}}>
                 {filtered.length} project{filtered.length!==1?'s':''}
               </div>
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                   display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
                   <Zap size={22} color="#d0d0cc"/>
                 </div>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:800,
+                <div style={{fontFamily:"var(--font-display)",fontSize:18,fontWeight:800,
                   color:'#0a0a0a',marginBottom:8,letterSpacing:'-.02em'}}>
                   No projects yet
                 </div>
@@ -308,7 +308,7 @@ export default function DashboardPage() {
               overflow:'hidden'}}>
               <div style={{padding:'14px 18px',borderBottom:'1px solid #f2f2f0',
                 display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <div style={{fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:800,
+                <div style={{fontFamily:"var(--font-display)",fontSize:14,fontWeight:800,
                   color:'#0a0a0a',letterSpacing:'-.02em'}}>Quick Actions</div>
               </div>
               <div style={{padding:'10px 10px',display:'flex',flexDirection:'column',gap:6}}>
@@ -326,10 +326,10 @@ export default function DashboardPage() {
                 overflow:'hidden'}}>
                 <div style={{padding:'14px 18px',borderBottom:'1px solid #f2f2f0',
                   display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:800,
+                  <div style={{fontFamily:"var(--font-display)",fontSize:14,fontWeight:800,
                     color:'#0a0a0a',letterSpacing:'-.02em'}}>Open Tickets</div>
                   <button onClick={()=>navigate('/desk')}
-                    style={{fontSize:12,fontWeight:700,color:R,background:'none',border:'none',
+                    style={{fontSize:13,fontWeight:700,color:R,background:'none',border:'none',
                       cursor:'pointer',display:'flex',alignItems:'center',gap:3}}>
                     View all <ChevronRight size={12}/>
                   </button>
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                         textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>
                         {tk.subject}
                       </span>
-                      <span style={{fontSize:10,color:'#9a9a96',flexShrink:0,
+                      <span style={{fontSize:13,color:'#9a9a96',flexShrink:0,
                         background:'#f2f2f0',padding:'2px 7px',borderRadius:20,fontWeight:600,
                         textTransform:'capitalize'}}>
                         {tk.status.replace('_',' ')}

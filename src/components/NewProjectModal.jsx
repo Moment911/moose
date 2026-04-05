@@ -73,14 +73,14 @@ export default function NewProjectModal({ clientId, clientName, onClose, onCreat
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
           {/* Project name */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1.5 block">Project Name</label>
+            <label className="text-sm font-medium text-gray-700 mb-1.5 block">Project Name</label>
             <input className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
               placeholder="e.g. Homepage Redesign" value={name} onChange={e => setName(e.target.value)} autoFocus />
           </div>
 
           {/* Project type */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-2 block">Project Type</label>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Project Type</label>
             <div className="grid grid-cols-2 gap-2">
               {PROJECT_TYPES.map(t => (
                 <button key={t.key} type="button" onClick={() => setType(t.key)}
@@ -91,8 +91,8 @@ export default function NewProjectModal({ clientId, clientName, onClose, onCreat
                   }`}>
                   <span className="text-lg">{t.emoji}</span>
                   <div>
-                    <p className="text-xs font-medium text-gray-800">{t.label}</p>
-                    <p className="text-[10px] text-gray-500">{t.desc}</p>
+                    <p className="text-sm font-medium text-gray-800">{t.label}</p>
+                    <p className="text-[13px] text-gray-500">{t.desc}</p>
                   </div>
                 </button>
               ))}
@@ -101,17 +101,17 @@ export default function NewProjectModal({ clientId, clientName, onClose, onCreat
 
           {/* Client email */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1.5 block">Client Email (optional)</label>
+            <label className="text-sm font-medium text-gray-700 mb-1.5 block">Client Email (optional)</label>
             <div className="flex gap-2">
               <input className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
                 type="email" placeholder="client@company.com" value={clientEmail} onChange={e => setClientEmail(e.target.value)} />
-              {clientEmail && <div className="flex items-center text-xs text-gray-400"><Send size={11} className="mr-1" /> Will send invite</div>}
+              {clientEmail && <div className="flex items-center text-sm text-gray-400"><Send size={11} className="mr-1" /> Will send invite</div>}
             </div>
           </div>
 
           {/* Max rounds */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1.5 block">Revision Rounds</label>
+            <label className="text-sm font-medium text-gray-700 mb-1.5 block">Revision Rounds</label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map(n => (
                 <button key={n} type="button" onClick={() => setMaxRounds(n)}
@@ -120,7 +120,7 @@ export default function NewProjectModal({ clientId, clientName, onClose, onCreat
                   }`}>{n}</button>
               ))}
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">Number of feedback rounds included for this client</p>
+            <p className="text-[13px] text-gray-400 mt-1">Number of feedback rounds included for this client</p>
           </div>
         </form>
 

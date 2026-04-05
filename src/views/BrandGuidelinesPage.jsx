@@ -198,7 +198,7 @@ export default function BrandGuidelinesPage() {
                     <div key={i} className="card overflow-hidden group hover:shadow-lg transition-all hover:-translate-y-0.5">
                       <div className="h-32 relative cursor-pointer" style={{ background: c.hex }} onClick={() => { copyText(c.hex, `color-${i}`); toast.success(`${c.hex} copied!`) }}>
                         <span className={`absolute bottom-2 left-3 text-sm font-mono font-medium ${luminance > 0.5 ? 'text-gray-900' : 'text-white'}`}>{c.hex}</span>
-                        <span className={`absolute top-2 right-2 text-[12px] px-1.5 py-0.5 rounded-full font-medium ${wcagWhite === 'AAA' ? 'bg-green-500 text-white' : wcagWhite === 'AA' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'}`}>
+                        <span className={`absolute top-2 right-2 text-[13px] px-1.5 py-0.5 rounded-full font-medium ${wcagWhite === 'AAA' ? 'bg-green-500 text-white' : wcagWhite === 'AA' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'}`}>
                           {wcagWhite} on white
                         </span>
                         <button onClick={e => { e.stopPropagation(); deleteColor(i) }} className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 w-6 h-6 bg-white/80 rounded flex items-center justify-center text-brand-500"><Trash2 size={11} /></button>
@@ -206,7 +206,7 @@ export default function BrandGuidelinesPage() {
                       <div className="p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-semibold text-gray-900">{c.name}</span>
-                          <span className="text-[12px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">{c.category}</span>
+                          <span className="text-[13px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">{c.category}</span>
                         </div>
                         <div className="space-y-0.5 text-[13px] text-gray-700 font-mono">
                           <div className="flex justify-between"><span>RGB</span><span className="cursor-pointer hover:text-gray-700" onClick={() => copyText(`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`, `rgb-${i}`)}>{rgb.r}, {rgb.g}, {rgb.b} {copied === `rgb-${i}` ? '✓' : ''}</span></div>
@@ -263,7 +263,7 @@ export default function BrandGuidelinesPage() {
                         <p className="text-sm text-gray-700 font-mono tracking-wider">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</p>
                       </div>
                       <div className="flex gap-3 mt-4 text-sm text-gray-700">
-                        {[100, 300, 400, 500, 700, 900].map(w => <span key={w} style={{ fontFamily: `'${f.name}'`, fontWeight: w }}>Aa <span className="text-[12px] text-gray-600">{w}</span></span>)}
+                        {[100, 300, 400, 500, 700, 900].map(w => <span key={w} style={{ fontFamily: `'${f.name}'`, fontWeight: w }}>Aa <span className="text-[13px] text-gray-600">{w}</span></span>)}
                       </div>
                     </div>
                   )
@@ -289,7 +289,7 @@ export default function BrandGuidelinesPage() {
                     <div className="p-3 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-900 truncate">{logo.name}</p>
-                        <p className="text-[12px] text-gray-700">{logo.type} &middot; {logo.size ? `${(logo.size / 1024).toFixed(0)} KB` : ''}</p>
+                        <p className="text-[13px] text-gray-700">{logo.type} &middot; {logo.size ? `${(logo.size / 1024).toFixed(0)} KB` : ''}</p>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100">
                         <a href={logo.url} download className="p-1.5 rounded hover:bg-gray-100 text-gray-700"><Download size={12} /></a>

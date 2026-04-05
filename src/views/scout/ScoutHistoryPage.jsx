@@ -25,10 +25,10 @@ function ScoreDelta({ a, b }) {
   const d = a - b
   if (d === 0) return <Minus size={12} color="#9ca3af"/>
   return d > 0
-    ? <span style={{display:'flex',alignItems:'center',gap:2,color:'#ef4444',fontSize:12,fontWeight:800}}>
+    ? <span style={{display:'flex',alignItems:'center',gap:2,color:'#ef4444',fontSize:13,fontWeight:800}}>
         <ArrowUp size={11}/> {d}
       </span>
-    : <span style={{display:'flex',alignItems:'center',gap:2,color:'#16a34a',fontSize:12,fontWeight:800}}>
+    : <span style={{display:'flex',alignItems:'center',gap:2,color:'#16a34a',fontSize:13,fontWeight:800}}>
         <ArrowDown size={11}/> {Math.abs(d)}
       </span>
 }
@@ -55,7 +55,7 @@ function BusinessHistory({ name, reports, onCompare, onViewReport }) {
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:15,fontWeight:900,color:'#111',whiteSpace:'nowrap',
             overflow:'hidden',textOverflow:'ellipsis'}}>{name}</div>
-          <div style={{fontSize:12,color:'#374151',marginTop:2}}>
+          <div style={{fontSize:13,color:'#374151',marginTop:2}}>
             {reports.length} report{reports.length!==1?'s':''} · Last: {new Date(latest.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
           </div>
         </div>
@@ -66,14 +66,14 @@ function BusinessHistory({ name, reports, onCompare, onViewReport }) {
             <div style={{fontSize:22,fontWeight:900,color:latestScore>=75?RED:latestScore>=50?TEAL:'#374151'}}>
               {latestScore}
             </div>
-            <div style={{fontSize:11,color:'#9ca3af'}}>current</div>
+            <div style={{fontSize:13,color:'#9ca3af'}}>current</div>
           </div>
           {prev && (
             <>
               <ScoreDelta a={latestScore} b={prevScore}/>
               <div style={{textAlign:'center',opacity:.5}}>
                 <div style={{fontSize:16,fontWeight:700,color:'#374151'}}>{prevScore}</div>
-                <div style={{fontSize:11,color:'#9ca3af'}}>prev</div>
+                <div style={{fontSize:13,color:'#9ca3af'}}>prev</div>
               </div>
             </>
           )}
@@ -83,14 +83,14 @@ function BusinessHistory({ name, reports, onCompare, onViewReport }) {
         <div style={{display:'flex',gap:8,flexShrink:0}} onClick={e=>e.stopPropagation()}>
           <button onClick={()=>onViewReport(latest)}
             style={{display:'flex',alignItems:'center',gap:5,padding:'6px 12px',borderRadius:9,
-              border:'none',background:RED,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>
+              border:'none',background:RED,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <Eye size={11}/> View Latest
           </button>
           {reports.length >= 2 && (
             <button onClick={()=>onCompare(sorted)}
               style={{display:'flex',alignItems:'center',gap:5,padding:'6px 12px',borderRadius:9,
                 border:`1.5px solid ${TEAL}`,background:`${TEAL}10`,color:'#0e7490',
-                fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                fontSize:13,fontWeight:700,cursor:'pointer'}}>
               <GitCompare size={11}/> Compare
             </button>
           )}
@@ -103,7 +103,7 @@ function BusinessHistory({ name, reports, onCompare, onViewReport }) {
       {/* Expanded: all reports timeline */}
       {expanded && (
         <div style={{borderTop:'1px solid #f3f4f6',padding:'14px 20px'}}>
-          <div style={{fontSize:12,fontWeight:800,color:'#374151',textTransform:'uppercase',
+          <div style={{fontSize:13,fontWeight:800,color:'#374151',textTransform:'uppercase',
             letterSpacing:'.07em',marginBottom:10}}>Report history</div>
           {sorted.map((rep, i) => {
             const score = rep.ai_analysis?.opportunityScore || rep.lead_data?.score || 0
@@ -121,12 +121,12 @@ function BusinessHistory({ name, reports, onCompare, onViewReport }) {
                       {new Date(rep.created_at).toLocaleDateString('en-US',
                         {month:'long',day:'numeric',year:'numeric'})}
                     </span>
-                    <span style={{fontSize:11,color:'#9ca3af'}}>
+                    <span style={{fontSize:13,color:'#9ca3af'}}>
                       {new Date(rep.created_at).toLocaleTimeString('en-US',
                         {hour:'numeric',minute:'2-digit'})}
                     </span>
                   </div>
-                  <div style={{fontSize:12,color:'#374151',marginTop:2}}>
+                  <div style={{fontSize:13,color:'#374151',marginTop:2}}>
                     {rep.google_reviews} reviews · {rep.google_rating}★
                     {tech.length>0 && <> · {tech.slice(0,2).join(', ')}</>}
                     {rep.lead_data?.website_analysis?.success && (
@@ -138,7 +138,7 @@ function BusinessHistory({ name, reports, onCompare, onViewReport }) {
                   color:score>=75?RED:score>=50?TEAL:'#374151'}}>{score}</div>
                 <button onClick={()=>onViewReport(rep)}
                   style={{padding:'5px 10px',borderRadius:8,border:'1.5px solid #e5e7eb',
-                    background:'#fff',fontSize:12,fontWeight:700,cursor:'pointer',color:'#374151'}}>
+                    background:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',color:'#374151'}}>
                   View
                 </button>
               </div>
@@ -219,24 +219,24 @@ function CompareModal({ reports, onClose }) {
             {[oldest, newest].map((rep, i) => (
               <div key={rep.id} style={{background:i===1?'#f0fbfc':'#f9fafb',borderRadius:14,padding:'18px',
                 border:`1.5px solid ${i===1?TEAL+'50':'#e5e7eb'}`}}>
-                <div style={{fontSize:11,fontWeight:800,color:i===1?TEAL:'#9ca3af',
+                <div style={{fontSize:13,fontWeight:800,color:i===1?TEAL:'#9ca3af',
                   textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>
                   {i===0?'Report A (Earlier)':'Report B (Latest)'}
                 </div>
-                <div style={{fontSize:12,color:'#374151',marginBottom:10}}>
+                <div style={{fontSize:13,color:'#374151',marginBottom:10}}>
                   {new Date(rep.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
                 </div>
                 <div style={{display:'flex',gap:14}}>
                   <div>
                     <div style={{fontSize:24,fontWeight:900,color:'#f59e0b'}}>{rep.google_rating}★</div>
-                    <div style={{fontSize:11,color:'#9ca3af'}}>{rep.google_reviews} reviews</div>
+                    <div style={{fontSize:13,color:'#9ca3af'}}>{rep.google_reviews} reviews</div>
                   </div>
                   <div>
                     <div style={{fontSize:24,fontWeight:900,
                       color:(rep.ai_analysis?.opportunityScore||0)>=75?RED:TEAL}}>
                       {rep.ai_analysis?.opportunityScore||rep.lead_data?.score||0}
                     </div>
-                    <div style={{fontSize:11,color:'#9ca3af'}}>opp score</div>
+                    <div style={{fontSize:13,color:'#9ca3af'}}>opp score</div>
                   </div>
                 </div>
               </div>
@@ -250,7 +250,7 @@ function CompareModal({ reports, onClose }) {
                 {label:'Score',   delta:scoreDelta,  up:'better opp'},
               ].map(d=>(
                 <div key={d.label} style={{textAlign:'center'}}>
-                  <div style={{fontSize:11,color:'#9ca3af',marginBottom:2}}>{d.label}</div>
+                  <div style={{fontSize:13,color:'#9ca3af',marginBottom:2}}>{d.label}</div>
                   <div style={{fontSize:16,fontWeight:900,
                     color:d.delta>0?(d.label==='Score'?RED:'#16a34a'):d.delta<0?'#ef4444':'#9ca3af'}}>
                     {d.delta>0?'+':''}{d.delta}{d.suffix||''}
@@ -310,7 +310,7 @@ function CompareModal({ reports, onClose }) {
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:16}}>
                 {comparison.improved?.length > 0 && (
                   <div style={{background:'#f0fdf4',borderRadius:12,padding:'14px',border:'1px solid #bbf7d0'}}>
-                    <div style={{fontSize:12,fontWeight:800,color:'#16a34a',marginBottom:8}}>✓ Improved</div>
+                    <div style={{fontSize:13,fontWeight:800,color:'#16a34a',marginBottom:8}}>✓ Improved</div>
                     {comparison.improved.map((it,i)=>(
                       <div key={i} style={{fontSize:13,color:'#374151',marginBottom:4}}>· {it}</div>
                     ))}
@@ -318,7 +318,7 @@ function CompareModal({ reports, onClose }) {
                 )}
                 {comparison.worsened?.length > 0 && (
                   <div style={{background:'#fef2f2',borderRadius:12,padding:'14px',border:`1px solid ${RED}30`}}>
-                    <div style={{fontSize:12,fontWeight:800,color:RED,marginBottom:8}}>✗ Worsened</div>
+                    <div style={{fontSize:13,fontWeight:800,color:RED,marginBottom:8}}>✗ Worsened</div>
                     {comparison.worsened.map((it,i)=>(
                       <div key={i} style={{fontSize:13,color:'#374151',marginBottom:4}}>· {it}</div>
                     ))}
@@ -330,7 +330,7 @@ function CompareModal({ reports, onClose }) {
               {comparison.persistentGaps?.length > 0 && (
                 <div style={{background:'#fffbeb',borderRadius:12,padding:'14px',
                   border:'1px solid #fde68a',marginBottom:16}}>
-                  <div style={{fontSize:12,fontWeight:800,color:'#d97706',marginBottom:8}}>
+                  <div style={{fontSize:13,fontWeight:800,color:'#d97706',marginBottom:8}}>
                     Persistent gaps (still unaddressed)
                   </div>
                   {comparison.persistentGaps.map((g,i)=>(
@@ -480,7 +480,7 @@ export default function ScoutHistoryPage() {
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
                 <div style={{fontSize:20,fontWeight:900,color:'#fff',lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
+                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -494,7 +494,7 @@ export default function ScoutHistoryPage() {
                   background:'transparent',color:tab===t.key?'#fff':'rgba(255,255,255,.4)',
                   fontSize:14,fontWeight:tab===t.key?800:600,cursor:'pointer',transition:'all .15s'}}>
                 {t.label}
-                <span style={{fontSize:11,fontWeight:800,padding:'1px 7px',borderRadius:20,
+                <span style={{fontSize:13,fontWeight:800,padding:'1px 7px',borderRadius:20,
                   background:tab===t.key?RED+'40':'rgba(255,255,255,.1)',
                   color:tab===t.key?'#fff':'rgba(255,255,255,.5)'}}>
                   {t.count}
@@ -569,7 +569,7 @@ export default function ScoutHistoryPage() {
                                 <MapPin size={11}/>{s.location}
                               </div>
                             )}
-                            <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                            <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                               background:s.mode==='competitor'?'#f5f3ff':s.mode==='market'?`${TEAL}15`:`${RED}10`,
                               color:s.mode==='competitor'?'#7c3aed':s.mode==='market'?TEAL:RED,
                               textTransform:'capitalize'}}>{s.mode}</span>
@@ -585,7 +585,7 @@ export default function ScoutHistoryPage() {
                                 <Flame size={11}/>{s.stats.hot} hot leads
                               </span>
                             )}
-                            <span style={{padding:'2px 8px',borderRadius:20,fontSize:12,
+                            <span style={{padding:'2px 8px',borderRadius:20,fontSize:13,
                               background:s.data_source==='google'?`${TEAL}15`:'#f9fafb',
                               color:s.data_source==='google'?'#0e7490':'#374151',fontWeight:600}}>
                               {s.data_source==='google'?'Google Places':'AI'}
@@ -598,18 +598,18 @@ export default function ScoutHistoryPage() {
                           {s.stats?.hot > 0 && (
                             <div style={{textAlign:'center',padding:'8px 14px',background:'#fef2f2',borderRadius:10}}>
                               <div style={{fontSize:18,fontWeight:900,color:RED}}>{s.stats.hot}</div>
-                              <div style={{fontSize:11,color:'#9ca3af'}}>hot</div>
+                              <div style={{fontSize:13,color:'#9ca3af'}}>hot</div>
                             </div>
                           )}
                           {s.stats?.warm > 0 && (
                             <div style={{textAlign:'center',padding:'8px 14px',background:'#fffbeb',borderRadius:10}}>
                               <div style={{fontSize:18,fontWeight:900,color:'#d97706'}}>{s.stats.warm}</div>
-                              <div style={{fontSize:11,color:'#9ca3af'}}>warm</div>
+                              <div style={{fontSize:13,color:'#9ca3af'}}>warm</div>
                             </div>
                           )}
                           <div style={{textAlign:'center',padding:'8px 14px',background:'#f9fafb',borderRadius:10}}>
                             <div style={{fontSize:18,fontWeight:900,color:'#374151'}}>{s.stats?.avgScore||0}</div>
-                            <div style={{fontSize:11,color:'#9ca3af'}}>avg score</div>
+                            <div style={{fontSize:13,color:'#9ca3af'}}>avg score</div>
                           </div>
                         </div>
 
@@ -673,7 +673,7 @@ export default function ScoutHistoryPage() {
                       <thead>
                         <tr style={{background:'#f9fafb',borderBottom:'2px solid #e5e7eb'}}>
                           {['Business','Date','Rating','Reviews','Score','Tech Scanned','Prospect','Actions'].map(h=>(
-                            <th key={h} style={{padding:'11px 16px',fontSize:12,fontWeight:800,
+                            <th key={h} style={{padding:'11px 16px',fontSize:13,fontWeight:800,
                               color:'#111',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>
                               {h}
                             </th>
@@ -693,7 +693,7 @@ export default function ScoutHistoryPage() {
                               <td style={{padding:'13px 16px'}}>
                                 <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{rep.business_name}</div>
                                 {rep.business_website && (
-                                  <div style={{fontSize:12,color:TEAL}}>{rep.business_website.replace(/^https?:\/\//,'').slice(0,30)}</div>
+                                  <div style={{fontSize:13,color:TEAL}}>{rep.business_website.replace(/^https?:\/\//,'').slice(0,30)}</div>
                                 )}
                               </td>
                               <td style={{padding:'13px 16px',fontSize:13,color:'#374151',whiteSpace:'nowrap'}}>
@@ -714,22 +714,22 @@ export default function ScoutHistoryPage() {
                                 {scanned ? (
                                   <div>
                                     <div style={{display:'flex',alignItems:'center',gap:5,
-                                      fontSize:12,fontWeight:700,color:'#16a34a',marginBottom:3}}>
+                                      fontSize:13,fontWeight:700,color:'#16a34a',marginBottom:3}}>
                                       <CheckCircle size={11}/> Scanned
                                     </div>
-                                    <div style={{fontSize:11,color:'#374151'}}>
+                                    <div style={{fontSize:13,color:'#374151'}}>
                                       {tech.slice(0,2).join(', ')||'Clean stack'}
                                     </div>
                                   </div>
                                 ) : (
-                                  <span style={{fontSize:12,color:'#9ca3af'}}>Not scanned</span>
+                                  <span style={{fontSize:13,color:'#9ca3af'}}>Not scanned</span>
                                 )}
                               </td>
                               <td style={{padding:'13px 16px',fontSize:13,color:'#374151'}}>
                                 {rep.prospect_name ? (
                                   <div>
                                     <div style={{fontWeight:700,color:'#111'}}>{rep.prospect_name}</div>
-                                    <div style={{fontSize:11}}>{rep.prospect_email}</div>
+                                    <div style={{fontSize:13}}>{rep.prospect_email}</div>
                                   </div>
                                 ) : (
                                   <span style={{color:'#9ca3af'}}>Not claimed</span>
@@ -740,7 +740,7 @@ export default function ScoutHistoryPage() {
                                   <button onClick={()=>viewReport(rep)}
                                     style={{display:'flex',alignItems:'center',gap:4,padding:'5px 10px',
                                       borderRadius:8,border:'none',background:RED,color:'#fff',
-                                      fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                                      fontSize:13,fontWeight:700,cursor:'pointer'}}>
                                     <Eye size={10}/> View
                                   </button>
                                   <button onClick={()=>{
@@ -749,7 +749,7 @@ export default function ScoutHistoryPage() {
                                     toast.success('Link copied!')
                                   }} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 10px',
                                     borderRadius:8,border:`1px solid ${TEAL}`,background:`${TEAL}10`,
-                                    color:'#0e7490',fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                                    color:'#0e7490',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                                     Link
                                   </button>
                                 </div>

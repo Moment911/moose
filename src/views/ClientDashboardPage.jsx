@@ -152,8 +152,8 @@ function TicketRow({ ticket }) {
       <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
-            <span style={{fontSize:12,fontWeight:800,color:TEAL}}>{ticket.ticket_number}</span>
-            <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,
+            <span style={{fontSize:13,fontWeight:800,color:TEAL}}>{ticket.ticket_number}</span>
+            <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
               background:st.bg,color:st.color}}>{st.label}</span>
           </div>
           <div style={{fontSize:15,fontWeight:800,color:'#111',marginBottom:4,
@@ -163,14 +163,14 @@ function TicketRow({ ticket }) {
           )}
           <div style={{display:'flex',alignItems:'center',gap:10}}>
             {ticket.ai_category && (
-              <span style={{fontSize:11,fontWeight:600,padding:'2px 8px',borderRadius:20,
+              <span style={{fontSize:13,fontWeight:600,padding:'2px 8px',borderRadius:20,
                 background:'#f3f4f6',color:'#374151',textTransform:'capitalize'}}>
                 {ticket.ai_category.replace(/_/g,' ')}
               </span>
             )}
-            <span style={{fontSize:12,color:'#9ca3af'}}>{ageStr}</span>
+            <span style={{fontSize:13,color:'#9ca3af'}}>{ageStr}</span>
             {ticket.reply_count > 0 && (
-              <span style={{display:'flex',alignItems:'center',gap:4,fontSize:12,color:'#374151'}}>
+              <span style={{display:'flex',alignItems:'center',gap:4,fontSize:13,color:'#374151'}}>
                 <MessageSquare size={11}/>{ticket.reply_count} {ticket.reply_count===1?'reply':'replies'}
               </span>
             )}
@@ -281,7 +281,7 @@ export default function ClientDashboardPage() {
                 fontSize:15,fontWeight:tab===t.key?800:600,cursor:'pointer',transition:'all .15s'}}>
               {t.label}
               {(t.count||0) > 0 && (
-                <span style={{fontSize:11,fontWeight:800,padding:'1px 7px',borderRadius:20,
+                <span style={{fontSize:13,fontWeight:800,padding:'1px 7px',borderRadius:20,
                   background:t.alert&&tab!==t.key?RED+'90':tab===t.key?RED+'50':'rgba(255,255,255,.15)',
                   color:'#fff'}}>{t.count}</span>
               )}
@@ -337,7 +337,7 @@ export default function ClientDashboardPage() {
                             </div>
                           </div>
                           {isComplete && (
-                            <span style={{fontSize:12,background:'#f0fdf4',color:'#16a34a',
+                            <span style={{fontSize:13,background:'#f0fdf4',color:'#16a34a',
                               padding:'3px 10px',borderRadius:20,fontWeight:700,
                               display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
                               <CheckCircle size={10}/> Complete
@@ -357,17 +357,17 @@ export default function ClientDashboardPage() {
                           </div>
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:12}}>
-                          <span style={{fontSize:12,color:'#374151',display:'flex',alignItems:'center',gap:4}}>
+                          <span style={{fontSize:13,color:'#374151',display:'flex',alignItems:'center',gap:4}}>
                             <FileImage size={11}/>{pd.files.length} files
                           </span>
                           {openComments > 0 && (
-                            <span style={{fontSize:12,fontWeight:700,color:'#d97706',
+                            <span style={{fontSize:13,fontWeight:700,color:'#d97706',
                               display:'flex',alignItems:'center',gap:4}}>
                               <MessageSquare size={11}/>{openComments} open
                             </span>
                           )}
                           {due && (
-                            <span style={{fontSize:12,fontWeight:700,
+                            <span style={{fontSize:13,fontWeight:700,
                               color:due.urgent?RED:'#374151',
                               display:'flex',alignItems:'center',gap:4}}>
                               {due.urgent?<AlertTriangle size={10}/>:<Calendar size={10}/>} {due.label}
@@ -401,7 +401,7 @@ export default function ClientDashboardPage() {
                         ) : (
                           <span style={{fontSize:13,color:'#9ca3af'}}>No files yet</span>
                         )}
-                        <span style={{fontSize:12,color:'#9ca3af'}}>
+                        <span style={{fontSize:13,color:'#9ca3af'}}>
                           {formatDistanceToNow(new Date(project.created_at),{addSuffix:true})}
                         </span>
                       </div>

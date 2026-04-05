@@ -51,7 +51,7 @@ function EditableNum({ value, onChange, prefix='$', suffix='', label, hint }) {
   function commit() { onChange(Number(draft)||0); setEditing(false) }
   return (
     <div>
-      <div style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.4)',
+      <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.4)',
         textTransform:'uppercase',letterSpacing:'.07em',marginBottom:4}}>{label}</div>
       {editing ? (
         <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -60,7 +60,7 @@ function EditableNum({ value, onChange, prefix='$', suffix='', label, hint }) {
             autoFocus style={{width:100,padding:'4px 8px',borderRadius:7,border:`1.5px solid ${TEAL}`,
               fontSize:20,fontWeight:900,color:'#111',outline:'none'}}/>
           <button onClick={commit} style={{border:'none',background:TEAL,color:'#fff',
-            borderRadius:7,padding:'4px 8px',cursor:'pointer',fontSize:12,fontWeight:700}}>✓</button>
+            borderRadius:7,padding:'4px 8px',cursor:'pointer',fontSize:13,fontWeight:700}}>✓</button>
         </div>
       ) : (
         <div style={{display:'flex',alignItems:'baseline',gap:6,cursor:'pointer',group:'true'}}
@@ -71,7 +71,7 @@ function EditableNum({ value, onChange, prefix='$', suffix='', label, hint }) {
           <Edit3 size={13} color='rgba(255,255,255,.3)'/>
         </div>
       )}
-      {hint && <div style={{fontSize:11,color:'rgba(255,255,255,.35)',marginTop:2}}>{hint}</div>}
+      {hint && <div style={{fontSize:13,color:'rgba(255,255,255,.35)',marginTop:2}}>{hint}</div>}
     </div>
   )
 }
@@ -238,7 +238,7 @@ function AuthGate({ report, agency, onClaimed }) {
             {loading ? 'Loading…' : mode==='signup' ? 'Create Free Account & View Report' : 'Sign In & View Report'}
           </button>
 
-          <p style={{fontSize:12,color:'#9ca3af',textAlign:'center',marginTop:12,lineHeight:1.6}}>
+          <p style={{fontSize:13,color:'#9ca3af',textAlign:'center',marginTop:12,lineHeight:1.6}}>
             By continuing you agree to our terms. Your information is used only to deliver this report and for {agName} to contact you about marketing services.
           </p>
         </div>
@@ -284,7 +284,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e=>onC(Number(e.target.value))}
         style={{width:'100%',accentColor:TEAL,cursor:'pointer'}}/>
-      <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'rgba(255,255,255,.3)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'rgba(255,255,255,.3)'}}>
         <span>{prefix}{min.toLocaleString()}</span><span>{prefix}{max.toLocaleString()}</span>
       </div>
     </div>
@@ -300,7 +300,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
           <div style={{fontSize:16,fontWeight:900,color:'#fff'}}>Revenue Impact Calculator</div>
           <div style={{fontSize:13,color:'rgba(255,255,255,.5)'}}>Adjust the numbers to match your real situation</div>
         </div>
-        <div style={{marginLeft:'auto',fontSize:11,fontWeight:800,color:TEAL,
+        <div style={{marginLeft:'auto',fontSize:13,fontWeight:800,color:TEAL,
           background:`${TEAL}20`,padding:'3px 10px',borderRadius:20,border:`1px solid ${TEAL}40`}}>
           Interactive
         </div>
@@ -309,7 +309,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0}}>
         {/* Inputs */}
         <div style={{padding:'24px',borderRight:'1px solid rgba(255,255,255,.06)'}}>
-          <div style={{fontSize:12,fontWeight:800,color:'rgba(255,255,255,.4)',
+          <div style={{fontSize:13,fontWeight:800,color:'rgba(255,255,255,.4)',
             textTransform:'uppercase',letterSpacing:'.08em',marginBottom:18}}>Your inputs</div>
           <div style={{display:'flex',flexDirection:'column',gap:20}}>
             <div>
@@ -341,7 +341,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
 
         {/* Outputs */}
         <div style={{padding:'24px'}}>
-          <div style={{fontSize:12,fontWeight:800,color:'rgba(255,255,255,.4)',
+          <div style={{fontSize:13,fontWeight:800,color:'rgba(255,255,255,.4)',
             textTransform:'uppercase',letterSpacing:'.08em',marginBottom:18}}>Projected results</div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
             {[
@@ -365,13 +365,13 @@ function RevenueCalculator({ report, customizations, onChange }) {
           {reviewGapImpact > 0 && (
             <div style={{marginTop:16,padding:'14px',background:`${RED}15`,
               borderRadius:12,border:`1px solid ${RED}40`}}>
-              <div style={{fontSize:12,fontWeight:800,color:RED,marginBottom:4}}>
+              <div style={{fontSize:13,fontWeight:800,color:RED,marginBottom:4}}>
                 Annual revenue at risk (current gaps)
               </div>
               <div style={{fontSize:22,fontWeight:900,color:'#fff'}}>
                 ${reviewGapImpact.toLocaleString()}
               </div>
-              <div style={{fontSize:12,color:'rgba(255,255,255,.4)',marginTop:2}}>
+              <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:2}}>
                 being lost to better-positioned competitors
               </div>
             </div>
@@ -526,11 +526,11 @@ export default function PublicReportPage() {
                 {prospect.name || prospect.email}
               </div>
             )}
-            {saving && <div style={{fontSize:12,color:TEAL}}>Saving…</div>}
+            {saving && <div style={{fontSize:13,color:TEAL}}>Saving…</div>}
             <button onClick={()=>window.print()}
               style={{display:'flex',alignItems:'center',gap:5,padding:'6px 14px',borderRadius:20,
                 border:`1px solid ${agColor}50`,background:'transparent',color:agColor,
-                fontSize:12,fontWeight:700,cursor:'pointer'}}>
+                fontSize:13,fontWeight:700,cursor:'pointer'}}>
               <Printer size={11}/> Download PDF
             </button>
           </div>
@@ -566,7 +566,7 @@ export default function PublicReportPage() {
                 borderRadius:20,padding:'4px 14px',marginBottom:16}}>
                 <div style={{width:6,height:6,borderRadius:'50%',background:agColor,
                   animation:'pulse 1.5s infinite'}}/>
-                <span style={{fontSize:12,fontWeight:800,color:agColor,
+                <span style={{fontSize:13,fontWeight:800,color:agColor,
                   textTransform:'uppercase',letterSpacing:'.08em'}}>Live Intelligence Report</span>
               </div>
               <h1 style={{fontSize:42,fontWeight:900,color:'#fff',letterSpacing:-1.5,
@@ -597,7 +597,7 @@ export default function PublicReportPage() {
                       <span style={{fontSize:24,fontWeight:900,color:'#f59e0b'}}>{report.google_rating}</span>
                       <Stars rating={report.google_rating}/>
                     </div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,.4)'}}>
+                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>
                       {(report.google_reviews||0).toLocaleString()} Google reviews
                     </div>
                   </div>
@@ -606,7 +606,7 @@ export default function PublicReportPage() {
                   <div style={{background:'rgba(255,255,255,.07)',borderRadius:12,padding:'12px 18px',
                     border:`1px solid ${agColor}40`}}>
                     <div style={{fontSize:24,fontWeight:900,color:agColor}}>{ai.opportunityScore}/100</div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,.4)'}}>Opportunity score</div>
+                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Opportunity score</div>
                   </div>
                 )}
                 {rv.annualRevenueAtRisk > 0 && (
@@ -615,7 +615,7 @@ export default function PublicReportPage() {
                     <div style={{fontSize:24,fontWeight:900,color:RED}}>
                       ${Math.round(rv.annualRevenueAtRisk/1000)}K
                     </div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,.4)'}}>Revenue at risk/yr</div>
+                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Revenue at risk/yr</div>
                   </div>
                 )}
               </div>
@@ -630,14 +630,14 @@ export default function PublicReportPage() {
                   <div style={{fontSize:32,fontWeight:900,color:'#fff',lineHeight:1}}>
                     {ai.opportunityScore||50}
                   </div>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,.4)'}}>/ 100</div>
+                  <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>/ 100</div>
                 </div>
               </div>
               <div style={{fontSize:13,fontWeight:700,textAlign:'center',
                 color:(ai.opportunityScore||50)>=75?'#4ade80':(ai.opportunityScore||50)>=50?TEAL:'#fbbf24'}}>
                 {(ai.opportunityScore||50)>=75?'High opportunity':'Good opportunity'}
               </div>
-              <div style={{fontSize:11,color:'rgba(255,255,255,.3)',textAlign:'center'}}>
+              <div style={{fontSize:13,color:'rgba(255,255,255,.3)',textAlign:'center'}}>
                 {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
               </div>
             </div>
@@ -685,7 +685,7 @@ export default function PublicReportPage() {
                       background:'#f9fafb',borderRadius:10,alignItems:'flex-start'}}>
                       <div style={{width:22,height:22,borderRadius:'50%',background:agColor,
                         display:'flex',alignItems:'center',justifyContent:'center',
-                        fontSize:11,fontWeight:900,color:'#fff',flexShrink:0,marginTop:1}}>{i+1}</div>
+                        fontSize:13,fontWeight:900,color:'#fff',flexShrink:0,marginTop:1}}>{i+1}</div>
                       <span style={{fontSize:14,color:'#374151',lineHeight:1.55}}>{f}</span>
                     </div>
                   ))}
@@ -766,7 +766,7 @@ export default function PublicReportPage() {
                   <div key={i} style={{display:'flex',gap:10,padding:'10px 0',
                     borderBottom:i<(ai.seoGaps||[]).length-1?'1px solid #f3f4f6':'none',alignItems:'flex-start'}}>
                     <div style={{width:20,height:20,borderRadius:6,background:`${RED}15`,
-                      display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,
+                      display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,
                       fontWeight:900,color:RED,flexShrink:0}}>{i+1}</div>
                     <span style={{fontSize:14,color:'#374151'}}>{g}</span>
                   </div>
@@ -777,7 +777,7 @@ export default function PublicReportPage() {
                   <Sparkles size={16} color='#8b5cf6'/>
                   <div style={{fontSize:15,fontWeight:900,color:'#111'}}>AEO / AI Search Gaps</div>
                 </div>
-                <div style={{fontSize:12,fontWeight:700,color:'#8b5cf6',marginBottom:12,
+                <div style={{fontSize:13,fontWeight:700,color:'#8b5cf6',marginBottom:12,
                   background:'#f5f3ff',padding:'5px 10px',borderRadius:20,display:'inline-block'}}>
                   ChatGPT · Perplexity · Google AI Overviews
                 </div>
@@ -802,7 +802,7 @@ export default function PublicReportPage() {
                   <thead>
                     <tr style={{background:'#f9fafb'}}>
                       {['Keyword','Volume','Difficulty','Opportunity'].map(h=>(
-                        <th key={h} style={{padding:'11px 18px',fontSize:12,fontWeight:800,
+                        <th key={h} style={{padding:'11px 18px',fontSize:13,fontWeight:800,
                           color:'#111',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
                       ))}
                     </tr>
@@ -813,7 +813,7 @@ export default function PublicReportPage() {
                         <td style={{padding:'13px 18px',fontSize:14,fontWeight:800,color:'#111'}}>{kw.keyword}</td>
                         <td style={{padding:'13px 18px',fontSize:14,fontWeight:700,color:RED}}>{kw.volume}</td>
                         <td style={{padding:'13px 18px'}}>
-                          <span style={{fontSize:12,fontWeight:800,padding:'3px 10px',borderRadius:20,
+                          <span style={{fontSize:13,fontWeight:800,padding:'3px 10px',borderRadius:20,
                             background:kw.difficulty==='Easy'?'#f0fdf4':kw.difficulty==='Hard'?'#fef2f2':'#fffbeb',
                             color:kw.difficulty==='Easy'?'#16a34a':kw.difficulty==='Hard'?RED:'#d97706'}}>
                             {kw.difficulty}
@@ -859,12 +859,12 @@ export default function PublicReportPage() {
                       <div>
                         <div style={{fontSize:14,fontWeight:800,color:'#111',marginBottom:4}}>{w.action}</div>
                         <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
-                          <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,
+                          <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,
                             background:w.impact==='High'?`${RED}15`:`${TEAL}15`,
                             color:w.impact==='High'?RED:TEAL}}>{w.impact} impact</span>
-                          <span style={{fontSize:11,color:'#9ca3af'}}>{w.timeline}</span>
+                          <span style={{fontSize:13,color:'#9ca3af'}}>{w.timeline}</span>
                         </div>
-                        <div style={{fontSize:12,color:'#374151',marginTop:5}}>{w.result}</div>
+                        <div style={{fontSize:13,color:'#374151',marginTop:5}}>{w.result}</div>
                       </div>
                     </div>
                   ))}
@@ -900,7 +900,7 @@ export default function PublicReportPage() {
             background:`${agColor}20`,border:`1px solid ${agColor}40`,
             borderRadius:20,padding:'5px 16px',marginBottom:20}}>
             <Award size={13} color={agColor}/>
-            <span style={{fontSize:12,fontWeight:800,color:agColor,
+            <span style={{fontSize:13,fontWeight:800,color:agColor,
               textTransform:'uppercase',letterSpacing:'.08em'}}>Ready to grow</span>
           </div>
           <h2 style={{fontSize:36,fontWeight:900,color:'#fff',letterSpacing:-1,

@@ -53,7 +53,7 @@ export default function QuickCompose() {
               <input className="input text-sm" placeholder="To (email)" value={to} onChange={e => setTo(e.target.value)} autoFocus />
               <input className="input text-sm" placeholder="Subject (optional)" value={subject} onChange={e => setSubject(e.target.value)} />
               <textarea className="input text-sm resize-none" rows={4} placeholder="Your message..." value={body} onChange={e => setBody(e.target.value)} />
-              <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
                 <input type="checkbox" checked={sendAsEmail} onChange={e => setSendAsEmail(e.target.checked)} className="w-3.5 h-3.5 rounded border-gray-300 text-brand-500" /> Also send as email
               </label>
             </div>

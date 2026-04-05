@@ -68,7 +68,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 17, fontWeight: 700, color: '#f4f4f5', margin: 0, textTransform: 'capitalize' }}>{name}</p>
-              <p style={{ fontSize: 12, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Moose AI</p>
+              <p style={{ fontSize:13, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Moose AI</p>
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 6, cursor: 'pointer' }}><X size={20} color="#71717a" /></button>
           </div>
@@ -78,7 +78,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
         <nav style={{ padding: '8px 0' }}>
           {SECTIONS.map((section, si) => (
             <div key={si}>
-              {section.title && <p style={{ fontSize: 11, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 20px 6px' }}>{section.title}</p>}
+              {section.title && <p style={{ fontSize:13, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 20px 6px' }}>{section.title}</p>}
               {section.items.map(item => {
                 const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
                 const I = item.icon
@@ -89,7 +89,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                       <I size={17} strokeWidth={1.5} style={{ color: item.color }} />
                     </div>
                     <span style={{ flex: 1, fontSize: 15, fontWeight: active ? 600 : 500, color: active ? '#ea2729' : '#d4d4d8' }}>{item.label}</span>
-                    {item.badge && <span style={{ fontSize: 9, background: '#ea2729', color: '#fff', padding: '2px 6px', borderRadius: 10, fontWeight: 700 }}>{item.badge}</span>}
+                    {item.badge && <span style={{ fontSize:13, background: '#ea2729', color: '#fff', padding: '2px 6px', borderRadius: 10, fontWeight: 700 }}>{item.badge}</span>}
                     {!item.badge && <ChevronRight size={15} color="#52525b" />}
                   </Link>
                 )

@@ -9,7 +9,7 @@ export default function FAQSection({ items, title = 'Frequently Asked Questions'
 
   return (
     <div className={compact ? '' : 'mt-6'}>
-      <h3 className={`flex items-center gap-2 mb-3 ${compact ? 'text-xs font-semibold text-gray-500 uppercase tracking-wide' : 'text-sm font-semibold text-gray-900'}`}>
+      <h3 className={`flex items-center gap-2 mb-3 ${compact ? 'text-sm font-semibold text-gray-500 uppercase tracking-wide' : 'text-sm font-semibold text-gray-900'}`}>
         <HelpCircle size={compact ? 12 : 14} className={compact ? 'text-gray-400' : 'text-brand-500'} />
         {title}
       </h3>
@@ -18,14 +18,14 @@ export default function FAQSection({ items, title = 'Frequently Asked Questions'
           <div key={i} className={compact ? '' : ''}>
             <button onClick={() => setOpenIdx(openIdx === i ? null : i)}
               className={`w-full flex items-center justify-between gap-3 text-left transition-colors ${
-                compact ? 'px-3 py-2 rounded-lg hover:bg-gray-100 text-xs' : 'px-5 py-3.5 hover:bg-gray-50 text-sm'
+                compact ? 'px-3 py-2 rounded-lg hover:bg-gray-100 text-sm' : 'px-5 py-3.5 hover:bg-gray-50 text-sm'
               }`}>
               <span className={`font-medium ${compact ? 'text-gray-600' : 'text-gray-800'}`}>{item.question}</span>
               <ChevronDown size={compact ? 12 : 14} className={`text-gray-400 flex-shrink-0 transition-transform ${openIdx === i ? 'rotate-180' : ''}`} />
             </button>
             {openIdx === i && (
               <div className={`${compact ? 'px-3 pb-2' : 'px-5 pb-4'}`}>
-                <p className={`${compact ? 'text-[11px]' : 'text-xs'} text-gray-500 leading-relaxed`}>{item.answer}</p>
+                <p className={`${compact ? 'text-[13px]' : 'text-sm'} text-gray-500 leading-relaxed`}>{item.answer}</p>
               </div>
             )}
           </div>

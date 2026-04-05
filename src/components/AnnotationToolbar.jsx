@@ -54,7 +54,7 @@ export default function AnnotationToolbar({ tool, setTool, color, setColor, onUn
         </button>
       </div>
 
-      <div className="ml-auto text-[10px] text-gray-400 hidden lg:flex items-center gap-3">
+      <div className="ml-auto text-[13px] text-gray-400 hidden lg:flex items-center gap-3">
         <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-medium">V = scroll &middot; C/A/O/R/F = draw &middot; G = approve &middot; H = link</span>
       </div>
     </div>

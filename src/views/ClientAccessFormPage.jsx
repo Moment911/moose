@@ -192,7 +192,7 @@ export default function ClientAccessFormPage() {
                 <span style={{ fontSize:18 }}>{s.icon}</span>
                 <span style={{ fontSize:13, fontWeight:700, color:active?ACCENT:'#374151', textAlign:'center', lineHeight:1.3 }}>{s.label}</span>
                 <div style={{ height:3, width:36, background:'#f3f4f6', borderRadius:2, overflow:'hidden' }}><div style={{ height:'100%', width:`${pct2}%`, background:pct2===100?'#22c55e':s.color, borderRadius:2 }}/></div>
-                <span style={{ fontSize:12, color:'#4b5563' }}>{done2}/{s.items.length}</span>
+                <span style={{ fontSize:13, color:'#4b5563' }}>{done2}/{s.items.length}</span>
               </button>
             )
           })}

@@ -121,7 +121,7 @@ export default function AdminPortalPage() {
           <button onClick={() => navigate('/')} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'rgba(255,255,255,.4)', background:'none', border:'none', cursor:'pointer', marginBottom:14, padding:0 }}>
             <ChevronLeft size={13}/> Back
           </button>
-          <div style={{ fontSize:11, fontWeight:700, color:ACCENT, textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:ACCENT, textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>
             Admin Portal
           </div>
           <div style={{ fontSize:18, fontWeight:900, color:'#fff' }}>{greeting}</div>
@@ -138,7 +138,7 @@ export default function AdminPortalPage() {
             )
           })}
         </nav>
-        <div style={{ padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,.08)', fontSize:12, color:'rgba(255,255,255,.25)' }}>
+        <div style={{ padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,.08)', fontSize:13, color:'rgba(255,255,255,.25)' }}>
           Moose AI · Admin
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function AdminPortalPage() {
                 ].map(s=>(
                   <div key={s.label} style={{ background:'rgba(255,255,255,.06)', borderRadius:12, padding:'14px 16px' }}>
                     <div style={{ fontSize:26, fontWeight:900, color:s.color }}>{s.value}</div>
-                    <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', marginTop:2 }}>{s.label}</div>
+                    <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:2 }}>{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -229,7 +229,7 @@ export default function AdminPortalPage() {
                     <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>{ag.brand_name||ag.name}</div>
                     <div style={{ fontSize:13, color:'#4b5563' }}>{ag.billing_email} · {ag.plan}</div>
                   </div>
-                  <span style={{ fontSize:12, fontWeight:700, padding:'3px 10px', borderRadius:20, background: ag.status==='active'?TEAL+'20':'#f9fafb', color: ag.status==='active'?'#0e7490':'#4b5563' }}>
+                  <span style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background: ag.status==='active'?TEAL+'20':'#f9fafb', color: ag.status==='active'?'#0e7490':'#4b5563' }}>
                     {ag.status}
                   </span>
                 </div>
@@ -383,7 +383,7 @@ export default function AdminPortalPage() {
                     <span style={{ fontSize:15, color:'#f59e0b', fontWeight:800 }}>{'★'.repeat(r.star_rating||5)}</span>
                     <span style={{ fontSize:13, fontWeight:700, color:'#111', marginLeft:'auto' }}>{r.reviewer_name}</span>
                     <span style={{ fontSize:13, color:'#4b5563' }}>{r.reviewed_at ? format(new Date(r.reviewed_at), 'MMM d') : ''}</span>
-                    <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20,
+                    <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20,
                       background: r.status==='approved'?TEAL+'20':r.status==='pending'?'#fffbeb':'#f9fafb',
                       color: r.status==='approved'?'#0e7490':r.status==='pending'?'#d97706':'#4b5563' }}>
                       {r.status}
@@ -416,7 +416,7 @@ export default function AdminPortalPage() {
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>{item.label}</div>
-                        <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20, background:item.warn?ACCENT+'15':TEAL+'20', color:item.warn?ACCENT:'#0e7490' }}>{item.status}</span>
+                        <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:item.warn?ACCENT+'15':TEAL+'20', color:item.warn?ACCENT:'#0e7490' }}>{item.status}</span>
                       </div>
                     </div>
                     <div style={{ fontSize:14, color:'#374151', lineHeight:1.6 }}>{item.desc}</div>

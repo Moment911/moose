@@ -432,11 +432,11 @@ export default function AIAgentsPage() {
           <div style={{ display:'flex', gap:8 }}>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
               <div style={{ fontSize:16, fontWeight:900, color:ACCENT }}>{totalActive}</div>
-              <div style={{ fontSize:12, color:'#4b5563' }}>Active Agents</div>
+              <div style={{ fontSize:13, color:'#4b5563' }}>Active Agents</div>
             </div>
             <div style={{ flex:1, textAlign:'center', background:'#fff', borderRadius:9, padding:'8px 4px', border:'1px solid #f3f4f6' }}>
               <div style={{ fontSize:15, fontWeight:900, color:'#22c55e' }}>${(estimatedValue/1000).toFixed(0)}k</div>
-              <div style={{ fontSize:12, color:'#4b5563' }}>MRR Value</div>
+              <div style={{ fontSize:13, color:'#4b5563' }}>MRR Value</div>
             </div>
           </div>
         </div>
@@ -451,7 +451,7 @@ export default function AIAgentsPage() {
                 style={{ padding:'11px 14px', cursor:'pointer', borderBottom:'1px solid #f9fafb', background:selectedClient?.id===c.id?'#f0fbfc':'#fff', borderLeft:`3px solid ${selectedClient?.id===c.id?ACCENT:'transparent'}` }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{c.name}</div>
-                  {count > 0 && <span style={{ fontSize:12, fontWeight:800, color:'#22c55e', background:'#f0fdf4', borderRadius:20, padding:'1px 6px' }}>{count} ON</span>}
+                  {count > 0 && <span style={{ fontSize:13, fontWeight:800, color:'#22c55e', background:'#f0fdf4', borderRadius:20, padding:'1px 6px' }}>{count} ON</span>}
                 </div>
                 <div style={{ fontSize:13, color:'#4b5563' }}>{c.industry}</div>
               </div>
@@ -531,7 +531,7 @@ export default function AIAgentsPage() {
                             {agent.stats_label.map((label, i) => (
                               <div key={label} style={{ background:'#f9fafb', borderRadius:8, padding:'8px', textAlign:'center' }}>
                                 <div style={{ fontSize:15, fontWeight:800, color:agent.color }}>{agent.mock_stats[i]}</div>
-                                <div style={{ fontSize:12, color:'#4b5563', lineHeight:1.2, marginTop:1 }}>{label}</div>
+                                <div style={{ fontSize:13, color:'#4b5563', lineHeight:1.2, marginTop:1 }}>{label}</div>
                               </div>
                             ))}
                           </div>

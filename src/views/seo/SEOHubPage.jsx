@@ -36,15 +36,15 @@ const PROVIDERS = [
 ]
 
 function Delta({ cur, prev }) {
-  if (!prev || cur === prev) return <span style={{ color:'#9ca3af', fontSize:12 }}>—</span>
+  if (!prev || cur === prev) return <span style={{ color:'#9ca3af', fontSize:13 }}>—</span>
   const d = prev - cur
   if (d > 0) return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:2, color:'#16a34a', fontSize:12, fontWeight:800, background:'#f0fdf4', padding:'2px 7px', borderRadius:12 }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:2, color:'#16a34a', fontSize:13, fontWeight:800, background:'#f0fdf4', padding:'2px 7px', borderRadius:12 }}>
       <ArrowUp size={10}/> {d}
     </span>
   )
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:2, color:RED, fontSize:12, fontWeight:800, background:'#fef2f2', padding:'2px 7px', borderRadius:12 }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:2, color:RED, fontSize:13, fontWeight:800, background:'#fef2f2', padding:'2px 7px', borderRadius:12 }}>
       <ArrowDown size={10}/> {Math.abs(d)}
     </span>
   )
@@ -198,7 +198,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
         {/* ── Left panel: client list ─────────────────────────────────── */}
         <div style={{ width:220, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ padding:'18px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
-            <div style={{ fontSize:11, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>SEO Hub</div>
+            <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>SEO Hub</div>
             <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>Clients</div>
           </div>
           <div style={{ flex:1, overflowY:'auto' }}>
@@ -216,7 +216,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontSize:13, fontWeight:800, color:'#111', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{c.name}</div>
-                      <div style={{ fontSize:11, color:'#374151', marginTop:1 }}>{c.industry||'No industry'}</div>
+                      <div style={{ fontSize:13, color:'#374151', marginTop:1 }}>{c.industry||'No industry'}</div>
                     </div>
                     {hasSite && <div style={{ width:7, height:7, borderRadius:'50%', background:TEAL, flexShrink:0 }}/>}
                   </div>
@@ -276,7 +276,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                   ].map(s=>(
                     <div key={s.label} style={{ padding:'10px 0' }}>
                       <div style={{ fontSize:20, fontWeight:900, color:'#fff', lineHeight:1 }}>{s.value}</div>
-                      <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', marginTop:3 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:3 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -324,7 +324,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                                   {analysis.overallScore}
                                 </div>
                               </div>
-                              <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', marginTop:6, textAlign:'center' }}>SEO Score</div>
+                              <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:6, textAlign:'center' }}>SEO Score</div>
                             </div>
                             <div style={{ flex:1 }}>
                               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
@@ -335,7 +335,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                               {analysis.quickWins?.length > 0 && (
                                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                                   {analysis.quickWins.slice(0,4).map((w,i)=>(
-                                    <span key={i} style={{ fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'rgba(255,255,255,.7)', border:'1px solid rgba(255,255,255,.12)' }}>
+                                    <span key={i} style={{ fontSize:13, fontWeight:700, padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'rgba(255,255,255,.7)', border:'1px solid rgba(255,255,255,.12)' }}>
                                       {w}
                                     </span>
                                   ))}
@@ -344,11 +344,11 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                             </div>
                             {analysis.opportunities?.length > 0 && (
                               <div style={{ width:220, flexShrink:0 }}>
-                                <div style={{ fontSize:11, fontWeight:800, color:'rgba(255,255,255,.3)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Top opportunities</div>
+                                <div style={{ fontSize:13, fontWeight:800, color:'rgba(255,255,255,.3)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Top opportunities</div>
                                 {analysis.opportunities.slice(0,3).map((op,i)=>(
                                   <div key={i} style={{ padding:'8px 12px', background:'rgba(255,255,255,.06)', borderRadius:10, marginBottom:6, borderLeft:`3px solid ${RED}` }}>
                                     <div style={{ fontSize:13, fontWeight:800, color:'#fff', marginBottom:2 }}>{op.title}</div>
-                                    <div style={{ fontSize:12, color:'rgba(255,255,255,.5)' }}>{op.impact} impact · {op.effort} effort</div>
+                                    <div style={{ fontSize:13, color:'rgba(255,255,255,.5)' }}>{op.impact} impact · {op.effort} effort</div>
                                   </div>
                                 ))}
                               </div>
@@ -383,15 +383,15 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                                   </div>
                                   <div style={{ flex:1 }}>
                                     <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>{p.label}</div>
-                                    <div style={{ fontSize:12, color:'#374151' }}>{p.desc}</div>
+                                    <div style={{ fontSize:13, color:'#374151' }}>{p.desc}</div>
                                   </div>
                                   {c ? (
-                                    <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:12, fontWeight:800, color:'#0e7490', background:TEAL+'20', padding:'3px 10px', borderRadius:20 }}>
+                                    <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:13, fontWeight:800, color:'#0e7490', background:TEAL+'20', padding:'3px 10px', borderRadius:20 }}>
                                       <Wifi size={10}/> Connected
                                     </span>
                                   ) : (
                                     <button onClick={()=>setTab('connect')}
-                                      style={{ fontSize:12, fontWeight:800, color:RED, background:'#fff5f5', padding:'3px 10px', borderRadius:20, border:`1px solid ${RED}30`, cursor:'pointer' }}>
+                                      style={{ fontSize:13, fontWeight:800, color:RED, background:'#fff5f5', padding:'3px 10px', borderRadius:20, border:`1px solid ${RED}30`, cursor:'pointer' }}>
                                       Connect
                                     </button>
                                   )}
@@ -422,9 +422,9 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                                 </div>
                                 <div style={{ flex:1, minWidth:0 }}>
                                   <div style={{ fontSize:14, fontWeight:800, color:'#111', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.site_name}</div>
-                                  <div style={{ fontSize:12, color:'#374151', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.site_url}</div>
+                                  <div style={{ fontSize:13, color:'#374151', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.site_url}</div>
                                 </div>
-                                <span style={{ fontSize:12, fontWeight:800, padding:'3px 10px', borderRadius:20, background:s.is_active?TEAL+'20':'#f3f4f6', color:s.is_active?'#0e7490':'#374151', flexShrink:0 }}>
+                                <span style={{ fontSize:13, fontWeight:800, padding:'3px 10px', borderRadius:20, background:s.is_active?TEAL+'20':'#f3f4f6', color:s.is_active?'#0e7490':'#374151', flexShrink:0 }}>
                                   {s.is_active?'Active':'Off'}
                                 </span>
                               </div>
@@ -461,7 +461,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                               <thead>
                                 <tr style={{ background:'#f9fafb', borderBottom:'2px solid #e5e7eb' }}>
                                   {['Keyword','Position','Change','Clicks','Impressions','CTR'].map(h=>(
-                                    <th key={h} style={{ padding:'12px 16px', fontSize:12, fontWeight:800, color:'#111', textAlign:'left', textTransform:'uppercase', letterSpacing:'.05em' }}>{h}</th>
+                                    <th key={h} style={{ padding:'12px 16px', fontSize:13, fontWeight:800, color:'#111', textAlign:'left', textTransform:'uppercase', letterSpacing:'.05em' }}>{h}</th>
                                   ))}
                                 </tr>
                               </thead>
@@ -503,13 +503,13 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                           <div style={{ fontSize:13, color:'#374151', marginBottom:14 }}>Install the Hyper-Local SEO plugin, then add the site URL below to get your API token.</div>
                           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto', gap:10, alignItems:'end' }}>
                             <div>
-                              <label style={{ fontSize:12, fontWeight:800, color:'#111', display:'block', marginBottom:5 }}>Site URL</label>
+                              <label style={{ fontSize:13, fontWeight:800, color:'#111', display:'block', marginBottom:5 }}>Site URL</label>
                               <input value={newSiteUrl} onChange={e=>setNewSiteUrl(e.target.value)}
                                 placeholder="https://clientsite.com" onKeyDown={e=>e.key==='Enter'&&addSite()}
                                 style={{ width:'100%', padding:'10px 13px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }}/>
                             </div>
                             <div>
-                              <label style={{ fontSize:12, fontWeight:800, color:'#111', display:'block', marginBottom:5 }}>Display name (optional)</label>
+                              <label style={{ fontSize:13, fontWeight:800, color:'#111', display:'block', marginBottom:5 }}>Display name (optional)</label>
                               <input value={newSiteName} onChange={e=>setNewSiteName(e.target.value)}
                                 placeholder={selectedClient?.name} onKeyDown={e=>e.key==='Enter'&&addSite()}
                                 style={{ width:'100%', padding:'10px 13px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }}/>
@@ -526,7 +526,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                           <div style={{ fontSize:14, fontWeight:900, color:'#0e7490', marginBottom:6 }}>Setup guide</div>
                           {['Install the Hyper-Local SEO plugin on the WordPress site','Go to HLSEO → Agency Connect in WordPress admin','Paste the Agency Dashboard URL and API token from below','Save — the plugin verifies and begins syncing automatically'].map((s,i)=>(
                             <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, marginBottom:4 }}>
-                              <span style={{ width:18, height:18, borderRadius:'50%', background:TEAL, color:'#fff', fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>{i+1}</span>
+                              <span style={{ width:18, height:18, borderRadius:'50%', background:TEAL, color:'#fff', fontSize:13, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>{i+1}</span>
                               <span style={{ fontSize:14, color:'#0e7490' }}>{s}</span>
                             </div>
                           ))}
@@ -548,10 +548,10 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                               <div style={{ flex:1 }}>
                                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:2 }}>
                                   <div style={{ fontSize:16, fontWeight:900, color:'#111' }}>{site.site_name}</div>
-                                  <span style={{ fontSize:12, fontWeight:800, padding:'2px 9px', borderRadius:20, background:site.is_active?TEAL+'20':'#f3f4f6', color:site.is_active?'#0e7490':'#374151' }}>
+                                  <span style={{ fontSize:13, fontWeight:800, padding:'2px 9px', borderRadius:20, background:site.is_active?TEAL+'20':'#f3f4f6', color:site.is_active?'#0e7490':'#374151' }}>
                                     {site.is_active?'Active':'Inactive'}
                                   </span>
-                                  {!site.last_sync_at && <span style={{ fontSize:12, fontWeight:700, color:'#d97706', display:'flex', alignItems:'center', gap:4 }}><AlertCircle size={11}/>Waiting for first sync</span>}
+                                  {!site.last_sync_at && <span style={{ fontSize:13, fontWeight:700, color:'#d97706', display:'flex', alignItems:'center', gap:4 }}><AlertCircle size={11}/>Waiting for first sync</span>}
                                 </div>
                                 <a href={site.site_url} target="_blank" rel="noreferrer" style={{ fontSize:13, color:RED, textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>
                                   {site.site_url}<ExternalLink size={10}/>
@@ -571,11 +571,11 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                             </div>
                             {/* Token */}
                             <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 14px', border:'1px solid #f3f4f6' }}>
-                              <div style={{ fontSize:12, fontWeight:800, color:'#374151', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
+                              <div style={{ fontSize:13, fontWeight:800, color:'#374151', marginBottom:6, display:'flex', alignItems:'center', gap:5 }}>
                                 <Key size={11}/> API TOKEN — paste into WordPress → HLSEO → Agency Connect
                               </div>
                               <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                                <code style={{ flex:1, fontSize:12, fontFamily:'monospace', color:'#111', background:'#fff', padding:'7px 12px', borderRadius:8, border:'1px solid #e5e7eb', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                <code style={{ flex:1, fontSize:13, fontFamily:'monospace', color:'#111', background:'#fff', padding:'7px 12px', borderRadius:8, border:'1px solid #e5e7eb', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                                   {site.api_token}
                                 </code>
                                 <button onClick={()=>copyToken(site.api_token, site.id)}
@@ -608,7 +608,7 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                                     <div style={{ fontSize:16, fontWeight:900, color:'#111', marginBottom:3 }}>{p.label}</div>
                                     <div style={{ fontSize:13, color:'#374151' }}>{p.desc}</div>
                                   </div>
-                                  <span style={{ fontSize:12, fontWeight:800, padding:'3px 10px', borderRadius:20, background:c?TEAL+'20':'#f3f4f6', color:c?'#0e7490':'#374151', flexShrink:0 }}>
+                                  <span style={{ fontSize:13, fontWeight:800, padding:'3px 10px', borderRadius:20, background:c?TEAL+'20':'#f3f4f6', color:c?'#0e7490':'#374151', flexShrink:0 }}>
                                     {c?'Connected':'Not connected'}
                                   </span>
                                 </div>

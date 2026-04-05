@@ -181,7 +181,7 @@ export default function DeskAnalyticsPage() {
                     <thead>
                       <tr style={{background:'#f9fafb'}}>
                         {['Agent','Role','Sessions','Total Time','Avg/Session','Hourly Rate','Total Cost'].map(h=>(
-                          <th key={h} style={{padding:'11px 18px',fontSize:12,fontWeight:800,
+                          <th key={h} style={{padding:'11px 18px',fontSize:13,fontWeight:800,
                             color:'#374151',textAlign:'left',textTransform:'uppercase',letterSpacing:'.05em'}}>{h}</th>
                         ))}
                       </tr>
@@ -199,7 +199,7 @@ export default function DeskAnalyticsPage() {
                               </div>
                               <div>
                                 <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{agent.name}</div>
-                                <div style={{fontSize:12,color:'#9ca3af'}}>{agent.email}</div>
+                                <div style={{fontSize:13,color:'#9ca3af'}}>{agent.email}</div>
                               </div>
                             </div>
                           </td>
@@ -242,7 +242,7 @@ export default function DeskAnalyticsPage() {
                   {Object.entries(byStatus).map(([status,count])=>(
                     <div key={status} style={{background:'#f9fafb',borderRadius:12,padding:'14px 20px',textAlign:'center',minWidth:100}}>
                       <div style={{fontSize:24,fontWeight:900,color:'#111'}}>{count}</div>
-                      <div style={{fontSize:12,fontWeight:700,color:'#374151',textTransform:'capitalize',marginTop:4}}>
+                      <div style={{fontSize:13,fontWeight:700,color:'#374151',textTransform:'capitalize',marginTop:4}}>
                         {status.replace(/_/g,' ')}
                       </div>
                     </div>

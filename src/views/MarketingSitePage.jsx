@@ -142,7 +142,7 @@ function Hero({ onLogin }) {
                     <div style={{ width:28, height:28, borderRadius:7, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, color:'#fff' }}>Y</div>
                     <div>
                       <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>Your Agency</div>
-                      <div style={{ fontSize:12, color:'rgba(255,255,255,.3)' }}>White-labeled</div>
+                      <div style={{ fontSize:13, color:'rgba(255,255,255,.3)' }}>White-labeled</div>
                     </div>
                   </div>
                   {['Project Hub','Clients','Scout','AI Agents','Social Planner','Reporting','Payments'].map((item, i) => (
@@ -163,7 +163,7 @@ function Hero({ onLogin }) {
                       <div key={name} style={{ background:'rgba(255,255,255,.04)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,.07)' }}>
                         <div style={{ width:24, height:24, borderRadius:6, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'#fff', marginBottom:6 }}>{name[0]}</div>
                         <div style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:2 }}>{name}</div>
-                        <div style={{ fontSize:12, color:'rgba(255,255,255,.3)' }}>{['Active','Onboarding','Active','Active','Onboarding','Active'][i]}</div>
+                        <div style={{ fontSize:13, color:'rgba(255,255,255,.3)' }}>{['Active','Onboarding','Active','Active','Onboarding','Active'][i]}</div>
                       </div>
                     ))}
                   </div>
@@ -213,7 +213,7 @@ function HowItWorks() {
               <div key={s.n} style={{ textAlign:'center' }}>
                 <div style={{ width:80, height:80, borderRadius:'50%', background: i===2?ACCENT:'#f9fafb', border: `2px solid ${i===2?ACCENT:'#e5e7eb'}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', fontSize:32, boxShadow: i===2?`0 8px 24px ${ACCENT}35`:'none', position:'relative' }}>
                   {s.icon}
-                  <div style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:900, color:'#fff' }}>{s.n}</div>
+                  <div style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:900, color:'#fff' }}>{s.n}</div>
                 </div>
                 <h3 style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8, lineHeight:1.3 }}>{s.title}</h3>
                 <p style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>{s.desc}</p>

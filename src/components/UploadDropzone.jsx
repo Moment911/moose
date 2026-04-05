@@ -101,8 +101,8 @@ export default function UploadDropzone({ projectId, onUploaded }) {
         <p className="font-medium text-gray-700 text-sm mb-1">
           {isDragActive ? 'Drop your files here' : 'Drag & drop files here'}
         </p>
-        <p className="text-xs text-gray-500">PNG, JPG, PDF, HTML · Up to 50MB each</p>
-        <button type="button" className="mt-3 btn-secondary text-xs py-1.5">Browse files</button>
+        <p className="text-sm text-gray-500">PNG, JPG, PDF, HTML · Up to 50MB each</p>
+        <button type="button" className="mt-3 btn-secondary text-sm py-1.5">Browse files</button>
       </div>
 
       {files.length > 0 && (
@@ -112,7 +112,7 @@ export default function UploadDropzone({ projectId, onUploaded }) {
               <FileIcon type={file.type} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-sm text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                 {progress[file.name] > 0 && (
                   <div className="mt-1.5 h-1 bg-gray-200 rounded-full overflow-hidden">
                     <div
