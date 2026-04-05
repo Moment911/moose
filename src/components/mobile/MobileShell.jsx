@@ -2,10 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  LayoutGrid, Users, Inbox, Target, TrendingUp,
-  Settings, ChevronLeft, Menu, X, Zap, Star,
-  FileSignature, BarChart2, Brain, Clock,
-  Plug, LogOut, ChevronRight
+  BarChart2, Brain, CheckCircle, ChevronLeft, ChevronRight, Clock, FileSignature, Inbox, LayoutGrid, LogOut, Menu, Plug, Settings, Star, Target, TrendingUp, Users, Zap
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { signOut } from '../../lib/supabase'
@@ -19,8 +16,8 @@ const TABS = [
   { to:'/',        icon:LayoutGrid, label:'Home'    },
   { to:'/clients', icon:Users,      label:'Clients' },
   { to:'/reviews', icon:Star,       label:'Reviews' },
+  { to:'/agent',   icon:Brain,      label:'CMO'     },
   { to:'/scout',   icon:Target,     label:'Scout'   },
-  { to:'/seo',     icon:BarChart2,  label:'SEO'     },
 ]
 
 const DRAWER_SECTIONS = [

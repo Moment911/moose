@@ -10,6 +10,7 @@ import Sidebar from '../components/Sidebar'
 import ClientSearchSelect from '../components/ClientSearchSelect'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
@@ -42,6 +43,7 @@ function StatCard({ label, value, icon: Icon, color }) {
 
 export default function ReviewCampaignsPage() {
   const { agencyId } = useAuth()
+  const isMobile = useMobile()
   const { selectedClient } = useClient()
 
   const [clientId,   setClientId]   = useState('')

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import { useAuth } from '../../hooks/useAuth'
+import { useMobile } from '../../hooks/useMobile'
 import toast from 'react-hot-toast'
 
 const RED   = '#ea2729'
@@ -303,6 +304,7 @@ function LeadDetail({ lead, agencyId, onClose, onUpdate, onDelete }) {
 
 export default function ScoutPipelinePage() {
   const { agencyId } = useAuth()
+  const isMobile = useMobile()
   const [byStage,    setByStage]    = useState({})
   const [stats,      setStats]      = useState({})
   const [loading,    setLoading]    = useState(true)

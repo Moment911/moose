@@ -12,6 +12,7 @@ import ClientSearchSelect from '../components/ClientSearchSelect'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
+import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
 const RED   = '#ea2729'
@@ -115,6 +116,7 @@ function ScopeBar({ scope, setScope, clientId, setClientId, setClientObj, isKoto
 
 export default function AgentPage() {
   const { agencyId, realAgencyId, agencyName } = useAuth()
+  const isMobile = useMobile()
   const { selectedClient } = useClient()
   const chatEndRef = useRef(null)
   const isKoto = realAgencyId === KOTO_AGENCY_ID || agencyId === KOTO_AGENCY_ID
@@ -307,7 +309,7 @@ export default function AgentPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: BLK, padding: '18px 28px 0', flexShrink: 0 }}>
+        <div style={{ background: BLK, padding: isMobile ? '12px 16px 0' : '18px 28px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -365,7 +367,7 @@ export default function AgentPage() {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '12px 16px' : '20px 28px' }}>
 
           {/* ── CHAT TAB ────────────────────────────────────────────────── */}
           {activeTab === 'chat' && (

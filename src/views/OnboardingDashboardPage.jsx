@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
 const RED   = '#ea2729'
@@ -25,6 +26,7 @@ const STATUS_CFG = {
 
 export default function OnboardingDashboardPage() {
   const { agencyId } = useAuth()
+  const isMobile = useMobile()
   const [clients,  setClients]  = useState([])
   const [loading,  setLoading]  = useState(true)
   const [sending,  setSending]  = useState({})
