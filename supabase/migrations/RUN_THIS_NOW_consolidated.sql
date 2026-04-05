@@ -330,7 +330,11 @@ CREATE INDEX IF NOT EXISTS idx_grid_scans_client  ON local_rank_grid_scans(clien
 CREATE INDEX IF NOT EXISTS idx_grid_scans_keyword ON local_rank_grid_scans(client_id, keyword);
 CREATE INDEX IF NOT EXISTS idx_grid_scans_date    ON local_rank_grid_scans(scanned_at DESC);
 ALTER TABLE local_rank_grid_scans ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "allow_all_grid_scans" ON local_rank_grid_scans FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='local_rank_grid_scans' AND policyname='allow_all_grid_scans') THEN
+    CREATE POLICY "allow_all_grid_scans" ON local_rank_grid_scans FOR ALL USING (true) WITH CHECK (true);;
+  END IF;
+END $$;
 
 -- ── Local rank tracking scans (Local Rank Tracker - Single Scan tab) ─────────
 CREATE TABLE IF NOT EXISTS local_rank_scans (
@@ -352,4 +356,8 @@ CREATE INDEX IF NOT EXISTS idx_rank_scans_client  ON local_rank_scans(client_id)
 CREATE INDEX IF NOT EXISTS idx_rank_scans_keyword ON local_rank_scans(client_id, keyword, location);
 CREATE INDEX IF NOT EXISTS idx_rank_scans_scanned ON local_rank_scans(scanned_at DESC);
 ALTER TABLE local_rank_scans ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "allow_all_rank_scans" ON local_rank_scans FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='local_rank_scans' AND policyname='allow_all_rank_scans') THEN
+    CREATE POLICY "allow_all_rank_scans" ON local_rank_scans FOR ALL USING (true) WITH CHECK (true);;
+  END IF;
+END $$;

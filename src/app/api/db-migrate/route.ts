@@ -81,7 +81,11 @@ const TABLES_SQL: Record<string, string> = {
     CREATE INDEX IF NOT EXISTS idx_reviews_platform ON reviews(client_id, platform);
     CREATE INDEX IF NOT EXISTS idx_reviews_rating   ON reviews(client_id, rating);
     ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
-    CREATE POLICY IF NOT EXISTS "allow_all_reviews" ON reviews FOR ALL USING (true) WITH CHECK (true);
+    DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='reviews' AND policyname='allow_all_reviews') THEN
+    CREATE POLICY "allow_all_reviews" ON reviews FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
   `,
   client_portal_sessions: `
     CREATE TABLE IF NOT EXISTS client_portal_sessions (
@@ -97,7 +101,11 @@ const TABLES_SQL: Record<string, string> = {
     CREATE INDEX IF NOT EXISTS idx_portal_sessions_client ON client_portal_sessions(client_id);
     CREATE INDEX IF NOT EXISTS idx_portal_sessions_token  ON client_portal_sessions(token);
     ALTER TABLE client_portal_sessions ENABLE ROW LEVEL SECURITY;
-    CREATE POLICY IF NOT EXISTS "allow_all_portal_sessions" ON client_portal_sessions FOR ALL USING (true) WITH CHECK (true);
+    DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='client_portal_sessions' AND policyname='allow_all_portal_sessions') THEN
+    CREATE POLICY "allow_all_portal_sessions" ON client_portal_sessions FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
   `,
   subscriptions: `
     CREATE TABLE IF NOT EXISTS subscriptions (
@@ -113,7 +121,11 @@ const TABLES_SQL: Record<string, string> = {
       updated_at timestamptz DEFAULT now()
     );
     ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
-    CREATE POLICY IF NOT EXISTS "allow_all_subscriptions" ON subscriptions FOR ALL USING (true) WITH CHECK (true);
+    DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='subscriptions' AND policyname='allow_all_subscriptions') THEN
+    CREATE POLICY "allow_all_subscriptions" ON subscriptions FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
   `,
 }
 
