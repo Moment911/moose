@@ -167,12 +167,18 @@ export default function SEOHubPage() {
     try {
       // Step 1: pull real data from GSC + GA4
       toast('Fetching Search Console & Analytics data…', { icon: '📊' })
-      const dataRes = await fetch('/api/seo/pull-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: selectedClient.id, days: 30 }),
-      })
-      const liveData = await dataRes.json()
+      let liveData = {}
+      try {
+        const dataRes = await fetch('/api/seo/pull-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client_id: selectedClient.id, days: 30 }),
+        })
+        if (dataRes.ok) liveData = await dataRes.json()
+        else console.warn('pull-data returned', dataRes.status)
+      } catch(fetchErr) {
+        console.warn('Could not fetch live data, using empty dataset:', fetchErr)
+      }
 
       // Step 2: parse GSC rows into useful stats
       const gscRows   = liveData.gsc?.rows || []
@@ -307,7 +313,10 @@ Return ONLY valid JSON (no markdown):
       setTab('reports')
     } catch(e) {
       console.error('Analysis error:', e)
-      toast.error('Report failed: ' + e.message)
+      const msg = e?.message || String(e)
+      if (msg.includes('API key')) toast.error('Anthropic API key not set — add NEXT_PUBLIC_ANTHROPIC_API_KEY')
+      else if (msg.includes('CORS') || msg.includes('Failed to fetch')) toast.error('API call blocked — check browser console for details')
+      else toast.error('Report failed: ' + msg)
     }
     setGenerating(false)
   }
