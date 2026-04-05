@@ -57,8 +57,6 @@ function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
-function Database(props) { return <BarChart2 {...props}/> } // alias
-
 export default function AgencySignupPage() {
   const navigate = useNavigate()
   const [PLANS,      setPLANS]      = useState(DEFAULT_PLANS)
