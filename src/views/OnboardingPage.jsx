@@ -550,6 +550,31 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       });
       await markTokenUsed(token);
       localStorage.removeItem(`onboarding-${token}`);
+
+      // Trigger automation: create agent config + first analysis
+      if (tokenData?.client_id && tokenData?.agency_id) {
+        fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'complete',
+            client_id: tokenData.client_id,
+            agency_id: tokenData.agency_id,
+            form_data: {
+              marketing_goals:  form.marketing_goals || [],
+              target_keywords:  form.target_keywords || [],
+              competitors:      form.competitors     || [],
+              service_area:     form.service_area    || '',
+              monthly_budget:   form.monthly_budget  || '',
+              ad_budget:        form.ad_budget        || '',
+              primary_channel:  form.primary_channel  || 'both',
+              business_type:    form.business_type    || 'b2c',
+              avg_transaction:  form.avg_transaction  || '',
+            },
+          }),
+        }).catch(() => {}) // fire-and-forget
+      }
+
       setStatus('submitted');
     } catch (e) {
       console.error(e);

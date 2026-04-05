@@ -3,11 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useMobile } from '../hooks/useMobile'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ChevronLeft, Building2, Globe, Phone, Mail, MapPin, Users, Calendar,
-  DollarSign, Hash, Share2, Camera, AtSign, Briefcase, Video,
-  Server, Palette, Target, UserPlus, Link2, Copy, Check, X, Plus, Trash2,
-  ExternalLink, Shield, CreditCard, Crown, Eye, EyeOff, Lock, Sparkles,
-  ShoppingBag, TrendingUp, Building
+  AtSign, Briefcase, Building, Building2, Calendar, Camera, Check, ChevronLeft, Copy, CreditCard, Crown, DollarSign, ExternalLink, Eye, EyeOff, Globe, Hash, Link2, Loader2, Lock, Mail, MapPin, Palette, Phone, Plus, Send, Server, Share2, Shield, ShoppingBag, Sparkles, Target, Trash2, TrendingUp, UserPlus, Users, Video
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import {

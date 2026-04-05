@@ -116,6 +116,7 @@ export default function Sidebar() {
           <NavLink to="/"            exact icon={LayoutGrid}    label="Dashboard"/>
         <NavLink to="/agent"        startsWith icon={Brain}   label="CMO Agent" badge="AI"/>
           <NavLink to="/clients"     startsWith icon={Users}    label="Clients"/>
+        <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
           <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
         <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns"/>
           <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
