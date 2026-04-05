@@ -29,7 +29,7 @@ const STATUS_CFG = {
 }
 
 export default function KotoSuperAdminPage() {
-  const { user, bypassMode } = useAuth()
+  const { user, bypassMode, impersonateAgency, impersonateClient, stopImpersonating, isImpersonating } = useAuth()
   const navigate = useNavigate()
   const [tab,       setTab]       = useState('agencies')
   const [agencies,  setAgencies]  = useState([])
@@ -263,15 +263,30 @@ export default function KotoSuperAdminPage() {
                             <div style={{ fontSize:12, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:8 }}>Their Clients</div>
                             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                               {agClients.map(cl => (
-                                <span key={cl.id} style={{ fontSize:12, padding:'4px 10px', borderRadius:20, background:'#1a1a1a', color:'#ccc', fontFamily:FB, border:'1px solid #222' }}>
-                                  {cl.name}
-                                </span>
+                                <button key={cl.id}
+                                  onClick={() => {
+                                    impersonateAgency({ id: ag.id, name: ag.brand_name || ag.name, brand_color: ag.brand_color })
+                                    impersonateClient({ id: cl.id, name: cl.name })
+                                    navigate('/clients/' + cl.id)
+                                  }}
+                                  style={{ fontSize:12, padding:'5px 12px', borderRadius:20, background:'#1a1a1a', color:'#ccc', fontFamily:FB, border:'1px solid #333', cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}
+                                  onMouseEnter={e=>{e.currentTarget.style.background='#f59e0b20';e.currentTarget.style.borderColor='#f59e0b';e.currentTarget.style.color='#f59e0b'}}
+                                  onMouseLeave={e=>{e.currentTarget.style.background='#1a1a1a';e.currentTarget.style.borderColor='#333';e.currentTarget.style.color='#ccc'}}>
+                                  👁 {cl.name}
+                                </button>
                               ))}
                             </div>
+                            <div style={{ fontSize:11, color:'#444', fontFamily:FB, marginTop:6 }}>Click any client to view their record as the agency sees it</div>
                           </div>
                         )}
 
-                        <div style={{ display:'flex', gap:8 }}>
+                        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                          {/* Impersonate */}
+                          <button onClick={() => { impersonateAgency({ id: ag.id, name: ag.brand_name || ag.name, brand_color: ag.brand_color }); navigate('/') }}
+                            style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#f59e0b', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:5 }}>
+                            ⚡ Switch Into Agency
+                          </button>
+                          {/* Status toggle */}
                           {ag.status !== 'active' ? (
                             <button onClick={() => activateAgency(ag.id)}
                               style={{ padding:'7px 14px', borderRadius:8, border:'none', background:GREEN, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:5 }}>

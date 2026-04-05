@@ -25,6 +25,7 @@ import AdminPortalPage from '../views/AdminPortalPage'
 import MasterAdminPage from '../views/MasterAdminPage'
 import KotoSuperAdminPage from '../views/KotoSuperAdminPage'
 import RequireAuth from '../components/RequireAuth'
+import ImpersonationBanner from '../components/ImpersonationBanner'
 import BrandGuidelinesPage from '../views/BrandGuidelinesPage'
 import TemplatesPage from '../views/TemplatesPage'
 import ContactsPage from '../views/ContactsPage'
@@ -95,6 +96,7 @@ export default function App() {
       <MobileMenuProvider>
         <Toaster position="top-right" />
         <MobileShell>
+        <ImpersonationBanner/>
         <RequireAuth>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

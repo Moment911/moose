@@ -22,7 +22,7 @@ const STATUS_CFG = {
 }
 
 export default function MasterAdminPage() {
-  const { agencyId } = useAuth()
+  const { agencyId, isImpersonating, impersonatedAgency, stopImpersonating } = useAuth()
   const navigate = useNavigate()
   const [tab,         setTab]         = useState('clients')
   const [clients,     setClients]     = useState([])
@@ -112,6 +112,12 @@ export default function MasterAdminPage() {
               style={{ padding:'8px 14px', borderRadius:9, border:'1px solid rgba(255,255,255,.2)', background:'transparent', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:6 }}>
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }}/> Refresh
             </button>
+            {isImpersonating && (
+              <button onClick={()=>{stopImpersonating();navigate('/koto-admin')}}
+                style={{ padding:'8px 14px', borderRadius:9, border:'none', background:'#f59e0b', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                ✕ Exit Impersonation
+              </button>
+            )}
           </div>
 
           {/* Stats strip */}

@@ -48,6 +48,33 @@ export function AuthProvider({ children }) {
   const [role,     setRole]     = useState(BYPASS_AUTH ? 'owner' : null)
   const [agency,   setAgency]   = useState(null)
 
+  // ── Impersonation (Koto super admin only) ──────────────────────────────────
+  const [impersonatedAgency,   setImpersonatedAgency]   = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('koto_imp_agency') || 'null') } catch { return null }
+  })
+  const [impersonatedClient,   setImpersonatedClient]   = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('koto_imp_client') || 'null') } catch { return null }
+  })
+
+  function impersonateAgency(agencyObj) {
+    setImpersonatedAgency(agencyObj)
+    setImpersonatedClient(null)
+    sessionStorage.setItem('koto_imp_agency', JSON.stringify(agencyObj))
+    sessionStorage.removeItem('koto_imp_client')
+  }
+
+  function impersonateClient(clientObj) {
+    setImpersonatedClient(clientObj)
+    sessionStorage.setItem('koto_imp_client', JSON.stringify(clientObj))
+  }
+
+  function stopImpersonating() {
+    setImpersonatedAgency(null)
+    setImpersonatedClient(null)
+    sessionStorage.removeItem('koto_imp_agency')
+    sessionStorage.removeItem('koto_imp_client')
+  }
+
   useEffect(() => {
     if (BYPASS_AUTH) {
       // Load bypass agency name for personalization
@@ -98,9 +125,17 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, loading, agencyId, bypassMode: BYPASS_AUTH,
+      user, loading, bypassMode: BYPASS_AUTH,
+      // Effective agencyId — uses impersonated agency if active
+      agencyId: impersonatedAgency?.id || agencyId,
+      realAgencyId: agencyId,
       firstName, initials, greeting, role, isOwner,
-      agencyName, agency,
+      agencyName: impersonatedAgency?.name || agency?.brand_name || agency?.name || '',
+      agency: impersonatedAgency || agency,
+      // Impersonation
+      impersonatedAgency, impersonatedClient,
+      impersonateAgency, impersonateClient, stopImpersonating,
+      isImpersonating: !!impersonatedAgency,
     }}>
       {children}
     </AuthContext.Provider>
