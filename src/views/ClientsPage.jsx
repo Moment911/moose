@@ -501,7 +501,7 @@ export default function ClientsPage() {
                     <th style={{ ...THstyle(''), cursor:'default', width:100 }}>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody style={{ position:'relative' }}>
                   {filtered.map((client, i) => (
                     <tr key={client.id}
                       style={{ borderBottom: i < filtered.length-1 ? '1px solid #f3f4f6' : 'none', cursor:'pointer', transition:'background .1s' }}
@@ -560,7 +560,7 @@ export default function ClientsPage() {
                       </td>
 
                       {/* Actions */}
-                      <td style={{ padding:'14px 14px' }} onClick={e=>e.stopPropagation()}>
+                      <td style={{ padding:'14px 14px', position:'relative', overflow:'visible' }} onClick={e=>e.stopPropagation()}>
                         <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                           <button onClick={() => navigate(`/clients/${client.id}`)}
                             style={{ padding:'5px 10px', borderRadius:7, border:'1.5px solid #e5e7eb', background:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:4 }}>
@@ -572,8 +572,7 @@ export default function ClientsPage() {
                               <MoreHorizontal size={14}/>
                             </button>
                             {menuOpen===client.id && (
-                              <div style={{ position:'fixed', background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.15)', zIndex:9999, minWidth:160, padding:4 }}
-                                  ref={el => { if(el && menuOpen===client.id) { const btn = el.previousSibling; if(btn) { const r = btn.getBoundingClientRect(); el.style.top=(r.bottom+4)+'px'; el.style.right=(window.innerWidth-r.right)+'px'; } } }}>
+                              <div style={{ position:'absolute', right:0, top:'calc(100% + 4px)', background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.15)', zIndex:9999, minWidth:160, padding:4 }}>
                                 <button onClick={()=>startEdit(client)}
                                   style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:14, color:'#374151', borderRadius:8, transition:'background .1s' }} onMouseEnter={e=>e.currentTarget.style.background='#f9fafb'} onMouseLeave={e=>e.currentTarget.style.background='none'}>
                                   <Edit2 size={13}/> Edit
