@@ -438,7 +438,7 @@ export default function ScoutHistoryPage() {
   ]
 
   return (
-    <div style={{className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f4f4f5'}}}}>
+    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f4f4f5'}}>
       <Sidebar/>
 
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>

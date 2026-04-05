@@ -163,7 +163,6 @@ export default function MobileShell({ children }) {
 
   return (
     <>
-      {/* ── Global mobile CSS injected once ── */
       <style>{`
         /* Lock the shell itself */
         #koto-mobile-shell {
