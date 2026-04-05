@@ -3,15 +3,17 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 
 const ADS_API = 'https://googleads.googleapis.com/v17'
 
 async function getToken(clientId: string): Promise<{token: string|null, customerId: string|null}> {
-  const { data: conn } = await supabase.from('seo_connections')
+  const { data: conn } = await getSupabase().from('seo_connections')
     .select('*').eq('client_id', clientId).eq('provider', 'ads').single()
   if (!conn?.access_token) return { token: null, customerId: null }
 
@@ -30,7 +32,7 @@ async function getToken(clientId: string): Promise<{token: string|null, customer
     const data = await res.json()
     if (data.access_token) {
       token = data.access_token
-      await supabase.from('seo_connections').update({ access_token: token,
+      await getSupabase().from('seo_connections').update({ access_token: token,
         token_expires_at: new Date(Date.now()+(data.expires_in||3600)*1000).toISOString()
       }).eq('id', conn.id)
     }
@@ -62,7 +64,7 @@ async function applyNegativeKeywords(token: string, customerId: string, rec: any
   if (!terms.length) return { success: false, detail: 'No search terms provided' }
 
   // Get all campaign IDs for this client
-  const { data: campaigns } = await supabase.from('perf_campaigns')
+  const { data: campaigns } = await getSupabase().from('perf_campaigns')
     .select('ads_campaign_id').eq('client_id', rec.client_id)
 
   if (!campaigns?.length) return { success: false, detail: 'No campaigns found' }
@@ -99,7 +101,7 @@ async function applyBudgetChange(token: string, customerId: string, rec: any) {
   const lostISPct: number = rec.current_state?.lost_is_budget || 20
 
   // Find the campaign
-  const { data: camp } = await supabase.from('perf_campaigns')
+  const { data: camp } = await getSupabase().from('perf_campaigns')
     .select('*').eq('client_id', rec.client_id)
     .ilike('name', `%${campaignName}%`).single()
 
@@ -138,7 +140,7 @@ async function applyKeywordPause(token: string, customerId: string, rec: any) {
   if (!keywords.length) return { success: false, detail: 'No keywords specified' }
 
   // Find keyword IDs in our DB
-  const { data: kwRows } = await supabase.from('perf_keywords')
+  const { data: kwRows } = await getSupabase().from('perf_keywords')
     .select('ads_keyword_id, keyword, ad_group_id')
     .eq('client_id', rec.client_id)
     .in('keyword', keywords)
@@ -146,7 +148,7 @@ async function applyKeywordPause(token: string, customerId: string, rec: any) {
   if (!kwRows?.length) return { success: false, detail: 'Keywords not found in database — re-sync first' }
 
   // Get ad group resource names
-  const { data: agRows } = await supabase.from('perf_ad_groups')
+  const { data: agRows } = await getSupabase().from('perf_ad_groups')
     .select('ads_adgroup_id, id')
     .in('id', kwRows.map(k=>k.ad_group_id).filter(Boolean))
 
@@ -179,7 +181,7 @@ export async function POST(req: NextRequest) {
   if (!recId || !clientId) return NextResponse.json({ error: 'recId and clientId required' }, { status: 400 })
 
   // Load the recommendation
-  const { data: rec } = await supabase.from('perf_recommendations')
+  const { data: rec } = await getSupabase().from('perf_recommendations')
     .select('*').eq('id', recId).single()
   if (!rec) return NextResponse.json({ error: 'Recommendation not found' }, { status: 404 })
   if (rec.status === 'applied') return NextResponse.json({ error: 'Already applied' }, { status: 400 })
@@ -230,7 +232,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Log to execution history
-  const { data: log } = await supabase.from('perf_execution_log').insert({
+  const { data: log } = await getSupabase().from('perf_execution_log').insert({
     rec_id:       recId,
     client_id:    clientId,
     agency_id:    agencyId,
@@ -246,7 +248,7 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   // Update recommendation status
-  await supabase.from('perf_recommendations').update({
+  await getSupabase().from('perf_recommendations').update({
     status:     success ? 'applied' : 'failed',
     applied_at: new Date().toISOString(),
   }).eq('id', recId)

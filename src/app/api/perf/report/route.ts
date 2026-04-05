@@ -5,12 +5,14 @@ import { Resend } from 'resend'
 
 export const runtime = 'nodejs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 const ai     = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '' })
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY || '') }
 const FROM   = process.env.DESK_EMAIL_FROM || 'Koto <reports@momentamktg.com>'
 const APP    = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
@@ -53,13 +55,13 @@ export async function POST(req: NextRequest) {
     {data:client},{data:agency},{data:snaps},{data:campaigns},
     {data:recs},{data:execLog},{data:alerts}
   ] = await Promise.all([
-    supabase.from('clients').select('name,email').eq('id',clientId).single(),
-    supabase.from('agencies').select('name,brand_name,billing_email,brand_color').eq('id',agencyId||'00000000-0000-0000-0000-000000000099').single(),
-    supabase.from('perf_snapshots').select('*').eq('client_id',clientId).gte('snapshot_date',prevCutoffStr).order('snapshot_date'),
-    supabase.from('perf_campaigns').select('*').eq('client_id',clientId).order('cost',{ascending:false}).limit(5),
-    supabase.from('perf_recommendations').select('*').eq('client_id',clientId).neq('status','dismissed').order('est_impact_val',{ascending:false}).limit(10),
-    supabase.from('perf_execution_log').select('*').eq('client_id',clientId).gte('applied_at',cutoffStr).order('applied_at',{ascending:false}).limit(10),
-    supabase.from('perf_alerts').select('*').eq('client_id',clientId).eq('acknowledged',false).limit(5),
+    getSupabase().from('clients').select('name,email').eq('id',clientId).single(),
+    getSupabase().from('agencies').select('name,brand_name,billing_email,brand_color').eq('id',agencyId||'00000000-0000-0000-0000-000000000099').single(),
+    getSupabase().from('perf_snapshots').select('*').eq('client_id',clientId).gte('snapshot_date',prevCutoffStr).order('snapshot_date'),
+    getSupabase().from('perf_campaigns').select('*').eq('client_id',clientId).order('cost',{ascending:false}).limit(5),
+    getSupabase().from('perf_recommendations').select('*').eq('client_id',clientId).neq('status','dismissed').order('est_impact_val',{ascending:false}).limit(10),
+    getSupabase().from('perf_execution_log').select('*').eq('client_id',clientId).gte('applied_at',cutoffStr).order('applied_at',{ascending:false}).limit(10),
+    getSupabase().from('perf_alerts').select('*').eq('client_id',clientId).eq('acknowledged',false).limit(5),
   ])
 
   const periodSnaps = (snaps||[]).filter(s => s.snapshot_date >= cutoffStr)
@@ -216,7 +218,7 @@ Be specific, confident, and concise. Focus on performance vs prior period and to
 </body></html>`
 
   // Send the email
-  const emailResult = await resend.emails.send({
+  const emailResult = await getResend().emails.send({
     from:    FROM,
     to:      toEmail,
     subject: `${clientName} — ${days}-day Performance Report · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}`,

@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 
 export const runtime = 'nodejs'
 
-const resend  = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY || '') }
 const FROM    = process.env.DESK_EMAIL_FROM || 'Koto <desk@hellokoto.com>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
         html:resolvedClient(ticket) })
     }
 
-    const results = await Promise.allSettled(sends.map(e => resend.emails.send(e)))
+    const results = await Promise.allSettled(sends.map(e => getResend().emails.send(e)))
     const sent  = results.filter(r=>r.status==='fulfilled').length
     const errs  = results.filter((r): r is PromiseRejectedResult => r.status==='rejected').map(r=>r.reason?.message||String(r.reason))
     return NextResponse.json({ sent, failed:errs.length, errors:errs.length?errs:undefined })

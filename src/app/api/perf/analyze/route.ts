@@ -4,10 +4,12 @@ import Anthropic from '@anthropic-ai/sdk'
 
 export const runtime = 'nodejs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 const ai = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
 })
@@ -220,12 +222,12 @@ export async function POST(req: NextRequest) {
   const [
     {data:campaigns},{data:keywords},{data:searchTerms},{data:pages},{data:snapshots},{data:client}
   ] = await Promise.all([
-    supabase.from('perf_campaigns').select('*').eq('client_id', clientId),
-    supabase.from('perf_keywords').select('*').eq('client_id', clientId).order('cost',{ascending:false}).limit(200),
-    supabase.from('perf_search_terms').select('*').eq('client_id', clientId).order('cost',{ascending:false}).limit(500),
-    supabase.from('perf_pages').select('*').eq('client_id', clientId).order('ai_score',{ascending:false}).limit(50),
-    supabase.from('perf_snapshots').select('*').eq('client_id', clientId).order('snapshot_date',{ascending:false}).limit(30),
-    supabase.from('clients').select('name').eq('id', clientId).single(),
+    getSupabase().from('perf_campaigns').select('*').eq('client_id', clientId),
+    getSupabase().from('perf_keywords').select('*').eq('client_id', clientId).order('cost',{ascending:false}).limit(200),
+    getSupabase().from('perf_search_terms').select('*').eq('client_id', clientId).order('cost',{ascending:false}).limit(500),
+    getSupabase().from('perf_pages').select('*').eq('client_id', clientId).order('ai_score',{ascending:false}).limit(50),
+    getSupabase().from('perf_snapshots').select('*').eq('client_id', clientId).order('snapshot_date',{ascending:false}).limit(30),
+    getSupabase().from('clients').select('name').eq('id', clientId).single(),
   ])
 
   if (!campaigns?.length && !keywords?.length) {
@@ -261,14 +263,14 @@ export async function POST(req: NextRequest) {
   }))
 
   // Clear old pending recs for this client, insert fresh
-  await supabase.from('perf_recommendations').delete()
+  await getSupabase().from('perf_recommendations').delete()
     .eq('client_id', clientId).eq('status', 'pending')
-  await supabase.from('perf_recommendations').insert(toSave)
+  await getSupabase().from('perf_recommendations').insert(toSave)
 
   // Save alerts for anomalies
   const anomalies = explained.filter(f => f.ruleId?.startsWith('anomaly_'))
   if (anomalies.length) {
-    await supabase.from('perf_alerts').insert(
+    await getSupabase().from('perf_alerts').insert(
       anomalies.map(a => ({
         client_id: clientId, agency_id: agencyId,
         alert_type: a.ruleId, severity: a.priority === 'high' ? 'critical' : 'warning',

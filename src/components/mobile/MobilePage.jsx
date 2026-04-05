@@ -10,6 +10,7 @@ const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
 const R   = '#ea2729'
 
+export { MobilePage }
 export default function MobilePage({ children, background = BG, padded = true }) {
   return (
     <div style={{

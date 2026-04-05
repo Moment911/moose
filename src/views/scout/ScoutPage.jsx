@@ -616,7 +616,7 @@ export default function ScoutPage() {
               style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}}
               onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}
               onKeyDown={e=>{if(e.key==='Enter')handleSearch()}}/>
-            <div style={{display:'flex',gap:8'}}>
+            <div style={{display:'flex',gap:8}}>
               <select value={mode} onChange={e=>setMode(e.target.value)}
                 style={{flex:1,padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,color:'#0a0a0a',background:'#fff'}}>
                 <option value="google_places">Google Maps</option>

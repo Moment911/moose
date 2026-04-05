@@ -3,10 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 
 export async function GET(req: NextRequest) {
   // Verify this is a legitimate Vercel cron call
@@ -16,7 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Get all clients that have an active ads connection
-  const { data: connections } = await supabase
+  const { data: connections } = await getSupabase()
     .from('seo_connections')
     .select('client_id, account_id, agency_id:clients(agency_id)')
     .eq('provider', 'ads')

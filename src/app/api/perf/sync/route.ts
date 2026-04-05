@@ -3,10 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 
 const ADS_API = 'https://googleads.googleapis.com/v17'
 
@@ -28,7 +30,7 @@ async function getToken(connection: any): Promise<string|null> {
   })
   const data = await res.json()
   if (data.access_token) {
-    await supabase.from('seo_connections').update({
+    await getSupabase().from('seo_connections').update({
       access_token: data.access_token,
       token_expires_at: new Date(Date.now() + (data.expires_in||3600)*1000).toISOString()
     }).eq('id', connection.id)
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
   const { clientId, agencyId } = await req.json()
   if (!clientId) return NextResponse.json({ error: 'No clientId' }, { status: 400 })
 
-  const { data: adsConn } = await supabase.from('seo_connections')
+  const { data: adsConn } = await getSupabase().from('seo_connections')
     .select('*').eq('client_id', clientId).eq('provider', 'ads').single()
 
   let campaignCount = 0, keywordCount = 0, searchTermCount = 0
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
           const cost = (m?.costMicros||0) / 1_000_000
           const convVal = m?.conversionsValue || 0
           const convs   = m?.conversions || 0
-          await supabase.from('perf_campaigns').upsert({
+          await getSupabase().from('perf_campaigns').upsert({
             client_id:        clientId,
             agency_id:        agencyId,
             ads_campaign_id:  c.id,
@@ -135,12 +137,12 @@ export async function POST(req: NextRequest) {
         for (const row of kwRows) {
           const kw = row.adGroupCriterion, m = row.metrics
           // Find or create ad group record
-          const { data: ag } = await supabase.from('perf_ad_groups')
+          const { data: ag } = await getSupabase().from('perf_ad_groups')
             .select('id').eq('ads_adgroup_id', row.adGroup?.id).eq('client_id', clientId).single()
 
           const cost = (m?.costMicros||0)/1_000_000
           const convs = m?.conversions||0
-          await supabase.from('perf_keywords').upsert({
+          await getSupabase().from('perf_keywords').upsert({
             client_id:      clientId,
             ad_group_id:    ag?.id || null,
             ads_keyword_id: kw?.criterionId,
@@ -169,7 +171,7 @@ export async function POST(req: NextRequest) {
 
   // Also sync GA4 snapshot if connected
   const today = new Date().toISOString().split('T')[0]
-  await supabase.from('perf_snapshots').upsert({
+  await getSupabase().from('perf_snapshots').upsert({
     client_id: clientId, snapshot_date: today,
   }, { onConflict: 'client_id,snapshot_date' })
 

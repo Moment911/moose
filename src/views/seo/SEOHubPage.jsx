@@ -183,7 +183,15 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
       <div style={{ background:bg, borderRadius:16, padding:'22px 20px', border:`1px solid ${accent||teal?'transparent':'#e5e7eb'}`, boxShadow: accent?`0 8px 24px ${RED}30`:teal?`0 8px 24px ${TEAL}30`:'none' }}>
         <I size={20} color={accent||teal?'rgba(255,255,255,.8)':'#374151'} style={{ marginBottom:14 }}/>
         <div style={{ fontSize:34, fontWeight:900, color, letterSpacing:-1, lineHeight:1 }}>
-          {value ?? <span style={{ fontSize:22 }}>—</span>}  const isMobile = useMobile()
+          {value ?? <span style={{ fontSize:22 }}>—</span>}
+        </div>
+        <div style={{ fontSize:13, fontWeight:600, color:subC, marginTop:6 }}>{label}</div>
+        {sub && <div style={{ fontSize:11, color:subC, marginTop:2 }}>{sub}</div>}
+      </div>
+    )
+  }
+
+  const isMobile = useMobile()
 
   /* ─── MOBILE ─── */
   if (isMobile) {
@@ -257,14 +265,6 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
   }
 
   /* ─── DESKTOP ─── */
-  /* ─── DESKTOP ─── */
-
-        </div>
-        <div style={{ fontSize:15, fontWeight:800, color, marginTop:8 }}>{label}</div>
-        <div style={{ fontSize:13, color:subC, marginTop:3 }}>{sub}</div>
-      </div>
-    )
-  }
 
   return (
     <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f0f0f2' }}>
