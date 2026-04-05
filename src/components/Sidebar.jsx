@@ -1,14 +1,12 @@
 "use client"
-import {
-  CreditCard,
-  Database,
-  MapPin, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   LayoutGrid, Users, FileSignature, Clock, Inbox, Brain,
   BarChart2, TrendingUp, Target, Plug, Settings, Shield,
   Cpu, Workflow, Star, ChevronDown, ChevronRight,
-  LogOut, Plus, Folder, Trash2, Edit2, MoreHorizontal, Zap
+  LogOut, Plus, Folder, Trash2, Edit2, MoreHorizontal, Zap,
+  CreditCard, Database, MapPin
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
