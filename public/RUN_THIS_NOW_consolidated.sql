@@ -438,3 +438,11 @@ END $$;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS google_place_id text;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS google_rating    numeric;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS google_review_count int;
+
+-- ── Extended client fields ────────────────────────────────────────────────────
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS address       text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS city          text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS state         text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS zip           text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS notes         text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS monthly_value numeric;

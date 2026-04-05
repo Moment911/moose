@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Plus, Search, ChevronUp, ChevronDown, MoreHorizontal,
+  Plus, Search, Loader2, ChevronUp, ChevronDown, MoreHorizontal,
   Edit2, Trash2, ExternalLink, Mail, Phone, Globe,
   Users, Filter, X, Check, ArrowRight
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
-import { getClients, createClient_, updateClient, deleteClient } from '../lib/supabase'
+import { supabase, getClients, createClient_, updateClient, deleteClient } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
@@ -83,7 +83,21 @@ export default function ClientsPage() {
       if (error) { toast.error(error.message); return }
       toast.success('Client updated')
     } else {
-      const { error } = await createClient_(form.name.trim(), form.email.trim(), agencyId)
+      const { error } = await supabase.from('clients').insert({
+        name:          form.name.trim(),
+        email:         form.email.trim() || null,
+        phone:         form.phone.trim() || null,
+        website:       form.website.trim() || null,
+        industry:      form.industry || null,
+        status:        form.status || 'active',
+        address:       form.address || null,
+        city:          form.city || null,
+        state:         form.state || null,
+        zip:           form.zip || null,
+        notes:         form.notes || null,
+        monthly_value: form.monthly_value ? parseFloat(form.monthly_value) : null,
+        agency_id:     agencyId,
+      }).select().single()
       if (error) {
         if (error.message?.includes('foreign key') || error.message?.includes('agency_id')) {
           toast.error('Run the seed SQL in Supabase first — see supabase/migrations/20260411_fix_fk_and_seed.sql')
@@ -101,7 +115,7 @@ export default function ClientsPage() {
       toast.success('Client added')
     }
     setShowAdd(false); setEditingId(null)
-    setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active' })
+    setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
     await load()
     await refreshClients()
   }
@@ -270,7 +284,7 @@ export default function ClientsPage() {
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
-            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active' }) }}
+            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
               style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
               <Plus size={16}/> Add Client
             </button>
@@ -278,58 +292,132 @@ export default function ClientsPage() {
 
           {/* Add/Edit form */}
           {showAdd && (
-            <div className="animate-fade-up" style={{ background:'#fff', borderRadius:16, border:`2px solid ${ACCENT}`, padding:'24px', marginBottom:20 }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
+            <div style={{ background:'#fff', borderRadius:16, border:`2px solid ${ACCENT}`, padding:'24px', marginBottom:20 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
                 <h2 style={{ fontSize:17, fontWeight:800, color:'#111', margin:0 }}>
                   {editingId ? 'Edit Client' : 'New Client'}
                 </h2>
-                <button onClick={() => { setShowAdd(false); setEditingId(null) }}
+                <button onClick={()=>{setShowAdd(false);setEditingId(null);setBizResults([]);setBizSearch('')}}
                   style={{ border:'none', background:'none', cursor:'pointer', color:'#4b5563', padding:4 }}>
                   <X size={18}/>
                 </button>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14, marginBottom:14 }}>
+
+              {/* Google Places search — only on add, not edit */}
+              {!editingId && (
+                <div style={{ marginBottom:18, padding:'14px 16px', background:'#f0fbfc', borderRadius:12, border:'1px solid #5bc6d040' }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#0e7490', marginBottom:8, display:'flex', alignItems:'center', gap:6 }}>
+                    🔍 Search Google to auto-fill client details
+                  </div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <input value={bizSearch} onChange={e=>setBizSearch(e.target.value)}
+                      onKeyDown={e=>e.key==='Enter'&&searchBusiness(bizSearch)}
+                      placeholder="e.g. Apex Dental Boca Raton FL"
+                      style={{ flex:1, padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111' }}
+                      onFocus={e=>e.target.style.borderColor=TEAL} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                    <button onClick={()=>searchBusiness(bizSearch)} disabled={bizSearching||!bizSearch.trim()}
+                      style={{ padding:'9px 16px', borderRadius:9, border:'none', background:TEAL, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
+                      {bizSearching ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <Search size={13}/>}
+                      {bizSearching ? '…' : 'Search'}
+                    </button>
+                  </div>
+                  {bizResults.length > 0 && (
+                    <div style={{ marginTop:8, display:'flex', flexDirection:'column', gap:6 }}>
+                      {bizResults.map((biz,i)=>(
+                        <div key={i}
+                          onClick={()=>autofillFromGoogle(biz)}
+                          style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', cursor:'pointer', background:'#fff', transition:'all .1s' }}
+                          onMouseEnter={e=>{e.currentTarget.style.borderColor=ACCENT;e.currentTarget.style.background='#fef2f2'}}
+                          onMouseLeave={e=>{e.currentTarget.style.borderColor='#e5e7eb';e.currentTarget.style.background='#fff'}}>
+                          {biz.photo && <img src={biz.photo} alt="" style={{ width:36, height:36, borderRadius:7, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{biz.name}</div>
+                            <div style={{ fontSize:12, color:'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{biz.address}</div>
+                          </div>
+                          {biz.rating && <div style={{ fontSize:12, color:'#f59e0b', fontWeight:700, flexShrink:0 }}>★{biz.rating} ({biz.review_count})</div>}
+                          <div style={{ fontSize:12, color:ACCENT, fontWeight:700, flexShrink:0 }}>Fill →</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {bizSearched && bizResults.length===0 && !bizSearching && (
+                    <div style={{ marginTop:6, fontSize:13, color:'#9ca3af' }}>No results — fill in details manually below</div>
+                  )}
+                </div>
+              )}
+
+              {/* Core fields */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
                 {[
                   { label:'Client Name *', key:'name', placeholder:'Apex Dental Studio', type:'text' },
-                  { label:'Email', key:'email', placeholder:'info@client.com', type:'email' },
-                  { label:'Phone', key:'phone', placeholder:'(305) 555-0100', type:'tel' },
-                  { label:'Website', key:'website', placeholder:'https://client.com', type:'url' },
-                ].map(f => (
+                  { label:'Email',         key:'email', placeholder:'info@client.com',   type:'email' },
+                  { label:'Phone',         key:'phone', placeholder:'(305) 555-0100',    type:'tel' },
+                  { label:'Website',       key:'website', placeholder:'https://client.com', type:'url' },
+                  { label:'Monthly Value ($)', key:'monthly_value', placeholder:'2500',  type:'number' },
+                ].map(f=>(
                   <div key={f.key}>
-                    <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>{f.label}</label>
-                    <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)}
+                    <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>{f.label}</label>
+                    <input type={f.type} value={form[f.key]||''} onChange={e=>setF(f.key,e.target.value)}
                       placeholder={f.placeholder}
-                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', boxSizing:'border-box' }}
-                      onFocus={e=>e.target.style.borderColor=ACCENT}
-                      onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=ACCENT} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
                   </div>
                 ))}
                 <div>
-                  <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Industry</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Industry</label>
                   <select value={form.industry} onChange={e=>setF('industry',e.target.value)}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, color:'#111', background:'#fff', boxSizing:'border-box' }}>
                     <option value="">Select industry…</option>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                 </div>
+              </div>
+
+              {/* Address fields */}
+              <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                {[
+                  { label:'Street Address', key:'address', placeholder:'123 Main St',  type:'text' },
+                  { label:'City',           key:'city',    placeholder:'Miami',         type:'text' },
+                  { label:'State / ZIP',    key:'state',   placeholder:'FL',            type:'text' },
+                ].map(f=>(
+                  <div key={f.key}>
+                    <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>{f.label}</label>
+                    <input type={f.type} value={form[f.key]||''} onChange={e=>setF(f.key,e.target.value)}
+                      placeholder={f.placeholder}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=ACCENT} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                  </div>
+                ))}
+              </div>
+
+              {/* Status + Notes */}
+              <div style={{ display:'grid', gridTemplateColumns:'160px 1fr', gap:12, marginBottom:16 }}>
                 <div>
-                  <label style={{ fontSize:14, fontWeight:700, color:'#374151', display:'block', marginBottom:5 }}>Status</label>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Status</label>
                   <select value={form.status} onChange={e=>setF('status',e.target.value)}
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', color:'#111', background:'#fff', boxSizing:'border-box' }}>
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, color:'#111', background:'#fff' }}>
                     <option value="active">Active</option>
                     <option value="prospect">Prospect</option>
                     <option value="paused">Paused</option>
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
+                <div>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Notes</label>
+                  <input value={form.notes||''} onChange={e=>setF('notes',e.target.value)}
+                    placeholder="Any important context about this client…"
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }}
+                    onFocus={e=>e.target.style.borderColor=ACCENT} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                </div>
               </div>
+
               <div style={{ display:'flex', gap:10 }}>
                 <button onClick={handleSave}
                   style={{ padding:'10px 24px', borderRadius:10, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                   {editingId ? 'Save Changes' : 'Add Client'}
                 </button>
-                <button onClick={() => { setShowAdd(false); setEditingId(null) }}
-                  style={{ padding:'10px 18px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:15, cursor:'pointer' }}>
+                <button onClick={()=>{setShowAdd(false);setEditingId(null);setBizResults([]);setBizSearch('')}}
+                  style={{ padding:'10px 20px', borderRadius:10, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                   Cancel
                 </button>
               </div>
@@ -484,9 +572,9 @@ export default function ClientsPage() {
                               <MoreHorizontal size={14}/>
                             </button>
                             {menuOpen===client.id && (
-                              <div style={{ position:'absolute', right:0, top:'100%', marginTop:4, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,.1)', zIndex:50, minWidth:150, padding:4 }}>
+                              <div style={{ position:'absolute', right:0, top:'100%', marginTop:4, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,.12)', zIndex:100, minWidth:160, padding:4, transform:'translateX(0)' }}>
                                 <button onClick={()=>startEdit(client)}
-                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
+                                  style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:14, color:'#374151', borderRadius:8, transition:'background .1s' }} onMouseEnter={e=>e.currentTarget.style.background='#f9fafb'} onMouseLeave={e=>e.currentTarget.style.background='none'}>
                                   <Edit2 size={13}/> Edit
                                 </button>
                                 <button onClick={()=>handleDelete(client.id, client.name)}
