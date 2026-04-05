@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { signIn } from '../lib/supabase'
 import { Zap, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -12,13 +12,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading,  setLoading]  = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
     const { error } = await signIn(email, password)
     if (error) { toast.error(error.message); setLoading(false); return }
-    navigate('/')
+    // Redirect to intended page if coming from route guard
+    const from = location.state?.from || '/'
+    navigate(from, { replace: true })
   }
 
   const INP = {

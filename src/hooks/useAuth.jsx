@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
-const BYPASS_AUTH = true
+// BYPASS_AUTH: set NEXT_PUBLIC_BYPASS_AUTH=true in Vercel to skip login
+// When false: real Supabase auth, each agency signs up independently
+const BYPASS_AUTH      = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
 const BYPASS_USER = {
   id:            '00000000-0000-0000-0000-000000000001',
   email:         'adam@hellokoto.com',

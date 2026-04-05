@@ -23,6 +23,8 @@ import IntegrationsPage from '../views/IntegrationsPage'
 import { useEffect } from 'react'
 import AdminPortalPage from '../views/AdminPortalPage'
 import MasterAdminPage from '../views/MasterAdminPage'
+import KotoSuperAdminPage from '../views/KotoSuperAdminPage'
+import RequireAuth from '../components/RequireAuth'
 import BrandGuidelinesPage from '../views/BrandGuidelinesPage'
 import TemplatesPage from '../views/TemplatesPage'
 import ContactsPage from '../views/ContactsPage'
@@ -93,6 +95,7 @@ export default function App() {
       <MobileMenuProvider>
         <Toaster position="top-right" />
         <MobileShell>
+        <RequireAuth>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/welcome" element={<MarketingSitePage />} />
@@ -129,6 +132,7 @@ export default function App() {
           <Route path="/integrations" element={<IntegrationsPage />} />
           <Route path="/admin" element={<AdminPortalPage />} />
           <Route path="/master-admin" element={<MasterAdminPage />} />
+          <Route path="/koto-admin" element={<KotoSuperAdminPage />} />
           <Route path="/platform-admin" element={<PlatformAdminPage />} />
           <Route path="/brand-guidelines" element={<BrandGuidelinesPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
@@ -175,6 +179,7 @@ export default function App() {
           <Route path="/seo/connect" element={<SEOConnectPage />} />
           <Route path="/wordpress" element={<WordPressPage />} />
         </Routes>
+        </RequireAuth>
         </MobileShell>
       </MobileMenuProvider>
       </ClientProvider>
