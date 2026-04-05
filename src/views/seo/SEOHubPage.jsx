@@ -889,9 +889,6 @@ Return ONLY valid JSON (no markdown):
                         <div style={{ background:'#fff', borderRadius:16, border:`1.5px solid ${RED}30`, padding:'20px 24px', marginBottom:16 }}>
                           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:4 }}>
                             <div style={{ fontSize:15, fontWeight:900, color:'#111' }}>Connect a WordPress site</div>
-wnload Koto SEO Plugin
-                            </a>
-                          </div>
                           <div style={{ fontSize:13, color:'#374151', marginBottom:14 }}>
                             Download and install the Koto SEO Plugin on your client's WordPress site, then add the site URL below to get your API token.
                           </div>
