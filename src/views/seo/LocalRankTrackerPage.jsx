@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   MapPin, Search, Target, TrendingUp, TrendingDown, Minus,
-  RefreshCw, Loader2, Star, Globe, Phone, ChevronDown,
-  BarChart2, Sparkles, Clock, Plus, Trash2, History,
+  RefreshCw, Loader2, Star, Globe, Phone, ChevronDown, Map,
+  BarChart2, Sparkles, Clock, Plus, Trash2, History, DollarSign, TrendingUp, Users,
   AlertCircle, Check, ArrowUp, ArrowDown, Calendar
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
@@ -166,7 +166,12 @@ export default function LocalRankTrackerPage() {
 
   // Tracked keywords (saved searches for a client)
   const [tracked,  setTracked]  = useState([])
-  const [expandedRow, setExpandedRow] = useState(null)
+  const [expandedRow,   setExpandedRow]   = useState(null)
+  const [marketData,    setMarketData]    = useState(null)
+  const [marketLoading, setMarketLoading] = useState(false)
+  const [showMap,       setShowMap]       = useState(false)
+  const [ppcKeywords,   setPpcKeywords]   = useState(null)
+  const [ppcLoading,    setPpcLoading]    = useState(false)
 
   useEffect(() => { loadClients() }, [agencyId])
   useEffect(() => { if (clientId) { loadHistory(); loadTracked() } }, [clientId])
@@ -200,6 +205,62 @@ export default function LocalRankTrackerPage() {
     setTracked(unique.slice(0, 20))
   }
 
+  async function fetchMarketDensity(kw, loc) {
+    if (!kw || !loc) return
+    setMarketLoading(true)
+    try {
+      // Map keyword to Google place type
+      const typeMap = {
+        plumber:'plumber', plumbing:'plumber', hvac:'hvac_contractor',
+        dentist:'dentist', dental:'dentist', roofing:'roofing_contractor',
+        roofer:'roofing_contractor', lawyer:'lawyer', attorney:'lawyer',
+        landscaping:'landscaping', landscaper:'landscaping',
+        electrician:'electrician', contractor:'general_contractor',
+        restaurant:'restaurant', mechanic:'auto_repair', gym:'gym',
+        salon:'beauty_salon', spa:'spa', chiropractor:'chiropractor',
+        pediatrician:'pediatrician', accountant:'accounting',
+      }
+      const lc = kw.toLowerCase()
+      const placeType = Object.entries(typeMap).find(([k]) => lc.includes(k))?.[1] || lc.replace(/\s+/g,'_')
+      const res = await fetch('/api/seo/market-density', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: loc, business_type: placeType, place_types: [placeType], radius_km: radiusKm }),
+      })
+      const data = await res.json()
+      if (!data.error) setMarketData(data)
+    } catch(e) { console.warn('Market density:', e.message) }
+    setMarketLoading(false)
+  }
+
+  async function generatePPCKeywords(scanResults) {
+    if (!scanResults || !targetBiz) return
+    setPpcLoading(true)
+    try {
+      const top5 = scanResults.google_local?.slice(0,5).map(r => r.name).join(', ')
+      const geo  = scanResults.geocoded_location
+      const res  = await fetch('/api/seo/ppc-keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          keyword:            scanResults.keyword,
+          location:           scanResults.location,
+          target_business:    targetBiz,
+          target_rank:        scanResults.target_rank,
+          top_competitors:    top5,
+          market_assessment:  marketData?.summary?.market_assessment,
+        }),
+      })
+      const d = await res.json()
+      const text = d.content?.[0]?.text || ''
+      try {
+        const clean = text.replace(/\`\`\`json|\`\`\`/g,'').trim()
+        setPpcKeywords(JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}')+1)))
+      } catch { setPpcKeywords({ ad_headline_ideas: [], service_keywords: [], campaign_strategy: text }) }
+    } catch(e) { console.warn('PPC keywords:', e.message) }
+    setPpcLoading(false)
+  }
+
   async function runScan() {
     if (!keyword.trim() || !location.trim()) {
       toast.error('Enter a keyword and location')
@@ -223,6 +284,8 @@ export default function LocalRankTrackerPage() {
       if (data.error) throw new Error(data.error)
       setResults(data)
       setTab('search')
+      // Auto-fetch market density
+      fetchMarketDensity(keyword.trim(), location.trim())
 
       // Save to history if client selected
       if (clientId) {
@@ -538,6 +601,27 @@ export default function LocalRankTrackerPage() {
                 {results && (
                   <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
+                    {/* Embedded Google Map */}
+                    <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:0 }}>
+                      <div style={{ padding:'12px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:FH, fontSize:13, fontWeight:800, color:BLK }}>
+                          <Map size={14} color={RED}/> Live Map
+                        </div>
+                        <button onClick={()=>setShowMap(!showMap)}
+                          style={{ fontSize:12, color:RED, background:'none', border:`1px solid ${RED}30`, borderRadius:8, padding:'4px 10px', cursor:'pointer', fontFamily:FH, fontWeight:700 }}>
+                          {showMap ? 'Hide Map' : 'Show Map'}
+                        </button>
+                      </div>
+                      {showMap && results.geocoded_location && (
+                        <iframe
+                          title="Local Map"
+                          width="100%" height="320" loading="lazy"
+                          style={{ border:'none', display:'block' }}
+                          src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY||process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY||''}&q=${encodeURIComponent(results.keyword+' '+results.location)}&center=${results.geocoded_location.lat},${results.geocoded_location.lng}&zoom=12`}
+                        />
+                      )}
+                    </div>
+
                     {/* Rank highlight */}
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10 }}>
                       {[
@@ -555,6 +639,49 @@ export default function LocalRankTrackerPage() {
                     </div>
 
                     {/* Results table */}
+                    {/* Market Density Panel */}
+                    {(marketLoading || marketData) && (
+                      <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:0 }}>
+                        <div style={{ padding:'12px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:8 }}>
+                          <BarChart2 size={14} color={RED}/>
+                          <div style={{ fontFamily:FH, fontSize:13, fontWeight:800, color:BLK }}>Market Density Analysis</div>
+                          <span style={{ fontSize:11, fontFamily:FH, fontWeight:700, marginLeft:'auto',
+                            padding:'2px 8px', borderRadius:20,
+                            background:marketData?.summary?.market_assessment==='highly_saturated'?'#fef2f2':marketData?.summary?.market_assessment==='competitive'?'#fffbeb':marketData?.summary?.market_assessment==='moderate'?'#f0fbfc':'#f0fdf4',
+                            color:marketData?.summary?.market_assessment==='highly_saturated'?RED:marketData?.summary?.market_assessment==='competitive'?'#d97706':marketData?.summary?.market_assessment==='moderate'?TEAL:'#16a34a' }}>
+                            {marketData?.summary?.market_assessment?.replace('_',' ')||'Loading…'}
+                          </span>
+                        </div>
+                        {marketLoading ? (
+                          <div style={{ padding:'20px', display:'flex', alignItems:'center', gap:8, color:'#9ca3af', fontSize:13, fontFamily:FH }}>
+                            <Loader2 size={14} color={RED} style={{animation:'spin 1s linear infinite'}}/> Analyzing market density…
+                          </div>
+                        ) : marketData?.summary && (
+                          <div style={{ padding:'16px 20px' }}>
+                            <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:14 }}>
+                              {[
+                                { label:'Total Competitors', value:marketData.summary.total_competitors, icon:Users, color:'#374151' },
+                                { label:'4★+ Rated',         value:marketData.summary.high_rated_count,  icon:Star,   color:'#f59e0b' },
+                                { label:'Within 5km',        value:marketData.summary.nearby_5km,        icon:MapPin, color:TEAL },
+                                { label:'Quality Gap',       value:marketData.summary.quality_gap_pct+'%', icon:TrendingUp, color:marketData.summary.quality_gap_pct>40?'#16a34a':RED },
+                              ].map((s,i) => (
+                                <div key={i} style={{ background:'#f9fafb', borderRadius:10, padding:'10px 14px' }}>
+                                  <div style={{ fontFamily:FH, fontSize:10, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>{s.label}</div>
+                                  <div style={{ fontFamily:FH, fontSize:18, fontWeight:900, color:s.color }}>{s.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ fontSize:13, color:'#374151', fontFamily:FB, lineHeight:1.6 }}>
+                              {marketData.summary.density_per_sq_km} businesses per km² ·{' '}
+                              {marketData.summary.opportunity_level === 'high' ?
+                                `${marketData.summary.quality_gap_pct}% of competitors have under 4★ — significant quality opportunity.` :
+                                `${marketData.summary.high_rated_count} of ${marketData.summary.total_competitors} competitors have 4★+.`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Geocoded location */}
                     {results.geocoded_location && (
                       <div style={{ background:'#f0fbfc', border:`1px solid ${TEAL}40`, borderRadius:10, padding:'8px 14px', display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
@@ -667,6 +794,100 @@ export default function LocalRankTrackerPage() {
                         </div>
                       </div>
                     )}
+                    {/* PPC Keywords Panel */}
+                    <div style={{ background:'#fff', borderRadius:16, border:`1.5px solid #f59e0b40`, overflow:'hidden' }}>
+                      <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:32, height:32, borderRadius:9, background:'#fffbeb', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <DollarSign size={15} color="#d97706"/>
+                        </div>
+                        <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK }}>PPC & Google Ads Intelligence</div>
+                        {!ppcKeywords && !ppcLoading && (
+                          <button onClick={()=>generatePPCKeywords(results)}
+                            style={{ marginLeft:'auto', padding:'7px 14px', borderRadius:9, border:'none', background:'#f59e0b', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:6 }}>
+                            <Sparkles size={12}/> Generate PPC Ideas
+                          </button>
+                        )}
+                      </div>
+                      {ppcLoading && (
+                        <div style={{ padding:'24px', textAlign:'center', color:'#9ca3af', fontSize:13, fontFamily:FH, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                          <Loader2 size={14} color="#d97706" style={{animation:'spin 1s linear infinite'}}/> Generating keyword ideas…
+                        </div>
+                      )}
+                      {ppcKeywords && (
+                        <div style={{ padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
+                          {/* Headlines */}
+                          {ppcKeywords.ad_headline_ideas?.length > 0 && (
+                            <div>
+                              <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Ad Headlines</div>
+                              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                                {ppcKeywords.ad_headline_ideas.map((h,i) => (
+                                  <span key={i} style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:8, padding:'5px 10px', fontSize:13, fontFamily:FH, fontWeight:600, color:'#92400e' }}>{h}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {/* Service keywords */}
+                          {ppcKeywords.service_keywords?.length > 0 && (
+                            <div>
+                              <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Service Keywords</div>
+                              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                                {ppcKeywords.service_keywords.map((k,i) => (
+                                  <span key={i} style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:8, padding:'4px 10px', fontSize:12, fontFamily:FH, color:'#15803d' }}>{k}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {/* Long tail */}
+                          {ppcKeywords.long_tail_keywords?.length > 0 && (
+                            <div>
+                              <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Long-Tail Keywords</div>
+                              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                                {ppcKeywords.long_tail_keywords.map((k,i) => (
+                                  <span key={i} style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:8, padding:'4px 10px', fontSize:12, fontFamily:FH, color:'#1d4ed8' }}>{k}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {/* Negatives */}
+                          {ppcKeywords.negative_keywords?.length > 0 && (
+                            <div>
+                              <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Negative Keywords</div>
+                              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                                {ppcKeywords.negative_keywords.map((k,i) => (
+                                  <span key={i} style={{ background:'#fef2f2', border:`1px solid ${RED}30`, borderRadius:8, padding:'4px 10px', fontSize:12, fontFamily:FH, color:RED }}>−{k}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {/* Strategy + CPC */}
+                          <div style={{ background:'#f9fafb', borderRadius:10, padding:'12px 16px' }}>
+                            {ppcKeywords.target_cpc_range && (
+                              <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:'#374151', marginBottom:4, display:'flex', alignItems:'center', gap:6 }}>
+                                <DollarSign size={13} color="#d97706"/> Estimated CPC: {ppcKeywords.target_cpc_range}
+                              </div>
+                            )}
+                            {ppcKeywords.campaign_strategy && (
+                              <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{ppcKeywords.campaign_strategy}</div>
+                            )}
+                          </div>
+                          {/* Ad descriptions */}
+                          {ppcKeywords.ad_description_ideas?.length > 0 && (
+                            <div>
+                              <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Ad Descriptions</div>
+                              {ppcKeywords.ad_description_ideas.map((d,i) => (
+                                <div key={i} style={{ fontSize:13, color:'#374151', fontFamily:FB, padding:'6px 0', borderBottom:i<ppcKeywords.ad_description_ideas.length-1?'1px solid #f3f4f6':'none' }}>"{d}"</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {!ppcKeywords && !ppcLoading && (
+                        <div style={{ padding:'16px 20px', fontSize:13, color:'#9ca3af', fontFamily:FB }}>
+                          Generate AI-powered keyword suggestions, ad copy ideas, and campaign strategy based on your local competitor data.
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 )}
               </div>
