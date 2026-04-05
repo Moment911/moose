@@ -32,9 +32,9 @@ async function checkSupabase(): Promise<CheckResult> {
     return { name: 'Supabase DB', status: 'error', message: 'Missing env vars: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' }
   }
   try {
-    const { result: { data, error }, ms } = await timed(() =>
-      getSupabase().from('agencies').select('id').limit(1)
-    )
+    const t = Date.now()
+    const { error } = await getSupabase().from('agencies').select('id').limit(1)
+    const ms = Date.now() - t
     if (error) return { name: 'Supabase DB', status: 'error', latency_ms: ms, message: error.message }
     return { name: 'Supabase DB', status: ms > 2000 ? 'warn' : 'ok', latency_ms: ms, message: ms > 2000 ? 'Slow response' : 'Connected' }
   } catch (e: any) {
@@ -47,20 +47,21 @@ async function checkSupabaseTables(): Promise<CheckResult[]> {
   const results: CheckResult[] = []
   for (const table of tables) {
     try {
-      const { result: { error, count }, ms } = await timed(() =>
-        getSupabase().from(table).select('*', { count: 'exact', head: true })
-      )
+      const t = Date.now()
+      const { error, count } = await getSupabase().from(table).select('*', { count: 'exact', head: true })
+      const ms = Date.now() - t
       if (error) {
-        results.push({ name: `Table: ${table}`, status: 'error', latency_ms: ms, message: error.message })
+        results.push({ name: table, status: 'error', message: error.message })
       } else {
-        results.push({ name: `Table: ${table}`, status: 'ok', latency_ms: ms, message: `${count ?? 0} rows` })
+        results.push({ name: table, status: 'ok', latency_ms: ms, message: `${count ?? 0} rows` })
       }
     } catch (e: any) {
-      results.push({ name: `Table: ${table}`, status: 'error', message: e.message })
+      results.push({ name: table, status: 'error', message: e.message })
     }
   }
   return results
 }
+
 
 async function checkAnthropicAI(): Promise<CheckResult> {
   if (!ANTHROPIC_KEY) {
