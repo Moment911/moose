@@ -12,23 +12,23 @@ const BLK  = '#0a0a0a'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Helvetica Neue',sans-serif"
 
-const PLANS = [
+const DEFAULT_PLANS = [
   {
     id: 'starter', name: 'Starter', price: 297, period: '/mo',
-    desc: 'Perfect for boutique agencies',
-    color: TEAL,
+    desc: 'Perfect for boutique agencies', cta: 'Choose Plan',
+    color: TEAL, popular: false, badge: '',
     features: ['Up to 25 clients', '3 team seats', 'SEO Hub + rank tracking', 'AI review responses', 'Scout lead intelligence', 'Client onboarding forms', 'KotoDesk support tickets'],
   },
   {
     id: 'growth', name: 'Growth', price: 497, period: '/mo',
-    desc: 'Most popular for growing agencies',
-    color: RED, popular: true,
+    desc: 'Most popular for growing agencies', cta: 'Choose Plan',
+    color: RED, popular: true, badge: 'Most Popular',
     features: ['Up to 100 clients', '10 team seats', 'Everything in Starter', 'Grid heatmap tracking', 'Performance marketing AI', 'White-label client portal', 'Priority support'],
   },
   {
     id: 'agency', name: 'Agency', price: 997, period: '/mo',
-    desc: 'Full power for large agencies',
-    color: BLK,
+    desc: 'Full power for large agencies', cta: 'Choose Plan',
+    color: '#111', popular: false, badge: '',
     features: ['Unlimited clients', 'Unlimited seats', 'Everything in Growth', 'Custom domain portal', 'API access', 'Dedicated onboarding', 'SLA support'],
   },
 ]
@@ -47,8 +47,34 @@ export default function BillingPage() {
   const [checkingOut,  setCheckingOut]  = useState(null)
   const [openingPortal,setOpeningPortal]= useState(false)
   const [agency,       setAgency]       = useState(null)
+  const [PLANS,        setPLANS]        = useState(DEFAULT_PLANS)
 
   useEffect(() => { if (agencyId) loadBilling() }, [agencyId])
+
+  // Load live pricing from platform_config
+  useEffect(() => {
+    supabase.from('platform_config')
+      .select('key,value').eq('key', 'signup_plans')
+      .single()
+      .then(({ data }) => {
+        if (data?.value?.length) {
+          // Map DB plans to billing page format
+          const mapped = data.value.map((p, i) => ({
+            id:       p.id,
+            name:     p.name,
+            price:    p.price,
+            period:   '/mo',
+            desc:     DEFAULT_PLANS[i]?.desc || '',
+            cta:      p.cta || 'Choose Plan',
+            color:    DEFAULT_PLANS[i]?.color || RED,
+            popular:  p.popular || false,
+            badge:    p.badge || '',
+            features: p.features || DEFAULT_PLANS[i]?.features || [],
+          }))
+          setPLANS(mapped)
+        }
+      })
+  }, [])
 
   async function loadBilling() {
     setLoading(true)
@@ -163,7 +189,7 @@ export default function BillingPage() {
                 <div key={plan.id} style={{ background:'#fff', borderRadius:18, border:isCurrent?`2px solid ${plan.color}`:`1.5px solid #e5e7eb`, padding:'24px 22px', position:'relative', overflow:'hidden' }}>
                   {plan.popular && (
                     <div style={{ position:'absolute', top:16, right:16, fontSize:10, fontWeight:800, padding:'3px 10px', borderRadius:20, background:RED, color:'#fff', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.07em' }}>
-                      Most Popular
+                      {plan.badge || 'Most Popular'}
                     </div>
                   )}
                   {isCurrent && (
@@ -185,7 +211,7 @@ export default function BillingPage() {
                       fontSize:14, fontWeight:700, cursor:isCurrent?'default':'pointer', fontFamily:FH,
                       display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginBottom:18 }}>
                     {checkingOut===plan.id ? <Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/> : null}
-                    {isCurrent ? 'Current Plan' : checkingOut===plan.id ? 'Opening Stripe…' : 'Choose Plan'}
+                    {isCurrent ? 'Current Plan' : checkingOut===plan.id ? 'Opening Stripe…' : (plan.cta || 'Choose Plan')}
                   </button>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {plan.features.map((f,i)=>(
