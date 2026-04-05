@@ -33,6 +33,9 @@
     },
     "src/app/api/agent/cron/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/integrations/ghl/sync/route.ts": {
+      "maxDuration": 300
     }
   }
 }

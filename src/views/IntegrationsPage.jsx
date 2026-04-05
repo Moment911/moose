@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { getGHLOAuthURL, CRMAdapter, mooseClientToGHLContact } from '../lib/ghl'
+import GHLSyncPanel from '../components/GHLSyncPanel'
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
@@ -402,6 +403,15 @@ export default function IntegrationsPage() {
                         </div>
                       ))}
                     </div>
+                  )}
+
+                  {/* GHL Sync Panel */}
+                  {ghl?.status === 'connected' && (
+                    <GHLSyncPanel
+                      integration={ghl}
+                      agencyId={agencyId}
+                      onRefresh={loadIntegrations}
+                    />
                   )}
                 </div>
               </div>
