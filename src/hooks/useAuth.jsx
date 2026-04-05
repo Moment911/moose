@@ -7,7 +7,7 @@ const AuthContext = createContext(null)
 const BYPASS_AUTH = true
 const BYPASS_USER = {
   id:            '00000000-0000-0000-0000-000000000001',
-  email:         'adam@momentamktg.com',
+  email:         'adam@hellokoto.com',
   user_metadata: { first_name: 'Adam', last_name: 'Segall' }
 }
 const BYPASS_AGENCY_ID = '00000000-0000-0000-0000-000000000099'

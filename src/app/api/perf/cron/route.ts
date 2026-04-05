@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   }
 
   const results = []
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://moose-adam-segalls-projects.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
 
   for (const conn of connections) {
     try {

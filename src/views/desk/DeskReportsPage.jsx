@@ -277,7 +277,7 @@ export default function DeskReportsPage() {
               <AlertCircle size={32} color={RED} style={{margin:'0 auto 12px',display:'block'}}/>
               <div style={{fontSize:16,fontWeight:800,color:'#111',marginBottom:6}}>Could not load report data</div>
               <div style={{fontSize:14,color:'#374151',marginBottom:16}}>{loadError}</div>
-              <div style={{fontSize:13,color:'#374151'}}>Make sure the MooseDesk tables exist in Supabase (run the migration SQL).</div>
+              <div style={{fontSize:13,color:'#374151'}}>Make sure the KotoDesk tables exist in Supabase (run the migration SQL).</div>
             </div>
           ) : (
             <>

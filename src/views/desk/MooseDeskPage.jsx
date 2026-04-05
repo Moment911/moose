@@ -137,8 +137,8 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
           ...(rule?.set_priority    ? {priority: rule.set_priority} : {}),
           status: 'open', updated_at: new Date().toISOString(),
         }).eq('id', ticket.id)
-        if (rule) await logActivity(ticket.id, {name:'MooseDesk AI',type:'ai'}, 'routed', 'Auto-routed by rule: ' + rule.name)
-        await logActivity(ticket.id, {name:'MooseDesk AI',type:'ai'}, 'triaged', 'AI classified: ' + ai.category + ' / ' + ai.priority)
+        if (rule) await logActivity(ticket.id, {name:'KotoDesk AI',type:'ai'}, 'routed', 'Auto-routed by rule: ' + rule.name)
+        await logActivity(ticket.id, {name:'KotoDesk AI',type:'ai'}, 'triaged', 'AI classified: ' + ai.category + ' / ' + ai.priority)
       } catch(e) { console.warn('AI triage failed:', e.message) }
       // Send email notifications (fire and forget)
       const finalTicket = (await supabase.from('desk_tickets').select('*').eq('id', ticket.id).single()).data || ticket
@@ -216,7 +216,7 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
   )
 }
 
-export default function MooseDeskPage() {
+export default function KotoDeskPage() {
   const navigate = useNavigate()
   const { agencyId } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -285,7 +285,7 @@ export default function MooseDeskPage() {
                 <div style={{width:34,height:34,borderRadius:10,background:RED,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Inbox size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>MooseDesk</h1>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>KotoDesk</h1>
                 <span style={{fontSize:13,fontWeight:800,color:TEAL,background:TEAL+'20',padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>AI-Powered</span>
               </div>
               <p style={{fontSize:14,color:'rgba(255,255,255,.4)',margin:0}}>

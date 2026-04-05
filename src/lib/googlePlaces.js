@@ -51,7 +51,7 @@ export async function getPlaceDetails(placeId) {
   } catch { return null }
 }
 
-// ── Map a Google Places result → Moose Scout lead format ──────────────────────
+// ── Map a Google Places result → Koto Scout lead format ──────────────────────
 export function placeToLead(place, index) {
   const name    = place.displayName?.text || 'Unknown Business'
   const address = place.formattedAddress || ''

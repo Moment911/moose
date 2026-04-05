@@ -389,7 +389,7 @@ export default function PublicReviewPage() {
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </div>
           )}
-          <span className="text-sm font-medium hidden md:inline">{project?.brand_name || 'Moose'}</span>
+          <span className="text-sm font-medium hidden md:inline">{project?.brand_name || 'Koto'}</span>
         </div>
         <div className="text-sm text-white font-medium truncate flex-1">{file?.name}</div>
 
@@ -443,8 +443,8 @@ export default function PublicReviewPage() {
       {roundsExhausted && (
         <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: 'linear-gradient(135deg, #ea2729, #dc2626)' }}>
           <span>All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} complete</span>
-          <a href="https://www.moose.ai/contact" target="_blank" rel="noreferrer" className="bg-white text-brand-600 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
-          <a href="https://www.moose.ai/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>
+          <a href="https://www.hellokoto.com/contact" target="_blank" rel="noreferrer" className="bg-white text-brand-600 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
+          <a href="https://www.hellokoto.com/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>
         </div>
       )}
 
@@ -587,14 +587,14 @@ export default function PublicReviewPage() {
               </button>
               <p className="text-[13px] text-brand-600 text-center mt-2 font-medium">
                 {unsubmittedCount > 0
-                  ? `Click to review and submit your feedback to ${project?.brand_name || 'Moose'}`
+                  ? `Click to review and submit your feedback to ${project?.brand_name || 'Koto'}`
                   : 'Use the tools above to add your feedback first'}
               </p>
             </div>
           ) : (
             <div className="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0 text-center">
               <p className="text-sm text-gray-700 font-medium">All revision rounds complete</p>
-              <p className="text-[13px] text-gray-700 mt-1">Contact {project?.brand_name || 'Moose'} for additional revisions</p>
+              <p className="text-[13px] text-gray-700 mt-1">Contact {project?.brand_name || 'Koto'} for additional revisions</p>
             </div>
           )}
         </div>

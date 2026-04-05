@@ -10,7 +10,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Moose AI — Marketing Platform",
+  title: "Koto — Marketing Platform",
   description: "The AI-powered agency platform. White-label AI marketing tools for agencies.",
   icons: { icon: "/moose-logo-orange.svg" },
 }

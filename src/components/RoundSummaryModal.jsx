@@ -127,7 +127,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                 {totalComments} comment{totalComments !== 1 ? 's' : ''} across {fileCount} file{fileCount !== 1 ? 's' : ''} submitted successfully.
               </p>
               <p className="text-sm text-gray-500">
-                Moose has been notified and will review your feedback.
+                Koto has been notified and will review your feedback.
               </p>
               {roundNumber < maxRounds && (
                 <p className="text-sm text-gray-400 mt-4">
@@ -136,7 +136,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
               )}
               {roundNumber >= maxRounds && (
                 <div className="mt-4 bg-amber-50 text-amber-800 text-sm px-4 py-3 rounded-xl">
-                  All revision rounds complete. Contact Moose for additional revisions.
+                  All revision rounds complete. Contact Koto for additional revisions.
                 </div>
               )}
             </div>
@@ -149,7 +149,7 @@ export default function RoundSummaryModal({ project, onClose, onSubmitted }) {
                 All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} have been used.
               </p>
               <p className="text-sm text-gray-500 mt-2">
-                Contact Moose for additional revisions.
+                Contact Koto for additional revisions.
               </p>
             </div>
           ) : (

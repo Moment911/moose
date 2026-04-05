@@ -104,11 +104,11 @@ Return ONLY a valid JSON object (no markdown, no code fences) with this structur
   "subject": "Email subject line",
   "preview": "Preview text for inbox",
   "blocks": [
-    {"type": "header", "data": {"logoText": "Moose", "tagline": "", "bgColor": "#231f20", "textColor": "#ffffff"}},
+    {"type": "header", "data": {"logoText": "Koto", "tagline": "", "bgColor": "#231f20", "textColor": "#ffffff"}},
     {"type": "heading", "data": {"content": "Main Headline", "fontSize": 32, "textColor": "#1a1a1a", "bgColor": "#ffffff", "align": "center", "padding": 32, "fontWeight": 700}},
     {"type": "text", "data": {"content": "Body text here...", "fontSize": 16, "textColor": "#333333", "bgColor": "#ffffff", "align": "left", "padding": 24}},
     {"type": "button", "data": {"text": "CTA Text", "url": "#", "btnColor": "#ea2729", "textColor": "#ffffff", "bgColor": "#ffffff", "align": "center", "padding": 24, "borderRadius": 8}},
-    {"type": "footer", "data": {"text": "© 2026 Moose", "links": "Unsubscribe | View in browser", "bgColor": "#f5f5f5", "textColor": "#999999", "padding": 24}}
+    {"type": "footer", "data": {"text": "© 2026 Koto", "links": "Unsubscribe | View in browser", "bgColor": "#f5f5f5", "textColor": "#999999", "padding": 24}}
   ]
 }
 

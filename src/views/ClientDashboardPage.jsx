@@ -76,7 +76,7 @@ function NewTicketForm({ user, onSubmitted }) {
           ai_processed_at: new Date().toISOString(),
           status: 'open', updated_at: new Date().toISOString(),
         }).eq('id', ticket.id)
-        await logActivity(ticket.id, {name:'MooseDesk AI',type:'ai'}, 'triaged',
+        await logActivity(ticket.id, {name:'KotoDesk AI',type:'ai'}, 'triaged',
           'AI classified: ' + ai.category + ' / ' + ai.priority)
       } catch(e) { console.warn('AI triage:', e.message) }
 
@@ -252,7 +252,7 @@ export default function ClientDashboardPage() {
             </div>
             <div>
               <div style={{fontSize:20,fontWeight:900,color:'#fff',letterSpacing:-0.3}}>{greeting}</div>
-              <div style={{fontSize:14,color:'rgba(255,255,255,.45)',marginTop:1}}>Client Portal · Powered by Moose AI</div>
+              <div style={{fontSize:14,color:'rgba(255,255,255,.45)',marginTop:1}}>Client Portal · Powered by Koto</div>
             </div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:16}}>

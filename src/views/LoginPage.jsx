@@ -53,7 +53,7 @@ export default function LoginPage() {
           </div>
           <div style={{fontFamily:"var(--font-display)",fontSize:28,fontWeight:800,
             color:'#fff',letterSpacing:'-.04em',lineHeight:1,marginBottom:8}}>
-            Moose AI
+            Koto
           </div>
           <div style={{fontSize:14,color:'rgba(255,255,255,.4)'}}>
             Sign in to your agency platform

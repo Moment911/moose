@@ -1,10 +1,10 @@
 "use client";
 export default function PrivacyPolicyPage() {
   const lastUpdated = 'April 2, 2026'
-  const companyName = 'Moose AI LLC'
-  const appName = 'Moose AI'
-  const email = 'privacy@moose.ai'
-  const website = 'moose.ai'
+  const companyName = 'Koto LLC'
+  const appName = 'Koto'
+  const email = 'privacy@hellokoto.com'
+  const website = 'hellokoto.com'
   const address = 'Boca Raton, Florida, United States'
 
   return (
@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       <div style={{ background: 'white', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <svg width={32} height={32} viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="#ea2729"/><path d="M12 10L12 30L28 30L28 26L16 26L16 10Z" fill="white"/><circle cx="28" cy="14" r="4" fill="white" opacity="0.6"/></svg>
-          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#111827' }}>Moose AI</p><p style={{ margin: 0, fontSize: 13, color: '#374151' }}>by Moose</p></div>
+          <div><p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#111827' }}>Koto</p><p style={{ margin: 0, fontSize: 13, color: '#374151' }}>by Koto</p></div>
         </div>
         <a href="/" style={{ fontSize: 15, color: '#ea2729', fontWeight: 700, textDecoration: 'none' }}>← Back to App</a>
       </div>
@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
 
         <Section id="s1" title="1. Who We Are">
           <P>{companyName} operates {appName}, a marketing intelligence and agency management platform. Our registered business address is {address}. Contact us at {email} for privacy questions.</P>
-          <P>Moose AI is a SaaS platform for marketing agencies providing project management, design review, email marketing, sales intelligence, and SEO/PPC analysis.</P>
+          <P>Koto is a SaaS platform for marketing agencies providing project management, design review, email marketing, sales intelligence, and SEO/PPC analysis.</P>
         </Section>
 
         <Section id="s2" title="2. Information We Collect">
@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
         <Section id="s3" title="3. How We Use Google User Data">
           <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 10, padding: '16px 20px', marginBottom: 20 }}>
             <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#065F46' }}>Our commitment regarding Google data:</p>
-            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#047857', lineHeight: 1.6 }}>Moose AI's use and transfer of information received from Google APIs adheres to the <strong>Google API Services User Data Policy</strong>, including the Limited Use requirements. We do not sell Google user data. We do not use Google data for advertising. We only use Google data to provide and improve our services to you.</p>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#047857', lineHeight: 1.6 }}>Koto's use and transfer of information received from Google APIs adheres to the <strong>Google API Services User Data Policy</strong>, including the Limited Use requirements. We do not sell Google user data. We do not use Google data for advertising. We only use Google data to provide and improve our services to you.</p>
           </div>
           <P>We use Google user data solely for:</P>
           <UL items={['SEO Analysis: Analyzing Search Console data to identify keyword opportunities and content gaps', 'Traffic Insights: Using GA4 data to understand website traffic and conversion performance', 'PPC Optimization: Analyzing Google Ads data to find wasted spend and optimization opportunities', 'GMB Management: Reading Google Business Profile data to assess review performance and local SEO', 'Report Generation: Compiling your Google data into readable reports and dashboards', 'AI Analysis: Passing data to AI models (Anthropic Claude, OpenAI GPT-4) for strategic recommendations — processed in real-time, not used to train models']} />
@@ -71,7 +71,7 @@ export default function PrivacyPolicyPage() {
         <Section id="s7" title="7. Your Rights and Choices">
           <UL items={['Access: Request a copy of your personal information', 'Correction: Request correction of inaccurate information', 'Deletion: Request deletion (right to be forgotten)', 'Portability: Request data in machine-readable format', 'Restriction: Request restriction of processing', 'Objection: Object to processing for certain purposes', 'Withdraw Consent: Withdraw consent at any time']} />
           <H4>Revoking Google Access</H4>
-          <UL items={['Go to Google Account → Security → Third-party apps → Remove Moose AI', 'Disconnect from within Moose AI\'s SEO Hub settings', 'Contact ' + email + ' for immediate revocation']} />
+          <UL items={['Go to Google Account → Security → Third-party apps → Remove Koto', 'Disconnect from within Koto\'s SEO Hub settings', 'Contact ' + email + ' for immediate revocation']} />
           <H4>California Privacy Rights (CCPA)</H4>
           <P>California residents have additional rights under CCPA including the right to know, delete, and opt-out of sale (we do not sell personal information). Contact {email}.</P>
           <H4>GDPR Rights (EU/UK Users)</H4>
@@ -81,7 +81,7 @@ export default function PrivacyPolicyPage() {
         <Section id="s8" title="8. Google API Services">
           <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '16px 20px', marginBottom: 20 }}>
             <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1E40AF' }}>Google API Services User Data Policy Compliance</p>
-            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#1D4ED8', lineHeight: 1.6 }}>Moose AI's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', fontWeight: 700 }}>Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: '#1D4ED8', lineHeight: 1.6 }}>Koto's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', fontWeight: 700 }}>Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
           </div>
           <UL items={['Limited Use: Only use Google data to provide features you requested', 'No Data Selling: Never sell Google user data', 'No Advertising: Do not use Google data for ads', 'No Unauthorized Transfers: No transfers except to provide services', 'Minimum Necessary: Request only minimum permissions needed', 'Transparency: Clearly disclose what data we access and why', 'User Control: Revoke access at any time', 'Secure Storage: OAuth tokens stored with encryption']} />
         </Section>
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <Section id="s10" title="10. Children's Privacy">
-          <P>Moose AI is not directed at children under 13 (or 16 in the EU). We do not knowingly collect information from children. Contact {email} if you believe we have.</P>
+          <P>Koto is not directed at children under 13 (or 16 in the EU). We do not knowingly collect information from children. Contact {email} if you believe we have.</P>
         </Section>
 
         <Section id="s11" title="11. Changes to This Policy">
@@ -107,7 +107,7 @@ export default function PrivacyPolicyPage() {
             ))}
           </div>
           <div style={{ marginTop: 20, padding: '16px 20px', background: '#FFF7ED', borderRadius: 10, border: '1px solid #FED7AA' }}>
-            <p style={{ margin: 0, fontSize: 15, color: '#92400E', lineHeight: 1.6 }}><strong>For Google data access issues:</strong> Revoke Moose AI's access directly through your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" style={{ color: '#B45309', fontWeight: 700 }}>Google Account permissions page</a>.</p>
+            <p style={{ margin: 0, fontSize: 15, color: '#92400E', lineHeight: 1.6 }}><strong>For Google data access issues:</strong> Revoke Koto's access directly through your <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" style={{ color: '#B45309', fontWeight: 700 }}>Google Account permissions page</a>.</p>
           </div>
         </Section>
 

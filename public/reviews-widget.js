@@ -1,5 +1,5 @@
 /*!
- * Moose AI Reviews Widget v1.0
+ * Koto Reviews Widget v1.0
  * Embeds Google, Yelp & Facebook reviews on any website
  * Usage: <script src="/reviews-widget.js" data-key="YOUR_EMBED_KEY"></script>
  * Or via: window._mooseReviews = { key, mode, position }
@@ -230,7 +230,7 @@
         '<button class="moose-rw-panel-close" id="moose-rw-close">×</button>' +
       '</div>' +
       '<div class="moose-rw-list">' + listHTML + '</div>' +
-      '<div class="moose-rw-powered">Powered by <a href="https://mooseai.com" target="_blank">Moose AI</a></div>';
+      '<div class="moose-rw-powered">Powered by <a href="https://hellokoto.com" target="_blank">Koto</a></div>';
 
     document.body.appendChild(badge);
     document.body.appendChild(panel);

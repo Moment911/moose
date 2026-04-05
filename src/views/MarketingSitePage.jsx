@@ -61,7 +61,7 @@ function Nav({ onLogin }) {
     <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, transition:'all .3s', background: scrolled?'rgba(15,15,17,.95)':'transparent', backdropFilter: scrolled?'blur(20px)':'none', borderBottom: scrolled?'1px solid rgba(255,255,255,.08)':'none' }}>
       <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 24px', height:68, display:'flex', alignItems:'center', gap:32 }}>
         <div style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
-          <img src="/moose-logo.svg" alt="Moose AI" style={{ height:28, filter:'brightness(0) invert(1)' }} />
+          <img src="/moose-logo.svg" alt="Koto" style={{ height:28, filter:'brightness(0) invert(1)' }} />
         </div>
         <div style={{ flex:1, display:'flex', gap:28, justifyContent:'center' }}>
           {links.map(l => <a key={l} href={`#${l.toLowerCase().replace(/ /g,'-')}`} style={{ fontSize:15, fontWeight:600, color:'rgba(255,255,255,.7)', textDecoration:'none', transition:'color .15s' }} onMouseEnter={e=>e.target.style.color='#fff'} onMouseLeave={e=>e.target.style.color='rgba(255,255,255,.7)'}>{l}</a>)}
@@ -96,7 +96,7 @@ function Hero({ onLogin }) {
         </h1>
 
         <p style={{ fontSize:'clamp(17px,2.5vw,22px)', color:'rgba(255,255,255,.65)', maxWidth:680, margin:'0 auto 48px', lineHeight:1.65 }}>
-          White-label Moose AI under your agency brand. Your clients fill out one smart onboarding form. Our AI builds their marketing strategy, generates their persona, writes their content, and manages their accounts — automatically.
+          White-label Koto under your agency brand. Your clients fill out one smart onboarding form. Our AI builds their marketing strategy, generates their persona, writes their content, and manages their accounts — automatically.
         </p>
 
         <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap', marginBottom:60 }}>
@@ -187,7 +187,7 @@ function Hero({ onLogin }) {
 // ── How It Works ──────────────────────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
-    { n:'01', icon:'🏷️', title:'You white-label it', desc:'Add your agency name, logo, and colors. Share your custom URL with clients. They never see "Moose AI" — just your brand.' },
+    { n:'01', icon:'🏷️', title:'You white-label it', desc:'Add your agency name, logo, and colors. Share your custom URL with clients. They never see "Koto" — just your brand.' },
     { n:'02', icon:'📋', title:'Client fills out onboarding', desc:'A beautiful 14-step AI-assisted form captures everything: business info, competitors, ideal customers, brand voice, logins, and goals.' },
     { n:'03', icon:'🤖', title:'AI builds their profile', desc:'Claude generates a detailed customer persona, ad targeting strategy, keyword list, headline angles, and channel recommendations — automatically.' },
     { n:'04', icon:'🚀', title:'AI works every day', desc:'Review responses, social posts, lead follow-ups, performance reports — generated and queued automatically. You review and approve in seconds.' },
@@ -256,7 +256,7 @@ function Features() {
     },
     {
       icon:'🏷️', color:'#ec4899', title:'Complete White Label',
-      desc:'Your brand, your domain, your colors. Clients never see Moose AI. You look like you built a $500K platform from scratch.',
+      desc:'Your brand, your domain, your colors. Clients never see Koto. You look like you built a $500K platform from scratch.',
       bullets:['Custom domain support (app.youragency.com)','Your logo, colors, and agency name everywhere','Branded onboarding forms','Branded client portal'],
     },
   ]
@@ -447,7 +447,7 @@ function Testimonials() {
 function FAQ() {
   const [open, setOpen] = useState(null)
   const faqs = [
-    { q:'How does the white-label work exactly?', a:'You get a custom URL (like app.youragency.com or youragency.mooseai.com), your logo, and your brand colors throughout the entire platform. Your clients never see any Moose AI branding. You can even use your own custom domain on the Pro plan.' },
+    { q:'How does the white-label work exactly?', a:'You get a custom URL (like app.youragency.com or youragency.hellokoto.com), your logo, and your brand colors throughout the entire platform. Your clients never see any Koto branding. You can even use your own custom domain on the Pro plan.' },
     { q:'Do my clients need to pay anything?', a:'No. You pay one flat monthly fee and use the platform for as many clients as your plan allows. Your clients fill out the onboarding form and interact with the platform through your white-labeled version at no cost to them.' },
     { q:'What AI model powers it?', a:"Claude by Anthropic — the same model that powers Claude.ai. It's trained to give highly specific, practical marketing advice rather than generic suggestions. All AI calls are included in your plan up to your monthly limit." },
     { q:'How long does client onboarding take?', a:'The onboarding form takes clients 20–30 minutes to complete. Once submitted, the AI persona and strategy brief are generated in about 30 seconds. Your team gets a notification and can start work immediately.' },
@@ -496,7 +496,7 @@ function CTA({ onLogin }) {
           Ready to 10x your agency?
         </h2>
         <p style={{ fontSize:18, color:'rgba(255,255,255,.55)', marginBottom:40, lineHeight:1.6 }}>
-          Join the agencies already using Moose AI to deliver better results with smaller teams. 14-day free trial. No credit card. Cancel anytime.
+          Join the agencies already using Koto to deliver better results with smaller teams. 14-day free trial. No credit card. Cancel anytime.
         </p>
         <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
           <Btn variant="primary" size="lg" href="#pricing">
@@ -523,7 +523,7 @@ function Footer() {
       <div style={{ maxWidth:1200, margin:'0 auto' }}>
         <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:48, marginBottom:48 }}>
           <div>
-            <img src="/moose-logo.svg" alt="Moose AI" style={{ height:28, filter:'brightness(0) invert(1)', marginBottom:16 }} />
+            <img src="/moose-logo.svg" alt="Koto" style={{ height:28, filter:'brightness(0) invert(1)', marginBottom:16 }} />
             <p style={{ fontSize:15, color:'rgba(255,255,255,.35)', lineHeight:1.7, maxWidth:280 }}>The AI-powered agency platform for marketing agencies who want to scale without scaling their headcount.</p>
             <div style={{ display:'flex', gap:12, marginTop:20 }}>
               {['Twitter','LinkedIn','YouTube'].map(s => <a key={s} href="#" style={{ fontSize:14, color:'rgba(255,255,255,.3)', textDecoration:'none' }}>{s}</a>)}
@@ -541,7 +541,7 @@ function Footer() {
           ))}
         </div>
         <div style={{ borderTop:'1px solid rgba(255,255,255,.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>© 2026 Moose AI Inc. All rights reserved.</span>
+          <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>© 2026 Koto Inc. All rights reserved.</span>
           <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>Powered by Claude AI</span>
         </div>
       </div>

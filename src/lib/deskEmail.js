@@ -1,4 +1,4 @@
-// ── Send MooseDesk emails via /api/desk/email ─────────────────────────────────
+// ── Send KotoDesk emails via /api/desk/email ─────────────────────────────────
 async function sendDeskEmail(type, ticket, extra = {}) {
   try {
     // Get agency email for notifications

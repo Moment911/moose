@@ -131,7 +131,7 @@ export default function DeskSettingsPage() {
               color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <ChevronLeft size={14}/> Back
           </button>
-          <h1 style={{fontSize:20,fontWeight:900,color:'#fff',margin:0}}>MooseDesk Settings</h1>
+          <h1 style={{fontSize:20,fontWeight:900,color:'#fff',margin:0}}>KotoDesk Settings</h1>
         </div>
 
         <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'0 28px',flexShrink:0,display:'flex'}}>

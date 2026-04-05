@@ -139,7 +139,7 @@ export default function AdminPortalPage() {
           })}
         </nav>
         <div style={{ padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,.08)', fontSize:13, color:'rgba(255,255,255,.25)' }}>
-          Moose AI · Admin
+          Koto · Admin
         </div>
       </div>
 
@@ -154,7 +154,7 @@ export default function AdminPortalPage() {
                 {greeting}, {firstName}
               </h1>
               <p style={{ fontSize:16, color:'#374151' }}>
-                {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })} · Moose AI Platform
+                {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })} · Koto Platform
               </p>
             </div>
 

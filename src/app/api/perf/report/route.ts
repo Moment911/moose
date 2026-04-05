@@ -11,8 +11,8 @@ const supabase = createClient(
 )
 const ai     = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || '' })
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM   = process.env.DESK_EMAIL_FROM || 'Moose AI <reports@momentamktg.com>'
-const APP    = process.env.NEXT_PUBLIC_APP_URL || 'https://moose-adam-segalls-projects.vercel.app'
+const FROM   = process.env.DESK_EMAIL_FROM || 'Koto <reports@momentamktg.com>'
+const APP    = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
 
 function fmt(n: number|null, type='num'): string {
   if (n == null || isNaN(n)) return '—'
@@ -208,7 +208,7 @@ Be specific, confident, and concise. Focus on performance vs prior period and to
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;padding:16px 28px;border-top:1px solid #e5e7eb;text-align:center">
-    <p style="margin:0;font-size:12px;color:#9ca3af">Performance report from ${agName} · Powered by Moose AI · <a href="${APP}" style="color:#ea2729;text-decoration:none">View Dashboard</a></p>
+    <p style="margin:0;font-size:12px;color:#9ca3af">Performance report from ${agName} · Powered by Koto · <a href="${APP}" style="color:#ea2729;text-decoration:none">View Dashboard</a></p>
   </td></tr>
 
 </table>

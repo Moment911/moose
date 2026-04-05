@@ -998,7 +998,7 @@ export default function ProspectReportPage() {
             </button>
           </div>
           <div style={{marginTop:28,fontSize:13,color:'rgba(255,255,255,.2)'}}>
-            Report by {agName} · Powered by Moose AI · Data: Google Places API + live website scan
+            Report by {agName} · Powered by Koto · Data: Google Places API + live website scan
           </div>
         </div>
       </Section>

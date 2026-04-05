@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get('code')
   const state = searchParams.get('state')
   const error = searchParams.get('error')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://moose-adam-segalls-projects.vercel.app'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
 
   if (error || !code) return NextResponse.redirect(`${appUrl}/integrations?error=ghl_auth_failed`)
 

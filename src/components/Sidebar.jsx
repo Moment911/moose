@@ -109,7 +109,7 @@ export default function Sidebar() {
             </div>
             <div>
               <div style={{fontFamily:"var(--font-display)",fontSize:16,fontWeight:800,
-                color:W,letterSpacing:'-.03em',lineHeight:1}}>Moose</div>
+                color:W,letterSpacing:'-.03em',lineHeight:1}}>Koto</div>
               <div style={{fontSize:13,color:'rgba(255,255,255,.3)',letterSpacing:'.04em',marginTop:1}}>
                 AI Platform
               </div>
@@ -135,7 +135,7 @@ export default function Sidebar() {
           <NavLink to="/seo"           startsWith icon={BarChart2}  label="SEO Hub"/>
 
           <Section label="Support"/>
-          <NavLink to="/desk"          startsWith icon={Inbox}      label="MooseDesk"/>
+          <NavLink to="/desk"          startsWith icon={Inbox}      label="KotoDesk"/>
           <NavLink to="/desk/knowledge" startsWith icon={Brain}     label="Q&A Knowledge" sub/>
           <NavLink to="/desk/reports"  startsWith icon={BarChart2}  label="Desk Reports"  sub/>
 

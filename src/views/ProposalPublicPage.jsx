@@ -84,8 +84,8 @@ export default function ProposalPublicPage() {
       <Toaster position="top-right"/>
       {/* Header */}
       <div style={{ background:'#18181b', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div style={{ fontSize:15, fontWeight:800, color:'#fff' }}>Moose AI</div>
-        <div style={{ fontSize:14, color:'rgba(255,255,255,.4)' }}>Secure proposal · Powered by Moose AI</div>
+        <div style={{ fontSize:15, fontWeight:800, color:'#fff' }}>Koto</div>
+        <div style={{ fontSize:14, color:'rgba(255,255,255,.4)' }}>Secure proposal · Powered by Koto</div>
       </div>
 
       <div style={{ maxWidth:780, margin:'0 auto', padding:'32px 20px 80px' }}>

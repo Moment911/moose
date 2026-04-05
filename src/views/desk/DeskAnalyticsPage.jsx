@@ -114,7 +114,7 @@ export default function DeskAnalyticsPage() {
               color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <ChevronLeft size={14}/> Back
           </button>
-          <h1 style={{fontSize:20,fontWeight:900,color:'#fff',margin:0}}>MooseDesk Analytics</h1>
+          <h1 style={{fontSize:20,fontWeight:900,color:'#fff',margin:0}}>KotoDesk Analytics</h1>
         </div>
 
         <div style={{flex:1,overflowY:'auto',padding:'24px 28px'}}>

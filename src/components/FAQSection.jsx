@@ -49,6 +49,6 @@ export const CLIENT_FAQ = [
   { question: 'How do I leave feedback?', answer: 'Enter your name in the sidebar, select a tool (pin, circle, arrow, or box), then click on the design where you want to comment. Type your note and press Enter to save.' },
   { question: 'What tools are available?', answer: 'Pin: place a comment marker. Circle: highlight an area. Arrow: point to something. Box: draw a rectangle around a region. All annotations can have text comments attached.' },
   { question: 'How do I submit my changes?', answer: 'After adding all your comments, click the red "SUBMIT CHANGES" button at the bottom of the sidebar. This sends your feedback to the design team as a completed revision round.' },
-  { question: 'How many revision rounds do I get?', answer: 'Your project has a set number of revision rounds (shown in the top bar). Each time you submit feedback counts as one round. Contact Moose if you need additional revisions.' },
+  { question: 'How many revision rounds do I get?', answer: 'Your project has a set number of revision rounds (shown in the top bar). Each time you submit feedback counts as one round. Contact Koto if you need additional revisions.' },
   { question: 'Can I edit a comment after placing it?', answer: 'Yes! Click on any annotation you placed to open the edit bubble. You can change the text, then click Send to update it.' },
 ]

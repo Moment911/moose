@@ -27,11 +27,11 @@ const SETUP_STEPS = [
     urlLabel: 'Open Anthropic Console',
     envKey:   'NEXT_PUBLIC_ANTHROPIC_API_KEY',
     envLabel: 'Anthropic API Key',
-    desc:     'Every AI feature in Moose — review responses, client personas, Scout leads, monthly reports — runs on Claude. You need an API key from Anthropic.',
+    desc:     'Every AI feature in Koto — review responses, client personas, Scout leads, monthly reports — runs on Claude. You need an API key from Anthropic.',
     tutorial: [
       { label: 'Sign in or create an account', action: 'Go to console.anthropic.com', highlight: 'top-right login button' },
       { label: 'Open API Keys', action: 'Click Settings in the left sidebar, then API Keys', highlight: 'left nav → Settings → API Keys' },
-      { label: 'Create a new key', action: 'Click Create Key, name it "Moose AI", copy the key', highlight: 'Create Key button (top right of the table)' },
+      { label: 'Create a new key', action: 'Click Create Key, name it "Koto", copy the key', highlight: 'Create Key button (top right of the table)' },
       { label: 'Add to Vercel', action: 'Paste as NEXT_PUBLIC_ANTHROPIC_API_KEY in Vercel env vars', highlight: null },
     ],
     vercelVar: { key: 'NEXT_PUBLIC_ANTHROPIC_API_KEY', placeholder: 'sk-ant-api03-...' },
@@ -47,9 +47,9 @@ const SETUP_STEPS = [
     urlLabel: 'Open Supabase Dashboard',
     envKey:   'NEXT_PUBLIC_SUPABASE_URL',
     envLabel: 'Supabase URL + Keys',
-    desc:     'Moose stores clients, reviews, onboarding data, and all agent activity in Supabase. You need your project URL and anon key.',
+    desc:     'Koto stores clients, reviews, onboarding data, and all agent activity in Supabase. You need your project URL and anon key.',
     tutorial: [
-      { label: 'Open your project', action: 'Go to app.supabase.com and click your Moose project', highlight: 'project card' },
+      { label: 'Open your project', action: 'Go to app.supabase.com and click your Koto project', highlight: 'project card' },
       { label: 'Go to Project Settings', action: 'Click the gear icon in the bottom-left sidebar', highlight: 'gear icon in left rail' },
       { label: 'Open API settings', action: 'Click API in the settings menu', highlight: 'API menu item' },
       { label: 'Copy Project URL and anon key', action: 'Copy both values and add to Vercel', highlight: 'Project URL and anon key fields' },
@@ -72,7 +72,7 @@ const SETUP_STEPS = [
     envKey:   'NEXT_PUBLIC_APP_URL',
     desc:     'Make sure your Vercel project has all environment variables set and your deployment is live.',
     tutorial: [
-      { label: 'Open your project', action: 'Go to vercel.com and click your Moose project', highlight: 'project card' },
+      { label: 'Open your project', action: 'Go to vercel.com and click your Koto project', highlight: 'project card' },
       { label: 'Go to Settings', action: 'Click Settings in the top nav of your project', highlight: 'Settings tab' },
       { label: 'Open Environment Variables', action: 'Click Environment Variables in the left sidebar', highlight: 'Environment Variables menu item' },
       { label: 'Add all required keys', action: 'Add each key from this setup wizard, then redeploy', highlight: 'Add Variable button' },
@@ -129,7 +129,7 @@ const SETUP_STEPS = [
     url:      'https://marketplace.gohighlevel.com/',
     urlLabel: 'Open GHL Marketplace',
     envKey:   'NEXT_PUBLIC_GHL_CLIENT_ID',
-    desc:     'Connects Moose to GoHighLevel for two-way CRM sync — push client onboarding data into GHL, pull contact updates back.',
+    desc:     'Connects Koto to GoHighLevel for two-way CRM sync — push client onboarding data into GHL, pull contact updates back.',
     tutorial: [
       { label: 'Create a Marketplace App', action: 'Go to marketplace.gohighlevel.com → My Apps → Create App', highlight: 'Create App button' },
       { label: 'Set app type', action: 'Choose Agency app, fill in name and description', highlight: 'App type selector' },

@@ -68,7 +68,7 @@ const NOTIFS = [
   { key:'agent_digest',      label:'Agent activity digest',       desc:'Daily summary of AI agent activity',           on:false },
   { key:'team_mentions',     label:'Team mentions',               desc:'Someone mentions you in a comment',            on:true  },
   { key:'perf_alerts',       label:'Performance alerts',          desc:'ROAS drops or spend spikes abnormally',        on:true  },
-  { key:'ticket_new',        label:'New support tickets',         desc:'Client submits a MooseDesk ticket',            on:true  },
+  { key:'ticket_new',        label:'New support tickets',         desc:'Client submits a KotoDesk ticket',            on:true  },
   { key:'monthly_report',    label:'Monthly report generated',    desc:'AI Report agent sends a client report',        on:false },
 ]
 const SKILLS = ['SEO','Paid Ads','Social Media','Content','Design','Development','Email','Reporting','Billing','Support','Strategy','Video']
@@ -312,7 +312,7 @@ export default function AgencySettingsPage() {
       )
 
       case 'branding': return (
-        <SectionCard title="White-Label Branding" subtitle="Your clients see your brand, not Moose AI" onAction={saveBranding}>
+        <SectionCard title="White-Label Branding" subtitle="Your clients see your brand, not Koto" onAction={saveBranding}>
           <Field label="Brand Name" hint="Shown to clients in the portal"><input value={agency.brand_name||''} onChange={e=>setAgency(a=>({...a,brand_name:e.target.value}))} style={INP} placeholder={agency.name||'Your Agency'}/></Field>
           <Field label="Logo URL"><input value={agency.brand_logo_url||''} onChange={e=>setAgency(a=>({...a,brand_logo_url:e.target.value}))} style={INP} placeholder="https://youragency.com/logo.png"/>
             {agency.brand_logo_url && <img src={agency.brand_logo_url} alt="preview" style={{marginTop:8,height:44,objectFit:'contain',border:'1px solid #ececea',borderRadius:8,padding:8,background:'#f8f8f6'}} onError={e=>e.target.style.display='none'}/>}
@@ -331,7 +331,7 @@ export default function AgencySettingsPage() {
       )
 
       case 'team': return (
-        <SectionCard title="Team & Access" subtitle="Manage who has access to your Moose AI platform">
+        <SectionCard title="Team & Access" subtitle="Manage who has access to your Koto platform">
           {members.length > 0 ? (
             <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
               {members.map(m=>(
@@ -374,7 +374,7 @@ export default function AgencySettingsPage() {
               </div>
             ))}
           </div>
-          <a href="https://mooseai.com/billing" target="_blank" rel="noreferrer"
+          <a href="https://hellokoto.com/billing" target="_blank" rel="noreferrer"
             style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'10px 18px',
               borderRadius:10, border:`1px solid ${R}`, background:'#fff',
               color:R, fontSize:14, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
@@ -587,7 +587,7 @@ export default function AgencySettingsPage() {
 
       case 'desk': return (
         <div>
-          <SectionCard title="Support Agents" subtitle="Team members who handle MooseDesk tickets">
+          <SectionCard title="Support Agents" subtitle="Team members who handle KotoDesk tickets">
             {agents.length===0 ? (
               <div style={{ textAlign:'center', padding:'20px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No agents yet</div>
             ) : (

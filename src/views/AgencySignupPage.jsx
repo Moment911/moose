@@ -146,7 +146,7 @@ export default function AgencySignupPage() {
 
       {/* Header */}
       <div style={{ background: '#18181b', padding: '14px 28px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 26, width: 'auto' }} />
+        <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 26, width: 'auto' }} />
         <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 15, color: '#4b5563' }}>
           {step < 4 ? '14-day free trial · No credit card required' : 'Setting up your agency…'}
@@ -316,11 +316,11 @@ export default function AgencySignupPage() {
                       onChange={e => set('agency_slug', slugify(e.target.value))}
                       style={{ ...INP, border: 'none', borderRadius: 0, flex: 1 }} />
                     <span style={{ padding: '13px 14px', background: '#f9fafb', fontSize: 15, color: '#4b5563', borderLeft: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>
-                      .mooseai.com
+                      .hellokoto.com
                     </span>
                   </div>
                   <div style={{ fontSize: 13, color: '#4b5563', marginTop: 5 }}>
-                    Your clients will access: <strong style={{ color: '#374151' }}>app.{form.agency_slug}.mooseai.com</strong>
+                    Your clients will access: <strong style={{ color: '#374151' }}>app.{form.agency_slug}.hellokoto.com</strong>
                   </div>
                 </div>
               )}

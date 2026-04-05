@@ -141,7 +141,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
           <div className="mt-4 p-3 bg-gray-50 rounded-xl space-y-3">
             <div className="text-sm font-medium text-gray-500 flex items-center gap-1"><Palette size={11} /> White Label Branding</div>
             <div>
-              <label className="text-[13px] text-gray-400 mb-1 block">Brand Name (replaces "Moose")</label>
+              <label className="text-[13px] text-gray-400 mb-1 block">Brand Name (replaces "Koto")</label>
               <input className="input text-sm" placeholder="Your Agency Name" value={brandName} onChange={e => setBrandName(e.target.value)} />
             </div>
             {brandName && (
@@ -160,7 +160,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
                 </div>
               </>
             )}
-            <p className="text-[13px] text-gray-400">Client portal will show your brand instead of Moose</p>
+            <p className="text-[13px] text-gray-400">Client portal will show your brand instead of Koto</p>
           </div>
 
           {/* Webhook integrations */}

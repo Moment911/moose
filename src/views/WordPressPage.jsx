@@ -211,7 +211,7 @@ export default function WordPressPage() {
                   <p className="font-medium text-sm text-gray-900">{site.site_name}</p>
                   <div className="mt-2 space-y-1 text-sm text-gray-700">
                     {site.wp_version && <p>WordPress {site.wp_version}</p>}
-                    {site.plugin_version && <p>Moose Plugin v{site.plugin_version}</p>}
+                    {site.plugin_version && <p>Koto Plugin v{site.plugin_version}</p>}
                   </div>
                 </div>
               ))}

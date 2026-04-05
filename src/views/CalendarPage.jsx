@@ -89,7 +89,7 @@ export default function CalendarPage() {
   }
 
   function exportIcal() {
-    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Moose//EN']
+    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Koto//EN']
     events.forEach(ev => {
       lines.push('BEGIN:VEVENT')
       lines.push(`DTSTART:${format(new Date(ev.start_at), "yyyyMMdd'T'HHmmss")}`)

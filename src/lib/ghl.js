@@ -154,10 +154,10 @@ export async function getGHLLocation(token, locationId) {
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MOOSE ↔ GHL SYNC FUNCTIONS
-// Maps Moose client/onboarding data to GHL contact format
+// Maps Koto client/onboarding data to GHL contact format
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Convert a Moose client + profile to a GHL contact payload
+// Convert a Koto client + profile to a GHL contact payload
 export function mooseClientToGHLContact(client, profile = {}) {
   const contact = profile.contact || {}
   const address = profile.address || {}
@@ -181,7 +181,7 @@ export function mooseClientToGHLContact(client, profile = {}) {
       client.status ? `moose-status:${client.status}` : '',
       'moose-client',
     ].filter(Boolean),
-    // Map Moose custom data to GHL custom fields via the customField array
+    // Map Koto custom data to GHL custom fields via the customField array
     customField: [
       { key: 'moose_client_id',     field_value: client.id },
       { key: 'industry',            field_value: profile.industry || '' },
@@ -193,11 +193,11 @@ export function mooseClientToGHLContact(client, profile = {}) {
       { key: 'monthly_ad_budget',   field_value: profile.marketing?.monthly_budget || '' },
       { key: 'persona_name',        field_value: (() => { try { const p = typeof profile.ai_persona === 'string' ? JSON.parse(profile.ai_persona) : profile.ai_persona; return p?.persona_name || '' } catch { return '' } })() },
     ].filter(f => f.field_value),
-    source: 'Moose AI',
+    source: 'Koto',
   }
 }
 
-// Convert a GHL contact to a Moose client format (for pull sync)
+// Convert a GHL contact to a Koto client format (for pull sync)
 export function ghlContactToMooseClient(ghlContact) {
   return {
     name:    `${ghlContact.firstName || ''} ${ghlContact.lastName || ''}`.trim() || ghlContact.companyName || 'Unknown',

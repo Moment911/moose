@@ -27,7 +27,7 @@ const SECTIONS = [
     { label: 'SCOUT Search', icon: Target, path: '/scout', color: '#ea2729', badge: 'NEW' },
     { label: 'My Leads', icon: ListFilter, path: '/scout/leads', color: '#ea2729' },
   ]},
-  { title: 'Moose SEO', items: [
+  { title: 'Koto SEO', items: [
     { label: 'SEO Hub', icon: TrendingUp, path: '/seo', color: '#10b981' },
     { label: 'URL Audit', icon: Zap, path: '/seo/audit', color: '#f59e0b' },
     { label: 'WP Plugin', icon: Puzzle, path: '/seo/plugin', color: '#8b5cf6' },
@@ -68,7 +68,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 17, fontWeight: 700, color: '#f4f4f5', margin: 0, textTransform: 'capitalize' }}>{name}</p>
-              <p style={{ fontSize:13, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Moose AI</p>
+              <p style={{ fontSize:13, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Koto</p>
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 6, cursor: 'pointer' }}><X size={20} color="#71717a" /></button>
           </div>

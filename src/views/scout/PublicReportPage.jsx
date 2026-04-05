@@ -931,7 +931,7 @@ export default function PublicReportPage() {
             fontSize:13,color:'rgba(255,255,255,.3)'}}>
             {agEmail && <span>{agEmail}</span>}
             {agDomain && <span>www.{agDomain}</span>}
-            <span>Powered by Moose AI</span>
+            <span>Powered by Koto</span>
           </div>
         </div>
       </div>

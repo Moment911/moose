@@ -24,7 +24,7 @@ export default function SatisfactionSurvey({ roundId, roundNumber, onClose }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center">
         <div className="text-5xl mb-4">🎉</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Thank you!</h2>
-        <p className="text-sm text-gray-500 mb-6">Your feedback helps us improve. The Moose team will review your comments.</p>
+        <p className="text-sm text-gray-500 mb-6">Your feedback helps us improve. The Koto team will review your comments.</p>
         <button onClick={onClose} className="btn-primary text-sm w-full justify-center">Continue</button>
       </div>
     </div>

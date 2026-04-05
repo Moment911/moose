@@ -567,7 +567,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     if (!msg) return null;
     return (
       <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
-        <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 22, opacity: .85 }} />
+        <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
         <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName)}</span>
       </div>
@@ -578,7 +578,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   const Header = () => (
     <div style={{ background: '#18181b', padding: '0 24px', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 2px 16px rgba(0,0,0,.3)' }}>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, height: 62 }}>
-        <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 26 }} />
+        <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 26 }} />
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 14, color: '#52525b', fontWeight: 600 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
@@ -672,10 +672,10 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,.07)' }}>
           <div style={{ background: 'linear-gradient(160deg,#18181b,#27272a)', padding: '52px 48px', textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-            <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
+            <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 28 }}>
               <span style={{ fontSize: 13, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Moose AI</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Koto</span>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
             <h1 style={{ fontSize: 38, fontWeight: 900, color: '#fff', margin: '0 0 14px', letterSpacing: -0.5 }}>
@@ -1277,7 +1277,7 @@ Product: Water filtration systems — sale and installation..." />
                 <Shield size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
                 <div style={{ fontSize: 15, color: '#92400e', lineHeight: 1.65 }}>
                   <strong>Agency email to use for all invitations:</strong><br />
-                  <span style={{ fontFamily: 'monospace', fontSize: 16, fontWeight: 800, color: ACCENT, background: '#fff', padding: '4px 12px', borderRadius: 8, display: 'inline-block', marginTop: 6, border: `1px solid ${ACCENT}30` }}>admin@momentamktg.com</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: 16, fontWeight: 800, color: ACCENT, background: '#fff', padding: '4px 12px', borderRadius: 8, display: 'inline-block', marginTop: 6, border: `1px solid ${ACCENT}30` }}>admin@hellokoto.com</span>
                 </div>
               </div>
 
@@ -1288,7 +1288,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click the gear icon (Admin) in the bottom left',
                   'Under "Account", click "Account Access Management"',
                   'Click the blue + button in the top right',
-                  'Enter: admin@momentamktg.com',
+                  'Enter: admin@hellokoto.com',
                   'Set role to: Administrator',
                   'Click Add'
                 ]}
@@ -1299,7 +1299,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click Settings (gear icon) in the top right',
                   'Click "Users and permissions"',
                   'Click "Add User"',
-                  'Enter: admin@momentamktg.com',
+                  'Enter: admin@hellokoto.com',
                   'Set permission to: Owner',
                   'Click Add'
                 ]}
@@ -1310,7 +1310,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click "Admin" in the top navigation',
                   'Click "User Management" (under Account or Container)',
                   'Click the + button',
-                  'Enter: admin@momentamktg.com',
+                  'Enter: admin@hellokoto.com',
                   'Select role: Administrator',
                   'Check all permissions boxes',
                   'Click "Invite"'
@@ -1325,7 +1325,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click the three dots menu (⋮) and select "Business Profile settings"',
                   'Click "Managers"',
                   'Click "Add" (person+ icon)',
-                  'Enter: admin@momentamktg.com',
+                  'Enter: admin@hellokoto.com',
                   'Set role to: Owner',
                   'Click "Invite"'
                 ]}
@@ -1348,7 +1348,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Go to your Facebook Page (not Business Manager)',
                   'Click "Settings" in the top right of your Page',
                   'Click "Page Roles" OR "New Pages Experience" → "Page Transparency"',
-                  'Under "Assign a New Page Role" — enter: admin@momentamktg.com',
+                  'Under "Assign a New Page Role" — enter: admin@hellokoto.com',
                   'Set role to: Admin',
                   'Click "Add" and confirm with your Facebook password'
                 ]}
@@ -1360,7 +1360,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Log in to your Google Ads account at ads.google.com',
                   'Click the tools icon and select "Account Access"',
                   'OR: Find your Customer ID (top right — format: XXX-XXX-XXXX)',
-                  'Email your Customer ID to admin@momentamktg.com',
+                  'Email your Customer ID to admin@hellokoto.com',
                   'We\'ll send you a link request from our Manager Account',
                   'In your Google Ads account → click the notification bell',
                   'Click the request and "Accept" to grant Manager access'
@@ -1374,7 +1374,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click "Settings" (gear icon) in the left sidebar',
                   'Click "Permissions"',
                   'Click "Invite" button',
-                  'Enter: admin@momentamktg.com',
+                  'Enter: admin@hellokoto.com',
                   'Set role to: Manager',
                   'Click "Done" to send invite'
                 ]}
@@ -1387,7 +1387,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Click your business name in the top navigation',
                   'Click "Users" in the left sidebar',
                   'Click "Add User"',
-                  'Enter: admin@momentamktg.com',
+                  'Enter: admin@hellokoto.com',
                   'Set role to: Admin',
                   'Click "Send Invitation"'
                 ]}
@@ -1397,7 +1397,7 @@ Product: Water filtration systems — sale and installation..." />
                   'Go to bingplaces.com and log in (or create account)',
                   'Claim your business if not done already',
                   'Go to "Manage User Access" in settings',
-                  'Add admin@momentamktg.com as Admin'
+                  'Add admin@hellokoto.com as Admin'
                 ]}
                 link="https://www.bingplaces.com" linkLabel="Open Bing Places" />
             </div>

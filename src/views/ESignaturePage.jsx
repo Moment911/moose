@@ -125,7 +125,7 @@ export default function ESignaturePage() {
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4"><Check size={28} className="text-green-500" /></div>
               <h2 className="text-lg font-extrabold text-gray-900 mb-2">Signature Submitted</h2>
-              <p className="text-sm text-gray-700">Thank you! Moose has been notified.</p>
+              <p className="text-sm text-gray-700">Thank you! Koto has been notified.</p>
             </div>
           ) : (
             <>

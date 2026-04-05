@@ -21,7 +21,7 @@ export default function AIDesignAssistant({ projectName, projectType, annotation
 
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight) }, [messages])
 
-  const systemPrompt = `You are a senior design consultant for Moose, a creative design agency. You're helping with a ${projectType || 'design'} project called "${projectName || 'Untitled'}".
+  const systemPrompt = `You are a senior design consultant for Koto, a creative design agency. You're helping with a ${projectType || 'design'} project called "${projectName || 'Untitled'}".
 
 Current client feedback/annotations:
 ${(annotations || []).slice(0, 30).map(a => `- [${a.type}] ${a.author || 'Client'}: "${a.text || 'no text'}" (${a.resolved ? 'resolved' : 'open'})`).join('\n') || 'No annotations yet.'}

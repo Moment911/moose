@@ -119,7 +119,7 @@ export default function SEOAuditPage() {
 
   function downloadReport() {
     if (!audit) return
-    const text = `Moose SEO Audit Report\n${audit.url}\nScore: ${audit.overallScore}/100 (${audit.grade})\n\n${audit.executiveSummary}\n\nPitch: ${audit.pitchHeadline}\n\nIssues (${audit.issues.length}):\n${audit.issues.map(i => `[${i.severity}] ${i.title}: ${i.fix}`).join('\n')}\n\nQuick Wins:\n${audit.quickWins.map(w => '• ' + w).join('\n')}`
+    const text = `Koto SEO Audit Report\n${audit.url}\nScore: ${audit.overallScore}/100 (${audit.grade})\n\n${audit.executiveSummary}\n\nPitch: ${audit.pitchHeadline}\n\nIssues (${audit.issues.length}):\n${audit.issues.map(i => `[${i.severity}] ${i.title}: ${i.fix}`).join('\n')}\n\nQuick Wins:\n${audit.quickWins.map(w => '• ' + w).join('\n')}`
     const blob = new Blob([text], { type: 'text/plain' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
@@ -136,7 +136,7 @@ export default function SEOAuditPage() {
           <div className="mb-6">
             <h1 className="text-xl md:text-2xl font-black text-gray-900 flex items-center gap-2">
               <Zap size={22} className="text-yellow-500" /> URL Audit & Client Pitch
-              <span className="text-[13px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">Moose SEO</span>
+              <span className="text-[13px] bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">Koto SEO</span>
             </h1>
             <p className="text-sm text-gray-700 mt-1">Enter any URL for an instant AI-powered SEO audit. Perfect for client pitches.</p>
           </div>

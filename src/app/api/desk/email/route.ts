@@ -4,8 +4,8 @@ import { Resend } from 'resend'
 export const runtime = 'nodejs'
 
 const resend  = new Resend(process.env.RESEND_API_KEY)
-const FROM    = process.env.DESK_EMAIL_FROM || 'MooseDesk <desk@momentamktg.com>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://moose-adam-segalls-projects.vercel.app'
+const FROM    = process.env.DESK_EMAIL_FROM || 'Koto <desk@hellokoto.com>'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hub.hellokoto.com'
 
 function base(body: string, pre: string) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
@@ -20,14 +20,14 @@ function base(body: string, pre: string) {
       <span style="color:#fff;font-size:16px;font-weight:900;line-height:34px;">M</span>
     </td>
     <td style="padding-left:10px;vertical-align:middle;">
-      <div style="font-size:17px;font-weight:900;color:#fff;">MooseDesk</div>
+      <div style="font-size:17px;font-weight:900;color:#fff;">KotoDesk</div>
       <div style="font-size:11px;color:rgba(255,255,255,.4);">Support Portal</div>
     </td>
   </tr></table>
 </td></tr>
 <tr><td style="padding:28px 32px;">${body}</td></tr>
 <tr><td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;text-align:center;">
-  <p style="margin:0;font-size:12px;color:#9ca3af;">Powered by Moose AI &nbsp;·&nbsp; <a href="${APP_URL}" style="color:#ea2729;text-decoration:none;">Visit Portal</a></p>
+  <p style="margin:0;font-size:12px;color:#9ca3af;">Powered by Koto &nbsp;·&nbsp; <a href="${APP_URL}" style="color:#ea2729;text-decoration:none;">Visit Portal</a></p>
 </td></tr>
 </table>
 </td></tr></table></body></html>`

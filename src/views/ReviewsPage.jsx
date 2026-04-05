@@ -182,7 +182,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
 // ── Widget Settings Panel ──────────────────────────────────────────────────────
 function WidgetSettings({ settings, onChange, clientName, appUrl }) {
   const [tab, setTab] = useState('display')
-  const embedCode = `<!-- Moose AI Reviews Widget -->
+  const embedCode = `<!-- Koto Reviews Widget -->
 <script>
 window._mooseReviews = {
   key: "${settings.embed_key}",
@@ -346,7 +346,7 @@ window._mooseReviews = {
         {tab==='embed' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, padding:'12px 14px', fontSize:15, color:'#166534' }}>
-              ✅ The Moose AI WordPress plugin automatically injects this widget. You don't need to paste code manually if the plugin is installed.
+              ✅ The Koto WordPress plugin automatically injects this widget. You don't need to paste code manually if the plugin is installed.
             </div>
             <div>
               <div style={{ fontSize:15, fontWeight:700, color:'#111', marginBottom:8 }}>WordPress Shortcode</div>

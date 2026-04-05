@@ -31,7 +31,7 @@ const PROVIDERS = [
   {
     id: 'hubspot', name: 'HubSpot', short: 'HubSpot',
     Icon: Users, color: '#ff7a59',
-    desc: 'Sync contacts, deals, companies, and notes. Map Moose client profiles to HubSpot properties.',
+    desc: 'Sync contacts, deals, companies, and notes. Map Koto client profiles to HubSpot properties.',
     features: ['Contacts & Companies sync', 'Deals pipeline sync', 'Custom properties mapping', 'Timeline events', 'Notes & activities'],
     category: 'CRM', comingSoon: true,
   },
@@ -45,14 +45,14 @@ const PROVIDERS = [
   {
     id: 'zapier', name: 'Zapier', short: 'Zapier',
     Icon: Zap, color: '#ff4a00',
-    desc: 'Connect Moose AI to 6,000+ apps. Trigger zaps on client events, onboarding completion, and more.',
+    desc: 'Connect Koto to 6,000+ apps. Trigger zaps on client events, onboarding completion, and more.',
     features: ['Trigger: Client created', 'Trigger: Onboarding submitted', 'Action: Create client', 'Action: Update status'],
     category: 'Automation', comingSoon: true,
   },
   {
     id: 'make', name: 'Make', short: 'Make',
     Icon: RefreshCw, color: '#6d28d9',
-    desc: 'Visual workflow automation connecting Moose AI to hundreds of apps with advanced logic.',
+    desc: 'Visual workflow automation connecting Koto to hundreds of apps with advanced logic.',
     features: ['Visual scenario builder', 'Real-time webhooks', 'Data transformation', 'Error handling', 'Custom HTTP modules'],
     category: 'Automation', comingSoon: true,
   },
@@ -60,13 +60,13 @@ const PROVIDERS = [
     id: 'webhook', name: 'Custom Webhook', short: 'Webhook',
     Icon: Webhook, color: '#10b981',
     desc: 'Send real-time event notifications to any URL. HMAC signature verification and retry logic.',
-    features: ['All Moose events supported', 'HMAC signature verification', 'Retry on failure (3x)', 'Custom headers', 'Event filtering'],
+    features: ['All Koto events supported', 'HMAC signature verification', 'Retry on failure (3x)', 'Custom headers', 'Event filtering'],
     category: 'Custom',
   },
   {
     id: 'rest_api', name: 'REST API', short: 'API',
     Icon: Code2, color: '#3b82f6',
-    desc: "Full programmatic access to all your agency's Moose data. Build custom integrations.",
+    desc: "Full programmatic access to all your agency's Koto data. Build custom integrations.",
     features: ['All agency data endpoints', 'Client CRUD', 'Onboarding & Persona data', 'JWT authentication', 'Rate limit: 1000 req/min'],
     category: 'Custom',
   },
@@ -257,7 +257,7 @@ export default function IntegrationsPage() {
                 </h1>
               </div>
               <p style={{ fontSize:14, color:'rgba(255,255,255,.4)', margin:0, fontFamily:FONT_BODY }}>
-                Connect Moose AI to your CRM, automation tools, and custom systems
+                Connect Koto to your CRM, automation tools, and custom systems
               </p>
             </div>
             <div style={{ background:'rgba(255,255,255,.07)', borderRadius:10,
@@ -303,7 +303,7 @@ export default function IntegrationsPage() {
 
                   <p style={{ fontSize:14, color:'rgba(255,255,255,.5)', lineHeight:1.7,
                     marginBottom:16, fontFamily:FONT_BODY, maxWidth:560 }}>
-                    Full bi-directional sync between Moose AI and GHL. Contacts, opportunities, conversations, appointments, and custom fields. Real-time webhooks for 50+ event types.
+                    Full bi-directional sync between Koto and GHL. Contacts, opportunities, conversations, appointments, and custom fields. Real-time webhooks for 50+ event types.
                   </p>
 
                   {/* Feature pills */}

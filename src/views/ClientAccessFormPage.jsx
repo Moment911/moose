@@ -152,7 +152,7 @@ export default function ClientAccessFormPage() {
       {/* Header */}
       <div style={{ background:'#18181b', padding:'0 22px', position:'sticky', top:0, zIndex:40, boxShadow:'0 2px 16px rgba(0,0,0,.3)' }}>
         <div style={{ maxWidth:720, margin:'0 auto', display:'flex', alignItems:'center', gap:14, height:58 }}>
-          <img src="/moose-logo-white.svg" alt="Moose AI" style={{ height:24, width:'auto' }}/>
+          <img src="/moose-logo-white.svg" alt="Koto" style={{ height:24, width:'auto' }}/>
           <div style={{ width:1, height:20, background:'rgba(255,255,255,.15)' }}/>
           <div style={{ fontSize:14, color:'#4b5563' }}>Account Access Setup</div>
           <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>

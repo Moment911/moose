@@ -6,7 +6,7 @@ async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), ms)
   try {
-    const r = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'MooseAI/1.0 (+https://moose.ai)' } })
+    const r = await fetch(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Koto/1.0 (+https://hellokoto.com)' } })
     clearTimeout(timer)
     return r
   } catch(e) { clearTimeout(timer); throw e }
