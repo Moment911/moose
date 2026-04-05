@@ -79,6 +79,19 @@ export default function SEOHubPage() {
   const [loading, setLoading]       = useState(false)
   const [generating, setGenerating] = useState(false)
   const [syncing,    setSyncing]    = useState(false)
+  const [analyticsData,   setAnalyticsData]   = useState(null)
+  const [analyticsLoading,setAnalyticsLoading]= useState(false)
+  const [reportType,      setReportType]      = useState('overview')
+  const [dateRange,       setDateRange]       = useState('30d')
+  const [compare,         setCompare]         = useState('previous_period')
+  const [customStart,     setCustomStart]     = useState('')
+  const [customEnd,       setCustomEnd]       = useState('')
+  const [rankKw,     setRankKw]     = useState('')
+  const [rankLoc,    setRankLoc]    = useState('')
+  const [rankBiz,    setRankBiz]    = useState('')
+  const [rankLoading,setRankLoading]= useState(false)
+  const [rankResults,setRankResults]= useState(null)
+  const [showRankMap,setShowRankMap]= useState(false)
   const [liveData,   setLiveData]   = useState(null)
   const [analysis, setAnalysis]     = useState(null)
   const [newSiteUrl, setNewSiteUrl] = useState('')
@@ -380,6 +393,47 @@ Return ONLY valid JSON (no markdown):
   }
 
   const isMobile = useMobile()
+
+  async function runAnalytics() {
+    if (!selectedClient) return
+    setAnalyticsLoading(true)
+    try {
+      const res = await fetch('/api/seo/analytics', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          client_id:selectedClient.id, report_type:reportType,
+          date_range:dateRange, custom_start:customStart||undefined,
+          custom_end:customEnd||undefined, compare,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setAnalyticsData(data)
+    } catch(e) { toast.error('Analytics failed: ' + e.message) }
+    setAnalyticsLoading(false)
+  }
+
+  async function runLocalRankScan() {
+    const kw  = rankKw.trim() || selectedClient?.industry || ''
+    const loc = rankLoc.trim()
+    if (!kw || !loc) { toast.error('Enter a keyword and location'); return }
+    setRankLoading(true); setRankResults(null)
+    try {
+      const res = await fetch('/api/seo/local-rank', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          keyword:kw, location:loc,
+          target_business:rankBiz.trim()||selectedClient?.name||'',
+          radius_km:16, include_ai:true, include_details:true,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setRankResults(data); setShowRankMap(true)
+      toast.success(data.target_rank ? `Ranked #${data.target_rank} on Google Maps` : 'Scan complete')
+    } catch(e) { toast.error('Scan failed: ' + e.message) }
+    setRankLoading(false)
+  }
 
   /* ─── MOBILE ─── */
   if (isMobile) {
@@ -740,7 +794,7 @@ Return ONLY valid JSON (no markdown):
                          )}
 
           {/* Stat cards */}
-                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
                           <Stat label="Keywords tracked"  value={keywords.length||0} sub={keywords.length?`${topKws} in top 10`:'None yet'} icon={Search}   accent/>
                           <Stat label="Avg. position"     value={avgPos?`#${avgPos}`:'—'}   sub="across all keywords"  icon={Target}/>
                           <Stat label="WP sites"          value={sites.filter(s=>s.is_active).length} sub={`${sites.length} total connected`} icon={Globe}  teal/>
@@ -816,6 +870,125 @@ Return ONLY valid JSON (no markdown):
                         </div>
                       </div>
                     )}
+
+                        {/* ── LOCAL RANK TRACKER ── */}
+                        <div id="rank-tracker-panel" style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginTop:4 }}>
+                          <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                              <MapPin size={15} color={RED}/>
+                              <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>Local Rank Tracker</div>
+                              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:RED+'15', color:RED }}>Google Maps</span>
+                            </div>
+                            <a href="/seo/local-rank" style={{ fontSize:13, color:RED, fontWeight:700, textDecoration:'none' }}>Full tracker →</a>
+                          </div>
+                          <div style={{ padding:'14px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:10, alignItems:'end', borderBottom:'1px solid #f9fafb' }}>
+                            <div>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Keyword</label>
+                              <input value={rankKw} onChange={e=>setRankKw(e.target.value)}
+                                placeholder={selectedClient?.industry || 'e.g. plumber'}
+                                onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
+                                style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}
+                                onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                            </div>
+                            <div>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Location</label>
+                              <input value={rankLoc} onChange={e=>setRankLoc(e.target.value)}
+                                placeholder="e.g. Boca Raton FL"
+                                onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
+                                style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}
+                                onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                            </div>
+                            <div>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Business Name</label>
+                              <input value={rankBiz} onChange={e=>setRankBiz(e.target.value)}
+                                placeholder={selectedClient?.name || 'To highlight in results'}
+                                onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
+                                style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}
+                                onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                            </div>
+                            <button onClick={runLocalRankScan} disabled={rankLoading||!rankLoc.trim()}
+                              style={{ padding:'9px 20px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, boxShadow:`0 3px 12px ${RED}40` }}>
+                              {rankLoading ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <Target size={13}/>}
+                              {rankLoading ? 'Scanning…' : 'Scan'}
+                            </button>
+                          </div>
+                          {rankLoading && (
+                            <div style={{ padding:'24px', textAlign:'center', color:'#9ca3af', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                              <Loader2 size={14} color={RED} style={{animation:'spin 1s linear infinite'}}/> Searching Google Maps…
+                            </div>
+                          )}
+                          {rankResults && !rankLoading && (
+                            <div>
+                              <div style={{ padding:'12px 20px', display:'flex', alignItems:'center', gap:16, borderBottom:'1px solid #f9fafb', flexWrap:'wrap' }}>
+                                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                  <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em' }}>Rank</div>
+                                  <div style={{ fontSize:28, fontWeight:900, letterSpacing:'-.03em',
+                                    color:rankResults.target_rank ? (rankResults.target_rank<=3?'#16a34a':rankResults.target_rank<=7?TEAL:rankResults.target_rank<=15?'#f59e0b':RED) : RED }}>
+                                    {rankResults.target_rank ? '#'+rankResults.target_rank : 'Not found'}
+                                  </div>
+                                </div>
+                                <div style={{ height:32, width:1, background:'#f3f4f6' }}/>
+                                <div style={{ fontSize:13, color:'#374151' }}><span style={{ fontWeight:700 }}>{rankResults.total_results}</span> businesses found</div>
+                                {rankResults.competitive_stats?.avg_rating && (
+                                  <div style={{ fontSize:13, color:'#374151' }}>Area avg: <span style={{ fontWeight:700 }}>★{rankResults.competitive_stats.avg_rating}</span></div>
+                                )}
+                                <button onClick={()=>setShowRankMap(!showRankMap)}
+                                  style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, border:`1px solid ${TEAL}40`, background:'transparent', color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                                  <Map size={12}/> {showRankMap ? 'Hide Map' : 'Show Map'}
+                                </button>
+                              </div>
+                              {showRankMap && rankResults.geocoded_location && (
+                                <div style={{ borderBottom:'1px solid #f9fafb' }}>
+                                  <iframe title="Local Rank Map" width="100%" height="280" loading="lazy" style={{ border:'none', display:'block' }}
+                                    src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY||process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY||''}&q=${encodeURIComponent(rankKw+' '+rankLoc)}&center=${rankResults.geocoded_location.lat},${rankResults.geocoded_location.lng}&zoom=12`}/>
+                                </div>
+                              )}
+                              <div style={{ maxHeight:300, overflowY:'auto' }}>
+                                {rankResults.google_local?.slice(0,10).map((r,i) => {
+                                  const isTarget = (rankBiz||selectedClient?.name||'') && r.name?.toLowerCase().includes((rankBiz||selectedClient?.name||'').toLowerCase())
+                                  const rc = r.rank<=3?'#16a34a':r.rank<=7?TEAL:r.rank<=15?'#f59e0b':'#9ca3af'
+                                  return (
+                                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 20px', borderBottom:'1px solid #f9fafb', background:isTarget?RED+'06':'transparent', borderLeft:isTarget?`3px solid ${RED}`:'3px solid transparent' }}>
+                                      <div style={{ width:26, height:26, borderRadius:7, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background:isTarget?RED:rc+'18', fontSize:12, fontWeight:900, color:isTarget?'#fff':rc }}>{r.rank}</div>
+                                      {r.photos?.[0] && <img src={r.photos[0]} alt="" style={{ width:28, height:28, borderRadius:6, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}
+                                      <div style={{ flex:1, minWidth:0 }}>
+                                        <div style={{ fontSize:13, fontWeight:700, color:isTarget?RED:'#111', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                          {r.name}
+                                          {isTarget && <span style={{ marginLeft:6, fontSize:10, background:RED, color:'#fff', padding:'1px 5px', borderRadius:20 }}>YOU</span>}
+                                          {r.is_open_now===true && <span style={{ marginLeft:4, fontSize:10, background:'#f0fdf4', color:'#16a34a', padding:'1px 5px', borderRadius:20 }}>Open</span>}
+                                        </div>
+                                        <div style={{ fontSize:11, color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.address}</div>
+                                      </div>
+                                      {r.rating && <div style={{ fontSize:12, color:'#374151', flexShrink:0, display:'flex', alignItems:'center', gap:3 }}><span style={{ color:'#f59e0b' }}>★</span>{r.rating}<span style={{ color:'#9ca3af', fontSize:11 }}>({r.review_count})</span></div>}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                              {rankResults.ai_analysis?.overall_assessment && (
+                                <div style={{ padding:'11px 20px', background:'#f9fafb', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'flex-start', gap:8 }}>
+                                  <Sparkles size={13} color={TEAL} style={{ flexShrink:0, marginTop:2 }}/>
+                                  <div style={{ fontSize:13, color:'#374151', lineHeight:1.6 }}>
+                                    <strong style={{ color:'#111' }}>AI:</strong> {rankResults.ai_analysis.overall_assessment}
+                                    {rankResults.ai_analysis.estimated_time_to_rank && <span style={{ color:'#9ca3af' }}> · Est. {rankResults.ai_analysis.estimated_time_to_rank} to rank.</span>}
+                                  </div>
+                                </div>
+                              )}
+                              {rankResults.ai_analysis?.quick_wins?.length > 0 && (
+                                <div style={{ padding:'9px 20px', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                                  <span style={{ fontSize:11, fontWeight:700, color:'#16a34a', textTransform:'uppercase', letterSpacing:'.07em', flexShrink:0 }}>Quick wins:</span>
+                                  {rankResults.ai_analysis.quick_wins.slice(0,3).map((w,i) => (
+                                    <span key={i} style={{ fontSize:12, background:'#f0fdf4', color:'#15803d', padding:'3px 9px', borderRadius:20, border:'1px solid #bbf7d0' }}>{w}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {!rankResults && !rankLoading && (
+                            <div style={{ padding:'18px 20px', fontSize:13, color:'#9ca3af', textAlign:'center' }}>
+                              Enter a keyword and location to scan Google Maps rankings for this client
+                            </div>
+                          )}
+                        </div>
 
                     {/* ── KEYWORDS ── */}
                     {tab === 'keywords' && (
@@ -1053,86 +1226,151 @@ Return ONLY valid JSON (no markdown):
                     {/* ── REPORTS ── */}
                     {tab === 'reports' && (
                       <div className="animate-fade-up">
-                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                          <div style={{ fontSize:17, fontWeight:900, color:'#111' }}>SEO Reports</div>
-                          <button onClick={generateAnalysis} disabled={generating}
-                            style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 18px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer' }}>
-                            {generating?<Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={13}/>} Generate Report
-                          </button>
-                        </div>
-                        {reports.length === 0 ? (
-                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'56px 24px', textAlign:'center' }}>
-                            <FileText size={36} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
-                            <div style={{ fontSize:17, fontWeight:900, color:'#111', marginBottom:6 }}>No reports yet</div>
-                            <div style={{ fontSize:14, color:'#374151', marginBottom:18 }}>Generate an AI-powered SEO report to track progress and share with your client</div>
-                          </div>
-                        ) : reports.map(r=>(
-                          <div key={r.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', marginBottom:12, overflow:'hidden' }}>
-                            <div style={{ padding:'14px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:12 }}>
-                              <div style={{ width:36, height:36, borderRadius:9, background:RED+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                                <FileText size={16} color={RED}/>
-                              </div>
-                              <div style={{ flex:1 }}>
-                                <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>{r.report_type==='ai_analysis'?'AI SEO Analysis':'SEO Report'}</div>
-                                <div style={{ fontSize:12, color:'#9ca3af' }}>
-                                  {new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
-                                  {r.content?.gsc_site ? ` · ${r.content.gsc_site.replace('sc-domain:','').replace('https://','').slice(0,30)}` : ''}
-                                </div>
-                              </div>
-                              {r.score != null && (
-                                <div style={{ width:50, height:50, borderRadius:12, background:r.score>=70?'#f0fdf4':r.score>=40?'#fffbeb':'#fef2f2', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                                  <div style={{ fontSize:20, fontWeight:900, color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED, lineHeight:1 }}>{r.score}</div>
-                                  <div style={{ fontSize:9, fontWeight:700, color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED }}>/ 100</div>
-                                </div>
-                              )}
+
+                        {/* Controls bar */}
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'16px 20px', marginBottom:16 }}>
+                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:12, alignItems:'end' }}>
+                            <div>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Report Type</label>
+                              <select value={reportType} onChange={e=>setReportType(e.target.value)}
+                                style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
+                                <option value="overview">Overview</option>
+                                <option value="keywords">Keywords</option>
+                                <option value="pages">Top Pages</option>
+                                <option value="channels">Traffic Channels</option>
+                                <option value="devices">Devices</option>
+                                <option value="countries">Countries</option>
+                                <option value="daily_trend">Daily Trend</option>
+                              </select>
                             </div>
-                            {r.content?.metrics && (
-                              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6', background:'#fafafa' }}>
-                                {[
-                                  { label:'Clicks',    value:r.content.metrics.clicks?.toLocaleString(), delta:r.content.metrics.clicks_delta },
-                                  { label:'Impressions',value:r.content.metrics.impressions?.toLocaleString() },
-                                  { label:'Avg CTR',   value:r.content.metrics.avg_ctr ? r.content.metrics.avg_ctr.toFixed(1)+'%' : '—' },
-                                  { label:'Avg Pos',   value:r.content.metrics.avg_position ? '#'+r.content.metrics.avg_position : '—' },
-                                ].map((m,i)=>(
-                                  <div key={m.label} style={{ padding:'10px 12px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
-                                    <div style={{ fontSize:15, fontWeight:800, color:'#111', lineHeight:1 }}>
-                                      {m.value||'—'}
-                                      {m.delta!=null && <span style={{ fontSize:10, marginLeft:3, color:m.delta>=0?'#16a34a':RED }}>{m.delta>=0?'+':''}{m.delta}%</span>}
+                            <div>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Date Range</label>
+                              <select value={dateRange} onChange={e=>setDateRange(e.target.value)}
+                                style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
+                                <option value="7d">Last 7 days</option>
+                                <option value="28d">Last 28 days</option>
+                                <option value="30d">Last 30 days</option>
+                                <option value="90d">Last 90 days</option>
+                                <option value="6m">Last 6 months</option>
+                                <option value="12m">Last 12 months</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Compare To</label>
+                              <select value={compare} onChange={e=>setCompare(e.target.value)}
+                                style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
+                                <option value="previous_period">Previous period</option>
+                                <option value="same_period_last_year">Same period last year</option>
+                                <option value="none">No comparison</option>
+                              </select>
+                            </div>
+                            <button onClick={runAnalytics} disabled={analyticsLoading||!selectedClient}
+                              style={{ padding:'9px 20px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+                              {analyticsLoading ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <BarChart2 size={13}/>}
+                              {analyticsLoading ? 'Loading…' : 'Run Report'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Results */}
+                        {analyticsData && (
+                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:16 }}>
+                            <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:10 }}>
+                              <BarChart2 size={15} color={RED}/>
+                              <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>
+                                {reportType.replace(/_/g,' ').replace(/\w/g,l=>l.toUpperCase())} — {dateRange}
+                              </div>
+                              <span style={{ fontSize:12, color:'#9ca3af', marginLeft:'auto' }}>
+                                {analyticsData.period?.start} → {analyticsData.period?.end}
+                              </span>
+                            </div>
+                            {/* KPI cards */}
+                            {analyticsData.summary && (
+                              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6' }}>
+                                {Object.entries(analyticsData.summary).slice(0,4).map(([key,val],i) => (
+                                  <div key={key} style={{ padding:'14px 16px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
+                                    <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>
+                                      {key.replace(/_/g,' ')}
                                     </div>
-                                    <div style={{ fontSize:10, color:'#9ca3af', marginTop:2 }}>{m.label}</div>
+                                    <div style={{ fontSize:20, fontWeight:900, color:'#111' }}>
+                                      {typeof val === 'number' ? val.toLocaleString() : val || '—'}
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             )}
-                            {r.content?.metrics?.sessions > 0 && (
-                              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6', background:'#fafafa' }}>
-                                {[
-                                  { label:'Sessions',  value:r.content.metrics.sessions?.toLocaleString(), delta:r.content.metrics.sessions_delta },
-                                  { label:'Users',     value:r.content.metrics.users?.toLocaleString() },
-                                  { label:'Organic',   value:r.content.metrics.organic_sessions?.toLocaleString() },
-                                  { label:'Bounce',    value:r.content.metrics.bounce_rate ? r.content.metrics.bounce_rate+'%' : '—' },
-                                ].map((m,i)=>(
-                                  <div key={m.label} style={{ padding:'10px 12px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
-                                    <div style={{ fontSize:15, fontWeight:800, color:'#111', lineHeight:1 }}>
-                                      {m.value||'—'}
-                                      {m.delta!=null && <span style={{ fontSize:10, marginLeft:3, color:m.delta>=0?'#16a34a':RED }}>{m.delta>=0?'+':''}{m.delta}%</span>}
-                                    </div>
-                                    <div style={{ fontSize:10, color:'#9ca3af', marginTop:2 }}>{m.label}</div>
-                                  </div>
-                                ))}
+                            {/* Data table */}
+                            {analyticsData.rows?.length > 0 && (
+                              <div style={{ overflowX:'auto' }}>
+                                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                                  <thead>
+                                    <tr style={{ background:'#f9fafb' }}>
+                                      {analyticsData.columns?.map((col,i) => (
+                                        <th key={i} style={{ padding:'10px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:i===0?'left':'right', textTransform:'uppercase', letterSpacing:'.05em' }}>{col}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {analyticsData.rows.slice(0,20).map((row,i) => (
+                                      <tr key={i} style={{ borderTop:'1px solid #f9fafb' }}>
+                                        {row.map((cell,j) => (
+                                          <td key={j} style={{ padding:'10px 14px', fontSize:13, color:'#374151', textAlign:j===0?'left':'right', fontWeight:j===0?600:400 }}>{cell}</td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
                             )}
-                            {r.summary && <div style={{ padding:'12px 18px', fontSize:13, color:'#374151', lineHeight:1.65, borderBottom:r.content?.opportunities?.length?'1px solid #f3f4f6':'none' }}>{r.summary}</div>}
-                            {r.content?.opportunities?.slice(0,3).map((op,i)=>(
-                              <div key={i} style={{ padding:'8px 18px', display:'flex', alignItems:'flex-start', gap:8, borderTop:i===0?'none':'1px solid #f9fafb' }}>
-                                <span style={{ fontSize:10, fontWeight:800, padding:'2px 7px', borderRadius:20, flexShrink:0, background:op.impact==='high'?RED+'15':op.impact==='medium'?'#fffbeb':'#f3f4f6', color:op.impact==='high'?RED:op.impact==='medium'?'#d97706':'#6b7280', marginTop:1 }}>{op.impact}</span>
-                                <div style={{ fontSize:13, color:'#111', fontWeight:600 }}>{op.title}</div>
+                            {!analyticsData.rows?.length && (
+                              <div style={{ padding:'32px', textAlign:'center', color:'#9ca3af', fontSize:14 }}>
+                                No data available for this report and date range
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {!analyticsData && !analyticsLoading && (
+                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'48px 24px', textAlign:'center', marginBottom:16 }}>
+                            <BarChart2 size={36} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
+                            <div style={{ fontSize:17, fontWeight:900, color:'#111', marginBottom:6 }}>Analytics Explorer</div>
+                            <div style={{ fontSize:14, color:'#374151', marginBottom:4 }}>
+                              Select a report type and date range, then click Run Report
+                            </div>
+                            <div style={{ fontSize:13, color:'#9ca3af' }}>
+                              Requires Google Search Console and/or GA4 connected
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Saved AI Reports */}
+                        {reports.length > 0 && (
+                          <div style={{ marginTop:20 }}>
+                            <div style={{ fontSize:14, fontWeight:800, color:'#374151', marginBottom:10 }}>Saved AI Reports</div>
+                            {reports.map(r=>(
+                              <div key={r.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', marginBottom:10, overflow:'hidden' }}>
+                                <div style={{ padding:'12px 18px', borderBottom:r.content?.opportunities?.length?'1px solid #f3f4f6':'none', display:'flex', alignItems:'center', gap:12 }}>
+                                  <div style={{ width:34,height:34,borderRadius:9,background:RED+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                                    <FileText size={15} color={RED}/>
+                                  </div>
+                                  <div style={{ flex:1 }}>
+                                    <div style={{ fontSize:14,fontWeight:700,color:'#111' }}>{r.report_type==='ai_analysis'?'AI SEO Analysis':'SEO Report'}</div>
+                                    <div style={{ fontSize:12,color:'#9ca3af' }}>{new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}{r.content?.gsc_site?` · ${r.content.gsc_site.replace('sc-domain:','').replace('https://','').slice(0,30)}`:''}</div>
+                                  </div>
+                                  {r.score!=null&&<div style={{ width:44,height:44,borderRadius:11,background:r.score>=70?'#f0fdf4':r.score>=40?'#fffbeb':'#fef2f2',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+                                    <div style={{ fontSize:18,fontWeight:900,color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED,lineHeight:1 }}>{r.score}</div>
+                                    <div style={{ fontSize:9,fontWeight:700,color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED }}>/100</div>
+                                  </div>}
+                                </div>
+                                {r.summary&&<div style={{ padding:'10px 18px',fontSize:13,color:'#374151',lineHeight:1.65 }}>{r.summary}</div>}
                               </div>
                             ))}
                           </div>
-                        ))}
+                        )}
+
                       </div>
                     )}
+
                   </>
                 )}
               </div>
