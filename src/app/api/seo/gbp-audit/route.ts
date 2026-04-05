@@ -61,7 +61,7 @@ function scoreGBP(place: any) {
 }
 
 async function generateAIInsights(place: any, competitors: any[], scoreData: any) {
-  if (!ANTHROPIC_KEY) return null
+  if (!ANTHROPIC_KEY) throw new Error('Add ANTHROPIC_API_KEY to Vercel env vars')
   const name = place.displayName?.text || 'Business'
   const compSummary = competitors.map(c =>
     `- ${c.displayName?.text}: ${c.rating || 'N/A'}★ (${c.userRatingCount || 0} reviews), ${c.photos?.length || 0} photos, hours: ${c.regularOpeningHours ? 'yes' : 'no'}`

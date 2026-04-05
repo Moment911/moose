@@ -83,7 +83,7 @@ async function analyzeKeywordGap(
   location: string,
   website: string
 ) {
-  if (!ANTHROPIC_KEY) return null
+  if (!ANTHROPIC_KEY) throw new Error('No Anthropic API key found. Add ANTHROPIC_API_KEY to Vercel environment variables (Settings → Environment Variables). Same value as NEXT_PUBLIC_ANTHROPIC_API_KEY but without the prefix.')
 
   const topKeywords = clientKeywords
     .sort((a: any, b: any) => b.impressions - a.impressions)
