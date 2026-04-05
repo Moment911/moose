@@ -66,7 +66,7 @@ export const SOURCES = {
   },
   area_code: {
     id:    'area_code',
-    label: 'NANP HardDrive',
+    label: 'NANP Database',
     icon:  '📞',
     color: '#059669',
     type:  'local_db',
