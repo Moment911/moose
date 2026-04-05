@@ -91,7 +91,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <div style={{
+      <div className="desktop-sidebar" style={{
         width:230,
         background:'#0a0a0a',
         display:'flex',flexDirection:'column',

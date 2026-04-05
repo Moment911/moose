@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
+import MobileShell from '../components/mobile/MobileShell'
 import { AuthProvider } from '../hooks/useAuth'
 import { ClientProvider } from '../context/ClientContext'
 
@@ -83,6 +84,7 @@ export default function App() {
       <ClientProvider>
       <MobileMenuProvider>
         <Toaster position="top-right" />
+        <MobileShell>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/welcome" element={<MarketingSitePage />} />
@@ -156,6 +158,7 @@ export default function App() {
           <Route path="/seo/connect" element={<SEOConnectPage />} />
           <Route path="/wordpress" element={<WordPressPage />} />
         </Routes>
+        </MobileShell>
       </MobileMenuProvider>
       </ClientProvider>
       </AuthProvider>
