@@ -537,3 +537,44 @@ CREATE TABLE IF NOT EXISTS seo_page_audits (
 );
 CREATE INDEX IF NOT EXISTS idx_seo_page_audits_client ON seo_page_audits(client_id);
 CREATE INDEX IF NOT EXISTS idx_seo_page_audits_date   ON seo_page_audits(client_id, audited_at DESC);
+
+-- ── Agency features (feature flags per agency) ──────────────────────────────
+CREATE TABLE IF NOT EXISTS agency_features (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agency_id   uuid REFERENCES agencies(id) ON DELETE CASCADE,
+  feature_key text NOT NULL,
+  enabled     boolean DEFAULT true,
+  config      jsonb DEFAULT '{}',
+  created_at  timestamptz DEFAULT now(),
+  UNIQUE(agency_id, feature_key)
+);
+CREATE INDEX IF NOT EXISTS idx_agency_features ON agency_features(agency_id);
+
+
+-- ── Agency members (team seats) ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS agency_members (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agency_id   uuid NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+  user_id     uuid NOT NULL,
+  role        text NOT NULL DEFAULT 'member',
+  invited_by  uuid,
+  invited_at  timestamptz DEFAULT now(),
+  accepted_at timestamptz,
+  UNIQUE(agency_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_agency_members_agency ON agency_members(agency_id);
+CREATE INDEX IF NOT EXISTS idx_agency_members_user   ON agency_members(user_id);
+
+
+-- ── Agency invitations ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS agency_invitations (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agency_id   uuid NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
+  email       text NOT NULL,
+  role        text NOT NULL DEFAULT 'member',
+  token       text NOT NULL UNIQUE DEFAULT replace(gen_random_uuid()::text, '-', ''),
+  invited_by  uuid,
+  expires_at  timestamptz DEFAULT (now() + interval '7 days'),
+  accepted_at timestamptz,
+  created_at  timestamptz DEFAULT now()
+);

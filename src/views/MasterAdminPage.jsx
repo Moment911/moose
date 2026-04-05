@@ -382,6 +382,7 @@ export default function MasterAdminPage() {
                     { label:'KotoDesk',          path:'/desk',             icon:Users, color:RED },
                     { label:'SEO Hub',           path:'/seo',              icon:BarChart2, color:RED },
                     { label:'Platform Admin',    path:'/platform-admin',   icon:Shield, color:'#374151' },
+                    { label:'Koto Super Admin',  path:'/koto-admin',       icon:Shield, color:RED },
                   ].map((item,i)=>(
                     <button key={i} onClick={()=>navigate(item.path)}
                       style={{ padding:'12px 14px', borderRadius:11, border:'1px solid #e5e7eb', background:'#fafafa', cursor:'pointer', display:'flex', alignItems:'center', gap:10, textAlign:'left' }}>

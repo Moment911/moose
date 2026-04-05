@@ -415,7 +415,7 @@ export default function AgencySignupPage() {
                   </p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <button onClick={() => navigate('/clients')}
+                    <button onClick={() => navigate('/')}
                       style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                       Add your first client <ArrowRight size={16} />
                     </button>
