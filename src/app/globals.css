@@ -191,7 +191,6 @@ input, textarea, select {
 .status-dot.paused   { background: #f59e0b; }
 .status-dot.prospect { background: var(--teal); }
 
-}
 
 /* ── Tablet: 768–1024 ── */
 @media (min-width: 768px) and (max-width: 1024px) {
