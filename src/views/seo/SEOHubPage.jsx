@@ -1327,7 +1327,7 @@ Return ONLY valid JSON (no markdown):
                           )
 
                           if (d.report_type === 'keywords') {
-                            const prevMap: Object = {}
+                            const prevMap = {}
                             gscPRows.forEach((r)=>{ prevMap[r.keys?.[0]||'']=r })
                             return (
                               <DataTable title={`Keywords — ${gscRows.length} total`}
