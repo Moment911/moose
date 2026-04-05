@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 
 const DAYS = 90  // pull last 90 days
 
@@ -34,7 +36,7 @@ async function getToken(conn: any) {
     })
     const data = await res.json()
     if (data.access_token) {
-      await supabase.from('seo_connections').update({
+      await getSupabase().from('seo_connections').update({
         access_token:     data.access_token,
         token_expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
       }).eq('id', conn.id)
@@ -281,7 +283,7 @@ export async function POST(req: NextRequest) {
     if (!clientId) return NextResponse.json({ error: 'clientId required' }, { status: 400 })
 
     // Load connections
-    const { data: conns } = await supabase
+    const { data: conns } = await getSupabase()
       .from('seo_connections')
       .select('*')
       .eq('client_id', clientId)
@@ -304,7 +306,7 @@ export async function POST(req: NextRequest) {
       const sites = await fetchGSCSites(gscToken)
       siteUrl = sites[0] || null
       if (siteUrl && gscConn) {
-        await supabase.from('seo_connections').update({ site_url: siteUrl }).eq('id', gscConn.id)
+        await getSupabase().from('seo_connections').update({ site_url: siteUrl }).eq('id', gscConn.id)
       }
     }
 
@@ -314,7 +316,7 @@ export async function POST(req: NextRequest) {
       const props = await fetchGA4Properties(ga4Token)
       propertyId = props[0]?.id || null
       if (propertyId && ga4Conn) {
-        await supabase.from('seo_connections').update({ property_id: propertyId }).eq('id', ga4Conn.id)
+        await getSupabase().from('seo_connections').update({ property_id: propertyId }).eq('id', ga4Conn.id)
       }
     }
 

@@ -214,16 +214,13 @@ LAST 30 DAYS — GOOGLE SEARCH CONSOLE:
 - Site: ${liveData.gsc_site || 'unknown'}
 
 TOP 10 KEYWORDS BY CLICKS:
-${topKwByClicks.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.clicks} clicks, ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR`).join('
-') || '  No data yet'}
+${topKwByClicks.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.clicks} clicks, ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR`).join('\n') || '  No data yet'}
 
 QUICK WIN OPPORTUNITIES (positions 4-20, high impressions):
-${quickWinKws.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`).join('
-') || '  None identified'}
+${quickWinKws.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`).join('\n') || '  None identified'}
 
 LOW CTR KEYWORDS (high impressions, <2% CTR):
-${lowCTRKws.map(k => `  "${k.keys?.[0]}" — ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR (${k.clicks} clicks)`).join('
-') || '  None identified'}
+${lowCTRKws.map(k => `  "${k.keys?.[0]}" — ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR (${k.clicks} clicks)`).join('\n') || '  None identified'}
 
 LAST 30 DAYS — GOOGLE ANALYTICS 4:
 - Total sessions: ${totalSessions.toLocaleString()} (${sessionsDelta != null ? (sessionsDelta>=0?'+':'')+sessionsDelta+'% vs prev 30d' : 'no prev data'})
@@ -232,8 +229,7 @@ LAST 30 DAYS — GOOGLE ANALYTICS 4:
 - Organic sessions: ${organicSessions.toLocaleString()} (${totalSessions ? Math.round(organicSessions/totalSessions*100) : 0}% of total)
 
 TRAFFIC BY CHANNEL:
-${channels.slice(0,6).map(c => `  ${c.channel}: ${c.sessions} sessions (${totalSessions ? Math.round(c.sessions/totalSessions*100) : 0}%)`).join('
-') || '  No data yet'}
+${channels.slice(0,6).map(c => `  ${c.channel}: ${c.sessions} sessions (${totalSessions ? Math.round(c.sessions/totalSessions*100) : 0}%)`).join('\n') || '  No data yet'}
 
 CROSS-SOURCE INSIGHTS:
 - GSC shows ${totalClicks} organic clicks but GA4 shows ${organicSessions} organic sessions — ${Math.abs(totalClicks-organicSessions)<totalClicks*0.3 ? 'these are roughly aligned' : 'there may be a tracking gap to investigate'}
@@ -301,7 +297,7 @@ Return ONLY valid JSON (no markdown):
       setReports(reps || [])
       toast.success('Report generated from live data!')
       setTab('reports')
-    } catch(e: any) {
+    } catch(e) {
       console.error('Analysis error:', e)
       toast.error('Report failed: ' + e.message)
     }
@@ -1075,7 +1071,7 @@ Return ONLY valid JSON (no markdown):
                               </div>
                             ))}
                           </div>
-                        )))}
+                        ))}
                       </div>
                     )}
                   </>

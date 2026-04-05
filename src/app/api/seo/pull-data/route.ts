@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
 
 async function getValidToken(conn: any) {
   if (conn.token_expires_at && new Date(conn.token_expires_at) > new Date(Date.now() + 60000)) {
@@ -25,7 +27,7 @@ async function getValidToken(conn: any) {
   const data = await res.json()
   if (!data.access_token) return null
   // Save refreshed token
-  await supabase.from('seo_connections').update({
+  await getSupabase().from('seo_connections').update({
     access_token:     data.access_token,
     token_expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
   }).eq('id', conn.id)
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
     // Load connections
-    const { data: connections } = await supabase
+    const { data: connections } = await getSupabase()
       .from('seo_connections')
       .select('*')
       .eq('client_id', client_id)
@@ -126,7 +128,7 @@ export async function POST(req: NextRequest) {
           // Auto-use first verified site
           const firstSite = result.sites.find((s:any) => s.permissionLevel !== 'siteUnverifiedUser')
           if (firstSite) {
-            await supabase.from('seo_connections').update({ site_url: firstSite.siteUrl }).eq('id', gscConn.id)
+            await getSupabase().from('seo_connections').update({ site_url: firstSite.siteUrl }).eq('id', gscConn.id)
             gscConn.site_url = firstSite.siteUrl
           }
         }
@@ -164,7 +166,7 @@ export async function POST(req: NextRequest) {
                 const firstProp = props.properties?.[0]
                 if (firstProp) {
                   propertyId = firstProp.name.replace('properties/', '')
-                  await supabase.from('seo_connections').update({ property_id: propertyId }).eq('id', ga4Conn.id)
+                  await getSupabase().from('seo_connections').update({ property_id: propertyId }).eq('id', ga4Conn.id)
                 }
               }
             }
