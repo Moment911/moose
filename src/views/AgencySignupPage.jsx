@@ -84,6 +84,10 @@ export default function AgencySignupPage() {
   const [showPw, setShowPw]     = useState(false)
   const [createdAgency, setCreatedAgency] = useState(null)
   const [setupProgress, setSetupProgress] = useState([]) // which steps done
+  const [couponCode,  setCouponCode]  = useState('')
+  const [coupon,      setCoupon]      = useState(null)
+  const [couponError, setCouponError] = useState('')
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
