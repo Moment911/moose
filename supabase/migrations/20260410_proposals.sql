@@ -73,6 +73,11 @@ CREATE TABLE IF NOT EXISTS proposal_signatures (
   party           text DEFAULT 'client' -- client|agency
 );
 
+-- Ensure columns exist (tables may have been created without them)
+ALTER TABLE proposals ADD COLUMN IF NOT EXISTS agency_id uuid REFERENCES agencies(id) ON DELETE CASCADE;
+ALTER TABLE service_modules ADD COLUMN IF NOT EXISTS agency_id uuid REFERENCES agencies(id) ON DELETE CASCADE;
+ALTER TABLE proposal_sections ADD COLUMN IF NOT EXISTS agency_id uuid REFERENCES agencies(id) ON DELETE CASCADE;
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_proposals_agency    ON proposals(agency_id);
 CREATE INDEX IF NOT EXISTS idx_proposals_client    ON proposals(client_id);

@@ -1,5 +1,7 @@
 const API_KEY = process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY
 const MODEL = 'claude-sonnet-4-20250514'
+// Fallback model if primary fails
+const MODEL_FALLBACK = 'claude-3-5-sonnet-20241022'
 const HEADERS = {
   'Content-Type': 'application/json',
   'x-api-key': API_KEY,

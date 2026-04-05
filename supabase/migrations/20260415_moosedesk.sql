@@ -174,11 +174,18 @@ ALTER TABLE desk_time_logs    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE desk_activity     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE desk_knowledge    ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "allow_all_desk_agents" ON desk_agents;
 CREATE POLICY "allow_all_desk_agents"    ON desk_agents         FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all_desk_rules" ON desk_routing_rules;
 CREATE POLICY "allow_all_desk_rules"     ON desk_routing_rules  FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all_desk_tickets" ON desk_tickets;
 CREATE POLICY "allow_all_desk_tickets"   ON desk_tickets        FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all_desk_replies" ON desk_replies;
 CREATE POLICY "allow_all_desk_replies"   ON desk_replies        FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all_desk_time" ON desk_time_logs;
 CREATE POLICY "allow_all_desk_time"      ON desk_time_logs      FOR ALL USING (true) WITH CHECK (true);
 CREATE INDEX  IF NOT EXISTS idx_desk_activity_created ON desk_activity(created_at DESC);
+DROP POLICY IF EXISTS "allow_all_desk_activity" ON desk_activity;
 CREATE POLICY "allow_all_desk_activity"  ON desk_activity       FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all_desk_knowledge" ON desk_knowledge;
 CREATE POLICY "allow_all_desk_knowledge" ON desk_knowledge      FOR ALL USING (true) WITH CHECK (true);
