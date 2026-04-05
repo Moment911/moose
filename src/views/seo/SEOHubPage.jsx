@@ -1193,10 +1193,10 @@ Return ONLY valid JSON (no markdown):
                           const ga4PRows = d.ga4_prev?.rows || []
 
                           // Helpers
-                          const sumGSC = (rows: any[], key: string) => rows.reduce((s,r)=>s+(r[key]||0),0)
-                          const sumGA4 = (rows: any[], metIdx: number) => rows.reduce((s,r)=>s+parseFloat(r.metricValues?.[metIdx]?.value||0),0)
-                          const delta  = (curr: number, prev: number) => prev>0 ? Math.round((curr-prev)/prev*100) : null
-                          const DeltaBadge = ({curr, prev}: any) => {
+                          const sumGSC = (rows, key) => rows.reduce((s,r)=>s+(r[key]||0),0)
+                          const sumGA4 = (rows, metIdx) => rows.reduce((s,r)=>s+parseFloat(r.metricValues?.[metIdx]?.value||0),0)
+                          const delta  = (curr, prev) => prev>0 ? Math.round((curr-prev)/prev*100) : null
+                          const DeltaBadge = ({curr, prev}) => {
                             const d = delta(curr,prev)
                             if (d===null || prev===0) return null
                             return (
@@ -1222,7 +1222,7 @@ Return ONLY valid JSON (no markdown):
                           const ga4PSessionsN  = Math.round(sumGA4(ga4PRows,0))
                           const ga4PUsers      = Math.round(sumGA4(ga4PRows,1))
 
-                          const KPI = ({label,value,prev,prevVal,unit,icon:I,color}:any) => (
+                          const KPI = ({label,value,prev,prevVal,unit,icon:I,color}) => (
                             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px' }}>
                               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                                 <div style={{ width:32,height:32,borderRadius:9,background:color+'15',display:'flex',alignItems:'center',justifyContent:'center' }}>
@@ -1243,24 +1243,24 @@ Return ONLY valid JSON (no markdown):
                           )
 
                           // Table helper
-                          const DataTable = ({title,cols,rows,maxRows=20}:any) => (
+                          const DataTable = ({title,cols,rows,maxRows=20}) => (
                             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:14 }}>
                               <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', fontSize:14, fontWeight:800, color:'#111' }}>{title}</div>
                               <div style={{ overflowX:'auto' }}>
                                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                                   <thead>
                                     <tr style={{ background:'#f9fafb' }}>
-                                      {cols.map((col:any,i:number)=>(
+                                      {cols.map((col,i)=>(
                                         <th key={i} style={{ padding:'10px 16px',fontSize:12,fontWeight:700,color:'#6b7280',textAlign:i===0?'left':'right',whiteSpace:'nowrap',textTransform:'uppercase',letterSpacing:'.05em' }}>{col}</th>
                                       ))}
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {rows.slice(0,maxRows).map((row:any,i:number)=>(
+                                    {rows.slice(0,maxRows).map((row,i)=>(
                                       <tr key={i} style={{ borderTop:'1px solid #f9fafb' }}
-                                        onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
-                                        onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background=''}>
-                                        {row.map((cell:any,j:number)=>(
+                                        onMouseEnter={e=>(e.currentTarget).style.background='#fafafa'}
+                                        onMouseLeave={e=>(e.currentTarget).style.background=''}>
+                                        {row.map((cell,j)=>(
                                           <td key={j} style={{ padding:'11px 16px',fontSize:13,color:j===0?'#111':'#374151',textAlign:j===0?'left':'right',fontWeight:j===0?700:400,whiteSpace:j===0?'nowrap':'normal',maxWidth:j===0?300:undefined,overflow:'hidden',textOverflow:'ellipsis' }}>
                                             {cell}
                                           </td>
@@ -1304,7 +1304,7 @@ Return ONLY valid JSON (no markdown):
                               {ga4Rows.length > 0 && (
                                 <DataTable title="Traffic by Channel"
                                   cols={['Channel','Sessions','Users','Bounce Rate']}
-                                  rows={ga4Rows.map((r:any)=>[
+                                  rows={ga4Rows.map((r)=>[
                                     r.dimensionValues?.[0]?.value||'—',
                                     parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
                                     parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
@@ -1315,7 +1315,7 @@ Return ONLY valid JSON (no markdown):
                               {gscRows.length > 0 && (
                                 <DataTable title="Top Keywords (Search Console)"
                                   cols={['Keyword','Clicks','Impressions','CTR','Position']}
-                                  rows={[...gscRows].sort((a:any,b:any)=>b.clicks-a.clicks).slice(0,15).map((r:any)=>[
+                                  rows={[...gscRows].sort((a,b)=>b.clicks-a.clicks).slice(0,15).map((r)=>[
                                     r.keys?.[0]||'—',
                                     r.clicks.toLocaleString(),
                                     r.impressions.toLocaleString(),
@@ -1327,13 +1327,13 @@ Return ONLY valid JSON (no markdown):
                           )
 
                           if (d.report_type === 'keywords') {
-                            const prevMap: Record<string,any> = {}
-                            gscPRows.forEach((r:any)=>{ prevMap[r.keys?.[0]||'']=r })
+                            const prevMap: Object = {}
+                            gscPRows.forEach((r)=>{ prevMap[r.keys?.[0]||'']=r })
                             return (
                               <DataTable title={`Keywords — ${gscRows.length} total`}
                                 cols={['Keyword','Clicks',compare!=='none'?'vs Prev':'','Impressions','CTR','Position',compare!=='none'?'vs Prev':'']}
                                 maxRows={100}
-                                rows={[...gscRows].sort((a:any,b:any)=>b.clicks-a.clicks).map((r:any)=>{
+                                rows={[...gscRows].sort((a,b)=>b.clicks-a.clicks).map((r)=>{
                                   const p = prevMap[r.keys?.[0]||'']
                                   const dc = p ? delta(r.clicks,p.clicks) : null
                                   const dp = p ? delta(r.position,p.position) : null
@@ -1351,15 +1351,15 @@ Return ONLY valid JSON (no markdown):
                           }
 
                           if (d.report_type === 'pages') {
-                            const ga4PageMap: Record<string,any> = {}
-                            ga4Rows.forEach((r:any)=>{ ga4PageMap[r.dimensionValues?.[0]?.value||'']=r })
+                            const ga4PageMap: Object = {}
+                            ga4Rows.forEach((r)=>{ ga4PageMap[r.dimensionValues?.[0]?.value||'']=r })
                             const rows = gscRows.length ? gscRows : ga4Rows
                             return (
                               <DataTable title={`Pages — ${rows.length} total`}
                                 cols={gscRows.length?['Page','GSC Clicks','Impressions','CTR','Position','GA4 Views']:['Page','Views','Sessions','Bounce']}
                                 maxRows={50}
                                 rows={gscRows.length
-                                  ? [...gscRows].sort((a:any,b:any)=>b.clicks-a.clicks).map((r:any)=>{
+                                  ? [...gscRows].sort((a,b)=>b.clicks-a.clicks).map((r)=>{
                                       const pg = r.keys?.[0]||''
                                       const ga = ga4PageMap[pg]
                                       return [
@@ -1371,7 +1371,7 @@ Return ONLY valid JSON (no markdown):
                                         ga?parseInt(ga.metricValues?.[0]?.value||0).toLocaleString():'—',
                                       ]
                                     })
-                                  : ga4Rows.map((r:any)=>[
+                                  : ga4Rows.map((r)=>[
                                       (r.dimensionValues?.[0]?.value||'').length>60?'…'+(r.dimensionValues?.[0]?.value||'').slice(-57):r.dimensionValues?.[0]?.value||'—',
                                       parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
                                       parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
@@ -1381,12 +1381,12 @@ Return ONLY valid JSON (no markdown):
                           }
 
                           if (d.report_type === 'channels') {
-                            const prevMap: Record<string,any> = {}
-                            ga4PRows.forEach((r:any)=>{ prevMap[r.dimensionValues?.[0]?.value||'']=r })
+                            const prevMap: Object = {}
+                            ga4PRows.forEach((r)=>{ prevMap[r.dimensionValues?.[0]?.value||'']=r })
                             return (
                               <DataTable title="Traffic Channels"
                                 cols={['Channel','Sessions',compare!=='none'?'vs Prev':'','Users','New Users','Bounce','Conversions']}
-                                rows={ga4Rows.map((r:any)=>{
+                                rows={ga4Rows.map((r)=>{
                                   const ch = r.dimensionValues?.[0]?.value||'—'
                                   const p  = prevMap[ch]
                                   const dc = p ? delta(parseInt(r.metricValues?.[0]?.value||0),parseInt(p.metricValues?.[0]?.value||0)) : null
@@ -1404,12 +1404,12 @@ Return ONLY valid JSON (no markdown):
                           }
 
                           if (d.report_type === 'devices') {
-                            const ga4DevMap: Record<string,any> = {}
-                            ga4Rows.forEach((r:any)=>{ ga4DevMap[r.dimensionValues?.[0]?.value?.toLowerCase()||'']=r })
+                            const ga4DevMap: Object = {}
+                            ga4Rows.forEach((r)=>{ ga4DevMap[r.dimensionValues?.[0]?.value?.toLowerCase()||'']=r })
                             return (
                               <DataTable title="Device Breakdown"
                                 cols={['Device','GSC Clicks','GSC Impressions','GA4 Sessions','GA4 Users','Bounce']}
-                                rows={(gscRows.length?gscRows:ga4Rows).map((r:any)=>{
+                                rows={(gscRows.length?gscRows:ga4Rows).map((r)=>{
                                   const dev = (r.keys?.[0]||r.dimensionValues?.[0]?.value||'').toLowerCase()
                                   const ga  = ga4DevMap[dev]
                                   return gscRows.length ? [
@@ -1435,8 +1435,8 @@ Return ONLY valid JSON (no markdown):
                               cols={['Country','GSC Clicks','Impressions','GA4 Sessions','GA4 Users']}
                               maxRows={50}
                               rows={gscRows.length
-                                ? gscRows.map((r:any)=>{
-                                    const ga4Country = ga4Rows.find((a:any)=>a.dimensionValues?.[0]?.value?.toLowerCase()===r.keys?.[0]?.toLowerCase())
+                                ? gscRows.map((r)=>{
+                                    const ga4Country = ga4Rows.find((a)=>a.dimensionValues?.[0]?.value?.toLowerCase()===r.keys?.[0]?.toLowerCase())
                                     return [
                                       r.keys?.[0]||'—',
                                       r.clicks.toLocaleString(),
@@ -1445,7 +1445,7 @@ Return ONLY valid JSON (no markdown):
                                       ga4Country?parseInt(ga4Country.metricValues?.[1]?.value||0).toLocaleString():'—',
                                     ]
                                   })
-                                : ga4Rows.map((r:any)=>[
+                                : ga4Rows.map((r)=>[
                                     r.dimensionValues?.[0]?.value||'—','—','—',
                                     parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
                                     parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
@@ -1454,12 +1454,12 @@ Return ONLY valid JSON (no markdown):
 
                           if (d.report_type === 'daily_trend') {
                             // Build day-by-day table with both GSC and GA4
-                            const gscDayMap: Record<string,any> = {}
-                            gscRows.forEach((r:any)=>{ gscDayMap[r.keys?.[0]||'']=r })
-                            const gscPDayMap: Record<string,any> = {}
-                            gscPRows.forEach((r:any)=>{ gscPDayMap[r.keys?.[0]||'']=r })
-                            const ga4DayMap: Record<string,any> = {}
-                            ga4Rows.forEach((r:any)=>{ ga4DayMap[r.dimensionValues?.[0]?.value||'']=r })
+                            const gscDayMap: Object = {}
+                            gscRows.forEach((r)=>{ gscDayMap[r.keys?.[0]||'']=r })
+                            const gscPDayMap: Object = {}
+                            gscPRows.forEach((r)=>{ gscPDayMap[r.keys?.[0]||'']=r })
+                            const ga4DayMap: Object = {}
+                            ga4Rows.forEach((r)=>{ ga4DayMap[r.dimensionValues?.[0]?.value||'']=r })
                             // Merge all dates
                             const allDates = [...new Set([...Object.keys(gscDayMap),...Object.keys(ga4DayMap)])].sort().reverse()
                             return (
