@@ -1,5 +1,4 @@
 "use client";
-"use client";
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Trash2, Send, Edit2, Copy, Eye, ChevronLeft, MoreHorizontal } from 'lucide-react'

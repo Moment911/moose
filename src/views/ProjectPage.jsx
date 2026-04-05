@@ -1,5 +1,4 @@
 "use client";
-"use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { FileImage, FileText, Globe, Plus, Trash2, Clock, MessageSquare, Activity,

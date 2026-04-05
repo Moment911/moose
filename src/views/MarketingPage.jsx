@@ -1,5 +1,4 @@
 "use client";
-"use client";
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Users, Zap, Plus, Send, TrendingUp, BarChart3, ArrowUpRight, Layout, ListFilter, Sparkles, BookOpen } from 'lucide-react'
