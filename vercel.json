@@ -29,7 +29,7 @@
       "maxDuration": 60
     },
     "src/app/api/agent/chat/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "src/app/api/agent/cron/route.ts": {
       "maxDuration": 300

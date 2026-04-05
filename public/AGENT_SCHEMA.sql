@@ -96,9 +96,19 @@ CREATE TABLE IF NOT EXISTS agent_chats (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   client_id       uuid,
   agency_id       uuid,
-  role            text,   -- 'user','agent'
+  role            text,        -- 'user','agent'
   content         text,
+  scope           text,        -- 'koto','agency','client'
+  models_used     text[],      -- ['Claude','GPT-4o','Gemini']
   created_at      timestamptz DEFAULT now()
 );
 
+-- Add columns if table already exists
+ALTER TABLE agent_chats ADD COLUMN IF NOT EXISTS scope       text;
+ALTER TABLE agent_chats ADD COLUMN IF NOT EXISTS models_used text[];
+
 SELECT 'Agent tables created ✓' as result;
+
+-- Add scope/models_used to existing agent_chats if already created
+ALTER TABLE agent_chats ADD COLUMN IF NOT EXISTS scope       text;
+ALTER TABLE agent_chats ADD COLUMN IF NOT EXISTS models_used text[];
