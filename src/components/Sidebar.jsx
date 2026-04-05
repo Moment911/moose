@@ -62,7 +62,7 @@ function Section({ label }) {
 }
 
 export default function Sidebar() {
-  const { user, firstName, agencyId } = useAuth()
+  const { user, firstName, agencyId, isImpersonating, isPreviewingClient } = useAuth()
   const navigate = useNavigate()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 

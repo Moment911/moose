@@ -1,8 +1,9 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2, CheckCircle, AlertCircle, FileText, MessageSquare, Star, Globe, Clock, ChevronRight, Send, X } from 'lucide-react'
+import { Loader2, CheckCircle, AlertCircle, FileText, MessageSquare, Star, Globe, Clock, ChevronRight, Send, X, Eye } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import toast, { Toaster } from 'react-hot-toast'
 
 const RED  = '#ea2729'
@@ -12,7 +13,9 @@ const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Helvetica Neue',sans-serif"
 
 export default function ClientPortalPage() {
-  const { token } = useParams()
+  const { token, clientId: previewClientId } = useParams()
+  const { isPreviewingClient, clientPreview, stopClientPreview } = useAuth()
+  const isPreviewMode = token === 'preview' || !!previewClientId
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState(null)
   const [client,   setClient]   = useState(null)
@@ -25,7 +28,23 @@ export default function ClientPortalPage() {
   const [ticketForm, setTicketForm] = useState({ subject:'', message:'', email:'' })
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => { validateToken() }, [token])
+  useEffect(() => {
+    if (isPreviewMode && (clientPreview?.id || previewClientId)) {
+      loadDirectClient(clientPreview?.id || previewClientId)
+    } else {
+      validateToken()
+    }
+  }, [token, isPreviewMode])
+
+  async function loadDirectClient(cid) {
+    try {
+      const { data: cl } = await supabase.from('clients').select('*').eq('id', cid).single()
+      if (!cl) { setError('Client not found'); setLoading(false); return }
+      setClient(cl)
+      setSession({ preview: true })
+      loadClientData(cid)
+    } catch (e) { setError('Failed to load client'); setLoading(false) }
+  }
 
   async function validateToken() {
     try {
@@ -103,6 +122,20 @@ export default function ClientPortalPage() {
   return (
     <div style={{ minHeight:'100vh', background:'#f2f2f0' }}>
       <Toaster position="top-right"/>
+
+      {/* Preview Mode Banner */}
+      {isPreviewMode && (
+        <div style={{ background:'linear-gradient(90deg,#7c3aed,#4f46e5)', padding:'10px 24px', display:'flex', alignItems:'center', gap:12 }}>
+          <Eye size={15} color="#fff"/>
+          <div style={{ flex:1, fontSize:13, fontWeight:700, color:'#fff', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>
+            Preview mode — you are seeing exactly what <strong>{client?.name}</strong> sees in their client portal
+          </div>
+          <button onClick={()=>{ stopClientPreview(); window.history.back() }}
+            style={{ padding:'5px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,.4)', background:'rgba(255,255,255,.15)', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+            ✕ Exit Preview
+          </button>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ background:BLK, padding:'0 28px' }}>

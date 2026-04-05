@@ -75,6 +75,21 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('koto_imp_client')
   }
 
+  // ── Agency → Client view (agency previewing what their client sees) ─────────
+  const [clientPreview, setClientPreview] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('agency_client_preview') || 'null') } catch { return null }
+  })
+
+  function previewAsClient(clientObj) {
+    setClientPreview(clientObj)
+    sessionStorage.setItem('agency_client_preview', JSON.stringify(clientObj))
+  }
+
+  function stopClientPreview() {
+    setClientPreview(null)
+    sessionStorage.removeItem('agency_client_preview')
+  }
+
   useEffect(() => {
     if (BYPASS_AUTH) {
       // Load bypass agency name for personalization
@@ -132,10 +147,13 @@ export function AuthProvider({ children }) {
       firstName, initials, greeting, role, isOwner,
       agencyName: impersonatedAgency?.name || agency?.brand_name || agency?.name || '',
       agency: impersonatedAgency || agency,
-      // Impersonation
+      // Koto → Agency impersonation
       impersonatedAgency, impersonatedClient,
       impersonateAgency, impersonateClient, stopImpersonating,
       isImpersonating: !!impersonatedAgency,
+      // Agency → Client preview
+      clientPreview, previewAsClient, stopClientPreview,
+      isPreviewingClient: !!clientPreview,
     }}>
       {children}
     </AuthContext.Provider>

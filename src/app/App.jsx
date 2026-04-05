@@ -26,6 +26,7 @@ import MasterAdminPage from '../views/MasterAdminPage'
 import KotoSuperAdminPage from '../views/KotoSuperAdminPage'
 import RequireAuth from '../components/RequireAuth'
 import ImpersonationBanner from '../components/ImpersonationBanner'
+import AgencyControlPanel from '../components/AgencyControlPanel'
 import BrandGuidelinesPage from '../views/BrandGuidelinesPage'
 import TemplatesPage from '../views/TemplatesPage'
 import ContactsPage from '../views/ContactsPage'
@@ -97,6 +98,7 @@ export default function App() {
         <Toaster position="top-right" />
         <MobileShell>
         <ImpersonationBanner/>
+        <AgencyControlPanel/>
         <RequireAuth>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -105,6 +107,7 @@ export default function App() {
           <Route path="/db-setup" element={<DbSetupPage />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/portal/:token" element={<ClientPortalPage />} />
+          <Route path="/portal/preview/:clientId" element={<ClientPortalPage />} />
           <Route path="/agency-settings" element={<AgencySettingsPage />} />
           <Route path="/setup" element={<AgencySettingsPage />} />
           <Route path="/clients" element={<ClientsPage />} />

@@ -954,6 +954,22 @@ export default function ClientDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Client View Actions */}
+          <div style={{display:'flex',gap:8,padding:'0 0 4px'}}>
+            <button onClick={()=>{ previewAsClient(client); navigate('/portal/preview/'+client.id) }}
+              style={{flex:1,padding:'8px 12px',borderRadius:9,border:'none',background:'#7c3aed',color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+              <Eye size={12}/> View Client Portal
+            </button>
+            <button onClick={()=>navigate('/seo/gbp-audit')}
+              style={{flex:1,padding:'8px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',background:'transparent',color:'rgba(255,255,255,.8)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+              📍 GBP Audit
+            </button>
+            <button onClick={()=>navigate('/seo/onpage')}
+              style={{flex:1,padding:'8px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',background:'transparent',color:'rgba(255,255,255,.8)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+              🔍 SEO Audit
+            </button>
+          </div>
         </div>
 
         <MobileTabs tabs={mTabs} active={activeTab} onChange={setActiveTab}/>
@@ -1041,6 +1057,13 @@ export default function ClientDetailPage() {
                   </a>
                 )}
               </div>
+            </div>
+            {/* View as Client actions */}
+            <div style={{display:'flex',gap:8,flexShrink:0}}>
+              <button onClick={()=>{ previewAsClient(client); navigate('/portal/preview/'+client.id) }}
+                style={{padding:'8px 14px',borderRadius:9,border:'none',background:'#7c3aed',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+                <Eye className="w-4 h-4"/> View Client Portal
+              </button>
             </div>
           </div>
 
