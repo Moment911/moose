@@ -73,7 +73,6 @@ import CompetitorIntelPage from '../views/seo/CompetitorIntelPage'
 import CitationTrackerPage from '../views/seo/CitationTrackerPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
-import WordPressPage from '../views/WordPressPage'
 import SettingsPage from '../views/SettingsPage'
 import ClientDetailPage from '../views/ClientDetailPage'
 import OnboardingPage from '../views/OnboardingPage'
@@ -209,10 +208,8 @@ export default function App() {
           <Route path="/seo/white-label" element={<WhiteLabelReportPage />} />
           <Route path="/seo/competitor-intel" element={<CompetitorIntelPage />} />
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
-          <Route path="/seo/plugin" element={<SEOPluginPage />} />
-          <Route path="/seo/connect" element={<SEOConnectPage />} />
-          <Route path="/wordpress" element={<WordPressPage />} />
-        </Routes>
+          <Route path="/seo/plugin" element={<WordPressControlPage />} />
+          <Route path="/seo/connect" element={<SEOConnectPage />} />        </Routes>
         </RequireAuth>
         </MobileShell>
       </MobileMenuProvider>

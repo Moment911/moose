@@ -221,8 +221,12 @@ export async function POST(req: NextRequest) {
 
     // ── Get locations from plugin ─────────────────────────────────────────────
     if (action === 'get_locations') {
-      const { state } = body
-      const endpoint = state ? `locations/cities?state=${encodeURIComponent(state)}` : 'locations/states'
+      const { state, county } = body
+      let endpoint = 'locations/states'
+      if (state) {
+        endpoint = `locations/cities?state=${encodeURIComponent(state)}`
+        if (county) endpoint += `&county=${encodeURIComponent(county)}`
+      }
       const result = await proxyToPlugin(site, endpoint, 'GET')
       return NextResponse.json(result)
     }

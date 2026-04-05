@@ -25,7 +25,18 @@ const FB    = "'Raleway','Helvetica Neue',sans-serif"
 const PAGE_TYPES = ['service','location','industry','faq','blog','landing']
 const SCHEMA_TYPES = ['LocalBusiness','ProfessionalService','MedicalBusiness','HomeAndConstructionBusiness','FoodEstablishment','HealthAndBeautyBusiness','LegalService','FinancialService','AutomotiveBusiness']
 
-const US_STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming']
+const US_STATES = [
+  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+  ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],
+  ['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],
+  ['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],
+  ['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],
+  ['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],
+  ['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],
+  ['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],
+  ['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],
+  ['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming'],
+]
 
 function StatusDot({ connected }) {
   return (
@@ -142,8 +153,9 @@ export default function WordPressControlPage() {
       body: JSON.stringify({ action:'get_locations', site_id:selected.id, agency_id:agencyId, state:genConfig.state }),
     })
     const data = await res.json()
-    const locs = data.data?.cities || data.data?.locations || data.data || []
-    setLocations(Array.isArray(locs) ? locs : [])
+    const locs = data.data?.locations || data.data?.cities || (Array.isArray(data.data) ? data.data : [])
+    const parsed = Array.isArray(locs) ? locs : []
+    setLocations(parsed)
     setLocLoading(false)
   }
 
@@ -375,7 +387,7 @@ export default function WordPressControlPage() {
                           <select value={genConfig.state} onChange={e=>setGenConfig(p=>({...p,state:e.target.value,selected_locations:[]}))}
                             style={{ flex:1, padding:'8px 10px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:12, fontFamily:FB, outline:'none', background:'#fff' }}>
                             <option value="">Select state…</option>
-                            {US_STATES.map(s=><option key={s} value={s}>{s}</option>)}
+                            {US_STATES.map(([abbr,name])=><option key={abbr} value={abbr}>{name}</option>)}
                           </select>
                           <button onClick={loadLocations} disabled={!genConfig.state||locLoading}
                             style={{ padding:'8px 12px', borderRadius:9, border:'none', background:TEAL+'20', color:TEAL, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}>
@@ -397,7 +409,7 @@ export default function WordPressControlPage() {
                             </div>
                             <div style={{ maxHeight:160, overflowY:'auto', borderRadius:9, border:'1px solid #e5e7eb', background:'#fafafa' }}>
                               {locations.slice(0,100).map(loc => {
-                                const id = loc.id || loc.city
+                                const id = loc.id
                                 const sel = genConfig.selected_locations.includes(id)
                                 return (
                                   <div key={id} onClick={()=>setGenConfig(p=>({...p,selected_locations:sel?p.selected_locations.filter(x=>x!==id):[...p.selected_locations,id]}))}
@@ -405,7 +417,7 @@ export default function WordPressControlPage() {
                                     <div style={{ width:14, height:14, borderRadius:4, border:`2px solid ${sel?RED:'#d1d5db'}`, background:sel?RED:'#fff', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                                       {sel && <span style={{ color:'#fff', fontSize:9, fontWeight:900 }}>✓</span>}
                                     </div>
-                                    <span style={{ fontSize:12, color:'#374151', fontFamily:FB }}>{loc.city || loc.name}, {loc.state_abbr || genConfig.state.slice(0,2).toUpperCase()}</span>
+                                    <span style={{ fontSize:12, color:'#374151', fontFamily:FB }}>{loc.city}, {loc.state_code || genConfig.state}</span>
                                     {loc.population && <span style={{ fontSize:10, color:'#9ca3af', fontFamily:FB, marginLeft:'auto' }}>{(loc.population/1000).toFixed(0)}k</span>}
                                   </div>
                                 )
