@@ -346,6 +346,11 @@ export default function ClientsPage() {
                       ))}
                     </div>
                   )}
+                  {bizResults.length > 0 && (
+                    <div style={{ fontSize:12, color:'#6b7280', padding:'4px 0', fontWeight:600 }}>
+                      {bizResults.length} result{bizResults.length>1?'s':''} — click one to fill the form
+                    </div>
+                  )}
                   {bizSearched && bizResults.length===0 && !bizSearching && (
                     <div style={{ marginTop:8 }}>
                       <div style={{ fontSize:13, color:'#9ca3af', marginBottom:6 }}>No results — fill in details manually below</div>
@@ -621,11 +626,15 @@ export default function ClientsPage() {
         body: JSON.stringify({ query: query.trim() }),
       })
       const data = await res.json()
+      console.log('[Koto] places search response:', data)
       setBizDebug(data)
       if (data.error) toast.error(data.error)
-      setBizResults(data.results || [])
+      const results = data.results || []
+      console.log('[Koto] setting bizResults:', results.length, 'items')
+      setBizResults(results)
       setBizSearched(true)
     } catch(e) {
+      console.error('[Koto] search error:', e)
       setBizDebug({ error: e.message })
       toast.error('Search failed: ' + e.message)
     }
