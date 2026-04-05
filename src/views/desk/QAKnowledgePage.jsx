@@ -15,6 +15,8 @@ import {
   getAllKnowledge, rateAnswer
 } from '../../lib/qaKnowledge'
 import toast from 'react-hot-toast'
+import { useMobile } from '../../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileRow, MobileEmpty, MobileTabs, MobileSectionHeader } from '../../components/mobile/MobilePage'
 
 const RED = '#ea2729'
 const TEAL  = '#5bc6d0'
@@ -535,6 +537,65 @@ export default function QAKnowledgePage() {
     { key:'tickets', label:'Learn from Tickets', icon: MessageSquare, count: tickets.length, alert: tickets.length > 0 },
   ]
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const mTabs = [
+      {key:'ask',     label:'Ask AI'},
+      {key:'browse',  label:'Browse', count:entries.length},
+    ]
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Q&A Knowledge" subtitle="AI-powered support knowledge base"/>
+        <MobileTabs tabs={mTabs} active={tab} onChange={setTab}/>
+
+        {tab==='ask' && (
+          <div style={{padding:'14px 16px',display:'flex',flexDirection:'column',gap:12}}>
+            <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'14px'}}>
+              <textarea value={askQ} onChange={e=>setAskQ(e.target.value)}
+                placeholder="Ask anything about your clients or services…" rows={3}
+                style={{width:'100%',border:'none',outline:'none',fontSize:16,resize:'none',fontFamily:"'Raleway',sans-serif",color:'#0a0a0a',boxSizing:'border-box'}}/>
+              <button onClick={handleAsk} disabled={!askQ.trim()||askLoading}
+                style={{width:'100%',padding:'12px',borderRadius:10,border:'none',background:'#ea2729',color:'#fff',fontSize:15,fontWeight:700,cursor:askLoading||!askQ.trim()?'not-allowed':'pointer',opacity:askLoading||!askQ.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginTop:10}}>
+                {askLoading?'Thinking…':'Ask AI'}
+              </button>
+            </div>
+            {askAnswer && (
+              <div style={{background:'#fff',borderRadius:14,border:'1px solid #5bc6d0',padding:'14px'}}>
+                <div style={{fontSize:11,fontWeight:700,color:'#5bc6d0',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8}}>AI Answer</div>
+                <p style={{fontSize:15,color:'#0a0a0a',lineHeight:1.65,margin:0,fontFamily:"'Raleway',sans-serif"}}>{askAnswer}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab==='browse' && (
+          <>
+            <MobileSearch value={filterQ} onChange={setFilterQ} placeholder="Search knowledge base…"/>
+            {loading ? (
+              <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+            ) : entries.length===0 ? (
+              <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No entries yet — resolve tickets to auto-learn</div>
+            ) : (
+              <MobileCard style={{margin:'0 16px 16px'}}>
+                {entries.filter(e=>!filterQ||e.question?.toLowerCase().includes(filterQ.toLowerCase())||e.answer?.toLowerCase().includes(filterQ.toLowerCase())).map((e,i,arr)=>(
+                  <MobileRow key={e.id}
+                    borderBottom={i<arr.length-1}
+                    left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:e.is_verified?'#16a34a':'#d0d0cc'}}/>}
+                    title={e.question||e.subject_pattern||'Entry'}
+                    subtitle={e.answer_short||e.resolution||''}
+                    badge={e.is_verified?<span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'1px 6px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>✓</span>:null}/>
+                ))}
+              </MobileCard>
+            )}
+          </>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
       <Sidebar/>

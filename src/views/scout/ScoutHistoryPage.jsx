@@ -437,6 +437,40 @@ export default function ScoutHistoryPage() {
     { key:'reports',    label:'All Reports',       count: reports.length },
   ]
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Scout History"
+          subtitle={`${searches?.length||0} saved searches`}/>
+
+        <MobileSearch value={filterQ||''} onChange={v=>setFilterQ&&setFilterQ(v)} placeholder="Search history…"/>
+
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : !searches?.length ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No scout history yet — run a search in Scout</div>
+        ) : (
+          <MobileCard style={{margin:'0 16px 16px'}}>
+            {(searches||[]).filter(s=>!filterQ||s.query?.toLowerCase().includes(filterQ.toLowerCase())).map((s,i,arr)=>(
+              <MobileRow key={s.id}
+                onClick={()=>navigate('/scout')}
+                borderBottom={i<arr.length-1}
+                left={<div style={{width:36,height:36,borderRadius:10,background:'#5bc6d0'+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5bc6d0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </div>}
+                title={s.query||'Search'}
+                subtitle={[s.result_count?`${s.result_count} results`:null, s.created_at?new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):null].filter(Boolean).join(' · ')}/>
+            ))}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f4f4f5'}}>
       <Sidebar/>

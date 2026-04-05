@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import ScoutLayout from './ScoutLayout'
 import { useAuth } from '../../hooks/useAuth'
+import { useMobile } from '../../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileEmpty, MobileButton, MobileSectionHeader } from '../../components/mobile/MobilePage'
 import { supabase, saveScoutSearch } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
@@ -596,8 +598,93 @@ export default function ScoutPage() {
 
   const hasResults = results.length > 0
 
+
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const isSearching = loading
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Scout" subtitle="Find and score business leads"/>
+
+        {/* Search form */}
+        <div style={{padding:'12px 16px 0'}}>
+          <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'14px',display:'flex',flexDirection:'column',gap:10}}>
+            <input value={query} onChange={e=>setQuery(e.target.value)}
+              placeholder="Plumbers in Miami FL…"
+              style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}}
+              onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}
+              onKeyDown={e=>{if(e.key==='Enter')handleSearch()}}/>
+            <div style={{display:'flex',gap:8'}}>
+              <select value={mode} onChange={e=>setMode(e.target.value)}
+                style={{flex:1,padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,color:'#0a0a0a',background:'#fff'}}>
+                <option value="google_places">Google Maps</option>
+                <option value="ai_deep">AI Deep Scan</option>
+              </select>
+              <button onClick={handleSearch} disabled={!query.trim()||loading}
+                style={{padding:'11px 20px',borderRadius:10,border:'none',background:'#ea2729',color:'#fff',fontSize:15,fontWeight:700,cursor:loading||!query.trim()?'not-allowed':'pointer',opacity:loading||!query.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>
+                {loading?'…':'Search'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results */}
+        {loading && (
+          <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>Scanning…</div>
+        )}
+
+        {!loading && results.length===0 && query && (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No results found. Try a different query.</div>
+        )}
+
+        {!loading && results.length===0 && !query && (
+          <div style={{padding:'32px 24px',textAlign:'center'}}>
+            <div style={{fontSize:40,marginBottom:12}}>🎯</div>
+            <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:18,fontWeight:800,color:'#0a0a0a',marginBottom:6}}>Scout Leads</div>
+            <div style={{fontSize:14,color:'#9a9a96',lineHeight:1.6}}>Search for any business type + location to find and score prospects</div>
+          </div>
+        )}
+
+        {results.length>0 && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.08em'}}>
+              {results.length} results found
+            </div>
+            {results.map((lead,i)=>{
+              const score = lead.opportunity_score||lead.score||0
+              const scoreColor = score>=70?'#16a34a':score>=40?'#f59e0b':'#ea2729'
+              return (
+                <div key={i} style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'14px',borderLeft:`3px solid ${scoreColor}`}}>
+                  <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:8}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:15,fontWeight:800,color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lead.name||lead.business_name}</div>
+                      <div style={{fontSize:13,color:'#9a9a96',marginTop:2}}>{lead.address||lead.city}</div>
+                    </div>
+                    <div style={{textAlign:'center',flexShrink:0,marginLeft:10}}>
+                      <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:22,fontWeight:900,color:scoreColor,lineHeight:1}}>{score}</div>
+                      <div style={{fontSize:10,color:'#9a9a96',fontWeight:600}}>score</div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                    {lead.rating && <span style={{fontSize:12,color:'#f59e0b',fontWeight:700}}>★ {lead.rating}</span>}
+                    {lead.reviews_count && <span style={{fontSize:12,color:'#9a9a96'}}>({lead.reviews_count} reviews)</span>}
+                    {lead.phone && <span style={{fontSize:12,color:'#5a5a58'}}>{lead.phone}</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <ScoutLayout>
+
       <div style={{ display:'flex', flexDirection:'column', height:'100%', overflow:'hidden' }}>
 
         {/* ── Top bar ── */}

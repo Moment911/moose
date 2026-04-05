@@ -11,6 +11,8 @@ import {
 import Sidebar from '../../components/Sidebar'
 import AIThinkingBox from '../../components/AIThinkingBox'
 import { supabase } from '../../lib/supabase'
+import { useMobile } from '../../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader, MobileEmpty, MobileTabs } from '../../components/mobile/MobilePage'
 import { callClaude } from '../../lib/ai'
 import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
@@ -181,7 +183,82 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
       <div style={{ background:bg, borderRadius:16, padding:'22px 20px', border:`1px solid ${accent||teal?'transparent':'#e5e7eb'}`, boxShadow: accent?`0 8px 24px ${RED}30`:teal?`0 8px 24px ${TEAL}30`:'none' }}>
         <I size={20} color={accent||teal?'rgba(255,255,255,.8)':'#374151'} style={{ marginBottom:14 }}/>
         <div style={{ fontSize:34, fontWeight:900, color, letterSpacing:-1, lineHeight:1 }}>
-          {value ?? <span style={{ fontSize:22 }}>—</span>}
+          {value ?? <span style={{ fontSize:22 }}>—</span>}  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const TABS_M = [
+      {key:'overview',  label:'Overview'},
+      {key:'keywords',  label:'Keywords', count:keywords?.length},
+      {key:'sites',     label:'WP Sites', count:sites?.length},
+    ]
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="SEO Hub" subtitle="Search visibility & analytics"/>
+        <MobileTabs tabs={TABS_M} active={tab} onChange={setTab}/>
+
+        {tab==='overview' && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            <MobileCard style={{padding:'14px'}}>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:10}}>Connections</div>
+              {[
+                {label:'Google Search Console',key:'gsc',color:'#4285f4'},
+                {label:'Google Analytics 4',   key:'ga4',color:'#e8710a'},
+                {label:'Google Business Profile',key:'gmb',color:'#34a853'},
+              ].map((p,i)=>(
+                <div key={p.key} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:i<2?'1px solid #f2f2f0':'none'}}>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:600,color:'#0a0a0a'}}>{p.label}</div>
+                  {connections?.[p.key]
+                    ? <span style={{fontSize:11,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>✓ Connected</span>
+                    : <button style={{padding:'5px 12px',borderRadius:8,border:`1px solid ${p.color}`,background:'transparent',color:p.color,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Connect</button>
+                  }
+                </div>
+              ))}
+            </MobileCard>
+          </div>
+        )}
+
+        {tab==='keywords' && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {!keywords?.length ? (
+              <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No keywords tracked yet</div>
+            ) : (
+              <MobileCard style={{margin:0}}>
+                {keywords.slice(0,20).map((kw,i)=>(
+                  <MobileRow key={kw.id||i}
+                    borderBottom={i<keywords.length-1}
+                    title={kw.keyword}
+                    subtitle={`Position ${kw.position||'—'} · ${kw.clicks||0} clicks`}
+                    badge={<span style={{fontSize:12,fontWeight:800,color:kw.position<=3?'#16a34a':kw.position<=10?'#f59e0b':'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{kw.position||'—'}</span>}/>
+                ))}
+              </MobileCard>
+            )}
+          </div>
+        )}
+
+        {tab==='sites' && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {!sites?.length ? (
+              <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No WordPress sites connected</div>
+            ) : (
+              <MobileCard style={{margin:0}}>
+                {sites.map((s,i)=>(
+                  <MobileRow key={s.id} borderBottom={i<sites.length-1}
+                    title={s.name||s.url}
+                    subtitle={s.url}
+                    badge={<span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 6px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>v{s.plugin_version||'?'}</span>}/>
+                ))}
+              </MobileCard>
+            )}
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
+  /* ─── DESKTOP ─── */
+
         </div>
         <div style={{ fontSize:15, fontWeight:800, color, marginTop:8 }}>{label}</div>
         <div style={{ fontSize:13, color:subC, marginTop:3 }}>{sub}</div>

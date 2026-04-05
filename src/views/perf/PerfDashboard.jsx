@@ -11,6 +11,8 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
+import { useMobile } from '../../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileStatStrip, MobileTabs, MobileCard, MobileSectionHeader, MobileRow, MobileEmpty } from '../../components/mobile/MobilePage'
 
 const RED   = '#ea2729'
 const TEAL  = '#5bc6d0'
@@ -275,7 +277,103 @@ export default function PerfDashboard() {
 
   const selectedClient = clients.find(c=>c.id===selClient)
 
-  return (
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const MOBILE_TABS = [
+      {key:'overview',    label:'Overview'},
+      {key:'campaigns',   label:'Campaigns'},
+      {key:'recs',        label:'AI Recs',  count:recs.filter(r=>r.status==='pending').length},
+    ]
+    const [mTab, setMTab] = React.useState('overview')
+    const fRecs = recs.filter(r=>r.status==='pending')
+    const totSpend   = campaigns.reduce((s,c)=>s+(c.cost||0),0)
+    const totClicks  = campaigns.reduce((s,c)=>s+(c.clicks||0),0)
+    const totConv    = campaigns.reduce((s,c)=>s+(c.conversions||0),0)
+    const avgROAS    = campaigns.length ? campaigns.reduce((s,c)=>s+(c.roas||0),0)/campaigns.length : 0
+
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Performance"
+          subtitle={selectedClientId ? (clients.find(c=>c.id===selectedClientId)?.name||'Client') : 'Select a client'}/>
+
+        {/* Client picker */}
+        <div style={{padding:'10px 16px 0'}}>
+          <select value={selectedClientId||''} onChange={e=>setSelectedClientId(e.target.value||null)}
+            style={{width:'100%',padding:'11px 13px',borderRadius:11,border:'1px solid #ececea',fontSize:16,color:'#0a0a0a',background:'#fff'}}>
+            <option value="">Select client…</option>
+            {clients.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
+          </select>
+        </div>
+
+        {selectedClientId && <>
+          <MobileStatStrip stats={[
+            {label:'Spend',    value:'$'+Math.round(totSpend).toLocaleString()},
+            {label:'Clicks',   value:totClicks.toLocaleString()},
+            {label:'Conv',     value:totConv.toFixed(0)},
+            {label:'Avg ROAS', value:avgROAS.toFixed(1)+'x', color:avgROAS>=3?'#16a34a':avgROAS>=1.5?'#f59e0b':'#ea2729'},
+          ]}/>
+
+          <MobileTabs tabs={MOBILE_TABS} active={mTab} onChange={setMTab}/>
+
+          {mTab==='overview' && (
+            <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+              {campaigns.slice(0,5).map(cam=>(
+                <MobileCard key={cam.id} style={{padding:'14px'}}>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a',marginBottom:6,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cam.name}</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                    {[{label:'Spend',v:'$'+Math.round(cam.cost||0).toLocaleString()},{label:'Clicks',v:(cam.clicks||0).toLocaleString()},{label:'Conv',v:(cam.conversions||0).toFixed(0)},{label:'ROAS',v:(cam.roas||0).toFixed(1)+'x'}].map(m=>(
+                      <div key={m.label} style={{background:'#f8f8f6',borderRadius:9,padding:'8px 10px'}}>
+                        <div style={{fontSize:11,color:'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em'}}>{m.label}</div>
+                        <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>{m.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                </MobileCard>
+              ))}
+            </div>
+          )}
+
+          {mTab==='campaigns' && (
+            <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+              {campaigns.length===0
+                ? <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No campaign data yet</div>
+                : campaigns.map(cam=>(
+                <MobileCard key={cam.id}>
+                  <MobileRow title={cam.name}
+                    subtitle={`${cam.status||'—'} · Budget $${Math.round(cam.budget_amount||0)}/day`}
+                    left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:cam.status==='ENABLED'?'#16a34a':'#9a9a96'}}/>}
+                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#ea2729',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
+                    borderBottom={false}/>
+                </MobileCard>
+              ))}
+            </div>
+          )}
+
+          {mTab==='recs' && (
+            <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+              {fRecs.length===0
+                ? <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No pending recommendations</div>
+                : fRecs.map(r=>(
+                <MobileCard key={r.id} style={{padding:'14px',borderLeft:`3px solid ${r.priority==='high'?'#ea2729':r.priority==='medium'?'#f59e0b':'#9a9a96'}`}}>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:4}}>{r.title}</div>
+                  <p style={{fontSize:13,color:'#5a5a58',margin:'0 0 10px',lineHeight:1.5}}>{r.description}</p>
+                  <div style={{display:'flex',gap:6}}>
+                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:'#16a34a',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{r.est_impact}</span>
+                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f2f2f0',color:'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{Math.round((r.confidence||0)*100)}% confidence</span>
+                  </div>
+                </MobileCard>
+              ))}
+            </div>
+          )}
+        </>}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
+ (
     <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>

@@ -238,6 +238,88 @@ export default function DeskReportsPage() {
       })(),
     }))
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const t = filteredTickets
+    const resolved = t.filter(x=>['resolved','closed'].includes(x.status))
+    const avgRes = resolved.length ? Math.round(resolved.reduce((s,x)=>{
+      if(!x.created_at||!x.resolved_at) return s
+      return s+(new Date(x.resolved_at)-new Date(x.created_at))/3600000
+    },0)/resolved.length) : null
+
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Desk Reports" subtitle="Support performance metrics"/>
+
+        {/* Range picker */}
+        <div style={{display:'flex',overflowX:'auto',background:'#fff',borderBottom:'1px solid #ececea',scrollbarWidth:'none'}}>
+          {[{key:'7d',label:'7 days'},{key:'30d',label:'30 days'},{key:'90d',label:'90 days'},{key:'all',label:'All time'}].map(r=>(
+            <button key={r.key} onClick={()=>setRange(r.key)}
+              style={{flexShrink:0,padding:'0 16px',height:42,border:'none',
+                borderBottom:`2.5px solid ${range===r.key?'#ea2729':'transparent'}`,
+                background:'transparent',color:range===r.key?'#ea2729':'#9a9a96',
+                fontSize:14,fontWeight:range===r.key?700:500,cursor:'pointer',
+                fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+
+        <MobileStatStrip stats={[
+          {label:'Total',    value:t.length},
+          {label:'Resolved', value:resolved.length, color:'#16a34a'},
+          {label:'Open',     value:t.filter(x=>['new','open','in_progress'].includes(x.status)).length, color:'#f59e0b'},
+          {label:'Avg Hrs',  value:avgRes!=null?avgRes+'h':'—'},
+        ]}/>
+
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {/* Category breakdown */}
+            <MobileCard style={{padding:'14px'}}>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:12}}>By Category</div>
+              {Object.entries(t.reduce((acc,tk)=>{acc[tk.category||'general']=(acc[tk.category||'general']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([cat,cnt])=>(
+                <div key={cat} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                  <div style={{fontSize:13,color:'#5a5a58',flex:1,fontFamily:"'Raleway',sans-serif",textTransform:'capitalize'}}>{cat}</div>
+                  <div style={{height:6,flex:2,background:'#f2f2f0',borderRadius:3,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:`${Math.round(cnt/t.length*100)}%`,background:'#ea2729',borderRadius:3}}/>
+                  </div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#0a0a0a',minWidth:24,textAlign:'right',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{cnt}</div>
+                </div>
+              ))}
+            </MobileCard>
+
+            {/* Agent table */}
+            {agents.length>0 && (
+              <MobileCard style={{padding:'14px'}}>
+                <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:12}}>Agent Effort</div>
+                {agents.map(ag=>{
+                  const agT=t.filter(x=>x.assigned_agent_id===ag.id)
+                  return (
+                    <div key={ag.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid #f2f2f0'}}>
+                      <div>
+                        <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{ag.name}</div>
+                        <div style={{fontSize:12,color:'#9a9a96'}}>{ag.role}</div>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>{agT.length}</div>
+                        <div style={{fontSize:11,color:'#9a9a96'}}>tickets</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </MobileCard>
+            )}
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
       <Sidebar/>

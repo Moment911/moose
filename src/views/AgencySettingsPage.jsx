@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader } from '../components/mobile/MobilePage'
 import { useNavigate } from 'react-router-dom'
 import {
   Building2, Palette, Users, CreditCard, Zap, Shield, Bell,
@@ -147,6 +149,7 @@ export default function AgencySettingsPage() {
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
   const [searchParams] = useSearchParams()
+  const isMobile = useMobile()
   const [section, setSection] = useState(searchParams.get('section')||'agency')
   const [saving,  setSaving]  = useState(false)
 
@@ -691,6 +694,56 @@ export default function AgencySettingsPage() {
     }
   }
 
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const mSections = SECTIONS.filter(s => s.group === {
+      'Agency':'Agency','Platform':'Platform','Intelligence':'Intelligence'
+    }[s.group] || true)
+
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Settings" subtitle="All agency settings"/>
+
+        {/* Section list */}
+        <div style={{display:'flex',flexDirection:'column',gap:0}}>
+          {['Agency','Platform','Intelligence'].map(group=>{
+            const items = SECTIONS.filter(s=>s.group===group)
+            return (
+              <div key={group}>
+                <MobileSectionHeader title={group}/>
+                <MobileCard style={{margin:'0 16px 12px'}}>
+                  {items.map((s,i)=>{
+                    const I = s.icon
+                    return (
+                      <MobileRow key={s.key}
+                        onClick={()=>setSection(s.key)}
+                        borderBottom={i<items.length-1}
+                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#ea2729':'#f2f2f0',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                          <I size={16} color={section===s.key?'#fff':'#5a5a58'}/>
+                        </div>}
+                        title={s.label}/>
+                    )
+                  })}
+                </MobileCard>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Current section content */}
+        {section && (
+          <div style={{padding:'0 16px 24px'}}>
+            <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:17,fontWeight:800,color:'#0a0a0a',padding:'8px 0 12px',letterSpacing:'-.02em'}}>
+              {SECTIONS.find(s=>s.key===section)?.label}
+            </div>
+            {renderSection()}
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0', fontFamily:FB }}>
       <Sidebar/>

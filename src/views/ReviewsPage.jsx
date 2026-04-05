@@ -15,6 +15,8 @@ import { useClient } from '../context/ClientContext'
 import { callClaude } from '../lib/ai'
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobileSearch, MobileRow, MobileCard, MobileEmpty, MobileButton, MobileTabs, MobilePageHeader, MobileStatStrip, MobileSectionHeader } from '../components/mobile/MobilePage'
 
 const ACCENT = '#ea2729'
 const TEAL = '#5bc6d0'
@@ -498,6 +500,98 @@ export default function ReviewsPage() {
     return mp && ms && mt && mq
   })
 
+
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const starArr = [5,4,3,2,1]
+    const fReviews = reviews.filter(r=>{
+      const q=search.toLowerCase()
+      const matchQ=!q||r.reviewer_name?.toLowerCase().includes(q)||r.review_text?.toLowerCase().includes(q)
+      const matchS=filterStars===0||r.star_rating===filterStars
+      const matchP=filterPlatform==='all'||r.platform===filterPlatform
+      return matchQ&&matchS&&matchP
+    })
+    const avg = reviews.length ? (reviews.reduce((s,r)=>s+(r.star_rating||0),0)/reviews.length).toFixed(1) : '—'
+    const platforms = [...new Set(reviews.map(r=>r.platform).filter(Boolean))]
+
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Reviews"
+          subtitle={`${reviews.length} reviews · ${avg}★ avg`}/>
+
+        {reviews.length>0 && <MobileStatStrip stats={[
+          {label:'Total',   value:reviews.length},
+          {label:'Avg ★',  value:avg},
+          {label:'5 Star',  value:reviews.filter(r=>r.star_rating===5).length, color:'#16a34a'},
+          {label:'1-2 Star',value:reviews.filter(r=>r.star_rating<=2).length,  color:'#ea2729'},
+        ]}/>}
+
+        {/* Client picker */}
+        {clients.length>0 && (
+          <div style={{padding:'10px 16px'}}>
+            <select value={selectedClient?.id||''} onChange={e=>{const cl=clients.find(c=>c.id===e.target.value);if(cl)setSelectedClient(cl)}}
+              style={{width:'100%',padding:'11px 13px',borderRadius:11,border:'1px solid #ececea',fontSize:16,color:'#0a0a0a',background:'#fff',fontFamily:"'Raleway',sans-serif"}}>
+              <option value="">Select a client…</option>
+              {clients.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
+            </select>
+          </div>
+        )}
+
+        <MobileSearch value={search} onChange={setSearch} placeholder="Search reviews…"/>
+
+        {/* Star filter */}
+        <div style={{display:'flex',gap:6,padding:'0 16px 10px',overflowX:'auto',scrollbarWidth:'none'}}>
+          {[0,...starArr].map(s=>(
+            <button key={s} onClick={()=>setFilterStars(s)}
+              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#ea2729':'#ececea'}`,background:filterStars===s?'#ea2729':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+              {s===0?'All':'★'.repeat(s)}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : !selectedClient ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>Select a client to view their reviews</div>
+        ) : fReviews.length===0 ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No reviews found</div>
+        ) : (
+          <div style={{padding:'0 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {fReviews.map(r=>{
+              const stars='★'.repeat(r.star_rating||0)+'☆'.repeat(5-(r.star_rating||0))
+              const isNeg=(r.star_rating||0)<=2
+              return (
+                <div key={r.id} style={{background:'#fff',borderRadius:14,border:`1px solid ${isNeg?'#fecaca':'#ececea'}`,padding:'14px',borderLeft:`3px solid ${isNeg?'#ea2729':'#16a34a'}`}}>
+                  <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6}}>
+                    <div>
+                      <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{r.reviewer_name||'Anonymous'}</div>
+                      <div style={{fontSize:13,color:'#f59e0b',letterSpacing:1}}>{stars}</div>
+                    </div>
+                    <span style={{fontSize:11,color:'#9a9a96',flexShrink:0}}>{r.platform}</span>
+                  </div>
+                  {r.review_text && <p style={{fontSize:14,color:'#5a5a58',margin:'0 0 8px',lineHeight:1.55,fontFamily:"'Raleway',sans-serif"}}>{r.review_text}</p>}
+                  {r.response_text ? (
+                    <div style={{background:'#f8f8f6',borderRadius:9,padding:'10px 12px',borderLeft:'2px solid #5bc6d0'}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#5bc6d0',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
+                      <p style={{fontSize:13,color:'#5a5a58',margin:0,lineHeight:1.5}}>{r.response_text}</p>
+                    </div>
+                  ) : isNeg && (
+                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #ea2729',background:'transparent',color:'#ea2729',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                      Generate AI Response
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
       <Sidebar/>

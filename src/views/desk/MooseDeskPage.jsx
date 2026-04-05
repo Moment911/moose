@@ -11,6 +11,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { triageTicket, applyRoutingRules, logActivity, CATEGORIES } from '../../lib/moosedesk'
 import { emailTicketCreated } from '../../lib/deskEmail'
 import toast from 'react-hot-toast'
+import { useMobile } from '../../hooks/useMobile'
+import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, MobileEmpty, MobileButton, MobileTabs, MobilePageHeader, MobileStatStrip } from '../../components/mobile/MobilePage'
 
 const RED = '#ea2729'
 const TEAL = '#5bc6d0'
@@ -265,6 +267,102 @@ export default function KotoDeskPage() {
     return matchTab && matchQ
   })
 
+  const isMobile = useMobile()
+
+  const PRI = { urgent:{color:'#ea2729',label:'Urgent'}, high:{color:'#f59e0b',label:'High'}, normal:{color:'#9a9a96',label:'Normal'}, low:{color:'#d0d0cc',label:'Low'} }
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const tabList = [
+      {key:'all',      label:'All',       count:stats.total},
+      {key:'new',      label:'New',       count:stats.new},
+      {key:'open',     label:'Open',      count:stats.open},
+      {key:'urgent',   label:'Urgent',    count:stats.urgent},
+      {key:'resolved', label:'Resolved',  count:stats.resolved},
+    ]
+    const filtered = tickets.filter(t=>{
+      if(tab!=='all'&&tab!=='new'&&tab!=='open'&&tab!=='urgent'&&tab!=='resolved') return true
+      if(tab==='new') return t.status==='new'
+      if(tab==='open') return ['open','in_progress','pending','waiting'].includes(t.status)
+      if(tab==='urgent') return ['urgent','critical'].includes(t.priority)
+      if(tab==='resolved') return ['resolved','closed'].includes(t.status)
+      return true
+    }).filter(t=>!filterQ||t.subject?.toLowerCase().includes(filterQ.toLowerCase()))
+
+    const priColor = p => ({urgent:'#ea2729',high:'#f59e0b',normal:'#9a9a96',low:'#d0d0cc'})[p]||'#9a9a96'
+
+    return (
+      <MobilePage padded={false}>
+        {/* Header */}
+        <MobilePageHeader
+          title="KotoDesk"
+          subtitle={`${stats.total||0} tickets · ${stats.open||0} open`}
+          action={<button onClick={()=>setShowNew(true)}
+            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>}/>
+
+        {/* Stats */}
+        <MobileStatStrip stats={[
+          {label:'Total',    value:stats.total||0},
+          {label:'New',      value:stats.new||0,      color:stats.new>0?'#ea2729':undefined},
+          {label:'Open',     value:stats.open||0,     color:stats.open>0?'#f59e0b':undefined},
+          {label:'Resolved', value:stats.resolved||0, color:'#16a34a'},
+        ]}/>
+
+        {/* Search */}
+        <MobileSearch value={filterQ} onChange={setFilterQ} placeholder="Search tickets…"/>
+
+        {/* Tabs */}
+        <MobileTabs tabs={tabList} active={tab} onChange={setTab}/>
+
+        {/* New ticket form */}
+        {showNew && (
+          <div style={{margin:'12px 16px',background:'#fff',borderRadius:14,border:'2px solid #ea2729',padding:'16px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <span style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>New Ticket</span>
+              <button onClick={()=>setShowNew(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#9a9a96'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              <input id="m-subj" placeholder="Subject *" style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}} onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+              <textarea id="m-desc" placeholder="Description" rows={3} style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box',resize:'none'}} onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+              <div style={{display:'flex',gap:8}}>
+                <button onClick={async()=>{
+                  const subj=document.getElementById('m-subj')?.value
+                  const desc=document.getElementById('m-desc')?.value
+                  if(!subj){toast.error('Subject required');return}
+                  const {data:ticket}=await supabase.from('desk_tickets').insert({agency_id:aid,subject:subj,description:desc||'',status:'new',priority:'normal',category:'general',ticket_number:'TK-'+Date.now().toString().slice(-6)}).select().single()
+                  if(ticket){toast.success('Ticket created');setShowNew(false);load()}
+                }} style={{flex:1,padding:'12px',borderRadius:11,border:'none',background:'#ea2729',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Submit</button>
+                <button onClick={()=>setShowNew(false)} style={{flex:1,padding:'12px',borderRadius:11,border:'1px solid #ececea',background:'transparent',color:'#0a0a0a',fontSize:15,fontWeight:600,cursor:'pointer'}}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ticket list */}
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : filtered.length===0 ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No tickets {filterQ?'matching "'+filterQ+'"':''}</div>
+        ) : (
+          <MobileCard style={{margin:'12px 16px'}}>
+            {filtered.map((t,i)=>(
+              <MobileRow key={t.id}
+                onClick={()=>navigate('/desk/ticket/'+t.id)}
+                borderBottom={i<filtered.length-1}
+                left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:priColor(t.priority)}}/>}
+                title={t.subject}
+                subtitle={[t.status?.replace('_',' '), t.submitter_name, t.ai_category].filter(Boolean).join(' · ')}
+                badge={t.status==='new'?<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#ea2729',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>NEW</span>:null}/>
+            ))}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   const TABS = [
     {key:'all',        label:'All',        count:stats.total},
     {key:'new',        label:'New',        count:stats.new},

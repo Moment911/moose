@@ -5,13 +5,15 @@ import {
   FileText, Plus, Search, Filter, Send, CheckCircle,
   Clock, Eye, XCircle, ArrowRight, MoreHorizontal,
   Copy, Trash2, Edit, TrendingUp, DollarSign,
-  AlertCircle, ChevronDown
+  AlertCircle, ChevronDown, Shield, Layers
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileRow, MobileEmpty, MobileSectionHeader, MobileTabs } from '../components/mobile/MobilePage'
 
 const ACCENT = '#ea2729'
 const TEAL = '#5bc6d0'
@@ -113,6 +115,67 @@ export default function ProposalsPage() {
     value:    proposals.filter(p => p.status === 'accepted').reduce((s, p) => s + (p.total_value || 0), 0),
   }
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  const [mobileStatus, setMobileStatus] = useState('all')
+  if (isMobile) {
+    const TYPE_COLORS = { proposal:'#ea2729', agreement:'#7c3aed', sow:'#16a34a', other:'#9a9a96' }
+    const mobileFiltered = mobileStatus==='all' ? proposals : proposals.filter(p=>p.status===mobileStatus)
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Proposals"
+          subtitle={`${proposals.length} total`}
+          action={<button onClick={()=>navigate('/proposals/new')}
+            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <Plus size={20}/>
+          </button>}/>
+
+        <div style={{display:'flex',overflowX:'auto',background:'#fff',borderBottom:'1px solid #ececea',scrollbarWidth:'none'}}>
+          {['all','draft','sent','signed','declined'].map(s=>(
+            <button key={s} onClick={()=>setMobileStatus(s)}
+              style={{flexShrink:0,padding:'0 16px',height:42,border:'none',
+                borderBottom:`2.5px solid ${mobileStatus===s?'#ea2729':'transparent'}`,
+                background:'transparent',color:mobileStatus===s?'#ea2729':'#9a9a96',
+                fontSize:14,fontWeight:mobileStatus===s?700:500,cursor:'pointer',
+                fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",whiteSpace:'nowrap'}}>
+              {s.charAt(0).toUpperCase()+s.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : mobileFiltered.length===0 ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>
+            No proposals found
+          </div>
+        ) : (
+          <MobileCard style={{margin:'12px 16px'}}>
+            {mobileFiltered.map((p,i)=>{
+              const color = TYPE_COLORS[p.type]||'#9a9a96'
+              const sts = p.status
+              const stsBg = sts==='signed'?'#f0fdf4':sts==='sent'?'#f0fbfc':sts==='declined'?'#fef2f2':'#f2f2f0'
+              const stsColor = sts==='signed'?'#16a34a':sts==='sent'?'#0e7490':sts==='declined'?'#ea2729':'#9a9a96'
+              return (
+                <MobileRow key={p.id}
+                  onClick={()=>navigate(`/proposals/${p.id}`)}
+                  borderBottom={i<filtered.length-1}
+                  left={<div style={{width:38,height:38,borderRadius:10,background:color+'15',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <FileText size={17} color={color}/>
+                  </div>}
+                  title={p.title||'Untitled'}
+                  subtitle={[p.client_name, p.total_value?`$${Number(p.total_value).toLocaleString()}`:null].filter(Boolean).join(' · ')}
+                  badge={<span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:stsBg,color:stsColor,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0,textTransform:'capitalize'}}>{sts||'draft'}</span>}/>
+              )
+            })}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
       <Sidebar/>

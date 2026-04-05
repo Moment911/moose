@@ -14,6 +14,8 @@ import { emailReplySent, emailTicketResolved } from '../../lib/deskEmail'
 import { learnFromResolvedTicket, searchKnowledge } from '../../lib/qaKnowledge'
 import { callClaude } from '../../lib/ai'
 import toast from 'react-hot-toast'
+import { useMobile } from '../../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileButton } from '../../components/mobile/MobilePage'
 
 const RED   = '#ea2729'
 const TEAL  = '#5bc6d0'
@@ -471,6 +473,85 @@ export default function DeskTicketPage() {
     </div>
   )
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const PRI = {urgent:{color:'#ea2729'},high:{color:'#f59e0b'},normal:{color:'#9a9a96'},low:{color:'#d0d0cc'}}
+    const priColor = PRI[ticket?.priority]?.color||'#9a9a96'
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader
+          title={ticket ? `#${ticket.ticket_number||'Ticket'}` : 'Ticket'}
+          subtitle={ticket?.subject||'Loading…'}/>
+
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : !ticket ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Ticket not found</div>
+        ) : (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {/* Status/priority pills */}
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <span style={{fontSize:12,fontWeight:700,padding:'4px 10px',borderRadius:20,background:'#f2f2f0',color:'#5a5a58',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",textTransform:'capitalize'}}>{ticket.status?.replace('_',' ')}</span>
+              <span style={{fontSize:12,fontWeight:700,padding:'4px 10px',borderRadius:20,background:priColor+'15',color:priColor,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",textTransform:'capitalize'}}>{ticket.priority||'normal'}</span>
+              {ticket.ai_category && <span style={{fontSize:12,fontWeight:700,padding:'4px 10px',borderRadius:20,background:'#f0fbfc',color:'#0e7490',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{ticket.ai_category}</span>}
+            </div>
+
+            {/* Description */}
+            <MobileCard style={{padding:'14px'}}>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}}>Description</div>
+              <p style={{fontSize:15,color:'#0a0a0a',lineHeight:1.65,margin:0,fontFamily:"'Raleway',sans-serif"}}>{ticket.description||'No description'}</p>
+            </MobileCard>
+
+            {/* AI Summary */}
+            {ticket.ai_summary && (
+              <MobileCard style={{padding:'14px',borderLeft:'3px solid #5bc6d0'}}>
+                <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:12,fontWeight:700,color:'#5bc6d0',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:6}}>AI Summary</div>
+                <p style={{fontSize:14,color:'#5a5a58',lineHeight:1.6,margin:0,fontFamily:"'Raleway',sans-serif"}}>{ticket.ai_summary}</p>
+              </MobileCard>
+            )}
+
+            {/* Replies */}
+            {replies?.length>0 && (
+              <MobileCard style={{padding:'14px'}}>
+                <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:10}}>Replies ({replies.length})</div>
+                {replies.map((r,i)=>(
+                  <div key={r.id} style={{paddingBottom:i<replies.length-1?12:0,marginBottom:i<replies.length-1?12:0,borderBottom:i<replies.length-1?'1px solid #f2f2f0':'none'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                      <div style={{width:28,height:28,borderRadius:'50%',background:r.author_type==='agent'?'#ea2729':'#f2f2f0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:r.author_type==='agent'?'#fff':'#5a5a58',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                        {(r.author_name||'?')[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <span style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#0a0a0a'}}>{r.author_name||'Agent'}</span>
+                        <span style={{fontSize:11,color:'#9a9a96',marginLeft:8}}>{new Date(r.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
+                      </div>
+                    </div>
+                    <p style={{fontSize:14,color:'#5a5a58',lineHeight:1.6,margin:0,fontFamily:"'Raleway',sans-serif",paddingLeft:36}}>{r.body}</p>
+                  </div>
+                ))}
+              </MobileCard>
+            )}
+
+            {/* Reply box */}
+            <MobileCard style={{padding:'14px'}}>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.07em',marginBottom:8}}>Reply</div>
+              <textarea value={replyText||''} onChange={e=>setReplyText&&setReplyText(e.target.value)}
+                placeholder="Type your reply…" rows={3}
+                style={{width:'100%',border:'1px solid #ececea',borderRadius:10,padding:'10px 12px',fontSize:16,outline:'none',resize:'none',boxSizing:'border-box',fontFamily:"'Raleway',sans-serif",color:'#0a0a0a'}}
+                onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+              <div style={{display:'flex',gap:8,marginTop:10}}>
+                <MobileButton label="Send Reply" onPress={()=>submitReply&&submitReply()}/>
+                <MobileButton label="Resolve" onPress={()=>resolveTicket&&resolveTicket()} secondary/>
+              </div>
+            </MobileCard>
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f4f4f5'}}>
       <Sidebar/>

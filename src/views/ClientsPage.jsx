@@ -11,6 +11,8 @@ import { getClients, createClient_, updateClient, deleteClient } from '../lib/su
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, MobileEmpty, MobileButton, MobileTabs } from '../components/mobile/MobilePage'
 
 const ACCENT = '#ea2729'
 const TEAL = '#5bc6d0'
@@ -142,6 +144,110 @@ export default function ClientsPage() {
     })
 
   const industries = [...new Set(clients.map(c => c.industry).filter(Boolean))]
+  const isMobile = useMobile()
+
+  /* ─────────────── MOBILE ─────────────── */
+  if (isMobile) {
+    const statuses = ['all','active','prospect','inactive','paused']
+    return (
+      <MobilePage padded={false}>
+        {/* Header */}
+        <div style={{ background:'#0a0a0a', padding:'16px 16px 14px' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div>
+              <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>Clients</h1>
+              <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'2px 0 0' }}>
+                {clients.length} total · {clients.filter(c=>c.status==='active').length} active
+              </p>
+            </div>
+            <button onClick={()=>{setEditingId(null);setForm({name:'',email:'',phone:'',website:'',industry:'',status:'active'});setShowAdd(true)}}
+              style={{ width:40, height:40, borderRadius:12, background:'#ea2729', border:'none', color:'#fff', fontSize:22, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', WebkitTapHighlightColor:'transparent' }}>
+              <Plus size={20}/>
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <MobileSearch value={search} onChange={setSearch} placeholder="Search clients…"/>
+
+        {/* Status filter tabs */}
+        <div style={{ display:'flex', overflowX:'auto', background:'#fff', borderBottom:'1px solid #ececea', scrollbarWidth:'none' }}>
+          {statuses.map(s=>(
+            <button key={s} onClick={()=>setStatusFilter(s)}
+              style={{ flexShrink:0, padding:'0 16px', height:42, border:'none',
+                borderBottom:`2.5px solid ${statusFilter===s?'#ea2729':'transparent'}`,
+                background:'transparent', color:statusFilter===s?'#ea2729':'#9a9a96',
+                fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer',
+                fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", whiteSpace:'nowrap' }}>
+              {s.charAt(0).toUpperCase()+s.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Add/Edit form */}
+        {showAdd && (
+          <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #ea2729', padding:'16px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+              <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:16, fontWeight:800, color:'#0a0a0a' }}>
+                {editingId ? 'Edit Client' : 'New Client'}
+              </span>
+              <button onClick={()=>{setShowAdd(false);setEditingId(null)}} style={{ background:'none', border:'none', cursor:'pointer', color:'#9a9a96' }}>
+                <X size={18}/>
+              </button>
+            </div>
+            {[{label:'Name *',key:'name',type:'text',placeholder:'Apex Dental'},{label:'Email',key:'email',type:'email',placeholder:'info@client.com'},{label:'Phone',key:'phone',type:'tel',placeholder:'(305) 555-0100'},{label:'Website',key:'website',type:'url',placeholder:'https://client.com'}].map(f=>(
+              <div key={f.key} style={{ marginBottom:10 }}>
+                <label style={{ fontSize:13, fontWeight:700, color:'#0a0a0a', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>{f.label}</label>
+                <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)} placeholder={f.placeholder}
+                  style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #ececea', fontSize:16, outline:'none', color:'#0a0a0a', boxSizing:'border-box' }}
+                  onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+              </div>
+            ))}
+            <div style={{ marginBottom:12 }}>
+              <label style={{ fontSize:13, fontWeight:700, color:'#0a0a0a', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>Status</label>
+              <select value={form.status} onChange={e=>setF('status',e.target.value)}
+                style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #ececea', fontSize:16, color:'#0a0a0a', background:'#fff' }}>
+                <option value="active">Active</option><option value="prospect">Prospect</option>
+                <option value="paused">Paused</option><option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <MobileButton label={editingId?'Save Changes':'Add Client'} onPress={handleSave}/>
+              <MobileButton label="Cancel" onPress={()=>{setShowAdd(false);setEditingId(null)}} secondary/>
+            </div>
+          </div>
+        )}
+
+        {/* Client list */}
+        {loading ? (
+          <div style={{ padding:40, textAlign:'center', color:'#9a9a96' }}>Loading…</div>
+        ) : filtered.length === 0 ? (
+          <MobileEmpty icon={Users} title="No clients found"
+            body={search ? 'Try a different search' : 'Add your first client to get started'}
+            action={!search && <MobileButton label="Add Client" onPress={()=>{setShowAdd(true);setEditingId(null)}}/>}/>
+        ) : (
+          <MobileCard style={{ margin:'12px 16px' }}>
+            {filtered.map((cl,i)=>{
+              const cfg = STATUS_COLORS[cl.status]||STATUS_COLORS.active
+              return (
+                <MobileRow key={cl.id}
+                  onClick={()=>navigate(`/clients/${cl.id}`)}
+                  borderBottom={i<filtered.length-1}
+                  left={<div style={{ width:38, height:38, borderRadius:10, background:cfg.bg, flexShrink:0,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:15, fontWeight:800, color:cfg.color }}>
+                    {cl.name[0].toUpperCase()}
+                  </div>}
+                  title={cl.name}
+                  subtitle={[cl.industry, cl.phone].filter(Boolean).join(' · ')}
+                  badge={<span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", flexShrink:0 }}>{cl.status||'active'}</span>}/>
+              )
+            })}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
 
   const THstyle = (field) => ({
     padding:'11px 14px', fontSize:14, fontWeight:700, color:'#374151',

@@ -6,6 +6,8 @@ import { useAuth } from '../hooks/useAuth'
 import { getGHLOAuthURL, CRMAdapter, mooseClientToGHLContact } from '../lib/ghl'
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader } from '../components/mobile/MobilePage'
 import {
   Check, RefreshCw, ExternalLink, ArrowRight, Loader2,
   Activity, Plug, Globe, Database, Webhook, Zap,
@@ -422,7 +424,87 @@ export default function IntegrationsPage() {
               {PROVIDERS.filter(p => !p.featured).map(p => {
                 const int = getInt(p.id)
                 const connected = int?.status === 'connected'
-                return (
+                const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Integrations" subtitle="Connect your tools and APIs"/>
+
+        {/* GHL featured */}
+        <div style={{margin:'12px 16px'}}>
+          <div style={{background:'#0a0a0a',borderRadius:14,padding:'16px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+              <div style={{width:36,height:36,borderRadius:10,background:'#f59e0b20',border:'1px solid #f59e0b40',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <Globe size={18} color="#f59e0b"/>
+              </div>
+              <div>
+                <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:15,fontWeight:800,color:'#fff'}}>GoHighLevel</div>
+                <div style={{fontSize:12,color:'rgba(255,255,255,.4)'}}>CRM Sync</div>
+              </div>
+              {ghl&&<span style={{marginLeft:'auto',fontSize:11,fontWeight:800,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:'#16a34a',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Connected</span>}
+            </div>
+            <p style={{fontSize:13,color:'rgba(255,255,255,.5)',lineHeight:1.55,margin:'0 0 12px'}}>
+              Full bi-directional sync — contacts, opportunities, webhooks, and calendar.
+            </p>
+            {ghl?.status==='connected' ? (
+              <button onClick={()=>syncAllClients(ghl.id)} disabled={!!syncing}
+                style={{width:'100%',padding:'11px',borderRadius:10,border:'none',background:'#f59e0b',color:'#000',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                {syncing?'Syncing…':'Sync All Clients'}
+              </button>
+            ) : (
+              <button onClick={connectGHL}
+                style={{width:'100%',padding:'11px',borderRadius:10,border:'none',background:'#f59e0b',color:'#000',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                Connect GoHighLevel →
+              </button>
+            )}
+          </div>
+        </div>
+
+        <MobileSectionHeader title="More Integrations"/>
+        <MobileCard style={{margin:'0 16px 16px'}}>
+          {PROVIDERS.filter(p=>!p.featured).map((p,i)=>{
+            const int=getInt(p.id)
+            const I=p.Icon
+            return (
+              <MobileRow key={p.id}
+                borderBottom={i<PROVIDERS.filter(x=>!x.featured).length-1}
+                left={<div style={{width:36,height:36,borderRadius:10,background:p.color+'15',border:`1px solid ${p.color}25`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <I size={16} color={p.color}/>
+                </div>}
+                title={p.name}
+                subtitle={p.category+(p.comingSoon?' · Coming soon':'')}
+                badge={int?.status==='connected'
+                  ? <span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>✓</span>
+                  : p.comingSoon
+                    ? <span style={{fontSize:10,fontWeight:700,color:'#9a9a96',background:'#f2f2f0',padding:'2px 8px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>Soon</span>
+                    : null}/>
+            )
+          })}
+        </MobileCard>
+
+        {/* Sync log */}
+        {syncLogs.length>0 && (
+          <>
+            <MobileSectionHeader title="Recent Sync Activity"/>
+            <MobileCard style={{margin:'0 16px 16px'}}>
+              {syncLogs.slice(0,8).map((log,i)=>(
+                <MobileRow key={log.id}
+                  borderBottom={i<7}
+                  left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:log.status==='success'?'#22c55e':'#ea2729'}}/>}
+                  title={`${log.action} ${log.entity_type}`}
+                  subtitle={new Date(log.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}/>
+              ))}
+            </MobileCard>
+          </>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
+  return (
                   <div key={p.id} style={{ background:'#fff', borderRadius:14,
                     border:`1px solid ${connected ? p.color+'40' : '#ececea'}`,
                     padding:'18px 18px',
