@@ -595,7 +595,125 @@ Return ONLY valid JSON (no markdown):
                           </div>
                         )}
 
-                        {/* Stat cards */}
+              
+                        {/* Real GSC data */}
+                         {liveData?.gsc && (
+                           <div style={{ marginBottom:20 }}>
+                             <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Search Console — Last {liveData.period?.days} days</div>
+                             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                               {[
+                                 { label:'Clicks',       value:liveData.gsc.totals.clicks.toLocaleString() },
+                                 { label:'Impressions',  value:liveData.gsc.totals.impressions.toLocaleString() },
+                                 { label:'Avg CTR',      value:liveData.gsc.totals.avgCTR+'%', color:parseFloat(liveData.gsc.totals.avgCTR)>3?'#16a34a':'#d97706' },
+                                 { label:'Avg Position', value:'#'+liveData.gsc.totals.avgPos, color:parseFloat(liveData.gsc.totals.avgPos)<10?'#16a34a':'#d97706' },
+                               ].map(s=>(
+                                 <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
+                                   <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.label}</div>
+                                   <div style={{ fontSize:22, fontWeight:900, color:s.color||'#0a0a0a' }}>{s.value}</div>
+                                 </div>
+                               ))}
+                             </div>
+                             {liveData.gsc.quickWins?.length > 0 && (
+                               <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:12 }}>
+                                 <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                                   <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>🎯 Quick Win Keywords <span style={{ fontSize:12, color:'#9ca3af' }}>(pos 4–20, high impressions)</span></div>
+                                   <span style={{ fontSize:12, fontWeight:700, background:'#f0fdf4', color:'#16a34a', padding:'2px 8px', borderRadius:20 }}>{liveData.gsc.quickWins.length} found</span>
+                                 </div>
+                                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                                   <thead><tr style={{ background:'#f9fafb' }}>
+                                     {['Keyword','Pos','Impressions','Clicks','CTR','Est. Gain'].map(h=><th key={h} style={{ padding:'9px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:'left', textTransform:'uppercase' }}>{h}</th>)}
+                                   </tr></thead>
+                                   <tbody>
+                                     {liveData.gsc.quickWins.slice(0,8).map((kw,i)=>(
+                                       <tr key={i} style={{ borderTop:'1px solid #f3f4f6' }}>
+                                         <td style={{ padding:'10px 14px', fontSize:14, fontWeight:700, color:'#111' }}>{kw.keyword}</td>
+                                         <td style={{ padding:'10px 14px' }}><span style={{ fontSize:15, fontWeight:900, color:kw.position<=5?TEAL:'#d97706' }}>#{kw.position}</span></td>
+                                         <td style={{ padding:'10px 14px', fontSize:13, color:'#374151' }}>{kw.impressions.toLocaleString()}</td>
+                                         <td style={{ padding:'10px 14px', fontSize:13, color:'#374151' }}>{kw.clicks}</td>
+                                         <td style={{ padding:'10px 14px', fontSize:13, color:'#374151' }}>{kw.ctr}</td>
+                                         <td style={{ padding:'10px 14px' }}><span style={{ fontSize:13, fontWeight:700, color:'#16a34a' }}>+{kw.potential}</span></td>
+                                       </tr>
+                                     ))}
+                                   </tbody>
+                                 </table>
+                               </div>
+                             )}
+                             {liveData.gsc.lowCTR?.length > 0 && (
+                               <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:4 }}>
+                                 <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                                   <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>📉 Low CTR Keywords <span style={{ fontSize:12, color:'#9ca3af' }}>(fix meta titles to unlock clicks)</span></div>
+                                   <span style={{ fontSize:12, fontWeight:700, background:'#fef2f2', color:RED, padding:'2px 8px', borderRadius:20 }}>{liveData.gsc.lowCTR.length} found</span>
+                                 </div>
+                                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                                   <thead><tr style={{ background:'#f9fafb' }}>
+                                     {['Keyword','Pos','Impressions','CTR','Potential Clicks'].map(h=><th key={h} style={{ padding:'9px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:'left', textTransform:'uppercase' }}>{h}</th>)}
+                                   </tr></thead>
+                                   <tbody>
+                                     {liveData.gsc.lowCTR.slice(0,6).map((kw,i)=>(
+                                       <tr key={i} style={{ borderTop:'1px solid #f3f4f6' }}>
+                                         <td style={{ padding:'10px 14px', fontSize:14, fontWeight:700, color:'#111' }}>{kw.keyword}</td>
+                                         <td style={{ padding:'10px 14px', fontSize:13, color:'#374151' }}>#{kw.position}</td>
+                                         <td style={{ padding:'10px 14px', fontSize:13, color:'#374151' }}>{kw.impressions.toLocaleString()}</td>
+                                         <td style={{ padding:'10px 14px' }}><span style={{ color:RED, fontWeight:700 }}>{kw.currentCTR}</span></td>
+                                         <td style={{ padding:'10px 14px' }}><span style={{ color:'#16a34a', fontWeight:700 }}>+{kw.potentialClicks}</span></td>
+                                       </tr>
+                                     ))}
+                                   </tbody>
+                                 </table>
+                               </div>
+                             )}
+                           </div>
+                         )}
+                         {liveData?.ga4 && (
+                           <div style={{ marginBottom:20 }}>
+                             <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Google Analytics — Last {liveData.period?.days} days</div>
+                             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                               {[
+                                 { label:'Total Sessions',    value:liveData.ga4.totalSessions.toLocaleString() },
+                                 { label:'Organic Sessions',  value:liveData.ga4.organicSessions.toLocaleString(), color:liveData.ga4.organicPct>40?'#16a34a':'#d97706' },
+                                 { label:'Organic % Traffic', value:liveData.ga4.organicPct+'%', color:liveData.ga4.organicPct>40?'#16a34a':liveData.ga4.organicPct>20?'#d97706':RED },
+                               ].map(s=>(
+                                 <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
+                                   <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.label}</div>
+                                   <div style={{ fontSize:22, fontWeight:900, color:s.color||'#0a0a0a' }}>{s.value}</div>
+                                 </div>
+                               ))}
+                             </div>
+                             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
+                               <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', fontSize:14, fontWeight:900, color:'#111' }}>Traffic Channels</div>
+                               {liveData.ga4.channels.map((ch,i)=>(
+                                 <div key={ch.name} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 18px', borderBottom:i<liveData.ga4.channels.length-1?'1px solid #f9fafb':'none' }}>
+                                   <div style={{ width:80, fontSize:13, fontWeight:700, color:'#111' }}>{ch.pct}%</div>
+                                   <div style={{ flex:1, height:6, background:'#f3f4f6', borderRadius:3, overflow:'hidden' }}>
+                                     <div style={{ width:ch.pct+'%', height:'100%', background:ch.name==='Organic Search'?'#16a34a':ch.name.includes('Paid')?RED:TEAL, borderRadius:3 }}/>
+                                   </div>
+                                   <div style={{ flex:2, fontSize:14, color:'#374151' }}>{ch.name}</div>
+                                   <div style={{ fontSize:13, fontWeight:700, color:'#111', minWidth:80, textAlign:'right' }}>{ch.sessions.toLocaleString()} sessions</div>
+                                   <div style={{ fontSize:12, color:'#9ca3af', minWidth:70, textAlign:'right' }}>{ch.avgBounceRate} bounce</div>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                         )}
+                         {liveData?.crossRef && (liveData.crossRef.issues.length>0||liveData.crossRef.wins.length>0) && (
+                           <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:20 }}>
+                             <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', fontSize:14, fontWeight:900, color:'#111' }}>Cross-Channel Insights</div>
+                             <div style={{ padding:'14px 18px', display:'flex', flexDirection:'column', gap:8 }}>
+                               {liveData.crossRef.issues.map((issue,i)=>(
+                                 <div key={i} style={{ display:'flex', gap:10, padding:'10px 12px', background:'#fef2f2', borderRadius:10, borderLeft:`3px solid ${RED}` }}>
+                                   <span>⚠️</span><span style={{ fontSize:14, color:'#374151', lineHeight:1.55 }}>{issue}</span>
+                                 </div>
+                               ))}
+                               {liveData.crossRef.wins.map((win,i)=>(
+                                 <div key={i} style={{ display:'flex', gap:10, padding:'10px 12px', background:'#f0fdf4', borderRadius:10, borderLeft:'3px solid #16a34a' }}>
+                                   <span>✅</span><span style={{ fontSize:14, color:'#374151', lineHeight:1.55 }}>{win}</span>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                         )}
+
+          {/* Stat cards */}
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
                           <Stat label="Keywords tracked"  value={keywords.length||0} sub={keywords.length?`${topKws} in top 10`:'None yet'} icon={Search}   accent/>
                           <Stat label="Avg. position"     value={avgPos?`#${avgPos}`:'—'}   sub="across all keywords"  icon={Target}/>
