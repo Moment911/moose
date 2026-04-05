@@ -183,7 +183,7 @@ export default function LocalRankTrackerPage() {
         loadTracked()
       }
       toast.success(`Found ${data.total_results} businesses${data.target_rank ? ` · ${targetBiz} ranked #${data.target_rank}` : ''}`)
-    } catch(e: any) {
+    } catch(e) {
       toast.error('Scan failed: ' + e.message)
     }
     setScanning(false)
