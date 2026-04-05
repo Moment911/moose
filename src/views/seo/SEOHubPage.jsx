@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  TrendingUp, Map, Search, BarChart2, MapPin, FileText, Sparkles,
+  TrendingUp, Search, BarChart2, MapPin, FileText, Sparkles,
   Globe, DollarSign, ArrowUp, ArrowDown, Minus,
   Plus, RefreshCw, Loader2, Check, Copy, Link2,
-  Target, Key, Wifi, WifiOff, User2, MousePointer, Eye, Calendar, Users, AlertCircle,
+  Target, Key, Wifi, WifiOff, AlertCircle,
   ExternalLink, Activity, ChevronRight, Zap, Shield
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
@@ -86,6 +86,12 @@ export default function SEOHubPage() {
   const [compare,         setCompare]         = useState('previous_period')
   const [customStart,     setCustomStart]     = useState('')
   const [customEnd,       setCustomEnd]       = useState('')
+  const [rankKw,     setRankKw]     = useState('')
+  const [rankLoc,    setRankLoc]    = useState('')
+  const [rankBiz,    setRankBiz]    = useState('')
+  const [rankLoading,setRankLoading]= useState(false)
+  const [rankResults,setRankResults]= useState(null)
+  const [showRankMap,setShowRankMap]= useState(false)
   const [liveData,   setLiveData]   = useState(null)
   const [analysis, setAnalysis]     = useState(null)
   const [newSiteUrl, setNewSiteUrl] = useState('')
@@ -167,18 +173,12 @@ export default function SEOHubPage() {
     try {
       // Step 1: pull real data from GSC + GA4
       toast('Fetching Search Console & Analytics data…', { icon: '📊' })
-      let liveData = {}
-      try {
-        const dataRes = await fetch('/api/seo/pull-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ client_id: selectedClient.id, days: 30 }),
-        })
-        if (dataRes.ok) liveData = await dataRes.json()
-        else console.warn('pull-data returned', dataRes.status)
-      } catch(fetchErr) {
-        console.warn('Could not fetch live data, using empty dataset:', fetchErr)
-      }
+      const dataRes = await fetch('/api/seo/pull-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: selectedClient.id, days: 30 }),
+      })
+      const liveData = await dataRes.json()
 
       // Step 2: parse GSC rows into useful stats
       const gscRows   = liveData.gsc?.rows || []
@@ -313,35 +313,9 @@ Return ONLY valid JSON (no markdown):
       setTab('reports')
     } catch(e) {
       console.error('Analysis error:', e)
-      const msg = e?.message || String(e)
-      if (msg.includes('API key')) toast.error('Anthropic API key not set — add NEXT_PUBLIC_ANTHROPIC_API_KEY')
-      else if (msg.includes('CORS') || msg.includes('Failed to fetch')) toast.error('API call blocked — check browser console for details')
-      else toast.error('Report failed: ' + msg)
+      toast.error('Report failed: ' + e.message)
     }
     setGenerating(false)
-  }
-
-
-  async function runAnalytics() {
-    if (!selectedClient) return
-    setAnalyticsLoading(true)
-    try {
-      const res = await fetch('/api/seo/analytics', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          client_id:    selectedClient.id,
-          report_type:  reportType,
-          date_range:   dateRange,
-          custom_start: customStart||undefined,
-          custom_end:   customEnd||undefined,
-          compare,
-        }),
-      })
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-      setAnalyticsData(data)
-    } catch(e) { toast.error('Analytics failed: ' + e.message) }
-    setAnalyticsLoading(false)
   }
 
   async function syncKeywords() {
@@ -420,31 +394,43 @@ Return ONLY valid JSON (no markdown):
 
   const isMobile = useMobile()
 
-  async function runLocalRankScan() {
-    const kw  = rankKw.trim() || selectedClient?.industry || ''
-    const loc = rankLoc.trim()
-    if (!kw || !loc) { toast.error('Enter a keyword and location'); return }
-    setRankLoading(true)
-    setRankResults(null)
+  async function runAnalytics() {
+    if (!selectedClient) return
+    setAnalyticsLoading(true)
     try {
-      const res = await fetch('/api/seo/local-rank', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('/api/seo/analytics', {
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          keyword:         kw,
-          location:        loc,
-          target_business: rankBiz.trim() || selectedClient?.name || '',
-          radius_km:       16,
-          include_ai:      true,
-          include_details: true,
+          client_id:selectedClient.id, report_type:reportType,
+          date_range:dateRange, custom_start:customStart||undefined,
+          custom_end:customEnd||undefined, compare,
         }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-      setRankResults(data)
-      setShowRankMap(true)
-      if (data.target_rank) toast.success(`${selectedClient?.name || rankBiz} ranked #${data.target_rank} on Google Maps`)
-      else toast(rankBiz ? `${rankBiz} not found in top 20` : 'Scan complete')
+      setAnalyticsData(data)
+    } catch(e) { toast.error('Analytics failed: ' + e.message) }
+    setAnalyticsLoading(false)
+  }
+
+  async function runLocalRankScan() {
+    const kw  = rankKw.trim() || selectedClient?.industry || ''
+    const loc = rankLoc.trim()
+    if (!kw || !loc) { toast.error('Enter a keyword and location'); return }
+    setRankLoading(true); setRankResults(null)
+    try {
+      const res = await fetch('/api/seo/local-rank', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          keyword:kw, location:loc,
+          target_business:rankBiz.trim()||selectedClient?.name||'',
+          radius_km:16, include_ai:true, include_details:true,
+        }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setRankResults(data); setShowRankMap(true)
+      toast.success(data.target_rank ? `Ranked #${data.target_rank} on Google Maps` : 'Scan complete')
     } catch(e) { toast.error('Scan failed: ' + e.message) }
     setRankLoading(false)
   }
@@ -808,7 +794,7 @@ Return ONLY valid JSON (no markdown):
                          )}
 
           {/* Stat cards */}
-                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', gap:12, marginBottom:20 }}>
                           <Stat label="Keywords tracked"  value={keywords.length||0} sub={keywords.length?`${topKws} in top 10`:'None yet'} icon={Search}   accent/>
                           <Stat label="Avg. position"     value={avgPos?`#${avgPos}`:'—'}   sub="across all keywords"  icon={Target}/>
                           <Stat label="WP sites"          value={sites.filter(s=>s.is_active).length} sub={`${sites.length} total connected`} icon={Globe}  teal/>
@@ -882,20 +868,20 @@ Return ONLY valid JSON (no markdown):
                             ))}
                           </div>
                         </div>
+                      </div>
+                    )}
 
-                        {/* ── LOCAL RANK TRACKER — inline ── */}
-                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginTop:4 }}>
-                          <div style={{ padding:'16px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        {/* ── LOCAL RANK TRACKER ── */}
+                        <div id="rank-tracker-panel" style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginTop:4 }}>
+                          <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                               <MapPin size={15} color={RED}/>
-                              <div style={{ fontSize:15, fontWeight:900, color:'#111' }}>Local Rank Tracker</div>
+                              <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>Local Rank Tracker</div>
                               <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:RED+'15', color:RED }}>Google Maps</span>
                             </div>
                             <a href="/seo/local-rank" style={{ fontSize:13, color:RED, fontWeight:700, textDecoration:'none' }}>Full tracker →</a>
                           </div>
-
-                          {/* Scan form */}
-                          <div style={{ padding:'16px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:10, alignItems:'end', borderBottom:'1px solid #f9fafb' }}>
+                          <div style={{ padding:'14px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:10, alignItems:'end', borderBottom:'1px solid #f9fafb' }}>
                             <div>
                               <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Keyword</label>
                               <input value={rankKw} onChange={e=>setRankKw(e.target.value)}
@@ -915,135 +901,80 @@ Return ONLY valid JSON (no markdown):
                             <div>
                               <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Business Name</label>
                               <input value={rankBiz} onChange={e=>setRankBiz(e.target.value)}
-                                placeholder={selectedClient?.name || 'Client name to highlight'}
+                                placeholder={selectedClient?.name || 'To highlight in results'}
                                 onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
                                 style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111', boxSizing:'border-box' }}
                                 onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
                             </div>
                             <button onClick={runLocalRankScan} disabled={rankLoading||!rankLoc.trim()}
-                              style={{ padding:'9px 18px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap', opacity:rankLoading||!rankLoc.trim()?.6:1 }}>
+                              style={{ padding:'9px 20px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, boxShadow:`0 3px 12px ${RED}40` }}>
                               {rankLoading ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <Target size={13}/>}
                               {rankLoading ? 'Scanning…' : 'Scan'}
                             </button>
                           </div>
-
-                          {/* Results */}
                           {rankLoading && (
                             <div style={{ padding:'24px', textAlign:'center', color:'#9ca3af', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                               <Loader2 size={14} color={RED} style={{animation:'spin 1s linear infinite'}}/> Searching Google Maps…
                             </div>
                           )}
-
                           {rankResults && !rankLoading && (
                             <div>
-                              {/* Rank + stats bar */}
                               <div style={{ padding:'12px 20px', display:'flex', alignItems:'center', gap:16, borderBottom:'1px solid #f9fafb', flexWrap:'wrap' }}>
                                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                  <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em' }}>
-                                    {rankBiz||selectedClient?.name||'Client'} rank
-                                  </div>
-                                  <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:28, fontWeight:900, letterSpacing:'-.03em',
-                                    color:rankResults.target_rank?rankResults.target_rank<=3?'#16a34a':rankResults.target_rank<=7?TEAL:rankResults.target_rank<=15?'#f59e0b':RED:RED }}>
-                                    {rankResults.target_rank ? `#${rankResults.target_rank}` : 'Not found'}
+                                  <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em' }}>Rank</div>
+                                  <div style={{ fontSize:28, fontWeight:900, letterSpacing:'-.03em',
+                                    color:rankResults.target_rank ? (rankResults.target_rank<=3?'#16a34a':rankResults.target_rank<=7?TEAL:rankResults.target_rank<=15?'#f59e0b':RED) : RED }}>
+                                    {rankResults.target_rank ? '#'+rankResults.target_rank : 'Not found'}
                                   </div>
                                 </div>
                                 <div style={{ height:32, width:1, background:'#f3f4f6' }}/>
-                                <div style={{ fontSize:13, color:'#374151' }}>
-                                  <span style={{ fontWeight:700 }}>{rankResults.total_results}</span> businesses found
-                                </div>
+                                <div style={{ fontSize:13, color:'#374151' }}><span style={{ fontWeight:700 }}>{rankResults.total_results}</span> businesses found</div>
                                 {rankResults.competitive_stats?.avg_rating && (
-                                  <>
-                                    <div style={{ height:32, width:1, background:'#f3f4f6' }}/>
-                                    <div style={{ fontSize:13, color:'#374151' }}>
-                                      Area avg: <span style={{ fontWeight:700 }}>★{rankResults.competitive_stats.avg_rating}</span>
-                                    </div>
-                                  </>
-                                )}
-                                {rankResults.competitive_stats?.top3_avg_reviews && (
-                                  <>
-                                    <div style={{ height:32, width:1, background:'#f3f4f6' }}/>
-                                    <div style={{ fontSize:13, color:'#374151' }}>
-                                      Top 3 avg: <span style={{ fontWeight:700 }}>{rankResults.competitive_stats.top3_avg_reviews} reviews</span>
-                                    </div>
-                                  </>
+                                  <div style={{ fontSize:13, color:'#374151' }}>Area avg: <span style={{ fontWeight:700 }}>★{rankResults.competitive_stats.avg_rating}</span></div>
                                 )}
                                 <button onClick={()=>setShowRankMap(!showRankMap)}
-                                  style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, border:`1px solid ${TEAL}40`, background:'transparent', color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                                  style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, border:`1px solid ${TEAL}40`, background:'transparent', color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer' }}>
                                   <Map size={12}/> {showRankMap ? 'Hide Map' : 'Show Map'}
                                 </button>
                               </div>
-
-                              {/* Embedded Map */}
                               {showRankMap && rankResults.geocoded_location && (
                                 <div style={{ borderBottom:'1px solid #f9fafb' }}>
-                                  <iframe
-                                    title="Local Rank Map"
-                                    width="100%" height="300" loading="lazy"
-                                    style={{ border:'none', display:'block' }}
-                                    src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY||process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY||''}&q=${encodeURIComponent((rankKw||selectedClient?.industry||'business')+' '+(rankLoc||''))}&center=${rankResults.geocoded_location.lat},${rankResults.geocoded_location.lng}&zoom=12`}
-                                  />
+                                  <iframe title="Local Rank Map" width="100%" height="280" loading="lazy" style={{ border:'none', display:'block' }}
+                                    src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY||process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY||''}&q=${encodeURIComponent(rankKw+' '+rankLoc)}&center=${rankResults.geocoded_location.lat},${rankResults.geocoded_location.lng}&zoom=12`}/>
                                 </div>
                               )}
-
-                              {/* Top 10 compact list */}
-                              <div style={{ maxHeight:320, overflowY:'auto' }}>
+                              <div style={{ maxHeight:300, overflowY:'auto' }}>
                                 {rankResults.google_local?.slice(0,10).map((r,i) => {
                                   const isTarget = (rankBiz||selectedClient?.name||'') && r.name?.toLowerCase().includes((rankBiz||selectedClient?.name||'').toLowerCase())
-                                  const rankColor = r.rank<=3?'#16a34a':r.rank<=7?TEAL:r.rank<=15?'#f59e0b':'#9ca3af'
+                                  const rc = r.rank<=3?'#16a34a':r.rank<=7?TEAL:r.rank<=15?'#f59e0b':'#9ca3af'
                                   return (
-                                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 20px',
-                                      borderBottom:'1px solid #f9fafb', background:isTarget?RED+'06':'transparent',
-                                      borderLeft:isTarget?`3px solid ${RED}`:'3px solid transparent' }}>
-                                      <div style={{ width:26, height:26, borderRadius:7, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center',
-                                        background:isTarget?RED:rankColor+'18', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:12, fontWeight:900,
-                                        color:isTarget?'#fff':rankColor }}>
-                                        {r.rank}
-                                      </div>
-                                      {r.photos?.[0] && (
-                                        <img src={r.photos[0]} alt="" style={{ width:30, height:30, borderRadius:7, objectFit:'cover', flexShrink:0 }}
-                                          onError={e=>e.target.style.display='none'}/>
-                                      )}
+                                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 20px', borderBottom:'1px solid #f9fafb', background:isTarget?RED+'06':'transparent', borderLeft:isTarget?`3px solid ${RED}`:'3px solid transparent' }}>
+                                      <div style={{ width:26, height:26, borderRadius:7, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', background:isTarget?RED:rc+'18', fontSize:12, fontWeight:900, color:isTarget?'#fff':rc }}>{r.rank}</div>
+                                      {r.photos?.[0] && <img src={r.photos[0]} alt="" style={{ width:28, height:28, borderRadius:6, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}
                                       <div style={{ flex:1, minWidth:0 }}>
                                         <div style={{ fontSize:13, fontWeight:700, color:isTarget?RED:'#111', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                                           {r.name}
                                           {isTarget && <span style={{ marginLeft:6, fontSize:10, background:RED, color:'#fff', padding:'1px 5px', borderRadius:20 }}>YOU</span>}
                                           {r.is_open_now===true && <span style={{ marginLeft:4, fontSize:10, background:'#f0fdf4', color:'#16a34a', padding:'1px 5px', borderRadius:20 }}>Open</span>}
-                                          {r.is_open_now===false && <span style={{ marginLeft:4, fontSize:10, background:'#fef2f2', color:RED, padding:'1px 5px', borderRadius:20 }}>Closed</span>}
                                         </div>
                                         <div style={{ fontSize:11, color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.address}</div>
                                       </div>
-                                      {r.rating && (
-                                        <div style={{ fontSize:12, color:'#374151', flexShrink:0, display:'flex', alignItems:'center', gap:3 }}>
-                                          <span style={{ color:'#f59e0b' }}>★</span>{r.rating}
-                                          <span style={{ color:'#9ca3af', fontSize:11 }}>({r.review_count})</span>
-                                        </div>
-                                      )}
-                                      {r.maps_url && (
-                                        <a href={r.maps_url} target="_blank" rel="noreferrer" style={{ color:'#4285f4', flexShrink:0 }}>
-                                          <MapPin size={12}/>
-                                        </a>
-                                      )}
+                                      {r.rating && <div style={{ fontSize:12, color:'#374151', flexShrink:0, display:'flex', alignItems:'center', gap:3 }}><span style={{ color:'#f59e0b' }}>★</span>{r.rating}<span style={{ color:'#9ca3af', fontSize:11 }}>({r.review_count})</span></div>}
                                     </div>
                                   )
                                 })}
                               </div>
-
-                              {/* AI quick insight */}
                               {rankResults.ai_analysis?.overall_assessment && (
-                                <div style={{ padding:'12px 20px', background:'#f9fafb', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'flex-start', gap:8 }}>
+                                <div style={{ padding:'11px 20px', background:'#f9fafb', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'flex-start', gap:8 }}>
                                   <Sparkles size={13} color={TEAL} style={{ flexShrink:0, marginTop:2 }}/>
                                   <div style={{ fontSize:13, color:'#374151', lineHeight:1.6 }}>
                                     <strong style={{ color:'#111' }}>AI:</strong> {rankResults.ai_analysis.overall_assessment}
-                                    {rankResults.ai_analysis.estimated_time_to_rank && (
-                                      <span style={{ color:'#9ca3af' }}> · Est. {rankResults.ai_analysis.estimated_time_to_rank} to rank.</span>
-                                    )}
+                                    {rankResults.ai_analysis.estimated_time_to_rank && <span style={{ color:'#9ca3af' }}> · Est. {rankResults.ai_analysis.estimated_time_to_rank} to rank.</span>}
                                   </div>
                                 </div>
                               )}
-
-                              {/* Quick wins */}
                               {rankResults.ai_analysis?.quick_wins?.length > 0 && (
-                                <div style={{ padding:'10px 20px', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                                <div style={{ padding:'9px 20px', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                                   <span style={{ fontSize:11, fontWeight:700, color:'#16a34a', textTransform:'uppercase', letterSpacing:'.07em', flexShrink:0 }}>Quick wins:</span>
                                   {rankResults.ai_analysis.quick_wins.slice(0,3).map((w,i) => (
                                     <span key={i} style={{ fontSize:12, background:'#f0fdf4', color:'#15803d', padding:'3px 9px', borderRadius:20, border:'1px solid #bbf7d0' }}>{w}</span>
@@ -1052,16 +983,12 @@ Return ONLY valid JSON (no markdown):
                               )}
                             </div>
                           )}
-
                           {!rankResults && !rankLoading && (
-                            <div style={{ padding:'20px', fontSize:13, color:'#9ca3af', textAlign:'center' }}>
-                              Enter a keyword (e.g. "contractor") and location to scan Google Maps rankings for this client
+                            <div style={{ padding:'18px 20px', fontSize:13, color:'#9ca3af', textAlign:'center' }}>
+                              Enter a keyword and location to scan Google Maps rankings for this client
                             </div>
                           )}
                         </div>
-
-                      </div>
-                    )}
 
                     {/* ── KEYWORDS ── */}
                     {tab === 'keywords' && (
@@ -1155,7 +1082,7 @@ Return ONLY valid JSON (no markdown):
                             <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:2 }}>Koto SEO Plugin for WordPress</div>
                             <div style={{ fontSize:13, color:'#374151' }}>Install on your client's WordPress site to enable full SEO sync and automation.</div>
                           </div>
-                          <a href="/koto-seo.zip" download
+                          <a href="https://hellokoto.com/koto-seo.zip" download
                             style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px',
                               borderRadius:10, border:'none', background:TEAL, color:'#fff',
                               fontSize:14, fontWeight:700, cursor:'pointer', textDecoration:'none',
@@ -1279,11 +1206,15 @@ Return ONLY valid JSON (no markdown):
                                   </div>
                                   <div style={{ flex:1 }}>
                                     <div style={{ fontSize:16, fontWeight:900, color:'#111', marginBottom:3 }}>{p.label}</div>
-                                    <div style={{ fontSize:13, color:'#6b7280' }}>{p.desc}</div>
+                                    <div style={{ fontSize:13, color:'#374151' }}>{p.desc}</div>
                                   </div>
+                                  <span style={{ fontSize:13, fontWeight:800, padding:'3px 10px', borderRadius:20, background:c?TEAL+'20':'#f3f4f6', color:c?'#0e7490':'#374151', flexShrink:0 }}>
+                                    {c?'Connected':'Not connected'}
+                                  </span>
                                 </div>
-                                <button onClick={()=>navigate('/seo/connect')} style={{ width:'100%', padding:'10px', borderRadius:10, border:'1px solid #e5e7eb', background:c?TEAL+'10':'#f9fafb', color:c?TEAL:'#374151', fontSize:13, fontWeight:700, cursor:'pointer' }}>
-                                  {c ? '✓ Connected' : 'Connect →'}
+                                <button onClick={()=>navigate(`/seo/connect?provider=${p.key}&client=${selectedClient?.id}`)}
+                                  style={{ width:'100%', padding:'10px', borderRadius:10, border:`1.5px solid ${c?TEAL+'60':'#e5e7eb'}`, background:c?'#e8f9fa':'#f9fafb', color:c?'#0e7490':RED, fontSize:14, fontWeight:800, cursor:'pointer' }}>
+                                  {c?'Manage connection':'Connect →'}
                                 </button>
                               </div>
                             )
@@ -1292,30 +1223,47 @@ Return ONLY valid JSON (no markdown):
                       </div>
                     )}
 
+                    {/* ── REPORTS ── */}
+                    {tab === 'gbp' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <div style={{ fontSize:40, marginBottom:16 }}>📍</div>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>GBP Audit & Optimizer</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Score your Google Business Profile, compare against nearby competitors, and get an AI-generated action plan to climb the local map pack.
+                          </div>
+                          <button onClick={()=>navigate('/seo/gbp-audit')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            Open GBP Audit →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {tab === 'onpage' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <div style={{ fontSize:40, marginBottom:16 }}>🔍</div>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>On-Page SEO Checker</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Audit any URL for 20+ technical SEO issues. Get live PageSpeed scores and AI-powered recommendations tailored for local businesses.
+                          </div>
+                          <button onClick={()=>navigate('/seo/onpage')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:TEAL, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            Open On-Page Checker →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {tab === 'reports' && (
                       <div className="animate-fade-up">
 
-                        {/* ── Analytics Explorer Header ── */}
-                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'20px 24px', marginBottom:14 }}>
-                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, flexWrap:'wrap', gap:10 }}>
-                            <div style={{ fontSize:17, fontWeight:900, color:'#111' }}>Analytics Explorer</div>
-                            <div style={{ display:'flex', gap:8 }}>
-                              <button onClick={generateAnalysis} disabled={generating}
-                                style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:9, border:`1.5px solid ${RED}`, background:'transparent', color:RED, fontSize:13, fontWeight:700, cursor:'pointer' }}>
-                                {generating?<Loader2 size={12} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={12}/>} AI Report
-                              </button>
-                              <button onClick={runAnalytics} disabled={analyticsLoading||!selectedClient}
-                                style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', opacity:!selectedClient?.5:1 }}>
-                                {analyticsLoading?<Loader2 size={12} style={{animation:'spin 1s linear infinite'}}/>:<RefreshCw size={12}/>} Run Report
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Controls row */}
-                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
-                            {/* Report type */}
+                        {/* Controls bar */}
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'16px 20px', marginBottom:16 }}>
+                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:12, alignItems:'end' }}>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Report</label>
+                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Report Type</label>
                               <select value={reportType} onChange={e=>setReportType(e.target.value)}
                                 style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
                                 <option value="overview">Overview</option>
@@ -1327,7 +1275,6 @@ Return ONLY valid JSON (no markdown):
                                 <option value="daily_trend">Daily Trend</option>
                               </select>
                             </div>
-                            {/* Date range */}
                             <div>
                               <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Date Range</label>
                               <select value={dateRange} onChange={e=>setDateRange(e.target.value)}
@@ -1338,14 +1285,8 @@ Return ONLY valid JSON (no markdown):
                                 <option value="90d">Last 90 days</option>
                                 <option value="6m">Last 6 months</option>
                                 <option value="12m">Last 12 months</option>
-                                <option value="this_month">This month</option>
-                                <option value="last_month">Last month</option>
-                                <option value="this_year">This year</option>
-                                <option value="last_year">Last year</option>
-                                <option value="custom">Custom range</option>
                               </select>
                             </div>
-                            {/* Compare */}
                             <div>
                               <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Compare To</label>
                               <select value={compare} onChange={e=>setCompare(e.target.value)}
@@ -1355,356 +1296,86 @@ Return ONLY valid JSON (no markdown):
                                 <option value="none">No comparison</option>
                               </select>
                             </div>
-                          </div>
-
-                          {/* Custom date range pickers */}
-                          {dateRange === 'custom' && (
-                            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:10 }}>
-                              <div>
-                                <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Start Date</label>
-                                <input type="date" value={customStart} onChange={e=>setCustomStart(e.target.value)}
-                                  style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111' }}/>
-                              </div>
-                              <div>
-                                <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>End Date</label>
-                                <input type="date" value={customEnd} onChange={e=>setCustomEnd(e.target.value)}
-                                  style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111' }}/>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Period label */}
-                          {analyticsData && (
-                            <div style={{ marginTop:12, padding:'8px 12px', background:'#f9fafb', borderRadius:8, fontSize:13, color:'#6b7280', display:'flex', alignItems:'center', gap:8 }}>
-                              <Calendar size={13}/>
-                              <span><strong style={{color:'#111'}}>{analyticsData.period?.start}</strong> → <strong style={{color:'#111'}}>{analyticsData.period?.end}</strong> ({analyticsData.period?.days} days)</span>
-                              {analyticsData.compare_period && (
-                                <span style={{ marginLeft:8, color:'#9ca3af' }}>vs <strong style={{color:'#6b7280'}}>{analyticsData.compare_period.start}</strong> → <strong style={{color:'#6b7280'}}>{analyticsData.compare_period.end}</strong></span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* ── Results ── */}
-                        {!analyticsData && !analyticsLoading && (
-                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'56px 24px', textAlign:'center' }}>
-                            <BarChart2 size={40} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
-                            <div style={{ fontSize:17, fontWeight:900, color:'#111', marginBottom:6 }}>Run your first report</div>
-                            <div style={{ fontSize:14, color:'#374151', marginBottom:20 }}>Choose a report type and date range above, then click Run Report</div>
-                            <button onClick={runAnalytics} disabled={!selectedClient}
-                              style={{ padding:'10px 24px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity:!selectedClient?.5:1 }}>
-                              Run Report
+                            <button onClick={runAnalytics} disabled={analyticsLoading||!selectedClient}
+                              style={{ padding:'9px 20px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+                              {analyticsLoading ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <BarChart2 size={13}/>}
+                              {analyticsLoading ? 'Loading…' : 'Run Report'}
                             </button>
                           </div>
-                        )}
+                        </div>
 
-                        {analyticsLoading && (
-                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'56px 24px', textAlign:'center' }}>
-                            <Loader2 size={32} color={RED} style={{ margin:'0 auto 16px', animation:'spin 1s linear infinite' }}/>
-                            <div style={{ fontSize:15, fontWeight:700, color:'#374151' }}>Fetching data from Google…</div>
-                          </div>
-                        )}
-
-                        {analyticsData && !analyticsLoading && (() => {
-                          const d = analyticsData
-                          const gscRows  = d.gsc?.rows  || []
-                          const gscPRows = d.gsc_prev?.rows || []
-                          const ga4Rows  = d.ga4?.rows  || []
-                          const ga4PRows = d.ga4_prev?.rows || []
-
-                          // Helpers
-                          const sumGSC = (rows, key) => rows.reduce((s,r)=>s+(r[key]||0),0)
-                          const sumGA4 = (rows, metIdx) => rows.reduce((s,r)=>s+parseFloat(r.metricValues?.[metIdx]?.value||0),0)
-                          const delta  = (curr, prev) => prev>0 ? Math.round((curr-prev)/prev*100) : null
-                          const DeltaBadge = ({curr, prev}) => {
-                            const d = delta(curr,prev)
-                            if (d===null || prev===0) return null
-                            return (
-                              <span style={{ fontSize:11, fontWeight:800, padding:'2px 7px', borderRadius:20,
-                                background:d>=0?'#f0fdf4':'#fef2f2', color:d>=0?'#16a34a':RED,
-                                marginLeft:8, display:'inline-flex', alignItems:'center', gap:2 }}>
-                                {d>=0?'↑':'↓'}{Math.abs(d)}%
+                        {/* Results */}
+                        {analyticsData && (
+                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:16 }}>
+                            <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:10 }}>
+                              <BarChart2 size={15} color={RED}/>
+                              <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>
+                                {reportType.replace(/_/g,' ').replace(/\w/g,l=>l.toUpperCase())} — {dateRange}
+                              </div>
+                              <span style={{ fontSize:12, color:'#9ca3af', marginLeft:'auto' }}>
+                                {analyticsData.period?.start} → {analyticsData.period?.end}
                               </span>
-                            )
-                          }
-
-                          // Overview KPI cards
-                          const gscClicks      = sumGSC(gscRows,'clicks')
-                          const gscImpr        = sumGSC(gscRows,'impressions')
-                          const gscAvgPos      = gscRows.length ? (sumGSC(gscRows,'position')/gscRows.length).toFixed(1) : '—'
-                          const gscAvgCTR      = gscImpr ? (gscClicks/gscImpr*100).toFixed(1)+'%' : '—'
-                          const gscPClicks     = sumGSC(gscPRows,'clicks')
-                          const gscPImpr       = sumGSC(gscPRows,'impressions')
-                          const ga4Sessions    = Math.round(sumGA4(ga4Rows,0))
-                          const ga4Users       = Math.round(sumGA4(ga4Rows,1))
-                          const ga4Bounce      = ga4Rows.length ? (sumGA4(ga4Rows,2)/ga4Rows.length*100).toFixed(1)+'%' : '—'
-                          const ga4New         = Math.round(sumGA4(ga4Rows,3))
-                          const ga4PSessionsN  = Math.round(sumGA4(ga4PRows,0))
-                          const ga4PUsers      = Math.round(sumGA4(ga4PRows,1))
-
-                          const KPI = ({label,value,prev,prevVal,unit,icon:I,color}) => (
-                            <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px' }}>
-                              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-                                <div style={{ width:32,height:32,borderRadius:9,background:color+'15',display:'flex',alignItems:'center',justifyContent:'center' }}>
-                                  <I size={15} color={color}/>
-                                </div>
-                                <div style={{ fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.06em' }}>{label}</div>
-                              </div>
-                              <div style={{ fontSize:26,fontWeight:900,color:'#111',letterSpacing:'-.03em',lineHeight:1 }}>
-                                {unit==='pct'?value:typeof value==='number'?value.toLocaleString():value}
-                                <DeltaBadge curr={value} prev={prevVal}/>
-                              </div>
-                              {prev!==null && prevVal>0 && (
-                                <div style={{ fontSize:12,color:'#9ca3af',marginTop:4 }}>
-                                  vs {unit==='pct'?prev:typeof prevVal==='number'?prevVal.toLocaleString():prev} prev period
-                                </div>
-                              )}
                             </div>
-                          )
-
-                          // Table helper
-                          const DataTable = ({title,cols,rows,maxRows=20}) => (
-                            <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:14 }}>
-                              <div style={{ padding:'14px 20px', borderBottom:'1px solid #f3f4f6', fontSize:14, fontWeight:800, color:'#111' }}>{title}</div>
+                            {/* KPI cards */}
+                            {analyticsData.summary && (
+                              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6' }}>
+                                {Object.entries(analyticsData.summary).slice(0,4).map(([key,val],i) => (
+                                  <div key={key} style={{ padding:'14px 16px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
+                                    <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>
+                                      {key.replace(/_/g,' ')}
+                                    </div>
+                                    <div style={{ fontSize:20, fontWeight:900, color:'#111' }}>
+                                      {typeof val === 'number' ? val.toLocaleString() : val || '—'}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {/* Data table */}
+                            {analyticsData.rows?.length > 0 && (
                               <div style={{ overflowX:'auto' }}>
                                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                                   <thead>
                                     <tr style={{ background:'#f9fafb' }}>
-                                      {cols.map((col,i)=>(
-                                        <th key={i} style={{ padding:'10px 16px',fontSize:12,fontWeight:700,color:'#6b7280',textAlign:i===0?'left':'right',whiteSpace:'nowrap',textTransform:'uppercase',letterSpacing:'.05em' }}>{col}</th>
+                                      {analyticsData.columns?.map((col,i) => (
+                                        <th key={i} style={{ padding:'10px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:i===0?'left':'right', textTransform:'uppercase', letterSpacing:'.05em' }}>{col}</th>
                                       ))}
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {rows.slice(0,maxRows).map((row,i)=>(
-                                      <tr key={i} style={{ borderTop:'1px solid #f9fafb' }}
-                                        onMouseEnter={e=>(e.currentTarget).style.background='#fafafa'}
-                                        onMouseLeave={e=>(e.currentTarget).style.background=''}>
-                                        {row.map((cell,j)=>(
-                                          <td key={j} style={{ padding:'11px 16px',fontSize:13,color:j===0?'#111':'#374151',textAlign:j===0?'left':'right',fontWeight:j===0?700:400,whiteSpace:j===0?'nowrap':'normal',maxWidth:j===0?300:undefined,overflow:'hidden',textOverflow:'ellipsis' }}>
-                                            {cell}
-                                          </td>
+                                    {analyticsData.rows.slice(0,20).map((row,i) => (
+                                      <tr key={i} style={{ borderTop:'1px solid #f9fafb' }}>
+                                        {row.map((cell,j) => (
+                                          <td key={j} style={{ padding:'10px 14px', fontSize:13, color:'#374151', textAlign:j===0?'left':'right', fontWeight:j===0?600:400 }}>{cell}</td>
                                         ))}
                                       </tr>
                                     ))}
                                   </tbody>
                                 </table>
                               </div>
+                            )}
+                            {!analyticsData.rows?.length && (
+                              <div style={{ padding:'32px', textAlign:'center', color:'#9ca3af', fontSize:14 }}>
+                                No data available for this report and date range
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {!analyticsData && !analyticsLoading && (
+                          <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'48px 24px', textAlign:'center', marginBottom:16 }}>
+                            <BarChart2 size={36} color="#e5e7eb" style={{ margin:'0 auto 16px' }}/>
+                            <div style={{ fontSize:17, fontWeight:900, color:'#111', marginBottom:6 }}>Analytics Explorer</div>
+                            <div style={{ fontSize:14, color:'#374151', marginBottom:4 }}>
+                              Select a report type and date range, then click Run Report
                             </div>
-                          )
-
-                          // Build report content
-                          if (d.report_type === 'overview') return (
-                            <div>
-                              {/* GSC KPIs */}
-                              {gscRows.length > 0 && (
-                                <>
-                                  <div style={{ fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8 }}>Search Console</div>
-                                  <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:14 }}>
-                                    <KPI label="Clicks"      value={gscClicks}  prevVal={gscPClicks} icon={MousePointer} color={RED}    prev={gscPClicks}/>
-                                    <KPI label="Impressions" value={gscImpr}    prevVal={gscPImpr}   icon={Eye}          color="#4285F4" prev={gscPImpr}/>
-                                    <KPI label="Avg CTR"     value={gscAvgCTR}  prevVal={null}       icon={Target}       color={TEAL}   prev={null}/>
-                                    <KPI label="Avg Position"value={gscAvgPos}  prevVal={null}       icon={BarChart2}    color="#f59e0b" prev={null}/>
-                                  </div>
-                                </>
-                              )}
-                              {/* GA4 KPIs */}
-                              {ga4Rows.length > 0 && (
-                                <>
-                                  <div style={{ fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8 }}>Google Analytics 4</div>
-                                  <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:14 }}>
-                                    <KPI label="Sessions"    value={ga4Sessions}  prevVal={ga4PSessionsN}  icon={Users}       color={RED}    prev={ga4PSessionsN}/>
-                                    <KPI label="Users"       value={ga4Users}     prevVal={ga4PUsers}      icon={User2}       color="#4285F4" prev={ga4PUsers}/>
-                                    <KPI label="New Users"   value={ga4New}       prevVal={null}           icon={Zap}         color={TEAL}   prev={null}/>
-                                    <KPI label="Bounce Rate" value={ga4Bounce}    prevVal={null}           icon={AlertCircle} color="#f59e0b" prev={null}/>
-                                  </div>
-                                </>
-                              )}
-                              {/* Channel table */}
-                              {ga4Rows.length > 0 && (
-                                <DataTable title="Traffic by Channel"
-                                  cols={['Channel','Sessions','Users','Bounce Rate']}
-                                  rows={ga4Rows.map((r)=>[
-                                    r.dimensionValues?.[0]?.value||'—',
-                                    parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
-                                    parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
-                                    (parseFloat(r.metricValues?.[2]?.value||0)*100).toFixed(1)+'%',
-                                  ])}/>
-                              )}
-                              {/* Top keywords */}
-                              {gscRows.length > 0 && (
-                                <DataTable title="Top Keywords (Search Console)"
-                                  cols={['Keyword','Clicks','Impressions','CTR','Position']}
-                                  rows={[...gscRows].sort((a,b)=>b.clicks-a.clicks).slice(0,15).map((r)=>[
-                                    r.keys?.[0]||'—',
-                                    r.clicks.toLocaleString(),
-                                    r.impressions.toLocaleString(),
-                                    (r.ctr*100).toFixed(1)+'%',
-                                    r.position.toFixed(1),
-                                  ])}/>
-                              )}
+                            <div style={{ fontSize:13, color:'#9ca3af' }}>
+                              Requires Google Search Console and/or GA4 connected
                             </div>
-                          )
+                          </div>
+                        )}
 
-                          if (d.report_type === 'keywords') {
-                            const prevMap = {}
-                            gscPRows.forEach((r)=>{ prevMap[r.keys?.[0]||'']=r })
-                            return (
-                              <DataTable title={`Keywords — ${gscRows.length} total`}
-                                cols={['Keyword','Clicks',compare!=='none'?'vs Prev':'','Impressions','CTR','Position',compare!=='none'?'vs Prev':'']}
-                                maxRows={100}
-                                rows={[...gscRows].sort((a,b)=>b.clicks-a.clicks).map((r)=>{
-                                  const p = prevMap[r.keys?.[0]||'']
-                                  const dc = p ? delta(r.clicks,p.clicks) : null
-                                  const dp = p ? delta(r.position,p.position) : null
-                                  return [
-                                    r.keys?.[0]||'—',
-                                    r.clicks.toLocaleString(),
-                                    dc!==null?`${dc>=0?'+':''}${dc}%`:'—',
-                                    r.impressions.toLocaleString(),
-                                    (r.ctr*100).toFixed(1)+'%',
-                                    r.position.toFixed(1),
-                                    dp!==null?`${dp<=0?'↑':'↓'}${Math.abs(dp)}%`:'—',
-                                  ]
-                                })}/>
-                            )
-                          }
-
-                          if (d.report_type === 'pages') {
-                            const ga4PageMap = {}
-                            ga4Rows.forEach((r)=>{ ga4PageMap[r.dimensionValues?.[0]?.value||'']=r })
-                            const rows = gscRows.length ? gscRows : ga4Rows
-                            return (
-                              <DataTable title={`Pages — ${rows.length} total`}
-                                cols={gscRows.length?['Page','GSC Clicks','Impressions','CTR','Position','GA4 Views']:['Page','Views','Sessions','Bounce']}
-                                maxRows={50}
-                                rows={gscRows.length
-                                  ? [...gscRows].sort((a,b)=>b.clicks-a.clicks).map((r)=>{
-                                      const pg = r.keys?.[0]||''
-                                      const ga = ga4PageMap[pg]
-                                      return [
-                                        pg.length>60?'…'+pg.slice(-57):pg,
-                                        r.clicks.toLocaleString(),
-                                        r.impressions.toLocaleString(),
-                                        (r.ctr*100).toFixed(1)+'%',
-                                        r.position.toFixed(1),
-                                        ga?parseInt(ga.metricValues?.[0]?.value||0).toLocaleString():'—',
-                                      ]
-                                    })
-                                  : ga4Rows.map((r)=>[
-                                      (r.dimensionValues?.[0]?.value||'').length>60?'…'+(r.dimensionValues?.[0]?.value||'').slice(-57):r.dimensionValues?.[0]?.value||'—',
-                                      parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
-                                      parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
-                                      (parseFloat(r.metricValues?.[2]?.value||0)*100).toFixed(1)+'%',
-                                    ])}/>
-                            )
-                          }
-
-                          if (d.report_type === 'channels') {
-                            const prevMap = {}
-                            ga4PRows.forEach((r)=>{ prevMap[r.dimensionValues?.[0]?.value||'']=r })
-                            return (
-                              <DataTable title="Traffic Channels"
-                                cols={['Channel','Sessions',compare!=='none'?'vs Prev':'','Users','New Users','Bounce','Conversions']}
-                                rows={ga4Rows.map((r)=>{
-                                  const ch = r.dimensionValues?.[0]?.value||'—'
-                                  const p  = prevMap[ch]
-                                  const dc = p ? delta(parseInt(r.metricValues?.[0]?.value||0),parseInt(p.metricValues?.[0]?.value||0)) : null
-                                  return [
-                                    ch,
-                                    parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
-                                    dc!==null?`${dc>=0?'+':''}${dc}%`:'—',
-                                    parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
-                                    parseInt(r.metricValues?.[3]?.value||0).toLocaleString(),
-                                    (parseFloat(r.metricValues?.[2]?.value||0)*100).toFixed(1)+'%',
-                                    parseInt(r.metricValues?.[4]?.value||0).toLocaleString(),
-                                  ]
-                                })}/>
-                            )
-                          }
-
-                          if (d.report_type === 'devices') {
-                            const ga4DevMap = {}
-                            ga4Rows.forEach((r)=>{ ga4DevMap[r.dimensionValues?.[0]?.value?.toLowerCase()||'']=r })
-                            return (
-                              <DataTable title="Device Breakdown"
-                                cols={['Device','GSC Clicks','GSC Impressions','GA4 Sessions','GA4 Users','Bounce']}
-                                rows={(gscRows.length?gscRows:ga4Rows).map((r)=>{
-                                  const dev = (r.keys?.[0]||r.dimensionValues?.[0]?.value||'').toLowerCase()
-                                  const ga  = ga4DevMap[dev]
-                                  return gscRows.length ? [
-                                    dev.charAt(0).toUpperCase()+dev.slice(1),
-                                    r.clicks.toLocaleString(),
-                                    r.impressions.toLocaleString(),
-                                    ga?parseInt(ga.metricValues?.[0]?.value||0).toLocaleString():'—',
-                                    ga?parseInt(ga.metricValues?.[1]?.value||0).toLocaleString():'—',
-                                    ga?(parseFloat(ga.metricValues?.[2]?.value||0)*100).toFixed(1)+'%':'—',
-                                  ] : [
-                                    dev.charAt(0).toUpperCase()+dev.slice(1),
-                                    '—','—',
-                                    parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
-                                    parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
-                                    (parseFloat(r.metricValues?.[2]?.value||0)*100).toFixed(1)+'%',
-                                  ]
-                                })}/>
-                            )
-                          }
-
-                          if (d.report_type === 'countries') return (
-                            <DataTable title="Countries"
-                              cols={['Country','GSC Clicks','Impressions','GA4 Sessions','GA4 Users']}
-                              maxRows={50}
-                              rows={gscRows.length
-                                ? gscRows.map((r)=>{
-                                    const ga4Country = ga4Rows.find((a)=>a.dimensionValues?.[0]?.value?.toLowerCase()===r.keys?.[0]?.toLowerCase())
-                                    return [
-                                      r.keys?.[0]||'—',
-                                      r.clicks.toLocaleString(),
-                                      r.impressions.toLocaleString(),
-                                      ga4Country?parseInt(ga4Country.metricValues?.[0]?.value||0).toLocaleString():'—',
-                                      ga4Country?parseInt(ga4Country.metricValues?.[1]?.value||0).toLocaleString():'—',
-                                    ]
-                                  })
-                                : ga4Rows.map((r)=>[
-                                    r.dimensionValues?.[0]?.value||'—','—','—',
-                                    parseInt(r.metricValues?.[0]?.value||0).toLocaleString(),
-                                    parseInt(r.metricValues?.[1]?.value||0).toLocaleString(),
-                                  ])}/>
-                          )
-
-                          if (d.report_type === 'daily_trend') {
-                            // Build day-by-day table with both GSC and GA4
-                            const gscDayMap = {}
-                            gscRows.forEach((r)=>{ gscDayMap[r.keys?.[0]||'']=r })
-                            const gscPDayMap = {}
-                            gscPRows.forEach((r)=>{ gscPDayMap[r.keys?.[0]||'']=r })
-                            const ga4DayMap = {}
-                            ga4Rows.forEach((r)=>{ ga4DayMap[r.dimensionValues?.[0]?.value||'']=r })
-                            // Merge all dates
-                            const allDates = [...new Set([...Object.keys(gscDayMap),...Object.keys(ga4DayMap)])].sort().reverse()
-                            return (
-                              <DataTable title={`Daily Trend — ${allDates.length} days`}
-                                cols={['Date','Clicks','Impressions','CTR','Sessions','Users']}
-                                maxRows={allDates.length}
-                                rows={allDates.map(date=>{
-                                  const g = gscDayMap[date]
-                                  const a = ga4DayMap[date?.replace(/-/g,'')]
-                                  return [
-                                    new Date(date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
-                                    g?g.clicks.toLocaleString():'—',
-                                    g?g.impressions.toLocaleString():'—',
-                                    g?(g.ctr*100).toFixed(1)+'%':'—',
-                                    a?parseInt(a.metricValues?.[0]?.value||0).toLocaleString():'—',
-                                    a?parseInt(a.metricValues?.[1]?.value||0).toLocaleString():'—',
-                                  ]
-                                })}/>
-                            )
-                          }
-
-                          return <div style={{color:'#9ca3af',padding:20}}>No data available for this report.</div>
-                        })()}
-
-                        {/* ── Saved AI Reports ── */}
+                        {/* Saved AI Reports */}
                         {reports.length > 0 && (
                           <div style={{ marginTop:20 }}>
                             <div style={{ fontSize:14, fontWeight:800, color:'#374151', marginBottom:10 }}>Saved AI Reports</div>
@@ -1728,15 +1399,18 @@ Return ONLY valid JSON (no markdown):
                             ))}
                           </div>
                         )}
+
                       </div>
                     )}
-                </div>
+
+                  </>
+                )}
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
-    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }
