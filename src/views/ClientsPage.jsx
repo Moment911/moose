@@ -481,10 +481,10 @@ export default function ClientsPage() {
               )}
             </div>
           ) : (
-            <div className="animate-fade-up" style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
+            <div className="animate-fade-up" style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'visible', position:'relative' }}>
               <table style={{ width:'100%', borderCollapse:'collapse' }}>
                 <thead>
-                  <tr>
+                  <tr style={{ borderRadius:'16px 16px 0 0' }}>
                     {[
                       { key:'name',     label:'Client Name' },
                       { key:'industry', label:'Industry' },
@@ -572,7 +572,8 @@ export default function ClientsPage() {
                               <MoreHorizontal size={14}/>
                             </button>
                             {menuOpen===client.id && (
-                              <div style={{ position:'absolute', right:0, top:'100%', marginTop:4, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,.12)', zIndex:100, minWidth:160, padding:4, transform:'translateX(0)' }}>
+                              <div style={{ position:'fixed', background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, boxShadow:'0 8px 32px rgba(0,0,0,.15)', zIndex:9999, minWidth:160, padding:4 }}
+                                  ref={el => { if(el && menuOpen===client.id) { const btn = el.previousSibling; if(btn) { const r = btn.getBoundingClientRect(); el.style.top=(r.bottom+4)+'px'; el.style.right=(window.innerWidth-r.right)+'px'; } } }}>
                                 <button onClick={()=>startEdit(client)}
                                   style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:14, color:'#374151', borderRadius:8, transition:'background .1s' }} onMouseEnter={e=>e.currentTarget.style.background='#f9fafb'} onMouseLeave={e=>e.currentTarget.style.background='none'}>
                                   <Edit2 size={13}/> Edit
