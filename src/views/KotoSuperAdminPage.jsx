@@ -1,6 +1,8 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Building2, Users, DollarSign, TrendingUp, Shield, Search, Plus, RefreshCw, Loader2, Check, X, ExternalLink, ChevronRight, Star, Zap, Clock, AlertCircle, BarChart2, Globe, Settings, Tag, Edit2, Save, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
+import {
+  AlertCircle, BarChart2, Building2, Check, ChevronRight, Clock, DollarSign, Edit2, ExternalLink, Globe, Loader2, Plus, RefreshCw, Save, Search, Settings, Shield, Sparkles, Star, Tag, ToggleLeft, ToggleRight, Trash2, TrendingUp, Users, Zap
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
@@ -47,6 +49,12 @@ export default function KotoSuperAdminPage() {
   // Coupons
   const [coupons,      setCoupons]      = useState([])
   const [couponsLoaded,setCouponsLoaded]= useState(false)
+  // Marketplace
+  const [mpAgencies,   setMpAgencies]   = useState([])
+  const [mpAddons,     setMpAddons]     = useState([])
+  const [mpRequests,   setMpRequests]   = useState([])
+  const [mpLoaded,     setMpLoaded]     = useState(false)
+  const [toggling,     setToggling]     = useState({})
   const [showNewCoupon,setShowNewCoupon]= useState(false)
   const [savingCoupon, setSavingCoupon] = useState(false)
   const [newCoupon,    setNewCoupon]    = useState({
@@ -207,9 +215,10 @@ export default function KotoSuperAdminPage() {
   const TABS = [
     { key:'agencies', label:`Agencies (${agencies.length})`,   icon:Building2 },
     { key:'clients',  label:`All Clients (${clients.length})`, icon:Users },
-    { key:'metrics',  label:'Platform Metrics',                icon:BarChart2 },
-    { key:'pricing',  label:'Pricing & Signup',                icon:Tag },
-    { key:'coupons',  label:'Coupons & Discounts',              icon:DollarSign },
+    { key:'metrics',     label:'Platform Metrics',   icon:BarChart2 },
+    { key:'pricing',     label:'Pricing & Signup',   icon:Tag },
+    { key:'coupons',     label:'Coupons & Discounts', icon:DollarSign },
+    { key:'marketplace', label:'Marketplace',         icon:Sparkles },
   ]
 
   const agencyClients = (agId) => clients.filter(c => c.agency_id === agId)
@@ -810,6 +819,119 @@ export default function KotoSuperAdminPage() {
             )}
           </div>
         )}
+
+        {/* ── MARKETPLACE TAB ───────────────────────────────────────────── */}
+        {tab === 'marketplace' && (() => {
+          if (!mpLoaded) {
+            fetch('/api/marketplace', {
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ action:'all_agencies', agency_id: agencyId, real_agency_id: agencyId }),
+            }).then(r=>r.json()).then(data=>{
+              setMpAgencies(data.agencies||[])
+              setMpAddons(data.agency_addons||[])
+              setMpRequests(data.pending_requests||[])
+              setMpLoaded(true)
+            })
+          }
+          return (
+            <div>
+              {/* Pending requests */}
+              {mpRequests.length > 0 && (
+                <div style={{ background:'#fffbeb', borderRadius:14, border:'1px solid #fde68a', padding:'16px 20px', marginBottom:20 }}>
+                  <div style={{ fontFamily:"'Proxima Nova',sans-serif", fontSize:14, fontWeight:800, color:'#92400e', marginBottom:12 }}>
+                    ⏳ Pending Add-On Requests ({mpRequests.length})
+                  </div>
+                  {mpRequests.map(req => (
+                    <div key={req.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:'1px solid #fde68a' }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontFamily:"'Proxima Nova',sans-serif", fontSize:13, fontWeight:700, color:'#111' }}>
+                          {req.agencies?.name} → {req.addon_key.replace(/_/g,' ')}
+                        </div>
+                        {req.message && <div style={{ fontSize:12, color:'#6b7280' }}>{req.message}</div>}
+                      </div>
+                      <button onClick={async()=>{
+                        await fetch('/api/marketplace',{method:'POST',headers:{'Content-Type':'application/json'},
+                          body:JSON.stringify({action:'toggle',agency_id:agencyId,real_agency_id:agencyId,
+                            target_agency_id:req.agency_id,addon_key:req.addon_key,enabled:true})})
+                        setMpRequests(p=>p.filter(r=>r.id!==req.id))
+                        toast.success('Approved ✓')
+                      }}
+                        style={{ padding:'6px 14px', borderRadius:8, border:'none', background:'#16a34a', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'Proxima Nova',sans-serif" }}>
+                        Approve
+                      </button>
+                      <button onClick={async()=>{
+                        setMpRequests(p=>p.filter(r=>r.id!==req.id))
+                      }}
+                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #fecaca', background:'#fef2f2', color:'#ea2729', fontSize:12, cursor:'pointer' }}>
+                        Deny
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Per-agency add-on matrix */}
+              <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
+                <div style={{ padding:'14px 18px', borderBottom:'1px solid #f3f4f6', fontFamily:"'Proxima Nova',sans-serif", fontSize:14, fontWeight:800, color:'#0a0a0a', display:'flex', alignItems:'center', gap:8 }}>
+                  Agency Add-On Control Panel
+                  <span style={{ fontSize:11, color:'#9ca3af', fontWeight:400 }}>Toggle features per agency</span>
+                </div>
+                <div style={{ overflowX:'auto' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                    <thead>
+                      <tr style={{ background:'#f9fafb' }}>
+                        <th style={{ padding:'10px 16px', textAlign:'left', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:"'Proxima Nova',sans-serif", whiteSpace:'nowrap' }}>Agency</th>
+                        {['review_campaigns','scout_pipeline','autonomous_agent','client_portal','rank_tracker','performance_ai','api_access'].map(key => (
+                          <th key={key} style={{ padding:'10px 8px', textAlign:'center', fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:"'Proxima Nova',sans-serif", whiteSpace:'nowrap' }}>
+                            {key.replace(/_/g,' ')}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mpAgencies.slice(0,20).map(ag => (
+                        <tr key={ag.id} style={{ borderBottom:'1px solid #f9fafb' }}>
+                          <td style={{ padding:'10px 16px' }}>
+                            <div style={{ fontFamily:"'Proxima Nova',sans-serif", fontSize:13, fontWeight:700, color:'#111' }}>{ag.brand_name||ag.name}</div>
+                            <div style={{ fontSize:11, color:'#9ca3af', textTransform:'capitalize' }}>{ag.plan}</div>
+                          </td>
+                          {['review_campaigns','scout_pipeline','autonomous_agent','client_portal','rank_tracker','performance_ai','api_access'].map(key => {
+                            const isOn = mpAddons.some(a=>a.agency_id===ag.id&&a.addon_key===key&&a.enabled)
+                            const tKey = `${ag.id}:${key}`
+                            const loading = toggling[tKey]
+                            return (
+                              <td key={key} style={{ padding:'10px 8px', textAlign:'center' }}>
+                                <button onClick={async()=>{
+                                  setToggling(t=>({...t,[tKey]:true}))
+                                  await fetch('/api/marketplace',{method:'POST',headers:{'Content-Type':'application/json'},
+                                    body:JSON.stringify({action:'toggle',agency_id:agencyId,real_agency_id:agencyId,
+                                      target_agency_id:ag.id,addon_key:key,enabled:!isOn})})
+                                  setMpAddons(prev => {
+                                    const filtered = prev.filter(a=>!(a.agency_id===ag.id&&a.addon_key===key))
+                                    return isOn ? filtered : [...filtered,{agency_id:ag.id,addon_key:key,enabled:true}]
+                                  })
+                                  setToggling(t=>({...t,[tKey]:false}))
+                                }}
+                                  style={{ width:28, height:28, borderRadius:7, border:'none', background:isOn?'#f0fdf4':'#f3f4f6', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto' }}>
+                                  {loading
+                                    ? <span style={{ fontSize:10 }}>…</span>
+                                    : isOn
+                                      ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                      : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                  }
+                                </button>
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
