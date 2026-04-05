@@ -3,7 +3,7 @@
 // Usage: wrap the mobile JSX in <MobilePage title="Reviews"> ... </MobilePage>
 // It provides: scroll container, safe padding, consistent background.
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const BG  = '#f2f2f0'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
