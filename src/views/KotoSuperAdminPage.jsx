@@ -44,9 +44,19 @@ export default function KotoSuperAdminPage() {
   const [editingPlan, setEditingPlan] = useState(null)
   const [savingPricing, setSavingPricing] = useState(false)
   const [pricingLoaded, setPricingLoaded] = useState(false)
+  // Coupons
+  const [coupons,      setCoupons]      = useState([])
+  const [couponsLoaded,setCouponsLoaded]= useState(false)
+  const [showNewCoupon,setShowNewCoupon]= useState(false)
+  const [savingCoupon, setSavingCoupon] = useState(false)
+  const [newCoupon,    setNewCoupon]    = useState({
+    code:'', description:'', discount_type:'percent', discount_value:20,
+    applies_to:'all', max_uses:'', valid_until:'', trial_days:'', first_month_only:true
+  })
 
   useEffect(() => { loadAll() }, [])
   useEffect(() => { if (tab === 'pricing' && !pricingLoaded) loadPricing() }, [tab])
+  useEffect(() => { if (tab === 'coupons' && !couponsLoaded) loadCoupons() }, [tab])
 
   async function loadAll() {
     setLoading(true)
@@ -113,6 +123,50 @@ export default function KotoSuperAdminPage() {
     }))
   }
 
+  // ── Coupon functions ────────────────────────────────────────────────────────
+  async function loadCoupons() {
+    const { data } = await supabase.from('coupons')
+      .select('*, coupon_redemptions(count)')
+      .order('created_at', { ascending: false })
+    setCoupons(data || [])
+    setCouponsLoaded(true)
+  }
+
+  async function createCoupon() {
+    if (!newCoupon.code.trim() || !newCoupon.discount_value) { toast.error('Code and discount required'); return }
+    setSavingCoupon(true)
+    const res = await fetch('/api/coupons', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...newCoupon,
+        code: newCoupon.code.toUpperCase().trim(),
+        discount_value: Number(newCoupon.discount_value),
+        max_uses: newCoupon.max_uses ? Number(newCoupon.max_uses) : null,
+        trial_days: newCoupon.trial_days ? Number(newCoupon.trial_days) : null,
+        valid_until: newCoupon.valid_until || null,
+      })
+    })
+    const data = await res.json()
+    if (data.error) { toast.error(data.error); setSavingCoupon(false); return }
+    toast.success(`Coupon ${data.coupon.code} created`)
+    setCoupons(prev => [data.coupon, ...prev])
+    setShowNewCoupon(false)
+    setNewCoupon({ code:'', description:'', discount_type:'percent', discount_value:20, applies_to:'all', max_uses:'', valid_until:'', trial_days:'', first_month_only:true })
+    setSavingCoupon(false)
+  }
+
+  async function toggleCoupon(id, active) {
+    await supabase.from('coupons').update({ active: !active }).eq('id', id)
+    setCoupons(prev => prev.map(c => c.id === id ? { ...c, active: !active } : c))
+    toast.success(active ? 'Coupon deactivated' : 'Coupon activated')
+  }
+
+  async function deleteCoupon(id) {
+    await fetch('/api/coupons', { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id }) })
+    setCoupons(prev => prev.filter(c => c.id !== id))
+    toast.success('Coupon deleted')
+  }
+
   async function suspendAgency(id) {
     await supabase.from('agencies').update({ status: 'suspended' }).eq('id', id)
     toast.success('Agency suspended')
@@ -155,6 +209,7 @@ export default function KotoSuperAdminPage() {
     { key:'clients',  label:`All Clients (${clients.length})`, icon:Users },
     { key:'metrics',  label:'Platform Metrics',                icon:BarChart2 },
     { key:'pricing',  label:'Pricing & Signup',                icon:Tag },
+    { key:'coupons',  label:'Coupons & Discounts',              icon:DollarSign },
   ]
 
   const agencyClients = (agId) => clients.filter(c => c.agency_id === agId)
@@ -598,6 +653,161 @@ export default function KotoSuperAdminPage() {
               </a>
             </div>
 
+          </div>
+        )}
+
+        {/* COUPONS TAB */}
+        {tab === 'coupons' && (
+          <div>
+
+            {/* Header + New Coupon button */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+              <div>
+                <div style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:'#fff' }}>Coupons & Discounts</div>
+                <div style={{ fontSize:13, color:'#555', fontFamily:FB, marginTop:2 }}>
+                  Create codes that apply at signup. No Stripe dashboard needed.
+                </div>
+              </div>
+              <button onClick={()=>setShowNewCoupon(!showNewCoupon)}
+                style={{ padding:'9px 18px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:6 }}>
+                <Plus size={14}/> New Coupon
+              </button>
+            </div>
+
+            {/* New coupon form */}
+            {showNewCoupon && (
+              <div style={{ background:'#111', borderRadius:16, border:`1px solid ${RED}40`, padding:'20px 24px', marginBottom:20 }}>
+                <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:'#fff', marginBottom:16 }}>Create New Coupon</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                  {[
+                    { label:'Code', field:'code', type:'text', placeholder:'KOTO20', upper:true },
+                    { label:'Description', field:'description', type:'text', placeholder:'20% off for partners' },
+                    { label:'Discount Value', field:'discount_value', type:'number', placeholder:'20' },
+                  ].map(item=>(
+                    <div key={item.field}>
+                      <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>{item.label}</label>
+                      <input type={item.type} value={newCoupon[item.field]}
+                        onChange={e=>setNewCoupon(prev=>({...prev, [item.field]: item.upper ? e.target.value.toUpperCase() : e.target.value}))}
+                        placeholder={item.placeholder}
+                        style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box', letterSpacing: item.upper ? '.1em' : 'normal' }}
+                        onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#2a2a2a'}/>
+                    </div>
+                  ))}
+                  <div>
+                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>Discount Type</label>
+                    <select value={newCoupon.discount_type} onChange={e=>setNewCoupon(prev=>({...prev,discount_type:e.target.value}))}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}>
+                      <option value="percent">Percent (%)</option>
+                      <option value="fixed">Fixed ($)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>Applies To</label>
+                    <select value={newCoupon.applies_to} onChange={e=>setNewCoupon(prev=>({...prev,applies_to:e.target.value}))}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}>
+                      <option value="all">All Plans</option>
+                      <option value="starter">Starter Only</option>
+                      <option value="growth">Growth Only</option>
+                      <option value="agency">Agency Only</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>Max Uses (blank=unlimited)</label>
+                    <input type="number" value={newCoupon.max_uses} onChange={e=>setNewCoupon(prev=>({...prev,max_uses:e.target.value}))}
+                      placeholder="Unlimited"
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#2a2a2a'}/>
+                  </div>
+                  <div>
+                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>Expires (blank=never)</label>
+                    <input type="date" value={newCoupon.valid_until} onChange={e=>setNewCoupon(prev=>({...prev,valid_until:e.target.value}))}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#2a2a2a'}/>
+                  </div>
+                  <div>
+                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>Bonus Trial Days</label>
+                    <input type="number" value={newCoupon.trial_days} onChange={e=>setNewCoupon(prev=>({...prev,trial_days:e.target.value}))}
+                      placeholder="e.g. 30"
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#2a2a2a'}/>
+                  </div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+                  <button onClick={()=>setNewCoupon(prev=>({...prev,first_month_only:!prev.first_month_only}))}
+                    style={{ background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:6 }}>
+                    {newCoupon.first_month_only ? <ToggleRight size={24} color={RED}/> : <ToggleLeft size={24} color="#555"/>}
+                    <span style={{ fontSize:13, color: newCoupon.first_month_only?RED:'#555', fontFamily:FH, fontWeight:700 }}>
+                      {newCoupon.first_month_only ? 'First month only' : 'Recurring every month'}
+                    </span>
+                  </button>
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={()=>setShowNewCoupon(false)}
+                    style={{ padding:'9px 18px', borderRadius:10, border:'1px solid #333', background:'transparent', color:'#ccc', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                    Cancel
+                  </button>
+                  <button onClick={createCoupon} disabled={savingCoupon}
+                    style={{ padding:'9px 24px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:6 }}>
+                    <Save size={13}/> {savingCoupon ? 'Creating…' : 'Create Coupon'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Coupon list */}
+            {coupons.length === 0 && couponsLoaded ? (
+              <div style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', padding:'60px 24px', textAlign:'center' }}>
+                <Tag size={36} color="#333" style={{ margin:'0 auto 14px', display:'block' }}/>
+                <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#fff', marginBottom:6 }}>No coupons yet</div>
+                <div style={{ fontSize:13, color:'#555', fontFamily:FB }}>Create your first coupon to offer discounts at signup</div>
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {coupons.map(coupon => {
+                  const uses = coupon.coupon_redemptions?.[0]?.count || 0
+                  const expired = coupon.valid_until && new Date(coupon.valid_until) < new Date()
+                  const maxed = coupon.max_uses && uses >= coupon.max_uses
+                  return (
+                    <div key={coupon.id} style={{ background:'#111', borderRadius:14, border:`1px solid ${coupon.active && !expired && !maxed ? '#1a1a1a' : '#333'}`, padding:'16px 20px', display:'flex', alignItems:'center', gap:14 }}>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
+                          <code style={{ fontFamily:'monospace', fontSize:16, fontWeight:900, color: coupon.active?'#fff':'#555', letterSpacing:'.1em' }}>{coupon.code}</code>
+                          <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, fontFamily:FH,
+                            background: !coupon.active?'#1a1a1a':expired||maxed?'#1a1a1a':GREEN+'20',
+                            color: !coupon.active?'#555':expired||maxed?'#555':GREEN }}>
+                            {!coupon.active?'Disabled':expired?'Expired':maxed?'Maxed out':'Active'}
+                          </span>
+                          <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:RED+'20', color:RED, fontFamily:FH }}>
+                            {coupon.discount_type==='percent' ? `${coupon.discount_value}% off` : `$${coupon.discount_value} off`}
+                            {coupon.first_month_only ? ' · 1st month' : ' · recurring'}
+                          </span>
+                          {coupon.applies_to !== 'all' && (
+                            <span style={{ fontSize:11, color:'#555', fontFamily:FB }}>{coupon.applies_to} only</span>
+                          )}
+                        </div>
+                        <div style={{ display:'flex', gap:14, fontSize:12, color:'#555', fontFamily:FB }}>
+                          {coupon.description && <span>{coupon.description}</span>}
+                          <span>Used: {uses}{coupon.max_uses ? ` / ${coupon.max_uses}` : ' (unlimited)'}</span>
+                          {coupon.trial_days && <span>+{coupon.trial_days} bonus days</span>}
+                          {coupon.valid_until && <span>Expires: {new Date(coupon.valid_until).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+                        <button onClick={()=>toggleCoupon(coupon.id, coupon.active)}
+                          style={{ padding:'6px 14px', borderRadius:8, border:'1px solid #333', background:'transparent', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH,
+                            color: coupon.active ? '#f87171' : GREEN }}>
+                          {coupon.active ? 'Disable' : 'Enable'}
+                        </button>
+                        <button onClick={()=>deleteCoupon(coupon.id)}
+                          style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #333', background:'transparent', color:'#555', fontSize:12, cursor:'pointer' }}>
+                          <Trash2 size={13}/>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
 

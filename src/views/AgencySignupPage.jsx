@@ -87,6 +87,27 @@ export default function AgencySignupPage() {
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
+  async function validateCoupon() {
+    if (!couponCode.trim()) return
+    setCheckingCoupon(true); setCouponError(''); setCoupon(null)
+    try {
+      const res = await fetch('/api/coupons', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'validate', code: couponCode, plan }),
+      })
+      const data = await res.json()
+      if (data.valid) { setCoupon(data.coupon); setCouponError('') }
+      else { setCouponError(data.error || 'Invalid coupon'); setCoupon(null) }
+    } catch { setCouponError('Could not validate coupon') }
+    setCheckingCoupon(false)
+  }
+
+  function getDiscountedPrice(basePrice) {
+    if (!coupon) return basePrice
+    if (coupon.discount_type === 'percent') return Math.round(basePrice * (1 - coupon.discount_value / 100))
+    return Math.max(0, basePrice - coupon.discount_value)
+  }
+
   async function createAgency() {
     if (!form.agency_name.trim()) { toast.error('Agency name is required'); return }
     setLoading(true)
@@ -367,6 +388,40 @@ export default function AgencySignupPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Coupon Code */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display:'block', fontSize:13, fontWeight:700, color:'#374151', marginBottom:6 }}>
+                  Have a coupon code?
+                </label>
+                <div style={{ display:'flex', gap:8 }}>
+                  <input
+                    value={couponCode}
+                    onChange={e=>{setCouponCode(e.target.value.toUpperCase());setCoupon(null);setCouponError('')}}
+                    onKeyDown={e=>e.key==='Enter'&&validateCoupon()}
+                    placeholder="KOTO20"
+                    style={{ flex:1, padding:'10px 14px', borderRadius:10, border:`1.5px solid ${coupon?'#16a34a':couponError?'#ea2729':'#e5e7eb'}`, fontSize:14, outline:'none', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'.1em' }}
+                  />
+                  <button onClick={validateCoupon} disabled={!couponCode.trim()||checkingCoupon}
+                    style={{ padding:'10px 18px', borderRadius:10, border:'none', background:'#111', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+                    {checkingCoupon ? 'Checking…' : 'Apply'}
+                  </button>
+                </div>
+                {coupon && (
+                  <div style={{ marginTop:8, padding:'10px 14px', background:'#f0fdf4', borderRadius:10, border:'1px solid #bbf7d0', display:'flex', alignItems:'center', gap:8 }}>
+                    <Check size={15} color="#16a34a"/>
+                    <div style={{ fontSize:13, color:'#15803d', fontWeight:700 }}>
+                      {coupon.discount_type==='percent' ? `${coupon.discount_value}% off` : `$${coupon.discount_value} off`}
+                      {coupon.first_month_only ? ' first month' : ' every month'}
+                      {coupon.trial_days ? ` + ${coupon.trial_days}-day trial` : ''}
+                      {coupon.description ? ` — ${coupon.description}` : ''}
+                    </div>
+                  </div>
+                )}
+                {couponError && (
+                  <div style={{ marginTop:6, fontSize:13, color:'#ea2729', fontWeight:600 }}>{couponError}</div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>

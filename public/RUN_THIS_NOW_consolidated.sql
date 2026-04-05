@@ -634,3 +634,36 @@ INSERT INTO platform_config (key, value) VALUES
   "hero_badge": "Now in early access"
 }'::jsonb)
 ON CONFLICT (key) DO NOTHING;
+
+-- ── Coupons & Discounts (Koto-controlled, no Stripe required) ─────────────────
+CREATE TABLE IF NOT EXISTS coupons (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code            text NOT NULL UNIQUE,
+  description     text,
+  discount_type   text NOT NULL DEFAULT 'percent', -- percent | fixed
+  discount_value  numeric(10,2) NOT NULL,           -- 20 = 20% or $20
+  applies_to      text DEFAULT 'all',               -- all | starter | growth | agency
+  max_uses        int,                              -- null = unlimited
+  uses_count      int DEFAULT 0,
+  valid_from      timestamptz DEFAULT now(),
+  valid_until     timestamptz,                      -- null = no expiry
+  trial_days      int,                              -- override trial length
+  first_month_only boolean DEFAULT true,
+  active          boolean DEFAULT true,
+  created_at      timestamptz DEFAULT now(),
+  created_by      uuid
+);
+
+CREATE INDEX IF NOT EXISTS idx_coupons_code   ON coupons(code);
+CREATE INDEX IF NOT EXISTS idx_coupons_active ON coupons(active);
+
+-- ── Coupon redemptions (who used what) ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS coupon_redemptions (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id   uuid REFERENCES coupons(id),
+  agency_id   uuid REFERENCES agencies(id),
+  code        text,
+  discount_applied numeric(10,2),
+  plan        text,
+  redeemed_at timestamptz DEFAULT now()
+);
