@@ -1288,6 +1288,22 @@ Return ONLY valid JSON (no markdown):
                       </div>
                     )}
 
+                    {tab === 'monthly' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <div style={{ fontSize:40, marginBottom:16 }}>📊</div>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>AI Monthly Report</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Generate a full client performance report in seconds. Reviews, GBP score, SEO score, and keyword opportunities — written by Claude, ready to send.
+                          </div>
+                          <button onClick={()=>navigate('/seo/monthly-report')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            Generate Report →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {tab === 'reports' && (
                       <div className="animate-fade-up">
 

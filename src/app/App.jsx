@@ -63,6 +63,7 @@ import SEOAuditPage from '../views/seo/SEOAuditPage'
 import GBPAuditPage from '../views/seo/GBPAuditPage'
 import OnPageAuditPage from '../views/seo/OnPageAuditPage'
 import KeywordGapPage from '../views/seo/KeywordGapPage'
+import MonthlyReportPage from '../views/seo/MonthlyReportPage'
 import CompetitorIntelPage from '../views/seo/CompetitorIntelPage'
 import CitationTrackerPage from '../views/seo/CitationTrackerPage'
 import SEOPluginPage from '../views/seo/SEOPluginPage'
@@ -182,6 +183,7 @@ export default function App() {
           <Route path="/seo/gbp-audit" element={<GBPAuditPage />} />
           <Route path="/seo/onpage" element={<OnPageAuditPage />} />
           <Route path="/seo/keyword-gap" element={<KeywordGapPage />} />
+          <Route path="/seo/monthly-report" element={<MonthlyReportPage />} />
           <Route path="/seo/competitor-intel" element={<CompetitorIntelPage />} />
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<SEOPluginPage />} />
