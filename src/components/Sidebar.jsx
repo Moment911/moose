@@ -104,17 +104,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div style={{padding:'20px 16px 14px',flexShrink:0,borderBottom:'1px solid #f3f4f6'}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <div style={{width:30,height:30,borderRadius:8,background:R,
-              display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <Zap size={15} color="#fff" strokeWidth={2.5}/>
-            </div>
-            <div>
-              <div style={{fontFamily:"var(--font-display)",fontSize:16,fontWeight:800,
-                color:'#111',letterSpacing:'-.03em',lineHeight:1}}>Koto</div>
-              <div style={{fontSize:13,color:'#9ca3af',letterSpacing:'.04em',marginTop:1}}>
-                AI Platform
-              </div>
-            </div>
+            <img src="/koto_logo.svg" alt="Koto" style={{height:28,width:'auto',display:'block'}}/>
           </div>
         </div>
 

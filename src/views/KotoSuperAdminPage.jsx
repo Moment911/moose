@@ -221,7 +221,7 @@ export default function KotoSuperAdminPage() {
       {/* Top bar */}
       <div style={{ background:'#111', borderBottom:'1px solid #222', padding:'16px 32px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:RED, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:FH, fontSize:16, fontWeight:900, color:'#fff' }}>K</div>
+          <img src="/koto_logo_white.svg" alt="Koto" style={{ height:28, width:'auto', display:'block' }}/>
           <div>
             <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#fff' }}>Koto Super Admin</div>
             <div style={{ fontSize:12, color:'#666' }}>Platform operator view — all agencies</div>

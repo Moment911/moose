@@ -49,15 +49,7 @@ export default function LoginPage() {
       <div style={{width:'100%',maxWidth:400,position:'relative',zIndex:1}}>
         {/* Logo */}
         <div style={{textAlign:'center',marginBottom:40}}>
-          <div style={{width:52,height:52,borderRadius:14,background:R,
-            display:'flex',alignItems:'center',justifyContent:'center',
-            margin:'0 auto 16px',boxShadow:`0 8px 24px ${R}50`}}>
-            <Zap size={24} color="#fff" strokeWidth={2.5}/>
-          </div>
-          <div style={{fontFamily:"var(--font-display)",fontSize:28,fontWeight:800,
-            color:'#fff',letterSpacing:'-.04em',lineHeight:1,marginBottom:8}}>
-            Koto
-          </div>
+          <img src="/koto_logo_white.svg" alt="Koto" style={{height:40,width:'auto',display:'block',margin:'0 auto 16px'}}/>
           <div style={{fontSize:14,color:'rgba(255,255,255,.4)'}}>
             Sign in to your agency platform
           </div>

@@ -194,7 +194,7 @@ export default function AgencySignupPage() {
 
       {/* Header */}
       <div style={{ background: '#18181b', padding: '14px 28px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 26, width: 'auto' }} />
+        <img src="/koto_logo_white.svg" alt="Koto" style={{ height: 26, width: 'auto' }} />
         <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 15, color: '#4b5563' }}>
           {step < 4 ? '14-day free trial · No credit card required' : 'Setting up your agency…'}
