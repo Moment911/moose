@@ -97,6 +97,7 @@ import ReviewCampaignsPage from '../views/ReviewCampaignsPage'
 import OnboardingDashboardPage from '../views/OnboardingDashboardPage'
 import ScoutPipelinePage from '../views/scout/ScoutPipelinePage'
 import MarketplacePage from '../views/MarketplacePage'
+import WordPressControlPage from '../views/WordPressControlPage'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
@@ -137,6 +138,7 @@ export default function App() {
           <Route path="/onboarding-dashboard" element={<OnboardingDashboardPage />} />
           <Route path="/scout/pipeline" element={<ScoutPipelinePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
