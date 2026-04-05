@@ -62,8 +62,13 @@ export default function ClientsPage() {
   const [editingId, setEditingId] = useState(null)
 
   const [form, setForm] = useState({
-    name:'', email:'', phone:'', website:'', industry:'', status:'active'
+    name:'', email:'', phone:'', website:'', industry:'', status:'active',
+    address:'', city:'', state:'', zip:'', notes:'', monthly_value:''
   })
+  const [bizSearch,    setBizSearch]    = useState('')
+  const [bizResults,   setBizResults]   = useState([])
+  const [bizSearching, setBizSearching] = useState(false)
+  const [bizSearched,  setBizSearched]  = useState(false)
 
   useEffect(() => { load() }, [agencyId])
 
@@ -597,3 +602,35 @@ export default function ClientsPage() {
     </div>
   )
 }
+
+  async function searchBusiness(query) {
+    if (!query.trim()) return
+    setBizSearching(true); setBizResults([])
+    try {
+      const res = await fetch('/api/reviews', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'search', query: query.trim() }),
+      })
+      const data = await res.json()
+      setBizResults(data.results || [])
+      setBizSearched(true)
+    } catch(e) { console.warn('Search failed') }
+    setBizSearching(false)
+  }
+
+  function autofillFromGoogle(biz) {
+    const parts = (biz.address || '').split(',').map(s => s.trim())
+    const stateZip = (parts[2] || '').trim().split(' ')
+    setForm(prev => ({
+      ...prev,
+      name:    prev.name || biz.name || '',
+      phone:   prev.phone || '',
+      website: prev.website || '',
+      address: parts[0] || '',
+      city:    parts[1] || '',
+      state:   stateZip[0] || '',
+      zip:     stateZip[1] || '',
+    }))
+    setBizResults([]); setBizSearch('')
+    toast.success('Auto-filled from Google Maps!')
+  }
