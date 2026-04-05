@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight, Plus, X, Trash2, Download, Clock, Calendar a
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader } from '../components/mobile/MobilePage'
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, startOfDay, addHours, getHours } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -116,6 +118,57 @@ export default function CalendarPage() {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const today = new Date()
+    const upcoming = (events||[])
+      .filter(e => new Date(e.start_date||e.date) >= today)
+      .sort((a,b) => new Date(a.start_date||a.date) - new Date(b.start_date||b.date))
+      .slice(0,10)
+    const past = (events||[])
+      .filter(e => new Date(e.start_date||e.date) < today)
+      .sort((a,b) => new Date(b.start_date||b.date) - new Date(a.start_date||a.date))
+      .slice(0,5)
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Calendar" subtitle={`${upcoming.length} upcoming`}/>
+        <MobileSectionHeader title="Upcoming"/>
+        {upcoming.length===0 ? (
+          <div style={{padding:'20px 16px',color:'#9a9a96',fontSize:14,textAlign:'center'}}>No upcoming events</div>
+        ) : (
+          <MobileCard style={{margin:'0 16px 12px'}}>
+            {upcoming.map((e,i)=>(
+              <MobileRow key={e.id} borderBottom={i<upcoming.length-1}
+                left={<div style={{width:40,height:40,borderRadius:10,background:'#ea2729'+'15',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#ea2729',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:'#ea2729',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
+                </div>}
+                title={e.title||e.name||'Event'}
+                subtitle={e.description||e.type||''}/>
+            ))}
+          </MobileCard>
+        )}
+        {past.length>0 && <>
+          <MobileSectionHeader title="Past"/>
+          <MobileCard style={{margin:'0 16px 16px'}}>
+            {past.map((e,i)=>(
+              <MobileRow key={e.id} borderBottom={i<past.length-1}
+                left={<div style={{width:40,height:40,borderRadius:10,background:'#f2f2f0',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#9a9a96',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:'#9a9a96',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
+                </div>}
+                title={e.title||e.name||'Event'}
+                subtitle={e.description||e.type||''}/>
+            ))}
+          </MobileCard>
+        </>}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />

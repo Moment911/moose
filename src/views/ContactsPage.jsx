@@ -118,6 +118,47 @@ export default function ContactsPage() {
   const paged = filtered.slice(page * PAGE, (page + 1) * PAGE)
   const pages = Math.ceil(filtered.length / PAGE)
 
+  const isMobile = useMobile()
+  const [mSearch, setMSearch] = useState('')
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const fContacts = (contacts||[]).filter(c =>
+      !mSearch || c.name?.toLowerCase().includes(mSearch.toLowerCase()) ||
+      c.email?.toLowerCase().includes(mSearch.toLowerCase()) ||
+      c.phone?.includes(mSearch)
+    )
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Contacts" subtitle={`${contacts?.length||0} contacts`}
+          action={<button onClick={()=>navigate('/contacts/new')}
+            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>}/>
+        <MobileSearch value={mSearch} onChange={setMSearch} placeholder="Search contacts…"/>
+        {loading ? (
+          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+        ) : fContacts.length===0 ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No contacts found</div>
+        ) : (
+          <MobileCard style={{margin:'12px 16px'}}>
+            {fContacts.map((ct,i)=>(
+              <MobileRow key={ct.id}
+                onClick={()=>navigate(`/contacts/${ct.id}`)}
+                borderBottom={i<fContacts.length-1}
+                left={<div style={{width:38,height:38,borderRadius:'50%',background:'#ea2729'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:15,fontWeight:800,color:'#ea2729'}}>
+                  {(ct.name||ct.email||'?')[0].toUpperCase()}
+                </div>}
+                title={ct.name||ct.email||'Contact'}
+                subtitle={[ct.email,ct.phone,ct.company].filter(Boolean).join(' · ')}/>
+            ))}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />

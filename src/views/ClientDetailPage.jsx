@@ -880,6 +880,104 @@ export default function ClientDetailPage() {
     ),
   }
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const mTabs = [
+      {key:'profile',  label:'Profile'},
+      {key:'projects', label:'Projects', count:projects?.length},
+      {key:'access',   label:'Access'},
+    ]
+    const statusColor = client?.status==='active'?'#16a34a':client?.status==='prospect'?'#ea2729':'#9a9a96'
+
+    if (loading) return (
+      <MobilePage padded={false}>
+        <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+      </MobilePage>
+    )
+
+    return (
+      <MobilePage padded={false}>
+        {/* Header */}
+        <div style={{background:'#0a0a0a',padding:'16px 16px 14px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+            <div style={{width:44,height:44,borderRadius:12,background:'#ea2729'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:20,fontWeight:800,color:'#ea2729'}}>
+              {(client?.name||'?')[0].toUpperCase()}
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:18,fontWeight:800,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{client?.name}</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginTop:3}}>
+                <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:statusColor+'20',color:statusColor,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",textTransform:'capitalize'}}>{client?.status||'active'}</span>
+                {client?.industry && <span style={{fontSize:12,color:'rgba(255,255,255,.4)'}}>{client.industry}</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <MobileTabs tabs={mTabs} active={activeTab} onChange={setActiveTab}/>
+
+        {activeTab==='profile' && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            <MobileCard style={{padding:'14px'}}>
+              {[
+                {label:'Email',   value:client?.email,   href:`mailto:${client?.email}`},
+                {label:'Phone',   value:client?.phone,   href:`tel:${client?.phone}`},
+                {label:'Website', value:client?.website, href:client?.website},
+              ].filter(f=>f.value).map((f,i,arr)=>(
+                <div key={f.label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:i<arr.length-1?'1px solid #f2f2f0':'none'}}>
+                  <span style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.05em'}}>{f.label}</span>
+                  <a href={f.href} target={f.label==='Website'?'_blank':'_self'} style={{fontSize:14,color:'#ea2729',fontFamily:"'Raleway',sans-serif",textDecoration:'none',maxWidth:'60%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.value}</a>
+                </div>
+              ))}
+            </MobileCard>
+          </div>
+        )}
+
+        {activeTab==='projects' && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            {!projects?.length ? (
+              <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No projects yet</div>
+            ) : (
+              <MobileCard style={{margin:0}}>
+                {projects.map((p,i)=>(
+                  <MobileRow key={p.id}
+                    onClick={()=>navigate(`/project/${p.id}`)}
+                    borderBottom={i<projects.length-1}
+                    title={p.name}
+                    subtitle={p.status?.replace('_',' ')||'active'}
+                    left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:'#ea2729'}}/>}/>
+                ))}
+              </MobileCard>
+            )}
+          </div>
+        )}
+
+        {activeTab==='access' && (
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+            <MobileCard style={{padding:'14px'}}>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#9a9a96',textTransform:'uppercase',letterSpacing:'.06em',marginBottom:10}}>Portal Access</div>
+              {(tokens||[]).length===0 ? (
+                <div style={{fontSize:14,color:'#9a9a96',marginBottom:12}}>No access links yet</div>
+              ) : (
+                tokens.map((t,i)=>(
+                  <div key={t.id} style={{padding:'10px 0',borderBottom:'1px solid #f2f2f0'}}>
+                    <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:13,fontWeight:700,color:'#0a0a0a',marginBottom:4}}>{t.label||'Portal Link'}</div>
+                    <div style={{fontSize:12,color:'#9a9a96',fontFamily:"'Raleway',sans-serif",overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.url||`/access/${t.token}`}</div>
+                  </div>
+                ))
+              )}
+              <button style={{width:'100%',padding:'11px',borderRadius:10,border:'none',background:'#ea2729',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginTop:10}}>
+                Generate Access Link
+              </button>
+            </MobileCard>
+          </div>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell flex h-screen bg-gray-50">
       <Sidebar />

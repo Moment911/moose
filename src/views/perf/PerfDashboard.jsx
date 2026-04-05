@@ -137,6 +137,7 @@ export default function PerfDashboard() {
   const [loading,   setLoading]   = useState(true)
   const [syncing,   setSyncing]   = useState(false)
   const [range,     setRange]     = useState('30d')
+  const [mTab,     setMTab]     = useState('overview')
 
   useEffect(() => { loadClients() }, [])
   useEffect(() => { if (selClient) loadClientData() }, [selClient])
@@ -286,7 +287,6 @@ export default function PerfDashboard() {
       {key:'campaigns',   label:'Campaigns'},
       {key:'recs',        label:'AI Recs',  count:recs.filter(r=>r.status==='pending').length},
     ]
-    const [mTab, setMTab] = React.useState('overview')
     const fRecs = recs.filter(r=>r.status==='pending')
     const totSpend   = campaigns.reduce((s,c)=>s+(c.cost||0),0)
     const totClicks  = campaigns.reduce((s,c)=>s+(c.clicks||0),0)

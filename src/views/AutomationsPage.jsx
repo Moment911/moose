@@ -67,6 +67,33 @@ export default function AutomationsPage() {
     } catch { toast.error('Failed to delete') }
   }
 
+  const isMobile = useMobile()
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Automations" subtitle="Workflow automations"/>
+        <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
+          {(automations||[]).length===0 ? (
+            <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No automations yet</div>
+          ) : (
+            <MobileCard style={{margin:0}}>
+              {(automations||[]).map((a,i,arr)=>(
+                <MobileRow key={a.id} borderBottom={i<arr.length-1}
+                  left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:a.is_active?'#16a34a':'#9a9a96'}}/>}
+                  title={a.name||a.title||'Automation'}
+                  subtitle={a.trigger||a.description||''}
+                  badge={<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:a.is_active?'#f0fdf4':'#f2f2f0',color:a.is_active?'#16a34a':'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>{a.is_active?'Active':'Off'}</span>}/>
+              ))}
+            </MobileCard>
+          )}
+        </div>
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />

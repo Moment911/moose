@@ -47,6 +47,51 @@ export default function CampaignsPage() {
     totalEmails: campaigns.reduce((a, c) => a + (c.total_sent || 0), 0),
   }
 
+  const isMobile = useMobile()
+  const [mSearch, setMSearch] = useState('')
+  const [mSts, setMSts] = useState('all')
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const stsTabs = [
+      {key:'all',    label:'All'},
+      {key:'active', label:'Active'},
+      {key:'draft',  label:'Draft'},
+      {key:'sent',   label:'Sent'},
+    ]
+    const fCampaigns = (campaigns||[])
+      .filter(c=>mSts==='all'||c.status===mSts)
+      .filter(c=>!mSearch||c.name?.toLowerCase().includes(mSearch.toLowerCase()))
+    const stsColor = s=>({active:'#16a34a',draft:'#9a9a96',sent:'#ea2729',paused:'#f59e0b'})[s]||'#9a9a96'
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Campaigns" subtitle={`${campaigns?.length||0} campaigns`}
+          action={<button onClick={()=>navigate('/campaigns/builder')}
+            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>}/>
+        <MobileSearch value={mSearch} onChange={setMSearch} placeholder="Search campaigns…"/>
+        <MobileTabs tabs={stsTabs} active={mSts} onChange={setMSts}/>
+        {fCampaigns.length===0 ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No campaigns found</div>
+        ) : (
+          <MobileCard style={{margin:'12px 16px'}}>
+            {fCampaigns.map((cam,i)=>(
+              <MobileRow key={cam.id}
+                onClick={()=>navigate(`/campaigns/builder/${cam.id}`)}
+                borderBottom={i<fCampaigns.length-1}
+                left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:stsColor(cam.status)}}/>}
+                title={cam.name||'Untitled'}
+                subtitle={[cam.type||'Email', cam.list_name].filter(Boolean).join(' · ')}
+                badge={<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:stsColor(cam.status)+'15',color:stsColor(cam.status),fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0,textTransform:'capitalize'}}>{cam.status||'draft'}</span>}/>
+            ))}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />

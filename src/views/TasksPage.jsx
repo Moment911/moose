@@ -7,6 +7,8 @@ import Sidebar from '../components/Sidebar'
 import OnboardingTip from '../components/OnboardingTip'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
+import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileEmpty, MobileTabs, MobileSearch, MobileSectionHeader } from '../components/mobile/MobilePage'
 import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -142,6 +144,54 @@ export default function TasksPage() {
   const currentProject = projects.find(p => p.id === selectedProject)
   const boardColumns = STATUSES.map(s => ({ ...s, tasks: filteredTasks.filter(t => (t.status || 'todo') === s.key) }))
 
+  const isMobile = useMobile()
+  const [mStatus, setMStatus] = useState('all')
+  const [mSearch, setMSearch] = useState('')
+
+  /* ─── MOBILE ─── */
+  if (isMobile) {
+    const statusTabs = [
+      {key:'all',       label:'All',       count:tasks.length},
+      {key:'todo',      label:'To Do',     count:tasks.filter(t=>t.status==='todo').length},
+      {key:'in_progress',label:'In Progress',count:tasks.filter(t=>t.status==='in_progress').length},
+      {key:'done',      label:'Done',      count:tasks.filter(t=>t.status==='done').length},
+    ]
+    const filteredTasks = tasks
+      .filter(t => mStatus==='all' || t.status===mStatus)
+      .filter(t => !mSearch || t.title?.toLowerCase().includes(mSearch.toLowerCase()))
+    const priColor = p => ({high:'#ea2729',medium:'#f59e0b',low:'#9a9a96'})[p]||'#9a9a96'
+
+    return (
+      <MobilePage padded={false}>
+        <MobilePageHeader title="Tasks" subtitle={`${tasks.length} total`}
+          action={<button onClick={()=>setNewTask&&setNewTask(true)}
+            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>}/>
+        <MobileSearch value={mSearch} onChange={setMSearch} placeholder="Search tasks…"/>
+        <MobileTabs tabs={statusTabs} active={mStatus} onChange={setMStatus}/>
+        {filteredTasks.length===0 ? (
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No tasks found</div>
+        ) : (
+          <MobileCard style={{margin:'12px 16px'}}>
+            {filteredTasks.map((t,i)=>(
+              <MobileRow key={t.id}
+                onClick={()=>navigate(`/tasks/${t.id}`)}
+                borderBottom={i<filteredTasks.length-1}
+                left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:priColor(t.priority)}}/>}
+                title={t.title||'Untitled'}
+                subtitle={[t.assignee_name, t.due_date?'Due '+new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}):null].filter(Boolean).join(' · ')}
+                badge={t.status==='done'
+                  ? <span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 7px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>✓</span>
+                  : null}/>
+            ))}
+          </MobileCard>
+        )}
+      </MobilePage>
+    )
+  }
+
+  /* ─── DESKTOP ─── */
   return (
     <div className="page-shell flex h-screen overflow-hidden">
       <Sidebar />
