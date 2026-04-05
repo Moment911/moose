@@ -214,13 +214,13 @@ LAST 30 DAYS — GOOGLE SEARCH CONSOLE:
 - Site: ${liveData.gsc_site || 'unknown'}
 
 TOP 10 KEYWORDS BY CLICKS:
-${topKwByClicks.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.clicks} clicks, ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR`).join('\n') || '  No data yet'}
+${topKwByClicks.map(k => '  "' + (k.keys?.[0]) + '" — pos ' + (k.position?.toFixed(1)) + ', ' + (k.clicks) + ' clicks, ' + (k.impressions) + ' impr, ' + ((k.ctr*100).toFixed(1)) + '% CTR').join('\n') || '  No data yet'}
 
 QUICK WIN OPPORTUNITIES (positions 4-20, high impressions):
-${quickWinKws.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`).join('\n') || '  None identified'}
+${quickWinKws.map(k => '  "' + (k.keys?.[0]) + '" — pos ' + (k.position?.toFixed(1)) + ', ' + (k.impressions) + ' impressions, only ' + (k.clicks) + ' clicks').join('\n') || '  None identified'}
 
 LOW CTR KEYWORDS (high impressions, <2% CTR):
-${lowCTRKws.map(k => `  "${k.keys?.[0]}" — ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR (${k.clicks} clicks)`).join('\n') || '  None identified'}
+${lowCTRKws.map(k => '  "' + (k.keys?.[0]) + '" — ' + (k.impressions) + ' impr, ' + ((k.ctr*100).toFixed(1)) + '% CTR (' + (k.clicks) + ' clicks)').join('\n') || '  None identified'}
 
 LAST 30 DAYS — GOOGLE ANALYTICS 4:
 - Total sessions: ${totalSessions.toLocaleString()} (${sessionsDelta != null ? (sessionsDelta>=0?'+':'')+sessionsDelta+'% vs prev 30d' : 'no prev data'})
