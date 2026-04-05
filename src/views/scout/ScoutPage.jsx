@@ -226,16 +226,69 @@ function ProvenancePanel({ lead }) {
 }
 
 // ── Lead card ─────────────────────────────────────────────────────────────────
+function TechBadge({ label, present, small }) {
+  if (!present) return null
+  return (
+    <span style={{ fontSize:11, fontWeight:700, padding:'2px 7px', borderRadius:20,
+      background:'#f0fdf4', color:'#16a34a', border:'1px solid #bbf7d0',
+      display:'inline-flex', alignItems:'center', gap:3, whiteSpace:'nowrap' }}>
+      <span style={{ fontSize:8 }}>✓</span> {label}
+    </span>
+  )
+}
+
+function MissingBadge({ label }) {
+  return (
+    <span style={{ fontSize:11, fontWeight:700, padding:'2px 7px', borderRadius:20,
+      background:'#fef2f2', color:'#ea2729', border:'1px solid #fecaca',
+      display:'inline-flex', alignItems:'center', gap:3, whiteSpace:'nowrap' }}>
+      <span style={{ fontSize:8 }}>✗</span> {label}
+    </span>
+  )
+}
+
+function RevenueChip({ revenue }) {
+  if (!revenue?.annualRevenueAtRisk || revenue.annualRevenueAtRisk < 1000) return null
+  const v = revenue.annualRevenueAtRisk
+  const fmt = v >= 1000000 ? '$' + (v/1000000).toFixed(1) + 'M' : '$' + Math.round(v/1000) + 'k'
+  return (
+    <div style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px',
+      borderRadius:20, background:'#fff7ed', border:'1px solid #fed7aa',
+      fontSize:12, fontWeight:800, color:'#c2410c', whiteSpace:'nowrap' }}>
+      💰 {fmt}/yr at risk
+    </div>
+  )
+}
+
 function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
   const [expanded, setExpanded] = useState(false)
   const temp  = tempLabel(lead.score||50)
   const score = lead.score||50
+  const pipelineDone = lead.pipeline_complete
 
   function copy(text) { navigator.clipboard.writeText(text); toast.success('Copied!') }
 
-  // Competitor mode shows different framing
   const isCompetitor = mode === 'competitor'
   const isMarket     = mode === 'market'
+
+  // Tech badges to show when pipeline is complete
+  const techBadges = pipelineDone ? [
+    { label: lead.cms || null,           present: !!lead.cms },
+    { label: lead.seo_plugin || null,    present: !!lead.seo_plugin },
+    { label: 'CRM',                      present: lead.has_crm },
+    { label: 'Analytics',                present: lead.has_analytics },
+    { label: 'Call Tracking',            present: lead.has_call_tracking },
+    { label: 'Schema',                   present: lead.has_schema },
+    { label: lead.booking_software||null,present: !!lead.booking_software },
+  ].filter(b => b.label) : []
+
+  const missingBadges = pipelineDone ? [
+    { label: 'No Analytics',      show: !lead.has_analytics && lead.website },
+    { label: 'No Schema',         show: !lead.has_schema && lead.website },
+    { label: 'No CRM',            show: !lead.has_crm && lead.website },
+    { label: 'No Call Tracking',  show: !lead.has_call_tracking && lead.website },
+    { label: 'No SEO Plugin',     show: !lead.seo_plugin && lead.cms === 'WordPress' },
+  ].filter(b => b.show) : []
 
   if (view==='list') return (
     <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}
@@ -248,13 +301,21 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
           {!isMarket && <span style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
           <SourceBadge realData={lead._real_data}/>
           <ConfidenceBadge lead={lead} small/>
+          {lead.revenue?.annualRevenueAtRisk > 5000 && <RevenueChip revenue={lead.revenue}/>}
         </div>
         <div style={{ display:'flex', gap:12, fontSize:14, color:'#4b5563', flexWrap:'wrap' }}>
           {lead.address && <span>{lead.address}</span>}
           {lead.phone   && <span>{lead.phone}</span>}
           {lead.rating  > 0 && <span>⭐ {lead.rating} ({lead.review_count} reviews)</span>}
         </div>
-        {lead.gaps?.length>0 && (
+        {/* Tech badges - list view */}
+        {pipelineDone && (
+          <div style={{ display:'flex', gap:4, marginTop:6, flexWrap:'wrap' }}>
+            {techBadges.filter(b=>b.present).slice(0,4).map(b=><TechBadge key={b.label} label={b.label} present/>)}
+            {missingBadges.slice(0,2).map(b=><MissingBadge key={b.label} label={b.label}/>)}
+          </div>
+        )}
+        {!pipelineDone && lead.gaps?.length>0 && (
           <div style={{ display:'flex', gap:5, marginTop:6, flexWrap:'wrap' }}>
             {lead.gaps.slice(0,3).map(g=><span key={g} style={{ fontSize:13, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fbfc', color:ACCENT, border:`1px solid ${ACCENT}25` }}>{g}</span>)}
           </div>
@@ -287,6 +348,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
               {!isMarket && <span style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:temp.bg, color:temp.color }}>{temp.label}</span>}
               <SourceBadge realData={lead._real_data}/>
               <ConfidenceBadge lead={lead} small/>
+              {lead.revenue?.annualRevenueAtRisk > 5000 && <RevenueChip revenue={lead.revenue}/>}
             </div>
           </div>
           {!isCompetitor && !isMarket && (
@@ -295,34 +357,86 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
             </button>
           )}
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
+
+        {/* Contact info */}
+        <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:10 }}>
           {lead.address && <div style={{ fontSize:14, color:'#374151', display:'flex', gap:5 }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.address}</div>}
           {lead.phone   && <div style={{ fontSize:14, color:'#374151', display:'flex', gap:5 }}><Phone size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.phone}</div>}
           {lead.rating>0 && <div style={{ fontSize:14, color:'#374151', display:'flex', gap:5 }}>
             <Star size={11} style={{ flexShrink:0, marginTop:1 }}/>
-            {lead.rating}★ · {lead.review_count.toLocaleString()} reviews
+            {lead.rating}★ · {lead.review_count?.toLocaleString()} reviews
             {lead.review_count < 50 && <span style={{ color:ACCENT, fontWeight:700 }}> — low volume opportunity</span>}
           </div>}
           {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ fontSize:14, color:'#3b82f6', display:'flex', gap:5, textDecoration:'none' }}><Globe size={11} style={{ flexShrink:0, marginTop:1 }}/>{lead.website.replace(/^https?:\/\//,'').slice(0,50)}</a>}
           {lead.maps_url && <a href={lead.maps_url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{ fontSize:14, color:'#4285f4', display:'flex', gap:5, textDecoration:'none' }}><MapPin size={11} style={{ flexShrink:0, marginTop:1 }}/>View on Google Maps ↗</a>}
         </div>
+
+        {/* Tech stack strip — shown after pipeline completes */}
+        {pipelineDone && (
+          <div style={{ marginBottom:10 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:5 }}>
+              Tech Stack {lead.cms && `· ${lead.cms}`}
+            </div>
+            <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
+              {techBadges.filter(b=>b.present).map(b=><TechBadge key={b.label} label={b.label} present/>)}
+              {missingBadges.map(b=><MissingBadge key={b.label} label={b.label}/>)}
+              {lead.sitemap_pages > 0 && (
+                <span style={{ fontSize:11, fontWeight:700, padding:'2px 7px', borderRadius:20, background:'#f0fbfc', color:'#0e7490', border:'1px solid #a5f3fc' }}>
+                  {lead.sitemap_pages} pages
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Gaps */}
         {lead.gaps?.length>0 && (
-          <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>
-            {lead.gaps.map(g=>(
+          <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:10 }}>
+            {lead.gaps.slice(0, expanded ? 99 : 4).map(g=>(
               <span key={g} style={{ fontSize:13, fontWeight:700, padding:'3px 9px', borderRadius:20, background:'#f0fbfc', color:ACCENT, border:`1px solid ${ACCENT}25` }}>
-                 {g}
+                {g}
               </span>
             ))}
           </div>
         )}
+
+        {/* Revenue opportunity */}
+        {pipelineDone && lead.revenue?.annualRevenueAtRisk > 0 && (
+          <div style={{ background:'#fff7ed', borderRadius:10, padding:'10px 13px', marginBottom:10, border:'1px solid #fed7aa' }}>
+            <div style={{ fontSize:12, fontWeight:800, color:'#9a3412', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:6 }}>Revenue Opportunity</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+              {[
+                { label:'Current Est.', value:'$' + Math.round((lead.revenue.revenuePerClientYr||0) * (lead.revenue.currentMonthlyLeads||0) * 12 / 1000) + 'k/yr' },
+                { label:'Optimized Est.', value:'$' + Math.round((lead.revenue.annualRevenueGain||0)/1000) + 'k/yr' },
+                { label:'At Risk', value:'$' + Math.round((lead.revenue.annualRevenueAtRisk||0)/1000) + 'k/yr', highlight:true },
+              ].map(m=>(
+                <div key={m.label} style={{ textAlign:'center', background:'#fff', borderRadius:8, padding:'7px 4px', border:m.highlight?'1px solid #fcd34d':'1px solid #fde68a' }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:m.highlight?'#c2410c':'#92400e' }}>{m.value}</div>
+                  <div style={{ fontSize:10, color:'#b45309', fontWeight:600 }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* AI summary (expanded) */}
         {expanded && lead.ai_summary && (
-          <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 13px', marginBottom:12, fontSize:14, color:'#374151', lineHeight:1.65, borderTop:'1px solid #f3f4f6' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:13, fontWeight:800, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>
+          <div style={{ background:'#f9fafb', borderRadius:10, padding:'11px 13px', marginBottom:10, fontSize:14, color:'#374151', lineHeight:1.65, borderTop:'1px solid #f3f4f6' }} onClick={e=>e.stopPropagation()}>
+            <div style={{ fontSize:12, fontWeight:800, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:5 }}>
               {isCompetitor ? 'Competitive Intelligence' : isMarket ? 'Market Insight' : 'AI Opportunity Analysis'}
             </div>
             {lead.ai_summary}
           </div>
         )}
+
+        {/* Pipeline analyzing indicator */}
+        {!pipelineDone && lead._real_data && (
+          <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#0e7490', marginBottom:8 }}>
+            <div style={{ width:6, height:6, borderRadius:'50%', background:'#5bc6d0', animation:'pulse 1s infinite' }}/>
+            Analyzing tech stack & calculating revenue opportunity…
+          </div>
+        )}
+
         <ProvenancePanel lead={lead}/>
         <div style={{ display:'flex', gap:7, marginTop:10 }} onClick={e=>e.stopPropagation()}>
           {lead.phone && <button onClick={()=>copy(lead.phone)} style={{ padding:'7px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, color:'#374151' }}><Phone size={11}/> Copy #</button>}
