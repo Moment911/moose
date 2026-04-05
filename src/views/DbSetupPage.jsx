@@ -43,16 +43,35 @@ export default function DbSetupPage() {
 
   useEffect(() => { checkTables(); loadSql() }, [])
 
+  const [migrating, setMigrating] = useState(false)
+  const [migrateResult, setMigrateResult] = useState(null)
+
   async function checkTables() {
     setLoading(true)
     const results = {}
-    // Check each table by trying to select 0 rows
     await Promise.all(REQUIRED_TABLES.map(async t => {
       const { error } = await supabase.from(t.name).select('count').limit(0)
-      results[t.name] = !error || error.code !== '42P01'  // 42P01 = relation does not exist
+      results[t.name] = !error || error.code !== '42P01'
     }))
     setStatus(results)
     setLoading(false)
+  }
+
+  async function runAutoMigrate() {
+    setMigrating(true)
+    setMigrateResult(null)
+    try {
+      const res = await fetch('/api/auto-migrate')
+      const data = await res.json()
+      setMigrateResult(data)
+      if (data.status === 'migrated' || data.status === 'all_ready') {
+        toast.success('Migration complete!')
+        setTimeout(checkTables, 1000)
+      } else if (data.status === 'needs_migration') {
+        toast('Add SUPABASE_ACCESS_TOKEN to enable auto-migration')
+      }
+    } catch(e) { toast.error('Migration failed: ' + e.message) }
+    setMigrating(false)
   }
 
   async function loadSql() {
