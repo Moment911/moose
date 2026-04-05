@@ -41,6 +41,7 @@ import ClientAuthPage from '../views/ClientAuthPage'
 import WireframePage from '../views/WireframePage'
 import ESignaturePage from '../views/ESignaturePage'
 import PrivacyPolicyPage from '../views/PrivacyPolicyPage'
+import TermsPage from '../views/TermsPage'
 import ScoutPage from '../views/scout/ScoutPage'
 import ScoutHistoryPage from '../views/scout/ScoutHistoryPage'
 import KotoDeskPage from '../views/desk/MooseDeskPage'
@@ -162,6 +163,7 @@ export default function App() {
           <Route path="/wireframe/:projectId" element={<WireframePage />} />
           <Route path="/esign/:projectId" element={<ESignaturePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />
           <Route path="/scout/saved" element={<ScoutSavedPage />} />

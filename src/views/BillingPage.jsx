@@ -227,7 +227,7 @@ export default function BillingPage() {
 
           {/* Footer note */}
           <div style={{ textAlign:'center', fontSize:13, color:'#9ca3af', fontFamily:FB }}>
-            All plans include a 14-day free trial. Cancel anytime. Questions? Email <a href="mailto:hello@hellokoto.com" style={{ color:RED }}>hello@hellokoto.com</a>
+            All plans include a 7-day free trial. Cancel anytime. Questions? Email <a href="mailto:hello@hellokoto.com" style={{ color:RED }}>hello@hellokoto.com</a>
           </div>
 
         </div>

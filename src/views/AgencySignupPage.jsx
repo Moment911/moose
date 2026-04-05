@@ -39,7 +39,7 @@ const DEFAULT_PLANS = [
 const DEFAULT_META = {
   headline: 'The AI Platform Built for Marketing Agencies',
   subheadline: '{signupMeta.subheadline}',
-  trial_days: 14,
+  trial_days: 7,
   guarantee_text: '{signupMeta.guarantee_text}',
   hero_badge: 'Now in early access',
 }
@@ -433,6 +433,15 @@ export default function AgencySignupPage() {
                   style={{ padding: '13px 18px', borderRadius: 11, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: 'pointer', color: '#374151', fontWeight: 700 }}>
                   Back
                 </button>
+                {/* TOS consent */}
+                <p style={{ fontSize:12, color:'#9ca3af', textAlign:'center', margin:'0 0 8px', lineHeight:1.6 }}>
+                  By clicking below you agree to Koto's{' '}
+                  <a href="/terms" target="_blank" style={{ color:'#ea2729', fontWeight:700 }}>Terms of Service</a>{' '}
+                  and{' '}
+                  <a href="/privacy" target="_blank" style={{ color:'#ea2729', fontWeight:700 }}>Privacy Policy</a>.
+                  Your card will be charged after your 7-day free trial.
+                  No refunds on monthly plans once charged.
+                </p>
                 <button onClick={createAgency} disabled={loading || !form.agency_name.trim()}
                   style={{ flex: 1, padding: '13px', borderRadius: 11, border: 'none', background: '#22c55e', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', opacity: loading || !form.agency_name.trim() ? .7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {loading
