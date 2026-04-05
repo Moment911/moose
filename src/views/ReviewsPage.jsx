@@ -389,6 +389,17 @@ export default function ReviewsPage() {
   const { user, agencyId } = useAuth()
   const { clients, selectedClient, selectClient: setSelectedClient } = useClient()
   const [reviews, setReviews] = useState([])
+  // Google Reviews
+  const [googleSearchQuery,  setGoogleSearchQuery]  = useState('')
+  const [googleSearchResults,setGoogleSearchResults] = useState([])
+  const [googleSearching,    setGoogleSearching]    = useState(false)
+  const [googleFetching,     setGoogleFetching]     = useState(false)
+  const [googleReviews,      setGoogleReviews]      = useState([])
+  const [googleStats,        setGoogleStats]        = useState(null)
+  const [googleTab,          setGoogleTab]          = useState('search') // search | reviews
+  const [generatingId,       setGeneratingId]       = useState(null)
+  const [draftResponses,     setDraftResponses]     = useState({})
+  const [editingId,          setEditingId]          = useState(null)
   const [widgetSettings, setWidgetSettings] = useState(null)
   const [clientProfile, setClientProfile] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -504,6 +515,88 @@ export default function ReviewsPage() {
   const isMobile = useMobile()
 
   /* ─── MOBILE ─── */
+  // ── Google Reviews Functions ──────────────────────────────────────────────
+  async function searchGoogleBusiness(q) {
+    const query = q || googleSearchQuery
+    if (!query.trim()) return
+    setGoogleSearching(true)
+    setGoogleSearchResults([])
+    try {
+      const res = await fetch('/api/reviews', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'search', query: query.trim() + ' ' + (selectedClient?.name||'') }),
+      })
+      const d = await res.json()
+      setGoogleSearchResults(d.results || [])
+      if (!d.results?.length) toast('No businesses found — try a more specific search')
+    } catch(e) { toast.error('Search failed') }
+    setGoogleSearching(false)
+  }
+
+  async function fetchGoogleReviews(placeId, businessName) {
+    setGoogleFetching(true)
+    toast.loading('Fetching Google reviews…', {id:'gfetch'})
+    try {
+      const res = await fetch('/api/reviews', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'fetch', place_id:placeId, client_id:selectedClient?.id, agency_id:agencyId }),
+      })
+      const d = await res.json()
+      if (d.error) throw new Error(d.error)
+      setGoogleReviews(d.reviews || [])
+      setGoogleStats({ name:d.name, rating:d.rating, total:d.total_reviews, saved:d.saved })
+      setGoogleTab('reviews')
+      toast.success(`Fetched ${d.reviews?.length||0} reviews — ★${d.rating} avg`, {id:'gfetch'})
+    } catch(e) { toast.error(e.message, {id:'gfetch'}) }
+    setGoogleFetching(false)
+  }
+
+  async function generateAIResponse(review) {
+    setGeneratingId(review.review_id)
+    try {
+      const res = await fetch('/api/reviews', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'generate_response', review_text:review.review_text, rating:review.rating, business_name:selectedClient?.name }),
+      })
+      const d = await res.json()
+      if (d.response) {
+        setDraftResponses(prev => ({...prev, [review.review_id]: d.response}))
+        setEditingId(review.review_id)
+      }
+    } catch(e) { toast.error('AI generation failed') }
+    setGeneratingId(null)
+  }
+
+  async function saveGoogleResponse(reviewId) {
+    const draft = draftResponses[reviewId]
+    if (!draft) return
+    try {
+      // Find the DB id for this review
+      const { data } = await supabase.from('reviews').select('id').eq('review_id', reviewId).single()
+      if (data) {
+        await fetch('/api/reviews', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ action:'save_response', review_id:data.id, response_text:draft }),
+        })
+        setGoogleReviews(prev => prev.map(r => r.review_id===reviewId ? {...r, is_responded:true, response_text:draft} : r))
+        setEditingId(null)
+        toast.success('Response saved')
+      }
+    } catch(e) { toast.error('Save failed') }
+  }
+
+  // Auto-search when client changes
+  useEffect(() => {
+    if (selectedClient?.name) {
+      setGoogleSearchQuery(selectedClient.name)
+      setGoogleSearchResults([])
+      setGoogleReviews([])
+      setGoogleStats(null)
+      setGoogleTab('search')
+    }
+  }, [selectedClient?.id])
+
+
   if (isMobile) {
     const starArr = [5,4,3,2,1]
     const fReviews = reviews.filter(r=>{
@@ -542,6 +635,142 @@ export default function ReviewsPage() {
         <MobileSearch value={search} onChange={setSearch} placeholder="Search reviews…"/>
 
         {/* Star filter */}
+        {/* ── Google Reviews Panel ──────────────────────────────────── */}
+        <div style={{ margin:'16px 20px', background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
+          <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:26, height:26, borderRadius:7, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>🔵</div>
+              <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:14, fontWeight:800, color:'#111' }}>Google Reviews</span>
+              {googleStats && <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>★{googleStats.rating} · {googleStats.total} total</span>}
+            </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>setGoogleTab('search')}
+                style={{ padding:'5px 12px', borderRadius:8, border:'none', background:googleTab==='search'?'#111':'#f3f4f6', color:googleTab==='search'?'#fff':'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                Search
+              </button>
+              {googleReviews.length>0 && (
+                <button onClick={()=>setGoogleTab('reviews')}
+                  style={{ padding:'5px 12px', borderRadius:8, border:'none', background:googleTab==='reviews'?'#ea2729':'#f3f4f6', color:googleTab==='reviews'?'#fff':'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                  Reviews {googleReviews.length}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {googleTab==='search' && (
+            <div style={{ padding:'14px 18px' }}>
+              <div style={{ fontSize:13, color:'#6b7280', marginBottom:10 }}>
+                Search Google to find {selectedClient?.name}'s listing, then click to fetch their latest reviews.
+              </div>
+              <div style={{ display:'flex', gap:8, marginBottom:12 }}>
+                <input value={googleSearchQuery} onChange={e=>setGoogleSearchQuery(e.target.value)}
+                  onKeyDown={e=>e.key==='Enter'&&searchGoogleBusiness(googleSearchQuery)}
+                  placeholder={selectedClient?.name + ' ' + (selectedClient?.industry||'')}
+                  style={{ flex:1, padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111' }}
+                  onFocus={e=>e.target.style.borderColor='#5bc6d0'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                <button onClick={()=>searchGoogleBusiness(googleSearchQuery)} disabled={googleSearching}
+                  style={{ padding:'9px 18px', borderRadius:9, border:'none', background:'#5bc6d0', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
+                  {googleSearching ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <Search size={13}/>}
+                  {googleSearching ? 'Searching…' : 'Search Google'}
+                </button>
+              </div>
+
+              {googleSearchResults.length > 0 && (
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {googleSearchResults.map((biz,i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fafafa', cursor:'pointer' }}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='#ea2729'}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+                      {biz.photo && <img src={biz.photo} alt="" style={{ width:44, height:44, borderRadius:8, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{biz.name}</div>
+                        <div style={{ fontSize:12, color:'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{biz.address}</div>
+                        {biz.rating && <div style={{ fontSize:12, color:'#f59e0b', fontWeight:700 }}>★{biz.rating} ({biz.review_count} reviews)</div>}
+                      </div>
+                      <button onClick={()=>fetchGoogleReviews(biz.place_id, biz.name)} disabled={googleFetching}
+                        style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#ea2729', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
+                        {googleFetching ? <Loader2 size={12} style={{animation:'spin 1s linear infinite'}}/> : null}
+                        {googleFetching ? 'Fetching…' : 'Fetch Reviews'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!googleSearchResults.length && !googleSearching && (
+                <div style={{ fontSize:13, color:'#9ca3af', textAlign:'center', padding:'8px 0' }}>
+                  Search above to find the business on Google Maps
+                </div>
+              )}
+            </div>
+          )}
+
+          {googleTab==='reviews' && googleReviews.length > 0 && (
+            <div style={{ maxHeight:480, overflowY:'auto' }}>
+              {googleReviews.map((r, i) => (
+                <div key={i} style={{ padding:'14px 18px', borderBottom:'1px solid #f9fafb' }}>
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:8 }}>
+                    <div style={{ width:34, height:34, borderRadius:9, background:'#5bc6d030', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, fontWeight:900, color:'#5bc6d0' }}>
+                      {r.reviewer_name?.[0]?.toUpperCase()||'?'}
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                        <span style={{ fontSize:13, fontWeight:700, color:'#111' }}>{r.reviewer_name||'Anonymous'}</span>
+                        <span style={{ color:'#f59e0b', fontSize:13 }}>{'★'.repeat(r.rating||0)}{'☆'.repeat(5-(r.rating||0))}</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#ea2729':'#f59e0b' }}>{r.rating}★</span>
+                        {r.is_responded && <span style={{ fontSize:11, fontWeight:700, padding:'1px 7px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>✓ Responded</span>}
+                        <span style={{ fontSize:11, color:'#9ca3af', marginLeft:'auto' }}>
+                          {r.review_date ? new Date(r.review_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}
+                        </span>
+                      </div>
+                      <div style={{ fontSize:13, color:'#374151', lineHeight:1.6, marginTop:6 }}>{r.review_text||'(No text)'}</div>
+                    </div>
+                  </div>
+
+                  {/* Response area */}
+                  <div style={{ marginLeft:44, background:'#f9fafb', borderRadius:9, padding:'10px 14px' }}>
+                    {editingId===r.review_id ? (
+                      <div>
+                        <textarea value={draftResponses[r.review_id]||''} onChange={e=>setDraftResponses(prev=>({...prev,[r.review_id]:e.target.value}))} rows={3}
+                          style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #5bc6d0', fontSize:13, resize:'vertical', outline:'none', boxSizing:'border-box' }}/>
+                        <div style={{ display:'flex', gap:6, marginTop:6 }}>
+                          <button onClick={()=>saveGoogleResponse(r.review_id)}
+                            style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#ea2729', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>Save</button>
+                          <button onClick={()=>{ setGeneratingId(null); generateAIResponse(r) }} disabled={generatingId===r.review_id}
+                            style={{ padding:'5px 12px', borderRadius:7, border:'1px solid #5bc6d0', background:'transparent', color:'#5bc6d0', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                            {generatingId===r.review_id?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>} Regenerate
+                          </button>
+                          <button onClick={()=>setEditingId(null)} style={{ padding:'5px 10px', borderRadius:7, border:'1px solid #e5e7eb', background:'transparent', color:'#6b7280', fontSize:12, cursor:'pointer' }}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : draftResponses[r.review_id] || r.response_text ? (
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:'#5bc6d0', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Response Draft</div>
+                        <div style={{ fontSize:13, color:'#374151', lineHeight:1.6, cursor:'text' }} onClick={()=>setEditingId(r.review_id)}>
+                          {draftResponses[r.review_id]||r.response_text}
+                        </div>
+                        <button onClick={()=>setEditingId(r.review_id)} style={{ marginTop:4, fontSize:12, color:'#5bc6d0', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>Edit</button>
+                      </div>
+                    ) : (
+                      <div style={{ display:'flex', gap:6 }}>
+                        <button onClick={()=>{ generateAIResponse(r); setEditingId(r.review_id) }} disabled={generatingId===r.review_id}
+                          style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#5bc6d0', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                          {generatingId===r.review_id?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>}
+                          {generatingId===r.review_id?'Generating…':'AI Draft'}
+                        </button>
+                        <button onClick={()=>{ setDraftResponses(prev=>({...prev,[r.review_id]:''})); setEditingId(r.review_id) }}
+                          style={{ padding:'5px 12px', borderRadius:7, border:'1px solid #e5e7eb', background:'transparent', color:'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                          Write
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div style={{display:'flex',gap:6,padding:'0 16px 10px',overflowX:'auto',scrollbarWidth:'none'}}>
           {[0,...starArr].map(s=>(
             <button key={s} onClick={()=>setFilterStars(s)}

@@ -413,3 +413,8 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 );
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY IF NOT EXISTS "allow_all_subscriptions" ON subscriptions FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Add google_place_id to clients (for auto-refresh of reviews) ─────────────
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS google_place_id text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS google_rating    numeric;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS google_review_count int;
