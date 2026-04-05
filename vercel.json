@@ -4,5 +4,22 @@
       "path": "/api/perf/cron",
       "schedule": "0 4 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/seo/keyword-gap/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/seo/gbp-audit/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/seo/onpage-audit/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/seo/local-rank/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/reviews/route.ts": {
+      "maxDuration": 30
+    }
+  }
 }

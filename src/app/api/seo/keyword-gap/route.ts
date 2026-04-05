@@ -143,15 +143,11 @@ Analyze these keywords and generate a comprehensive keyword gap analysis. Return
     }
   ],
   "content_calendar": [
-    {
-      "month": 1,
-      "topic": "content piece title",
-      "keyword": "target keyword",
-      "type": "blog|page|faq",
-      "priority": "high|medium"
-    }
+    {"month": 1, "topic": "title", "keyword": "target keyword", "type": "blog|page|faq", "priority": "high|medium"}
   ]
-}`
+}
+
+Important: Return ONLY the JSON object. No markdown, no backticks, no explanation.`
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -162,7 +158,7 @@ Analyze these keywords and generate a comprehensive keyword gap analysis. Return
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
+      max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
   })
@@ -173,11 +169,17 @@ Analyze these keywords and generate a comprehensive keyword gap analysis. Return
   }
   const d = await res.json()
   try {
-    const text = d.content?.[0]?.text?.trim() || '{}'
+    let text = d.content?.[0]?.text?.trim() || '{}'
+    // Strip markdown code blocks if present
+    text = text.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim()
+    // Find first { and last } to extract JSON
+    const start = text.indexOf('{')
+    const end   = text.lastIndexOf('}')
+    if (start >= 0 && end > start) text = text.slice(start, end + 1)
     return JSON.parse(text)
-  } catch (e) {
-    console.error('[keyword-gap] JSON parse error:', e)
-    return null
+  } catch (e: any) {
+    const rawText = d.content?.[0]?.text?.slice(0, 200) || 'empty'
+    throw new Error(`JSON parse failed. Claude returned: ${rawText}`)
   }
 }
 
@@ -206,8 +208,8 @@ export async function POST(req: NextRequest) {
     const analysis = await analyzeKeywordGap(gscKeywords, biz || '', ind || '', loc || '', web || '')
     if (!analysis) {
       return NextResponse.json({ 
-        error: 'AI analysis failed',
-        hint: 'Add ANTHROPIC_API_KEY (without NEXT_PUBLIC_ prefix) to Vercel environment variables for server-side API routes'
+        error: 'AI analysis returned empty — check Vercel function logs',
+        key_status: { has_key: !!ANTHROPIC_KEY, preview: ANTHROPIC_KEY.slice(0,12) }
       }, { status: 500 })
     }
 

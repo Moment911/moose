@@ -249,7 +249,13 @@ Return ONLY valid JSON:
   })
   if (!res.ok) return null
   const d = await res.json()
-  try { return JSON.parse(d.content?.[0]?.text?.trim() || '{}') } catch { return null }
+  try {
+    let text = d.content?.[0]?.text?.trim() || '{}'
+    text = text.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim()
+    const s = text.indexOf('{'), e = text.lastIndexOf('}')
+    if (s >= 0 && e > s) text = text.slice(s, e+1)
+    return JSON.parse(text)
+  } catch { return null }
 }
 
 export async function POST(req: NextRequest) {
