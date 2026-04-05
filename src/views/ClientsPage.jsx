@@ -605,16 +605,19 @@ export default function ClientsPage() {
 
   async function searchBusiness(query) {
     if (!query.trim()) return
-    setBizSearching(true); setBizResults([])
+    setBizSearching(true); setBizResults([]); setBizSearched(false)
     try {
-      const res = await fetch('/api/reviews', {
+      const res = await fetch('/api/places/search', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'search', query: query.trim() }),
+        body: JSON.stringify({ query: query.trim() }),
       })
       const data = await res.json()
+      if (data.error) {
+        toast.error(data.error + (data.hint ? ' — ' + data.hint : ''))
+      }
       setBizResults(data.results || [])
       setBizSearched(true)
-    } catch(e) { console.warn('Search failed') }
+    } catch(e) { toast.error('Search failed: ' + e.message) }
     setBizSearching(false)
   }
 

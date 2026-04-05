@@ -522,9 +522,9 @@ export default function ReviewsPage() {
     setGoogleSearching(true)
     setGoogleSearchResults([])
     try {
-      const res = await fetch('/api/reviews', {
+      const res = await fetch('/api/places/search', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'search', query: query.trim() + ' ' + (selectedClient?.name||'') }),
+        body: JSON.stringify({ query: query.trim() + ' ' + (selectedClient?.name||'') }),
       })
       const d = await res.json()
       setGoogleSearchResults(d.results || [])
