@@ -671,3 +671,7 @@ CREATE TABLE IF NOT EXISTS coupon_redemptions (
 -- ── Add SIC code to clients ───────────────────────────────────────────────────
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS sic_code text;
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS sic_label text;
+
+-- Add trial columns to subscriptions
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS trial_start timestamptz;
+ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS trial_end   timestamptz;
