@@ -78,6 +78,7 @@ export default function SEOHubPage() {
   const [sites, setSites]           = useState([])
   const [loading, setLoading]       = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [liveData,   setLiveData]   = useState(null)
   const [analysis, setAnalysis]     = useState(null)
   const [newSiteUrl, setNewSiteUrl] = useState('')
   const [newSiteName, setNewSiteName] = useState('')
@@ -156,38 +157,154 @@ export default function SEOHubPage() {
     if (!selectedClient) return
     setGenerating(true)
     try {
-      const result = await callClaude(
-        'You are a senior SEO strategist. Return ONLY valid JSON, no markdown.',
-        `SEO analysis for "${selectedClient.name}" (${selectedClient.industry||'local business'}).
-Keywords tracked: ${keywords.length}. Connected: ${connections.filter(c=>c.connected).length}.
-Top keywords: ${keywords.slice(0,5).map(k=>`${k.keyword} #${k.position}`).join(', ')||'none'}.
-Return: { overallScore:number, executiveSummary:string, opportunities:[{title,impact,effort,desc}], quickWins:[string] }`, 1500
-      )
+      // Step 1: pull real data from GSC + GA4
+      toast('Fetching Search Console & Analytics data…', { icon: '📊' })
+      const dataRes = await fetch('/api/seo/pull-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_id: selectedClient.id, days: 30 }),
+      })
+      const liveData = await dataRes.json()
+
+      // Step 2: parse GSC rows into useful stats
+      const gscRows   = liveData.gsc?.rows || []
+      const gscPrev   = liveData.gsc_prev?.rows || []
+      const totalClicks      = gscRows.reduce((s,r) => s + (r.clicks||0), 0)
+      const totalImpressions = gscRows.reduce((s,r) => s + (r.impressions||0), 0)
+      const avgCTR           = totalImpressions ? (totalClicks / totalImpressions * 100).toFixed(2) : 0
+      const avgPosition      = gscRows.length ? (gscRows.reduce((s,r) => s + (r.position||0), 0) / gscRows.length).toFixed(1) : 'N/A'
+      const prevClicks       = gscPrev.reduce((s,r) => s + (r.clicks||0), 0)
+      const clicksDelta      = prevClicks ? Math.round((totalClicks - prevClicks) / prevClicks * 100) : null
+
+      // Top performing keywords from GSC
+      const topKwByClicks   = [...gscRows].sort((a,b) => (b.clicks||0)-(a.clicks||0)).slice(0,10)
+      // Quick wins: position 4-20, decent impressions
+      const quickWinKws     = gscRows.filter(r => r.position>=4 && r.position<=20 && r.impressions>50)
+        .sort((a,b) => b.impressions-a.impressions).slice(0,8)
+      // Low CTR opportunities
+      const lowCTRKws       = gscRows.filter(r => r.impressions>100 && r.ctr<0.02)
+        .sort((a,b) => b.impressions-a.impressions).slice(0,5)
+
+      // Step 3: parse GA4 rows
+      const ga4Rows   = liveData.ga4?.rows || []
+      const ga4Prev   = liveData.ga4_prev?.rows || []
+      const totalSessions    = ga4Rows.reduce((s,r) => s + parseInt(r.metricValues?.[0]?.value||0), 0)
+      const totalUsers       = ga4Rows.reduce((s,r) => s + parseInt(r.metricValues?.[1]?.value||0), 0)
+      const avgBounce        = ga4Rows.length ? (ga4Rows.reduce((s,r) => s + parseFloat(r.metricValues?.[2]?.value||0), 0) / ga4Rows.length * 100).toFixed(1) : 'N/A'
+      const prevSessions     = ga4Prev.reduce((s,r) => s + parseInt(r.metricValues?.[0]?.value||0), 0)
+      const sessionsDelta    = prevSessions ? Math.round((totalSessions - prevSessions) / prevSessions * 100) : null
+      // Channel breakdown
+      const channels = ga4Rows.map(r => ({
+        channel:  r.dimensionValues?.[0]?.value || 'Unknown',
+        sessions: parseInt(r.metricValues?.[0]?.value||0),
+        users:    parseInt(r.metricValues?.[1]?.value||0),
+      })).sort((a,b) => b.sessions-a.sessions)
+      const organicSessions = channels.find(c => c.channel.toLowerCase().includes('organic'))?.sessions || 0
+
+      // Step 4: build rich prompt with real data
+      toast('Running AI analysis…', { icon: '🤖' })
+      const prompt = `You are a senior SEO strategist analyzing real data for "${selectedClient.name}" (${selectedClient.industry||'local business'}).
+
+LAST 30 DAYS — GOOGLE SEARCH CONSOLE:
+- Total clicks: ${totalClicks.toLocaleString()} (${clicksDelta != null ? (clicksDelta>=0?'+':'')+clicksDelta+'% vs prev 30d' : 'no prev data'})
+- Total impressions: ${totalImpressions.toLocaleString()}
+- Average CTR: ${avgCTR}%
+- Average position: ${avgPosition}
+- Keywords tracked: ${gscRows.length}
+- Site: ${liveData.gsc_site || 'unknown'}
+
+TOP 10 KEYWORDS BY CLICKS:
+${topKwByClicks.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.clicks} clicks, ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR`).join('
+') || '  No data yet'}
+
+QUICK WIN OPPORTUNITIES (positions 4-20, high impressions):
+${quickWinKws.map(k => `  "${k.keys?.[0]}" — pos ${k.position?.toFixed(1)}, ${k.impressions} impressions, only ${k.clicks} clicks`).join('
+') || '  None identified'}
+
+LOW CTR KEYWORDS (high impressions, <2% CTR):
+${lowCTRKws.map(k => `  "${k.keys?.[0]}" — ${k.impressions} impr, ${(k.ctr*100).toFixed(1)}% CTR (${k.clicks} clicks)`).join('
+') || '  None identified'}
+
+LAST 30 DAYS — GOOGLE ANALYTICS 4:
+- Total sessions: ${totalSessions.toLocaleString()} (${sessionsDelta != null ? (sessionsDelta>=0?'+':'')+sessionsDelta+'% vs prev 30d' : 'no prev data'})
+- Total users: ${totalUsers.toLocaleString()}
+- Average bounce rate: ${avgBounce}%
+- Organic sessions: ${organicSessions.toLocaleString()} (${totalSessions ? Math.round(organicSessions/totalSessions*100) : 0}% of total)
+
+TRAFFIC BY CHANNEL:
+${channels.slice(0,6).map(c => `  ${c.channel}: ${c.sessions} sessions (${totalSessions ? Math.round(c.sessions/totalSessions*100) : 0}%)`).join('
+') || '  No data yet'}
+
+CROSS-SOURCE INSIGHTS:
+- GSC shows ${totalClicks} organic clicks but GA4 shows ${organicSessions} organic sessions — ${Math.abs(totalClicks-organicSessions)<totalClicks*0.3 ? 'these are roughly aligned' : 'there may be a tracking gap to investigate'}
+- ${quickWinKws.length} keywords are ranking positions 4-20 and could move to page 1 with content optimization
+- ${lowCTRKws.length} keywords have high impressions but poor click-through — title/meta description improvement opportunity
+
+Return ONLY valid JSON (no markdown):
+{
+  "overallScore": <0-100 based on traffic health, ranking quality, growth trend>,
+  "executiveSummary": "<3-4 sentence summary of current SEO health and biggest opportunities>",
+  "gscHighlights": "<1-2 sentences on search visibility trends>",
+  "ga4Highlights": "<1-2 sentences on traffic quality and channels>",
+  "opportunities": [
+    {"title": "<specific action>", "impact": "high|medium|low", "effort": "high|medium|low", "desc": "<why and how>", "keyword": "<specific keyword if applicable>"}
+  ],
+  "quickWins": ["<specific actionable item based on data>"],
+  "concerns": ["<specific issue to address>"]
+}`
+
+      const result = await callClaude('You are a senior SEO strategist. Return ONLY valid JSON.', prompt, 2000)
       const clean = result.replace(/```json|```/g,'').trim()
       const data = JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}')+1))
       setAnalysis(data)
-      // Save to seo_reports table so it appears in the Reports tab
+
+      // Step 5: save report with all the real data
       await supabase.from('seo_reports').insert({
         client_id:    selectedClient.id,
         agency_id:    agencyId,
-        title:        `AI SEO Analysis — ${selectedClient.name}`,
+        title:        `SEO Analysis — ${selectedClient.name}`,
         report_type:  'ai_analysis',
         generated_at: new Date().toISOString(),
         score:        data.overallScore,
         summary:      data.executiveSummary,
-        content:      {
-          opportunities: data.opportunities || [],
-          quick_wins:    data.quickWins || [],
-          keyword_count: keywords.length,
-          connections:   connections.filter(c=>c.connected).map(c=>c.provider),
+        content: {
+          opportunities:      data.opportunities || [],
+          quick_wins:         data.quickWins || [],
+          concerns:           data.concerns || [],
+          gsc_highlights:     data.gscHighlights,
+          ga4_highlights:     data.ga4Highlights,
+          // Raw metrics for display
+          metrics: {
+            clicks:          totalClicks,
+            impressions:     totalImpressions,
+            avg_ctr:         parseFloat(avgCTR),
+            avg_position:    parseFloat(avgPosition) || null,
+            clicks_delta:    clicksDelta,
+            sessions:        totalSessions,
+            users:           totalUsers,
+            bounce_rate:     parseFloat(avgBounce) || null,
+            sessions_delta:  sessionsDelta,
+            organic_sessions: organicSessions,
+            channels,
+            top_keywords:    topKwByClicks.slice(0,5).map(k=>({ keyword:k.keys?.[0], position:k.position, clicks:k.clicks, impressions:k.impressions, ctr:k.ctr })),
+            quick_win_count: quickWinKws.length,
+            low_ctr_count:   lowCTRKws.length,
+          },
+          gsc_site:    liveData.gsc_site,
+          ga4_property: liveData.ga4_property,
+          period_days: 30,
         },
       })
-      // Reload reports
+
       const { data: reps } = await supabase.from('seo_reports').select('*')
         .eq('client_id', selectedClient.id).order('generated_at', { ascending:false }).limit(10)
       setReports(reps || [])
-      toast.success('Report saved!')
-    } catch(e) { toast.error('Report generation failed: ' + e.message) }
+      toast.success('Report generated from live data!')
+      setTab('reports')
+    } catch(e: any) {
+      console.error('Analysis error:', e)
+      toast.error('Report failed: ' + e.message)
+    }
     setGenerating(false)
   }
 
@@ -777,32 +894,70 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                             <div style={{ fontSize:14, color:'#374151', marginBottom:18 }}>Generate an AI-powered SEO report to track progress and share with your client</div>
                           </div>
                         ) : reports.map(r=>(
-                          <div key={r.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 20px', marginBottom:10, display:'flex', alignItems:'center', gap:14 }}>
-                            <div style={{ width:40, height:40, borderRadius:10, background:RED+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                              <FileText size={18} color={RED}/>
-                            </div>
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>
-                                {r.report_type==='ai_analysis'?'AI SEO Analysis':r.report_type||'SEO Report'}
+                          <div key={r.id} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', marginBottom:12, overflow:'hidden' }}>
+                            <div style={{ padding:'14px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:12 }}>
+                              <div style={{ width:36, height:36, borderRadius:9, background:RED+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                                <FileText size={16} color={RED}/>
                               </div>
-                              <div style={{ fontSize:13, color:'#374151' }}>
-                                {new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
-                                {r.content?.keyword_count!=null ? ` · ${r.content.keyword_count} keywords` : ''}
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>{r.report_type==='ai_analysis'?'AI SEO Analysis':'SEO Report'}</div>
+                                <div style={{ fontSize:12, color:'#9ca3af' }}>
+                                  {new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+                                  {r.content?.gsc_site ? ` · ${r.content.gsc_site.replace('sc-domain:','').replace('https://','').slice(0,30)}` : ''}
+                                </div>
                               </div>
-                              {r.summary && (
-                                <div style={{ fontSize:13, color:'#4b5563', marginTop:4, lineHeight:1.5 }}>
-                                  {r.summary.slice(0,120)}{r.summary.length>120?'…':''}
+                              {r.score != null && (
+                                <div style={{ width:50, height:50, borderRadius:12, background:r.score>=70?'#f0fdf4':r.score>=40?'#fffbeb':'#fef2f2', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                                  <div style={{ fontSize:20, fontWeight:900, color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED, lineHeight:1 }}>{r.score}</div>
+                                  <div style={{ fontSize:9, fontWeight:700, color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED }}>/ 100</div>
                                 </div>
                               )}
                             </div>
-                            {r.score != null && (
-                              <div style={{ textAlign:'center', flexShrink:0 }}>
-                                <div style={{ fontSize:24, fontWeight:900, color:r.overall_score>=70?'#16a34a':r.overall_score>=40?'#d97706':RED }}>{r.overall_score}</div>
-                                <div style={{ fontSize:11, color:'#9ca3af', fontWeight:700 }}>/ 100</div>
+                            {r.content?.metrics && (
+                              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6', background:'#fafafa' }}>
+                                {[
+                                  { label:'Clicks',    value:r.content.metrics.clicks?.toLocaleString(), delta:r.content.metrics.clicks_delta },
+                                  { label:'Impressions',value:r.content.metrics.impressions?.toLocaleString() },
+                                  { label:'Avg CTR',   value:r.content.metrics.avg_ctr ? r.content.metrics.avg_ctr.toFixed(1)+'%' : '—' },
+                                  { label:'Avg Pos',   value:r.content.metrics.avg_position ? '#'+r.content.metrics.avg_position : '—' },
+                                ].map((m,i)=>(
+                                  <div key={m.label} style={{ padding:'10px 12px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
+                                    <div style={{ fontSize:15, fontWeight:800, color:'#111', lineHeight:1 }}>
+                                      {m.value||'—'}
+                                      {m.delta!=null && <span style={{ fontSize:10, marginLeft:3, color:m.delta>=0?'#16a34a':RED }}>{m.delta>=0?'+':''}{m.delta}%</span>}
+                                    </div>
+                                    <div style={{ fontSize:10, color:'#9ca3af', marginTop:2 }}>{m.label}</div>
+                                  </div>
+                                ))}
                               </div>
                             )}
+                            {r.content?.metrics?.sessions > 0 && (
+                              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6', background:'#fafafa' }}>
+                                {[
+                                  { label:'Sessions',  value:r.content.metrics.sessions?.toLocaleString(), delta:r.content.metrics.sessions_delta },
+                                  { label:'Users',     value:r.content.metrics.users?.toLocaleString() },
+                                  { label:'Organic',   value:r.content.metrics.organic_sessions?.toLocaleString() },
+                                  { label:'Bounce',    value:r.content.metrics.bounce_rate ? r.content.metrics.bounce_rate+'%' : '—' },
+                                ].map((m,i)=>(
+                                  <div key={m.label} style={{ padding:'10px 12px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
+                                    <div style={{ fontSize:15, fontWeight:800, color:'#111', lineHeight:1 }}>
+                                      {m.value||'—'}
+                                      {m.delta!=null && <span style={{ fontSize:10, marginLeft:3, color:m.delta>=0?'#16a34a':RED }}>{m.delta>=0?'+':''}{m.delta}%</span>}
+                                    </div>
+                                    <div style={{ fontSize:10, color:'#9ca3af', marginTop:2 }}>{m.label}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {r.summary && <div style={{ padding:'12px 18px', fontSize:13, color:'#374151', lineHeight:1.65, borderBottom:r.content?.opportunities?.length?'1px solid #f3f4f6':'none' }}>{r.summary}</div>}
+                            {r.content?.opportunities?.slice(0,3).map((op,i)=>(
+                              <div key={i} style={{ padding:'8px 18px', display:'flex', alignItems:'flex-start', gap:8, borderTop:i===0?'none':'1px solid #f9fafb' }}>
+                                <span style={{ fontSize:10, fontWeight:800, padding:'2px 7px', borderRadius:20, flexShrink:0, background:op.impact==='high'?RED+'15':op.impact==='medium'?'#fffbeb':'#f3f4f6', color:op.impact==='high'?RED:op.impact==='medium'?'#d97706':'#6b7280', marginTop:1 }}>{op.impact}</span>
+                                <div style={{ fontSize:13, color:'#111', fontWeight:600 }}>{op.title}</div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )))}
                       </div>
                     )}
                   </>
