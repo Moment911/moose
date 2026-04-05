@@ -918,8 +918,8 @@ export default function LocalRankTrackerPage() {
                     <tbody>
                       {history.map((h,i)=>(
                         <tr key={h.id} style={{ borderTop:'1px solid #f9fafb' }}
-                          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
-                          onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background=''}>
+                          onMouseEnter={e=>e.currentTarget.style.background='#fafafa'}
+                          onMouseLeave={e=>e.currentTarget.style.background=''}>
                           <td style={{ padding:'12px 16px', fontSize:13, color:'#374151', whiteSpace:'nowrap' }}>
                             {new Date(h.scanned_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}
                           </td>
@@ -973,8 +973,8 @@ export default function LocalRankTrackerPage() {
                     <tbody>
                       {tracked.map((t,i)=>(
                         <tr key={i} style={{ borderTop:'1px solid #f9fafb' }}
-                          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
-                          onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background=''}>
+                          onMouseEnter={e=>e.currentTarget.style.background='#fafafa'}
+                          onMouseLeave={e=>e.currentTarget.style.background=''}>
                           <td style={{ padding:'12px 16px', fontSize:13, fontWeight:700, color:BLK }}>{t.keyword}</td>
                           <td style={{ padding:'12px 16px', fontSize:13, color:'#374151' }}>{t.location}</td>
                           <td style={{ padding:'12px 16px' }}>
