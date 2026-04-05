@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from 'react'
 import { CheckCircle, AlertCircle, Copy, Check, ExternalLink, Database, RefreshCw, Loader2 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'

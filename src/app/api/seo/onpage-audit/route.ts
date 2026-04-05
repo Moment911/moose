@@ -302,11 +302,13 @@ export async function POST(req: NextRequest) {
 
     // Save to DB
     if (client_id && SUPABASE_URL) {
-      await fetch(`${SUPABASE_URL}/rest/v1/seo_page_audits`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ client_id, agency_id, url: cleanUrl, score: scoreData.score, audit_data: result }),
-      }).catch(() => {}) // table may not exist yet, non-fatal
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/seo_page_audits`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ client_id, agency_id, url: cleanUrl, score: scoreData.score, audit_data: result }),
+        })
+      } catch (_) {} // table may not exist yet, non-fatal
     }
 
     return NextResponse.json(result)

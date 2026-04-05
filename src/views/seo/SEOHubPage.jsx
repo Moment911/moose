@@ -6,7 +6,7 @@ import {
   Globe, DollarSign, ArrowUp, ArrowDown, Minus,
   Plus, RefreshCw, Loader2, Check, Copy, Link2,
   Target, Key, Wifi, WifiOff, AlertCircle,
-  ExternalLink, Activity, ChevronRight, Zap, Shield
+  ExternalLink, Activity, ChevronRight, Zap, Shield, Map
 } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import AIThinkingBox from '../../components/AIThinkingBox'
