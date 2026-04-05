@@ -228,7 +228,7 @@ export default function IntegrationsPage() {
   const ghl = getInt('gohighlevel')
 
   if (loading) return (
-    <div style={{ display:'flex', height:'100vh', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f2f2f0' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <Loader2 size={26} color={R} style={{ animation:'spin 1s linear infinite' }}/>

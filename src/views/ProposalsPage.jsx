@@ -114,7 +114,7 @@ export default function ProposalsPage() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
       <Sidebar/>
       <main style={{ flex:1, overflowY:'auto' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'28px 28px' }}>
