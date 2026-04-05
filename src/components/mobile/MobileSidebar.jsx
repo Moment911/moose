@@ -58,18 +58,18 @@ export default function MobileSidebar({ isOpen, onClose }) {
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
 
       {/* Panel */}
-      <div style={{ position: 'relative', width: 300, maxWidth: '85vw', height: '100%', background: '#18181b', overflowY: 'auto', paddingTop: 'env(safe-area-inset-top, 0px)', animation: 'slideFromLeft 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
+      <div style={{ position: 'relative', width: 300, maxWidth: '85vw', height: '100%', background: '#ffffff', overflowY: 'auto', paddingTop: 'env(safe-area-inset-top, 0px)', animation: 'slideFromLeft 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
         {/* Profile */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ padding: '20px 20px 16px', borderBottom: '0.5px solid #f3f4f6' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 52, height: 52, borderRadius: 26, background: 'linear-gradient(135deg,#ea2729,#ff8c42)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>{initial}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 17, fontWeight: 700, color: '#f4f4f5', margin: 0, textTransform: 'capitalize' }}>{name}</p>
+              <p style={{ fontSize: 17, fontWeight: 700, color: '#111', margin: 0, textTransform: 'capitalize' }}>{name}</p>
               <p style={{ fontSize:13, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Koto</p>
             </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 6, cursor: 'pointer' }}><X size={20} color="#71717a" /></button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 6, cursor: 'pointer' }}><X size={20} color="#9ca3af" /></button>
           </div>
         </div>
 
@@ -77,19 +77,19 @@ export default function MobileSidebar({ isOpen, onClose }) {
         <nav style={{ padding: '8px 0' }}>
           {SECTIONS.map((section, si) => (
             <div key={si}>
-              {section.title && <p style={{ fontSize:13, fontWeight: 600, color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 20px 6px' }}>{section.title}</p>}
+              {section.title && <p style={{ fontSize:13, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 20px 6px' }}>{section.title}</p>}
               {section.items.map(item => {
                 const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
                 const I = item.icon
                 return (
                   <Link key={item.path} to={item.path} onClick={onClose}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 10px', padding: '10px 10px', borderRadius: 12, background: active ? 'rgba(232,85,26,0.15)' : 'transparent', textDecoration: 'none', minHeight: 44, WebkitTapHighlightColor: 'transparent' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 10px', padding: '10px 10px', borderRadius: 12, background: active ? 'rgba(234,39,41,.06)' : 'transparent', textDecoration: 'none', minHeight: 44, WebkitTapHighlightColor: 'transparent' }}>
                     <div style={{ width: 34, height: 34, borderRadius: 9, background: item.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <I size={17} strokeWidth={1.5} style={{ color: item.color }} />
                     </div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: active ? 600 : 500, color: active ? '#ea2729' : '#d4d4d8' }}>{item.label}</span>
+                    <span style={{ flex: 1, fontSize: 15, fontWeight: active ? 600 : 500, color: active ? '#ea2729' : '#374151' }}>{item.label}</span>
                     {item.badge && <span style={{ fontSize:13, background: '#ea2729', color: '#fff', padding: '2px 6px', borderRadius: 10, fontWeight: 700 }}>{item.badge}</span>}
-                    {!item.badge && <ChevronRight size={15} color="#52525b" />}
+                    {!item.badge && <ChevronRight size={15} color="#d1d5db" />}
                   </Link>
                 )
               })}
@@ -98,7 +98,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
         </nav>
 
         {/* Sign out */}
-        <div style={{ padding: 12, borderTop: '0.5px solid rgba(255,255,255,0.1)', marginTop: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ padding: 12, borderTop: '0.5px solid #f3f4f6', marginTop: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
           <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '10px 14px', borderRadius: 12, background: 'none', border: 'none', cursor: 'pointer', minHeight: 44, WebkitTapHighlightColor: 'transparent' }}>
             <LogOut size={17} strokeWidth={1.5} color="#EF4444" />
             <span style={{ fontSize: 15, fontWeight: 500, color: '#EF4444' }}>Sign Out</span>

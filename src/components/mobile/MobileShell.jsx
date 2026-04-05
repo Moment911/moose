@@ -11,7 +11,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { signOut } from '../../lib/supabase'
 
 const R   = '#ea2729'
-const BLK = '#0a0a0a'
+const BLK = '#ffffff'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -247,7 +247,7 @@ export default function MobileShell({ children }) {
           background: BLK, flexShrink:0,
           paddingTop: 'env(safe-area-inset-top,0px)',
           zIndex: 100, position: 'relative',
-          borderBottom: '1px solid rgba(255,255,255,.07)',
+          borderBottom: '1px solid #e5e7eb',
         }}>
           <div style={{
             height:52, display:'flex', alignItems:'center',
@@ -259,7 +259,7 @@ export default function MobileShell({ children }) {
                 justifyContent:'center', background:'none', border:'none',
                 cursor:'pointer', WebkitTapHighlightColor:'transparent',
                 borderRadius:10 }}>
-              <Menu size={22} color="rgba(255,255,255,.7)" strokeWidth={1.8}/>
+              <Menu size={22} color="#374151" strokeWidth={1.8}/>
             </button>
 
             {/* Center */}
@@ -273,11 +273,11 @@ export default function MobileShell({ children }) {
                     <Zap size={13} color="#fff" strokeWidth={2.5}/>
                   </div>
                   <span style={{ fontFamily:FH, fontSize:18, fontWeight:800,
-                    color:'#fff', letterSpacing:'-.03em' }}>Koto</span>
+                    color:'#111', letterSpacing:'-.03em' }}>Koto</span>
                 </div>
               ) : (
                 <span style={{ fontFamily:FH, fontSize:17, fontWeight:700,
-                  color:'#fff', letterSpacing:'-.02em' }}>{pageLabel}</span>
+                  color:'#111', letterSpacing:'-.02em' }}>{pageLabel}</span>
               )}
             </div>
 
@@ -302,7 +302,7 @@ export default function MobileShell({ children }) {
         {/* ── Bottom tab bar ── */}
         <div style={{
           background: BLK, flexShrink: 0, zIndex: 100,
-          borderTop: '1px solid rgba(255,255,255,.09)',
+          borderTop: '1px solid #e5e7eb',
           paddingBottom: 'env(safe-area-inset-bottom,0px)',
         }}>
           <div style={{ display:'flex', height:56 }}>
@@ -325,12 +325,12 @@ export default function MobileShell({ children }) {
                     transition:'background .15s',
                   }}>
                     <Icon size={21}
-                      color={active ? R : 'rgba(255,255,255,.32)'}
+                      color={active ? R : '#9ca3af'}
                       strokeWidth={active ? 2.5 : 1.7}/>
                   </div>
                   <span style={{
                     fontFamily: FH, fontSize:10, fontWeight: active ? 700 : 500,
-                    color: active ? R : 'rgba(255,255,255,.32)',
+                    color: active ? R : '#9ca3af',
                     letterSpacing:'.02em', lineHeight:1,
                   }}>{tab.label}</span>
                 </button>
@@ -362,21 +362,21 @@ export default function MobileShell({ children }) {
             {/* Header */}
             <div style={{ display:'flex', alignItems:'center',
               justifyContent:'space-between', padding:'14px 16px 12px',
-              borderBottom:'1px solid rgba(255,255,255,.07)', flexShrink:0 }}>
+              borderBottom:'1px solid #f3f4f6', flexShrink:0 }}>
               <div style={{ display:'flex', alignItems:'center', gap:9 }}>
                 <div style={{ width:26, height:26, borderRadius:7, background:R,
                   display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <Zap size={13} color="#fff" strokeWidth={2.5}/>
                 </div>
                 <span style={{ fontFamily:FH, fontSize:17, fontWeight:800,
-                  color:'#fff', letterSpacing:'-.03em' }}>Koto</span>
+                  color:'#111', letterSpacing:'-.03em' }}>Koto</span>
               </div>
               <button onClick={() => setDrawerOpen(false)}
                 style={{ width:32, height:32, borderRadius:8,
-                  background:'rgba(255,255,255,.08)', border:'none',
+                  background:'rgba(0,0,0,.05)', border:'none',
                   cursor:'pointer', display:'flex', alignItems:'center',
                   justifyContent:'center', WebkitTapHighlightColor:'transparent' }}>
-                <X size={15} color="rgba(255,255,255,.55)"/>
+                <X size={15} color="#9ca3af"/>
               </button>
             </div>
 
@@ -386,7 +386,7 @@ export default function MobileShell({ children }) {
               {DRAWER_SECTIONS.map(sec => (
                 <div key={sec.title} style={{ marginBottom:2 }}>
                   <div style={{ padding:'10px 8px 3px', fontFamily:FH, fontSize:10,
-                    fontWeight:700, color:'rgba(255,255,255,.2)',
+                    fontWeight:700, color:'#9ca3af',
                     textTransform:'uppercase', letterSpacing:'.12em' }}>
                     {sec.title}
                   </div>
@@ -407,11 +407,11 @@ export default function MobileShell({ children }) {
                           transition:'background .1s',
                         }}>
                         <Icon size={15}
-                          color={active ? R : 'rgba(255,255,255,.38)'}
+                          color={active ? R : '#374151'}
                           strokeWidth={active ? 2.5 : 1.8}/>
                         <span style={{ fontFamily:FH, fontSize:14,
                           fontWeight: active ? 700 : 500, flex:1, textAlign:'left',
-                          color: active ? '#fff' : 'rgba(255,255,255,.5)' }}>
+                          color: active ? R : '#374151' }}>
                           {item.label}
                         </span>
                         {item.badge && (
@@ -431,10 +431,10 @@ export default function MobileShell({ children }) {
 
             {/* Footer */}
             <div style={{ padding:'10px 10px 12px',
-              borderTop:'1px solid rgba(255,255,255,.07)', flexShrink:0 }}>
+              borderTop:'1px solid #f3f4f6', flexShrink:0 }}>
               <div style={{ display:'flex', alignItems:'center', gap:10,
                 padding:'10px 10px', borderRadius:12,
-                background:'rgba(255,255,255,.05)', marginBottom:8 }}>
+                background:'rgba(0,0,0,.03)', marginBottom:8 }}>
                 <div style={{ width:32, height:32, borderRadius:'50%', background:R,
                   flexShrink:0, display:'flex', alignItems:'center',
                   justifyContent:'center', fontFamily:FH, fontSize:13,
@@ -442,11 +442,11 @@ export default function MobileShell({ children }) {
                   {(firstName||'K')[0].toUpperCase()}
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:'#fff',
+                  <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:'#111',
                     overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {firstName||'Agent'}
                   </div>
-                  <div style={{ fontSize:12, color:'rgba(255,255,255,.35)', fontFamily:FB }}>
+                  <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>
                     Agency Admin
                   </div>
                 </div>
@@ -454,8 +454,8 @@ export default function MobileShell({ children }) {
               <button onClick={() => signOut().then(() => navigate('/login'))}
                 style={{ width:'100%', display:'flex', alignItems:'center',
                   justifyContent:'center', gap:8, padding:'10px',
-                  borderRadius:10, border:'1px solid rgba(255,255,255,.1)',
-                  background:'transparent', color:'rgba(255,255,255,.45)',
+                  borderRadius:10, border:'1px solid #e5e7eb',
+                  background:'transparent', color:'#374151',
                   fontSize:14, fontWeight:600, cursor:'pointer',
                   fontFamily:FH, WebkitTapHighlightColor:'transparent' }}>
                 <LogOut size={14}/> Sign Out
