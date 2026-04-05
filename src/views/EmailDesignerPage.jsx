@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
-  ArrowDown, ArrowUp, ChevronLeft, Code2, Columns, Download, Eye, FileText, Image, ImageIcon, Link, Mail, Minus, MousePointer, Plus, Save, Square, Trash2, Type
+  ArrowDown, ArrowUp, ChevronLeft, Code2, Columns, Download, Eye, FileText, Image, ImageIcon, Mail, Minus, MousePointer, Plus, Save, Square, Trash2, Type
 } from 'lucide-react'
 import { supabase, createEmailDesign, updateEmailDesign } from '../lib/supabase'
 import ColorPicker from '../components/ColorPicker'

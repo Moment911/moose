@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
-  Check, ChevronLeft, FileText, Link, Pen
+  Check, ChevronLeft, FileText, Pen
 } from 'lucide-react'
 import { supabase, getRounds, getProjectAnnotations, createSignature, getSignature, sendEmailSummary, logActivity } from '../lib/supabase'
 import { format } from 'date-fns'
