@@ -172,15 +172,14 @@ function highlight(text, query) {
 }
 
 function OptionRow({ opt, selected, onSelect, hover, text, muted, accent, query }) {
-  const [hov, setHov] = useState(false)
   return (
     <div
       onClick={onSelect}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseEnter={e => e.currentTarget.style.background = selected ? accent+'12' : hover}
+      onMouseLeave={e => e.currentTarget.style.background = selected ? accent+'12' : 'transparent'}
       style={{
         padding:'8px 12px', cursor:'pointer', display:'flex', alignItems:'center', gap:10,
-        background: selected ? accent + '12' : hov ? hover : 'transparent',
+        background: selected ? accent + '12' : 'transparent',
         transition:'background .1s',
       }}>
       <div style={{ flex:1, minWidth:0 }}>

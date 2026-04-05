@@ -64,16 +64,6 @@ export default function AgencySignupPage() {
   const navigate = useNavigate()
   const [PLANS,      setPLANS]      = useState(DEFAULT_PLANS)
   const [signupMeta, setSignupMeta] = useState(DEFAULT_META)
-
-  useEffect(() => {
-    supabase.from('platform_config').select('key,value').in('key',['signup_plans','signup_meta']).then(({data}) => {
-      if (!data) return
-      const plansRow = data.find(r => r.key === 'signup_plans')
-      const metaRow  = data.find(r => r.key === 'signup_meta')
-      if (plansRow?.value?.length) setPLANS(plansRow.value)
-      if (metaRow?.value) setSignupMeta(metaRow.value)
-    })
-  }, [])
   const [step, setStep]     = useState(1)   // 1=plan, 2=account, 3=agency, 4=done
   const [plan, setPlan]     = useState('growth')
   const [form, setForm]     = useState({
@@ -88,6 +78,16 @@ export default function AgencySignupPage() {
   const [coupon,      setCoupon]      = useState(null)
   const [couponError, setCouponError] = useState('')
   const [checkingCoupon, setCheckingCoupon] = useState(false)
+
+  useEffect(() => {
+    supabase.from('platform_config').select('key,value').in('key',['signup_plans','signup_meta']).then(({data}) => {
+      if (!data) return
+      const plansRow = data.find(r => r.key === 'signup_plans')
+      const metaRow  = data.find(r => r.key === 'signup_meta')
+      if (plansRow?.value?.length) setPLANS(plansRow.value)
+      if (metaRow?.value) setSignupMeta(metaRow.value)
+    })
+  }, [])
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
