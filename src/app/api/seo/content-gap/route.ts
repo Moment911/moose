@@ -108,10 +108,12 @@ export async function POST(req: NextRequest) {
     const result = { client_id, client_name: client?.name, gsc_keywords: keywords.length, strategy, generated_at: new Date().toISOString() }
 
     // Save to seo_monthly_reports with type=content_gap
-    await getSupabase().from('seo_monthly_reports').insert({
-      client_id, agency_id, month: new Date().toISOString().slice(0,7),
-      report_data: result, ai_narrative: strategy
-    }).catch(()=>{})
+    try {
+      await getSupabase().from('seo_monthly_reports').insert({
+        client_id, agency_id, month: new Date().toISOString().slice(0,7),
+        report_data: result, ai_narrative: strategy
+      })
+    } catch(_) {}
 
     return NextResponse.json(result)
   } catch(e:any) { return NextResponse.json({error:e.message},{status:500}) }
