@@ -95,7 +95,7 @@ export default function BillingPage() {
         body: JSON.stringify({ plan: planId, agency_id: agencyId, email: user?.email || agency?.billing_email, agency_name: agency?.name }),
       })
       const data = await res.json()
-      if (data.error) { toast.error(data.error); return }
+      if (data.error) { toast.error(data.fix ? data.error + ' — ' + data.fix : data.error, { duration: 8000 }); return }
       window.location.href = data.url
     } catch (e) { toast.error('Checkout failed: ' + e.message) }
     setCheckingOut(null)
@@ -109,7 +109,7 @@ export default function BillingPage() {
         body: JSON.stringify({ agency_id: agencyId }),
       })
       const data = await res.json()
-      if (data.error) { toast.error(data.error); return }
+      if (data.error) { toast.error(data.fix ? data.error + ' — ' + data.fix : data.error, { duration: 8000 }); return }
       window.open(data.url, '_blank')
     } catch (e) { toast.error('Failed: ' + e.message) }
     setOpeningPortal(false)
