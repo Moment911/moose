@@ -84,6 +84,7 @@ export default function SEOHubPage() {
   const [addingSite, setAddingSite] = useState(false)
   const [copiedToken, setCopiedToken] = useState(null)
   const [kwSearch, setKwSearch]     = useState('')
+  const [newKw,    setNewKw]        = useState('')
 
   useEffect(() => {
     if (selectedClient) loadClientData(selectedClient.id)
@@ -163,10 +164,54 @@ Top keywords: ${keywords.slice(0,5).map(k=>`${k.keyword} #${k.position}`).join('
 Return: { overallScore:number, executiveSummary:string, opportunities:[{title,impact,effort,desc}], quickWins:[string] }`, 1500
       )
       const clean = result.replace(/```json|```/g,'').trim()
-      setAnalysis(JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}')+1)))
-      toast.success('Analysis ready')
-    } catch { toast.error('Analysis failed') }
+      const data = JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}')+1))
+      setAnalysis(data)
+      // Save to seo_reports table so it appears in the Reports tab
+      await supabase.from('seo_reports').insert({
+        client_id:    selectedClient.id,
+        agency_id:    agencyId,
+        title:        `AI SEO Analysis — ${selectedClient.name}`,
+        report_type:  'ai_analysis',
+        generated_at: new Date().toISOString(),
+        score:        data.overallScore,
+        summary:      data.executiveSummary,
+        content:      {
+          opportunities: data.opportunities || [],
+          quick_wins:    data.quickWins || [],
+          keyword_count: keywords.length,
+          connections:   connections.filter(c=>c.connected).map(c=>c.provider),
+        },
+      })
+      // Reload reports
+      const { data: reps } = await supabase.from('seo_reports').select('*')
+        .eq('client_id', selectedClient.id).order('generated_at', { ascending:false }).limit(10)
+      setReports(reps || [])
+      toast.success('Report saved!')
+    } catch(e) { toast.error('Report generation failed: ' + e.message) }
     setGenerating(false)
+  }
+
+  async function addKeyword(keyword) {
+    if (!keyword?.trim() || !selectedClient) return
+    const kw = keyword.trim().toLowerCase()
+    // Check duplicate
+    if (keywords.find(k => k.keyword === kw)) { toast.error('Keyword already tracked'); return }
+    const { error } = await supabase.from('seo_keyword_tracking').insert({
+      client_id:   selectedClient.id,
+      agency_id:   agencyId,
+      keyword:     kw,
+      position:    null,
+      clicks:      0,
+      impressions: 0,
+      ctr:         null,
+      added_at:    new Date().toISOString(),
+    })
+    if (error) { toast.error(error.message); return }
+    toast.success(`"${kw}" added to tracking`)
+    // Reload keywords
+    const { data: kws } = await supabase.from('seo_keyword_tracking').select('*')
+      .eq('client_id', selectedClient.id).order('position').limit(200)
+    setKeywords(kws || [])
   }
 
   const conn    = (key) => connections.find(c=>c.provider===key&&c.connected)
@@ -514,6 +559,21 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                     {/* ── KEYWORDS ── */}
                     {tab === 'keywords' && (
                       <div className="animate-fade-up">
+                         {/* Add keyword */}
+                         <div style={{ display:'flex', gap:10, marginBottom:14 }}>
+                           <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1.5px solid #e5e7eb', borderRadius:11, padding:'9px 14px' }}>
+                             <Search size={14} color="#9ca3af"/>
+                             <input value={newKw} onChange={e=>setNewKw(e.target.value)}
+                               placeholder="Add keyword to track (e.g. plumber miami)…"
+                               onKeyDown={e=>{ if(e.key==='Enter'&&newKw.trim()){ addKeyword(newKw); setNewKw('') }}}
+                               style={{ border:'none', outline:'none', fontSize:14, background:'transparent', flex:1, color:'#111' }}/>
+                           </div>
+                           <button onClick={()=>{ if(newKw.trim()){ addKeyword(newKw); setNewKw('') } }}
+                             disabled={!newKw.trim()||!selectedClient}
+                             style={{ padding:'9px 20px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, flexShrink:0, whiteSpace:'nowrap', opacity:!newKw.trim()||!selectedClient?.5:1 }}>
+                             <Plus size={14}/> Add Keyword
+                           </button>
+                         </div>
                         <div style={{ display:'flex', gap:12, marginBottom:16, alignItems:'center' }}>
                           <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1.5px solid #e5e7eb', borderRadius:11, padding:'9px 14px' }}>
                             <Search size={14} color="#9ca3af"/>
@@ -722,11 +782,24 @@ Return: { overallScore:number, executiveSummary:string, opportunities:[{title,im
                               <FileText size={18} color={RED}/>
                             </div>
                             <div style={{ flex:1 }}>
-                              <div style={{ fontSize:15, fontWeight:900, color:'#111' }}>{r.title}</div>
-                              <div style={{ fontSize:13, color:'#374151', textTransform:'capitalize' }}>{r.report_type} · {new Date(r.generated_at).toLocaleDateString()}</div>
+                              <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>
+                                {r.report_type==='ai_analysis'?'AI SEO Analysis':r.report_type||'SEO Report'}
+                              </div>
+                              <div style={{ fontSize:13, color:'#374151' }}>
+                                {new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+                                {r.content?.keyword_count!=null ? ` · ${r.content.keyword_count} keywords` : ''}
+                              </div>
+                              {r.summary && (
+                                <div style={{ fontSize:13, color:'#4b5563', marginTop:4, lineHeight:1.5 }}>
+                                  {r.summary.slice(0,120)}{r.summary.length>120?'…':''}
+                                </div>
+                              )}
                             </div>
-                            {r.score && (
-                              <div style={{ fontSize:22, fontWeight:900, color:r.score>=70?'#16a34a':RED }}>{r.score}/100</div>
+                            {r.score != null && (
+                              <div style={{ textAlign:'center', flexShrink:0 }}>
+                                <div style={{ fontSize:24, fontWeight:900, color:r.overall_score>=70?'#16a34a':r.overall_score>=40?'#d97706':RED }}>{r.overall_score}</div>
+                                <div style={{ fontSize:11, color:'#9ca3af', fontWeight:700 }}>/ 100</div>
+                              </div>
                             )}
                           </div>
                         ))}
