@@ -117,6 +117,7 @@ export default function Sidebar() {
         <NavLink to="/agent"        startsWith icon={Brain}   label="CMO Agent" badge="AI"/>
           <NavLink to="/clients"     startsWith icon={Users}    label="Clients"/>
           <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
+        <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns"/>
           <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
         <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
           <NavLink to="/automations" icon={Workflow}            label="Automations"/>
