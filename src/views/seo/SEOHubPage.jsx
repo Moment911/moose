@@ -1272,6 +1272,22 @@ Return ONLY valid JSON (no markdown):
                       </div>
                     )}
 
+                    {tab === 'competitor' && (
+                      <div className="animate-fade-up">
+                        <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'32px 28px', textAlign:'center', marginBottom:16 }}>
+                          <div style={{ fontSize:40, marginBottom:16 }}>🏆</div>
+                          <div style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:20, fontWeight:800, color:'#111', marginBottom:8 }}>Competitor Intelligence</div>
+                          <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, maxWidth:480, margin:'0 auto 24px' }}>
+                            Automatically find up to 10 nearby competitors, score them head-to-head, and get an AI strategic action plan.
+                          </div>
+                          <button onClick={()=>navigate('/seo/competitor-intel')}
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:'#ea2729', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            Open Competitor Intel →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {tab === 'reports' && (
                       <div className="animate-fade-up">
 
