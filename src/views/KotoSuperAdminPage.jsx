@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { Building2, Users, DollarSign, TrendingUp, Shield, Search, Plus, RefreshCw, Loader2, Check, X, ExternalLink, ChevronRight, Star, Zap, Clock, AlertCircle, BarChart2, Globe } from 'lucide-react'
+import { Building2, Users, DollarSign, TrendingUp, Shield, Search, Plus, RefreshCw, Loader2, Check, X, ExternalLink, ChevronRight, Star, Zap, Clock, AlertCircle, BarChart2, Globe, Settings, Tag, Edit2, Save, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
@@ -38,8 +38,15 @@ export default function KotoSuperAdminPage() {
   const [loading,   setLoading]   = useState(true)
   const [search,    setSearch]    = useState('')
   const [selected,  setSelected]  = useState(null)
+  // Pricing editor
+  const [plans,     setPlans]     = useState([])
+  const [signupMeta, setSignupMeta] = useState({})
+  const [editingPlan, setEditingPlan] = useState(null)
+  const [savingPricing, setSavingPricing] = useState(false)
+  const [pricingLoaded, setPricingLoaded] = useState(false)
 
   useEffect(() => { loadAll() }, [])
+  useEffect(() => { if (tab === 'pricing' && !pricingLoaded) loadPricing() }, [tab])
 
   async function loadAll() {
     setLoading(true)
@@ -52,6 +59,58 @@ export default function KotoSuperAdminPage() {
     setClients(cls || [])
     setMembers(mems || [])
     setLoading(false)
+  }
+
+  async function loadPricing() {
+    const { data } = await supabase.from('platform_config').select('key,value').in('key', ['signup_plans','signup_meta'])
+    if (data) {
+      const plansRow = data.find(r => r.key === 'signup_plans')
+      const metaRow  = data.find(r => r.key === 'signup_meta')
+      if (plansRow) setPlans(plansRow.value)
+      if (metaRow)  setSignupMeta(metaRow.value)
+      setPricingLoaded(true)
+    }
+  }
+
+  async function savePlans(updatedPlans) {
+    setSavingPricing(true)
+    await supabase.from('platform_config').upsert({ key:'signup_plans', value: updatedPlans, updated_at: new Date().toISOString() })
+    setPlans(updatedPlans)
+    setEditingPlan(null)
+    setSavingPricing(false)
+    toast.success('Pricing updated — live on signup page immediately')
+  }
+
+  async function saveMeta(updatedMeta) {
+    setSavingPricing(true)
+    await supabase.from('platform_config').upsert({ key:'signup_meta', value: updatedMeta, updated_at: new Date().toISOString() })
+    setSignupMeta(updatedMeta)
+    setSavingPricing(false)
+    toast.success('Signup page copy updated')
+  }
+
+  function updatePlanField(planId, field, value) {
+    setPlans(prev => prev.map(p => p.id === planId ? { ...p, [field]: value } : p))
+  }
+
+  function updatePlanFeature(planId, idx, value) {
+    setPlans(prev => prev.map(p => {
+      if (p.id !== planId) return p
+      const features = [...p.features]
+      features[idx] = value
+      return { ...p, features }
+    }))
+  }
+
+  function addFeature(planId) {
+    setPlans(prev => prev.map(p => p.id === planId ? { ...p, features: [...p.features, 'New feature'] } : p))
+  }
+
+  function removeFeature(planId, idx) {
+    setPlans(prev => prev.map(p => {
+      if (p.id !== planId) return p
+      return { ...p, features: p.features.filter((_, i) => i !== idx) }
+    }))
   }
 
   async function suspendAgency(id) {
@@ -95,6 +154,7 @@ export default function KotoSuperAdminPage() {
     { key:'agencies', label:`Agencies (${agencies.length})`,   icon:Building2 },
     { key:'clients',  label:`All Clients (${clients.length})`, icon:Users },
     { key:'metrics',  label:'Platform Metrics',                icon:BarChart2 },
+    { key:'pricing',  label:'Pricing & Signup',                icon:Tag },
   ]
 
   const agencyClients = (agId) => clients.filter(c => c.agency_id === agId)
@@ -377,6 +437,167 @@ export default function KotoSuperAdminPage() {
                 <div style={{ fontSize:13, color:'#555', fontFamily:FB }}>{m.sub}</div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* PRICING TAB */}
+        {tab === 'pricing' && (
+          <div>
+
+            {/* Signup page meta */}
+            <div style={{ background:'#111', borderRadius:16, border:'1px solid #1a1a1a', padding:'20px 24px', marginBottom:20 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+                <div>
+                  <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:'#fff', marginBottom:3 }}>Signup Page Copy</div>
+                  <div style={{ fontSize:12, color:'#555', fontFamily:FB }}>Changes go live immediately at /signup</div>
+                </div>
+                <button onClick={()=>saveMeta(signupMeta)} disabled={savingPricing}
+                  style={{ padding:'7px 16px', borderRadius:9, border:'none', background:GREEN, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:6 }}>
+                  <Save size={13}/> {savingPricing ? 'Saving…' : 'Save Copy'}
+                </button>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                {[
+                  { label:'Headline',       field:'headline',       type:'text' },
+                  { label:'Subheadline',    field:'subheadline',    type:'text' },
+                  { label:'Trial Days',     field:'trial_days',     type:'number' },
+                  { label:'Guarantee Text', field:'guarantee_text', type:'text' },
+                  { label:'Hero Badge',     field:'hero_badge',     type:'text' },
+                ].map(item => (
+                  <div key={item.field}>
+                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:5 }}>{item.label}</label>
+                    <input
+                      type={item.type || 'text'}
+                      value={signupMeta[item.field] || ''}
+                      onChange={e => setSignupMeta(prev => ({ ...prev, [item.field]: item.type==='number' ? Number(e.target.value) : e.target.value }))}
+                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}
+                      onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#2a2a2a'}
+                    />
+                  </div>
+                ))}
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <label style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH }}>Annual Toggle</label>
+                  <button onClick={()=>setSignupMeta(prev=>({...prev, show_annual_toggle:!prev.show_annual_toggle}))}
+                    style={{ background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                    {signupMeta.show_annual_toggle
+                      ? <ToggleRight size={28} color={GREEN}/>
+                      : <ToggleLeft size={28} color="#555"/>
+                    }
+                  </button>
+                  <span style={{ fontSize:12, color:'#555', fontFamily:FB }}>{signupMeta.show_annual_toggle ? `${signupMeta.annual_discount_pct||20}% annual discount shown` : 'Monthly only'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Plan cards editor */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
+              {plans.map(plan => (
+                <div key={plan.id} style={{ background:'#111', borderRadius:16, border:`1px solid ${editingPlan===plan.id ? RED+'60' : '#1a1a1a'}`, padding:'18px 20px', transition:'border-color .15s' }}>
+
+                  {/* Plan header */}
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                    <div>
+                      <input value={plan.name} onChange={e=>updatePlanField(plan.id,'name',e.target.value)}
+                        style={{ background:'none', border:'none', outline:'none', fontFamily:FH, fontSize:16, fontWeight:900, color:'#fff', width:120, padding:0 }}/>
+                      {plan.popular && (
+                        <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:RED+'20', color:RED, fontFamily:FH, display:'block', marginTop:3, width:'fit-content' }}>
+                          {plan.badge || 'Most Popular'}
+                        </span>
+                      )}
+                    </div>
+                    <button onClick={()=>setEditingPlan(editingPlan===plan.id?null:plan.id)}
+                      style={{ background:'none', border:'1px solid #333', borderRadius:8, padding:'5px 10px', cursor:'pointer', color:'#ccc', fontFamily:FH, fontSize:12, fontWeight:700 }}>
+                      {editingPlan===plan.id ? 'Done' : <><Edit2 size={11} style={{marginRight:4}}/>Edit</>}
+                    </button>
+                  </div>
+
+                  {/* Price */}
+                  <div style={{ display:'flex', alignItems:'baseline', gap:4, marginBottom:14 }}>
+                    <span style={{ color:'#555', fontSize:18, fontFamily:FH }}>$</span>
+                    <input type="number" value={plan.price} onChange={e=>updatePlanField(plan.id,'price',Number(e.target.value))}
+                      style={{ background:'none', border:'none', outline:'none', fontFamily:FH, fontSize:36, fontWeight:900, color:GREEN, width:100, padding:0 }}/>
+                    <span style={{ color:'#555', fontSize:14, fontFamily:FB }}>/mo</span>
+                  </div>
+
+                  {/* Seats + clients */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
+                    <div style={{ background:'#0d0d0d', borderRadius:9, padding:'8px 10px' }}>
+                      <div style={{ fontSize:10, color:'#555', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:3 }}>Team Seats</div>
+                      <input type="number" value={plan.seats} onChange={e=>updatePlanField(plan.id,'seats',Number(e.target.value))}
+                        style={{ background:'none', border:'none', outline:'none', fontFamily:FH, fontSize:20, fontWeight:900, color:'#fff', width:'100%', padding:0 }}/>
+                    </div>
+                    <div style={{ background:'#0d0d0d', borderRadius:9, padding:'8px 10px' }}>
+                      <div style={{ fontSize:10, color:'#555', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:3 }}>Max Clients</div>
+                      <input type="number" value={plan.clients} onChange={e=>updatePlanField(plan.id,'clients',Number(e.target.value))}
+                        style={{ background:'none', border:'none', outline:'none', fontFamily:FH, fontSize:20, fontWeight:900, color:'#fff', width:'100%', padding:0 }}/>
+                    </div>
+                  </div>
+
+                  {/* CTA button text */}
+                  <div style={{ marginBottom:14 }}>
+                    <div style={{ fontSize:10, color:'#555', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>CTA Button Text</div>
+                    <input value={plan.cta || 'Start Free Trial'} onChange={e=>updatePlanField(plan.id,'cta',e.target.value)}
+                      style={{ width:'100%', padding:'7px 10px', borderRadius:8, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#fff', fontSize:13, outline:'none', fontFamily:FB, boxSizing:'border-box' }}/>
+                  </div>
+
+                  {/* Popular + badge toggle */}
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+                    <button onClick={()=>updatePlanField(plan.id,'popular',!plan.popular)}
+                      style={{ background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', gap:5 }}>
+                      {plan.popular ? <ToggleRight size={22} color={RED}/> : <ToggleLeft size={22} color="#555"/>}
+                      <span style={{ fontSize:12, color: plan.popular?RED:'#555', fontFamily:FH, fontWeight:700 }}>Popular badge</span>
+                    </button>
+                    {plan.popular && (
+                      <input value={plan.badge||'Most Popular'} onChange={e=>updatePlanField(plan.id,'badge',e.target.value)}
+                        placeholder="Badge text"
+                        style={{ flex:1, padding:'4px 8px', borderRadius:7, border:'1px solid #2a2a2a', background:'#0d0d0d', color:'#ccc', fontSize:12, outline:'none', fontFamily:FB }}/>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <div>
+                    <div style={{ fontSize:10, color:'#555', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Features</div>
+                    {plan.features.map((feat, fi) => (
+                      <div key={fi} style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
+                        <span style={{ color:GREEN, flexShrink:0, fontSize:12 }}>✓</span>
+                        <input value={feat} onChange={e=>updatePlanFeature(plan.id,fi,e.target.value)}
+                          style={{ flex:1, background:'#0d0d0d', border:'1px solid #222', borderRadius:7, padding:'5px 8px', color:'#ccc', fontSize:12, outline:'none', fontFamily:FB }}
+                          onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#222'}/>
+                        <button onClick={()=>removeFeature(plan.id,fi)}
+                          style={{ background:'none', border:'none', cursor:'pointer', color:'#444', padding:2, flexShrink:0 }}>
+                          <X size={13}/>
+                        </button>
+                      </div>
+                    ))}
+                    <button onClick={()=>addFeature(plan.id)}
+                      style={{ width:'100%', padding:'6px', borderRadius:8, border:'1px dashed #333', background:'transparent', color:'#555', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, marginTop:4 }}>
+                      + Add Feature
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Save pricing button */}
+            <div style={{ display:'flex', justifyContent:'flex-end', gap:10 }}>
+              <button onClick={loadPricing}
+                style={{ padding:'10px 20px', borderRadius:11, border:'1px solid #333', background:'transparent', color:'#ccc', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                Reset to Saved
+              </button>
+              <button onClick={()=>savePlans(plans)} disabled={savingPricing}
+                style={{ padding:'10px 28px', borderRadius:11, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:8, boxShadow:`0 4px 16px ${RED}40` }}>
+                <Save size={15}/> {savingPricing ? 'Publishing…' : 'Publish Pricing Changes'}
+              </button>
+            </div>
+
+            {/* Preview link */}
+            <div style={{ marginTop:16, textAlign:'center' }}>
+              <a href="/signup" target="_blank"
+                style={{ fontSize:13, color:'#555', fontFamily:FB, display:'inline-flex', alignItems:'center', gap:5 }}>
+                <ExternalLink size={12}/> Preview signup page →
+              </a>
+            </div>
+
           </div>
         )}
 

@@ -578,3 +578,59 @@ CREATE TABLE IF NOT EXISTS agency_invitations (
   accepted_at timestamptz,
   created_at  timestamptz DEFAULT now()
 );
+
+-- ── Platform config (Koto admin controls) ────────────────────────────────────
+CREATE TABLE IF NOT EXISTS platform_config (
+  key         text PRIMARY KEY,
+  value       jsonb NOT NULL DEFAULT '{}',
+  updated_at  timestamptz DEFAULT now(),
+  updated_by  uuid
+);
+
+-- Seed default pricing
+INSERT INTO platform_config (key, value) VALUES
+('signup_plans', '[
+  {
+    "id": "starter",
+    "name": "Starter",
+    "price": 297,
+    "seats": 3,
+    "clients": 25,
+    "popular": false,
+    "badge": "",
+    "cta": "Start Free Trial",
+    "features": ["3 team seats", "Up to 25 clients", "AI review responses", "Scout lead intelligence", "Client onboarding forms"]
+  },
+  {
+    "id": "growth",
+    "name": "Growth",
+    "price": 497,
+    "seats": 10,
+    "clients": 100,
+    "popular": true,
+    "badge": "Most Popular",
+    "cta": "Start Free Trial",
+    "features": ["10 team seats", "Up to 100 clients", "Everything in Starter", "Agency Autopilot", "White-label platform", "Social content AI"]
+  },
+  {
+    "id": "agency",
+    "name": "Agency",
+    "price": 997,
+    "seats": 25,
+    "clients": 500,
+    "popular": false,
+    "badge": "",
+    "cta": "Start Free Trial",
+    "features": ["25 team seats", "Up to 500 clients", "Everything in Growth", "Lead scoring AI", "API access", "Priority support"]
+  }
+]'::jsonb),
+('signup_meta', '{
+  "headline": "The AI Platform Built for Marketing Agencies",
+  "subheadline": "Replace 6 tools with one platform. Automate client work. Scale without hiring.",
+  "trial_days": 14,
+  "show_annual_toggle": false,
+  "annual_discount_pct": 20,
+  "guarantee_text": "14-day free trial. No credit card required.",
+  "hero_badge": "Now in early access"
+}'::jsonb)
+ON CONFLICT (key) DO NOTHING;

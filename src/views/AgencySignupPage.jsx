@@ -18,20 +18,31 @@ const INP = {
   fontFamily: 'inherit', transition: 'border-color .15s',
 }
 
-const PLANS = [
+const DEFAULT_PLANS = [
   {
-    id: 'starter', name: 'Starter', price: 297, seats: 3, clients: 25,
+    id: 'starter', name: 'Starter', price: 297, seats: 3, clients: 25, popular: false,
+    badge: '', cta: 'Start Free Trial',
     features: ['3 team seats', 'Up to 25 clients', 'AI review responses', 'Scout lead intelligence', 'Client onboarding forms'],
   },
   {
     id: 'growth', name: 'Growth', price: 497, seats: 10, clients: 100, popular: true,
+    badge: 'Most Popular', cta: 'Start Free Trial',
     features: ['10 team seats', 'Up to 100 clients', 'Everything in Starter', 'Agency Autopilot (all 6 agents)', 'White-label platform', 'Social content AI'],
   },
   {
-    id: 'pro', name: 'Pro', price: 897, seats: 25, clients: 500,
+    id: 'agency', name: 'Agency', price: 997, seats: 25, clients: 500, popular: false,
+    badge: '', cta: 'Start Free Trial',
     features: ['25 team seats', 'Up to 500 clients', 'Everything in Growth', 'Lead scoring AI', 'API access', 'Priority support'],
   },
 ]
+
+const DEFAULT_META = {
+  headline: 'The AI Platform Built for Marketing Agencies',
+  subheadline: '{signupMeta.subheadline}',
+  trial_days: 14,
+  guarantee_text: '{signupMeta.guarantee_text}',
+  hero_badge: 'Now in early access',
+}
 
 // What happens automatically when an agency signs up
 const AUTO_SETUP = [
@@ -51,6 +62,18 @@ function Database(props) { return <BarChart2 {...props}/> } // alias
 
 export default function AgencySignupPage() {
   const navigate = useNavigate()
+  const [PLANS,      setPLANS]      = useState(DEFAULT_PLANS)
+  const [signupMeta, setSignupMeta] = useState(DEFAULT_META)
+
+  useEffect(() => {
+    supabase.from('platform_config').select('key,value').in('key',['signup_plans','signup_meta']).then(({data}) => {
+      if (!data) return
+      const plansRow = data.find(r => r.key === 'signup_plans')
+      const metaRow  = data.find(r => r.key === 'signup_meta')
+      if (plansRow?.value?.length) setPLANS(plansRow.value)
+      if (metaRow?.value) setSignupMeta(metaRow.value)
+    })
+  }, [])
   const [step, setStep]     = useState(1)   // 1=plan, 2=account, 3=agency, 4=done
   const [plan, setPlan]     = useState('growth')
   const [form, setForm]     = useState({
