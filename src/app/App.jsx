@@ -22,6 +22,7 @@ import EmployeePage from '../views/EmployeePage'
 import IntegrationsPage from '../views/IntegrationsPage'
 import { useEffect } from 'react'
 import AdminPortalPage from '../views/AdminPortalPage'
+import MasterAdminPage from '../views/MasterAdminPage'
 import BrandGuidelinesPage from '../views/BrandGuidelinesPage'
 import TemplatesPage from '../views/TemplatesPage'
 import ContactsPage from '../views/ContactsPage'
@@ -127,6 +128,8 @@ export default function App() {
           <Route path="/employees" element={<EmployeePage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
           <Route path="/admin" element={<AdminPortalPage />} />
+          <Route path="/master-admin" element={<MasterAdminPage />} />
+          <Route path="/platform-admin" element={<PlatformAdminPage />} />
           <Route path="/brand-guidelines" element={<BrandGuidelinesPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/contacts" element={<ContactsPage />} />

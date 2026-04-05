@@ -183,6 +183,8 @@ export default function Sidebar() {
 
           <Section label="Agency"/>
           <NavLink to="/billing"     icon={CreditCard} label="Billing"/>
+        <NavLink to="/master-admin"    icon={Shield}   label="Master Admin"/>
+        <NavLink to="/platform-admin"  icon={Shield}   label="Platform Admin"/>
         <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
           <NavLink to="/integrations" icon={Plug} label="Integrations"/>
         </div>
