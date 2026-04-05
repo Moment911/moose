@@ -9,18 +9,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader } from '../components/mobile/MobilePage'
 import {
-  Check,
-  RefreshCw,
-  ExternalLink,
-  ArrowRight,
-  Loader2,
-  BarChart2,
-  Plug,
-  Globe,
-  AlertTriangle,
-  Circle,
-  CheckCircle,
-  Clock
+  AlertTriangle, ArrowRight, BarChart2, Check, CheckCircle, ChevronRight, Circle, Clock, Code2, Database, ExternalLink, Globe, Loader2, Plug, RefreshCw, Users, Webhook, Zap
 } from 'lucide-react'
 
 const R    = '#ea2729'
