@@ -31,5 +31,6 @@ ALTER TABLE prospect_reports ADD COLUMN IF NOT EXISTS search_location text;
 
 -- RLS
 ALTER TABLE scout_searches ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_scout_searches" ON scout_searches;
 CREATE POLICY "allow_all_scout_searches" ON scout_searches FOR ALL USING (true) WITH CHECK (true);
 

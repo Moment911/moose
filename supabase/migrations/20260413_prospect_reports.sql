@@ -58,5 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_prospect_reports_prospect ON prospect_reports(pro
 -- RLS
 ALTER TABLE prospect_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prospect_sessions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_prospect_reports" ON prospect_reports;
 CREATE POLICY "allow_all_prospect_reports" ON prospect_reports FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_all_prospect_sessions" ON prospect_sessions;
 CREATE POLICY "allow_all_prospect_sessions" ON prospect_sessions FOR ALL USING (true) WITH CHECK (true);

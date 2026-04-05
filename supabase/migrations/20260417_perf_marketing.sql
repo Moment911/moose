@@ -256,14 +256,23 @@ ALTER TABLE perf_recommendations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perf_snapshots       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perf_alerts          ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "perf_campaigns_all" ON perf_campaigns;
 CREATE POLICY "perf_campaigns_all"    ON perf_campaigns       FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_adgroups_all" ON perf_ad_groups;
 CREATE POLICY "perf_adgroups_all"     ON perf_ad_groups       FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_keywords_all" ON perf_keywords;
 CREATE POLICY "perf_keywords_all"     ON perf_keywords        FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_ads_all" ON perf_ads;
 CREATE POLICY "perf_ads_all"          ON perf_ads             FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_search_terms_all" ON perf_search_terms;
 CREATE POLICY "perf_search_terms_all" ON perf_search_terms    FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_pages_all" ON perf_pages;
 CREATE POLICY "perf_pages_all"        ON perf_pages           FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_recs_all" ON perf_recommendations;
 CREATE POLICY "perf_recs_all"         ON perf_recommendations FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_snapshots_all" ON perf_snapshots;
 CREATE POLICY "perf_snapshots_all"    ON perf_snapshots       FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "perf_alerts_all" ON perf_alerts;
 CREATE POLICY "perf_alerts_all"       ON perf_alerts          FOR ALL USING (true) WITH CHECK (true);
 
 -- ── Execution log — every approved change, rollback data, who did it ──────────
@@ -286,5 +295,6 @@ CREATE TABLE IF NOT EXISTS perf_execution_log (
 );
 
 ALTER TABLE perf_execution_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "perf_log_all" ON perf_execution_log;
 CREATE POLICY "perf_log_all" ON perf_execution_log FOR ALL USING (true) WITH CHECK (true);
 CREATE INDEX IF NOT EXISTS idx_perf_log_client ON perf_execution_log(client_id, applied_at DESC);
