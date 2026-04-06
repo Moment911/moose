@@ -60,7 +60,7 @@ export default function WordPressControlPage(){
 
   async function loadSites(){
     setLoading(true)
-    const res=await fetch(`/api/wp?agency_id=${agencyId}`)
+    const res=await fetch(`/api/wp?agency_id=${agencyId||'00000000-0000-0000-0000-000000000099'}`)
     const data=await res.json()
     setSites(data.sites||[])
     if(data.sites?.length&&!selected)selectSite(data.sites[0])
@@ -78,7 +78,7 @@ export default function WordPressControlPage(){
     if(!connectForm.site_url||!connectForm.api_key){toast.error('URL and API key required');return}
     setConnecting(true)
     try{
-      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'connect',agency_id:agencyId,...connectForm})})
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'connect',agency_id:agencyId||'00000000-0000-0000-0000-000000000099',...connectForm})})
       const data=await res.json()
       if(data.error)throw new Error(data.error)
       toast[data.connected?'success':'error'](data.connected?`Connected to ${data.site?.site_name}`:'Saved — plugin test failed, check API key')
@@ -91,7 +91,7 @@ export default function WordPressControlPage(){
   async function runAction(action,payload={}){
     if(!selected)return;setRunning(action)
     try{
-      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,agency_id:agencyId,site_id:selected.id,...payload})})
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,agency_id:agencyId||'00000000-0000-0000-0000-000000000099',site_id:selected.id,...payload})})
       const data=await res.json()
       if(data.error)toast.error(data.error);else toast.success(`${action.replace(/_/g,' ')} completed`)
       await selectSite(selected)
@@ -101,7 +101,7 @@ export default function WordPressControlPage(){
 
   async function deleteSite(id){
     if(!confirm('Disconnect this site?'))return
-    await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',site_id:id,agency_id:agencyId})})
+    await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',site_id:id,agency_id:agencyId||'00000000-0000-0000-0000-000000000099'})})
     setSites(s=>s.filter(x=>x.id!==id));if(selected?.id===id){setSelected(null);setSiteData(null)}
     toast.success('Site disconnected')
   }
@@ -109,7 +109,7 @@ export default function WordPressControlPage(){
   async function loadLocations(){
     if(!selected||!stateCode)return;setLocLoading(true)
     try{
-      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get_locations',site_id:selected.id,agency_id:agencyId,state:stateCode})})
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get_locations',site_id:selected.id,agency_id:agencyId||'00000000-0000-0000-0000-000000000099',state:stateCode})})
       const data=await res.json()
       const locs=data?.data?.locations||data?.data?.cities||data?.locations||[]
       setAllCities(locs)
@@ -132,7 +132,7 @@ export default function WordPressControlPage(){
     setGenerating(true);setGenResult(null)
     try{
       const locations=selectedCities.map(id=>{const p=id.split('||');return{city:p[0],state:p[1]||stateCode,county:p[2]||''}})
-      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'generate_pages',agency_id:agencyId,site_id:selected.id,keyword_template:keyword,topic,location_ids:selectedCities,locations,state:stateCode,page_type:pageType,schema_type:schemaType,aeo_enabled:aeo,status:genStatus})})
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'generate_pages',agency_id:agencyId||'00000000-0000-0000-0000-000000000099',site_id:selected.id,keyword_template:keyword,topic,location_ids:selectedCities,locations,state:stateCode,page_type:pageType,schema_type:schemaType,aeo_enabled:aeo,status:genStatus})})
       const data=await res.json()
       if(data.error)throw new Error(data.error)
       setGenResult(data);const count=data.data?.pages?.length||0
