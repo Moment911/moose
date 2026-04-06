@@ -52,7 +52,7 @@ export default function SEOPluginPage() {
       // Try to connect to the plugin API
       let siteName = cleanUrl
       try {
-        const res = await fetch(`${cleanUrl}/wp-json/hlseo/v1/site/info`, { headers: { 'Authorization': `Bearer ${form.apiKey}`, 'X-HLSEO-Key': form.apiKey } })
+        const res = await fetch(`${cleanUrl}/wp-json/koto/v1/agency/test`, { headers: { 'Authorization': `Bearer ${form.apiKey}`, 'X-HLSEO-Key': form.apiKey } })
         if (res.ok) { const info = await res.json(); siteName = info.site_name || cleanUrl }
       } catch {}
 
