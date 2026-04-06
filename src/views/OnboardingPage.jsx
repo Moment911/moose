@@ -730,6 +730,8 @@ export default function OnboardingPage() {
     contacts_billing:   { first_name:'', last_name:'', title:'', email:'', phone:'' },
     contacts_marketing: { first_name:'', last_name:'', title:'', email:'', phone:'' },
     contacts_emergency: { first_name:'', last_name:'', title:'', email:'', phone:'' },
+    ein:'', state_incorporated:'', legal_address_same:true,
+    legal_address:'', legal_suite:'', legal_city:'', legal_state:'', legal_zip:'',
     a2p_legal_name:'', a2p_ein:'', a2p_use_case:'',
     // Business
     business_name: '', legal_name: '', ein: '', industry: '', business_type: '',
@@ -1442,8 +1444,17 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <F label="Business / Trade Name" required hint="The name your customers know you by">
                   <FocusInput large value={form.business_name} onChange={e => set('business_name', e.target.value)} placeholder="Acme Plumbing" />
                 </F>
-                <F label="Legal Business Name" hint="As registered with the state">
+                <F label="Legal Business Name" hint="As registered with the state — may differ from your trade name">
                   <FocusInput value={form.legal_name} onChange={e => set('legal_name', e.target.value)} placeholder="Acme Plumbing LLC" />
+                </F>
+                <F label="EIN / Federal Tax ID" hint="Your 9-digit Employer Identification Number — XX-XXXXXXX format. Confidential, used for A2P registration and vendor forms.">
+                  <FocusInput value={form.ein} onChange={e => set('ein', e.target.value)}
+                    placeholder="12-3456789" />
+                </F>
+                <F label="State of Incorporation / Registration" hint="The US state where your business is legally registered (may differ from where you operate)">
+                  <FocusSelect value={form.state_incorporated} onChange={e => set('state_incorporated', e.target.value)}
+                    placeholder="Select state…"
+                    options={['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming','Washington D.C.']} />
                 </F>
                 <F label="Industry" required hint="Search by industry or SIC code">
                   <SearchableSelect
@@ -1497,6 +1508,52 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                   <FocusInput value={form.zip} onChange={e => set('zip', e.target.value)} placeholder="33101" />
                 </F>
               </div>
+
+              {/* ── Legal / Registered Address ── */}
+              <div style={{ marginTop:20, padding:'16px 20px', background:'#f9fafb', borderRadius:14, border:'1px solid #e5e7eb' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: form.legal_address_same ? 0 : 14 }}>
+                  <div>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>Legal / Registered Address</div>
+                    <div style={{ fontSize:12, color:'#9ca3af', marginTop:2 }}>The address on file with the state — may differ from your operating location</div>
+                  </div>
+                  <label style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', flexShrink:0, marginLeft:16 }}>
+                    <input type="checkbox" checked={form.legal_address_same !== false}
+                      onChange={e => set('legal_address_same', e.target.checked)}
+                      style={{ width:15, height:15, accentColor:ACCENT, cursor:'pointer' }} />
+                    <span style={{ fontSize:12, fontWeight:700, color:'#374151', whiteSpace:'nowrap' }}>Same as business address</span>
+                  </label>
+                </div>
+                {form.legal_address_same === false && (
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginTop:4 }}>
+                    <F label="Legal Street Address" span2>
+                      <FocusInput value={form.legal_address} onChange={e => set('legal_address', e.target.value)}
+                        placeholder="123 Registered Agent St" />
+                    </F>
+                    <F label="Suite / Unit">
+                      <FocusInput value={form.legal_suite} onChange={e => set('legal_suite', e.target.value)}
+                        placeholder="Suite 100" />
+                    </F>
+                    <F label="City">
+                      <FocusInput value={form.legal_city} onChange={e => set('legal_city', e.target.value)}
+                        placeholder="Wilmington" />
+                    </F>
+                    <F label="State">
+                      <FocusInput value={form.legal_state} onChange={e => set('legal_state', e.target.value)}
+                        placeholder="DE" />
+                    </F>
+                    <F label="ZIP Code">
+                      <FocusInput value={form.legal_zip} onChange={e => set('legal_zip', e.target.value)}
+                        placeholder="19801" />
+                    </F>
+                  </div>
+                )}
+                {form.legal_address_same !== false && form.address && (
+                  <div style={{ marginTop:10, padding:'8px 12px', background:'#f0fdf4', borderRadius:8, border:'1px solid #bbf7d0', fontSize:13, color:'#166534' }}>
+                    ✓ Using business address: {form.address}{form.suite ? `, ${form.suite}` : ''}, {form.city}, {form.state} {form.zip}
+                  </div>
+                )}
+              </div>
+
               <F label="Business Description" hint="In 2–4 sentences: what do you do, who do you serve, and what makes you special? This becomes the foundation of all your marketing copy." span2>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                   <AIAssist prompt={`${CTX}. Write a compelling 3-4 sentence business description for this ${VC.name} business. ${isLocal ? "Emphasize local " + (form.primary_city || "market") + " expertise and community roots." : isNational ? "Emphasize national scale and reach." : "Emphasize regional expertise."} Use first person ("we"). Be specific — no generic filler. Reference their actual industry (${vertical}).`}
