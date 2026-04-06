@@ -31,6 +31,372 @@ function StepIcon({ name, size=14, color }) {
 }
 
 const ACCENT = '#ea2729'
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADAPTIVE CONTEXT ENGINE
+// Tailors every label, hint, placeholder, and AI prompt
+// by SIC code, industry division, and local vs national scope
+// ══════════════════════════════════════════════════════════════════════════════
+
+const SIC_VERTICAL_MAP = {
+  '0741':'pet','0742':'pet','0781':'home_services','0782':'home_services','0783':'home_services',
+  '1521':'home_services','1522':'home_services','1531':'home_services','1541':'home_services',
+  '1542':'home_services','1711':'home_services','1731':'home_services','1741':'home_services',
+  '1742':'home_services','1743':'home_services','1751':'home_services','1752':'home_services',
+  '1761':'home_services','1771':'home_services','1781':'home_services','1791':'home_services',
+  '1794':'home_services','1795':'home_services','1796':'home_services','1799':'home_services',
+  '4724':'travel','4959':'home_services','5065':'home_services',
+  '5251':'retail','5411':'restaurant','5441':'restaurant','5451':'restaurant','5461':'restaurant',
+  '5511':'auto','5521':'auto','5531':'auto','5571':'auto',
+  '5712':'retail','5731':'retail','5812':'restaurant','5813':'restaurant',
+  '5912':'retail','5963':'restaurant','5999':'retail',
+  '6141':'finance','6159':'finance','6311':'finance','6331':'finance','6411':'finance',
+  '6512':'realestate','6531':'realestate','6552':'realestate',
+  '7011':'hospitality','7041':'hospitality',
+  '7211':'beauty','7231':'beauty','7241':'beauty','7251':'beauty','7261':'beauty',
+  '7291':'finance','7299':'beauty',
+  '7311':'marketing','7312':'marketing','7319':'marketing','7322':'marketing',
+  '7349':'home_services','7371':'tech','7372':'tech','7374':'tech','7375':'marketing',
+  '7389':'creative',
+  '7514':'auto','7521':'auto','7531':'auto','7532':'auto','7533':'auto','7534':'auto',
+  '7536':'auto','7537':'auto','7538':'auto','7539':'auto','7542':'auto','7549':'auto',
+  '7623':'home_services','7629':'home_services',
+  '7812':'fitness','7921':'fitness','7929':'fitness','7941':'fitness',
+  '7991':'fitness','7997':'fitness','7999':'pet',
+  '8011':'medical','8021':'medical','8031':'medical','8041':'medical','8042':'medical',
+  '8043':'medical','8049':'medical','8051':'medical','8062':'medical','8071':'medical',
+  '8099':'medical','8111':'legal',
+  '8211':'education','8221':'education','8243':'education','8249':'education',
+  '8299':'education','8351':'education',
+  '8711':'professional','8712':'professional','8713':'professional',
+  '8721':'professional','8742':'professional',
+}
+
+const VERTICAL_CONFIG = {
+  home_services:{
+    icon:'🔧', name:'Home Services',
+    serviceLabel:'Services & Specialties',
+    serviceHint:'List every trade, specialty, and service line you offer. Include emergency/24hr if applicable.',
+    servicePlaceholder:'Emergency plumbing, Water heater installation, Drain cleaning, Sewer repair, Remodeling…',
+    customerLabel:'Who hires you?', customerHint:'Homeowners, property managers, landlords, contractors? Who calls you most?',
+    competitorHint:'Other local contractors, national franchises (Roto-Rooter, HomeAdvisor leads), or unlicensed handymen?',
+    geoHint:'Home service businesses live and die by radius. How far will you drive for a job?',
+    geoScope:'local', pricingLabel:'How do you charge?',
+    tip:'🔧 Emergency availability and response time are massive differentiators — if you offer them, shout it loudly.',
+    goalHint:'More inbound calls? Dominate a specific zip code? Grow Google reviews? Hire more techs?',
+    kpiExamples:'inbound calls/month, cost per lead, top-3 Google Maps ranking, review count',
+    aiCustomerSegments:'homeowners, renters, landlords, property managers, general contractors',
+    painPointContext:'urgent repairs, fear of scams, unclear pricing, no-show contractors, damage to home',
+  },
+  restaurant:{
+    icon:'🍽️', name:'Restaurant / Food & Beverage',
+    serviceLabel:'Menu & Dining Experience',
+    serviceHint:'Describe your menu categories, signature dishes, dining experience, and any unique offerings.',
+    servicePlaceholder:'Breakfast menu, Lunch specials, Dinner service, Weekend brunch, Catering, Private dining, Delivery…',
+    customerLabel:'Who dines with you?', customerHint:'Date nights, families, business lunches, foodies, regulars, tourists?',
+    competitorHint:'Other local restaurants in your category, national chains nearby, delivery apps (DoorDash, Uber Eats)?',
+    geoHint:'Most restaurants draw from 3–5 miles. Are you a destination or a neighborhood staple?',
+    geoScope:'hyper_local', pricingLabel:'How are you priced vs the market?',
+    tip:'🍽️ Hours, parking, reservations, and ambiance photos are huge conversion drivers — be very specific here.',
+    goalHint:'More reservations? Boost weekday covers? Grow delivery? Build catering revenue? Expand locations?',
+    kpiExamples:'reservations/week, online order revenue, Google Maps ranking, Yelp rating, table turn rate',
+    aiCustomerSegments:'couples, families, business diners, foodies, delivery customers, event planners',
+    painPointContext:'long wait times, inconsistent quality, no ambiance, parking, bad reviews, delivery fees',
+  },
+  medical:{
+    icon:'🩺', name:'Medical / Healthcare',
+    serviceLabel:'Services & Specialties',
+    serviceHint:'List all treatments, procedures, conditions you treat, and any unique clinical offerings.',
+    servicePlaceholder:'General wellness visits, Chronic disease management, Telehealth, Cosmetic procedures, Specialist referrals…',
+    customerLabel:'Who are your patients?', customerHint:'Demographics, insurance types accepted, conditions treated, referral sources?',
+    competitorHint:'Other practices in your specialty, hospital outpatient departments, urgent care chains, telehealth apps?',
+    geoHint:'Are you accepting new patients from specific zip codes? Do you offer telehealth statewide?',
+    geoScope:'local', pricingLabel:'Insurance accepted? Cash pay / concierge options?',
+    tip:'🩺 Credentials, before/afters (where appropriate), and patient reviews are the most powerful trust signals in healthcare.',
+    goalHint:'New patient acquisition? Fill a specialty? Reduce no-shows? Grow a cash-pay service line?',
+    kpiExamples:'new patient appointments/month, cost per new patient, specialty bookings, review rating, telehealth sessions',
+    aiCustomerSegments:'patients by condition, caregivers, insurance type, age group, self-pay patients',
+    painPointContext:'long wait times, hard to get appointments, confusing billing, fear of diagnosis, insurance hassles',
+  },
+  beauty:{
+    icon:'✨', name:'Beauty / Personal Care',
+    serviceLabel:'Services & Treatment Menu',
+    serviceHint:'List all services with detail — cuts, color, treatments, packages, and specialties.',
+    servicePlaceholder:'Haircuts, Balayage, Keratin treatments, Facials, Waxing, Lash extensions, Bridal packages, Nail art…',
+    customerLabel:'Who is your ideal client?', customerHint:'Age, income, lifestyle, visit frequency, avg spend per appointment?',
+    competitorHint:'Local independent salons, franchise chains (Great Clips, Sport Clips), high-end boutique competitors?',
+    geoHint:'Beauty clients rarely drive more than 15 minutes. Which neighborhoods or zip codes are your target?',
+    geoScope:'hyper_local', pricingLabel:'Budget, mid-range, or luxury positioning?',
+    tip:'✨ Before/after photos, stylist spotlights, and frictionless online booking are the biggest conversion drivers.',
+    goalHint:'Fill your appointment book? Build a loyal book? Launch retail products? Expand to new chairs?',
+    kpiExamples:'new client bookings/month, rebooking rate, avg ticket value, Instagram followers, Google reviews',
+    aiCustomerSegments:'working women, brides, men seeking convenience, teens, seniors, luxury seekers',
+    painPointContext:'hard to book, inconsistent stylists, no photos of work, walk-in uncertainty, price surprises',
+  },
+  auto:{
+    icon:'🚗', name:'Automotive',
+    serviceLabel:'Services Offered',
+    serviceHint:'List all repair, maintenance, detailing, and specialty services you provide.',
+    servicePlaceholder:'Oil change, Brake service, Transmission repair, Tires, Detailing, Collision repair, State inspection…',
+    customerLabel:'Who are your customers?', customerHint:'Vehicle type (fleet, luxury, domestic), insurance referrals, dealership overflow?',
+    competitorHint:'Dealer service centers, national chains (Jiffy Lube, Firestone, Midas), other independent shops?',
+    geoHint:'Auto shops typically serve 5–10 miles. Which neighborhoods have your highest-value customers?',
+    geoScope:'local', pricingLabel:'How do you price vs the market?',
+    tip:'🚗 Convenience (hours, loaner cars, shuttle), warranties, and ASE certifications win auto customers.',
+    goalHint:'More car count? Grow a specific service? Fleet accounts? Raise average repair order?',
+    kpiExamples:'car count/week, avg repair order, repeat customer %, Google reviews, fleet contract value',
+    aiCustomerSegments:'daily drivers, fleet managers, luxury vehicle owners, insurance referrals, car enthusiasts',
+    painPointContext:'fear of overcharging, unclear estimates, long wait times, warranty concerns, dealer pricing',
+  },
+  legal:{
+    icon:'⚖️', name:'Legal Services',
+    serviceLabel:'Practice Areas',
+    serviceHint:'List all areas of law you practice and the types of cases or clients you handle.',
+    servicePlaceholder:'Personal injury, Family law, Criminal defense, Estate planning, Business law, Immigration, Real estate…',
+    customerLabel:'Who are your clients?', customerHint:'Case types, demographics, typical referral source (Google, word of mouth, attorney referral)?',
+    competitorHint:'Large local firms, legal directories (Avvo, FindLaw, Justia), solo practitioners in your practice area?',
+    geoHint:'Do you serve clients statewide, by county, or within a specific court jurisdiction?',
+    geoScope:'regional', pricingLabel:'Contingency, hourly, flat fee, or retainer?',
+    tip:'⚖️ Response speed and free consultations are the single biggest conversion lever for law firms.',
+    goalHint:'More qualified case inquiries? Dominate a practice area? Build referral partnerships with other attorneys?',
+    kpiExamples:'qualified leads/month, cost per case inquiry, consultation-to-retention rate, referral volume',
+    aiCustomerSegments:'accident victims, divorcing spouses, criminal defendants, business owners, estate planners',
+    painPointContext:'fear of legal costs, confusing process, lack of communication, slow resolution, uncertainty',
+  },
+  realestate:{
+    icon:'🏠', name:'Real Estate',
+    serviceLabel:'Services & Specialties',
+    serviceHint:'Buyer rep, seller rep, property management, investment, luxury, commercial?',
+    servicePlaceholder:'Buyer representation, Listing services, Property management, Investor deals, Relocation, Luxury sales…',
+    customerLabel:'Who do you work with?', customerHint:'First-time buyers, move-up buyers, investors, luxury clients, landlords, renters?',
+    competitorHint:'Other local agents, national teams (Keller Williams, Compass, EXP), iBuyers, discount brokerages?',
+    geoHint:'Which zip codes, neighborhoods, or price ranges do you specialize in?',
+    geoScope:'local', pricingLabel:'Typical price point and commission structure?',
+    tip:'🏠 Sold listings, days-on-market stats, and neighborhood expertise build instant credibility.',
+    goalHint:'More listing appointments? Buyer leads? Build a team? Dominate a neighborhood or price range?',
+    kpiExamples:'listing appts/month, buyer leads, avg days on market, closed volume, referral rate',
+    aiCustomerSegments:'first-time buyers, upsizers, downsizers, investors, relocating families, luxury buyers',
+    painPointContext:'fear of overpaying, trust in agent, market confusion, slow process, hidden fees',
+  },
+  finance:{
+    icon:'💰', name:'Finance / Insurance',
+    serviceLabel:'Products & Services',
+    serviceHint:'Loan types, financial products, advisory services, or insurance lines you offer.',
+    servicePlaceholder:'Home purchase loans, Refinancing, HELOCs, Business loans, Wealth management, Tax planning, Life insurance…',
+    customerLabel:'Who are your clients?', customerHint:'Life stage, income bracket, financial goals, business vs consumer?',
+    competitorHint:'Big banks, online lenders (Rocket, LendingTree), robo-advisors, other local advisors or brokers?',
+    geoHint:'Are you licensed in specific states? Do you serve clients nationally or within a defined market?',
+    geoScope:'regional', pricingLabel:'Commission, fee-only, AUM-based, or spread-based?',
+    tip:'💰 Trust, credentials, years in business, and client testimonials are everything in financial services.',
+    goalHint:'More applications? Grow AUM? Launch a new product? Build referral partnerships?',
+    kpiExamples:'qualified leads/month, applications, closed loans/policies, AUM growth, referral partner count',
+    aiCustomerSegments:'first-time homebuyers, retirees, business owners, young professionals, high-net-worth',
+    painPointContext:'fear of bad advice, complexity, hidden fees, rate confusion, not trusting advisors',
+  },
+  tech:{
+    icon:'💻', name:'Technology',
+    serviceLabel:'Product & Services',
+    serviceHint:'Describe your software, platform, or managed IT services in detail.',
+    servicePlaceholder:'SaaS platform features, Mobile app, API integrations, Managed IT, Cybersecurity, Custom dev, Support…',
+    customerLabel:'Who are your customers?', customerHint:'SMB, mid-market, enterprise? Which verticals? How technical are buyers?',
+    competitorHint:'Direct software competitors, legacy solutions you replace, open-source alternatives, big players you disrupt?',
+    geoHint:'Local IT services company or SaaS with national/global reach?',
+    geoScope:'national', pricingLabel:'SaaS monthly, per-seat, project-based, or managed retainer?',
+    tip:'💻 Free trials, live demos, and detailed case studies dramatically increase conversion rates for tech products.',
+    goalHint:'MRR growth? Enterprise deals? Reduce churn? Enter a new vertical? Raise a round?',
+    kpiExamples:'MRR, trial-to-paid rate, churn, CAC, LTV, demo bookings/month, NPS',
+    aiCustomerSegments:'SMB owners, IT managers, CTOs, operations managers, finance teams, startups',
+    painPointContext:'implementation complexity, switching costs, data security, ROI uncertainty, poor support',
+  },
+  education:{
+    icon:'📚', name:'Education',
+    serviceLabel:'Programs & Services',
+    serviceHint:'List all programs, courses, age groups, subjects, and formats (in-person, online, hybrid).',
+    servicePlaceholder:'Tutoring K-12, SAT/ACT prep, Coding bootcamps, Music lessons, Early childhood, Adult continuing ed…',
+    customerLabel:'Who enrolls?', customerHint:'Age group, parents vs adult learners, academic level, special needs, ultimate goals?',
+    competitorHint:'National chains (Kumon, Sylvan), online platforms (Khan Academy, Coursera, Udemy), local competitors?',
+    geoHint:'Serving a school district, city, statewide, or offering fully online programs nationally?',
+    geoScope:'local', pricingLabel:'Per session, monthly, semester, or annual enrollment?',
+    tip:'📚 Measurable results, certifications, and parent/student testimonials are the most powerful trust signals.',
+    goalHint:'Fill enrollment slots? Launch online courses? Open new locations? Build school district partnerships?',
+    kpiExamples:'new enrollments/month, capacity %, student retention, score improvement rates, referral %',
+    aiCustomerSegments:'parents of struggling students, adult learners, competitive students, special needs families',
+    painPointContext:'cost of tutoring, fear of falling behind, finding the right fit, results uncertainty',
+  },
+  fitness:{
+    icon:'💪', name:'Fitness & Wellness',
+    serviceLabel:'Programs & Memberships',
+    serviceHint:'Classes, training styles, membership tiers, and any specialty certifications or programs.',
+    servicePlaceholder:'Group fitness, Personal training, CrossFit, Yoga, Pilates, Nutrition coaching, Corporate wellness…',
+    customerLabel:'Who are your members?', customerHint:'Age, fitness level, goals (weight loss, performance, rehab, social), income level?',
+    competitorHint:'Big box gyms (Planet Fitness, LA Fitness), boutique studios, home fitness apps (Peloton, Apple Fitness)?',
+    geoHint:'Members typically live or work within 3 miles. Which neighborhoods do you want to dominate?',
+    geoScope:'hyper_local', pricingLabel:'Monthly membership, class packs, or PT rates?',
+    tip:'💪 Transformation stories, free trials, and community culture are the most powerful fitness marketing tools.',
+    goalHint:'New member growth? Reduce cancellations? Launch online coaching? Corporate wellness contracts?',
+    kpiExamples:'new memberships/month, churn rate, avg revenue per member, class attendance, referral %',
+    aiCustomerSegments:'weight loss seekers, athletes, post-injury recovery, stress relief seekers, social exercisers',
+    painPointContext:'fear of intimidation, cost vs results, contract lock-in, inconsistent classes, parking',
+  },
+  hospitality:{
+    icon:'🏨', name:'Hospitality',
+    serviceLabel:'Rooms, Packages & Amenities',
+    serviceHint:'Room types, packages, amenities, event spaces, dining, and unique guest experiences.',
+    servicePlaceholder:'Standard rooms, Suites, Spa packages, Conference facilities, Wedding venues, Pool, Restaurant…',
+    customerLabel:'Who are your guests?', customerHint:'Business travelers, leisure families, couples, event guests, tourists?',
+    competitorHint:'Nearby hotels, vacation rentals (Airbnb, VRBO), Expedia/Booking.com cannibalizing direct bookings?',
+    geoHint:'Your guests come from where? Drive market, fly-in destination, or both?',
+    geoScope:'regional', pricingLabel:'Average nightly rate and occupancy goal?',
+    tip:'🏨 OTA dependency is expensive. Direct booking campaigns with the right offer can dramatically improve margins.',
+    goalHint:'Increase direct bookings? Boost weekend occupancy? Grow event/wedding revenue? Improve review scores?',
+    kpiExamples:'occupancy rate, ADR, RevPAR, direct booking %, review score, F&B revenue',
+    aiCustomerSegments:'business travelers, vacationing couples, wedding parties, conference groups, families',
+    painPointContext:'OTA fees, bad reviews, parking, inconsistent experience, poor value vs price',
+  },
+  marketing:{
+    icon:'📢', name:'Marketing / Agency',
+    serviceLabel:'Services & Specialties',
+    serviceHint:'Your agency\'s specific service lines, verticals you serve, and what makes your work stand out.',
+    servicePlaceholder:'SEO, PPC management, Social media, Brand identity, Video production, PR, Marketing strategy…',
+    customerLabel:'Who are your clients?', customerHint:'Industry verticals, company size, B2B vs B2C, typical project budget?',
+    competitorHint:'Other local agencies, national chains, freelancers, in-house teams you\'re competing with?',
+    geoHint:'Do you serve local businesses in your market, or clients across the country?',
+    geoScope:'national', pricingLabel:'Retainer, project-based, or performance-based?',
+    tip:'📢 Case studies, specific ROI numbers, and niche specialization beat generic agency positioning every time.',
+    goalHint:'More retainer clients? Break into a new vertical? Scale headcount? Win enterprise accounts?',
+    kpiExamples:'retainer revenue, client retention %, avg contract value, qualified inbound leads/month',
+    aiCustomerSegments:'local business owners, CMOs, funded startups, e-commerce brands, professional service firms',
+    painPointContext:'past agency disappointments, unclear ROI, communication gaps, long contracts, overpromising',
+  },
+  professional:{
+    icon:'👔', name:'Professional Services',
+    serviceLabel:'Services & Expertise',
+    serviceHint:'Your specific service lines, deliverables, and professional specializations.',
+    servicePlaceholder:'Strategy consulting, Financial advisory, Engineering design, Architecture, Bookkeeping, HR consulting…',
+    customerLabel:'Who are your clients?', customerHint:'Business size, industry, decision-maker role, typical engagement size?',
+    competitorHint:'Big consulting firms, boutique specialists, freelancers, offshore alternatives?',
+    geoHint:'Do you serve a local market or work with clients nationally/globally?',
+    geoScope:'regional', pricingLabel:'Hourly, project, retainer, or value-based?',
+    tip:'👔 Thought leadership (articles, speaking, LinkedIn) and referral networks are the primary growth channels for professional services.',
+    goalHint:'More retainer engagements? Break into a new industry? Grow headcount? Build a referral engine?',
+    kpiExamples:'qualified leads/month, proposal win rate, avg engagement value, referral %, utilization rate',
+    aiCustomerSegments:'business owners, C-suite executives, operations managers, growing companies, funded startups',
+    painPointContext:'cost justification, trust in expertise, fear of misalignment, scope creep, unclear deliverables',
+  },
+  creative:{
+    icon:'🎨', name:'Creative Services',
+    serviceLabel:'Services & Creative Specialties',
+    serviceHint:'Your creative services, production capabilities, event types, and any signature style.',
+    servicePlaceholder:'Wedding photography, Commercial video, Brand identity, Event design, Catering, Live music…',
+    customerLabel:'Who hires you?', customerHint:'Couples, corporate clients, event planners, brands, individuals?',
+    competitorHint:'Other local creative professionals, event agencies, stock photo/video, DIY platforms?',
+    geoHint:'Do you serve your local market or travel for clients?',
+    geoScope:'regional', pricingLabel:'Project-based, package, or day rate?',
+    tip:'🎨 Portfolio quality, testimonials, and quick response to inquiries are everything in creative services.',
+    goalHint:'Book more events? Raise your rates? Break into commercial work? Build a referral network?',
+    kpiExamples:'bookings/month, avg contract value, inquiry-to-booking rate, portfolio engagement, review score',
+    aiCustomerSegments:'engaged couples, corporate event planners, marketing managers, individuals celebrating milestones',
+    painPointContext:'trust in quality sight-unseen, budget anxiety, availability, communication before event day',
+  },
+  pet:{
+    icon:'🐾', name:'Pet Services',
+    serviceLabel:'Services Offered',
+    serviceHint:'All pet care services, species served, and any specialties or certifications.',
+    servicePlaceholder:'Dog grooming, Veterinary care, Boarding, Daycare, Training, Pet sitting, Exotic animal care…',
+    customerLabel:'Who are your customers?', customerHint:'Dog owners, cat owners, exotic pet owners, breeders, multi-pet households?',
+    competitorHint:'National chains (PetSmart, Petco), independent groomers, veterinary chains, pet sitting apps?',
+    geoHint:'Pet owners rarely travel more than 10–15 minutes for routine services. Which neighborhoods are your target?',
+    geoScope:'local', pricingLabel:'Per service, packages, or membership?',
+    tip:'🐾 Pet parents are extremely loyal — great service and staff who love animals drive massive word-of-mouth.',
+    goalHint:'Grow grooming appointments? Expand boarding capacity? Add training services? Build a loyalty program?',
+    kpiExamples:'appointments/month, repeat visit rate, avg spend per visit, Google reviews, referral bookings',
+    aiCustomerSegments:'new pet parents, working professionals, multi-dog households, anxious pet owners, breeders',
+    painPointContext:'fear of harm to pet, quality of care, cleanliness, communication during boarding, pricing',
+  },
+  retail:{
+    icon:'🛍️', name:'Retail',
+    serviceLabel:'Products & Categories',
+    serviceHint:'Your product categories, brands carried, price range, and any unique or exclusive offerings.',
+    servicePlaceholder:'Product category 1, Product category 2, Signature brands, Private label, Custom orders…',
+    customerLabel:'Who shops with you?', customerHint:'Demographics, shopping triggers, online vs in-store, average transaction?',
+    competitorHint:'Amazon, big box stores, other specialty retailers, direct-to-consumer brands?',
+    geoHint:'Brick-and-mortar foot traffic, e-commerce nationally, or both?',
+    geoScope:'local', pricingLabel:'Price positioning vs market?',
+    tip:'🛍️ Local retail wins on experience, curation, and community. Lean into what Amazon can\'t offer.',
+    goalHint:'Drive more foot traffic? Launch e-commerce? Build loyalty program? Open second location?',
+    kpiExamples:'foot traffic, avg transaction value, conversion rate, repeat purchase %, online vs in-store sales',
+    aiCustomerSegments:'bargain hunters, gift buyers, collectors, local loyalists, online shoppers',
+    painPointContext:'price vs Amazon, parking, store hours, product availability, online shopping convenience',
+  },
+  travel:{
+    icon:'✈️', name:'Travel & Tourism',
+    serviceLabel:'Travel Packages & Services',
+    serviceHint:'Destinations, travel types, packages, and any specialty or niche you serve.',
+    servicePlaceholder:'Luxury travel, Group tours, Corporate travel management, Honeymoons, Adventure travel, Cruises…',
+    customerLabel:'Who are your clients?', customerHint:'Demographics, travel style, budget range, booking lead time?',
+    competitorHint:'Online booking platforms (Expedia, Booking.com), direct airline/hotel booking, other travel agents?',
+    geoHint:'Do you serve a local community or attract clients nationally?',
+    geoScope:'national', pricingLabel:'Commission-based, flat fee, or markup?',
+    tip:'✈️ Personalization and expertise in a specific niche (luxury, adventure, cruises) differentiates agents from OTAs.',
+    goalHint:'Grow bookings? Specialize in a niche? Build corporate travel accounts? Expand destinations offered?',
+    kpiExamples:'bookings/month, avg booking value, repeat client rate, referral %, commission revenue',
+    aiCustomerSegments:'luxury travelers, honeymoon couples, corporate travel managers, adventure seekers, families',
+    painPointContext:'pricing vs DIY booking, trust in recommendations, hidden fees, cancellation policies',
+  },
+  general:{
+    icon:'💼', name:'Business',
+    serviceLabel:'Products & Services',
+    serviceHint:'Describe everything you offer in as much detail as possible.',
+    servicePlaceholder:'List your main products, services, or programs…',
+    customerLabel:'Who are your customers?', customerHint:'Demographics, firmographics, buying triggers, decision makers?',
+    competitorHint:'Who else are customers considering? What makes them choose a competitor?',
+    geoHint:'Where are your customers located and how do they find you?',
+    geoScope:'local', pricingLabel:'How do you typically charge?',
+    tip:'💡 The more specific your answers, the more targeted your entire marketing strategy will be.',
+    goalHint:'What would make this year a massive success for your business?',
+    kpiExamples:'leads/month, conversion rate, revenue growth, customer retention, Google ranking',
+    aiCustomerSegments:'your target customer demographic and psychographic profile',
+    painPointContext:'the core problems your business solves',
+  },
+}
+
+function getSICVertical(sicLabel) {
+  if (!sicLabel) return 'general'
+  // Try to match by SIC code embedded in label
+  const codeMatch = sicLabel.match(/\b(\d{4})\b/)
+  if (codeMatch && SIC_VERTICAL_MAP[codeMatch[1]]) return SIC_VERTICAL_MAP[codeMatch[1]]
+  // Try label text matching
+  const l = sicLabel.toLowerCase()
+  if (/plumb|hvac|electric|roof|landscap|clean|pest|handyman|contractor|construct|floor|paint|fence|pool|gutter|sewer|foundation|masonry|drywall|concrete/.test(l)) return 'home_services'
+  if (/restaurant|food|bakery|cafe|catering|pizza|diner|bar |tavern|brewery|winery|eating/.test(l)) return 'restaurant'
+  if (/medical|physician|doctor|dental|dentist|optom|chiro|physio|therap|clinic|health|pediatr|orthop|dermat|cardio|vet |veterinar|nursing|hospital/.test(l)) return 'medical'
+  if (/salon|spa|barber|beauty|nail|massage|hair|estheti|cosmet/.test(l)) return 'beauty'
+  if (/auto|car |vehicle|mechanic|dealership|tire|body shop|collision|carwash|towing/.test(l)) return 'auto'
+  if (/law|attorney|legal/.test(l)) return 'legal'
+  if (/real estate|realtor|property manag|broker/.test(l)) return 'realestate'
+  if (/financial|accounting|bookkeep|tax |insurance|mortgage|loan|invest|wealth|cpa/.test(l)) return 'finance'
+  if (/software|tech|saas|app |platform|digital|it |cyber|cloud|computer/.test(l)) return 'tech'
+  if (/school|educat|tutor|coach|training|learning|college|university|daycare|child care/.test(l)) return 'education'
+  if (/hotel|motel|airbnb|hospitality|lodging|resort/.test(l)) return 'hospitality'
+  if (/gym|fitness|yoga|crossfit|personal train|martial|dance|pilates|sport/.test(l)) return 'fitness'
+  if (/market|advertis|pr |media|seo|ppc|branding|agency/.test(l)) return 'marketing'
+  if (/consult|engineer|architect|account|bookkeep|survey/.test(l)) return 'professional'
+  if (/photog|video|event plan|cater|wedding|creative/.test(l)) return 'creative'
+  if (/pet|grooming|veterinar|animal|dog|cat/.test(l)) return 'pet'
+  if (/retail|shop|store|boutique|cloth|apparel|jewelry|gift|furniture/.test(l)) return 'retail'
+  if (/travel|tour|vacation/.test(l)) return 'travel'
+  return 'general'
+}
+
+function classifyScope(growthScope, targetRadius, growthScopeValue) {
+  const s = ((growthScope || '') + ' ' + (targetRadius || '') + ' ' + (growthScopeValue || '')).toLowerCase()
+  if (/national|international|nationwide|global/.test(s)) return 'national'
+  if (/statewide|multi.state|regional/.test(s)) return 'regional'
+  if (/local|city|neighborhood|county|within|miles/.test(s)) return 'local'
+  return 'local'  // default assumption
+}
+
+
 const TEAL = '#5bc6d0';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -623,16 +989,31 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
 
   // ── Render helpers ──────────────────────────────────────────────────────────
   const biz = form.business_name || tokenData?.clients?.name || 'your business';
-  const CTX = `Business: ${biz}, Industry: ${form.industry || 'local business'}, Location: ${form.primary_city} ${form.primary_state}`;
+  // Adaptive context — computed from industry + scope + SIC
+  const vertical = getSICVertical(form.industry)
+  const VC       = VERTICAL_CONFIG[vertical] || VERTICAL_CONFIG.general
+  const scope    = classifyScope(form.growth_scope, form.travel_distance)
+  const isLocal  = scope === 'local' || scope === 'hyper_local'
+  const isNational = scope === 'national'
+  const location = isLocal
+    ? `${form.primary_city || 'their market'}, ${form.primary_state || ''}`
+    : isNational ? 'nationwide' : `${form.primary_state || 'regional'} market`
+
+  const CTX = `Business: "${biz}", Industry: "${form.industry || 'local business'}", SIC vertical: ${vertical}, ` +
+    `Scope: ${scope}, Location: ${location}, ` +
+    `Services: "${(Array.isArray(form.top_services) ? form.top_services : []).join(', ') || 'not yet specified'}", ` +
+    `Customers: "${(Array.isArray(form.customer_types) ? form.customer_types : []).join(', ') || 'not yet specified'}", ` +
+    `Avg job value: $${form.avg_transaction || 'unknown'}, Pricing: "${(Array.isArray(form.service_pricing_model) ? form.service_pricing_model : []).join(', ') || 'unknown'}"`
 
   function Banner({ stepIdx }) {
     const msg = ENCOURAGEMENT[stepIdx];
     if (!msg) return null;
+    // Pass VC to encouragement messages that accept it
     return (
       <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
         <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
         <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
-        <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName)}</span>
+        <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName, VC)}</span>
       </div>
     );
   }
@@ -887,6 +1268,14 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                     placeholder="Search industry (e.g. Plumbing, Restaurant, Auto Repair…)"
                     style={{ fontSize: 16 }}
                   />
+                  {form.industry && VC && vertical !== 'general' && (
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginTop:10, padding:'10px 14px', background:`${TEAL}12`, borderRadius:10, border:`1px solid ${TEAL}30` }}>
+                      <span style={{ fontSize:20 }}>{VC.icon}</span>
+                      <div style={{ fontSize:13, color:'#374151', lineHeight:1.5 }}>
+                        <strong style={{ color:'#0e7490' }}>{VC.name} detected.</strong> We'll tailor every question, AI suggestion, and strategy specifically for {VC.name} businesses.
+                      </div>
+                    </div>
+                  )}
                 </F>
                 <F label="Business Type">
                   <FocusSelect value={form.business_type} onChange={e => set('business_type', e.target.value)} placeholder="— Select —"
@@ -924,7 +1313,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               </div>
               <F label="Business Description" hint="In 2–4 sentences: what do you do, who do you serve, and what makes you special? This becomes the foundation of all your marketing copy." span2>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                  <AIAssist prompt={`${CTX}. Write a compelling 3-4 sentence business description that explains what they do, who they serve, and their core value proposition. Make it sound human and authentic, not generic.`}
+                  <AIAssist prompt={`${CTX}. Write a compelling 3-4 sentence business description for this ${VC.name} business. ${isLocal ? "Emphasize local " + (form.primary_city || "market") + " expertise and community roots." : isNational ? "Emphasize national scale and reach." : "Emphasize regional expertise."} Use first person ("we"). Be specific — no generic filler. Reference their actual industry (${vertical}).`}
                     onResult={v => setSug('business_description', v)} label="AI Write This" />
                 </div>
                 <FocusTextarea rows={5} value={form.business_description} onChange={e => set('business_description', e.target.value)}
@@ -950,16 +1339,11 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
 
               <F label="Describe ALL your products and services in detail" hint="Don't hold back — list every service, product, package, or program you offer. The more specific the better." span2>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                  <AIAssist prompt={`${CTX}. List all likely products and services this type of business offers, organized by category. Be specific and comprehensive — include emergency services, specialized services, packages, maintenance plans, etc. Format as a detailed list.`}
+                  <AIAssist prompt={`${CTX}. This is a ${VC.name} business. List all realistic ${VC.serviceLabel.toLowerCase()} they likely offer, organized by category. Be comprehensive and specific to the ${vertical} industry. Include specialties, packages, emergency options, and seasonal offerings if relevant.`}
                     onResult={v => setSug('products_services', v)} label="AI Help Me List" />
                 </div>
                 <FocusTextarea rows={8} value={form.products_services} onChange={e => set('products_services', e.target.value)}
-                  placeholder="Service 1: Emergency plumbing (leaks, burst pipes, no hot water) — available 24/7
-Service 2: Water heater installation (tank & tankless, all brands)
-Service 3: Sewer line repair & replacement
-Service 4: Bathroom & kitchen remodeling
-Package: Annual maintenance plan — $299/year includes 2 inspections + priority service
-Product: Water filtration systems — sale and installation..." />
+                  placeholder={VC.servicePlaceholder} />
                 <SugBox text={aiSugs.products_services} onAccept={v => acceptSug('products_services', v)} onDismiss={() => clearSug('products_services')} />
               </F>
 
@@ -1032,15 +1416,28 @@ Product: Water filtration systems — sale and installation..." />
                 <strong>Why this matters so much:</strong> Knowing your ideal customer is the difference between a $50 lead and a $5 lead on Google Ads. The more specifically you describe them, the tighter our targeting — and the lower your cost per lead.
               </InfoBox>
 
-              <F label="Who are your typical customers? Select all that apply">
-                <PillSelect value={form.customer_types} onChange={v => set('customer_types', v)}
-                  options={['Homeowners', 'Renters', 'Property Managers / HOAs', 'Landlords', 'Small Business Owners', 'Commercial Clients', 'General Contractors / Builders', 'Seniors / Retirees', 'New Construction', 'Insurance Clients', 'Restaurants / Food & Beverage', 'Medical / Healthcare Practices', 'Retail Businesses', 'Real Estate Agents / Investors', 'Stay-at-Home Parents', 'High-Income Households ($200K+)', 'Government / Municipal', 'Non-Profits', 'E-Commerce Brands', 'Salons / Spas / Beauty']} />
+              <F label={`${VC.customerLabel} Select all that apply.`}>
+                {(() => {
+                  const baseOptions = ['Homeowners', 'Renters', 'Property Managers / HOAs', 'Landlords', 'Small Business Owners', 'Commercial Clients', 'General Contractors / Builders', 'Seniors / Retirees', 'New Construction', 'Insurance Clients', 'Restaurants / Food & Beverage', 'Medical / Healthcare Practices', 'Retail Businesses', 'Real Estate Agents / Investors', 'Stay-at-Home Parents', 'High-Income Households ($200K+)', 'Government / Municipal', 'Non-Profits', 'E-Commerce Brands', 'Salons / Spas / Beauty']
+                  const verticalOptions = {
+                    restaurant:    ['Couples / Date nights', 'Families with kids', 'Business diners', 'Foodies / Enthusiasts', 'Tourists / Visitors', 'Regulars / Locals', 'Event / Party groups', 'Takeout / Delivery customers', 'Corporate catering buyers'],
+                    medical:       ['Self-pay patients', 'Medicare patients', 'Commercial insurance patients', 'Workers comp cases', 'Athletes / Active patients', 'Seniors / Elderly', 'Pediatric patients', 'Referral patients', 'Telehealth patients'],
+                    beauty:        ['Working professionals', 'Brides / Wedding parties', 'Teens / Young adults', 'Seniors', 'Men seeking convenience', 'Luxury clients', 'Loyal regulars', 'New movers to the area'],
+                    fitness:       ['Weight loss seekers', 'Competitive athletes', 'Post-injury recovery', 'Beginners / Intimidated gym-goers', 'Busy professionals', 'Seniors / Active aging', 'Corporate wellness buyers', 'Online coaching clients'],
+                    auto:          ['Daily commuters', 'Fleet managers / Companies', 'Luxury vehicle owners', 'Insurance referrals', 'Car enthusiasts', 'Dealership overflow', 'College students / Budget buyers'],
+                    legal:         ['Accident victims (PI)', 'Divorcing couples', 'Criminal defendants', 'Business owners', 'Landlords / Tenants', 'Estate planning clients', 'Immigration clients', 'Real estate buyers/sellers'],
+                    realestate:    ['First-time homebuyers', 'Move-up buyers', 'Downsizers / Empty nesters', 'Real estate investors', 'Relocating families', 'Luxury buyers', 'Commercial tenants/buyers', 'Landlords'],
+                    education:     ['K-12 students (via parents)', 'College-bound students', 'Adult learners', 'Special needs students', 'ESL students', 'Corporate training buyers', 'Homeschool families'],
+                  }
+                  const options = verticalOptions[vertical] ? [...(verticalOptions[vertical] || []), ...baseOptions] : baseOptions
+                  return <PillSelect value={form.customer_types} onChange={v => set('customer_types', v)} options={options} />
+                })()}
               </F>
 
               <div style={{ marginTop: 20 }}>
                 <F label="Describe your ideal / best customer in detail" hint="Think about your top 3 clients. What do they have in common? What's their situation when they call you?">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. Describe the ideal customer for this business in 5-6 sentences. Include: demographics, psychographics, what situation triggers them to seek this service, what they care about most when choosing a provider, and any specific characteristics that make them a great customer.`}
+                    <AIAssist prompt={`${CTX}. Describe the ideal customer for this ${VC.name} business in 5-6 sentences. ${isLocal ? "They are located in or near " + (form.primary_city || "the local market") + "." : ""} Typical customer segments in this industry: ${VC.aiCustomerSegments}. Cover demographics, lifestyle, what triggers them to hire, and exactly what they care about most.`}
                       onResult={v => setSug('ideal_customer_desc', v)} label="AI Build Profile" />
                   </div>
                   <FocusTextarea rows={5} value={form.ideal_customer_desc} onChange={e => set('ideal_customer_desc', e.target.value)}
@@ -1067,9 +1464,9 @@ Product: Water filtration systems — sale and installation..." />
               </div>
 
               <div style={{ marginTop: 20 }}>
-                <F label="What are your customers' biggest pain points / frustrations?" hint="What keeps them up at night? What problem are they desperately trying to solve?">
+                <F label={`What are your ${VC.name} customers' biggest frustrations?`} hint={`What keeps them up at night? In ${VC.name.toLowerCase()}, common pain points include: ${VC.painPointContext}`}>
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. List the top 5 specific, emotional pain points that drive customers to urgently seek this type of service. Be vivid and specific — what are they worried about, frustrated by, or stressed over? Format as bullet points.`}
+                    <AIAssist prompt={`${CTX}. List the 5 most emotionally charged pain points that drive customers to urgently hire a ${VC.name} business. Industry-specific pain points include: ${VC.painPointContext}. Write each pain point the way a frustrated customer would actually say it — visceral and real. Format as bullet points.`}
                       onResult={v => setSug('customer_pain_points', v)} label="AI Suggest" />
                   </div>
                   <FocusTextarea rows={4} value={form.customer_pain_points} onChange={e => set('customer_pain_points', e.target.value)}
@@ -1089,9 +1486,9 @@ Product: Water filtration systems — sale and installation..." />
               </div>
 
               <div style={{ marginTop: 20 }}>
-                <F label="Where do your customers spend time online? What's their lifestyle like?" hint="This helps us target them on the right platforms at the right time">
+                <F label={`Where do ${VC.name} customers spend time online?`} hint="This helps us target them on the right platforms at the right time">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. Describe the online behavior and lifestyle of ideal customers for this business. Include: which social platforms they use, when they're online, what content they engage with, Nextdoor/neighborhood groups, Facebook groups, and anything relevant for targeting on Google, Meta, and other ad platforms.`}
+                    <AIAssist prompt={`${CTX}. Describe the online behavior and lifestyle of ideal ${VC.name} customers. ${isLocal ? "They live in or near " + (form.primary_city || "the local area") + "." : ""} Which social platforms do they use most? How do they search for this service (Google, Yelp, referral, etc.)? What content do they engage with? What is their daily lifestyle like?`}
                       onResult={v => setSug('customer_lifestyle', v)} label="AI Describe" />
                   </div>
                   <FocusTextarea rows={3} value={form.customer_lifestyle} onChange={e => set('customer_lifestyle', e.target.value)}
@@ -1153,7 +1550,7 @@ Product: Water filtration systems — sale and installation..." />
               <div style={{ marginTop: 20 }}>
                 <F label="Why should someone choose YOU over all of them?" hint="Be specific — what do you genuinely do better? Avoid generic answers like 'great service'">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. List 5 specific, concrete reasons why a customer should choose this business over typical competitors in this industry. Avoid generic claims — think: certifications, guarantees, response times, local reputation, specializations, technology, unique processes. Format as bullet points.`}
+                    <AIAssist prompt={`${CTX}. List 5 specific, concrete reasons why a customer should choose this ${VC.name} business over competitors. Typical competitors: ${VC.competitorHint}. Avoid generic claims — every reason must be specific, provable, and meaningful to a ${VC.name} customer.`}
                       onResult={v => setSug('why_choose_you', v)} label="AI Suggest" />
                   </div>
                   <FocusTextarea rows={5} value={form.why_choose_you} onChange={e => set('why_choose_you', e.target.value)}
@@ -1169,7 +1566,7 @@ Product: Water filtration systems — sale and installation..." />
               <div style={{ marginTop: 20 }}>
                 <F label="Your Unique Value Proposition (UVP)" hint="One sentence that captures WHY you're the obvious choice">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. Write 3 different one-sentence Unique Value Propositions (UVPs) for this business. Each should be specific, bold, and customer-benefit focused — something a customer would immediately respond to. Format: numbered list.`}
+                    <AIAssist prompt={`${CTX}. Write 3 different one-sentence UVPs for this ${vertical} business${isLocal ? " in " + (form.primary_city || "their market") : ""}. Each UVP should focus on a different competitive angle (speed, guarantee, expertise, price, convenience). Make them bold and specific — no vague phrases.`}
                       onResult={v => setSug('unique_value_prop', v)} label="AI Generate" />
                   </div>
                   <FocusInput value={form.unique_value_prop} onChange={e => set('unique_value_prop', e.target.value)} large
@@ -1186,7 +1583,9 @@ Product: Water filtration systems — sale and installation..." />
           <div style={T.card}>
             <div style={T.cardHead}>
               <div style={T.stepTag}>Target Markets</div>
-              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>Where do you want to grow?</h2>
+              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 8px' }}>
+                  {isNational ? 'Where do you want to grow — nationally?' : isLocal ? `Where in ${form.primary_state || 'your area'} do you want to dominate?` : 'Where do you want to grow?'}
+                </h2>
               <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Your geographic targeting determines where we spend every dollar of your ad budget. Let's be surgical about it.</p>
             </div>
             <div style={T.cardBody}>
@@ -1213,7 +1612,7 @@ Product: Water filtration systems — sale and installation..." />
               <div style={{ marginTop: 20 }}>
                 <F label="Target cities, towns, and neighborhoods" hint="These become your local SEO pages and ad geo-targets">
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. List 12-15 specific cities, towns, and neighborhoods within reasonable service distance of their primary market. Consider their stated growth scope: ${form.growth_scope || 'local'}. One per line.`}
+                    <AIAssist prompt={`${CTX}. ${isLocal ? 'List 12-15 specific cities, towns, and neighborhoods within service radius of '+form.primary_city+', '+form.primary_state+'. Include surrounding suburbs and high-value areas.' : isNational ? 'Suggest the top 10 US metro markets to prioritize for national expansion for this type of business, ranked by opportunity.' : 'List the most valuable cities and regions in '+form.primary_state+' for this '+vertical+' business to target.'} Consider their stated growth scope: ${form.growth_scope || 'local'}. One per line.`}
                       onResult={v => { const cities = v.split(',').map(c => c.trim()).filter(Boolean); set('target_cities', [...new Set([...form.target_cities, ...cities])]) }}
                       label="AI Suggest" />
                   </div>
@@ -1658,7 +2057,7 @@ Product: Water filtration systems — sale and installation..." />
               <div style={{ marginTop: 20 }}>
                 <F label="How will YOU measure success? What KPIs matter to you?" hint="These become the numbers we track and report on every month">
                   <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. Suggest 4-5 specific, measurable KPIs (Key Performance Indicators) this business should track to measure marketing success. Include: cost per lead, phone call volume, keyword rankings, ROAS if running ads, review growth rate. Make them specific with realistic target values.`}
+                    <AIAssist prompt={`${CTX}. This is a ${VC.name} business with ${isLocal ? "local" : isNational ? "national" : "regional"} reach. Suggest 5 specific, measurable KPIs they should track. Real examples for ${vertical} businesses: ${VC.kpiExamples}. Format as a numbered list with realistic monthly targets where possible.`}
                       onResult={v => setSug('success_metrics', v)} label="Suggest KPIs" />
                   </div>
                   <FocusTextarea rows={4} value={form.success_metrics} onChange={e => set('success_metrics', e.target.value)}
