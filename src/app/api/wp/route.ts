@@ -34,14 +34,18 @@ async function proxyToPlugin(site: any, endpoint: string, method = 'POST', body:
     const duration = Date.now() - start
     await sb.from('koto_wp_commands').update({
       status: res.ok ? 'success' : 'error', response: responseData,
-      error: res.ok ? null : `HTTP ${res.status}`, duration_ms: duration, completed_at: new Date().toISOString(),
+      error: res.ok ? null : `HTTP ${res.status}`, duration_ms: duration,
+      completed_at: new Date().toISOString(),
     }).eq('id', cmd?.id)
-    await sb.from('koto_wp_sites').update({ connected: res.ok, last_ping: new Date().toISOString() }).eq('id', site.id)
+    await sb.from('koto_wp_sites').update({
+      connected: res.ok, last_ping: new Date().toISOString(),
+    }).eq('id', site.id)
     return { ok: res.ok, data: responseData, status: res.status, duration }
   } catch (e: any) {
     const duration = Date.now() - start
     await sb.from('koto_wp_commands').update({
-      status: 'error', error: e.message, duration_ms: duration, completed_at: new Date().toISOString(),
+      status: 'error', error: e.message, duration_ms: duration,
+      completed_at: new Date().toISOString(),
     }).eq('id', cmd?.id)
     return { ok: false, data: {}, error: e.message, duration }
   }
@@ -77,18 +81,23 @@ export async function POST(req: NextRequest) {
       const cleanUrl = site_url.replace(/\/$/, '').toLowerCase()
       const testRes = await fetch(`${cleanUrl}/wp-json/koto/v1/agency/test`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${api_key}`, 'X-KOTO-Key': api_key, 'X-Koto-API-Key': api_key, 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${api_key}`,
+          'X-KOTO-Key': api_key,
+          'X-Koto-API-Key': api_key,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ koto_url: APP_URL }),
         signal: AbortSignal.timeout(10000),
-      })
+      }).catch(() => null)
       const connected = testRes?.ok || false
       const siteInfo = connected ? await testRes!.json().catch(() => ({})) : {}
       const { data: site, error } = await sb.from('koto_wp_sites').upsert({
         agency_id, client_id: client_id || null, site_url: cleanUrl, api_key,
         site_name: siteInfo.site_name || site_name || cleanUrl, connected,
         wp_version: siteInfo.wp_version, plugin_version: siteInfo.plugin_version || siteInfo.version,
-        theme_name: siteInfo.theme, pages_count: siteInfo.pages || 0, posts_count: siteInfo.posts || 0,
-        last_ping: new Date().toISOString(),
+        theme_name: siteInfo.theme, pages_count: siteInfo.pages || 0,
+        posts_count: siteInfo.posts || 0, last_ping: new Date().toISOString(),
       }, { onConflict: 'agency_id,site_url' }).select().single()
       if (error) throw error
       return NextResponse.json({ site, connected, site_info: siteInfo })
@@ -111,14 +120,15 @@ export async function POST(req: NextRequest) {
 
     if (action === 'get_locations') {
       const { state, county } = body
-      const result = await proxyToPlugin(site, `locations/cities?state=${state}${county ? `&county=${county}` : ''}`, 'GET')
+      const qs = county ? `state=${state}&county=${county}` : `state=${state}`
+      const result = await proxyToPlugin(site, `locations/cities?${qs}`, 'GET')
       return NextResponse.json(result)
     }
 
     if (action === 'generate_pages') {
       const { keyword_template, topic, location_ids, page_type, schema_type, aeo_enabled, additional_keywords, template, status: pageStatus } = body
       const locations = Array.isArray(location_ids)
-        ? location_ids.map((id: any) => typeof id === 'string' ? { city: id, state: body.state || '' } : id)
+        ? location_ids.map((id: any) => typeof id === 'string' ? { city: id.split('_')[0], state: id.split('_')[1] || body.state || '' } : id)
         : []
       const result = await proxyToPlugin(site, 'generate/batch', 'POST', {
         keyword: topic || keyword_template, service: topic || keyword_template,
@@ -126,23 +136,25 @@ export async function POST(req: NextRequest) {
         aeo: aeo_enabled !== false, status: pageStatus || 'draft',
         page_type, additional_keywords, keyword_template,
       })
-      if (result.ok && result.data?.pages?.length) {
+      if (result.ok && Array.isArray(result.data?.pages) && result.data.pages.length) {
         const rows = result.data.pages.map((p: any) => ({
-          site_id, agency_id: site.agency_id, wp_post_id: p.id, title: p.title,
-          slug: p.slug || '', url: p.url || '', keyword: topic || keyword_template,
+          site_id, agency_id: site.agency_id, wp_post_id: p.id, title: p.title || '',
+          slug: p.slug || '', url: p.url || '', keyword: topic || keyword_template || '',
           location: p.location || '', seo_score: p.seo_score || null,
           word_count: p.word_count || null, status: p.status || 'draft',
           synced_at: new Date().toISOString(),
         }))
         await sb.from('koto_wp_pages').upsert(rows, { onConflict: 'site_id,wp_post_id' })
-        await sb.from('koto_wp_sites').update({ pages_generated: (site.pages_generated || 0) + rows.length }).eq('id', site_id)
+        await sb.from('koto_wp_sites').update({
+          pages_generated: (site.pages_generated || 0) + rows.length,
+        }).eq('id', site_id)
       }
       return NextResponse.json(result)
     }
 
     if (action === 'sync_pages') {
       const result = await proxyToPlugin(site, 'content', 'GET')
-      if (result.ok && result.data?.content?.length) {
+      if (result.ok && Array.isArray(result.data?.content) && result.data.content.length) {
         const rows = result.data.content.map((p: any) => ({
           site_id, agency_id: site.agency_id, wp_post_id: p.id, title: p.title || '',
           slug: p.slug || '', url: p.url || '', keyword: p.focus_kw || '',
@@ -158,13 +170,13 @@ export async function POST(req: NextRequest) {
     if (action === 'sync_rankings') {
       const result = await proxyToPlugin(site, 'rankings/sync', 'POST')
       const rankResult = await proxyToPlugin(site, 'rankings', 'GET')
-      if (rankResult.ok && rankResult.data?.rankings?.length) {
+      if (rankResult.ok && Array.isArray(rankResult.data?.rankings) && rankResult.data.rankings.length) {
         const rows = rankResult.data.rankings.map((r: any) => ({
           site_id, agency_id: site.agency_id, keyword: r.keyword || '',
           position: r.position || null, clicks: r.clicks || 0,
           impressions: r.impressions || 0, ctr: r.ctr || 0,
-          city: r.city || '', state: r.state || '', page_url: r.page_url || '',
-          synced_at: new Date().toISOString(),
+          city: r.city || '', state: r.state || '',
+          page_url: r.page_url || '', synced_at: new Date().toISOString(),
         }))
         await sb.from('koto_wp_rankings').upsert(rows, { onConflict: 'site_id,keyword' })
       }
@@ -174,7 +186,8 @@ export async function POST(req: NextRequest) {
     if (action === 'generate_blog') {
       const { topic, keyword, city, state: blogState, length, status: blogStatus } = body
       return NextResponse.json(await proxyToPlugin(site, 'blog/generate', 'POST', {
-        topic, keyword: keyword || topic, city, state: blogState, length: length || 800, status: blogStatus || 'draft',
+        topic, keyword: keyword || topic, city,
+        state: blogState, length: length || 800, status: blogStatus || 'draft',
       }))
     }
 
@@ -229,81 +242,6 @@ export async function POST(req: NextRequest) {
     if (action === 'delete') {
       await sb.from('koto_wp_sites').delete().eq('id', site_id)
       return NextResponse.json({ ok: true })
-    }
-
-
-    // ── List all pages/posts from site ───────────────────────────────────────
-    if (action === 'list_content') {
-      const { post_type = 'page' } = body
-      const result = await proxyToPlugin(site, `content/list?type=${post_type}`, 'GET')
-      return NextResponse.json(result)
-    }
-
-    // ── Get single page/post content for editing ──────────────────────────────
-    if (action === 'get_content') {
-      const { post_id } = body
-      const result = await proxyToPlugin(site, `content/${post_id}`, 'GET')
-      return NextResponse.json(result)
-    }
-
-    // ── Create or update a page/post ──────────────────────────────────────────
-    if (action === 'save_content') {
-      const { post_id, title, content, meta_description, focus_keyword,
-              post_type, status, slug, featured_image_url } = body
-      const endpoint = post_id ? `content/${post_id}` : 'content/create'
-      const method   = post_id ? 'PUT' : 'POST'
-      const result   = await proxyToPlugin(site, endpoint, method, {
-        title, content, meta_description, focus_keyword,
-        post_type: post_type || 'page', status: status || 'draft',
-        slug, featured_image_url,
-      })
-      // Update cached pages in Supabase if published
-      if (result.ok && result.data?.post_id) {
-        const sb2 = getSupabase()
-        await sb2.from('koto_wp_pages').upsert({
-          site_id:    site.id,
-          client_id:  site.client_id,
-          wp_post_id: result.data.post_id,
-          title,
-          slug:       result.data.slug || slug,
-          url:        result.data.url,
-          status:     status || 'draft',
-          keyword:    focus_keyword,
-        }, { onConflict: 'site_id,wp_post_id' })
-      }
-      return NextResponse.json(result)
-    }
-
-    // ── Delete a page/post ─────────────────────────────────────────────────────
-    if (action === 'delete_content') {
-      const { post_id } = body
-      const result = await proxyToPlugin(site, `content/${post_id}`, 'DELETE')
-      if (result.ok) {
-        const sb2 = getSupabase()
-        await sb2.from('koto_wp_pages').delete()
-          .eq('site_id', site.id).eq('wp_post_id', post_id)
-      }
-      return NextResponse.json(result)
-    }
-
-    // ── Fetch site styles for preview (CSS + fonts) ───────────────────────────
-    if (action === 'get_styles') {
-      const result = await proxyToPlugin(site, 'styles', 'GET')
-      return NextResponse.json(result)
-    }
-
-    // ── AI-generate content for a page ────────────────────────────────────────
-    if (action === 'ai_generate_content') {
-      const { title, keyword, location, page_type, tone, word_count, schema_type, aeo } = body
-      const result = await proxyToPlugin(site, 'content/ai-generate', 'POST', {
-        title, keyword, location, page_type, tone,
-        word_count: word_count || 800,
-        schema_type: schema_type || 'LocalBusiness',
-        aeo: aeo !== false,
-        site_url: site.site_url,
-        client_id: site.client_id,
-      })
-      return NextResponse.json(result)
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
