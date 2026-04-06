@@ -1193,6 +1193,67 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             </div>
           </div>
 
+          {/* ── What to have ready ── */}
+          <div style={{ maxWidth:700, margin:'40px auto 0', textAlign:'left' }}>
+            <div style={{ background:'#0a0a0a', borderRadius:20, overflow:'hidden' }}>
+              <div style={{ padding:'24px 28px', borderBottom:'1px solid rgba(255,255,255,.08)' }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#ea2729', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6 }}>Before you begin</div>
+                <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:'-.02em' }}>Have these ready — takes 2 minutes to gather</div>
+                <div style={{ fontSize:14, color:'rgba(255,255,255,.45)', marginTop:6, lineHeight:1.6 }}>
+                  You don't need all of these — answer what you can, skip what you don't have. Nothing here is a blocker.
+                </div>
+              </div>
+              <div style={{ padding:'20px 28px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
+                {[
+                  {
+                    icon:'🏢', label:'Business basics',
+                    items:['Legal business name & EIN/Tax ID','Year founded, number of employees','Business address & website URL','Annual revenue range (confidential)'],
+                  },
+                  {
+                    icon:'📋', label:'Your services & pricing',
+                    items:['Complete list of services or products','Your top 5 revenue drivers','How you price (hourly, flat, monthly…)','Average job or project value'],
+                  },
+                  {
+                    icon:'🎨', label:'Brand assets',
+                    items:['Logo files (JPG, PNG, or a Drive link)','Primary and accent brand colors (hex codes)','Brand fonts if you know them','Your tagline or slogan (if you have one)'],
+                  },
+                  {
+                    icon:'🌐', label:'Online presence',
+                    items:['Website URL + admin login (optional)','Google Business Profile link or login','Social media profile URLs (Facebook, Insta, etc.)','Google Analytics / Tag Manager IDs if set up'],
+                  },
+                  {
+                    icon:'🔑', label:'Account access info',
+                    items:['Hosting provider name & control panel URL','Domain registrar (GoDaddy, Namecheap, etc.)','Facebook Pixel ID & Google Ads Customer ID','Any current ad accounts or campaign access'],
+                  },
+                  {
+                    icon:'📲', label:'For texting & call tracking',
+                    items:['Legal business name exactly as on your EIN','Your EIN / Federal Tax ID (XX-XXXXXXX)','How customers opt in to receive texts','Your main business phone number'],
+                  },
+                ].map(section => (
+                  <div key={section.label} style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,.06)', borderRight:'1px solid rgba(255,255,255,.06)' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
+                      <span style={{ fontSize:16 }}>{section.icon}</span>
+                      <span style={{ fontSize:12, fontWeight:800, color:'rgba(255,255,255,.7)', textTransform:'uppercase', letterSpacing:'.06em' }}>{section.label}</span>
+                    </div>
+                    {section.items.map((item, i) => (
+                      <div key={i} style={{ display:'flex', gap:8, marginBottom:6, alignItems:'flex-start' }}>
+                        <span style={{ color:'#ea2729', fontWeight:900, fontSize:12, marginTop:2, flexShrink:0 }}>→</span>
+                        <span style={{ fontSize:13, color:'rgba(255,255,255,.55)', lineHeight:1.5 }}>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding:'16px 28px', background:'rgba(255,255,255,.04)', display:'flex', alignItems:'center', gap:10 }}>
+                <span style={{ fontSize:16 }}>💡</span>
+                <span style={{ fontSize:13, color:'rgba(255,255,255,.4)', lineHeight:1.6 }}>
+                  <strong style={{ color:'rgba(255,255,255,.7)' }}>Can't find something?</strong> Leave it blank and our team will follow up. The AI Suggest button on every field will draft answers for you based on what you've already told us.
+                </span>
+              </div>
+            </div>
+          </div>
+
+
         </div>
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>

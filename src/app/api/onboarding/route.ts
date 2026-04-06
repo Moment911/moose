@@ -22,34 +22,99 @@ function buildOnboardingEmail(opts: {
     : `<div style="font-size:18px;font-weight:900;color:#fff;">${opts.agencyName}</div>`
   const greeting = opts.contactName ? `Hi ${opts.contactName},` : `Hi there,`
 
+  const sections = [
+    { icon: '🏢', label: 'Business basics',        items: ['Legal business name & EIN/Tax ID', 'Year founded, employee count', 'Business address & website URL', 'Annual revenue range'] },
+    { icon: '📋', label: 'Your services & pricing', items: ['Complete list of services or products', 'Your top 5 revenue drivers', 'Pricing model & average job value', 'Seasonal revenue patterns'] },
+    { icon: '👥', label: 'Your customers',          items: ['Who your ideal customers are', 'Their demographics & pain points', 'Why they choose you over competitors', 'Your unique value proposition'] },
+    { icon: '🎨', label: 'Brand & social',          items: ['Logo files (or a link to them)', 'Brand colors, fonts & tagline', 'Social media profile URLs', 'Current follower counts & review ratings'] },
+    { icon: '🔑', label: 'Account access',          items: ['Website hosting login & domain info', 'Google Analytics & Tag Manager IDs', 'Facebook Pixel & Google Ads IDs', 'CMS login (WordPress, Wix, etc.)'] },
+    { icon: '📲', label: 'For texting & tracking',  items: ['Legal name exactly as on your EIN', 'EIN / Federal Tax ID (XX-XXXXXXX)', 'How customers opt in to receive texts', 'Key contacts: technical, billing, marketing'] },
+  ]
+
+  const sectionsHtml = sections.map(s => `
+    <tr>
+      <td style="padding:12px 16px; border-bottom:1px solid #f3f4f6; vertical-align:top; width:28px;">
+        <span style="font-size:18px;">${s.icon}</span>
+      </td>
+      <td style="padding:12px 16px; border-bottom:1px solid #f3f4f6; vertical-align:top;">
+        <div style="font-size:13px;font-weight:700;color:#111;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;">${s.label}</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.7;">
+          ${s.items.map(item => `→ ${item}`).join('<br/>')}
+        </div>
+      </td>
+    </tr>`).join('')
+
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:Helvetica,Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 0;">
 <tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08);">
-  <tr><td style="background:#0a0a0a;padding:20px 28px;">${logo}</td></tr>
-  <tr><td style="padding:32px 28px;">
-    <h1 style="margin:0 0 12px;font-size:22px;font-weight:900;color:#111;">Welcome to ${opts.agencyName}! 🎉</h1>
-    <p style="margin:0 0 8px;font-size:16px;color:#374151;line-height:1.7;">${greeting}</p>
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.08);">
+
+  <!-- Header -->
+  <tr><td style="background:#0a0a0a;padding:22px 32px;">${logo}</td></tr>
+
+  <!-- Hero -->
+  <tr><td style="padding:36px 32px 24px;">
+    <h1 style="margin:0 0 10px;font-size:26px;font-weight:900;color:#0a0a0a;letter-spacing:-.5px;">Welcome to ${opts.agencyName}! 👋</h1>
+    <p style="margin:0 0 6px;font-size:16px;color:#374151;line-height:1.7;">${greeting}</p>
     <p style="margin:0 0 20px;font-size:16px;color:#374151;line-height:1.7;">
-      We're excited to work with ${opts.clientName}. To get started, we need a few details about your business so we can build the best possible strategy for you.
+      We are thrilled to start building your marketing strategy. Before we dive in, we need to learn everything about your business — your services, customers, brand, and goals — so every campaign, keyword, and dollar is pointed in the right direction.
     </p>
-    <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.7;">
-      It only takes about 10–15 minutes and will unlock your personalized marketing dashboard.
-    </p>
-    <table cellpadding="0" cellspacing="0"><tr><td>
-      <a href="${opts.onboardingUrl}" style="display:inline-block;padding:15px 32px;border-radius:12px;background:${color};color:#fff;font-size:16px;font-weight:800;text-decoration:none;">
-        Complete Your Onboarding →
-      </a>
-    </td></tr></table>
-    <p style="margin:20px 0 0;font-size:13px;color:#9ca3af;">
-      This link is unique to your account. Questions? Reply to this email and we'll help you out.
+    <p style="margin:0 0 8px;font-size:15px;color:#374151;line-height:1.7;">
+      <strong>The onboarding form takes about 20–30 minutes.</strong> It saves automatically, so you can close it and come back anytime using the same link below.
     </p>
   </td></tr>
-  <tr><td style="background:#f9fafb;padding:14px 28px;border-top:1px solid #e5e7eb;text-align:center;">
-    <p style="margin:0;font-size:12px;color:#9ca3af;">Sent by ${opts.agencyName} · <a href="${APP_URL}" style="color:#9ca3af;">${APP_URL}</a></p>
+
+  <!-- CTA -->
+  <tr><td style="padding:0 32px 32px;text-align:center;">
+    <a href="${opts.onboardingUrl}" style="display:inline-block;padding:16px 40px;border-radius:12px;background:${color};color:#fff;font-size:17px;font-weight:800;text-decoration:none;letter-spacing:-.01em;">
+      Start My Onboarding →
+    </a>
+    <p style="margin:12px 0 0;font-size:13px;color:#9ca3af;">No account needed · Auto-saves · Return anytime with this link</p>
   </td></tr>
+
+  <!-- What you'll need divider -->
+  <tr><td style="padding:0 32px;">
+    <div style="border-top:2px solid #f3f4f6;padding-top:28px;">
+      <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.1em;">Before you start</p>
+      <h2 style="margin:0 0 8px;font-size:19px;font-weight:900;color:#0a0a0a;">Have these nearby — takes 2 minutes to gather</h2>
+      <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6;">
+        You don't need all of these right now. Answer what you can, skip what you don't have. Nothing is a blocker — our team will follow up on anything missing.
+      </p>
+    </div>
+  </td></tr>
+
+  <!-- Checklist table -->
+  <tr><td style="padding:0 32px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+      ${sectionsHtml}
+    </table>
+  </td></tr>
+
+  <!-- AI tip -->
+  <tr><td style="padding:0 32px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fbfc;border-radius:12px;border:1px solid #a5f3fc;">
+      <tr><td style="padding:16px 20px;">
+        <p style="margin:0;font-size:14px;color:#0e7490;line-height:1.7;">
+          <strong>✨ AI Suggest button:</strong> Every field in the form has an AI Suggest button. If you're unsure what to write, click it — our AI will draft an answer based on what you've already told us. You can edit it before saving.
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <!-- Footer note -->
+  <tr><td style="padding:0 32px 32px;">
+    <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;">
+      Questions about any of the fields? Just reply to this email — we're happy to walk you through anything.
+    </p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+    <p style="margin:0;font-size:12px;color:#9ca3af;">Sent by ${opts.agencyName} &nbsp;·&nbsp; <a href="${APP_URL}" style="color:#9ca3af;text-decoration:none;">${APP_URL}</a></p>
+  </td></tr>
+
 </table>
 </td></tr></table>
 </body></html>`
