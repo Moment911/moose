@@ -101,6 +101,7 @@ import MarketplacePage from '../views/MarketplacePage'
 import PageBuilderPage from '../views/PageBuilderPage'
 import WordPressControlPage from '../views/WordPressControlPage'
 import StatusPage from '../views/StatusPage'
+import DebugConsolePage from '../views/DebugConsolePage'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
@@ -185,6 +186,7 @@ export default function App() {
           <Route path="/esign/:projectId" element={<ESignaturePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/status" element={<StatusPage />} />
+          <Route path="/debug" element={<DebugConsolePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />
