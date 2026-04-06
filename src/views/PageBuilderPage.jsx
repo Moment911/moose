@@ -173,7 +173,7 @@ export default function PageBuilderPage(){
   useEffect(()=>{if(agencyId)loadSites()},[agencyId])
 
   async function loadSites(){
-    const res=await fetch(`/api/wp?agency_id=${agencyId}`)
+    const res=await fetch(`/api/wp?agency_id=${agencyId || '00000000-0000-0000-0000-000000000099'}`)
     const data=await res.json()
     setSites(data.sites||[])
     if(data.sites?.length)setSelectedSite(data.sites[0])
@@ -193,7 +193,7 @@ export default function PageBuilderPage(){
     try{
       const content=buildFinalContent()
       const title=`${wildcardValues['{service}']} in ${wildcardValues['{city}']}, ${wildcardValues['{state}']}`
-      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create_content',agency_id:agencyId,site_id:selectedSite.id,title,content,status:'draft',type:'page',focus_keyword:wildcardValues['{keyword}'],meta_desc:`Looking for ${wildcardValues['{service}']} in ${wildcardValues['{city}']}, ${wildcardValues['{state}']}? ${wildcardValues['{business_name}']} provides expert service throughout ${wildcardValues['{county}']} County.`})})
+      const res=await fetch('/api/wp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create_content',agency_id:agencyId||'00000000-0000-0000-0000-000000000099',site_id:selectedSite.id,title,content,status:'draft',type:'page',focus_keyword:wildcardValues['{keyword}'],meta_desc:`Looking for ${wildcardValues['{service}']} in ${wildcardValues['{city}']}, ${wildcardValues['{state}']}? ${wildcardValues['{business_name}']} provides expert service throughout ${wildcardValues['{county}']} County.`})})
       const data=await res.json()
       if(data.error||!data.data?.id)throw new Error(data.error||'Deploy failed')
       setDeployed(data.data)
