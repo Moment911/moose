@@ -58,14 +58,14 @@ export async function GET(req: NextRequest) {
   const sb = getSupabase()
   if (site_id) {
     const [{ data: site }, { data: commands }, { data: pages }, { data: rankings }] = await Promise.all([
-      sb.from('koto_wp_sites').select('*,clients(name)').eq('id', site_id).single(),
+      sb.from('koto_wp_sites').select('*').eq('id', site_id).single(),
       sb.from('koto_wp_commands').select('*').eq('site_id', site_id).order('created_at', { ascending: false }).limit(20),
       sb.from('koto_wp_pages').select('*').eq('site_id', site_id).order('created_at', { ascending: false }).limit(50),
       sb.from('koto_wp_rankings').select('*').eq('site_id', site_id).order('synced_at', { ascending: false }).limit(100),
     ])
     return NextResponse.json({ site, commands: commands || [], pages: pages || [], rankings: rankings || [] })
   }
-  const query = sb.from('koto_wp_sites').select('*,clients(name,industry)')
+  const query = sb.from('koto_wp_sites').select('*')
   if (agency_id) query.eq('agency_id', agency_id)
   query.order('created_at', { ascending: false })
   const { data: sites, error: sitesError } = await query
