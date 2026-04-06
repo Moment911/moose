@@ -111,8 +111,12 @@ function buildOnboardingEmail(opts: {
   </td></tr>
 
   <!-- Footer -->
-  <tr><td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;text-align:center;">
-    <p style="margin:0;font-size:12px;color:#9ca3af;">Sent by ${opts.agencyName} &nbsp;·&nbsp; <a href="${APP_URL}" style="color:#9ca3af;text-decoration:none;">${APP_URL}</a></p>
+  <tr><td style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+    <p style="margin:0 0 10px;font-size:12px;color:#9ca3af;">Sent by ${opts.agencyName} &nbsp;·&nbsp; <a href="${APP_URL}" style="color:#9ca3af;text-decoration:none;">${APP_URL}</a></p>
+    <p style="margin:0;font-size:11px;color:#d1d5db;">
+      Powered by &nbsp;<a href="https://hellokoto.com" style="color:#9ca3af;text-decoration:none;font-weight:700;letter-spacing:-.01em;">koto</a>
+      &nbsp;·&nbsp; <a href="https://hellokoto.com" style="color:#d1d5db;text-decoration:none;">hellokoto.com</a>
+    </p>
   </td></tr>
 
 </table>

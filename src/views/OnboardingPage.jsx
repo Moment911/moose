@@ -1289,6 +1289,21 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           </div>
 
         </div>
+
+        {/* ── Koto powered footer ── */}
+        <div style={{ padding:'20px 32px', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+          <span style={{ fontSize:12, color:'#d1d5db' }}>Powered by</span>
+          <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
+            style={{ display:'inline-flex', alignItems:'center', gap:4, textDecoration:'none' }}>
+            <img src="/koto-logo-white.svg" alt="Koto" style={{ height:14, filter:'invert(1)', opacity:.35 }} />
+          </a>
+          <span style={{ color:'#e5e7eb' }}>·</span>
+          <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
+            style={{ fontSize:12, color:'#d1d5db', textDecoration:'none', fontWeight:600 }}>
+            hellokoto.com
+          </a>
+        </div>
+
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <Toaster position="top-center" />
@@ -2631,6 +2646,20 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         )}
 
         <Nav />
+      </div>
+
+      {/* ── Koto powered footer ── */}
+      <div style={{ maxWidth:820, margin:'0 auto', padding:'16px 20px 32px', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+        <span style={{ fontSize:11, color:'#d1d5db' }}>Powered by</span>
+        <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
+          style={{ display:'inline-flex', alignItems:'center', textDecoration:'none' }}>
+          <img src="/koto-logo-white.svg" alt="Koto" style={{ height:12, filter:'invert(1)', opacity:.3 }} />
+        </a>
+        <span style={{ color:'#e5e7eb', fontSize:11 }}>·</span>
+        <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
+          style={{ fontSize:11, color:'#d1d5db', textDecoration:'none', fontWeight:600 }}>
+          hellokoto.com
+        </a>
       </div>
     </>
   );
