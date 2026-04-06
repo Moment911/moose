@@ -1121,140 +1121,172 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     <>
       <div style={{ minHeight:'100vh', background:'#fff', display:'flex', flexDirection:'column' }}>
 
-        {/* ── Top bar ── */}
-        <div style={{ padding:'18px 32px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <img src="/koto-logo-white.svg" alt="Koto" style={{ height:28, filter:'invert(1)' }} />
-          <div style={{ fontSize:13, color:'#9ca3af', fontWeight:600 }}>Client Onboarding</div>
+        {/* Top bar */}
+        <div style={{ padding:'18px 32px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <img src="/koto-logo-white.svg" alt="Koto" style={{ height:26, filter:'invert(1)' }} />
+          <div style={{ fontSize:13, color:'#9ca3af', fontWeight:600, letterSpacing:'.02em' }}>Client Onboarding</div>
         </div>
 
-        {/* ── Hero ── */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'60px 24px 40px', textAlign:'center' }}>
-
-          {/* Agency badge */}
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 16px', borderRadius:40, background:'#f0fbfc', border:'1px solid #5bc6d040', marginBottom:28 }}>
-            <div style={{ width:8, height:8, borderRadius:'50%', background:'#16a34a', boxShadow:'0 0 0 3px #16a34a25' }}/>
-            <span style={{ fontSize:13, fontWeight:700, color:'#0e7490', letterSpacing:'.02em' }}>Koto Agency · Onboarding</span>
-          </div>
+        {/* Main content */}
+        <div style={{ flex:1, maxWidth:760, margin:'0 auto', padding:'64px 32px 80px', width:'100%' }}>
 
           {/* Greeting */}
-          <h1 style={{ fontSize:52, fontWeight:900, color:'#0a0a0a', margin:'0 0 16px', letterSpacing:'-2px', lineHeight:1.1 }}>
-            Welcome{tokenData?.clients?.name ? `, ${tokenData.clients.name.split(' ')[0]}` : ''}! 👋
+          <h1 style={{ fontSize:48, fontWeight:900, color:'#0a0a0a', margin:'0 0 20px', letterSpacing:'-1.5px', lineHeight:1.1 }}>
+            Welcome{tokenData?.clients?.name ? `, ${tokenData.clients.name.split(' ')[0]}` : ''}
           </h1>
-          <p style={{ fontSize:20, color:'#374151', lineHeight:1.7, maxWidth:580, margin:'0 auto 12px', fontWeight:400 }}>
-            We're excited to start building your marketing strategy. This is the foundation of everything — every ad, every keyword, every campaign starts here.
+          <p style={{ fontSize:20, color:'#374151', lineHeight:1.75, margin:'0 0 16px', maxWidth:640 }}>
+            We're building your marketing strategy from the ground up — and this form is where it all starts. Every question here directly shapes your campaigns, your ad targeting, and the strategy we build for you.
           </p>
-          <p style={{ fontSize:16, color:'#6b7280', lineHeight:1.6, maxWidth:500, margin:'0 auto 44px' }}>
-            Takes <strong style={{ color:'#0a0a0a' }}>20–30 minutes</strong>. Auto-saves as you go. AI helps you fill in anything you're unsure about.
+          <p style={{ fontSize:18, color:'#374151', lineHeight:1.75, margin:'0 0 48px', maxWidth:640 }}>
+            <strong style={{ color:'#0a0a0a' }}>Please read this entire page before starting</strong> so you know exactly what information to have ready. The more complete your answers, the stronger your strategy will be.
           </p>
 
-          {/* CTA */}
-          <button type="button" onClick={() => setStep(1)}
-            style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'18px 44px', borderRadius:14, border:'none', background:ACCENT, color:'#fff', fontSize:18, fontWeight:800, cursor:'pointer', letterSpacing:'-.02em', boxShadow:`0 4px 24px ${ACCENT}40` }}>
-            Start My Onboarding <ChevronRight size={22}/>
-          </button>
-          <div style={{ marginTop:14, fontSize:14, color:'#9ca3af' }}>No account needed · Auto-saved · Return anytime</div>
-
-          {/* What to expect cards */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, maxWidth:660, margin:'52px auto 0', textAlign:'left' }}>
-            {[
-              { icon:'🕐', title:'20–30 minutes', desc:'Work at your own pace — close and come back anytime with the same link.' },
-              { icon:'✨', title:'AI-assisted',   desc:"Hit \"AI Suggest\" on any field and we'll draft an answer based on what you've told us." },
-              { icon:'🔒', title:'100% private',  desc:'Your information is encrypted and only visible to your agency team.' },
-            ].map(card => (
-              <div key={card.title} style={{ background:'#fafafa', borderRadius:14, padding:'20px 18px', border:'1px solid #f3f4f6' }}>
-                <div style={{ fontSize:28, marginBottom:10 }}>{card.icon}</div>
-                <div style={{ fontSize:15, fontWeight:800, color:'#0a0a0a', marginBottom:6 }}>{card.title}</div>
-                <div style={{ fontSize:14, color:'#6b7280', lineHeight:1.6 }}>{card.desc}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Steps preview */}
-          <div style={{ maxWidth:660, margin:'36px auto 0', textAlign:'left' }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>What we cover</div>
-            <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
-              {STEPS.slice(1, -1).map(s => (
-                <span key={s.id} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:13, fontWeight:600, padding:'5px 12px', borderRadius:20, background:'#f3f4f6', color:'#374151' }}>
-                  <StepIcon name={s.icon} size={12} color='#6b7280'/> {s.label}
-                </span>
+          {/* Read first callout */}
+          <div style={{ background:'#fafafa', border:'1px solid #e5e7eb', borderLeft:`4px solid ${ACCENT}`, borderRadius:'0 12px 12px 0', padding:'20px 24px', marginBottom:48 }}>
+            <div style={{ fontSize:16, fontWeight:800, color:'#0a0a0a', marginBottom:10 }}>Before you click Start — this form covers:</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px 32px' }}>
+              {[
+                'Your contact info and key team contacts',
+                'Legal business name, EIN, and state of registration',
+                'Full list of your products and services',
+                'Your ideal customers and their pain points',
+                'Competitors and what makes you different',
+                'Your target markets and geographic reach',
+                'Brand identity — logo, colors, fonts, tone of voice',
+                'All social media profiles and current metrics',
+                'Website, hosting, and analytics account details',
+                'Platform access — Google, Meta, ad accounts',
+                'A2P 10DLC registration info for call tracking and SMS',
+                'Your marketing history, budget, and goals',
+              ].map((item, i) => (
+                <div key={i} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'4px 0' }}>
+                  <span style={{ width:6, height:6, borderRadius:'50%', background:ACCENT, flexShrink:0, marginTop:7 }}/>
+                  <span style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>{item}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Koto team note */}
-          <div style={{ maxWidth:560, margin:'36px auto 0', padding:'20px 24px', background:'#fafafa', borderRadius:16, border:'1px solid #f3f4f6', display:'flex', alignItems:'flex-start', gap:14, textAlign:'left' }}>
-            <div style={{ width:44, height:44, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:20 }}>
-              💬
-            </div>
-            <div>
-              <div style={{ fontSize:15, fontWeight:700, color:'#0a0a0a', marginBottom:6 }}>A note from the Koto team</div>
-              <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, fontStyle:'italic' }}>
-                "The more specific you are here, the better every campaign we build will perform. Don't hold back — there are no wrong answers, only missing ones."
-              </div>
-              <div style={{ fontSize:13, color:'#9ca3af', marginTop:8 }}>— The Koto Team</div>
-            </div>
-          </div>
-
-          {/* ── What to have ready ── */}
-          <div style={{ maxWidth:700, margin:'40px auto 0', textAlign:'left' }}>
-            <div style={{ background:'#0a0a0a', borderRadius:20, overflow:'hidden' }}>
-              <div style={{ padding:'24px 28px', borderBottom:'1px solid rgba(255,255,255,.08)' }}>
-                <div style={{ fontSize:13, fontWeight:700, color:'#ea2729', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6 }}>Before you begin</div>
-                <div style={{ fontSize:20, fontWeight:900, color:'#fff', letterSpacing:'-.02em' }}>Have these ready — takes 2 minutes to gather</div>
-                <div style={{ fontSize:14, color:'rgba(255,255,255,.45)', marginTop:6, lineHeight:1.6 }}>
-                  You don't need all of these — answer what you can, skip what you don't have. Nothing here is a blocker.
-                </div>
-              </div>
-              <div style={{ padding:'20px 28px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
-                {[
-                  {
-                    icon:'🏢', label:'Business basics',
-                    items:['Legal business name & EIN/Tax ID','Year founded, number of employees','Business address & website URL','Annual revenue range (confidential)'],
-                  },
-                  {
-                    icon:'📋', label:'Your services & pricing',
-                    items:['Complete list of services or products','Your top 5 revenue drivers','How you price (hourly, flat, monthly…)','Average job or project value'],
-                  },
-                  {
-                    icon:'🎨', label:'Brand assets',
-                    items:['Logo files (JPG, PNG, or a Drive link)','Primary and accent brand colors (hex codes)','Brand fonts if you know them','Your tagline or slogan (if you have one)'],
-                  },
-                  {
-                    icon:'🌐', label:'Online presence',
-                    items:['Website URL + admin login (optional)','Google Business Profile link or login','Social media profile URLs (Facebook, Insta, etc.)','Google Analytics / Tag Manager IDs if set up'],
-                  },
-                  {
-                    icon:'🔑', label:'Account access info',
-                    items:['Hosting provider name & control panel URL','Domain registrar (GoDaddy, Namecheap, etc.)','Facebook Pixel ID & Google Ads Customer ID','Any current ad accounts or campaign access'],
-                  },
-                  {
-                    icon:'📲', label:'For texting & call tracking',
-                    items:['Legal business name exactly as on your EIN','Your EIN / Federal Tax ID (XX-XXXXXXX)','How customers opt in to receive texts','Your main business phone number'],
-                  },
-                ].map(section => (
-                  <div key={section.label} style={{ padding:'16px 20px', borderBottom:'1px solid rgba(255,255,255,.06)', borderRight:'1px solid rgba(255,255,255,.06)' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
-                      <span style={{ fontSize:16 }}>{section.icon}</span>
-                      <span style={{ fontSize:12, fontWeight:800, color:'rgba(255,255,255,.7)', textTransform:'uppercase', letterSpacing:'.06em' }}>{section.label}</span>
+          {/* What to gather */}
+          <div style={{ marginBottom:48 }}>
+            <h2 style={{ fontSize:26, fontWeight:800, color:'#0a0a0a', margin:'0 0 8px', letterSpacing:'-.03em' }}>What to have nearby</h2>
+            <p style={{ fontSize:16, color:'#6b7280', margin:'0 0 28px', lineHeight:1.65 }}>
+              You don't need everything on this list — answer what you have and skip what you don't. Nothing here is a blocker. Our team will follow up on anything missing after your kickoff call.
+            </p>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, border:'1px solid #e5e7eb', borderRadius:14, overflow:'hidden' }}>
+              {[
+                {
+                  label:'Business & legal',
+                  items:[
+                    'Legal business name (as on your EIN)',
+                    'EIN / Federal Tax ID — format XX-XXXXXXX',
+                    'State where the business is incorporated',
+                    'Business address and legal registered address (if different)',
+                    'Year founded, number of employees, annual revenue range',
+                  ],
+                },
+                {
+                  label:'Services & pricing',
+                  items:[
+                    'Complete list of all services or products you offer',
+                    'Your top 5 revenue-driving services',
+                    'How you price your work (hourly, flat fee, retainer…)',
+                    'Average transaction or project value',
+                    'Customer lifetime value if you know it',
+                  ],
+                },
+                {
+                  label:'Brand & visual identity',
+                  items:[
+                    'Logo files — JPG, PNG, SVG, EPS, or a Google Drive link',
+                    'Primary and accent brand colors (hex codes preferred)',
+                    'Brand fonts if defined',
+                    'Your tagline or slogan',
+                    'Brand tone: professional, playful, bold, warm, etc.',
+                  ],
+                },
+                {
+                  label:'Online presence & social',
+                  items:[
+                    'Website URL',
+                    'Google Business Profile URL or login',
+                    'Facebook, Instagram, LinkedIn, TikTok, YouTube URLs',
+                    'Current follower counts and Google review rating',
+                    'Yelp, Houzz, Angi, BBB, Nextdoor — if applicable',
+                  ],
+                },
+                {
+                  label:'Account access & tech',
+                  items:[
+                    'Web hosting provider name and dashboard URL',
+                    'Domain registrar (GoDaddy, Namecheap, Google, etc.)',
+                    'WordPress or CMS admin URL and username',
+                    'Google Analytics 4 ID and Google Tag Manager ID',
+                    'Facebook Pixel ID and Google Ads Customer ID',
+                  ],
+                },
+                {
+                  label:'SMS & call tracking (A2P)',
+                  items:[
+                    'Legal business name exactly as it appears on your EIN',
+                    'Your EIN / Federal Tax ID (required by carriers)',
+                    'How customers opt in to receive texts from you',
+                    'Technical, billing, marketing, and emergency contacts',
+                    'The phone number(s) used for texting or call tracking',
+                  ],
+                },
+              ].map((section, idx) => (
+                <div key={section.label} style={{ padding:'20px 24px', borderBottom:'1px solid #e5e7eb', borderRight: idx % 2 === 0 ? '1px solid #e5e7eb' : 'none', background:'#fff' }}>
+                  <div style={{ fontSize:12, fontWeight:800, color:ACCENT, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:12 }}>{section.label}</div>
+                  {section.items.map((item, i) => (
+                    <div key={i} style={{ display:'flex', gap:10, marginBottom:8, alignItems:'flex-start' }}>
+                      <span style={{ width:5, height:5, borderRadius:'50%', background:'#d1d5db', flexShrink:0, marginTop:8 }}/>
+                      <span style={{ fontSize:14, color:'#374151', lineHeight:1.6 }}>{item}</span>
                     </div>
-                    {section.items.map((item, i) => (
-                      <div key={i} style={{ display:'flex', gap:8, marginBottom:6, alignItems:'flex-start' }}>
-                        <span style={{ color:'#ea2729', fontWeight:900, fontSize:12, marginTop:2, flexShrink:0 }}>→</span>
-                        <span style={{ fontSize:13, color:'rgba(255,255,255,.55)', lineHeight:1.5 }}>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <div style={{ padding:'16px 28px', background:'rgba(255,255,255,.04)', display:'flex', alignItems:'center', gap:10 }}>
-                <span style={{ fontSize:16 }}>💡</span>
-                <span style={{ fontSize:13, color:'rgba(255,255,255,.4)', lineHeight:1.6 }}>
-                  <strong style={{ color:'rgba(255,255,255,.7)' }}>Can't find something?</strong> Leave it blank and our team will follow up. The AI Suggest button on every field will draft answers for you based on what you've already told us.
-                </span>
-              </div>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
 
+          {/* How it works */}
+          <div style={{ marginBottom:48 }}>
+            <h2 style={{ fontSize:26, fontWeight:800, color:'#0a0a0a', margin:'0 0 8px', letterSpacing:'-.03em' }}>How it works</h2>
+            <p style={{ fontSize:16, color:'#6b7280', margin:'0 0 24px', lineHeight:1.65 }}>Three things that make this form easier:</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:1 }}>
+              {[
+                { title:'Auto-saves as you go',     body:'Your answers are saved automatically. Close the browser, come back tomorrow using the same link — everything will be exactly where you left it.' },
+                { title:'AI Suggest on every field', body:"Every question has an AI Suggest button. If you're unsure how to answer something, click it and our AI will draft a response based on everything you've already told us. Edit it freely before saving." },
+                { title:'Nothing is a hard stop',    body:'You can skip any question and come back to it. Blank answers are better than wrong ones — our team will follow up on anything missing during your kickoff call.' },
+              ].map((item, i) => (
+                <div key={i} style={{ padding:'18px 0', borderBottom:'1px solid #f3f4f6', display:'flex', gap:20, alignItems:'flex-start' }}>
+                  <div style={{ width:28, height:28, borderRadius:'50%', border:`2px solid ${ACCENT}`, color:ACCENT, fontSize:13, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>{i+1}</div>
+                  <div>
+                    <div style={{ fontSize:16, fontWeight:700, color:'#0a0a0a', marginBottom:4 }}>{item.title}</div>
+                    <div style={{ fontSize:15, color:'#6b7280', lineHeight:1.7 }}>{item.body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* What to expect timeframe */}
+          <div style={{ background:'#fafafa', border:'1px solid #e5e7eb', borderRadius:14, padding:'24px 28px', marginBottom:48 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:'#0a0a0a', marginBottom:8 }}>Plan for 20–30 minutes of focused time</div>
+            <div style={{ fontSize:15, color:'#374151', lineHeight:1.75 }}>
+              Most sections take 2–5 minutes. The ones that take longer — services, customers, and account access — are also the ones that matter most. We'd rather you take your time and be thorough here than rush through it. If you need to stop, just close the tab and come back. Your progress is saved.
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div style={{ borderTop:'1px solid #e5e7eb', paddingTop:40, display:'flex', flexDirection:'column', alignItems:'flex-start', gap:14 }}>
+            <div style={{ fontSize:18, fontWeight:700, color:'#0a0a0a' }}>Ready? Let's get started.</div>
+            <button type="button" onClick={() => setStep(1)}
+              style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'18px 40px', borderRadius:12, border:'none', background:ACCENT, color:'#fff', fontSize:17, fontWeight:800, cursor:'pointer', letterSpacing:'-.01em' }}>
+              Start My Onboarding <ChevronRight size={20}/>
+            </button>
+            <div style={{ fontSize:14, color:'#9ca3af' }}>No account needed · Auto-saved · Return anytime with this link</div>
+          </div>
 
         </div>
       </div>
@@ -1262,6 +1294,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <Toaster position="top-center" />
     </>
   );
+
 
 
   // ── WIZARD STEPS ─────────────────────────────────────────────────────────────
