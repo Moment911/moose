@@ -316,15 +316,11 @@ export default function ClientProfilePage() {
 
   async function load() {
     setLoading(true)
-    const { createClient } = await import('@supabase/supabase-js')
-    const sb = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
+    const { supabase } = await import('../lib/supabase')
     const [{ data: cl }, { data: prof }, { data: toks }] = await Promise.all([
-      sb.from('clients').select('*').eq('id', id).single(),
-      sb.from('client_profiles').select('*').eq('client_id', id).single(),
-      sb.from('onboarding_tokens').select('*').eq('client_id', id).order('created_at', { ascending: false }),
+      supabase.from('clients').select('*').eq('id', id).single(),
+      supabase.from('client_profiles').select('*').eq('client_id', id).single(),
+      supabase.from('onboarding_tokens').select('*').eq('client_id', id).order('created_at', { ascending: false }),
     ])
     setClient(cl)
     // Merge profile + onboarding_form for flat access
