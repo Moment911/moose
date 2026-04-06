@@ -1111,82 +1111,89 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   // ── WELCOME ──────────────────────────────────────────────────────────────────
   if (step === 0) return (
     <>
-      <Header />
-      <div style={{ maxWidth: 820, margin: '0 auto', padding: '36px 20px 60px' }} ref={topRef}>
-        <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,.07)' }}>
-          <div style={{ background: 'linear-gradient(160deg,#18181b,#27272a)', padding: '52px 48px', textAlign: 'center', position: 'relative' }}>
-            <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-            <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 28 }}>
-              <span style={{ fontSize: 13, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Koto</span>
-            </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: ACCENT, background: `${ACCENT}18`, border: `1px solid ${ACCENT}35`, borderRadius: 20, padding: '5px 16px', marginBottom: 20 }}><Sparkles size={12} color={ACCENT}/> Client Onboarding</div>
-            <h1 style={{ fontSize: 38, fontWeight: 900, color: '#fff', margin: '0 0 14px', letterSpacing: -0.5 }}>
-              Welcome, <span style={{ color: ACCENT }}>{tokenData?.clients?.name || 'there'}</span>! 🎉
-            </h1>
-            <p style={{ fontSize: 17, color: '#4b5563', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 30px' }}>
-              We're genuinely excited to work with you. This form takes <strong style={{ color: '#fff' }}>20–30 minutes</strong> and gives us everything we need to market your business effectively from day one.
-            </p>
-            <div style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 16, padding: '20px 24px', maxWidth: 500, margin: '0 auto', textAlign: 'left' }}>
-              <div style={{ display: 'flex', gap: 14 }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20 }}></div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>A note from our team</div>
-                  <div style={{ fontSize: 15, color: '#4b5563', lineHeight: 1.65 }}>
-                    "The more detail you give us, the more precisely we can target your ideal customers — and the faster we see real results. Our AI will help you along the way."
-                  </div>
-                  <div style={{ fontSize: 14, color: '#52525b', marginTop: 8, fontStyle: 'italic' }}>— The Momenta Team</div>
-                </div>
-              </div>
-            </div>
+      <div style={{ minHeight:'100vh', background:'#fff', display:'flex', flexDirection:'column' }}>
+
+        {/* ── Top bar ── */}
+        <div style={{ padding:'18px 32px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <img src="/koto-logo-white.svg" alt="Koto" style={{ height:28, filter:'invert(1)' }} />
+          <div style={{ fontSize:13, color:'#9ca3af', fontWeight:600 }}>Client Onboarding</div>
+        </div>
+
+        {/* ── Hero ── */}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'60px 24px 40px', textAlign:'center' }}>
+
+          {/* Agency badge */}
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 16px', borderRadius:40, background:'#f0fbfc', border:'1px solid #5bc6d040', marginBottom:28 }}>
+            <div style={{ width:8, height:8, borderRadius:'50%', background:'#16a34a', boxShadow:'0 0 0 3px #16a34a25' }}/>
+            <span style={{ fontSize:13, fontWeight:700, color:'#0e7490', letterSpacing:'.02em' }}>Koto Agency · Onboarding</span>
           </div>
 
-          <div style={{ padding: '40px 48px' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 18 }}>What we'll cover together</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 32 }}>
-              {[
-                { icon: 'Clock', title: '20–30 minutes', desc: 'Work at your own pace — saves automatically' },
-                { icon: 'Sparkles', title: 'AI-assisted', desc: 'Stuck? Hit AI Suggest for instant ideas' },
-                { icon: 'Shield', title: '100% secure', desc: 'Passwords encrypted, only your agency sees this' },
-                { icon: 'Save', title: 'Auto-saved', desc: 'Close and come back anytime' },
-                { icon: 'Target', title: 'Drives strategy', desc: 'Every answer shapes your campaigns' },
-                { icon: 'Zap', title: 'Launches faster', desc: 'Complete this today, we start sooner' },
-              ].map(item => (
-                <div key={item.title} style={{ background: '#f9fafb', borderRadius: 14, padding: '16px 18px', border: '1px solid #f3f4f6' }}>
-                  <div style={{ marginBottom: 8 }}><StepIcon name={item.icon} size={24} color={ACCENT}/></div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 4 }}>{item.title}</div>
-                  <div style={{ fontSize: 14, color: '#4b5563', lineHeight: 1.4 }}>{item.desc}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 32 }}>
+          {/* Greeting */}
+          <h1 style={{ fontSize:52, fontWeight:900, color:'#0a0a0a', margin:'0 0 16px', letterSpacing:'-2px', lineHeight:1.1 }}>
+            Welcome{tokenData?.clients?.name ? `, ${tokenData.clients.name.split(' ')[0]}` : ''}! 👋
+          </h1>
+          <p style={{ fontSize:20, color:'#374151', lineHeight:1.7, maxWidth:580, margin:'0 auto 12px', fontWeight:400 }}>
+            We're excited to start building your marketing strategy. This is the foundation of everything — every ad, every keyword, every campaign starts here.
+          </p>
+          <p style={{ fontSize:16, color:'#6b7280', lineHeight:1.6, maxWidth:500, margin:'0 auto 44px' }}>
+            Takes <strong style={{ color:'#0a0a0a' }}>20–30 minutes</strong>. Auto-saves as you go. AI helps you fill in anything you're unsure about.
+          </p>
+
+          {/* CTA */}
+          <button type="button" onClick={() => setStep(1)}
+            style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'18px 44px', borderRadius:14, border:'none', background:ACCENT, color:'#fff', fontSize:18, fontWeight:800, cursor:'pointer', letterSpacing:'-.02em', boxShadow:`0 4px 24px ${ACCENT}40` }}>
+            Start My Onboarding <ChevronRight size={22}/>
+          </button>
+          <div style={{ marginTop:14, fontSize:14, color:'#9ca3af' }}>No account needed · Auto-saved · Return anytime</div>
+
+          {/* What to expect cards */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, maxWidth:660, margin:'52px auto 0', textAlign:'left' }}>
+            {[
+              { icon:'🕐', title:'20–30 minutes', desc:'Work at your own pace — close and come back anytime with the same link.' },
+              { icon:'✨', title:'AI-assisted',   desc:"Hit \"AI Suggest\" on any field and we'll draft an answer based on what you've told us." },
+              { icon:'🔒', title:'100% private',  desc:'Your information is encrypted and only visible to your agency team.' },
+            ].map(card => (
+              <div key={card.title} style={{ background:'#fafafa', borderRadius:14, padding:'20px 18px', border:'1px solid #f3f4f6' }}>
+                <div style={{ fontSize:28, marginBottom:10 }}>{card.icon}</div>
+                <div style={{ fontSize:15, fontWeight:800, color:'#0a0a0a', marginBottom:6 }}>{card.title}</div>
+                <div style={{ fontSize:14, color:'#6b7280', lineHeight:1.6 }}>{card.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Steps preview */}
+          <div style={{ maxWidth:660, margin:'36px auto 0', textAlign:'left' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:14 }}>What we cover</div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
               {STEPS.slice(1, -1).map(s => (
-                <span key={s.id} style={{ fontSize: 15, fontWeight: 600, padding: '6px 14px', borderRadius: 20, background: '#fff', border: '1.5px solid #e5e7eb', color: '#374151' }}>
-                  <StepIcon name={s.icon} size={13} color='#6b7280'/> {s.label}
+                <span key={s.id} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:13, fontWeight:600, padding:'5px 12px', borderRadius:20, background:'#f3f4f6', color:'#374151' }}>
+                  <StepIcon name={s.icon} size={12} color='#6b7280'/> {s.label}
                 </span>
               ))}
             </div>
-            <div style={{ background: '#f0fbfc', border: `1px solid ${ACCENT}25`, borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 12 }}>
-              <Sparkles size={18} color={ACCENT} style={{ flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 15, color: '#92400e', lineHeight: 1.65 }}>
-                <strong>Pro tip:</strong> Look for the <span style={{ color: ACCENT, fontWeight: 800 }}>AI Suggest</span> buttons throughout. They generate smart suggestions based on your industry that you can tweak — no staring at a blank field.
-              </div>
+          </div>
+
+          {/* Koto team note */}
+          <div style={{ maxWidth:560, margin:'36px auto 0', padding:'20px 24px', background:'#fafafa', borderRadius:16, border:'1px solid #f3f4f6', display:'flex', alignItems:'flex-start', gap:14, textAlign:'left' }}>
+            <div style={{ width:44, height:44, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:20 }}>
+              💬
             </div>
-            <button type="button" onClick={() => setStep(1)}
-              style={{ width: '100%', background: ACCENT, color: '#fff', border: 'none', borderRadius: 16, padding: '18px 0', fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, boxShadow: `0 8px 28px ${ACCENT}45` }}>
-              Let's Build Your Marketing Profile <ChevronRight size={20} />
-            </button>
-            <div style={{ textAlign: 'center', fontSize: 14, color: '#4b5563', marginTop: 12 }}>
-              20–30 minutes · Auto-saved · No account needed
+            <div>
+              <div style={{ fontSize:15, fontWeight:700, color:'#0a0a0a', marginBottom:6 }}>A note from the Koto team</div>
+              <div style={{ fontSize:15, color:'#374151', lineHeight:1.7, fontStyle:'italic' }}>
+                "The more specific you are here, the better every campaign we build will perform. Don't hold back — there are no wrong answers, only missing ones."
+              </div>
+              <div style={{ fontSize:13, color:'#9ca3af', marginTop:8 }}>— The Koto Team</div>
             </div>
           </div>
+
         </div>
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <Toaster position="top-center" />
     </>
   );
+
 
   // ── WIZARD STEPS ─────────────────────────────────────────────────────────────
   return (
