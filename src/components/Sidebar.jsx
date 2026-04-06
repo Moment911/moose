@@ -186,7 +186,8 @@ export default function Sidebar() {
         <NavLink to="/master-admin"    icon={Shield}   label="Master Admin"/>
         <NavLink to="/platform-admin"  icon={Shield}   label="Platform Admin"/>
         <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
-          <NavLink to="/wordpress"    icon={Globe} label="WP Plugin"/>
+          <NavLink to="/page-builder" icon={Sparkles} label="Page Builder"/>
+              <NavLink to="/wordpress"    icon={Globe} label="WP Plugin"/>
           <NavLink to="/integrations" icon={Plug} label="Integrations"/>
         </div>
 
