@@ -293,7 +293,7 @@ export async function GET(req: NextRequest) {
     ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     : 'application/pdf'
 
-  return new NextResponse(buf, {
+  return new NextResponse(new Uint8Array(buf), {
     headers: {
       'Content-Type': mime,
       'Content-Disposition': `attachment; filename="${businessName}_Onboarding_Profile.${format}"`,
