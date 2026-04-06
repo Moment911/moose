@@ -65,8 +65,11 @@ export async function GET(req: NextRequest) {
     ])
     return NextResponse.json({ site, commands: commands || [], pages: pages || [], rankings: rankings || [] })
   }
-  const { data: sites } = await sb.from('koto_wp_sites')
-    .select('*,clients(name,industry)').eq('agency_id', agency_id).order('created_at', { ascending: false })
+  const query = sb.from('koto_wp_sites').select('*,clients(name,industry)')
+  if (agency_id) query.eq('agency_id', agency_id)
+  query.order('created_at', { ascending: false })
+  const { data: sites, error: sitesError } = await query
+  if (sitesError) return NextResponse.json({ sites: [], error: sitesError.message, debug: { agency_id, hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL, hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY } })
   return NextResponse.json({ sites: sites || [] })
 }
 
