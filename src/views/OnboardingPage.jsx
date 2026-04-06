@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getOnboardingToken, upsertClientProfile, markTokenUsed } from '../lib/supabase';
 import { callClaude } from '../lib/ai';
+import { SIC_CODES, SIC_DIVISIONS } from '../lib/sicCodes';
+import SearchableSelect from '../components/SearchableSelect';
 import AIThinkingBox from '../components/AIThinkingBox'
 import toast, { Toaster } from 'react-hot-toast';
 import {
@@ -323,22 +325,49 @@ export default function OnboardingPage() {
   const [aiSugs, setAiSugs] = useState({});
   const [personaResult, setPersonaResult] = useState(null);
   const [personaLoading, setPersonaLoading] = useState(false);
+  const [showMissing,   setShowMissing]   = useState(false);
+
+  // Compute which required fields are empty
+  function getMissingFields() {
+    const missing = []
+    const req = [
+      { step:1,  field:'first_name',   label:'First Name' },
+      { step:1,  field:'last_name',    label:'Last Name' },
+      { step:1,  field:'email',        label:'Email' },
+      { step:2,  field:'business_name',label:'Business Name' },
+      { step:2,  field:'industry',     label:'Industry' },
+      { step:2,  field:'city',         label:'City' },
+      { step:2,  field:'state',        label:'State' },
+      { step:3,  field:'products_services', label:'Products & Services Description' },
+      { step:4,  field:'customer_pain_points', label:'Customer Pain Points' },
+      { step:5,  field:'why_choose_you', label:'Why Choose You' },
+      { step:6,  field:'primary_city', label:'Primary Market City' },
+      { step:12, field:'primary_goal', label:'Primary Marketing Goal' },
+    ]
+    for (const r of req) {
+      const v = form[r.field]
+      const empty = !v || (Array.isArray(v) ? v.length === 0 : v.toString().trim() === '')
+      if (empty) missing.push(r)
+    }
+    return missing
+  }
   const [personaFeedback, setPersonaFeedback] = useState(null); // 'approved'|'needs_edit'
   const topRef = useRef(null);
 
   // ── Form state ──
   const [form, setForm] = useState({
     // You
-    first_name: '', last_name: '', title: '', email: '', phone: '',
+    first_name: '', last_name: '', title: '', email: '', phone: '', phone2: '',
+    contact_consent: [],  // ['sms','email','calls']
     // Business
     business_name: '', legal_name: '', ein: '', industry: '', business_type: '',
     year_founded: '', num_employees: '', annual_revenue: '',
-    address: '', city: '', state: '', zip: '', country: 'United States',
+    address: '', suite: '', city: '', state: '', zip: '', country: 'United States',
     website: '', business_description: '',
     // Products & services
     products_services: '',        // detailed description
     top_services: [],             // tag list
-    service_pricing_model: '',    // 'per project' etc
+    service_pricing_model: [],    // multi-select
     avg_transaction: '',
     avg_project_value: '',
     avg_visits_per_year: '',
@@ -347,7 +376,7 @@ export default function OnboardingPage() {
     // Customers
     customer_types: [],
     ideal_customer_desc: '',
-    customer_age: '',
+    customer_age: [],  // multi-select now
     customer_gender: '',
     customer_income: '',
     customer_pain_points: '',
@@ -360,20 +389,22 @@ export default function OnboardingPage() {
     why_choose_you: '',
     unique_value_prop: '',
     // Geography
-    primary_city: '', primary_state: '',
+    primary_city: '', primary_state: '', growth_scope: '', travel_distance: '',
     target_cities: [],
     target_radius: '',
     service_area_notes: '',
     // Brand
-    logo_url: '', logo_dark_url: '', brand_assets_url: '',
-    brand_primary_color: '#000000', brand_accent_color: ACCENT,
+    logo_url: '', logo_dark_url: '', logo_files: [], brand_assets_url: '',
+    brand_primary_color: '#000000', brand_accent_color: ACCENT, brand_extra_colors: [],
     brand_fonts: '',
     brand_tagline: '',
-    brand_tone: '',
+    brand_tone: [],  // multi-select
     brand_dos: '', brand_donts: '',
     // Social
     facebook_url: '', instagram_url: '', linkedin_url: '', twitter_url: '',
     youtube_url: '', tiktok_url: '', google_biz_url: '', yelp_url: '',
+    pinterest_url: '', nextdoor_url: '', threads_url: '', snapchat_url: '',
+    houzz_url: '', angi_url: '', bbb_url: '', glassdoor_url: '',
     fb_followers: '', ig_followers: '', google_rating: '', google_reviews: '',
     // Tech
     hosting_provider: '', hosting_url: '', hosting_login: '', hosting_password: '',
@@ -388,7 +419,7 @@ export default function OnboardingPage() {
     what_didnt_work: '',
     email_platform: '', email_list_size: '',
     // Goals
-    primary_goal: '',
+    primary_goal: [],  // multi-select
     secondary_goals: [],
     target_leads_per_month: '',
     timeline: '',
@@ -398,6 +429,8 @@ export default function OnboardingPage() {
     // Persona feedback
     persona_approved: false,
     persona_notes: '',
+    all_personas: '',
+    target_keywords: [],
   });
 
   function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
@@ -502,13 +535,18 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
 }`, 2500
       );
       const cleaned = result.replace(/```json|```/g, '').trim();
-      const jsonStart2 = cleaned.indexOf('{')
+      // Handle both array (5 personas) and single object (legacy)
+      const isArray = cleaned.trimStart().startsWith('[')
+      const jsonStart2 = cleaned.indexOf(isArray ? '[' : '{')
       if (jsonStart2 === -1) throw new Error('No JSON in response')
-      let jsonStr2 = cleaned.slice(jsonStart2, cleaned.lastIndexOf('}')+1)
+      let jsonStr2 = cleaned.slice(jsonStart2, isArray ? cleaned.lastIndexOf(']')+1 : cleaned.lastIndexOf('}')+1)
       let parsed
       try { parsed = JSON.parse(jsonStr2) }
       catch(_) { parsed = JSON.parse(jsonStr2.replace(/,\s*}/g,'}').replace(/,\s*]/g,']')) }
-      setPersonaResult(parsed);
+      // Normalize to array
+      const personas = Array.isArray(parsed) ? parsed : [parsed]
+      setPersonaResult(personas[0]);  // show first by default
+      set('all_personas', JSON.stringify(personas));
     } catch (e) {
       console.error(e);
       toast.error('Persona generation failed — check your internet connection and try again');
@@ -592,7 +630,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     if (!msg) return null;
     return (
       <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
-        <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
+        <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
         <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName)}</span>
       </div>
@@ -603,7 +641,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   const Header = () => (
     <div style={{ background: '#18181b', padding: '0 24px', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 2px 16px rgba(0,0,0,.3)' }}>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, height: 62 }}>
-        <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 26 }} />
+        <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 26 }} />
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 14, color: '#52525b', fontWeight: 600 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
@@ -676,7 +714,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         {!isLast ? (
           <button type="button" onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: `0 6px 20px ${ACCENT}40` }}>
-            {step === 1 && firstName ? `Let's go, ${firstName}!` : 'Continue'} <ChevronRight size={16} />
+            {step === 1 && firstName ? `Let's go, ${firstName}!` : step === STEPS.length - 2 ? 'Almost done →' : 'Continue'} <ChevronRight size={16} />
           </button>
         ) : (
           <button type="button" onClick={submit} disabled={saving}
@@ -697,7 +735,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,.07)' }}>
           <div style={{ background: 'linear-gradient(160deg,#18181b,#27272a)', padding: '52px 48px', textAlign: 'center', position: 'relative' }}>
             <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, borderRadius: '50%', background: `radial-gradient(circle, ${ACCENT}20 0%, transparent 70%)`, pointerEvents: 'none' }} />
-            <img src="/moose-logo-white.svg" alt="Koto" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
+            <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 52, margin: '0 auto 12px', display: 'block' }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 28 }}>
               <span style={{ fontSize: 13, color: '#52525b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em' }}>powered by</span>
               <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT, textTransform: 'uppercase', letterSpacing: '.07em' }}>Koto</span>
@@ -790,11 +828,11 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
             <div style={T.cardBody}>
               <div style={{ ...T.grid2, marginBottom: 20 }}>
                 <F label="Your First Name" required>
-                  <FocusInput large value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="John" autoFocus />
+                  <FocusInput large value={form.first_name} onChange={e => set('first_name', e.target.value)} placeholder="Adam" />
                   {form.first_name.trim() && (
-                    <div style={{ marginTop: 10, padding: '10px 16px', background: '#f0fbfc', borderRadius: 10, border: `1px solid ${ACCENT}25`, display: 'flex', alignItems: 'center', gap: 9, animation: 'fadeIn .3s ease' }}>
-                      <span style={{ fontSize: 20 }}></span>
-                      <span style={{ fontSize: 15, color: '#374151', fontWeight: 600 }}>Hi <strong style={{ color: ACCENT }}>{form.first_name.trim().split(' ')[0]}</strong>! Great to meet you.</span>
+                    <div style={{ marginTop: 10, padding: '10px 16px', background: '#f0fbfc', borderRadius: 10, border: `1px solid ${TEAL}40`, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>👋</span>
+                      <span style={{ fontSize: 15, color: '#374151', fontWeight: 600 }}>Hi <strong style={{ color: ACCENT }}>{form.first_name.split(' ')[0]}</strong>! Great to meet you.</span>
                     </div>
                   )}
                 </F>
@@ -805,10 +843,19 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                   <FocusInput value={form.title} onChange={e => set('title', e.target.value)} placeholder="Owner / CEO / Marketing Director" />
                 </F>
                 <F label="Your Email" required>
-                  <FocusInput type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="john@yourbusiness.com" />
+                  <FocusInput type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="adam@yourbusiness.com" />
                 </F>
-                <F label="Your Mobile Number" hint="Best number to reach you">
+                <F label="Primary Mobile Number" required hint="Best number to reach you directly">
                   <FocusInput type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="(305) 555-0100" />
+                </F>
+                <F label="Secondary Phone Number" hint="Office, assistant, or alternative">
+                  <FocusInput type="tel" value={form.phone2} onChange={e => set('phone2', e.target.value)} placeholder="(305) 555-0200" />
+                </F>
+              </div>
+              <div style={{ marginTop: 20 }}>
+                <F label="How can we reach you? Select all that apply" hint="We'll always respect your preferences">
+                  <PillSelect value={form.contact_consent} onChange={v => set('contact_consent', v)}
+                    options={['📱 SMS / Text', '📧 Email', '📞 Phone Calls', '📹 Video Call']} />
                 </F>
               </div>
             </div>
@@ -831,9 +878,15 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <F label="Legal Business Name" hint="As registered with the state">
                   <FocusInput value={form.legal_name} onChange={e => set('legal_name', e.target.value)} placeholder="Acme Plumbing LLC" />
                 </F>
-                <F label="Industry" required>
-                  <FocusSelect value={form.industry} onChange={e => set('industry', e.target.value)} placeholder="— Select your industry —"
-                    options={['Home Services','Plumbing','HVAC','Roofing','Electrical','Landscaping','Cleaning','Pest Control','Legal','Medical / Healthcare','Dental','Real Estate','Restaurant / Food Service','Retail','Automotive','Fitness / Wellness','Financial Services','Insurance','Education','Technology / SaaS','E-commerce','Non-Profit','Catering','Salon / Spa','Accounting / Bookkeeping','Construction','Other']} />
+                <F label="Industry" required hint="Search by industry or SIC code">
+                  <SearchableSelect
+                    value={form.industry}
+                    onChange={(val) => { set('industry', val); }}
+                    grouped={true}
+                    options={SIC_CODES.map(s => ({ value: s.label, label: s.label, group: s.division, hint: s.code }))}
+                    placeholder="Search industry (e.g. Plumbing, Restaurant, Auto Repair…)"
+                    style={{ fontSize: 16 }}
+                  />
                 </F>
                 <F label="Business Type">
                   <FocusSelect value={form.business_type} onChange={e => set('business_type', e.target.value)} placeholder="— Select —"
@@ -853,8 +906,11 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <F label="Website URL">
                   <FocusInput value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://acmeplumbing.com" />
                 </F>
-                <F label="Street Address">
-                  <FocusInput value={form.address} onChange={e => set('address', e.target.value)} placeholder="123 Main St" />
+                <F label="Street Address" span2>
+                  <FocusInput value={form.address} onChange={e => set('address', e.target.value)} placeholder="123 Main Street" />
+                </F>
+                <F label="Suite / Unit / Floor" hint="Apt, Suite, Floor (optional)">
+                  <FocusInput value={form.suite} onChange={e => set('suite', e.target.value)} placeholder="Suite 200" />
                 </F>
                 <F label="City" required>
                   <FocusInput value={form.city} onChange={e => set('city', e.target.value)} placeholder="Miami" />
@@ -908,16 +964,39 @@ Product: Water filtration systems — sale and installation..." />
               </F>
 
               <div style={{ marginTop: 20 }}>
-                <F label="Your Top 5–10 Revenue-Driving Services" hint="List your biggest money-makers — we'll prioritize advertising spend on these">
-                  <TagInput value={form.top_services} onChange={v => set('top_services', v)} placeholder="e.g. Water heater installation" color={ACCENT} />
+                <F label="Your Top 5 Revenue-Driving Services" hint="These get prioritized in all campaigns — click suggestions or type your own">
+                  {(() => {
+                    const raw = form.products_services || ""
+                    const ai = raw.split('\n').filter(l => l.trim() && l.match(/^(Service|[0-9]|•|-)/i))
+                      .slice(0,10).map(l => l.replace(/^[•\-0-9.:]+\s*/,'').replace(/:.*/,'').trim()).filter(Boolean)
+                    return ai.length > 0 ? (
+                      <div style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#4b5563', marginBottom: 6 }}>Click to add from your services:</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 10 }}>
+                          {ai.map(s => {
+                            const arr = Array.isArray(form.top_services) ? form.top_services : []
+                            const has = arr.includes(s)
+                            return (
+                              <button key={s} type="button" onClick={() => { if (!has) set("top_services", [...arr, s]) }}
+                                style={{ padding: '6px 14px', borderRadius: 20, border: `2px solid ${has ? ACCENT : ACCENT+'30'}`, background: has ? ACCENT : `${ACCENT}08`, color: has ? '#fff' : ACCENT, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                                {has ? "✓ " : "+ "}{s}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ) : null
+                  })()}
+                  <TagInput value={form.top_services} onChange={v => set('top_services', v)} placeholder="e.g. Water heater install — press Enter" color={ACCENT} />
                 </F>
               </div>
 
               <div style={{ ...T.grid2, marginTop: 20 }}>
-                <F label="Pricing Model" hint="How do you typically charge?">
-                  <PillSelect multi={false} value={form.service_pricing_model} onChange={v => set('service_pricing_model', v)}
-                    options={['Per job / project', 'Hourly rate', 'Per visit / appointment', 'Monthly retainer', 'Subscription / membership', 'Fixed packages', 'Mixed']} />
+                <F label="Pricing Model" hint="Select all that apply — how do you charge?">
+                  <PillSelect multi={true} value={form.service_pricing_model} onChange={v => set('service_pricing_model', v)}
+                    options={['Per job / project','Hourly rate','Per visit / appointment','Monthly retainer','Subscription / membership','Fixed price packages','Custom / quote-based','Per square foot','Commission-based','Other']} />
                 </F>
+                <div />
                 <div />
                 <F label="Average Single Job / Visit Value ($)" hint="What does a typical transaction bring in?">
                   <FocusInput type="number" value={form.avg_transaction} onChange={e => set('avg_transaction', e.target.value)} placeholder="e.g. 450" />
@@ -955,7 +1034,7 @@ Product: Water filtration systems — sale and installation..." />
 
               <F label="Who are your typical customers? Select all that apply">
                 <PillSelect value={form.customer_types} onChange={v => set('customer_types', v)}
-                  options={['Homeowners', 'Renters', 'Property Managers', 'Landlords', 'Small Business Owners', 'Commercial Property', 'Contractors / Builders', 'Real Estate Investors', 'Medical Patients', 'Families with Children', 'Seniors (65+)', 'Young Professionals', 'High-Income Households', 'Restaurants / Hospitality', 'Government / Municipal']} />
+                  options={['Homeowners', 'Renters', 'Property Managers / HOAs', 'Landlords', 'Small Business Owners', 'Commercial Clients', 'General Contractors / Builders', 'Seniors / Retirees', 'New Construction', 'Insurance Clients', 'Restaurants / Food & Beverage', 'Medical / Healthcare Practices', 'Retail Businesses', 'Real Estate Agents / Investors', 'Stay-at-Home Parents', 'High-Income Households ($200K+)', 'Government / Municipal', 'Non-Profits', 'E-Commerce Brands', 'Salons / Spas / Beauty']} />
               </F>
 
               <div style={{ marginTop: 20 }}>
@@ -970,18 +1049,20 @@ Product: Water filtration systems — sale and installation..." />
                 </F>
               </div>
 
-              <div style={{ ...T.grid3, marginTop: 20 }}>
-                <F label="Typical Age Range">
-                  <FocusSelect value={form.customer_age} onChange={e => set('customer_age', e.target.value)} placeholder="— Select —"
-                    options={['18-24', '25-34', '35-44', '45-54', '55-64', '65+', 'Mixed / All ages']} />
+              <div style={{ marginTop: 20 }}>
+                <F label="Typical Age Range(s)" hint="Select all that apply — your customers may span multiple groups">
+                  <PillSelect value={form.customer_age} onChange={v => set('customer_age', v)}
+                    options={['Under 18','18-24','25-34','35-44','45-54','55-64','65-74','75+','All ages']} />
                 </F>
+              </div>
+              <div style={{ ...T.grid2, marginTop: 20 }}>
                 <F label="Gender Split">
                   <FocusSelect value={form.customer_gender} onChange={e => set('customer_gender', e.target.value)} placeholder="— Select —"
-                    options={['Mostly male (70%+)', 'Mostly female (70%+)', 'Slight male majority', 'Slight female majority', 'Equal mix', 'Doesn\'t matter']} />
+                    options={['Mostly male (70%+)','Mostly female (70%+)','Slight male majority','Slight female majority','Roughly equal','Depends on service']} />
                 </F>
                 <F label="Income Level">
                   <FocusSelect value={form.customer_income} onChange={e => set('customer_income', e.target.value)} placeholder="— Select —"
-                    options={['Budget-conscious (under $50K)', 'Middle income ($50K-$100K)', 'Upper-middle ($100K-$200K)', 'High income ($200K+)', 'Mixed / all income levels']} />
+                    options={['Budget-conscious (under $50K)','Middle income ($50K-$100K)','Upper-middle ($100K-$200K)','High income ($200K+)','Mixed / all income levels','Varies by service']} />
                 </F>
               </div>
 
@@ -1036,8 +1117,11 @@ Product: Water filtration systems — sale and installation..." />
               </InfoBox>
 
               {form.competitors.map((comp, i) => (
-                <div key={i} style={{ background: '#f9fafb', borderRadius: 16, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>Competitor #{i + 1}</div>
+                <div key={i} style={{ background: '#f9fafb', borderRadius: 16, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em' }}>Competitor {i + 1}</div>
+                    {form.competitors.length > 1 && <button type='button' onClick={() => set('competitors', form.competitors.filter((_,j)=>j!==i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 12 }}>✕ Remove</button>}
+                  </div>
                   <div style={{ ...T.grid2, gap: 14 }}>
                     <F label="Business Name">
                       <FocusInput value={comp.name} onChange={e => setComp(i, 'name', e.target.value)} placeholder="Rival Plumbing Co." />
@@ -1045,15 +1129,26 @@ Product: Water filtration systems — sale and installation..." />
                     <F label="Website URL">
                       <FocusInput value={comp.url} onChange={e => setComp(i, 'url', e.target.value)} placeholder="www.rivalplumbing.com" />
                     </F>
-                    <F label="What do they do WELL?" hint="Be honest — knowing their strengths helps us counter them">
-                      <FocusInput value={comp.strengths} onChange={e => setComp(i, 'strengths', e.target.value)} placeholder="More locations, lower prices, lots of Google reviews…" />
+                    <F label="What do they do WELL?" hint="Be honest — knowing their strengths helps us counter them" span2>
+                      <FocusTextarea rows={3} value={comp.strengths} onChange={e => setComp(i, 'strengths', e.target.value)}
+                        placeholder="Fast response times, strong Google reviews, good website, aggressive pricing, big ad budget…" />
                     </F>
-                    <F label="Where do they FALL SHORT?" hint="Their weaknesses are your opportunities">
-                      <FocusInput value={comp.weaknesses} onChange={e => setComp(i, 'weaknesses', e.target.value)} placeholder="Slow response, bad Yelp reviews, push unnecessary repairs…" />
+                    <F label="Where do they FALL SHORT?" hint="Their weaknesses are your opportunities" span2>
+                      <FocusTextarea rows={3} value={comp.weaknesses} onChange={e => setComp(i, 'weaknesses', e.target.value)}
+                        placeholder="Poor customer service, hidden fees, no warranty, slow on weekends, bad reviews about no-shows…" />
                     </F>
                   </div>
                 </div>
               ))}
+              <button type='button' onClick={() => set('competitors', [...form.competitors, { name: '', url: '', strengths: '', weaknesses: '' }])}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: `2px dashed ${ACCENT}40`, background: `${ACCENT}06`, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 20 }}>
+                + Add Another Competitor
+              </button>
+
+              <button type="button" onClick={() => set('competitors', [...form.competitors, { name: '', url: '', strengths: '', weaknesses: '' }])}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, marginBottom: 8, padding: '10px 18px', borderRadius: 10, border: '2px dashed #e5e7eb', background: '#fafafa', color: '#6b7280', fontSize: 15, fontWeight: 600, cursor: 'pointer', width: '100%', justifyContent: 'center' }}>
+                + Add Another Competitor
+              </button>
 
               <div style={{ marginTop: 20 }}>
                 <F label="Why should someone choose YOU over all of them?" hint="Be specific — what do you genuinely do better? Avoid generic answers like 'great service'">
@@ -1095,6 +1190,12 @@ Product: Water filtration systems — sale and installation..." />
               <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Your geographic targeting determines where we spend every dollar of your ad budget. Let's be surgical about it.</p>
             </div>
             <div style={T.cardBody}>
+              <div style={{ marginBottom: 20 }}>
+                <F label="Where do you want to grow?" hint="Select your growth ambition — this drives all geo-targeting">
+                  <PillSelect multi={false} value={form.growth_scope} onChange={v => set('growth_scope', v)}
+                    options={['My City / Metro Area','Multiple Cities in My State','Statewide','Regional (Multi-State)','Nationwide','International']} />
+                </F>
+              </div>
               <div style={T.grid2}>
                 <F label="Primary City / Market" required>
                   <FocusInput large value={form.primary_city} onChange={e => set('primary_city', e.target.value)} placeholder="Miami" />
@@ -1104,25 +1205,25 @@ Product: Water filtration systems — sale and installation..." />
                 </F>
               </div>
               <div style={{ marginTop: 20 }}>
-                <F label="How far will you travel / how wide is your service area?">
-                  <PillSelect multi={false} value={form.target_radius} onChange={v => set('target_radius', v)}
-                    options={['Within 5 miles', 'Up to 10 miles', 'Up to 25 miles', 'Up to 50 miles', 'Countywide', 'Statewide', 'No limit']} />
+                <F label="How far will you travel / service area radius?" hint="Pick the option that best describes your reach">
+                  <PillSelect multi={false} value={form.travel_distance} onChange={v => set('travel_distance', v)}
+                    options={['Within 5 miles','Up to 10 miles','Up to 25 miles','Up to 50 miles','Countywide','Within my state','Multi-state region','Nationwide','International','N/A — Online / Remote Only']} />
                 </F>
               </div>
               <div style={{ marginTop: 20 }}>
-                <F label="Target cities, towns, and neighborhoods" hint="These become your local SEO pages and ad geo-targets. Be specific — include neighborhoods, not just cities.">
+                <F label="Target cities, towns, and neighborhoods" hint="These become your local SEO pages and ad geo-targets">
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-                    <AIAssist prompt={`${CTX}. List 12-15 specific cities, towns, and neighborhoods within reasonable service distance. Include a mix of cities AND specific neighborhoods. Focus on areas with the right demographics for this business. Just the location names, comma-separated.`}
-                      onResult={v => { const cities = v.split(',').map(c => c.trim()).filter(Boolean); set('target_cities', [...new Set([...form.target_cities, ...cities])]); toast.success(`Added ${cities.length} locations`); }}
+                    <AIAssist prompt={`${CTX}. List 12-15 specific cities, towns, and neighborhoods within reasonable service distance of their primary market. Consider their stated growth scope: ${form.growth_scope || 'local'}. One per line.`}
+                      onResult={v => { const cities = v.split(',').map(c => c.trim()).filter(Boolean); set('target_cities', [...new Set([...form.target_cities, ...cities])]) }}
                       label="AI Suggest" />
                   </div>
-                  <TagInput value={form.target_cities} onChange={v => set('target_cities', v)} placeholder="e.g. Coral Gables, Pinecrest, Coconut Grove…" color="#3b82f6" />
+                  <TagInput value={form.target_cities} onChange={v => set('target_cities', v)} placeholder="e.g. Coral Gables, Brickell — press Enter" />
                 </F>
               </div>
               <div style={{ marginTop: 20 }}>
-                <F label="Any notes about your geographic strategy?" hint="Areas to avoid? Focus on high-income zip codes? Expanding to a new area?">
+                <F label="Any notes about your geographic strategy?" hint="Areas to avoid? High-income zip codes? Future expansion plans?">
                   <FocusTextarea rows={3} value={form.service_area_notes} onChange={e => set('service_area_notes', e.target.value)}
-                    placeholder="Focus on Coral Gables, Coconut Grove, and Pinecrest — these are our high-margin customers. Avoid industrial areas. Looking to expand into Brickell next year." />
+                    placeholder="Focus on Coral Gables, Coconut Grove, and Pinecrest — these are our high-margin customers. Avoid Hialeah…" />
                 </F>
               </div>
             </div>
@@ -1138,53 +1239,79 @@ Product: Water filtration systems — sale and installation..." />
               <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Your visual identity and brand voice keep every campaign looking and sounding consistent.</p>
             </div>
             <div style={T.cardBody}>
+              <div style={{ marginBottom: 20 }}>
+                <F label="Logo Files" hint="We need EPS, AI, or PDF for print — PNG or JPEG to get started. Upload all you have.">
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 16px', marginBottom: 12, fontSize: 14, color: '#166534', lineHeight: 1.6 }}>
+                    <strong>📁 Ideal formats:</strong> EPS · AI · PDF (vector) — if you only have PNG or JPEG, that's OK to start. Please send us the high-resolution files as soon as possible so we can use them for print and large-format work.
+                  </div>
+                  <input type='file' multiple accept='.eps,.ai,.pdf,.png,.jpg,.jpeg,.svg,.webp'
+                    onChange={e => { const files = Array.from(e.target.files).map(f => f.name); set('logo_files', [...(form.logo_files||[]), ...files]); toast.success(`${files.length} file(s) noted — please also email them to admin@hellokoto.com`) }}
+                    style={{ display: 'block', marginBottom: 8 }} />
+                  {(form.logo_files||[]).length > 0 && <div style={{ fontSize: 13, color: '#16a34a' }}>✓ Files noted: {form.logo_files.join(', ')}</div>}
+                </F>
+              </div>
               <div style={T.grid2}>
-                <F label="Logo URL" hint="Link to your logo file (Google Drive, Dropbox, or direct URL). PNG or SVG preferred.">
-                  <FocusInput value={form.logo_url} onChange={e => set('logo_url', e.target.value)} placeholder="https://drive.google.com/file/..." />
-                  {form.logo_url && <img src={form.logo_url} alt="logo" style={{ marginTop: 10, height: 60, objectFit: 'contain', border: '1px solid #e5e7eb', borderRadius: 10, padding: 8, background: '#f9fafb', width: '100%' }} onError={e => e.target.style.display = 'none'} />}
+                <F label="Logo URL (optional)" hint="Paste a Google Drive, Dropbox, or direct image URL">
+                  <FocusInput value={form.logo_url} onChange={e => set('logo_url', e.target.value)} placeholder="https://drive.google.com/..." />
+                  {form.logo_url && <img src={form.logo_url} alt='logo' style={{ marginTop: 10, height: 60, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb' }} />}
                 </F>
                 <F label="Brand Assets Folder" hint="Link to folder with ALL your brand files">
                   <FocusInput value={form.brand_assets_url} onChange={e => set('brand_assets_url', e.target.value)} placeholder="https://drive.google.com/drive/folders/..." />
                 </F>
-                <F label="Primary Brand Color">
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <input type="color" value={form.brand_primary_color} onChange={e => set('brand_primary_color', e.target.value)}
-                      style={{ width: 56, height: 52, borderRadius: 10, border: '2px solid #e5e7eb', padding: 3, cursor: 'pointer', flexShrink: 0 }} />
-                    <FocusInput value={form.brand_primary_color} onChange={e => set('brand_primary_color', e.target.value)} placeholder="#000000" />
-                  </div>
-                </F>
-                <F label="Accent / CTA Color">
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <input type="color" value={form.brand_accent_color} onChange={e => set('brand_accent_color', e.target.value)}
-                      style={{ width: 56, height: 52, borderRadius: 10, border: '2px solid #e5e7eb', padding: 3, cursor: 'pointer', flexShrink: 0 }} />
-                    <FocusInput value={form.brand_accent_color} onChange={e => set('brand_accent_color', e.target.value)} placeholder="#ea2729" />
-                  </div>
-                </F>
                 <F label="Brand Fonts" hint="What typefaces does your brand use?">
-                  <FocusInput value={form.brand_fonts} onChange={e => set('brand_fonts', e.target.value)} placeholder="Montserrat (headings), Open Sans (body)" />
+                  <FocusInput value={form.brand_fonts} onChange={e => set('brand_fonts', e.target.value)} placeholder="Montserrat Bold, Open Sans Regular" />
                 </F>
                 <F label="Tagline / Slogan">
-                  <FocusInput value={form.brand_tagline} onChange={e => set('brand_tagline', e.target.value)} placeholder="Your memorable tagline or motto" />
+                  <FocusInput value={form.brand_tagline} onChange={e => set('brand_tagline', e.target.value)} placeholder="Your catchy tagline here" />
                 </F>
               </div>
               <div style={{ marginTop: 20 }}>
-                <F label="Brand Tone & Personality" hint="Pick the one that best describes how your brand communicates">
-                  <PillSelect multi={false} value={form.brand_tone} onChange={v => set('brand_tone', v)}
-                    options={['Professional & Corporate', 'Warm & Friendly', 'Bold & Confident', 'Trustworthy & Reliable', 'Premium & Luxurious', 'Fun & Energetic', 'Educational & Expert', 'Community & Family-Oriented']} />
+                <F label="Brand Colors" hint="Add all your brand colors — primary, secondary, accent, background, text">
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+                    {[['brand_primary_color','Primary'],['brand_accent_color','Accent / CTA']].concat((form.brand_extra_colors||[]).map((c,i)=>[`extra_${i}`,`Extra ${i+1}`])).map(([key,label]) => {
+                      const val = key.startsWith("extra_") ? (form.brand_extra_colors||[])[parseInt(key.split("_")[1])] : form[key] || "#000000"
+                      return (
+                        <div key={key} style={{ textAlign: "center" }}>
+                          <input type='color' value={val}
+                            onChange={e => {
+                              if (key.startsWith("extra_")) {
+                                const idx = parseInt(key.split("_")[1])
+                                const next = [...(form.brand_extra_colors||[])]
+                                next[idx] = e.target.value
+                                set('brand_extra_colors', next)
+                              } else {
+                                set(key, e.target.value)
+                              }
+                            }}
+                            style={{ width: 52, height: 48, borderRadius: 10, border: '2px solid #e5e7eb', padding: 3, cursor: 'pointer', display: 'block' }} />
+                          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 3 }}>{label}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: 'monospace' }}>{val}</div>
+                        </div>
+                      )
+                    })}
+                    <button type='button' onClick={() => set('brand_extra_colors', [...(form.brand_extra_colors||[]), '#000000'])}
+                      style={{ width: 52, height: 48, borderRadius: 10, border: '2px dashed #d1d5db', background: '#f9fafb', cursor: 'pointer', fontSize: 22, color: '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  </div>
+                </F>
+              </div>
+              <div style={{ marginTop: 20 }}>
+                <F label="Brand Tone & Personality" hint="Select all that apply — what words describe your brand voice?">
+                  <PillSelect multi={true} value={form.brand_tone} onChange={v => set('brand_tone', v)}
+                    options={['Professional','Friendly & Warm','Bold & Confident','Trustworthy & Reliable','Premium / Luxury','Playful & Fun','Authoritative / Expert','Empathetic & Caring','Straightforward / No BS','Energetic','Down-to-Earth','Innovative','Traditional / Classic']} />
                 </F>
               </div>
               <div style={{ ...T.grid2, marginTop: 20 }}>
-                <F label="Brand DO's" hint="Things we should always do in your marketing — words, phrases, themes, styles">
+                <F label="Brand DO's" hint="Things we should always do — words, phrases, themes, styles">
                   <FocusTextarea rows={4} value={form.brand_dos} onChange={e => set('brand_dos', e.target.value)}
-                    placeholder="• Always mention 'family-owned'\n• Use the color red in CTAs\n• Emphasize the guarantee\n• Show team photos when possible\n• Use 'we' not 'our team'" />
+                    placeholder={'• Always mention "family-owned"\n• Use red in CTAs\n• Emphasize the guarantee\n• Reference our years in business'} />
                 </F>
-                <F label="Brand DON'Ts" hint="Things to NEVER do — words, topics, styles, tone of voice">
+                <F label="Brand DON'Ts" hint="Things to NEVER do — words, topics, styles, tone">
                   <FocusTextarea rows={4} value={form.brand_donts} onChange={e => set('brand_donts', e.target.value)}
-                    placeholder="• Never promise same-day service (we can't guarantee it)\n• Don't use stock photos\n• Avoid slang\n• Never badmouth competitors by name\n• Don't use the word 'cheap'" />
+                    placeholder={"• Never promise same-day (we can't guarantee it)\n• Don't use stock photos\n• Avoid discounting below $200"} />
                 </F>
               </div>
             </div>
-          </div>
+            </div>
         )}
 
         {/* ── STEP 8: Social ── */}
@@ -1196,6 +1323,9 @@ Product: Water filtration systems — sale and installation..." />
               <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Link everything so we can audit your presence, check what's working, and manage your accounts.</p>
             </div>
             <div style={T.cardBody}>
+              <div style={{ background: '#f0fbfc', border: '1px solid #5bc6d030', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: '#374151' }}>
+                💡 <strong>Leave anything blank</strong> that doesn't apply — we'd rather have more than miss one. You can always come back to this step.
+              </div>
               {[
                 { label: 'Facebook Page URL', k: 'facebook_url', placeholder: 'https://facebook.com/yourpage' },
                 { label: 'Instagram URL', k: 'instagram_url', placeholder: 'https://instagram.com/yourhandle' },
@@ -1203,8 +1333,16 @@ Product: Water filtration systems — sale and installation..." />
                 { label: 'Yelp Business URL', k: 'yelp_url', placeholder: 'https://yelp.com/biz/your-business' },
                 { label: 'LinkedIn Company URL', k: 'linkedin_url', placeholder: 'https://linkedin.com/company/...' },
                 { label: 'TikTok URL', k: 'tiktok_url', placeholder: 'https://tiktok.com/@yourhandle' },
-                { label: '▶️ YouTube Channel URL', k: 'youtube_url', placeholder: 'https://youtube.com/@yourchannel' },
+                { label: 'YouTube Channel URL', k: 'youtube_url', placeholder: 'https://youtube.com/@yourchannel' },
                 { label: 'Twitter / X URL', k: 'twitter_url', placeholder: 'https://twitter.com/yourhandle' },
+                { label: 'Pinterest URL', k: 'pinterest_url', placeholder: 'https://pinterest.com/yourhandle' },
+                { label: 'Nextdoor Business URL', k: 'nextdoor_url', placeholder: 'https://nextdoor.com/pages/...' },
+                { label: 'Threads URL', k: 'threads_url', placeholder: 'https://threads.net/@yourhandle' },
+                { label: 'Snapchat URL', k: 'snapchat_url', placeholder: 'https://snapchat.com/add/yourhandle' },
+                { label: 'Houzz Profile URL', k: 'houzz_url', placeholder: 'https://houzz.com/pro/yourprofile' },
+                { label: "Angi (Angie's List) URL", k: 'angi_url', placeholder: 'https://angi.com/companylist/...' },
+                { label: 'BBB Profile URL', k: 'bbb_url', placeholder: 'https://bbb.org/us/fl/...' },
+                { label: 'Glassdoor URL', k: 'glassdoor_url', placeholder: 'https://glassdoor.com/Overview/...' },
               ].map(s => (
                 <F key={s.k} label={s.label}>
                   <div style={{ display: 'flex', gap: 10 }}>
@@ -1282,6 +1420,12 @@ Product: Water filtration systems — sale and installation..." />
                 <F label="Google Tag Manager ID" hint="Starts with GTM-"><FocusInput value={form.gtm_id} onChange={e => set('gtm_id', e.target.value)} placeholder="GTM-XXXXXXX" /></F>
                 <F label="Facebook Pixel ID" hint="15-16 digit number"><FocusInput value={form.fb_pixel} onChange={e => set('fb_pixel', e.target.value)} placeholder="123456789012345" /></F>
                 <F label="Google Ads Customer ID" hint="Format: XXX-XXX-XXXX"><FocusInput value={form.google_ads_id} onChange={e => set('google_ads_id', e.target.value)} placeholder="123-456-7890" /></F>
+              </div>
+              <div style={{ marginTop: 24, padding: '16px 20px', background: '#f0fbfc', borderRadius: 12, border: '1px solid #5bc6d030' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#0e7490', marginBottom: 6 }}>📋 Next: Platform Access</div>
+                <div style={{ fontSize: 14, color: '#374151' }}>
+                  The next step has step-by-step instructions for granting us access to Google Analytics, Google Ads, Facebook, and more. We've made it as simple as possible — you can come back to it anytime.
+                </div>
               </div>
             </div>
           </div>
@@ -1392,7 +1536,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/google-ads/answer/7459601" linkLabel="Google Ads Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>YouTubeTube</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>YouTube</div>
               <AccessGuide platform="YouTube Channel — Manager Access" icon="▶️"
                 steps={[
                   'Go to studio.youtube.com and log in',
@@ -1405,7 +1549,7 @@ Product: Water filtration systems — sale and installation..." />
                 ]}
                 link="https://support.google.com/youtube/answer/9481328" linkLabel="YouTube's Instructions" />
 
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>Otherer Platforms</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '24px 0 14px' }}>Other Platforms</div>
               <AccessGuide platform="Yelp Business Account" icon="Star"
                 steps={[
                   'Go to biz.yelp.com and log in',
@@ -1448,7 +1592,7 @@ Product: Water filtration systems — sale and installation..." />
               <div style={{ marginTop: 20 }}>
                 <F label="Which platforms are you currently advertising on?">
                   <PillSelect value={form.current_ad_platforms} onChange={v => set('current_ad_platforms', v)}
-                    options={['Google Search Ads', 'Google Display Ads', 'Google Local Service Ads', 'Facebook Ads', 'Instagram Ads', 'TikTok Ads', 'Yelp Ads', 'YouTube Ads', 'LinkedIn Ads', 'Nextdoor Ads', 'Direct Mail', 'Billboards', 'Radio', 'TV', 'None']} />
+                    options={['Google Search Ads', 'Google Display Ads', 'Google Local Service Ads (LSA)', 'Google Shopping Ads', 'Facebook / Instagram Ads', 'TikTok Ads', 'YouTube Ads', 'LinkedIn Ads', 'Pinterest Ads', 'Snapchat Ads', 'Bing / Microsoft Ads', 'Nextdoor Ads', 'Amazon Ads', 'Streaming / Connected TV', 'Radio / Podcast Ads', 'Direct Mail', 'Print Ads', 'Billboard / Outdoor', 'None yet', 'Other']} />
                 </F>
               </div>
               <div style={{ ...T.grid2, marginTop: 20 }}>
@@ -1489,8 +1633,8 @@ Product: Water filtration systems — sale and installation..." />
             </div>
             <div style={T.cardBody}>
               <F label="Primary marketing goal" hint="If you could only have ONE thing, what would it be?">
-                <PillSelect multi={false} value={form.primary_goal} onChange={v => set('primary_goal', v)} color="#8b5cf6"
-                  options={['Get more phone calls', 'More website leads / form fills', 'Grow Google reviews to 100+', 'Rank #1 on Google for my main keyword', 'Dominate local SEO in my area', 'Run profitable Google Ads', 'Build brand awareness', 'Launch new service', 'Expand to new location', 'Grow social following']} />
+                <PillSelect multi={true} value={form.primary_goal} onChange={v => set('primary_goal', v)} color="#8b5cf6"
+                  options={['Get more phone calls / leads', 'More website form fills', 'Grow Google reviews', 'Rank #1 on Google for my main keyword', 'Appear in AI search answers (AEO)', 'Grow brand awareness', 'Launch / rebuild my website', 'Dominate local map pack', 'Improve Google Ads ROI', 'Grow social media following', 'Email list growth', 'Open a new location', 'Hire more staff (growth)', 'Sell more high-ticket services', 'Beat a specific competitor', 'Other']} />
               </F>
               <div style={{ marginTop: 20 }}>
                 <F label="Secondary goals (select all that apply)">
@@ -1506,9 +1650,9 @@ Product: Water filtration systems — sale and installation..." />
                   <FocusSelect value={form.timeline} onChange={e => set('timeline', e.target.value)} placeholder="— Select —"
                     options={['ASAP — results within 30 days', '1-3 months', '3-6 months', '6-12 months', '1-2 years', 'Long-term growth']} />
                 </F>
-                <F label="Monthly budget you're willing to spend with us (agency fees)" hint="This is separate from your ad spend budget">
+                <F label="Monthly budget for agency fees" hint="Management, strategy, content creation — not including your ad spend">
                   <FocusSelect value={form.budget_for_agency} onChange={e => set('budget_for_agency', e.target.value)} placeholder="— Select —"
-                    options={['Under $1,000/month', '$1,000-$2,500/month', '$2,500-$5,000/month', '$5,000-$10,000/month', '$10,000+/month', 'Let\'s discuss']} />
+                    options={['Under $500/month', '$500-$1,000/month', '$1,000-$1,500/month', '$1,500-$2,500/month', '$2,500-$3,500/month', '$3,500-$5,000/month', '$5,000-$7,500/month', '$7,500-$10,000/month', '$10,000-$15,000/month', '$15,000-$25,000/month', '$25,000+/month', 'TBD / Flexible']} />
                 </F>
               </div>
               <div style={{ marginTop: 20 }}>

@@ -17,6 +17,56 @@ const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB    = "'Raleway','Helvetica Neue',sans-serif"
 
+// Fields we track for completion — step number + label for the call
+const REQUIRED_FIELDS = [
+  { key:'first_name',          label:'First Name',                  step:1  },
+  { key:'last_name',           label:'Last Name',                   step:1  },
+  { key:'phone',               label:'Primary Phone',               step:1  },
+  { key:'email',               label:'Email',                       step:1  },
+  { key:'contact_consent',     label:'Contact Preference',          step:1  },
+  { key:'business_name',       label:'Business Name',               step:2  },
+  { key:'industry',            label:'Industry',                    step:2  },
+  { key:'address',             label:'Street Address',              step:2  },
+  { key:'city',                label:'City',                        step:2  },
+  { key:'state',               label:'State',                       step:2  },
+  { key:'business_description',label:'Business Description',        step:2  },
+  { key:'products_services',   label:'Products & Services',         step:3  },
+  { key:'top_services',        label:'Top Services',                step:3  },
+  { key:'service_pricing_model',label:'Pricing Model',              step:3  },
+  { key:'customer_types',      label:'Customer Types',              step:4  },
+  { key:'ideal_customer_desc', label:'Ideal Customer Description',  step:4  },
+  { key:'customer_pain_points',label:'Customer Pain Points',        step:4  },
+  { key:'customer_lifestyle',  label:'Customer Lifestyle',          step:4  },
+  { key:'why_choose_you',      label:'Why Choose You',              step:5  },
+  { key:'unique_value_prop',   label:'Unique Value Proposition',    step:5  },
+  { key:'primary_city',        label:'Primary Market',              step:6  },
+  { key:'growth_scope',        label:'Growth Scope',                step:6  },
+  { key:'logo_url',            label:'Logo File Link',              step:7  },
+  { key:'brand_tone',          label:'Brand Tone',                  step:7  },
+  { key:'brand_primary_color', label:'Primary Brand Color',         step:7  },
+  { key:'google_biz_url',      label:'Google Business Profile URL', step:8  },
+  { key:'ga4_id',              label:'Google Analytics 4 ID',       step:9  },
+  { key:'primary_goal',        label:'Primary Marketing Goal',      step:12 },
+  { key:'budget_for_agency',   label:'Monthly Budget',              step:12 },
+]
+
+function getMissing(profile) {
+  if (!profile) return REQUIRED_FIELDS.map(f => f.label)
+  const missing = []
+  for (const f of REQUIRED_FIELDS) {
+    const v = profile[f.key]
+    const empty = !v || (Array.isArray(v) ? v.length === 0 : v.toString().trim() === '')
+    if (empty) missing.push({ ...f })
+  }
+  return missing
+}
+
+function completionPct(profile) {
+  if (!profile) return 0
+  const missing = getMissing(profile)
+  return Math.round(((REQUIRED_FIELDS.length - missing.length) / REQUIRED_FIELDS.length) * 100)
+}
+
 const STATUS_CFG = {
   complete:  { label: 'Complete',   color: GREEN,  bg: '#f0fdf4', icon: CheckCircle },
   sent:      { label: 'Link Sent',  color: TEAL,   bg: '#f0fbfc', icon: Send        },
@@ -31,6 +81,7 @@ export default function OnboardingDashboardPage() {
   const [loading,  setLoading]  = useState(true)
   const [sending,  setSending]  = useState({})
   const [filter,   setFilter]   = useState('all')
+  const [expanded, setExpanded] = useState({})
   const [search,   setSearch]   = useState('')
 
   useEffect(() => { if (agencyId) load() }, [agencyId])
@@ -178,46 +229,87 @@ export default function OnboardingDashboardPage() {
                 const cfg = STATUS_CFG[status] || STATUS_CFG.not_sent
                 const Icon = cfg.icon
                 const isSending = sending[cl.id]
+                const profile    = cl.profile || cl.onboarding_data || {}
+                const missing    = getMissing(profile)
+                const pct        = completionPct(profile)
+                const isExpanded = expanded[cl.id]
                 return (
-                  <div key={cl.id} style={{ display:'grid', gridTemplateColumns:'1fr 200px 160px 180px', gap:12, padding:'13px 18px', borderBottom:'1px solid #f9fafb', alignItems:'center' }}>
-                    <div>
-                      <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>{cl.name}</div>
-                      {cl.onboarding_completed_at && (
-                        <div style={{ fontSize:11, color:GREEN, fontFamily:FB, marginTop:2 }}>
-                          Completed {new Date(cl.onboarding_completed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                      <div key={cl.id} style={{ borderBottom:'1px solid #f9fafb' }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 120px 140px 200px', gap:12, padding:'13px 18px', alignItems:'center' }}>
+                          <div>
+                            <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>{cl.name}</div>
+                            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
+                              {/* Completion bar */}
+                              <div style={{ flex:1, maxWidth:140, height:5, background:'#f3f4f6', borderRadius:10, overflow:'hidden' }}>
+                                <div style={{ height:'100%', width:`${pct}%`, background:pct===100?GREEN:pct>60?TEAL:AMBER, borderRadius:10, transition:'width .3s' }}/>
+                              </div>
+                              <span style={{ fontSize:11, fontWeight:700, color:pct===100?GREEN:pct>60?TEAL:'#92400e', fontFamily:FH }}>{pct}%</span>
+                              {missing.length > 0 && (
+                                <button type="button" onClick={()=>setExpanded(e=>({...e,[cl.id]:!e[cl.id]}))}
+                                  style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:6, border:'1px solid #fde68a', background:'#fffbeb', color:'#92400e', cursor:'pointer', fontFamily:FH }}>
+                                  {missing.length} missing {isExpanded?'▲':'▼'}
+                                </button>
+                              )}
+                            </div>
+                            {cl.onboarding_completed_at && pct === 100 && (
+                              <div style={{ fontSize:11, color:GREEN, fontFamily:FB, marginTop:2 }}>
+                                Completed {new Date(cl.onboarding_completed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ fontSize:12, fontWeight:700, color:pct===100?GREEN:AMBER, fontFamily:FH, textAlign:'center' }}>
+                            {REQUIRED_FIELDS.length - missing.length}/{REQUIRED_FIELDS.length}<br/>
+                            <span style={{ fontSize:10, color:'#9ca3af', fontWeight:400 }}>fields</span>
+                          </div>
+                          <div>
+                            <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:700, padding:'4px 10px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:FH }}>
+                              <Icon size={11}/> {cfg.label}
+                            </span>
+                          </div>
+                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                            <button onClick={()=>sendLink(cl)} disabled={isSending||!cl.email}
+                              style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, border:'none', background:cl.email?RED:'#f3f4f6', color:cl.email?'#fff':'#9ca3af', fontSize:11, fontWeight:700, cursor:cl.email?'pointer':'default', fontFamily:FH }}>
+                              {isSending?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Send size={10}/>}
+                              {isSending?'Sending…':status==='sent'?'Resend':'Send Link'}
+                            </button>
+                            {cl.onboarding_token && (
+                              <button onClick={()=>copyLink(cl)}
+                                style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                                <Copy size={10}/> Copy
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      {cl.onboarding_sent_at && status !== 'complete' && (
-                        <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginTop:2 }}>
-                          Sent {new Date(cl.onboarding_sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                      {cl.email || <span style={{ color:'#d1d5db', fontStyle:'italic' }}>No email</span>}
-                    </div>
-                    <div>
-                      <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, fontWeight:700, padding:'4px 10px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:FH }}>
-                        <Icon size={11}/> {cfg.label}
-                      </span>
-                    </div>
-                    <div style={{ display:'flex', gap:6 }}>
-                      {status !== 'complete' && (
-                        <button onClick={()=>sendLink(cl)} disabled={isSending||!cl.email}
-                          style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, border:'none', background:cl.email?RED:'#f3f4f6', color:cl.email?'#fff':'#9ca3af', fontSize:11, fontWeight:700, cursor:cl.email?'pointer':'default', fontFamily:FH }}>
-                          {isSending?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Send size={10}/>}
-                          {isSending?'Sending…':status==='sent'?'Resend':'Send'}
-                        </button>
-                      )}
-                      {cl.onboarding_token && (
-                        <button onClick={()=>copyLink(cl)}
-                          style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
-                          <Copy size={10}/> Link
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )
+                        {/* Missing fields expandable */}
+                        {isExpanded && missing.length > 0 && (
+                          <div style={{ padding:'10px 18px 14px', borderTop:'1px solid #f9fafb', background:'#fffbeb' }}>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#92400e', fontFamily:FH, marginBottom:8 }}>
+                              📋 Missing fields — call {cl.name.split(' ')[0]} to collect:
+                            </div>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                              {missing.map(m => (
+                                <span key={m.key} style={{ fontSize:12, padding:'3px 10px', borderRadius:20, background:'#fef3c7', color:'#92400e', border:'1px solid #fde68a', fontFamily:FH, fontWeight:600 }}>
+                                  Step {m.step}: {m.label}
+                                </span>
+                              ))}
+                            </div>
+                            <div style={{ marginTop:10, display:'flex', gap:8, alignItems:'center' }}>
+                              <span style={{ fontSize:12, color:'#92400e', fontFamily:FB }}>Get their onboarding link to resend:</span>
+                              <button onClick={()=>sendLink(cl)} disabled={isSending}
+                                style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:8, border:'none', background:RED, color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                                <Send size={10}/> Resend Link
+                              </button>
+                              {cl.onboarding_token && (
+                                <button onClick={()=>copyLink(cl)}
+                                  style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                                  <Copy size={10}/> Copy Link
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
               })}
             </div>
           )}
