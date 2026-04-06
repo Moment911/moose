@@ -725,6 +725,12 @@ export default function OnboardingPage() {
     // You
     first_name: '', last_name: '', title: '', email: '', phone: '', phone2: '',
     contact_consent: [],  // ['sms','email','calls']
+    // Key Contacts
+    contacts_technical: { first_name:'', last_name:'', title:'', email:'', phone:'' },
+    contacts_billing:   { first_name:'', last_name:'', title:'', email:'', phone:'' },
+    contacts_marketing: { first_name:'', last_name:'', title:'', email:'', phone:'' },
+    contacts_emergency: { first_name:'', last_name:'', title:'', email:'', phone:'' },
+    a2p_legal_name:'', a2p_ein:'', a2p_use_case:'',
     // Business
     business_name: '', legal_name: '', ein: '', industry: '', business_type: '',
     year_founded: '', num_employees: '', annual_revenue: '',
@@ -1245,6 +1251,118 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                   <PillSelect value={form.contact_consent} onChange={v => set('contact_consent', v)}
                     options={['📱 SMS / Text', '📧 Email', '📞 Phone Calls', '📹 Video Call']} />
                 </F>
+
+              {/* ── Key Contacts ── */}
+              <div style={{ marginTop:28 }}>
+                <div style={{ borderBottom:'2px solid #f3f4f6', paddingBottom:12, marginBottom:18, display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:20 }}>👥</span>
+                  <div>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>Key Contacts</div>
+                    <div style={{ fontSize:13, color:'#6b7280', marginTop:2 }}>
+                      Who handles each area of your business? Check "Same as me" to copy your info — or enter someone else.
+                    </div>
+                  </div>
+                </div>
+
+                {([
+                  { key:'contacts_technical',  icon:'💻', label:'Technical Contact',
+                    desc:'Your go-to for website, hosting, domain, and platform access. They may receive login invitations.' },
+                  { key:'contacts_billing',    icon:'💳', label:'Billing Contact',
+                    desc:'Who receives invoices and approves payments. All billing emails and receipts go here.' },
+                  { key:'contacts_marketing',  icon:'📣', label:'Marketing Contact',
+                    desc:'Who reviews ad copy, approves campaigns, and makes day-to-day marketing decisions.' },
+                  { key:'contacts_emergency',  icon:'🚨', label:'Emergency Contact',
+                    desc:'Who we call if something is urgent — site down, account locked, or a time-sensitive issue.' },
+                ]).map(({ key, icon, label, desc }) => {
+                  const contact = form[key] || { first_name:'', last_name:'', title:'', email:'', phone:'' }
+                  const sameAsMe = !!(form.first_name && contact.first_name === form.first_name && contact.email === form.email)
+
+                  function copyPrimary() {
+                    set(key, { first_name: form.first_name, last_name: form.last_name, title: form.title, email: form.email, phone: form.phone })
+                  }
+                  function clearContact() {
+                    set(key, { first_name:'', last_name:'', title:'', email:'', phone:'' })
+                  }
+                  function updateField(field, val) {
+                    set(key, { ...contact, [field]: val })
+                  }
+
+                  // Check if a previously entered contact can be copied
+                  const priorContacts = [
+                    { key:'contacts_technical', label:'Technical' },
+                    { key:'contacts_billing',   label:'Billing' },
+                    { key:'contacts_marketing', label:'Marketing' },
+                    { key:'contacts_emergency', label:'Emergency' },
+                  ].filter(c => c.key !== key && form[c.key]?.first_name && form[c.key]?.email)
+
+                  return (
+                    <div key={key} style={{ background:'#f9fafb', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px', marginBottom:12 }}>
+                      {/* Header row */}
+                      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:14 }}>
+                        <div style={{ display:'flex', alignItems:'flex-start', gap:10, flex:1 }}>
+                          <span style={{ fontSize:20, lineHeight:1.2 }}>{icon}</span>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>{label}</div>
+                            <div style={{ fontSize:12, color:'#9ca3af', lineHeight:1.5, marginTop:2, maxWidth:400 }}>{desc}</div>
+                          </div>
+                        </div>
+                        {/* Same as me checkbox */}
+                        <label style={{ display:'flex', alignItems:'center', gap:6, cursor:'pointer', flexShrink:0, marginLeft:12, paddingTop:2 }}>
+                          <input type="checkbox"
+                            checked={sameAsMe}
+                            onChange={e => e.target.checked ? copyPrimary() : clearContact()}
+                            style={{ width:16, height:16, accentColor:ACCENT, cursor:'pointer' }} />
+                          <span style={{ fontSize:12, fontWeight:700, color:'#374151', whiteSpace:'nowrap' }}>Same as me</span>
+                        </label>
+                      </div>
+
+                      {/* Copy from another contact dropdown */}
+                      {priorContacts.length > 0 && !sameAsMe && (
+                        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:12 }}>
+                          <span style={{ fontSize:12, color:'#9ca3af', alignSelf:'center' }}>Copy from:</span>
+                          {priorContacts.map(pc => (
+                            <button key={pc.key} type="button"
+                              onClick={() => set(key, { ...form[pc.key] })}
+                              style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', cursor:'pointer' }}>
+                              {pc.label} contact
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Content — confirmation card or form */}
+                      {sameAsMe ? (
+                        <div style={{ padding:'10px 14px', background:'#f0fdf4', borderRadius:10, border:'1px solid #bbf7d0', display:'flex', alignItems:'center', gap:10 }}>
+                          <span style={{ color:'#16a34a', fontSize:16 }}>✓</span>
+                          <div style={{ fontSize:13, color:'#166534', lineHeight:1.5 }}>
+                            <strong>{form.first_name} {form.last_name}</strong>
+                            {form.title && <span style={{ color:'#4ade80' }}> · {form.title}</span>}
+                            <br/>{form.email} · {form.phone}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                          <F label="First Name">
+                            <FocusInput value={contact.first_name} onChange={e => updateField('first_name', e.target.value)} placeholder="First name" />
+                          </F>
+                          <F label="Last Name">
+                            <FocusInput value={contact.last_name} onChange={e => updateField('last_name', e.target.value)} placeholder="Last name" />
+                          </F>
+                          <F label="Title / Role">
+                            <FocusInput value={contact.title} onChange={e => updateField('title', e.target.value)} placeholder="IT Director, Controller, VP Marketing…" />
+                          </F>
+                          <F label="Direct Phone" hint="Mobile preferred">
+                            <FocusInput type="tel" value={contact.phone} onChange={e => updateField('phone', e.target.value)} placeholder="(305) 555-0100" />
+                          </F>
+                          <F label="Email Address" span2>
+                            <FocusInput type="email" value={contact.email} onChange={e => updateField('email', e.target.value)} placeholder="name@yourbusiness.com" />
+                          </F>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
               </div>
             </div>
           </div>
@@ -1857,91 +1975,95 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               </div>
 
 
-              {/* ── 2-Step Verification & Phone Registration ── */}
-              <div style={{ marginBottom: 28 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>🔐</div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>Phone Verification & 2-Step Security (Important)</div>
+              {/* ── A2P 10DLC Phone Number Registration ── */}
+              <div style={{ marginBottom:28 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>📲</div>
+                  <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>A2P 10DLC — Phone Number Registration for Texting & Call Tracking</div>
                 </div>
 
-                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '18px 20px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#92400e', marginBottom: 10 }}>📱 Why Google will text or call your phone — and why that's normal</div>
-                  <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.75 }}>
-                    When we connect your Google accounts to our dashboard, Google will send a <strong>verification code to your phone</strong> as a security check. This is called <strong>2-Step Verification (2SV)</strong> — Google's way of confirming that a real, authorized person is approving the connection.
+                {/* What is it */}
+                <div style={{ background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:14, padding:'18px 20px', marginBottom:14 }}>
+                  <div style={{ fontSize:15, fontWeight:700, color:'#1e40af', marginBottom:8 }}>📢 What is A2P 10DLC?</div>
+                  <div style={{ fontSize:14, color:'#374151', lineHeight:1.85 }}>
+                    <strong>A2P</strong> (Application-to-Person) <strong>10DLC</strong> (10-Digit Long Code) is a <strong>mandatory FCC/carrier registration</strong> that every business must complete before they can reliably send text messages or use call tracking numbers.
                     <br/><br/>
-                    <strong>You may receive a text message, phone call, or a "Trying to sign in?" prompt</strong> on your phone. This is completely normal and expected — it means Google's security is working correctly.
+                    AT&T, T-Mobile, and Verizon created this system to stop spam. The result: <strong>any business texting customers from a standard 10-digit phone number — including call tracking lines — must register their brand with The Campaign Registry (TCR)</strong>. Unregistered numbers get silently blocked.
+                    <br/><br/>
+                    <strong>This affects your call tracking, review request texts, appointment reminders, and any SMS your business sends.</strong> We handle the registration — we just need a few details from you below.
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                {/* Without vs With cards */}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
                   {[
-                    {
-                      icon: '📲',
-                      title: "What you'll see",
-                      items: [
-                        'A text with a 6-digit code from Google',
-                        'A phone call with an automated code',
-                        'A "Trying to sign in?" push notification',
-                        'A prompt in your Google app to tap "Yes"',
-                      ]
-                    },
-                    {
-                      icon: '✅',
-                      title: "What to do",
-                      items: [
-                        "Simply tap Yes or enter the code when prompted",
-                        "You'll only need to do this once per account",
-                        "Have your phone nearby when granting access",
-                        "Let your agency team know which number to expect it on",
-                      ]
-                    }
+                    { color:'#dc2626', bg:'#fef2f2', border:'#fecaca', icon:'🚫', title:'WITHOUT Registration',
+                      items:['Call tracking numbers stop delivering leads','Review request texts never reach customers','Appointment reminder SMS silently blocked','Carriers may flag your number as spam','No error shown — messages just disappear'] },
+                    { color:'#16a34a', bg:'#f0fdf4', border:'#bbf7d0', icon:'✅', title:'WITH Registration',
+                      items:['Call tracking works reliably across all carriers','Review request campaigns hit real inboxes','SMS delivers with higher trust scores','TCPA & FCC compliant — no fines','Unlocks higher SMS volume limits'] },
                   ].map(box => (
-                    <div key={box.title} style={{ background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb', padding: '14px 16px' }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 10 }}>{box.icon} {box.title}</div>
-                      {box.items.map((item, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 14, color: '#374151', lineHeight: 1.5 }}>
-                          <span style={{ color: '#16a34a', fontWeight: 800, flexShrink: 0 }}>✓</span> {item}
+                    <div key={box.title} style={{ background:box.bg, borderRadius:12, border:`1px solid ${box.border}`, padding:'14px 16px' }}>
+                      <div style={{ fontSize:13, fontWeight:800, color:box.color, marginBottom:10 }}>{box.icon} {box.title}</div>
+                      {box.items.map((item, idx) => (
+                        <div key={idx} style={{ display:'flex', gap:8, marginBottom:6, fontSize:13, color:'#374151', lineHeight:1.5 }}>
+                          <span style={{ color:box.color, fontWeight:800, flexShrink:0 }}>{box.color.includes('dc') ? '✗' : '✓'}</span>
+                          {item}
                         </div>
                       ))}
                     </div>
                   ))}
                 </div>
 
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '14px 18px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#166534', marginBottom: 6 }}>🔒 Why 2-Step Verification protects your business</div>
-                  <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>
-                    2SV prevents unauthorized access to your Google Business Profile, Google Ads, and Analytics — even if someone knows your password. It cuts account takeover risk by up to 50%. Once enabled, only someone with both your password <em>and</em> your phone can access your account. This is especially critical for your Google Business Profile, since an unauthorized edit to your listing (like a wrong phone number or address) can cost you real customers.
-                  </div>
+                {/* How it works */}
+                <div style={{ background:'#f9fafb', border:'1px solid #e5e7eb', borderRadius:14, padding:'16px 18px', marginBottom:14 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#111', marginBottom:14 }}>🗂️ How it works — we handle most of this for you</div>
+                  {[
+                    { n:'1', title:'Brand Registration', body:'We submit your business legal name, EIN, and address to The Campaign Registry. This verifies you are a legitimate business entity.' },
+                    { n:'2', title:'Campaign Registration', body:'We describe your SMS use cases — call tracking confirmations, review requests, appointment reminders, lead follow-ups — so carriers know what to expect.' },
+                    { n:'3', title:'Carrier Approval', body:'AT&T, T-Mobile, and Verizon review and approve the registration. This typically takes 3–7 business days.' },
+                    { n:'4', title:'Numbers Activated', body:'Your call tracking and business phone numbers are linked to the approved campaign. Texts flow through reliably without carrier filtering.' },
+                  ].map(s => (
+                    <div key={s.n} style={{ display:'flex', gap:12, marginBottom:12, alignItems:'flex-start' }}>
+                      <div style={{ width:26, height:26, borderRadius:'50%', background:ACCENT, color:'#fff', fontSize:13, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{s.n}</div>
+                      <div>
+                        <div style={{ fontSize:13, fontWeight:700, color:'#111', marginBottom:2 }}>{s.title}</div>
+                        <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6 }}>{s.body}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, padding: '14px 18px', marginBottom: 14 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#9a3412', marginBottom: 6 }}>⚠️ Google Business Profile Phone Verification</div>
-                  <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>
-                    If your Google Business Profile hasn't been verified yet, Google will send a <strong>verification code to your listed business phone number</strong>. This is separate from your Google account 2SV — it's Google confirming that your business is real and at that location.
-                    <br/><br/>
-                    <strong>Important:</strong> Make sure the phone number on your Google Business Profile is one you can actually answer or receive texts on. Answering services and IVR systems often won't receive these codes. If you use a virtual number, let us know and we'll plan around it.
+                {/* Collect info */}
+                <div style={{ background:'#fffbeb', border:'1px solid #fde68a', borderRadius:14, padding:'16px 18px' }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#92400e', marginBottom:12 }}>📋 What we need to register your numbers</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+                    <F label="Legal Business Name" hint="Exactly as it appears on your EIN / tax documents">
+                      <FocusInput value={form.a2p_legal_name} onChange={e => set('a2p_legal_name', e.target.value)}
+                        placeholder={form.legal_name || 'Your LLC or Corp name…'} />
+                    </F>
+                    <F label="EIN / Federal Tax ID" hint="Your 9-digit Employer Identification Number (XX-XXXXXXX)">
+                      <FocusInput value={form.a2p_ein} onChange={e => set('a2p_ein', e.target.value)}
+                        placeholder="XX-XXXXXXX" />
+                    </F>
                   </div>
-                </div>
-
-                <div style={{ borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                  <div style={{ background: '#f9fafb', padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#4b5563', borderBottom: '1px solid #e5e7eb' }}>
-                    📋 Phone numbers we may need to verify against
-                  </div>
-                  <div style={{ padding: '14px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Your Google account phone</div>
-                      <div style={{ fontSize: 14, color: '#111', fontWeight: 600 }}>{form.phone || <span style={{ color: '#d1d5db', fontStyle: 'italic' }}>From Step 1 — check your entry</span>}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Your business phone (GBP)</div>
-                      <div style={{ fontSize: 14, color: '#111', fontWeight: 600 }}>{form.phone || <span style={{ color: '#d1d5db', fontStyle: 'italic' }}>Add in Step 1 if different</span>}</div>
-                    </div>
-                  </div>
-                  <div style={{ padding: '10px 16px', background: '#f0fbfc', borderTop: '1px solid #e5e7eb', fontSize: 13, color: '#0e7490' }}>
-                    💡 <strong>Have your phone nearby</strong> when your agency is setting up your accounts — it makes the whole process much faster.
+                  <F label="How do customers consent to receive texts from you?" hint="Carriers require proof of customer opt-in. Pick your primary method.">
+                    <FocusSelect value={form.a2p_use_case} onChange={e => set('a2p_use_case', e.target.value)}
+                      options={[
+                        'Website contact/lead form with SMS opt-in checkbox',
+                        'Customer texts us first (they initiate the conversation)',
+                        'Verbal consent at point of service / appointment booking',
+                        'Scheduling software with built-in SMS consent',
+                        'Paper intake form / service agreement with SMS opt-in',
+                        'Online booking / purchase confirmation page with opt-in',
+                        'Existing customer relationship (transactional only)',
+                      ]} />
+                  </F>
+                  <div style={{ marginTop:12, padding:'10px 14px', background:'rgba(255,255,255,.7)', borderRadius:9, border:'1px solid #fde68a', fontSize:13, color:'#78350f' }}>
+                    💡 <strong>No stress</strong> — if you skip these fields we will collect them on your kickoff call. Pre-filling saves us a step.
                   </div>
                 </div>
               </div>
+
 
               <div style={{ fontSize: 16, fontWeight: 800, color: '#111', marginBottom: 14 }}>Analytics & Tracking</div>
               <AccessGuide platform="Google Analytics 4 (GA4) — Admin Access" icon="BarChart2"
