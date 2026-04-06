@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         headers: { 'Authorization': `Bearer ${api_key}`, 'X-KOTO-Key': api_key, 'X-Koto-API-Key': api_key, 'Content-Type': 'application/json' },
         body: JSON.stringify({ koto_url: APP_URL }),
         signal: AbortSignal.timeout(10000),
-      }).catch(() => null)
+      })
       const connected = testRes?.ok || false
       const siteInfo = connected ? await testRes!.json().catch(() => ({})) : {}
       const { data: site, error } = await sb.from('koto_wp_sites').upsert({
@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
           city: r.city || '', state: r.state || '', page_url: r.page_url || '',
           synced_at: new Date().toISOString(),
         }))
-        await sb.from('koto_wp_rankings').upsert(rows, { onConflict: 'site_id,keyword' }).catch(() => null)
+        await sb.from('koto_wp_rankings').upsert(rows, { onConflict: 'site_id,keyword' })
       }
       return NextResponse.json(result)
     }
