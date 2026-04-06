@@ -706,7 +706,7 @@ export default function WordPressControlPage() {
       body: JSON.stringify({ action:'get_locations', site_id:selected.id, agency_id:agencyId, state:genConfig.state }),
     })
     const data = await res.json()
-    const locs = data.data?.locations || data.data?.cities || (Array.isArray(data.data) ? data.data : [])
+    const locs = data?.data?.locations || data?.data?.cities || data?.locations || []
     setLocations(Array.isArray(locs) ? locs : [])
     setLocLoading(false)
   }
@@ -1029,12 +1029,12 @@ export default function WordPressControlPage() {
                               <div style={{ maxHeight:160, overflowY:'auto', borderRadius:9,
                                 border:'1px solid #e5e7eb', background:'#fafafa' }}>
                                 {locations.slice(0,100).map(loc => {
-                                  const sel = genConfig.selected_locations.includes(loc.id)
+                                  const sel = genConfig.selected_locations.includes(loc.city + "_" + (loc.state_code || loc.state || genConfig.state))
                                   return (
-                                    <div key={loc.id} onClick={() => setGenConfig(p => ({
+                                    <div key={loc.city + "_" + (loc.state_code || loc.state || genConfig.state)} onClick={() => setGenConfig(p => ({
                                       ...p, selected_locations: sel
-                                        ? p.selected_locations.filter(x => x !== loc.id)
-                                        : [...p.selected_locations, loc.id]
+                                        ? p.selected_locations.filter(x => x !== loc.city + "_" + (loc.state_code || loc.state || genConfig.state))
+                                        : [...p.selected_locations, loc.city + "_" + (loc.state_code || loc.state || genConfig.state)]
                                     }))}
                                       style={{ display:'flex', alignItems:'center', gap:8,
                                         padding:'6px 10px', cursor:'pointer',
