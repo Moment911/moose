@@ -262,6 +262,81 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+
+    // ── List all pages/posts from site ───────────────────────────────────────
+    if (action === 'list_content') {
+      const { post_type = 'page' } = body
+      const result = await proxyToPlugin(site, `content/list?type=${post_type}`, 'GET')
+      return NextResponse.json(result)
+    }
+
+    // ── Get single page/post content for editing ──────────────────────────────
+    if (action === 'get_content') {
+      const { post_id } = body
+      const result = await proxyToPlugin(site, `content/${post_id}`, 'GET')
+      return NextResponse.json(result)
+    }
+
+    // ── Create or update a page/post ──────────────────────────────────────────
+    if (action === 'save_content') {
+      const { post_id, title, content, meta_description, focus_keyword,
+              post_type, status, slug, featured_image_url } = body
+      const endpoint = post_id ? `content/${post_id}` : 'content/create'
+      const method   = post_id ? 'PUT' : 'POST'
+      const result   = await proxyToPlugin(site, endpoint, method, {
+        title, content, meta_description, focus_keyword,
+        post_type: post_type || 'page', status: status || 'draft',
+        slug, featured_image_url,
+      })
+      // Update cached pages in Supabase if published
+      if (result.ok && result.data?.post_id) {
+        const sb2 = getSupabase()
+        await sb2.from('koto_wp_pages').upsert({
+          site_id:    site.id,
+          client_id:  site.client_id,
+          wp_post_id: result.data.post_id,
+          title,
+          slug:       result.data.slug || slug,
+          url:        result.data.url,
+          status:     status || 'draft',
+          keyword:    focus_keyword,
+        }, { onConflict: 'site_id,wp_post_id' })
+      }
+      return NextResponse.json(result)
+    }
+
+    // ── Delete a page/post ─────────────────────────────────────────────────────
+    if (action === 'delete_content') {
+      const { post_id } = body
+      const result = await proxyToPlugin(site, `content/${post_id}`, 'DELETE')
+      if (result.ok) {
+        const sb2 = getSupabase()
+        await sb2.from('koto_wp_pages').delete()
+          .eq('site_id', site.id).eq('wp_post_id', post_id)
+      }
+      return NextResponse.json(result)
+    }
+
+    // ── Fetch site styles for preview (CSS + fonts) ───────────────────────────
+    if (action === 'get_styles') {
+      const result = await proxyToPlugin(site, 'styles', 'GET')
+      return NextResponse.json(result)
+    }
+
+    // ── AI-generate content for a page ────────────────────────────────────────
+    if (action === 'ai_generate_content') {
+      const { title, keyword, location, page_type, tone, word_count, schema_type, aeo } = body
+      const result = await proxyToPlugin(site, 'content/ai-generate', 'POST', {
+        title, keyword, location, page_type, tone,
+        word_count: word_count || 800,
+        schema_type: schema_type || 'LocalBusiness',
+        aeo: aeo !== false,
+        site_url: site.site_url,
+        client_id: site.client_id,
+      })
+      return NextResponse.json(result)
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })

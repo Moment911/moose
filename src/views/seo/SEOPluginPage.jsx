@@ -33,7 +33,7 @@ export default function SEOPluginPage() {
 
   async function loadSites() {
     try {
-      const { data } = await supabase.from('lucy_wp_sites').select('*, clients(name)').order('created_at', { ascending: false })
+      const { data } = await supabase.from('koto_wp_sites').select('*, clients(name)').order('created_at', { ascending: false })
       setSites(data || [])
       if (data?.length && !selected) setSelected(data[0])
     } catch { setSites([]) }
@@ -56,7 +56,7 @@ export default function SEOPluginPage() {
         if (res.ok) { const info = await res.json(); siteName = info.site_name || cleanUrl }
       } catch {}
 
-      await supabase.from('lucy_wp_sites').upsert({ url: cleanUrl, api_key: form.apiKey, client_id: form.clientId || null, site_name: siteName, connected: true, last_synced: new Date().toISOString() }, { onConflict: 'url' })
+      await supabase.from('koto_wp_sites').upsert({ url: cleanUrl, api_key: form.apiKey, client_id: form.clientId || null, site_name: siteName, connected: true, last_synced: new Date().toISOString() }, { onConflict: 'url' })
       toast.success('Site connected!'); setAdding(false); setForm({ url: '', apiKey: '', clientId: '' }); loadSites()
     } catch (e) { toast.error(e.message) }
     setTesting(false)
@@ -65,20 +65,39 @@ export default function SEOPluginPage() {
   async function triggerAction(action) {
     if (!selected) return
     setActiveAction(action); setActionResult(null)
+    // Map legacy action keys to /api/wp actions
+    const actionMap = {
+      generateBatch:          'generate_blog',
+      generateRecommendations:'proxy',
+      generateStrategy:       'proxy',
+      runAutomation:          'run_automation',
+      rebuildSitemap:         'rebuild_sitemap',
+      syncGSC:                'sync_rankings',
+      linksAudit:             'proxy',
+      pingSearchEngines:      'rebuild_sitemap',
+    }
+    const wpAction = actionMap[action] || action
     try {
-      const res = await fetch(`${selected.url}/wp-json/hlseo/v1/${action === 'rebuildSitemap' ? 'sitemap/rebuild' : action === 'syncGSC' ? 'gsc/sync' : action === 'linksAudit' ? 'links/audit' : action === 'pingSearchEngines' ? 'ping/search-engines' : action === 'runAutomation' ? 'automation/run-now' : action === 'generateRecommendations' ? 'recommendations/generate' : action === 'generateStrategy' ? 'strategy/generate' : 'generate/batch'}`, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${selected.api_key}`, 'X-HLSEO-Key': selected.api_key, 'Content-Type': 'application/json' }, body: '{}'
+      const res = await fetch('/api/wp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: wpAction,
+          site_id: selected.id,
+          agency_id: agencyId,
+          ...(wpAction === 'proxy' ? { endpoint: action, method: 'POST', payload: {} } : {})
+        })
       })
       const data = await res.json()
-      setActionResult({ success: res.ok, data })
-      toast[res.ok ? 'success' : 'error'](res.ok ? 'Action completed!' : data.message || 'Failed')
-    } catch (e) { toast.error('Connection failed: ' + e.message) }
+      setActionResult({ success: data.ok, data: data.data || data })
+      toast[data.ok ? 'success' : 'error'](data.ok ? 'Action completed!' : data.error || 'Failed')
+    } catch (e) { toast.error('Request failed: ' + e.message) }
     setActiveAction(null)
   }
 
   async function deleteSite(id) {
     if (!confirm('Remove this site?')) return
-    await supabase.from('lucy_wp_sites').delete().eq('id', id)
+    await supabase.from('koto_wp_sites').delete().eq('id', id)
     setSites(s => s.filter(x => x.id !== id))
     if (selected?.id === id) setSelected(null)
     toast.success('Removed')
