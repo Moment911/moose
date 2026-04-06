@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { getOnboardingToken, upsertClientProfile, markTokenUsed } from '../lib/supabase';
+import { supabase, getOnboardingToken, upsertClientProfile, markTokenUsed } from '../lib/supabase';
 import { callClaude } from '../lib/ai';
 import { SIC_CODES, SIC_DIVISIONS } from '../lib/sicCodes';
 import SearchableSelect from '../components/SearchableSelect';
@@ -962,6 +962,17 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       });
       await markTokenUsed(token);
       localStorage.removeItem(`onboarding-${token}`);
+
+      // ── Save full raw form into client_profiles.onboarding_form ──────────
+      // This powers the Client Profile viewer, DOCX/PDF export, and search
+      try {
+        await supabase.from('client_profiles').upsert({
+          client_id:       tokenData.client_id,
+          onboarding_form: form,
+          business_name:   form.business_name,
+          updated_at:      new Date().toISOString(),
+        }, { onConflict: 'client_id' });
+      } catch (e) { console.warn('Profile upsert failed:', e); }
 
       // Trigger automation: create agent config + first analysis
       if (tokenData?.client_id && tokenData?.agency_id) {
