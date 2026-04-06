@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
             subject: `Your Koto trial ends ${trialEnd} — upgrade to keep access`,
           html: `<div style="font-family:Helvetica,sans-serif;max-width:500px;margin:0 auto;padding:24px;">
             <h2 style="color:#0a0a0a;">Your trial ends ${trialEnd}</h2>
-            <p style="color:#374151;line-height:1.7;">Your Koto ${subscription.metadata?.plan || ''} plan trial will end in 3 days. To keep full access to all your clients, SEO tools, and the CMO agent, upgrade now.</p>
+            <p style="color:#374151;line-height:1.7;">Your Koto ${trialSub.metadata?.plan || ''} plan trial will end in 3 days. To keep full access to all your clients, SEO tools, and the CMO agent, upgrade now.</p>
             <a href="${process.env.NEXT_PUBLIC_APP_URL}/billing" style="display:inline-block;padding:12px 24px;background:#ea2729;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;">Upgrade Now →</a>
           </div>`
           }).catch(() => {})
