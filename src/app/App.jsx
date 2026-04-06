@@ -75,6 +75,7 @@ import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
 import SettingsPage from '../views/SettingsPage'
 import ClientDetailPage from '../views/ClientDetailPage'
+import ClientDocumentsPage from '../views/ClientDocumentsPage'
 import OnboardingPage from '../views/OnboardingPage'
 import MarketingSitePage from '../views/MarketingSitePage'
 import AgencySignupPage from '../views/AgencySignupPage'
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="/setup" element={<AgencySettingsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
+          <Route path="/clients/:clientId/documents" element={<ClientDocumentsPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />
