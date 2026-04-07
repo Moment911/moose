@@ -178,6 +178,8 @@ export default function App() {
       <ClientProvider>
       <MobileMenuProvider>
         <Toaster position="top-right" />
+        <CommandPalette />
+        <OnboardingWizard />
         <Routes>
           {/* ── Public routes (no shell) ── */}
           <Route path="/" element={<HomeSplitter />} />
@@ -200,9 +202,14 @@ export default function App() {
 
           {/* ── All app routes (with shell + auth) ── */}
           <Route path="/*" element={
+            <MobileShell>
+            <ImpersonationBar/>
+            <AgencyControlPanel/>
             <RequireAuth>
             <AppRoutes />
             </RequireAuth>
+            <DialPad />
+            </MobileShell>
           } />
         </Routes>
       </MobileMenuProvider>

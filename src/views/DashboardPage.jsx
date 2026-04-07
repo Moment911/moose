@@ -82,6 +82,58 @@ function SkeletonCard({ children, style }) {
   )
 }
 
+/* ── Extracted sub-components (must be outside DashboardPage to avoid #310) ── */
+function DashStatCard({ label, value, icon: Icon, accent = T, loading: isLoading }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: '18px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: 0.7, borderRadius: '14px 14px 0 0' }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>
+            {isLoading ? <SkeletonBar w={48} h={28} /> : value}
+          </div>
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+        </div>
+        {Icon && (<div style={{ width: 38, height: 38, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={18} color={accent} /></div>)}
+      </div>
+    </div>
+  )
+}
+
+function DashActionTile({ icon: Icon, label, to, bg, onClick }) {
+  return (
+    <button onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '20px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: bg, color: '#fff', fontFamily: FH, fontSize: 13, fontWeight: 700, transition: 'all .18s ease', boxShadow: `0 4px 14px ${bg}30` }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${bg}40` }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 14px ${bg}30` }}>
+      <Icon size={22} />{label}
+    </button>
+  )
+}
+
+function DashLogRow({ log, showLevel = false }) {
+  const dotColor = LOG_LEVEL_COLOR[log.level] || '#6b7280'
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 0', borderBottom: '1px solid #f2f2f0' }}>
+      <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: dotColor, marginTop: 5 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {showLevel && (<span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: dotColor + '15', color: dotColor, textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 8 }}>{log.level}</span>)}
+        <span style={{ fontSize: 13, color: BLK, fontFamily: FB, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', maxWidth: '100%' }}>{log.message}</span>
+        <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>{timeAgo(log.created_at)}</div>
+      </div>
+    </div>
+  )
+}
+
+function DashStatusDot({ label, status }) {
+  const color = status === 'green' ? GRN : status === 'amber' ? AMB : R
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, boxShadow: `0 0 6px ${color}60` }} />
+      <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK }}>{label}</span>
+    </div>
+  )
+}
+
 /* ══════════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
    ══════════════════════════════════════════════════════════════════════════════ */
@@ -310,121 +362,8 @@ export default function DashboardPage() {
      ══════════════════════════════════════════════════════════════════════════ */
 
   /* ── Stat Card ────────────────────────────────────────────────────────────── */
-  function StatCard({ label, value, icon: Icon, color = '#fff', accent = T }) {
-    return (
-      <div style={{
-        background: '#fff', borderRadius: 14, border: '1px solid #ececea',
-        padding: '18px', position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-          background: accent, opacity: 0.7, borderRadius: '14px 14px 0 0',
-        }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{
-              fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK,
-              lineHeight: 1, letterSpacing: '-.03em',
-            }}>
-              {loading ? <SkeletonBar w={48} h={28} /> : value}
-            </div>
-            <div style={{
-              fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH,
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em',
-            }}>
-              {label}
-            </div>
-          </div>
-          {Icon && (
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: accent + '15', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Icon size={18} color={accent} />
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  /* ── Quick Action Tile ────────────────────────────────────────────────────── */
-  function ActionTile({ icon: Icon, label, to, bg }) {
-    return (
-      <button
-        onClick={() => navigate(to)}
-        style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', gap: 10, padding: '20px 12px',
-          borderRadius: 14, border: 'none', cursor: 'pointer',
-          background: bg, color: '#fff', fontFamily: FH, fontSize: 13,
-          fontWeight: 700, transition: 'all .18s ease',
-          boxShadow: `0 4px 14px ${bg}30`,
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${bg}40` }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 14px ${bg}30` }}
-      >
-        <Icon size={22} />
-        {label}
-      </button>
-    )
-  }
-
-  /* ── Log/Activity Row ─────────────────────────────────────────────────────── */
-  function LogRow({ log, showLevel = false }) {
-    const dotColor = LOG_LEVEL_COLOR[log.level] || '#6b7280'
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'flex-start', gap: 12,
-        padding: '10px 0', borderBottom: '1px solid #f2f2f0',
-      }}>
-        <div style={{
-          width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-          background: dotColor, marginTop: 5,
-        }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {showLevel && (
-            <span style={{
-              fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
-              background: dotColor + '15', color: dotColor,
-              textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 8,
-            }}>
-              {log.level}
-            </span>
-          )}
-          <span style={{
-            fontSize: 13, color: BLK, fontFamily: FB,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            display: 'inline-block', maxWidth: '100%',
-          }}>
-            {log.message}
-          </span>
-          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>
-            {timeAgo(log.created_at)}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  /* ── Status Dot ───────────────────────────────────────────────────────────── */
-  function StatusDot({ label, status }) {
-    const color = status === 'green' ? GRN : status === 'amber' ? AMB : R
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{
-          width: 10, height: 10, borderRadius: '50%', background: color,
-          boxShadow: `0 0 6px ${color}60`,
-        }} />
-        <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK }}>{label}</span>
-      </div>
-    )
-  }
-
-  /* ── Refresh indicator ────────────────────────────────────────────────────── */
-  function RefreshBadge() {
-    return (
+  /* ── Refresh indicator (inline JSX, not a component) ── */
+  const refreshBadge = (
       <div style={{
         display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
         color: 'rgba(255,255,255,.35)', fontFamily: FB,
@@ -433,7 +372,6 @@ export default function DashboardPage() {
         Auto-refresh {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </div>
     )
-  }
 
   /* ══════════════════════════════════════════════════════════════════════════
      AGENCY ADMIN — QUICK ACTIONS
@@ -485,7 +423,7 @@ export default function DashboardPage() {
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', margin: 0, fontFamily: FB }}>
               {agencyStats.activeClients} clients &middot; {agencyStats.wpSites} WP sites
             </p>
-            <RefreshBadge />
+            {refreshBadge}
           </div>
         </div>
 
@@ -582,9 +520,9 @@ export default function DashboardPage() {
         <MobileSectionHeader title="System Status" />
         <MobileCard style={{ margin: '0 16px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0' }}>
-            <StatusDot label="Database"  status={systemHealth.database} />
-            <StatusDot label="App"       status={systemHealth.app} />
-            <StatusDot label="WordPress" status={systemHealth.wordpress} />
+            <DashStatusDot label="Database"  status={systemHealth.database} />
+            <DashStatusDot label="App"       status={systemHealth.app} />
+            <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
           </div>
         </MobileCard>
       </MobilePage>
@@ -620,7 +558,7 @@ export default function DashboardPage() {
             }}>
               Uptime {superStats.uptime}
             </span>
-            <RefreshBadge />
+            {refreshBadge}
           </div>
         </div>
 
@@ -741,7 +679,7 @@ export default function DashboardPage() {
                 }}>
                   Uptime {superStats.uptime}
                 </span>
-                <RefreshBadge />
+                {refreshBadge}
               </div>
             </div>
           </div>
@@ -777,18 +715,18 @@ export default function DashboardPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 14,
             }}>
-              <StatCard label="Agency Clients"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
-              <StatCard label="End Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
-              <StatCard label="Total Pages"       value={superStats.totalPages}     icon={FileText}    accent={GRN} />
-              <StatCard label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
+              <DashStatCard loading={loading} label="Agency Clients"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
+              <DashStatCard loading={loading} label="End Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
+              <DashStatCard loading={loading} label="Total Pages"       value={superStats.totalPages}     icon={FileText}    accent={GRN} />
+              <DashStatCard loading={loading} label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
             </div>
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
             }}>
-              <StatCard label="Voice Agents"     value={superStats.voiceAgents}    icon={Phone}       accent={'#7c3aed'} />
-              <StatCard label="Total Calls"      value={superStats.totalCalls}     icon={Phone}       accent={T} />
-              <StatCard label="Errors (24h)"     value={superStats.totalErrors24h} icon={AlertCircle} accent={superStats.totalErrors24h > 0 ? R : '#6b7280'} />
-              <StatCard label="System Uptime"    value={superStats.uptime}         icon={Activity}    accent={GRN} />
+              <DashStatCard loading={loading} label="Voice Agents"     value={superStats.voiceAgents}    icon={Phone}       accent={'#7c3aed'} />
+              <DashStatCard loading={loading} label="Total Calls"      value={superStats.totalCalls}     icon={Phone}       accent={T} />
+              <DashStatCard loading={loading} label="Errors (24h)"     value={superStats.totalErrors24h} icon={AlertCircle} accent={superStats.totalErrors24h > 0 ? R : '#6b7280'} />
+              <DashStatCard loading={loading} label="System Uptime"    value={superStats.uptime}         icon={Activity}    accent={GRN} />
             </div>
 
             {/* Quick Actions */}
@@ -796,7 +734,7 @@ export default function DashboardPage() {
               display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 24,
             }}>
               {SUPER_ACTIONS.map(a => (
-                <ActionTile key={a.label} icon={a.icon} label={a.label} to={a.to || '#'} bg={a.bg} />
+                <DashActionTile key={a.label} icon={a.icon} label={a.label} bg={a.bg} onClick={() => a.action ? a.action() : navigate(a.to || '/')} />
               ))}
             </div>
 
@@ -886,7 +824,7 @@ export default function DashboardPage() {
                       <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>
                         <Check size={20} color={GRN} style={{ marginBottom: 8 }} /><br />No recent errors
                       </div>
-                    ) : recentErrors.slice(0, 5).map(log => <LogRow key={log.id} log={log} showLevel />)}
+                    ) : recentErrors.slice(0, 5).map(log => <DashLogRow key={log.id} log={log} showLevel />)}
                   </div>
                 </div>
 
@@ -900,7 +838,7 @@ export default function DashboardPage() {
                       <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
                     ) : activityFeed.length === 0 ? (
                       <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>No activity yet</div>
-                    ) : activityFeed.slice(0, 8).map(log => <LogRow key={log.id} log={log} showLevel />)}
+                    ) : activityFeed.slice(0, 8).map(log => <DashLogRow key={log.id} log={log} showLevel />)}
                   </div>
                 </div>
               </div>
@@ -1025,7 +963,7 @@ export default function DashboardPage() {
               </h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <RefreshBadge />
+              {refreshBadge}
               <button onClick={() => navigate('/clients')} style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '10px 20px', borderRadius: 10, border: 'none',
@@ -1045,21 +983,21 @@ export default function DashboardPage() {
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 16,
           }}>
-            <StatCard label="Active Clients"     value={agencyStats.activeClients}    icon={Users}      accent={R} />
-            <StatCard label="Pages Generated"     value={agencyStats.pagesGenerated}   icon={FileText}   accent={T} />
-            <StatCard label="Reviews Collected"   value={agencyStats.reviewsCollected} icon={Star}       accent={GRN} />
-            <StatCard label="Scout Leads"         value={agencyStats.scoutLeads}       icon={Target}     accent={T} />
-            <StatCard label="WP Sites"            value={agencyStats.wpSites}          icon={HardDrive}  accent={AMB} />
+            <DashStatCard loading={loading} label="Active Clients"     value={agencyStats.activeClients}    icon={Users}      accent={R} />
+            <DashStatCard loading={loading} label="Pages Generated"     value={agencyStats.pagesGenerated}   icon={FileText}   accent={T} />
+            <DashStatCard loading={loading} label="Reviews Collected"   value={agencyStats.reviewsCollected} icon={Star}       accent={GRN} />
+            <DashStatCard loading={loading} label="Scout Leads"         value={agencyStats.scoutLeads}       icon={Target}     accent={T} />
+            <DashStatCard loading={loading} label="WP Sites"            value={agencyStats.wpSites}          icon={HardDrive}  accent={AMB} />
           </div>
 
           {/* ── Stats Row 2: 4 cards ──────────────────────────────────────── */}
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
           }}>
-            <StatCard label="Tasks Due Today"  value={agencyStats.tasksDue}       icon={Clock}         accent={AMB} />
-            <StatCard label="Open Proposals"   value={agencyStats.openProposals}  icon={FileSignature} accent={'#7c3aed'} />
-            <StatCard label="Desk Tickets"     value={agencyStats.deskTickets}    icon={Inbox}         accent={agencyStats.deskTickets > 0 ? R : '#6b7280'} />
-            <StatCard label="Avg Rating"       value={agencyStats.avgRating ? `${agencyStats.avgRating} ★` : '—'} icon={Star} accent={GRN} />
+            <DashStatCard loading={loading} label="Tasks Due Today"  value={agencyStats.tasksDue}       icon={Clock}         accent={AMB} />
+            <DashStatCard loading={loading} label="Open Proposals"   value={agencyStats.openProposals}  icon={FileSignature} accent={'#7c3aed'} />
+            <DashStatCard loading={loading} label="Desk Tickets"     value={agencyStats.deskTickets}    icon={Inbox}         accent={agencyStats.deskTickets > 0 ? R : '#6b7280'} />
+            <DashStatCard loading={loading} label="Avg Rating"       value={agencyStats.avgRating ? `${agencyStats.avgRating} ★` : '—'} icon={Star} accent={GRN} />
           </div>
 
           {/* ── Quick Actions: 4x2 grid ───────────────────────────────────── */}
@@ -1074,7 +1012,7 @@ export default function DashboardPage() {
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14,
             }}>
               {AGENCY_ACTIONS.map(a => (
-                <ActionTile key={a.to} icon={a.icon} label={a.label} to={a.to} bg={a.bg} />
+                <DashActionTile key={a.to} icon={a.icon} label={a.label} bg={a.bg} onClick={() => navigate(a.to)} />
               ))}
             </div>
           </div>
@@ -1117,7 +1055,7 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   recentActivity.map(log => (
-                    <LogRow key={log.id} log={log} showLevel />
+                    <DashLogRow key={log.id} log={log} showLevel />
                   ))
                 )}
               </div>
@@ -1226,9 +1164,9 @@ export default function DashboardPage() {
                   System Status
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <StatusDot label="Database"  status={systemHealth.database} />
-                  <StatusDot label="App"       status={systemHealth.app} />
-                  <StatusDot label="WordPress" status={systemHealth.wordpress} />
+                  <DashStatusDot label="Database"  status={systemHealth.database} />
+                  <DashStatusDot label="App"       status={systemHealth.app} />
+                  <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
                 </div>
                 <div style={{
                   fontSize: 11, color: '#9a9a96', marginTop: 14, fontFamily: FB,
