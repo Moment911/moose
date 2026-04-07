@@ -628,5 +628,75 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data)
   }
 
+  /* ── Trigger Vercel deploy ────────────────────────────────────────────── */
+  if (action === 'trigger_deploy') {
+    const hook = process.env.VERCEL_DEPLOY_HOOK
+    if (!hook) return NextResponse.json({ error: 'VERCEL_DEPLOY_HOOK not configured' }, { status: 500 })
+    try {
+      const res = await fetch(hook, { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      return NextResponse.json({ success: res.ok, status: res.status, data })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  /* ── Auto-heal all open errors ──────────────────────────────────────── */
+  if (action === 'auto_heal_run') {
+    const { data: openErrors } = await sb.from('koto_qa_errors')
+      .select('*')
+      .eq('resolved', false)
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (!openErrors || openErrors.length === 0) {
+      return NextResponse.json({ healed: 0, pending: 0, total: 0, repairs: [] })
+    }
+
+    const repairs: any[] = []
+    for (const err of openErrors) {
+      let repairType = 'auto_resolve'
+      let repairDescription = 'Marked for manual review'
+      let canAutoResolve = false
+
+      if (err.message?.includes('not set') || err.message?.includes('not configured')) {
+        repairType = 'config_check'
+        repairDescription = 'Environment variable missing — requires manual configuration'
+      } else if (err.message?.includes('does not exist')) {
+        repairType = 'schema_repair'
+        repairDescription = 'Table missing — run pending migrations'
+      } else if (err.message?.includes('connection') || err.message?.includes('timeout')) {
+        repairType = 'connection_retry'
+        repairDescription = 'Connection issue — marked as transient, will retry'
+        canAutoResolve = true
+      }
+
+      const { data: repair } = await sb.from('koto_qa_repairs').insert({
+        error_id: err.id,
+        repair_type: repairType,
+        description: repairDescription,
+        auto: true,
+        status: canAutoResolve ? 'applied' : 'pending',
+        applied_at: canAutoResolve ? new Date().toISOString() : null,
+      }).select().single()
+
+      if (canAutoResolve) {
+        await sb.from('koto_qa_errors').update({
+          resolved: true, resolved_at: new Date().toISOString(),
+          resolved_by: 'self_heal', auto_healed: true,
+        }).eq('id', err.id)
+      }
+
+      repairs.push({ error_id: err.id, repair_type: repairType, auto_resolved: canAutoResolve })
+    }
+
+    return NextResponse.json({
+      healed: repairs.filter(r => r.auto_resolved).length,
+      pending: repairs.filter(r => !r.auto_resolved).length,
+      total: repairs.length,
+      repairs,
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }

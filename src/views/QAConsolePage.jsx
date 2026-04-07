@@ -9,6 +9,7 @@ import {
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
+import toast from 'react-hot-toast'
 
 const R   = '#ea2729'
 const T   = '#5bc6d0'
@@ -21,6 +22,7 @@ const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
 const TABS = ['Test Runner', 'Error Log', 'Repair Center', 'Communications', 'Reports', 'History']
 const TAB_ICONS = [Play, AlertCircle, Wrench, Mail, BarChart2, Clock]
+const QA_CSS = `@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}`
 
 function timeAgo(d) {
   if (!d) return ''
@@ -45,6 +47,8 @@ export default function QAConsolePage() {
   const [selectedSuites, setSelectedSuites] = useState([])
   const [runResult, setRunResult] = useState(null)
   const [running, setRunning] = useState(false)
+  const [selfHealMode, setSelfHealMode] = useState(false)
+  const [deploying, setDeploying] = useState(false)
 
   // Error Log state
   const [errors, setErrors] = useState([])
@@ -120,10 +124,47 @@ export default function QAConsolePage() {
       })
       const data = await res.json()
       setRunResult(data)
+
+      // Auto-heal if enabled and there were failures
+      if (selfHealMode && data.failed > 0) {
+        try {
+          const healRes = await fetch('/api/qa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'auto_heal_run' }),
+          })
+          const healData = await healRes.json()
+          toast.success(`Self-Heal: ${healData.total} errors detected, ${healData.healed} auto-resolved, ${healData.pending} need review`)
+        } catch {
+          toast.error('Self-heal failed to run')
+        }
+      } else if (data.failed === 0 && data.total > 0) {
+        toast.success(`All ${data.total} tests passed!`)
+      }
     } catch (e) {
       setRunResult({ error: 'Failed to run tests' })
     }
     setRunning(false)
+  }
+
+  async function triggerDeploy() {
+    setDeploying(true)
+    try {
+      const res = await fetch('/api/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'trigger_deploy' }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success('Deploy triggered! Check Vercel dashboard.')
+      } else {
+        toast.error(data.error || 'Deploy failed')
+      }
+    } catch {
+      toast.error('Failed to trigger deploy')
+    }
+    setDeploying(false)
   }
 
   async function selfHeal(errorId) {
@@ -601,6 +642,7 @@ export default function QAConsolePage() {
       display: 'flex', height: '100vh', overflow: 'hidden',
       background: GRY, fontFamily: FB,
     }}>
+      <style>{QA_CSS}</style>
       {!isMobile && <Sidebar />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
@@ -614,14 +656,42 @@ export default function QAConsolePage() {
                 Platform testing, error tracking, communications monitoring
               </p>
             </div>
-            <button onClick={() => { startRun() }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-                borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
-              }}>
-              <Play size={14} /> Quick Run All
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Self-heal toggle */}
+              <button onClick={() => setSelfHealMode(m => !m)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px',
+                  borderRadius: 8, border: selfHealMode ? `1px solid ${GRN}50` : '1px solid rgba(255,255,255,.15)',
+                  cursor: 'pointer', background: selfHealMode ? GRN + '18' : 'rgba(255,255,255,.06)',
+                  color: selfHealMode ? GRN : 'rgba(255,255,255,.5)', fontSize: 12, fontWeight: 700, fontFamily: FH,
+                  transition: 'all .2s',
+                }}>
+                {selfHealMode && <span style={{ width: 8, height: 8, borderRadius: '50%', background: GRN, boxShadow: `0 0 8px ${GRN}`, animation: 'pulse 2s infinite' }} />}
+                <Shield size={13} />
+                Self-Heal {selfHealMode ? 'ON' : 'OFF'}
+              </button>
+              {/* Deploy button */}
+              <button onClick={triggerDeploy} disabled={deploying}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                  borderRadius: 8, border: '1px solid rgba(255,255,255,.15)',
+                  cursor: deploying ? 'wait' : 'pointer', background: 'rgba(255,255,255,.06)',
+                  color: 'rgba(255,255,255,.6)', fontSize: 12, fontWeight: 700, fontFamily: FH,
+                  opacity: deploying ? 0.5 : 1,
+                }}>
+                {deploying ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={13} />}
+                Deploy
+              </button>
+              {/* Run all */}
+              <button onClick={() => { startRun() }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+                  borderRadius: 10, border: 'none', cursor: 'pointer',
+                  background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH,
+                }}>
+                <Play size={14} /> Quick Run All
+              </button>
+            </div>
           </div>
 
           {/* Tab bar */}
