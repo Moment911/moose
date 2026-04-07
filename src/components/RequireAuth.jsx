@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 
 // Public routes that don't need auth
-const PUBLIC_ROUTES = ['/login', '/signup', '/welcome', '/portal', '/review', '/onboard', '/onboarding', '/client-auth', '/privacy', '/public']
+const PUBLIC_ROUTES = ['/login', '/signup', '/welcome', '/portal', '/review', '/onboard', '/onboarding', '/client-auth', '/privacy', '/public', '/uptime/public', '/status']
 
 export default function RequireAuth({ children }) {
   const { user, loading, bypassMode } = useAuth()
