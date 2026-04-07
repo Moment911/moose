@@ -119,17 +119,25 @@ RULES:
 - Never be pushy or aggressive`
 
       // Create agent in Retell
-      const retellAgent = await retellFetch('/create-agent', 'POST', {
+      // Build Retell agent config
+      const retellConfig: any = {
         agent_name: name,
         voice_id: voice_id || '11labs-Marissa',
-        response_engine: {
-          type: 'retell-llm',
-          llm_id: null, // Use default Retell LLM
-        },
+        response_engine: { type: 'retell-llm', llm_id: null },
         language: language || 'en-US',
         general_prompt: systemPrompt,
         begin_message: script_intro || `Hi, this is ${name}. How are you today?`,
-      })
+        enable_backchannel: true,
+        backchannel_frequency: 0.7,
+        interruption_sensitivity: 0.8,
+        reminder_trigger_ms: 10000,
+        reminder_max_count: 2,
+      }
+      // Live transfer
+      if (body.transfer_phone && body.transfer_enabled) {
+        retellConfig.transfer_list = [{ number: body.transfer_phone, description: 'Live transfer to team' }]
+      }
+      const retellAgent = await retellFetch('/create-agent', 'POST', retellConfig)
 
       // Save to database
       const { data: agent, error } = await sb.from('koto_voice_agents').insert({
@@ -212,46 +220,77 @@ RULES:
     if (action === 'start_campaign') {
       const { campaign_id } = body
 
-      // Get campaign + agent + leads
       const { data: campaign } = await sb.from('koto_voice_campaigns')
         .select('*, koto_voice_agents(*)').eq('id', campaign_id).single()
       if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
 
       const agent = campaign.koto_voice_agents
-      if (!agent?.retell_agent_id) {
-        return NextResponse.json({ error: 'Campaign agent has no Retell agent ID' }, { status: 400 })
-      }
+      if (!agent?.retell_agent_id) return NextResponse.json({ error: 'Agent has no Retell ID' }, { status: 400 })
+
+      const maxAttempts = campaign.max_attempts || 3
+      const callsPerHour = campaign.calls_per_hour || 20
+      const delayMs = Math.round(3600000 / callsPerHour)
 
       const { data: leads } = await sb.from('koto_voice_leads')
         .select('*').eq('campaign_id', campaign_id).eq('status', 'pending').limit(100)
+      if (!leads?.length) return NextResponse.json({ error: 'No pending leads' }, { status: 400 })
 
-      if (!leads?.length) {
-        return NextResponse.json({ error: 'No pending leads to call' }, { status: 400 })
-      }
-
-      // Update campaign status
       await sb.from('koto_voice_campaigns').update({ status: 'active' }).eq('id', campaign_id)
 
-      // Start calling each lead via Retell
+      let skippedDnc = 0, skippedHours = 0, skippedMaxAttempts = 0, started = 0, errors = 0
       const results: any[] = []
+
       for (const lead of leads) {
+        // 1. Check DNC
+        const { data: optOut } = await sb.from('koto_voice_tcpa_records').select('id').eq('phone', lead.phone).eq('opt_out', true).maybeSingle()
+        if (optOut) {
+          await sb.from('koto_voice_leads').update({ status: 'dnc_blocked', dnc_status: 'blocked' }).eq('id', lead.id)
+          skippedDnc++; results.push({ lead_id: lead.id, status: 'dnc_blocked' }); continue
+        }
+
+        // 2. Check timezone/calling hours (8am-9pm local)
+        const phone = (lead.phone || '').replace(/\D/g, '')
+        const areaCode = phone.length >= 10 ? phone.slice(phone.length === 11 ? 1 : 0, phone.length === 11 ? 4 : 3) : ''
+        // Simple timezone check — full map is in callTimeChecker.ts
+        const eastCodes = ['201','202','203','205','207','212','215','216','301','302','303','304','305','312','313','315','404','407','410','412','413','414','415','416','419','443','484','508','516','518','561','570','585','601','603','607','609','610','614','617','631','646','678','704','706','713','716','717','718','724','732','757','770','772','774','781','786','802','803','804','810','813','814','828','843','845','848','856','857','858','860','862','863','864','865','901','904','908','910','912','914','917','919','929','941','954','973','978','980','984','985']
+        const centralCodes = ['205','210','214','217','218','219','224','225','228','251','254','256','262','270','309','314','316','318','319','320','334','337','346','402','405','409','417','430','432','469','479','501','504','507','512','515','531','563','573','580','605','608','612','615','618','620','630','636','641','651','660','662','682','701','708','712','713','715','726','731','737','740','763','765','769','773','779','785','806','815','816','817','830','832','847','870','872','903','913','918','920','936','940','952','956','972','979']
+        const mountainCodes = ['303','307','385','406','435','480','505','520','602','623','719','720','801','915','928','970']
+        const pacificCodes = ['206','209','213','253','310','323','360','408','415','424','425','442','503','509','510','530','541','559','562','619','626','628','650','657','661','669','702','707','714','725','747','760','775','805','818','831','858','909','916','925','949','951','971']
+
+        let tz = 'America/New_York'
+        if (centralCodes.includes(areaCode)) tz = 'America/Chicago'
+        else if (mountainCodes.includes(areaCode)) tz = 'America/Denver'
+        else if (pacificCodes.includes(areaCode)) tz = 'America/Los_Angeles'
+
+        const localHour = parseInt(new Date().toLocaleString('en-US', { timeZone: tz, hour: 'numeric', hour12: false }))
+        if (localHour < 8 || localHour >= 21) {
+          await sb.from('koto_voice_leads').update({ attempted_outside_hours: true, timezone: tz }).eq('id', lead.id)
+          skippedHours++; results.push({ lead_id: lead.id, status: 'outside_hours' }); continue
+        }
+
+        // 3. Check max attempts
+        if ((lead.attempt_number || 1) > maxAttempts) {
+          await sb.from('koto_voice_leads').update({ status: 'max_attempts' }).eq('id', lead.id)
+          skippedMaxAttempts++; results.push({ lead_id: lead.id, status: 'max_attempts' }); continue
+        }
+
+        // 4. Make the call
         try {
-          // Create outbound call via Retell
           const call = await retellFetch('/v2/create-phone-call', 'POST', {
             from_number: body.from_number || undefined,
             to_number: lead.phone,
             agent_id: agent.retell_agent_id,
-            metadata: {
-              lead_id: lead.id,
-              campaign_id: campaign_id,
-              agency_id: agency_id,
-              business_name: lead.business_name,
-              contact_name: `${lead.first_name} ${lead.last_name}`.trim(),
-            },
+            metadata: { lead_id: lead.id, campaign_id, agency_id, business_name: lead.business_name },
             retell_llm_dynamic_variables: {
               contact_name: lead.first_name || 'there',
+              first_name: lead.first_name || 'there',
               business_name: lead.business_name || 'your business',
               city: lead.city || '',
+              industry: lead.industry_name || '',
+              agent_name: agent.name || '',
+              closer_name: agent.closer_name || 'our strategist',
+              closer_title: agent.closer_title || '',
+              closer_bio: agent.closer_bio || '',
             },
           })
 
@@ -266,25 +305,30 @@ RULES:
             retell_call_id: call.call_id, direction: 'outbound', status: 'initiated',
           })
 
+          await sb.from('koto_voice_leads').update({
+            status: 'calling', retell_call_id: call.call_id, called_at: new Date().toISOString(),
+            attempt_number: (lead.attempt_number || 0) + 1, timezone: tz,
+          }).eq('id', lead.id)
+          await sb.from('koto_voice_calls').insert({
+            lead_id: lead.id, campaign_id, agency_id,
+            retell_call_id: call.call_id, direction: 'outbound', status: 'initiated',
+          })
+          started++
           results.push({ lead_id: lead.id, call_id: call.call_id, status: 'initiated' })
         } catch (e: any) {
-          // Mark lead as failed
           await sb.from('koto_voice_leads').update({ status: 'failed', notes: e.message }).eq('id', lead.id)
+          errors++
           results.push({ lead_id: lead.id, error: e.message, status: 'failed' })
         }
 
-        // Small delay between calls to avoid rate limiting
-        await new Promise(r => setTimeout(r, 500))
+        // Pacing delay between calls
+        if (delayMs > 500) await new Promise(r => setTimeout(r, Math.min(delayMs, 5000)))
+        else await new Promise(r => setTimeout(r, 500))
       }
 
-      // Update campaign stats
-      const initiated = results.filter(r => r.status === 'initiated').length
-      const failed = results.filter(r => r.status === 'failed').length
-      await sb.from('koto_voice_campaigns').update({
-        called: initiated, failed,
-      }).eq('id', campaign_id)
+      await sb.from('koto_voice_campaigns').update({ called: started, failed: errors }).eq('id', campaign_id)
 
-      return NextResponse.json({ results, initiated, failed })
+      return NextResponse.json({ started, skipped_dnc: skippedDnc, skipped_hours: skippedHours, skipped_max_attempts: skippedMaxAttempts, errors, results })
     }
 
     // ── Pause Campaign ───────────────────────────────────────────────────────
@@ -372,6 +416,29 @@ RULES:
             }
           }
         }
+      }
+
+      // ── Voicemail Detection ──────────────────────────────────────────────
+      if (event === 'call_analyzed' && call.call_type === 'voicemail_detected') {
+        await sb.from('koto_voice_leads').update({
+          status: 'voicemail', call_duration_seconds: call.duration_ms ? Math.round(call.duration_ms / 1000) : 0,
+        }).eq('retell_call_id', retell_call_id)
+        await sb.from('koto_voice_calls').update({ status: 'voicemail' }).eq('retell_call_id', retell_call_id)
+        // Schedule callback 4 hours later
+        if (callRecord?.lead_id) {
+          const callbackTime = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()
+          await sb.from('koto_voice_leads').update({ status: 'callback', callback_time: callbackTime }).eq('id', callRecord.lead_id)
+        }
+      }
+
+      // ── Call Analyzed (post-call intelligence) ─────────────────────────────
+      if (event === 'call_analyzed') {
+        const transcript = call.transcript || call.call_analysis?.transcript || ''
+        const recording = call.recording_url || ''
+        const summary = call.call_analysis?.call_summary || ''
+        // Save transcript + recording
+        if (transcript) await sb.from('koto_voice_calls').update({ transcript, recording_url: recording, ai_summary: summary }).eq('retell_call_id', retell_call_id)
+        if (transcript) await sb.from('koto_voice_leads').update({ transcript_full: transcript, transcript_summary: summary, recording_url: recording }).eq('retell_call_id', retell_call_id)
       }
 
       return NextResponse.json({ ok: true })
