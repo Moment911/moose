@@ -10,7 +10,7 @@ import {
   FileText, Sparkles, RefreshCw, Send, Star
 } from 'lucide-react'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 

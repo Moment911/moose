@@ -21,8 +21,17 @@ import { scoutWithPlaces, placeToLead, hasGoogleKey } from '../../lib/googlePlac
 import toast from 'react-hot-toast'
 import AIThinkingBox from '../../components/AIThinkingBox'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const ACCENT = R
+const TEAL = T
 
 // ── Search modes ──────────────────────────────────────────────────────────────
 const SEARCH_MODES = [

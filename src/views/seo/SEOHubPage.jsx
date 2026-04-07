@@ -505,7 +505,7 @@ Return ONLY valid JSON (no markdown):
   /* ─── DESKTOP ─── */
 
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f0f0f2' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
       <Sidebar/>
 
       <div style={{ flex:1, display:'flex', overflow:'hidden' }}>

@@ -14,10 +14,16 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileStatStrip, MobileTabs, MobileCard, MobileSectionHeader, MobileRow, MobileEmpty } from '../../components/mobile/MobilePage'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLACK = '#0a0a0a'
-const GREEN = '#16a34a'
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const RED = R, TEAL = T, BLACK = BLK, GREEN = GRN
 
 function fmt(n, type='number') {
   if (n == null) return '—'
@@ -625,7 +631,7 @@ export default function PerfDashboard() {
                         <tbody>
                           {campaigns.map((c,i)=>(
                             <tr key={c.id} style={{borderBottom:i<campaigns.length-1?'1px solid #f9fafb':'none'}}
-                              onMouseEnter={e=>e.currentTarget.style.background='#fafafa'}
+                              onMouseEnter={e=>e.currentTarget.style.background=GRY}
                               onMouseLeave={e=>e.currentTarget.style.background=''}>
                               <td style={{padding:'12px 14px'}}>
                                 <div style={{fontSize:14,fontWeight:800,color:'#111'}}>{c.name}</div>

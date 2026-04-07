@@ -11,13 +11,16 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const RED = R, TEAL = T, GREEN = GRN, AMBER = AMB
 
 const TRIGGERS = [
   { key:'review_new',       label:'New Review Received',     icon:Star,          color:AMBER, desc:'Fires when a new Google review comes in' },

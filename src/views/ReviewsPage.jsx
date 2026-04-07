@@ -18,8 +18,17 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobileSearch, MobileRow, MobileCard, MobileEmpty, MobileButton, MobileTabs, MobilePageHeader, MobileStatStrip, MobileSectionHeader } from '../components/mobile/MobilePage'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const ACCENT = R
+const TEAL = T
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const PLATFORM_CONFIG = {
@@ -148,7 +157,7 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
 
       {/* Response panel */}
       {expanded && (
-        <div style={{ padding:'14px 20px 18px', borderTop:'1px solid #f3f4f6', background:'#fafafa' }}>
+        <div style={{ padding:'14px 20px 18px', borderTop:'1px solid #f3f4f6', background:GRY }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
             <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>Response</span>
             <button onClick={generateResponse} disabled={generating}
@@ -733,7 +742,7 @@ export default function ReviewsPage() {
               {googleSearchResults.length > 0 && (
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   {googleSearchResults.map((biz,i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:'#fafafa', cursor:'pointer' }}
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:GRY, cursor:'pointer' }}
                       onMouseEnter={e=>e.currentTarget.style.borderColor='#ea2729'}
                       onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
                       {biz.photo && <img src={biz.photo} alt="" style={{ width:44, height:44, borderRadius:8, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}

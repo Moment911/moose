@@ -15,8 +15,17 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileRow, MobileEmpty, MobileSectionHeader, MobileTabs } from '../components/mobile/MobilePage'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const ACCENT = R
+const TEAL = T
 
 const STATUS_CONFIG = {
   draft:     { label: 'Draft',     color: '#4b5563', bg: '#f9fafb', icon: Edit },
@@ -177,7 +186,7 @@ export default function ProposalsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f2f2f0', overflow:'hidden' }}>
       <Sidebar/>
       <main style={{ flex:1, overflowY:'auto' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'28px 28px' }}>
@@ -261,7 +270,7 @@ export default function ProposalsPage() {
               {filtered.map((p, i) => (
                 <div key={p.id}
                   style={{ display:'flex', alignItems:'center', gap:16, padding:'16px 20px', borderBottom: i < filtered.length-1 ? '1px solid #f9fafb' : 'none', cursor:'pointer', transition:'background .1s' }}
-                  onMouseEnter={e=>e.currentTarget.style.background='#fafafa'}
+                  onMouseEnter={e=>e.currentTarget.style.background=GRY}
                   onMouseLeave={e=>e.currentTarget.style.background=''}
                   onClick={() => navigate(`/proposals/${p.id}`)}>
 
