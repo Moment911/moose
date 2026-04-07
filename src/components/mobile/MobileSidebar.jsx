@@ -1,110 +1,188 @@
-"use client";
+"use client"
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, MessageSquare, CheckSquare, Calendar, Megaphone, DollarSign, Users, Plug, Shield, Target, X, LogOut, ChevronRight, ListFilter, BookUser, List, Tag, Send, Zap, FileText, TrendingUp, Link2, Puzzle } from 'lucide-react'
+import {
+  LayoutDashboard, Users, Star, Target, TrendingUp, Inbox, Brain,
+  FileSignature, Clock, BarChart2, Settings, Plug, Shield, Globe,
+  Sparkles, Zap, Bug, Activity, ChevronRight, LogOut, X, DollarSign
+} from 'lucide-react'
 import { signOut } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import LucyLogo from '../LucyLogo'
+
+const R  = '#ea2729'
+const T  = '#5bc6d0'
+const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB = "'Raleway','Helvetica Neue',sans-serif"
 
 const SECTIONS = [
-  { title: null, items: [
-    { label: 'Project Hub', icon: LayoutDashboard, path: '/', color: '#ea2729' },
-    { label: 'Messages', icon: MessageSquare, path: '/messages', color: '#5856D6' },
-    { label: 'Tasks', icon: CheckSquare, path: '/tasks', color: '#FF3B30' },
-    { label: 'Calendar', icon: Calendar, path: '/calendar', color: '#007AFF' },
+  { title: 'Workspace', items: [
+    { label: 'Dashboard',    icon: LayoutDashboard, path: '/' },
+    { label: 'Clients',      icon: Users,           path: '/clients' },
+    { label: 'Reviews',      icon: Star,            path: '/reviews' },
+    { label: 'Proposals',    icon: FileSignature,   path: '/proposals' },
+    { label: 'Tasks',        icon: Clock,           path: '/tasks' },
   ]},
-  { title: 'Contacts', items: [
-    { label: 'All Contacts', icon: BookUser, path: '/marketing/contacts', color: '#0ea5e9' },
-    { label: 'Lists', icon: List, path: '/marketing/lists', color: '#22c55e' },
-  ]},
-  { title: 'E-Marketing', items: [
-    { label: 'Overview', icon: Megaphone, path: '/marketing', color: '#FF9500' },
-    { label: 'Campaigns', icon: Send, path: '/marketing/campaigns', color: '#f59e0b' },
-    { label: 'Automations', icon: Zap, path: '/marketing/automations', color: '#ef4444' },
-    { label: 'Templates', icon: FileText, path: '/marketing/templates', color: '#06b6d4' },
+  { title: 'SEO & Content', items: [
+    { label: 'SEO Hub',         icon: BarChart2,   path: '/seo' },
+    { label: 'Page Builder',    icon: Sparkles,    path: '/page-builder', badge: 'AI' },
+    { label: 'WordPress Sites', icon: Globe,       path: '/wordpress' },
   ]},
   { title: 'Intelligence', items: [
-    { label: 'SCOUT Search', icon: Target, path: '/scout', color: '#ea2729', badge: 'NEW' },
-    { label: 'My Leads', icon: ListFilter, path: '/scout/leads', color: '#ea2729' },
+    { label: 'Scout',       icon: Target,     path: '/scout',  badge: 'AI' },
+    { label: 'Performance', icon: TrendingUp, path: '/perf',   badge: 'AI' },
   ]},
-  { title: 'Koto SEO', items: [
-    { label: 'SEO Hub', icon: TrendingUp, path: '/seo', color: '#10b981' },
-    { label: 'URL Audit', icon: Zap, path: '/seo/audit', color: '#f59e0b' },
-    { label: 'WP Plugin', icon: Puzzle, path: '/seo/plugin', color: '#8b5cf6' },
-    { label: 'Connect Data', icon: Link2, path: '/seo/connect', color: '#3b82f6' },
+  { title: 'Support', items: [
+    { label: 'KotoDesk',       icon: Inbox, path: '/desk' },
+    { label: 'Knowledge Base', icon: Brain, path: '/desk/knowledge' },
   ]},
-  { title: 'Business', items: [
-    { label: 'Revenue', icon: DollarSign, path: '/revenue', color: '#34C759' },
-    { label: 'Team', icon: Users, path: '/employees', color: '#007AFF' },
-    { label: 'Integrations', icon: Plug, path: '/integrations', color: '#8E8E93' },
-    { label: 'Admin', icon: Shield, path: '/admin', color: '#5856D6' },
+  { title: 'Agency', items: [
+    { label: 'Agency Settings', icon: Settings,    path: '/agency-settings' },
+    { label: 'Billing',         icon: DollarSign,  path: '/billing' },
+    { label: 'Integrations',    icon: Plug,        path: '/integrations' },
+    { label: 'Debug Console',   icon: Bug,         path: '/debug' },
+    { label: 'System Status',   icon: Activity,    path: '/status', external: true },
+    { label: 'Master Admin',    icon: Shield,      path: '/master-admin' },
   ]},
 ]
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, firstName } = useAuth()
 
   async function handleSignOut() { await signOut(); navigate('/login'); onClose() }
 
   if (!isOpen) return null
 
-  const name = user?.email?.split('@')[0] || 'User'
-  const initial = name[0]?.toUpperCase() || 'M'
+  const name = firstName || user?.email?.split('@')[0] || 'User'
+  const initial = name[0]?.toUpperCase() || 'K'
 
   return (
-    <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 70 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000 }}>
       {/* Backdrop */}
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
+      <div onClick={onClose} style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(0,0,0,.6)',
+        backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+        animation: 'kotoFade .2s ease',
+      }} />
 
       {/* Panel */}
-      <div style={{ position: 'relative', width: 300, maxWidth: '85vw', height: '100%', background: '#ffffff', overflowY: 'auto', paddingTop: 'env(safe-area-inset-top, 0px)', animation: 'slideFromLeft 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
-        {/* Profile */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: '0.5px solid #f3f4f6' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 26, background: 'linear-gradient(135deg,#ea2729,#ff8c42)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: '#fff', fontWeight: 700, fontSize: 20 }}>{initial}</span>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, bottom: 0,
+        width: '80vw', maxWidth: 300,
+        background: '#0a0a0a',
+        display: 'flex', flexDirection: 'column',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        animation: 'kotoSlide .25s cubic-bezier(.22,1,.36,1)',
+        boxShadow: '8px 0 40px rgba(0,0,0,.5)',
+      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '16px 16px 14px', borderBottom: '1px solid rgba(255,255,255,.08)', flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: R,
+              display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={14} color="#fff" strokeWidth={2.5} />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 17, fontWeight: 700, color: '#111', margin: 0, textTransform: 'capitalize' }}>{name}</p>
-              <p style={{ fontSize:13, color: '#ea2729', fontWeight: 600, margin: '2px 0 0' }}>Koto</p>
-            </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', padding: 6, cursor: 'pointer' }}><X size={20} color="#9ca3af" /></button>
+            <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.03em' }}>Koto</span>
           </div>
+          <button onClick={onClose} style={{
+            width: 34, height: 34, borderRadius: 9,
+            background: 'rgba(255,255,255,.06)', border: 'none',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            WebkitTapHighlightColor: 'transparent',
+          }}>
+            <X size={15} color="rgba(255,255,255,.4)" />
+          </button>
         </div>
 
         {/* Nav */}
-        <nav style={{ padding: '8px 0' }}>
-          {SECTIONS.map((section, si) => (
-            <div key={si}>
-              {section.title && <p style={{ fontSize:13, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '16px 20px 6px' }}>{section.title}</p>}
-              {section.items.map(item => {
+        <div style={{ flex: 1, overflowY: 'auto', padding: '6px 8px', WebkitOverflowScrolling: 'touch' }}>
+          {SECTIONS.map(sec => (
+            <div key={sec.title} style={{ marginBottom: 4 }}>
+              <div style={{
+                padding: '12px 10px 4px', fontFamily: FH, fontSize: 10, fontWeight: 700,
+                color: 'rgba(255,255,255,.25)', textTransform: 'uppercase', letterSpacing: '.12em',
+              }}>{sec.title}</div>
+              {sec.items.map(item => {
+                const Icon = item.icon
                 const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
-                const I = item.icon
+                const Component = item.external ? 'a' : Link
+                const linkProps = item.external
+                  ? { href: item.path, target: '_blank', rel: 'noopener noreferrer', onClick: onClose }
+                  : { to: item.path, onClick: onClose }
                 return (
-                  <Link key={item.path} to={item.path} onClick={onClose}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 10px', padding: '10px 10px', borderRadius: 12, background: active ? 'rgba(234,39,41,.06)' : 'transparent', textDecoration: 'none', minHeight: 44, WebkitTapHighlightColor: 'transparent' }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 9, background: item.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <I size={17} strokeWidth={1.5} style={{ color: item.color }} />
-                    </div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: active ? 600 : 500, color: active ? '#ea2729' : '#374151' }}>{item.label}</span>
-                    {item.badge && <span style={{ fontSize:13, background: '#ea2729', color: '#fff', padding: '2px 6px', borderRadius: 10, fontWeight: 700 }}>{item.badge}</span>}
-                    {!item.badge && <ChevronRight size={15} color="#d1d5db" />}
-                  </Link>
+                  <Component key={item.path} {...linkProps} style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 11,
+                    padding: '11px 10px', borderRadius: 10, border: 'none',
+                    background: active ? R + '18' : 'transparent',
+                    borderLeft: `2.5px solid ${active ? R : 'transparent'}`,
+                    cursor: 'pointer', marginBottom: 1, minHeight: 44,
+                    textDecoration: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    transition: 'background .15s ease',
+                  }}>
+                    <Icon size={16} color={active ? R : 'rgba(255,255,255,.5)'} strokeWidth={active ? 2.5 : 1.8} />
+                    <span style={{
+                      fontFamily: FH, fontSize: 14, fontWeight: active ? 700 : 500,
+                      flex: 1, color: active ? R : 'rgba(255,255,255,.65)',
+                    }}>{item.label}</span>
+                    {item.badge && (
+                      <span style={{
+                        fontFamily: FH, fontSize: 9, fontWeight: 800,
+                        padding: '2px 6px', borderRadius: 20,
+                        background: item.badge === 'AI' ? R : T, color: '#fff',
+                        letterSpacing: '.06em',
+                      }}>{item.badge}</span>
+                    )}
+                    {item.external && <span style={{ fontSize: 10, color: 'rgba(255,255,255,.2)' }}>↗</span>}
+                  </Component>
                 )
               })}
             </div>
           ))}
-        </nav>
+        </div>
 
-        {/* Sign out */}
-        <div style={{ padding: 12, borderTop: '0.5px solid #f3f4f6', marginTop: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
-          <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '10px 14px', borderRadius: 12, background: 'none', border: 'none', cursor: 'pointer', minHeight: 44, WebkitTapHighlightColor: 'transparent' }}>
-            <LogOut size={17} strokeWidth={1.5} color="#EF4444" />
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#EF4444' }}>Sign Out</span>
+        {/* Footer */}
+        <div style={{ padding: '10px 10px 12px', borderTop: '1px solid rgba(255,255,255,.06)', flexShrink: 0 }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 10px', borderRadius: 12,
+            background: 'rgba(255,255,255,.04)', marginBottom: 8,
+          }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: '50%', background: R,
+              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#fff',
+            }}>{initial}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: FH, fontSize: 13, fontWeight: 700, color: '#fff',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'capitalize',
+              }}>{name}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', fontFamily: FB }}>Agency Admin</div>
+            </div>
+          </div>
+          <button onClick={handleSignOut} style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 8, padding: '11px', borderRadius: 10,
+            border: '1px solid rgba(255,255,255,.08)', background: 'transparent',
+            color: 'rgba(255,255,255,.4)', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: FH, minHeight: 44,
+            WebkitTapHighlightColor: 'transparent',
+          }}>
+            <LogOut size={14} /> Sign Out
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes kotoFade { from { opacity:0 } to { opacity:1 } }
+        @keyframes kotoSlide { from { transform:translateX(-100%) } to { transform:translateX(0) } }
+      `}</style>
     </div>
   )
 }
