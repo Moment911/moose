@@ -20,11 +20,13 @@ export async function POST(req: NextRequest) {
     if (!agency_id) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
     const sb = getSupabase()
 
-    // Get plan from subscriptions
-    const { data: sub } = await sb.from('subscriptions').select('plan,status').eq('agency_id', agency_id).single()
-    const plan    = sub?.plan || 'starter'
+    // Get plan from billing accounts (primary) or subscriptions (legacy)
+    const { data: billing } = await sb.from('koto_billing_accounts').select('plan,status').eq('agency_id', agency_id).single()
+    const { data: sub } = !billing ? await sb.from('subscriptions').select('plan,status').eq('agency_id', agency_id).single() : { data: null }
+    const acct = billing || sub
+    const plan    = acct?.plan || 'starter'
     const limits  = PLAN_LIMITS[plan] || PLAN_LIMITS.starter
-    const isActive = ['active','trialing'].includes(sub?.status || '')
+    const isActive = ['active','trialing'].includes(acct?.status || '') || !!billing
 
     // Get current usage
     const [{ count: clientCount }, { count: memberCount }] = await Promise.all([
