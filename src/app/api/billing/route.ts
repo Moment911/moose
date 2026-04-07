@@ -231,6 +231,53 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(result)
   }
 
+  if (action === 'get_stripe_overview') {
+    const stripeKey = process.env.STRIPE_SECRET_KEY
+    if (!stripeKey) return NextResponse.json({ mrr: 0, arr: 0, active: 0, trials: 0, past_due: 0, failed: 0 })
+    const headers = { Authorization: `Bearer ${stripeKey}` }
+    const [subsRes, chargesRes] = await Promise.all([
+      fetch('https://api.stripe.com/v1/subscriptions?limit=100&status=all', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
+      fetch('https://api.stripe.com/v1/charges?limit=20', { headers }).then(r => r.json()).catch(() => ({ data: [] })),
+    ])
+    const subs = subsRes.data || []
+    let mrr = 0
+    subs.filter((s: any) => s.status === 'active').forEach((sub: any) => {
+      const price = sub.items?.data?.[0]?.price
+      if (price?.recurring?.interval === 'month') mrr += (price.unit_amount || 0) / 100
+      else if (price?.recurring?.interval === 'year') mrr += (price.unit_amount || 0) / 100 / 12
+    })
+    return NextResponse.json({
+      mrr: Math.round(mrr * 100) / 100, arr: Math.round(mrr * 12 * 100) / 100,
+      active: subs.filter((s: any) => s.status === 'active').length,
+      trials: subs.filter((s: any) => s.status === 'trialing').length,
+      past_due: subs.filter((s: any) => s.status === 'past_due').length,
+      failed: (chargesRes.data || []).filter((c: any) => c.status === 'failed').length,
+      recent_subs: subs.slice(0, 10).map((s: any) => ({ id: s.id, status: s.status, customer: s.customer, created: s.created })),
+    })
+  }
+
+  if (action === 'get_stripe_portal_url') {
+    const customerId = p.get('customer_id')
+    if (!customerId || !process.env.STRIPE_SECRET_KEY) return NextResponse.json({ error: 'Not configured' }, { status: 400 })
+    const res = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
+      method: 'POST', headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ customer: customerId, return_url: 'https://hellokoto.com/billing' }),
+    })
+    const data = await res.json()
+    return NextResponse.json({ url: data.url })
+  }
+
+  if (action === 'get_stripe_invoices') {
+    if (!process.env.STRIPE_SECRET_KEY) return NextResponse.json([])
+    const res = await fetch('https://api.stripe.com/v1/invoices?limit=50', { headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` } })
+    const data = await res.json()
+    return NextResponse.json((data.data || []).map((inv: any) => ({
+      id: inv.id, number: inv.number, customer_email: inv.customer_email,
+      amount: inv.amount_due / 100, status: inv.status, pdf: inv.invoice_pdf,
+      created: new Date(inv.created * 1000).toISOString(),
+    })))
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 
