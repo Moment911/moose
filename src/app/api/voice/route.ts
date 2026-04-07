@@ -29,7 +29,7 @@ async function retellFetch(endpoint: string, method = 'GET', body?: any) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const action = searchParams.get('action')
-  const agency_id = searchParams.get('agency_id')
+  const agency_id = resolveAgencyId(req, searchParams)
   const campaign_id = searchParams.get('campaign_id')
   const sb = getSupabase()
 

@@ -54,7 +54,7 @@ async function proxyToPlugin(site: any, endpoint: string, method = 'POST', body:
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const agency_id = searchParams.get('agency_id')
+  const agency_id = resolveAgencyId(req, searchParams)
   const site_id = searchParams.get('site_id')
   const sb = getSupabase()
   if (site_id) {

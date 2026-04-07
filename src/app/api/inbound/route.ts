@@ -359,7 +359,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const action = searchParams.get('action')
-    const agency_id = searchParams.get('agency_id')
+    const agency_id = resolveAgencyId(request, searchParams)
     const agent_id = searchParams.get('agent_id')
     const call_id = searchParams.get('call_id')
 
