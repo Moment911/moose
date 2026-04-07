@@ -119,6 +119,7 @@ import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
 import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
+import QAConsolePage from '../views/QAConsolePage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -313,6 +314,7 @@ function AppRoutes() {
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
+          <Route path="/qa" element={<QAConsolePage />} />
     </Routes>
   )
 }

@@ -1,6 +1,21 @@
+async function logComm(params: {
+  channel: string; recipient: string; body_preview?: string;
+  status: string; provider: string; provider_id?: string;
+  error_message?: string; agency_id?: string;
+}) {
+  try {
+    await fetch((process.env.NEXT_PUBLIC_SITE_URL || '') + '/api/qa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'log_comm', ...params }),
+    })
+  } catch {}
+}
+
 export async function sendSMS(
   to: string,
-  message: string
+  message: string,
+  agencyId?: string
 ): Promise<{ success: boolean; sid?: string; error?: string }> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
@@ -22,10 +37,28 @@ export async function sendSMS(
         }
       )
       const data = await res.json()
-      if (res.ok) return { success: true, sid: data.sid }
-      if (attempt === 2) return { success: false, error: data.message || 'SMS failed' }
+      if (res.ok) {
+        logComm({
+          channel: 'sms', recipient: to, body_preview: message.slice(0, 120),
+          status: 'sent', provider: 'twilio', provider_id: data.sid, agency_id: agencyId,
+        })
+        return { success: true, sid: data.sid }
+      }
+      if (attempt === 2) {
+        logComm({
+          channel: 'sms', recipient: to, body_preview: message.slice(0, 120),
+          status: 'failed', provider: 'twilio', error_message: data.message || 'SMS failed', agency_id: agencyId,
+        })
+        return { success: false, error: data.message || 'SMS failed' }
+      }
     } catch (e: any) {
-      if (attempt === 2) return { success: false, error: e.message }
+      if (attempt === 2) {
+        logComm({
+          channel: 'sms', recipient: to, body_preview: message.slice(0, 120),
+          status: 'failed', provider: 'twilio', error_message: e.message, agency_id: agencyId,
+        })
+        return { success: false, error: e.message }
+      }
     }
     await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
   }

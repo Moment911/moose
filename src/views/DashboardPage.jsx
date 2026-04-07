@@ -6,7 +6,7 @@ import {
   Inbox, Brain, ArrowUpRight, Zap, Users,
   Clock, AlertCircle, Loader2, BarChart2, FileSignature, X,
   Globe, Shield, Phone, Sparkles, Activity, HardDrive,
-  DollarSign, Check, RefreshCw, FileText
+  DollarSign, Check, CheckCircle, RefreshCw, FileText
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ViewAsModal from '../components/ViewAsModal'
@@ -114,10 +114,13 @@ export default function DashboardPage() {
   const [superStats,     setSuperStats]     = useState({
     totalAgencies: 0, totalUsers: 0, totalPages: 0, totalClients: 0,
     activeWpSites: 0, totalErrors24h: 0, uptime: '99.97%',
+    voiceAgents: 0, totalCalls: 0,
   })
   const [recentErrors,   setRecentErrors]   = useState([])
   const [activityFeed,   setActivityFeed]   = useState([])
   const [agencyList,     setAgencyList]     = useState([])
+  const [commsStats,     setCommsStats]     = useState({ emails24h: 0, sms24h: 0, failed24h: 0, total24h: 0 })
+  const [qaHealth,       setQaHealth]       = useState({ health_score: 0, pass_rate: 0, open_errors: 0 })
 
   const greeting = getGreeting(firstName)
 
@@ -263,12 +266,15 @@ export default function DashboardPage() {
 
   /* ── Super Admin loader ───────────────────────────────────────────────────── */
   async function loadSuperAdminData() {
-    // Use health stats API for platform totals + direct queries for feeds
     const [
       statsRes,
       { data: errors },
       { data: feed },
       { data: agencies },
+      commsStatsRes,
+      qaHealthRes,
+      { count: voiceAgentCount },
+      { count: totalCallCount },
     ] = await Promise.all([
       fetch('/api/health?action=stats').then(r => r.json()).catch(() => ({})),
       supabase.from('koto_system_logs')
@@ -281,6 +287,10 @@ export default function DashboardPage() {
       supabase.from('agencies')
         .select('id, name, slug, status, brand_name, created_at, owner_email, plan')
         .order('created_at', { ascending: false }).limit(50),
+      fetch('/api/qa?action=comms_stats').then(r => r.json()).catch(() => ({ emails24h: 0, sms24h: 0, failed24h: 0, total24h: 0 })),
+      fetch('/api/qa?action=health_score').then(r => r.json()).catch(() => ({ health_score: 0, pass_rate: 0, open_errors: 0 })),
+      supabase.from('koto_voice_agents').select('*', { count: 'exact', head: true }),
+      supabase.from('koto_voice_calls').select('*', { count: 'exact', head: true }),
     ])
 
     setSuperStats({
@@ -291,10 +301,13 @@ export default function DashboardPage() {
       activeWpSites:  statsRes.wpSitesCount  || 0,
       totalErrors24h: statsRes.errorCount    || 0,
       uptime:         '99.97%',
+      voiceAgents:    voiceAgentCount         || 0,
+      totalCalls:     totalCallCount          || 0,
     })
     setRecentErrors(errors || [])
     setActivityFeed(feed || [])
-    // Store agencies for View As table
+    setCommsStats(commsStatsRes || { emails24h: 0, sms24h: 0, failed24h: 0, total24h: 0 })
+    setQaHealth(qaHealthRes || { health_score: 0, pass_rate: 0, open_errors: 0 })
     if (agencies) setAgencyList(agencies)
   }
 
@@ -448,6 +461,7 @@ export default function DashboardPage() {
     { icon: Shield, label: 'Debug Console',  to: '/debug',          bg: AMB },
     { icon: Activity, label: 'System Status', to: '/status',        bg: GRN },
     { icon: Users,  label: 'Manage Users',   to: '/master-admin',   bg: R },
+    { icon: CheckCircle, label: 'QA Console', to: '/qa',            bg: '#7c3aed' },
   ]
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -740,30 +754,62 @@ export default function DashboardPage() {
 
           {/* ── Main content ──────────────────────────────────────────────── */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-            {/* Stats Row — 6 cards */}
+
+            {/* ── Platform Health Bar ────────────────────────────────────── */}
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 24,
+              background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+              padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 20,
+            }}>
+              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, whiteSpace: 'nowrap' }}>Platform Health</div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#ececea', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${qaHealth.health_score || 0}%`, height: '100%', borderRadius: 4,
+                  background: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
+                  transition: 'width .5s ease',
+                }} />
+              </div>
+              <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R }}>
+                {qaHealth.health_score || 0}%
+              </span>
+              <button onClick={() => navigate('/qa')} style={{
+                fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 6,
+                border: 'none', background: T + '15', color: T, cursor: 'pointer', fontFamily: FH,
+              }}>
+                QA Console
+              </button>
+            </div>
+
+            {/* Stats Row — 8 cards */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 14,
             }}>
               <StatCard label="Total Agencies"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
               <StatCard label="Total Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
               <StatCard label="Total Pages"       value={superStats.totalPages}     icon={FileText}    accent={GRN} />
               <StatCard label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
-              <StatCard label="Errors (24h)"      value={superStats.totalErrors24h} icon={AlertCircle} accent={superStats.totalErrors24h > 0 ? R : '#6b7280'} />
-              <StatCard label="System Uptime"     value={superStats.uptime}         icon={Activity}    accent={GRN} />
+            </div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
+            }}>
+              <StatCard label="Voice Agents"     value={superStats.voiceAgents}    icon={Phone}       accent={'#7c3aed'} />
+              <StatCard label="Total Calls"      value={superStats.totalCalls}     icon={Phone}       accent={T} />
+              <StatCard label="Errors (24h)"     value={superStats.totalErrors24h} icon={AlertCircle} accent={superStats.totalErrors24h > 0 ? R : '#6b7280'} />
+              <StatCard label="System Uptime"    value={superStats.uptime}         icon={Activity}    accent={GRN} />
             </div>
 
             {/* Quick Actions */}
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
+              display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 24,
             }}>
               {SUPER_ACTIONS.map(a => (
-                <ActionTile key={a.to} icon={a.icon} label={a.label} to={a.to} bg={a.bg} />
+                <ActionTile key={a.label} icon={a.icon} label={a.label} to={a.to || '#'} bg={a.bg} />
               ))}
             </div>
 
-            {/* Two columns: Errors + Activity */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              {/* Recent Errors */}
+            {/* 3-column grid: Agency Management + System Monitoring + Comms/QA */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 340px', gap: 20 }}>
+
+              {/* Column 1: Agency Management */}
               <div style={{
                 background: '#fff', borderRadius: 14, border: '1px solid #ececea',
                 overflow: 'hidden',
@@ -773,65 +819,181 @@ export default function DashboardPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
-                    Recent Errors
+                    Agencies
                   </div>
-                  <span style={{
-                    fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
-                    background: R + '15', color: R,
+                  <button onClick={() => navigate('/platform-admin')} style={{
+                    fontSize: 11, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH,
                   }}>
-                    {superStats.totalErrors24h} in 24h
-                  </span>
+                    View All
+                  </button>
                 </div>
-                <div style={{ padding: '4px 18px 10px' }}>
+                <div style={{ padding: '4px 12px', maxHeight: 420, overflowY: 'auto' }}>
                   {loading ? (
                     <div style={{ padding: '20px 0' }}>
                       {[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}
                     </div>
-                  ) : recentErrors.length === 0 ? (
-                    <div style={{
-                      textAlign: 'center', padding: '30px 0', fontSize: 13,
-                      color: '#9a9a96', fontFamily: FB,
-                    }}>
-                      <Check size={20} color={GRN} style={{ marginBottom: 8 }} />
-                      <br />No recent errors
+                  ) : agencyList.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '30px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>
+                      No agencies
                     </div>
-                  ) : (
-                    recentErrors.map(log => (
-                      <LogRow key={log.id} log={log} showLevel />
-                    ))
-                  )}
+                  ) : agencyList.slice(0, 8).map(a => (
+                    <div key={a.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px',
+                      borderBottom: '1px solid #f8f8f6',
+                    }}>
+                      <div style={{
+                        width: 34, height: 34, borderRadius: 8, background: T + '12',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: FH, fontSize: 13, fontWeight: 800, color: T,
+                      }}>
+                        {(a.brand_name || a.name || '?')[0].toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {a.brand_name || a.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#9a9a96' }}>
+                          {a.owner_email || a.slug} &middot; {a.plan || 'starter'}
+                        </div>
+                      </div>
+                      <span style={{
+                        fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+                        background: a.status === 'active' ? GRN + '15' : '#f2f2f0',
+                        color: a.status === 'active' ? GRN : '#6b7280',
+                        textTransform: 'uppercase',
+                      }}>
+                        {a.status || 'active'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Activity Feed */}
-              <div style={{
-                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
-                }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
-                    Activity Feed
+              {/* Column 2: System Monitoring — Errors + Activity */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Recent Errors */}
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
+                  <div style={{
+                    padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}>
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Recent Errors</div>
+                    <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: R + '15', color: R }}>
+                      {superStats.totalErrors24h} in 24h
+                    </span>
+                  </div>
+                  <div style={{ padding: '4px 18px 10px', maxHeight: 200, overflowY: 'auto' }}>
+                    {loading ? (
+                      <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
+                    ) : recentErrors.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>
+                        <Check size={20} color={GRN} style={{ marginBottom: 8 }} /><br />No recent errors
+                      </div>
+                    ) : recentErrors.slice(0, 5).map(log => <LogRow key={log.id} log={log} showLevel />)}
                   </div>
                 </div>
-                <div style={{ padding: '4px 18px 10px', maxHeight: 500, overflowY: 'auto' }}>
-                  {loading ? (
-                    <div style={{ padding: '20px 0' }}>
-                      {[1,2,3,4,5].map(i => <SkeletonBar key={i} mb={12} />)}
+
+                {/* Activity Feed */}
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden', flex: 1 }}>
+                  <div style={{ padding: '14px 18px', borderBottom: '1px solid #f2f2f0' }}>
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Activity Feed</div>
+                  </div>
+                  <div style={{ padding: '4px 18px 10px', maxHeight: 220, overflowY: 'auto' }}>
+                    {loading ? (
+                      <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
+                    ) : activityFeed.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>No activity yet</div>
+                    ) : activityFeed.slice(0, 8).map(log => <LogRow key={log.id} log={log} showLevel />)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Communications + QA Summary */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Communications Status */}
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18 }}>
+                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>
+                    Communications (24h)
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    {[
+                      { label: 'Emails', value: commsStats.emails24h, color: T },
+                      { label: 'SMS', value: commsStats.sms24h, color: GRN },
+                      { label: 'Failed', value: commsStats.failed24h, color: R },
+                      { label: 'Total', value: commsStats.total24h, color: BLK },
+                    ].map(s => (
+                      <div key={s.label} style={{ textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: s.color, lineHeight: 1 }}>
+                          {loading ? '—' : s.value}
+                        </div>
+                        <div style={{ fontSize: 10, color: '#9a9a96', marginTop: 4, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                          {s.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* QA Summary */}
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
+                  }}>
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>QA Health</div>
+                    <button onClick={() => navigate('/qa')} style={{
+                      fontSize: 11, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH,
+                    }}>Open Console</button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#ececea', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${qaHealth.health_score || 0}%`, height: '100%', borderRadius: 4,
+                        background: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
+                        transition: 'width .5s ease',
+                      }} />
                     </div>
-                  ) : activityFeed.length === 0 ? (
-                    <div style={{
-                      textAlign: 'center', padding: '30px 0', fontSize: 13,
-                      color: '#9a9a96', fontFamily: FB,
-                    }}>
-                      No activity yet
+                    <span style={{
+                      fontFamily: FH, fontSize: 16, fontWeight: 800,
+                      color: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
+                    }}>{qaHealth.health_score || 0}%</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>{qaHealth.pass_rate || 0}%</div>
+                      <div style={{ fontSize: 10, color: '#9a9a96', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Pass Rate</div>
                     </div>
-                  ) : (
-                    activityFeed.map(log => (
-                      <LogRow key={log.id} log={log} showLevel />
-                    ))
-                  )}
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: qaHealth.open_errors > 0 ? R : GRN }}>{qaHealth.open_errors || 0}</div>
+                      <div style={{ fontSize: 10, color: '#9a9a96', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Open Errors</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Management Actions */}
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18 }}>
+                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>
+                    Quick Actions
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {[
+                      { label: 'Run QA Tests', to: '/qa', color: '#7c3aed' },
+                      { label: 'View Voice Calls', to: '/voice/live', color: T },
+                      { label: 'Manage Agencies', to: '/platform-admin', color: R },
+                    ].map(a => (
+                      <button key={a.label} onClick={() => navigate(a.to)} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                        background: a.color + '08', fontSize: 13, fontFamily: FH, fontWeight: 700,
+                        color: a.color, transition: 'background .12s',
+                      }}>
+                        {a.label}
+                        <ChevronRight size={14} />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

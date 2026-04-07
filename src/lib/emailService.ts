@@ -1,7 +1,22 @@
+async function logComm(params: {
+  channel: string; recipient: string; subject?: string;
+  body_preview?: string; status: string; provider: string;
+  provider_id?: string; error_message?: string; agency_id?: string;
+}) {
+  try {
+    await fetch((process.env.NEXT_PUBLIC_SITE_URL || '') + '/api/qa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'log_comm', ...params }),
+    })
+  } catch {}
+}
+
 export async function sendEmail(
   to: string,
   subject: string,
-  html: string
+  html: string,
+  agencyId?: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.DESK_EMAIL_FROM || 'Koto <notifications@hellokoto.com>'
@@ -16,8 +31,22 @@ export async function sendEmail(
       body: JSON.stringify({ from, to, subject, html }),
     })
     const data = await res.json()
-    return res.ok ? { success: true, id: data.id } : { success: false, error: data.message }
+    const result = res.ok ? { success: true, id: data.id } : { success: false, error: data.message }
+
+    logComm({
+      channel: 'email', recipient: to, subject,
+      body_preview: subject, status: result.success ? 'sent' : 'failed',
+      provider: 'resend', provider_id: data.id,
+      error_message: result.error, agency_id: agencyId,
+    })
+
+    return result
   } catch (e: any) {
+    logComm({
+      channel: 'email', recipient: to, subject,
+      status: 'failed', provider: 'resend',
+      error_message: e.message, agency_id: agencyId,
+    })
     return { success: false, error: e.message }
   }
 }
