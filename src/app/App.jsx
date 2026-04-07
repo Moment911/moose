@@ -126,6 +126,7 @@ import ServicesPage from '../views/ServicesPage'
 import ContactPage from '../views/ContactPage'
 import BillingAdminPage from '../views/BillingAdminPage'
 import StripeDashboardPage from '../views/StripeDashboardPage'
+import InvoiceBuilderPage from '../views/InvoiceBuilderPage'
 import KotoProofPage from '../views/KotoProofPage'
 
 // Global error handler — reports to /api/errors
@@ -339,6 +340,7 @@ function AppRoutes() {
           <Route path="/qa" element={<QAConsolePage />} />
           <Route path="/billing-admin" element={<BillingAdminPage />} />
           <Route path="/stripe-admin" element={<StripeDashboardPage />} />
+          <Route path="/invoice-builder" element={<InvoiceBuilderPage />} />
     </Routes>
   )
 }

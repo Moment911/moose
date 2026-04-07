@@ -163,6 +163,7 @@ export default function Sidebar() {
             <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals"/>
             <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
             <NavLink to="/automations" icon={Workflow} label="Automations"/>
+            <NavLink to="/invoice-builder" icon={FileText} label="Invoice Builder"/>
 
             {/* SEO & CONTENT */}
             {/* DESIGN */}
