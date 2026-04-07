@@ -49,35 +49,7 @@ const RETELL_VOICES = [
 ]
 
 /* ── SIC CODES ── */
-const SIC_CODES = [
-  {code:'1711',label:'Plumbing/HVAC'},{code:'1731',label:'Electrical'},{code:'1521',label:'General Contractor'},
-  {code:'1761',label:'Roofing/Siding'},{code:'1741',label:'Masonry/Stonework'},{code:'1751',label:'Carpentry'},
-  {code:'1771',label:'Concrete'},{code:'1781',label:'Water Well Drilling'},{code:'1791',label:'Structural Steel'},
-  {code:'1794',label:'Excavation'},{code:'1795',label:'Wrecking/Demolition'},{code:'1796',label:'Installing Building Equip'},
-  {code:'1799',label:'Special Trade Contractors'},{code:'2431',label:'Millwork'},{code:'2441',label:'Wood Kitchen Cabinets'},
-  {code:'2521',label:'Office Furniture/Wood'},{code:'2711',label:'Newspapers'},{code:'2741',label:'Misc Publishing'},
-  {code:'3444',label:'Sheet Metal'},{code:'3589',label:'Industrial Machinery'},{code:'3599',label:'Industrial Equip NEC'},
-  {code:'3825',label:'Instruments/Measuring'},{code:'4215',label:'Courier Services'},{code:'4731',label:'Freight Transportation'},
-  {code:'4812',label:'Telephone Communications'},{code:'4813',label:'Telephone/Telegraph'},{code:'4841',label:'Cable TV'},
-  {code:'4899',label:'Communication Services NEC'},{code:'4911',label:'Electric Services'},{code:'4931',label:'Electric/Gas'},
-  {code:'4953',label:'Refuse Systems'},{code:'5031',label:'Lumber/Plywood/Millwork'},{code:'5044',label:'Office Equipment'},
-  {code:'5045',label:'Computers/Peripherals'},{code:'5065',label:'Electronic Parts'},{code:'5074',label:'Plumbing/Heating Supply'},
-  {code:'5084',label:'Industrial Machinery'},{code:'5085',label:'Industrial Supplies'},{code:'5112',label:'Stationery'},
-  {code:'5169',label:'Chemicals/Allied Products'},{code:'5171',label:'Petroleum Products'},{code:'5211',label:'Lumber/Building Materials'},
-  {code:'5231',label:'Paint/Glass/Wallpaper'},{code:'5251',label:'Hardware Stores'},{code:'5261',label:'Nurseries/Garden'},
-  {code:'5411',label:'Grocery Stores'},{code:'5461',label:'Bakeries'},{code:'5511',label:'Auto Dealers/New&Used'},
-  {code:'5531',label:'Auto Parts'},{code:'5599',label:'Automotive Dealers NEC'},{code:'5699',label:'Apparel/Accessories'},
-  {code:'5712',label:'Furniture Stores'},{code:'5812',label:'Eating Places'},{code:'5912',label:'Drug Stores'},
-  {code:'5941',label:'Sporting Goods'},{code:'5944',label:'Jewelry Stores'},{code:'5945',label:'Hobby/Toy Stores'},
-  {code:'5947',label:'Gift/Novelty Stores'},{code:'6021',label:'National Commercial Banks'},{code:'6141',label:'Personal Credit'},
-  {code:'6159',label:'Federal Loan Agencies'},{code:'6311',label:'Life Insurance'},{code:'6411',label:'Insurance Agents/Brokers'},
-  {code:'6512',label:'Property Operators'},{code:'6531',label:'Real Estate Agents'},{code:'7011',label:'Hotels/Motels'},
-  {code:'7231',label:'Beauty Shops'},{code:'7349',label:'Cleaning Services'},{code:'7372',label:'Software/Prepackaged'},
-  {code:'7374',label:'Computer Processing/Data'},{code:'7389',label:'Services/Management Consulting'},
-  {code:'7538',label:'Auto Repair Shops'},{code:'7812',label:'Motion Picture Production'},{code:'7941',label:'Sports Clubs/Promoters'},
-  {code:'8011',label:'Offices of Physicians'},{code:'8021',label:'Dental Offices'},{code:'8049',label:'Health Practitioners NEC'},
-  {code:'8111',label:'Legal Services'},
-]
+import { SIC_CODES, INDUSTRY_KNOWLEDGE } from '../data/sicCodes'
 
 /* ── tiny reusable pieces ── */
 const Badge = ({ label, color, bg }) => (

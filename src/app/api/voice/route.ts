@@ -373,11 +373,36 @@ RULES:
     if (action === 'generate_script') {
       const { section, business_context: ctx } = body
       const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const sicCode = ctx?.sic_code || ''
+      const industry = ctx?.industry_division || ''
       const prompt = `Generate a ${section} script for an AI voice agent making outbound sales calls.
+
+BUSINESS CONTEXT:
 Business: ${ctx?.business_name || 'a local business'} (${ctx?.main_service || 'services'})
-Target: ${ctx?.target_customer || 'local businesses'}
+SIC Code: ${sicCode}
+Industry: ${industry}
+Target Customer: ${ctx?.target_customer || 'local businesses'}
 Differentiator: ${ctx?.differentiator || 'quality service'}
-Area: ${ctx?.service_area || 'local area'}
+Problem Solved: ${ctx?.problem_solved || 'business growth'}
+Service Area: ${ctx?.service_area || 'local area'}
+Deal Size: ${ctx?.deal_size || 'varies'}
+
+INDUSTRY-SPECIFIC GUIDANCE:
+- Use industry-appropriate terminology and tone
+- Reference common pain points for this industry (lead generation, online visibility, competition)
+- For healthcare: be HIPAA-aware, mention patient acquisition not "customers"
+- For legal: respect bar association advertising rules, be professional
+- For construction: call early morning or after hours (they're on job sites)
+- For finance/insurance: be compliance-conscious, avoid guarantees
+- For restaurants/retail: focus on foot traffic, online reviews, local SEO
+- Address the most common objection: "I already have a marketing person / we're fine"
+- Include a TCPA-compliant consent question if this is the closing or intro section
+
+${section === 'objections' ? 'Generate 5-7 common objections with professional responses. Format: Objection: [text]\\nResponse: [text]\\n\\n' : ''}
+${section === 'questions' ? 'Generate 5-7 qualifying discovery questions that uncover pain points and budget. Number them.' : ''}
+${section === 'tcpa_consent' ? 'Generate a natural TCPA consent script: ask for consent to call, text, and email separately. Must sound conversational, not legal.' : ''}
+${section === 'voicemail' ? 'Keep under 30 seconds when read aloud. Include callback number and reason to call back.' : ''}
+
 Return ONLY the script text, no markdown or JSON.`
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
