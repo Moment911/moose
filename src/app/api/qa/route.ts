@@ -467,6 +467,7 @@ export async function POST(req: NextRequest) {
 
     // Try to persist to DB — if tables don't exist yet, still return results
     let runId: string | null = null
+    const dbErrors: string[] = []
     try {
       // Create run record
       const runInsert: Record<string, any> = {
@@ -482,13 +483,18 @@ export async function POST(req: NextRequest) {
       }
       if (agencyId) runInsert.agency_id = agencyId
 
-      const { data: run } = await sb.from('koto_qa_runs')
+      const { data: run, error: runErr } = await sb.from('koto_qa_runs')
         .insert(runInsert).select().single()
-      runId = run?.id
+      if (runErr) {
+        console.error('koto_qa_runs insert failed:', runErr.message, runErr.details, runErr.hint)
+        dbErrors.push(`qa_runs: ${runErr.message}`)
+      } else {
+        runId = run?.id
+      }
 
       // Save individual results
       if (runId && allResults.length > 0) {
-        await sb.from('koto_qa_results').insert(
+        const { error: resErr } = await sb.from('koto_qa_results').insert(
           allResults.map(r => ({
             run_id: runId,
             suite: r.suite,
@@ -498,6 +504,10 @@ export async function POST(req: NextRequest) {
             message: r.message,
           }))
         )
+        if (resErr) {
+          console.error('koto_qa_results insert failed:', resErr.message)
+          dbErrors.push(`qa_results: ${resErr.message}`)
+        }
       }
 
       // Log failures as errors
@@ -509,7 +519,11 @@ export async function POST(req: NextRequest) {
           severity: 'medium',
         }
         if (agencyId) errInsert.agency_id = agencyId
-        await sb.from('koto_qa_errors').insert(errInsert)
+        const { error: eErr } = await sb.from('koto_qa_errors').insert(errInsert)
+        if (eErr) {
+          console.error('koto_qa_errors insert failed:', eErr.message)
+          if (!dbErrors.includes(`qa_errors: ${eErr.message}`)) dbErrors.push(`qa_errors: ${eErr.message}`)
+        }
       }
 
       // Snapshot metrics
@@ -523,9 +537,14 @@ export async function POST(req: NextRequest) {
         open_errors: openErrors || 0,
       }
       if (agencyId) metricsInsert.agency_id = agencyId
-      await sb.from('koto_qa_metrics').insert(metricsInsert)
+      const { error: mErr } = await sb.from('koto_qa_metrics').insert(metricsInsert)
+      if (mErr) {
+        console.error('koto_qa_metrics insert failed:', mErr.message)
+        dbErrors.push(`qa_metrics: ${mErr.message}`)
+      }
     } catch (dbErr: any) {
-      console.error('QA DB persist error (non-fatal):', dbErr.message)
+      console.error('QA DB persist exception:', dbErr.message)
+      dbErrors.push(`exception: ${dbErr.message}`)
     }
 
     return NextResponse.json({
@@ -536,6 +555,7 @@ export async function POST(req: NextRequest) {
       health_score: healthScore,
       duration_ms: durationMs,
       results: allResults,
+      db_errors: dbErrors.length > 0 ? dbErrors : undefined,
     })
   }
 
