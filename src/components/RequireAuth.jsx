@@ -15,7 +15,7 @@ export default function RequireAuth({ children }) {
 
   // Still loading session
   if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0a0a0a' }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#f2f2f0' }}>
       <Loader2 size={32} color='#ea2729' style={{ animation:'spin 1s linear infinite' }}/>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -26,7 +26,7 @@ export default function RequireAuth({ children }) {
   if (isPublic) return children
 
   // Not logged in — redirect to login, remembering where they wanted to go
-  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace/>
+  if (!user) return <Navigate to="/login" state={{ from: '/app' + location.pathname }} replace/>
 
   return children
 }

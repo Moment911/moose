@@ -161,14 +161,50 @@ export default function App() {
         <Toaster position="top-right" />
         <CommandPalette />
         <OnboardingWizard />
-        <MobileShell>
-        <ImpersonationBar/>
-        <AgencyControlPanel/>
-        <RequireAuth>
         <Routes>
+          {/* ── Public routes (no /app prefix, no shell) ── */}
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/welcome" element={<MarketingSitePage />} />
           <Route path="/signup" element={<AgencySignupPage />} />
+          <Route path="/" element={<MarketingSitePage />} />
+
+          {/* ── App routes (under /app, with full shell) ── */}
+          <Route path="/app/*" element={
+            <MobileShell>
+            <ImpersonationBar/>
+            <AgencyControlPanel/>
+            <RequireAuth>
+            <AppRoutes />
+            </RequireAuth>
+            </MobileShell>
+          } />
+
+          {/* ── Public token routes (no shell needed) ── */}
+          <Route path="/onboard/:token" element={<OnboardingPage />} />
+          <Route path="/onboarding/:token" element={<OnboardingPage />} />
+          <Route path="/review/:token" element={<PublicReviewPage />} />
+          <Route path="/r/:token" element={<PublicReportPage />} />
+          <Route path="/p/:token" element={<ProposalPublicPage />} />
+          <Route path="/portal/:token" element={<ClientPortalPage />} />
+          <Route path="/access/:token" element={<ClientAccessFormPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/status" element={<StatusPage />} />
+          <Route path="/uptime/public" element={<PublicUptimePage />} />
+          <Route path="/welcome" element={<MarketingSitePage />} />
+        </Routes>
+      </MobileMenuProvider>
+      </ClientProvider>
+      </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  )
+}
+
+/* ── All authenticated app routes (rendered inside /app/*) ── */
+function AppRoutes() {
+  return (
+    <Routes>
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/db-setup" element={<DbSetupPage />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/agent" element={<AgentPage />} />
@@ -276,13 +312,7 @@ export default function App() {
           <Route path="/seo/competitor-intel" element={<CompetitorIntelPage />} />
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
-          <Route path="/seo/connect" element={<SEOConnectPage />} />        </Routes>
-        </RequireAuth>
-        </MobileShell>
-      </MobileMenuProvider>
-      </ClientProvider>
-      </ThemeProvider>
-      </AuthProvider>
-    </BrowserRouter>
+          <Route path="/seo/connect" element={<SEOConnectPage />} />
+    </Routes>
   )
 }

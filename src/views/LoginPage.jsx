@@ -70,8 +70,8 @@ export default function LoginPage() {
       triggerShake()
       return
     }
-    const from = location.state?.from || '/'
-    navigate(from, { replace: true })
+    const from = location.state?.from || '/app'
+    window.location.href = from
   }
 
   async function handleGoogleSignIn() {
@@ -79,7 +79,7 @@ export default function LoginPage() {
     setGoogleLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/' },
+      options: { redirectTo: window.location.origin + '/app' },
     })
     setGoogleLoading(false)
     if (oauthError) {
