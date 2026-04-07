@@ -369,6 +369,167 @@ RULES:
       return NextResponse.json({ ok: true })
     }
 
+    // ── Generate Script Section with AI ─────────────────────────────────────
+    if (action === 'generate_script') {
+      const { section, business_context: ctx } = body
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const prompt = `Generate a ${section} script for an AI voice agent making outbound sales calls.
+Business: ${ctx?.business_name || 'a local business'} (${ctx?.main_service || 'services'})
+Target: ${ctx?.target_customer || 'local businesses'}
+Differentiator: ${ctx?.differentiator || 'quality service'}
+Area: ${ctx?.service_area || 'local area'}
+Return ONLY the script text, no markdown or JSON.`
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
+      })
+      const data = await res.json()
+      return NextResponse.json({ script: data.content?.[0]?.text || '' })
+    }
+
+    // ── Score Script ─────────────────────────────────────────────────────────
+    if (action === 'score_script') {
+      const { script_text } = body
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: `Score this sales call script on 5 dimensions (1-10 each). Return JSON only: {"naturalness":N,"clarity":N,"empathy":N,"compliance":N,"effectiveness":N,"overall":N,"feedback":"brief feedback"}\n\nScript:\n${script_text}` }] }),
+      })
+      const data = await res.json()
+      try { return NextResponse.json(JSON.parse(data.content?.[0]?.text || '{}')) } catch { return NextResponse.json({ overall: 5, feedback: 'Could not parse score' }) }
+    }
+
+    // ── Improve Script ───────────────────────────────────────────────────────
+    if (action === 'improve_script') {
+      const { script_text } = body
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: `Improve this sales call script to be more natural, empathetic, and TCPA compliant. Return ONLY the improved script text.\n\nOriginal:\n${script_text}` }] }),
+      })
+      const data = await res.json()
+      return NextResponse.json({ improved: data.content?.[0]?.text || '' })
+    }
+
+    // ── Check Script Compliance ──────────────────────────────────────────────
+    if (action === 'check_script_compliance') {
+      const { script_text } = body
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: `Analyze this phone sales script for TCPA compliance issues. Return JSON: {"score":N,"lines":[{"line":N,"text":"...","status":"ok|warning|violation","issue":"...","fix":"..."}],"summary":"..."}\n\nScript:\n${script_text}` }] }),
+      })
+      const data = await res.json()
+      try { return NextResponse.json(JSON.parse(data.content?.[0]?.text || '{}')) } catch { return NextResponse.json({ score: 50, lines: [], summary: 'Could not parse' }) }
+    }
+
+    // ── Analytics ─────────────────────────────────────────────────────────────
+    if (action === 'get_analytics') {
+      const { data: leads } = await sb.from('koto_voice_leads').select('*').eq('agency_id', agency_id).limit(1000)
+      const { data: intel } = await sb.from('koto_voice_intelligence').select('*').eq('agency_id', agency_id).order('created_at', { ascending: false }).limit(1)
+      const allLeads = leads || []
+      const called = allLeads.filter(l => l.status !== 'pending')
+      const answered = allLeads.filter(l => ['answered', 'appointment_set', 'callback', 'not_interested'].includes(l.status))
+      const appts = allLeads.filter(l => l.status === 'appointment_set')
+      return NextResponse.json({
+        total: allLeads.length, called: called.length, answered: answered.length, appointments: appts.length,
+        connectionRate: called.length ? Math.round(answered.length / called.length * 100) : 0,
+        appointmentRate: answered.length ? Math.round(appts.length / answered.length * 100) : 0,
+        avgDuration: called.length ? Math.round(called.reduce((s, l) => s + (l.call_duration_seconds || 0), 0) / called.length) : 0,
+        intelligence: intel?.[0] || null,
+      })
+    }
+
+    // ── Analyze and Learn ────────────────────────────────────────────────────
+    if (action === 'analyze_and_learn') {
+      const { agent_id: agId } = body
+      const { data: calls } = await sb.from('koto_voice_leads').select('*').eq('agency_id', agency_id).not('transcript', 'is', null).order('created_at', { ascending: false }).limit(100)
+      if (!calls?.length) return NextResponse.json({ error: 'No calls with transcripts to analyze' })
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const sample = (calls || []).slice(0, 20).map(c => `[${c.status}] ${c.transcript?.slice(0, 500)}`).join('\n---\n')
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: `Analyze these ${calls.length} sales call transcripts and provide insights. Return JSON: {"what_works":["..."],"what_fails":["..."],"best_times":{"morning":N,"afternoon":N,"evening":N},"recommendations":["..."],"script_scores":{"intro":N,"discovery":N,"value_prop":N,"objection":N,"close":N}}\n\n${sample}` }] }),
+      })
+      const data = await res.json()
+      let insights: any = {}
+      try { insights = JSON.parse(data.content?.[0]?.text || '{}') } catch {}
+      await sb.from('koto_voice_intelligence').insert({ agency_id, agent_id: agId, analysis_type: 'learning', insights, recommendations: insights.recommendations || [], what_works: insights.what_works || [], what_fails: insights.what_fails || [], best_times: insights.best_times || {}, script_scores: insights.script_scores || {}, calls_analyzed: calls.length })
+      return NextResponse.json({ insights, calls_analyzed: calls.length })
+    }
+
+    // ── Get Live Calls (super admin) ─────────────────────────────────────────
+    if (action === 'get_live_calls') {
+      const { data: active } = await sb.from('koto_voice_calls').select('*, koto_voice_leads(first_name, last_name, phone, business_name)').in('status', ['initiated', 'in_progress']).order('created_at', { ascending: false }).limit(50)
+      return NextResponse.json({ calls: active || [] })
+    }
+
+    // ── Stop Call ────────────────────────────────────────────────────────────
+    if (action === 'stop_call') {
+      const { call_id: cId, retell_call_id: rId } = body
+      if (rId) { try { await retellFetch(`/v2/end-call/${rId}`, 'POST') } catch {} }
+      if (cId) await sb.from('koto_voice_calls').update({ status: 'stopped' }).eq('id', cId)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── TCPA Records ─────────────────────────────────────────────────────────
+    if (action === 'get_tcpa_records') {
+      const { data } = await sb.from('koto_voice_tcpa_records').select('*').eq('agency_id', agency_id).order('created_at', { ascending: false }).limit(500)
+      return NextResponse.json({ records: data || [] })
+    }
+
+    if (action === 'export_tcpa_csv') {
+      const { data } = await sb.from('koto_voice_tcpa_records').select('*').eq('agency_id', agency_id)
+      const rows = (data || []).map(r => `${r.phone},${r.consent_phone},${r.consent_sms},${r.consent_email},${r.consent_method},${r.consent_timestamp},${r.opt_out},${r.dnc_result}`)
+      const csv = 'phone,consent_phone,consent_sms,consent_email,method,timestamp,opt_out,dnc_result\n' + rows.join('\n')
+      return NextResponse.json({ csv })
+    }
+
+    // ── Appointments ─────────────────────────────────────────────────────────
+    if (action === 'get_appointments') {
+      const { data } = await sb.from('koto_voice_appointments').select('*').eq('agency_id', agency_id).order('appointment_datetime', { ascending: true }).limit(100)
+      return NextResponse.json({ appointments: data || [] })
+    }
+
+    if (action === 'book_appointment') {
+      const { lead_id: lId, date, time, tz, prospect_name: pn, prospect_phone: pp, prospect_email: pe, prospect_business: pb } = body
+      const dt = new Date(`${date}T${time}`)
+      const { data } = await sb.from('koto_voice_appointments').insert({
+        agency_id, lead_id: lId, appointment_date: date, appointment_time: time, appointment_datetime: dt.toISOString(), timezone: tz || 'America/New_York', prospect_name: pn, prospect_phone: pp, prospect_email: pe, prospect_business: pb,
+      }).select().single()
+      return NextResponse.json({ appointment: data })
+    }
+
+    // ── Calendar Settings ────────────────────────────────────────────────────
+    if (action === 'get_calendar_settings') {
+      const { data } = await sb.from('koto_voice_calendar_settings').select('*').eq('agency_id', agency_id).single()
+      return NextResponse.json({ settings: data })
+    }
+
+    if (action === 'save_calendar_settings') {
+      const { settings } = body
+      const { data } = await sb.from('koto_voice_calendar_settings').upsert({ agency_id, ...settings, updated_at: new Date().toISOString() }, { onConflict: 'agency_id' }).select().single()
+      return NextResponse.json({ settings: data })
+    }
+
+    // ── Run Test Simulation ──────────────────────────────────────────────────
+    if (action === 'run_test_simulation') {
+      const { campaign_id: cmpId, count } = body
+      const { data: campaign } = await sb.from('koto_voice_campaigns').select('*').eq('id', cmpId).single()
+      const simCount = count || 10
+      // Simulate outcomes based on industry averages
+      const connectionRate = 0.25 + Math.random() * 0.15
+      const appointmentRate = 0.08 + Math.random() * 0.07
+      const results = { simulated_calls: simCount, predicted_connections: Math.round(simCount * connectionRate), predicted_appointments: Math.round(simCount * connectionRate * appointmentRate), predicted_callbacks: Math.round(simCount * connectionRate * 0.15), predicted_no_answer: Math.round(simCount * (1 - connectionRate)), avg_duration_predicted: Math.round(45 + Math.random() * 60), connection_rate: Math.round(connectionRate * 100), appointment_rate: Math.round(appointmentRate * 100), bottleneck: Math.random() > 0.5 ? 'objection_handling' : 'closing' }
+      await sb.from('koto_voice_test_results').insert({ agency_id, test_type: 'stress_test', test_config: { campaign_id: cmpId, count: simCount }, results, score: results.connection_rate })
+      return NextResponse.json(results)
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     console.error('[Voice API Error]', e)

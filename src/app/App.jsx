@@ -108,6 +108,8 @@ import HelpCenterPage from '../views/HelpCenterPage'
 import UptimeMonitorPage from '../views/UptimeMonitorPage'
 import PublicUptimePage from '../views/PublicUptimePage'
 import VoiceAgentPage from '../views/VoiceAgentPage'
+import VoiceTestConsolePage from '../views/VoiceTestConsolePage'
+import VoiceLiveMonitorPage from '../views/VoiceLiveMonitorPage'
 import CommandPalette from '../components/CommandPalette'
 import ClientPermissionsPage from '../views/ClientPermissionsPage'
 import ProposalsPage from '../views/ProposalsPage'
@@ -234,6 +236,8 @@ export default function App() {
           <Route path="/uptime" element={<UptimeMonitorPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
           <Route path="/voice" element={<VoiceAgentPage />} />
+          <Route path="/voice/test-console" element={<VoiceTestConsolePage />} />
+          <Route path="/voice/live" element={<VoiceLiveMonitorPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />

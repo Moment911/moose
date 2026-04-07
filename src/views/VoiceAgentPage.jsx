@@ -1,16 +1,19 @@
 "use client";
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 import {
-  Phone, PhoneCall, PhoneOff, Mic, Plus, Play, Pause, Trash2, Edit2,
-  Upload, Download, Search, ChevronRight, ChevronDown, Clock, Users,
-  Target, Check, X, Loader2, BarChart2, Globe, AlertCircle, Volume2,
-  FileText, Sparkles, RefreshCw, Send, Star
+  Phone, PhoneCall, PhoneOff, PhoneIncoming, Mic, MicOff, Plus, Play, Pause, Square,
+  Trash2, Edit2, Upload, Download, Search, ChevronRight, ChevronDown, Clock, Users,
+  Target, Check, X, Loader2, BarChart2, Globe, AlertCircle, Volume2, FileText,
+  Sparkles, RefreshCw, Send, Star, Shield, Calendar, Brain, TrendingUp,
+  AlertTriangle, Copy, ExternalLink, Settings, Zap
 } from 'lucide-react'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
+const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b',PURP='#7c3aed'
+const W='#ffffff'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 
@@ -25,766 +28,1108 @@ async function api(body) {
   return res.json()
 }
 
+/* ── RETELL VOICES ── */
+const RETELL_VOICES = [
+  { id:'11labs-Adrian', name:'Adrian', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Professional' },
+  { id:'11labs-Myra', name:'Myra', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Friendly' },
+  { id:'11labs-Josh', name:'Josh', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Conversational' },
+  { id:'11labs-Sarah', name:'Sarah', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Warm' },
+  { id:'11labs-Mark', name:'Mark', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Authoritative' },
+  { id:'11labs-Evelyn', name:'Evelyn', provider:'ElevenLabs', gender:'Female', accent:'British', tone:'Elegant' },
+  { id:'11labs-Ryan', name:'Ryan', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Casual' },
+  { id:'11labs-Nicole', name:'Nicole', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Energetic' },
+  { id:'11labs-Chris', name:'Chris', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Trustworthy' },
+  { id:'11labs-Laura', name:'Laura', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Soothing' },
+  { id:'11labs-Alex', name:'Alex', provider:'ElevenLabs', gender:'Male', accent:'British', tone:'Polished' },
+  { id:'11labs-Sophia', name:'Sophia', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Persuasive' },
+  { id:'11labs-Daniel', name:'Daniel', provider:'ElevenLabs', gender:'Male', accent:'Australian', tone:'Relaxed' },
+  { id:'11labs-Emily', name:'Emily', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Cheerful' },
+  { id:'11labs-James', name:'James', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Commanding' },
+  { id:'11labs-Aria', name:'Aria', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Natural' },
+]
+
+/* ── SIC CODES ── */
+const SIC_CODES = [
+  {code:'1711',label:'Plumbing/HVAC'},{code:'1731',label:'Electrical'},{code:'1521',label:'General Contractor'},
+  {code:'1761',label:'Roofing/Siding'},{code:'1741',label:'Masonry/Stonework'},{code:'1751',label:'Carpentry'},
+  {code:'1771',label:'Concrete'},{code:'1781',label:'Water Well Drilling'},{code:'1791',label:'Structural Steel'},
+  {code:'1794',label:'Excavation'},{code:'1795',label:'Wrecking/Demolition'},{code:'1796',label:'Installing Building Equip'},
+  {code:'1799',label:'Special Trade Contractors'},{code:'2431',label:'Millwork'},{code:'2441',label:'Wood Kitchen Cabinets'},
+  {code:'2521',label:'Office Furniture/Wood'},{code:'2711',label:'Newspapers'},{code:'2741',label:'Misc Publishing'},
+  {code:'3444',label:'Sheet Metal'},{code:'3589',label:'Industrial Machinery'},{code:'3599',label:'Industrial Equip NEC'},
+  {code:'3825',label:'Instruments/Measuring'},{code:'4215',label:'Courier Services'},{code:'4731',label:'Freight Transportation'},
+  {code:'4812',label:'Telephone Communications'},{code:'4813',label:'Telephone/Telegraph'},{code:'4841',label:'Cable TV'},
+  {code:'4899',label:'Communication Services NEC'},{code:'4911',label:'Electric Services'},{code:'4931',label:'Electric/Gas'},
+  {code:'4953',label:'Refuse Systems'},{code:'5031',label:'Lumber/Plywood/Millwork'},{code:'5044',label:'Office Equipment'},
+  {code:'5045',label:'Computers/Peripherals'},{code:'5065',label:'Electronic Parts'},{code:'5074',label:'Plumbing/Heating Supply'},
+  {code:'5084',label:'Industrial Machinery'},{code:'5085',label:'Industrial Supplies'},{code:'5112',label:'Stationery'},
+  {code:'5169',label:'Chemicals/Allied Products'},{code:'5171',label:'Petroleum Products'},{code:'5211',label:'Lumber/Building Materials'},
+  {code:'5231',label:'Paint/Glass/Wallpaper'},{code:'5251',label:'Hardware Stores'},{code:'5261',label:'Nurseries/Garden'},
+  {code:'5411',label:'Grocery Stores'},{code:'5461',label:'Bakeries'},{code:'5511',label:'Auto Dealers/New&Used'},
+  {code:'5531',label:'Auto Parts'},{code:'5599',label:'Automotive Dealers NEC'},{code:'5699',label:'Apparel/Accessories'},
+  {code:'5712',label:'Furniture Stores'},{code:'5812',label:'Eating Places'},{code:'5912',label:'Drug Stores'},
+  {code:'5941',label:'Sporting Goods'},{code:'5944',label:'Jewelry Stores'},{code:'5945',label:'Hobby/Toy Stores'},
+  {code:'5947',label:'Gift/Novelty Stores'},{code:'6021',label:'National Commercial Banks'},{code:'6141',label:'Personal Credit'},
+  {code:'6159',label:'Federal Loan Agencies'},{code:'6311',label:'Life Insurance'},{code:'6411',label:'Insurance Agents/Brokers'},
+  {code:'6512',label:'Property Operators'},{code:'6531',label:'Real Estate Agents'},{code:'7011',label:'Hotels/Motels'},
+  {code:'7231',label:'Beauty Shops'},{code:'7349',label:'Cleaning Services'},{code:'7372',label:'Software/Prepackaged'},
+  {code:'7374',label:'Computer Processing/Data'},{code:'7389',label:'Services/Management Consulting'},
+  {code:'7538',label:'Auto Repair Shops'},{code:'7812',label:'Motion Picture Production'},{code:'7941',label:'Sports Clubs/Promoters'},
+  {code:'8011',label:'Offices of Physicians'},{code:'8021',label:'Dental Offices'},{code:'8049',label:'Health Practitioners NEC'},
+  {code:'8111',label:'Legal Services'},
+]
+
 /* ── tiny reusable pieces ── */
 const Badge = ({ label, color, bg }) => (
-  <span style={{ fontSize: 11, fontWeight: 700, color, background: bg, padding: '2px 10px', borderRadius: 999, textTransform: 'uppercase', letterSpacing: .5 }}>{label}</span>
+  <span style={{ fontSize:11, fontWeight:700, color, background:bg, padding:'2px 10px', borderRadius:999, textTransform:'uppercase', letterSpacing:.5 }}>{label}</span>
 )
 
 const statusColor = s => {
-  const map = { active: { c: '#fff', bg: GRN }, inactive: { c: '#fff', bg: '#6b7280' }, draft: { c: BLK, bg: '#e5e7eb' }, paused: { c: BLK, bg: AMB }, completed: { c: '#fff', bg: T }, pending: { c: '#555', bg: '#e5e7eb' }, calling: { c: '#fff', bg: AMB }, answered: { c: '#fff', bg: GRN }, appointment_set: { c: '#fff', bg: T }, no_answer: { c: '#fff', bg: R }, callback: { c: '#fff', bg: AMB }, failed: { c: '#fff', bg: R } }
-  return map[s] || { c: '#555', bg: '#e5e7eb' }
+  const map = { active:{c:W,bg:GRN}, inactive:{c:W,bg:'#6b7280'}, draft:{c:BLK,bg:'#e5e7eb'}, paused:{c:BLK,bg:AMB}, completed:{c:W,bg:T}, running:{c:W,bg:GRN}, pending:{c:'#555',bg:'#e5e7eb'}, calling:{c:W,bg:AMB}, answered:{c:W,bg:GRN}, appointment_set:{c:W,bg:T}, no_answer:{c:W,bg:R}, callback:{c:W,bg:AMB}, failed:{c:W,bg:R} }
+  return map[s] || { c:'#555', bg:'#e5e7eb' }
 }
 
 const StatPill = ({ label, value, color }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: `${color}18`, padding: '3px 10px', borderRadius: 999, fontSize: 12 }}>
-    <span style={{ fontWeight: 700, color }}>{value}</span>
-    <span style={{ color: '#666' }}>{label}</span>
+  <div style={{ display:'flex', alignItems:'center', gap:6, background:`${color}18`, padding:'3px 10px', borderRadius:999, fontSize:12 }}>
+    <span style={{ fontWeight:700, color }}>{value}</span>
+    <span style={{ color:'#666' }}>{label}</span>
   </div>
 )
 
-const Btn = ({ children, onClick, bg = R, color = '#fff', small, disabled, style: sx }) => (
-  <button disabled={disabled} onClick={onClick} style={{ fontFamily: FH, fontSize: small ? 12 : 13, fontWeight: 600, padding: small ? '5px 12px' : '8px 18px', background: disabled ? '#ccc' : bg, color, border: 'none', borderRadius: 8, cursor: disabled ? 'default' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, ...sx }}>{children}</button>
+const Btn = ({ children, onClick, bg=R, color=W, small, disabled, style:sx }) => (
+  <button disabled={disabled} onClick={onClick} style={{ fontFamily:FH, fontSize:small?12:13, fontWeight:600, padding:small?'5px 12px':'8px 18px', background:disabled?'#ccc':bg, color, border:'none', borderRadius:8, cursor:disabled?'default':'pointer', display:'inline-flex', alignItems:'center', gap:6, transition:'opacity .15s', ...sx }}>{children}</button>
 )
 
-const Input = ({ label, value, onChange, placeholder, textarea, type = 'text', style: sx }) => (
-  <div style={{ marginBottom: 12, ...sx }}>
-    {label && <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4, color: '#333', fontFamily: FH }}>{label}</label>}
+const Input = ({ label, value, onChange, placeholder, textarea, type='text', style:sx }) => (
+  <div style={{ marginBottom:12, ...sx }}>
+    {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>{label}</label>}
     {textarea
-      ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB, resize: 'vertical' }} />
-      : <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB }} />
-    }
+      ? <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={4} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }} />
+      : <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />}
   </div>
 )
 
-const Select = ({ label, value, onChange, options, placeholder }) => (
-  <div style={{ marginBottom: 12 }}>
-    {label && <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4, color: '#333', fontFamily: FH }}>{label}</label>}
-    <select value={value} onChange={e => onChange(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB, background: '#fff' }}>
-      <option value="">{placeholder || 'Select...'}</option>
+const Select = ({ label, value, onChange, options, placeholder, style:sx }) => (
+  <div style={{ marginBottom:12, ...sx }}>
+    {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>{label}</label>}
+    <select value={value} onChange={e=>onChange(e.target.value)} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, background:W, boxSizing:'border-box' }}>
+      {placeholder && <option value="">{placeholder}</option>}
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   </div>
 )
 
-/* ── Modal overlay ── */
-const Modal = ({ title, onClose, children, width = 560 }) => (
-  <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.45)' }} onClick={onClose}>
-    <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, width, maxHeight: '85vh', overflow: 'auto', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,.25)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h3 style={{ fontFamily: FH, fontSize: 18, fontWeight: 700, margin: 0 }}>{title}</h3>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+const Card = ({ children, style:sx }) => (
+  <div style={{ background:W, borderRadius:12, border:'1px solid #e5e7eb', padding:20, ...sx }}>{children}</div>
+)
+
+const StatCard = ({ icon:Icon, label, value, color=T, sub }) => (
+  <Card style={{ flex:1, minWidth:160 }}>
+    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+      <div style={{ width:32, height:32, borderRadius:8, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}><Icon size={16} color={color} /></div>
+      <span style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
+    </div>
+    <div style={{ fontSize:24, fontWeight:700, color:BLK, fontFamily:FH }}>{value}</div>
+    {sub && <div style={{ fontSize:11, color:'#888', marginTop:2 }}>{sub}</div>}
+  </Card>
+)
+
+const Modal = ({ title, onClose, children, wide }) => (
+  <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999 }} onClick={onClose}>
+    <div onClick={e=>e.stopPropagation()} style={{ background:W, borderRadius:16, width:wide?720:520, maxHeight:'85vh', overflow:'auto', padding:28 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+        <h3 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700 }}>{title}</h3>
+        <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}><X size={18} /></button>
       </div>
       {children}
     </div>
   </div>
 )
 
-/* ═══════════════════════════════════════════════════════════
-   MAIN COMPONENT
-   ═══════════════════════════════════════════════════════════ */
+const TabBar = ({ tabs, active, onChange }) => (
+  <div style={{ display:'flex', gap:2, background:'#e5e7eb', borderRadius:10, padding:3, marginBottom:20 }}>
+    {tabs.map(t => (
+      <button key={t.key} onClick={()=>onChange(t.key)} style={{ flex:1, padding:'8px 12px', fontSize:12, fontWeight:600, fontFamily:FH, border:'none', borderRadius:8, cursor:'pointer', background:active===t.key?W:'transparent', color:active===t.key?BLK:'#888', transition:'all .15s', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+        {t.icon && <t.icon size={14} />}{t.label}
+      </button>
+    ))}
+  </div>
+)
+
+const TABS = [
+  { key:'agents', label:'Agents', icon:Users },
+  { key:'campaigns', label:'Campaigns', icon:Target },
+  { key:'leads', label:'Leads', icon:PhoneIncoming },
+  { key:'history', label:'Call History', icon:Phone },
+  { key:'analytics', label:'Analytics', icon:BarChart2 },
+  { key:'tcpa', label:'TCPA', icon:Shield },
+  { key:'calendar', label:'Calendar', icon:Calendar },
+]
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/*  MAIN COMPONENT                                                            */
+/* ──────────────────────────────────────────────────────────────────────────── */
 export default function VoiceAgentPage() {
   const { agencyId: authAgencyId } = useAuth()
-  const agencyId = authAgencyId || '00000000-0000-0000-0000-000000000099'
+  const aid = authAgencyId || '00000000-0000-0000-0000-000000000099'
+  const navigate = useNavigate()
 
   const [tab, setTab] = useState('agents')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
-  /* data */
+  // Data
   const [agents, setAgents] = useState([])
   const [campaigns, setCampaigns] = useState([])
   const [leads, setLeads] = useState([])
   const [calls, setCalls] = useState([])
-  const [clients, setClients] = useState([])
+  const [analytics, setAnalytics] = useState(null)
+  const [tcpaData, setTcpaData] = useState([])
+  const [appointments, setAppointments] = useState([])
+  const [availability, setAvailability] = useState({})
 
-  /* filters */
-  const [searchQ, setSearchQ] = useState('')
-  const [selectedCampaign, setSelectedCampaign] = useState('')
-  const [callFilterCampaign, setCallFilterCampaign] = useState('')
-  const [callFilterStatus, setCallFilterStatus] = useState('')
-  const [callFilterAppt, setCallFilterAppt] = useState('')
-
-  /* modals */
-  const [showAgentModal, setShowAgentModal] = useState(false)
-  const [editingAgent, setEditingAgent] = useState(null)
+  // UI state
+  const [showAgentWizard, setShowAgentWizard] = useState(false)
+  const [wizardStep, setWizardStep] = useState(1)
+  const [wizardData, setWizardData] = useState({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{} })
+  const [sicSearch, setSicSearch] = useState('')
   const [showCampaignModal, setShowCampaignModal] = useState(false)
+  const [campaignForm, setCampaignForm] = useState({ name:'', agent_id:'', is_test_mode:false })
+  const [campaignLeadFile, setCampaignLeadFile] = useState(null)
+  const [campaignFilter, setCampaignFilter] = useState('')
+  const [leadSearch, setLeadSearch] = useState('')
+  const [callExpanded, setCallExpanded] = useState(null)
+  const [callFilter, setCallFilter] = useState({ campaign:'', outcome:'', sentiment:'' })
+  const [editAgent, setEditAgent] = useState(null)
+  const [generatingSection, setGeneratingSection] = useState(null)
+  const [calendarTimezone, setCalendarTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone)
 
-  /* expanded call */
-  const [expandedCall, setExpandedCall] = useState(null)
-
-  /* bulk select */
-  const [selectedLeads, setSelectedLeads] = useState(new Set())
-
+  const fileRef = useRef(null)
   const csvRef = useRef(null)
 
-  /* ── load everything ── */
-  useEffect(() => { loadAll() }, [agencyId])
+  /* ── DATA LOADING ── */
+  useEffect(() => { loadAll() }, [aid])
 
-  async function loadAll() {
+  const loadAll = async () => {
     setLoading(true)
     try {
-      const [agRes, campRes, leadRes, callRes, clRes] = await Promise.all([
-        api({ action: 'list_agents', agency_id: agencyId }),
-        api({ action: 'list_campaigns', agency_id: agencyId }),
-        api({ action: 'list_leads', agency_id: agencyId }),
-        api({ action: 'list_calls', agency_id: agencyId }),
-        api({ action: 'list_clients', agency_id: agencyId }),
+      const [agRes, campRes, leadRes, callRes] = await Promise.all([
+        api({ action:'list_agents', agency_id:aid }),
+        api({ action:'list_campaigns', agency_id:aid }),
+        api({ action:'list_leads', agency_id:aid }),
+        api({ action:'list_calls', agency_id:aid }),
       ])
-      setAgents(agRes.data || agRes.agents || [])
-      setCampaigns(campRes.data || campRes.campaigns || [])
-      setLeads(leadRes.data || leadRes.leads || [])
-      setCalls(callRes.data || callRes.calls || [])
-      setClients(clRes.data || clRes.clients || [])
-    } catch (e) {
-      console.error(e)
-      toast.error('Failed to load voice data')
-    }
+      if (agRes.agents) setAgents(agRes.agents)
+      if (campRes.campaigns) setCampaigns(campRes.campaigns)
+      if (leadRes.leads) setLeads(leadRes.leads)
+      if (callRes.calls) setCalls(callRes.calls)
+    } catch(e) { console.error(e) }
     setLoading(false)
   }
 
-  /* ── header stats ── */
-  const totalAgents = agents.length
-  const activeCampaigns = campaigns.filter(c => c.status === 'active').length
-  const callsToday = calls.filter(c => {
-    if (!c.created_at) return false
-    const d = new Date(c.created_at)
-    const now = new Date()
-    return d.toDateString() === now.toDateString()
-  }).length
+  const loadAnalytics = async () => {
+    try {
+      const res = await api({ action:'get_analytics', agency_id:aid })
+      if (res) setAnalytics(res)
+    } catch(e) { console.error(e) }
+  }
 
-  const tabs = [
-    { key: 'agents', label: 'Agents', icon: <Mic size={15} /> },
-    { key: 'campaigns', label: 'Campaigns', icon: <Target size={15} /> },
-    { key: 'leads', label: 'Leads', icon: <Users size={15} /> },
-    { key: 'history', label: 'Call History', icon: <Clock size={15} /> },
-  ]
+  const loadTcpa = async () => {
+    try {
+      const res = await api({ action:'list_tcpa', agency_id:aid })
+      if (res.records) setTcpaData(res.records)
+    } catch(e) { console.error(e) }
+  }
 
-  /* ═══════════════════════════════════════════════
-     AGENTS TAB
-     ═══════════════════════════════════════════════ */
-  function AgentsTab() {
-    const filtered = agents.filter(a => !searchQ || (a.name || '').toLowerCase().includes(searchQ.toLowerCase()))
+  const loadAppointments = async () => {
+    try {
+      const res = await api({ action:'list_appointments', agency_id:aid })
+      if (res.appointments) setAppointments(res.appointments)
+      if (res.availability) setAvailability(res.availability)
+    } catch(e) { console.error(e) }
+  }
 
-    async function deleteAgent(id) {
-      if (!confirm('Delete this agent?')) return
-      try {
-        await api({ action: 'delete_agent', agent_id: id, agency_id: agencyId })
-        toast.success('Agent deleted')
-        loadAll()
-      } catch { toast.error('Delete failed') }
+  useEffect(() => {
+    if (tab === 'analytics') loadAnalytics()
+    if (tab === 'tcpa') loadTcpa()
+    if (tab === 'calendar') loadAppointments()
+  }, [tab])
+
+  /* ── AGENT CRUD ── */
+  const saveAgent = async () => {
+    try {
+      const payload = { action: editAgent ? 'update_agent' : 'create_agent', agency_id:aid, ...wizardData }
+      if (editAgent) payload.agent_id = editAgent.id
+      const res = await api(payload)
+      if (res.error) { toast.error(res.error); return }
+      toast.success(editAgent ? 'Agent updated' : 'Agent created')
+      setShowAgentWizard(false)
+      setEditAgent(null)
+      setWizardStep(1)
+      setWizardData({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{} })
+      loadAll()
+    } catch(e) { toast.error('Failed to save agent') }
+  }
+
+  const deleteAgent = async (id) => {
+    if (!confirm('Delete this agent?')) return
+    await api({ action:'delete_agent', agency_id:aid, agent_id:id })
+    toast.success('Agent deleted')
+    loadAll()
+  }
+
+  const openEditAgent = (ag) => {
+    setEditAgent(ag)
+    setWizardData({ business_name:ag.business_name||'', sic_code:ag.sic_code||'', description:ag.description||'', service:ag.service||'', target:ag.target||'', differentiator:ag.differentiator||'', service_area:ag.service_area||'', deal_size:ag.deal_size||'', voice_id:ag.voice_id||'', agent_name:ag.name||'', personality:ag.personality||'professional', script:ag.script||{} })
+    setWizardStep(1)
+    setShowAgentWizard(true)
+  }
+
+  /* ── CAMPAIGN CRUD ── */
+  const createCampaign = async () => {
+    if (!campaignForm.name || !campaignForm.agent_id) { toast.error('Name and agent required'); return }
+    try {
+      const payload = { action:'create_campaign', agency_id:aid, ...campaignForm }
+      if (campaignLeadFile) {
+        const text = await campaignLeadFile.text()
+        payload.csv_data = text
+      }
+      const res = await api(payload)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Campaign created')
+      setShowCampaignModal(false)
+      setCampaignForm({ name:'', agent_id:'', is_test_mode:false })
+      setCampaignLeadFile(null)
+      loadAll()
+    } catch(e) { toast.error('Failed to create campaign') }
+  }
+
+  const campaignAction = async (id, action) => {
+    await api({ action:`campaign_${action}`, agency_id:aid, campaign_id:id })
+    toast.success(`Campaign ${action}`)
+    loadAll()
+  }
+
+  /* ── LEADS ── */
+  const importCSV = async (file, campId) => {
+    const text = await file.text()
+    const res = await api({ action:'import_leads', agency_id:aid, campaign_id:campId, csv_data:text })
+    if (res.error) { toast.error(res.error); return }
+    toast.success(`Imported ${res.count || 0} leads`)
+    loadAll()
+  }
+
+  const useScoutLeads = async () => {
+    const res = await api({ action:'use_scout_leads', agency_id:aid })
+    if (res.error) { toast.error(res.error); return }
+    toast.success(`Imported ${res.count || 0} scout leads`)
+    loadAll()
+  }
+
+  /* ── SCRIPT AI GENERATION ── */
+  const generateSection = async (section) => {
+    setGeneratingSection(section)
+    try {
+      const res = await api({ action:'generate_script', section, business_context:{ business_name:wizardData.business_name, sic_code:wizardData.sic_code, description:wizardData.description, service:wizardData.service, target:wizardData.target, differentiator:wizardData.differentiator, service_area:wizardData.service_area } })
+      if (res.content) {
+        setWizardData(prev => ({ ...prev, script:{ ...prev.script, [section]:res.content } }))
+        toast.success(`Generated ${section}`)
+      }
+    } catch(e) { toast.error('Generation failed') }
+    setGeneratingSection(null)
+  }
+
+  /* ── VOICE PREVIEW ── */
+  const previewVoice = (voice) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+      const u = new SpeechSynthesisUtterance(`Hi, my name is ${voice.name}. I'm here to help grow your business.`)
+      u.rate = 0.95
+      u.pitch = voice.gender === 'Female' ? 1.1 : 0.9
+      window.speechSynthesis.speak(u)
+    } else { toast.error('Speech synthesis not supported') }
+  }
+
+  /* ── TCPA EXPORT ── */
+  const exportTcpaCsv = () => {
+    const header = 'Phone,Consent Phone,Consent SMS,Consent Email,Method,Timestamp\n'
+    const rows = tcpaData.map(r => `${r.phone},${r.consent_phone?'Yes':'No'},${r.consent_sms?'Yes':'No'},${r.consent_email?'Yes':'No'},${r.method||''},${r.timestamp||''}`).join('\n')
+    const blob = new Blob([header+rows], { type:'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href=url; a.download='tcpa_export.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  /* ── CALENDAR ── */
+  const saveAvailability = async (dayData) => {
+    try {
+      await api({ action:'save_availability', agency_id:aid, availability:dayData, timezone:calendarTimezone })
+      toast.success('Availability saved')
+      loadAppointments()
+    } catch(e) { toast.error('Failed to save') }
+  }
+
+  /* ── FILTERED DATA ── */
+  const filteredLeads = leads.filter(l => {
+    if (campaignFilter && l.campaign_id !== campaignFilter) return false
+    if (leadSearch) {
+      const q = leadSearch.toLowerCase()
+      return (l.name||'').toLowerCase().includes(q) || (l.phone||'').includes(q) || (l.business||'').toLowerCase().includes(q)
     }
+    return true
+  })
 
+  const filteredCalls = calls.filter(c => {
+    if (callFilter.campaign && c.campaign_id !== callFilter.campaign) return false
+    if (callFilter.outcome && c.outcome !== callFilter.outcome) return false
+    if (callFilter.sentiment && c.sentiment !== callFilter.sentiment) return false
+    return true
+  })
+
+  const filteredSic = SIC_CODES.filter(s => {
+    if (!sicSearch) return true
+    return s.code.includes(sicSearch) || s.label.toLowerCase().includes(sicSearch.toLowerCase())
+  })
+
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  AGENTS TAB                                                            */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderAgents = () => (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+        <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Voice Agents</h2>
+        <Btn onClick={()=>{ setEditAgent(null); setWizardData({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{} }); setWizardStep(1); setShowAgentWizard(true) }}><Plus size={14} /> New Agent</Btn>
+      </div>
+      {agents.length === 0 && !loading && <Card><p style={{ color:'#888', textAlign:'center', margin:20 }}>No agents yet. Create your first voice agent to get started.</p></Card>}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340,1fr))', gap:16 }}>
+        {agents.map(ag => {
+          const voice = RETELL_VOICES.find(v=>v.id===ag.voice_id)
+          const sic = SIC_CODES.find(s=>s.code===ag.sic_code)
+          const sc = statusColor(ag.status || 'active')
+          return (
+            <Card key={ag.id} style={{ position:'relative' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+                <div>
+                  <div style={{ fontSize:16, fontWeight:700, fontFamily:FH, color:BLK }}>{ag.name || 'Unnamed Agent'}</div>
+                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{voice?.name || ag.voice_id || 'No voice'} - {voice?.tone || ''}</div>
+                </div>
+                <Badge label={ag.status||'active'} color={sc.c} bg={sc.bg} />
+              </div>
+              {sic && <div style={{ fontSize:12, color:'#666', marginBottom:8 }}><Globe size={12} style={{ marginRight:4 }} />{sic.code} - {sic.label}</div>}
+              {ag.business_name && <div style={{ fontSize:12, color:'#666', marginBottom:4 }}>{ag.business_name}</div>}
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8, marginBottom:12 }}>
+                <StatPill label="calls" value={ag.call_count||0} color={T} />
+                <StatPill label="appts" value={ag.appointment_count||0} color={GRN} />
+                <StatPill label="rate" value={`${ag.connection_rate||0}%`} color={PURP} />
+              </div>
+              <div style={{ display:'flex', gap:6 }}>
+                <Btn small bg="#e5e7eb" color={BLK} onClick={()=>openEditAgent(ag)}><Edit2 size={12} /> Edit</Btn>
+                <Btn small bg="#fee2e2" color={R} onClick={()=>deleteAgent(ag.id)}><Trash2 size={12} /> Delete</Btn>
+              </div>
+            </Card>
+          )
+        })}
+      </div>
+    </div>
+  )
+
+  /* ── AGENT WIZARD ── */
+  const renderAgentWizard = () => {
+    const steps = ['Business Context','Voice & Personality','Script Builder']
     return (
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ position: 'relative', width: 280 }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#aaa' }} />
-            <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search agents..." style={{ width: '100%', padding: '8px 12px 8px 32px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB }} />
-          </div>
-          <Btn onClick={() => { setEditingAgent(null); setShowAgentModal(true) }}><Plus size={14} /> Create Agent</Btn>
+      <Modal title={editAgent ? 'Edit Agent' : 'New Agent'} onClose={()=>{ setShowAgentWizard(false); setEditAgent(null) }} wide>
+        {/* Step indicators */}
+        <div style={{ display:'flex', gap:8, marginBottom:24 }}>
+          {steps.map((s,i) => (
+            <div key={i} onClick={()=>setWizardStep(i+1)} style={{ flex:1, textAlign:'center', padding:'8px 0', borderRadius:8, background:wizardStep===i+1?`${T}20`:wizardStep>i+1?`${GRN}15`:'#f5f5f5', border:`2px solid ${wizardStep===i+1?T:wizardStep>i+1?GRN:'#e5e7eb'}`, cursor:'pointer', transition:'all .15s' }}>
+              <div style={{ fontSize:11, fontWeight:700, color:wizardStep===i+1?T:wizardStep>i+1?GRN:'#aaa', fontFamily:FH }}>STEP {i+1}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:wizardStep===i+1?BLK:'#888', fontFamily:FH }}>{s}</div>
+            </div>
+          ))}
         </div>
 
-        {filtered.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>
-            <Mic size={40} style={{ marginBottom: 12, opacity: .3 }} />
-            <p style={{ fontFamily: FH, fontWeight: 600 }}>No voice agents yet</p>
-            <p style={{ fontSize: 13 }}>Create your first AI voice agent to start making calls.</p>
+        {/* Step 1: Business Context */}
+        {wizardStep === 1 && (
+          <div>
+            <Input label="Business Name" value={wizardData.business_name} onChange={v=>setWizardData(p=>({...p,business_name:v}))} placeholder="e.g. Smith Plumbing Co." />
+            <div style={{ marginBottom:12 }}>
+              <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>SIC Code / Industry</label>
+              <input value={sicSearch} onChange={e=>setSicSearch(e.target.value)} placeholder="Search SIC codes..." style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', marginBottom:4 }} />
+              {sicSearch && (
+                <div style={{ maxHeight:160, overflow:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:W }}>
+                  {filteredSic.slice(0,15).map(s => (
+                    <div key={s.code} onClick={()=>{ setWizardData(p=>({...p,sic_code:s.code})); setSicSearch(`${s.code} - ${s.label}`) }} style={{ padding:'6px 12px', fontSize:12, cursor:'pointer', background:wizardData.sic_code===s.code?`${T}15`:W, borderBottom:'1px solid #f5f5f5' }} onMouseEnter={e=>e.target.style.background=`${T}10`} onMouseLeave={e=>e.target.style.background=wizardData.sic_code===s.code?`${T}15`:W}>
+                      <strong>{s.code}</strong> - {s.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {wizardData.sic_code && !sicSearch && <div style={{ fontSize:12, color:T, fontWeight:600 }}>Selected: {wizardData.sic_code} - {SIC_CODES.find(s=>s.code===wizardData.sic_code)?.label}</div>}
+            </div>
+            <Input label="Business Description" value={wizardData.description} onChange={v=>setWizardData(p=>({...p,description:v}))} textarea placeholder="What does this business do?" />
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <Input label="Primary Service" value={wizardData.service} onChange={v=>setWizardData(p=>({...p,service:v}))} placeholder="e.g. Emergency plumbing" />
+              <Input label="Target Audience" value={wizardData.target} onChange={v=>setWizardData(p=>({...p,target:v}))} placeholder="e.g. Homeowners 35-65" />
+            </div>
+            <Input label="Key Differentiator" value={wizardData.differentiator} onChange={v=>setWizardData(p=>({...p,differentiator:v}))} placeholder="What makes this business unique?" />
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <Input label="Service Area" value={wizardData.service_area} onChange={v=>setWizardData(p=>({...p,service_area:v}))} placeholder="e.g. Greater Denver Metro" />
+              <Input label="Avg Deal Size" value={wizardData.deal_size} onChange={v=>setWizardData(p=>({...p,deal_size:v}))} placeholder="e.g. $2,500" />
+            </div>
+            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:16 }}>
+              <Btn onClick={()=>setWizardStep(2)}>Next: Voice & Personality <ChevronRight size={14} /></Btn>
+            </div>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
-          {filtered.map(a => (
-            <div key={a.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20, transition: 'box-shadow .15s', cursor: 'default' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,.08)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div>
-                  <h4 style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, margin: 0 }}>{a.name}</h4>
-                  <p style={{ fontSize: 12, color: '#888', margin: '4px 0 0' }}>{a.voice_name || 'Default Voice'} &middot; {a.gender || 'N/A'} &middot; {a.language || 'en'}</p>
+        {/* Step 2: Voice & Personality */}
+        {wizardStep === 2 && (
+          <div>
+            <Input label="Agent Name" value={wizardData.agent_name} onChange={v=>setWizardData(p=>({...p,agent_name:v}))} placeholder="e.g. Sarah from Smith Plumbing" />
+            <Select label="Personality" value={wizardData.personality} onChange={v=>setWizardData(p=>({...p,personality:v}))} options={[
+              {value:'professional',label:'Professional'},{value:'friendly',label:'Friendly'},{value:'energetic',label:'Energetic'},
+              {value:'consultative',label:'Consultative'},{value:'empathetic',label:'Empathetic'},{value:'authoritative',label:'Authoritative'}
+            ]} />
+            <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:8, fontFamily:FH }}>Select Voice</label>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(155,1fr))', gap:10, maxHeight:380, overflow:'auto' }}>
+              {RETELL_VOICES.map(v => (
+                <div key={v.id} onClick={()=>setWizardData(p=>({...p,voice_id:v.id}))} style={{ padding:12, borderRadius:10, border:`2px solid ${wizardData.voice_id===v.id?T:'#e5e7eb'}`, background:wizardData.voice_id===v.id?`${T}10`:W, cursor:'pointer', transition:'all .15s' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+                    <span style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:BLK }}>{v.name}</span>
+                    <button onClick={e=>{ e.stopPropagation(); previewVoice(v) }} style={{ background:`${PURP}15`, border:'none', borderRadius:6, padding:'3px 6px', cursor:'pointer', display:'flex', alignItems:'center' }}><Play size={10} color={PURP} /></button>
+                  </div>
+                  <div style={{ fontSize:10, color:'#888' }}>{v.gender} - {v.accent}</div>
+                  <div style={{ fontSize:10, color:T, fontWeight:600 }}>{v.tone}</div>
+                  <div style={{ fontSize:9, color:'#aaa', marginTop:2 }}>{v.provider}</div>
                 </div>
-                <Badge label={a.status || 'active'} {...statusColor(a.status || 'active')} />
+              ))}
+            </div>
+            <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
+              <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(1)}>Back</Btn>
+              <Btn onClick={()=>setWizardStep(3)}>Next: Script Builder <ChevronRight size={14} /></Btn>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Script Builder */}
+        {wizardStep === 3 && (
+          <div>
+            {['intro','questions','value_prop','objections','closing','voicemail','tcpa_consent'].map(section => (
+              <div key={section} style={{ marginBottom:16, padding:14, background:'#fafafa', borderRadius:10, border:'1px solid #eee' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                  <label style={{ fontSize:12, fontWeight:700, color:'#444', fontFamily:FH, textTransform:'capitalize' }}>{section.replace(/_/g,' ')}</label>
+                  <Btn small bg={`${PURP}15`} color={PURP} disabled={generatingSection===section} onClick={()=>generateSection(section)}>
+                    {generatingSection===section ? <><Loader2 size={12} className="spin" /> Generating...</> : <><Sparkles size={12} /> Generate with AI</>}
+                  </Btn>
+                </div>
+                <textarea
+                  value={(section==='questions'||section==='objections') ? (Array.isArray(wizardData.script[section]) ? wizardData.script[section].join('\n') : wizardData.script[section]||'') : (wizardData.script[section]||'')}
+                  onChange={e => {
+                    const val = e.target.value
+                    setWizardData(p => ({
+                      ...p,
+                      script:{
+                        ...p.script,
+                        [section]: (section==='questions'||section==='objections') ? val.split('\n') : val
+                      }
+                    }))
+                  }}
+                  rows={section==='questions'||section==='objections'?4:3}
+                  placeholder={section==='questions'?'One question per line...':section==='objections'?'One objection handler per line...':section==='tcpa_consent'?'TCPA consent language...': `Enter ${section.replace(/_/g,' ')} script...`}
+                  style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }}
+                />
               </div>
-              {a.goal && <p style={{ fontSize: 12, color: '#666', margin: '8px 0', lineHeight: 1.5 }}>{a.goal.length > 120 ? a.goal.slice(0, 120) + '...' : a.goal}</p>}
-              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                <Btn small bg="#f3f4f6" color="#333" onClick={() => { setEditingAgent(a); setShowAgentModal(true) }}><Edit2 size={12} /> Edit</Btn>
-                <Btn small bg="#fef2f2" color={R} onClick={() => deleteAgent(a.id)}><Trash2 size={12} /> Delete</Btn>
-              </div>
+            ))}
+            <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
+              <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(2)}>Back</Btn>
+              <Btn bg={GRN} onClick={saveAgent}><Check size={14} /> {editAgent ? 'Update Agent' : 'Create Agent'}</Btn>
             </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  /* ═══════════════════════════════════════════════
-     AGENT MODAL
-     ═══════════════════════════════════════════════ */
-  function AgentModal() {
-    const [form, setForm] = useState({
-      name: editingAgent?.name || '',
-      voice_id: editingAgent?.voice_id || '',
-      voice_name: editingAgent?.voice_name || '',
-      gender: editingAgent?.gender || 'female',
-      language: editingAgent?.language || 'en',
-      personality: editingAgent?.personality || '',
-      goal: editingAgent?.goal || '',
-      script_intro: editingAgent?.script_intro || '',
-      script_questions: editingAgent?.script_questions || [''],
-      script_objections: editingAgent?.script_objections || [{ objection: '', response: '' }],
-      script_closing: editingAgent?.script_closing || '',
-      business_context: editingAgent?.business_context || '',
-    })
-    const [saving, setSaving] = useState(false)
-
-    const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-    async function save() {
-      if (!form.name.trim()) { toast.error('Name is required'); return }
-      setSaving(true)
-      try {
-        const action = editingAgent ? 'update_agent' : 'create_agent'
-        const payload = { action, agency_id: agencyId, ...form }
-        if (editingAgent) payload.agent_id = editingAgent.id
-        // clean empty questions/objections
-        payload.script_questions = form.script_questions.filter(q => q.trim())
-        payload.script_objections = form.script_objections.filter(o => o.objection.trim() || o.response.trim())
-        await api(payload)
-        toast.success(editingAgent ? 'Agent updated' : 'Agent created')
-        setShowAgentModal(false)
-        loadAll()
-      } catch { toast.error('Failed to save agent') }
-      setSaving(false)
-    }
-
-    const voices = [
-      { value: '11labs-Marissa',   label: 'Marissa — Female, American (ElevenLabs)' },
-      { value: '11labs-Lily',      label: 'Lily — Female, American (ElevenLabs)' },
-      { value: '11labs-Billy',     label: 'Billy — Male, American (ElevenLabs)' },
-      { value: '11labs-Anthony',   label: 'Anthony — Male, British (ElevenLabs)' },
-      { value: 'openai-Nova',     label: 'Nova — Female, American (OpenAI)' },
-      { value: 'cartesia-Brian',  label: 'Brian — Male, American (Cartesia)' },
-      { value: 'cartesia-Cleo',   label: 'Cleo — Female, American (Cartesia)' },
-      { value: 'cartesia-Emily',  label: 'Emily — Female, American (Cartesia)' },
-      { value: 'minimax-Daniel',  label: 'Daniel — Male, American (Minimax)' },
-      { value: 'minimax-Ashley',  label: 'Ashley — Female, American (Minimax)' },
-      { value: 'cartesia-Victoria', label: 'Victoria — Female, American (Cartesia)' },
-      { value: 'cartesia-Andrew', label: 'Andrew — Male, American (Cartesia)' },
-      { value: '11labs-Merritt',  label: 'Merritt — Female, American (ElevenLabs)' },
-      { value: '11labs-Dorothy',  label: 'Dorothy — Female, British (ElevenLabs)' },
-      { value: 'retell-Nico',    label: 'Nico — Male, American (Retell)' },
-      { value: 'retell-Della',   label: 'Della — Female, American (Retell)' },
-    ]
-
-    return (
-      <Modal title={editingAgent ? 'Edit Agent' : 'Create Voice Agent'} onClose={() => setShowAgentModal(false)} width={620}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-          <Input label="Agent Name" value={form.name} onChange={v => set('name', v)} placeholder="e.g. Sales Outreach Bot" />
-          <Select label="Voice" value={form.voice_id} onChange={v => { set('voice_id', v); const found = voices.find(x => x.value === v); if (found) set('voice_name', found.label.split(' — ')[0]) }} options={voices} placeholder="Select voice..." />
-          <Select label="Gender" value={form.gender} onChange={v => set('gender', v)} options={[{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }]} />
-          <Select label="Language" value={form.language} onChange={v => set('language', v)} options={[{ value: 'en', label: 'English' }, { value: 'es', label: 'Spanish' }, { value: 'fr', label: 'French' }, { value: 'de', label: 'German' }, { value: 'pt', label: 'Portuguese' }]} />
-        </div>
-        <Input label="Personality" value={form.personality} onChange={v => set('personality', v)} placeholder="Friendly, professional, persuasive..." textarea />
-        <Input label="Goal" value={form.goal} onChange={v => set('goal', v)} placeholder="Book a demo call with qualified leads..." textarea />
-        <Input label="Script - Introduction" value={form.script_intro} onChange={v => set('script_intro', v)} placeholder="Hi, this is [name] from [company]..." textarea />
-
-        {/* Questions */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#333', fontFamily: FH }}>Script - Questions</label>
-          {form.script_questions.map((q, i) => (
-            <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-              <input value={q} onChange={e => { const qs = [...form.script_questions]; qs[i] = e.target.value; set('script_questions', qs) }}
-                placeholder={`Question ${i + 1}`} style={{ flex: 1, padding: '6px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, fontFamily: FB }} />
-              {form.script_questions.length > 1 && (
-                <button onClick={() => set('script_questions', form.script_questions.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: R }}><X size={14} /></button>
-              )}
-            </div>
-          ))}
-          <Btn small bg="#f3f4f6" color="#333" onClick={() => set('script_questions', [...form.script_questions, ''])}><Plus size={12} /> Add Question</Btn>
-        </div>
-
-        {/* Objections */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, color: '#333', fontFamily: FH }}>Script - Objection Handling</label>
-          {form.script_objections.map((o, i) => (
-            <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-              <input value={o.objection} onChange={e => { const obs = [...form.script_objections]; obs[i] = { ...obs[i], objection: e.target.value }; set('script_objections', obs) }}
-                placeholder="Objection..." style={{ flex: 1, padding: '6px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, fontFamily: FB }} />
-              <input value={o.response} onChange={e => { const obs = [...form.script_objections]; obs[i] = { ...obs[i], response: e.target.value }; set('script_objections', obs) }}
-                placeholder="Response..." style={{ flex: 1, padding: '6px 10px', border: '1px solid #ddd', borderRadius: 6, fontSize: 13, fontFamily: FB }} />
-              {form.script_objections.length > 1 && (
-                <button onClick={() => set('script_objections', form.script_objections.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: R }}><X size={14} /></button>
-              )}
-            </div>
-          ))}
-          <Btn small bg="#f3f4f6" color="#333" onClick={() => set('script_objections', [...form.script_objections, { objection: '', response: '' }])}><Plus size={12} /> Add Objection</Btn>
-        </div>
-
-        <Input label="Script - Closing" value={form.script_closing} onChange={v => set('script_closing', v)} placeholder="Thank you for your time..." textarea />
-        <Input label="Business Context" value={form.business_context} onChange={v => set('business_context', v)} placeholder="Company sells SaaS tools for agencies..." textarea />
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
-          <Btn bg="#f3f4f6" color="#333" onClick={() => setShowAgentModal(false)}>Cancel</Btn>
-          <Btn onClick={save} disabled={saving}>{saving ? <Loader2 size={14} className="spin" /> : <Check size={14} />} {editingAgent ? 'Update' : 'Create'} Agent</Btn>
-        </div>
+          </div>
+        )}
       </Modal>
     )
   }
 
-  /* ═══════════════════════════════════════════════
-     CAMPAIGNS TAB
-     ═══════════════════════════════════════════════ */
-  function CampaignsTab() {
-    const filtered = campaigns.filter(c => !searchQ || (c.name || '').toLowerCase().includes(searchQ.toLowerCase()))
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  CAMPAIGNS TAB                                                         */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderCampaigns = () => (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+        <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Campaigns</h2>
+        <Btn onClick={()=>setShowCampaignModal(true)}><Plus size={14} /> New Campaign</Btn>
+      </div>
+      {campaigns.length===0 && !loading && <Card><p style={{ color:'#888', textAlign:'center', margin:20 }}>No campaigns yet. Create a campaign to start calling.</p></Card>}
+      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+        {campaigns.map(c => {
+          const sc = statusColor(c.status||'draft')
+          const total = c.total_leads||0
+          const called = c.called||0
+          const pct = total>0 ? Math.round((called/total)*100) : 0
+          const ag = agents.find(a=>a.id===c.agent_id)
+          return (
+            <Card key={c.id}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+                <div>
+                  <div style={{ fontSize:16, fontWeight:700, fontFamily:FH, color:BLK }}>{c.name}</div>
+                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Agent: {ag?.name || 'Unknown'} {c.is_test_mode && <Badge label="TEST" color={AMB} bg={`${AMB}20`} />}</div>
+                </div>
+                <Badge label={c.status||'draft'} color={sc.c} bg={sc.bg} />
+              </div>
+              {/* Stats row */}
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:12 }}>
+                <StatPill label="total" value={total} color="#6b7280" />
+                <StatPill label="called" value={called} color={T} />
+                <StatPill label="answered" value={c.answered||0} color={GRN} />
+                <StatPill label="appointments" value={c.appointments||0} color={PURP} />
+                <StatPill label="callbacks" value={c.callbacks||0} color={AMB} />
+              </div>
+              {/* Progress bar */}
+              <div style={{ background:'#e5e7eb', borderRadius:999, height:8, marginBottom:12, overflow:'hidden' }}>
+                <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${T},${GRN})`, borderRadius:999, transition:'width .3s' }} />
+              </div>
+              <div style={{ fontSize:11, color:'#888', marginBottom:12 }}>{pct}% complete - {called}/{total} called</div>
+              {/* Action buttons */}
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {(c.status==='draft'||c.status==='paused') && <Btn small bg={GRN} onClick={()=>campaignAction(c.id,'start')}><Play size={12} /> Start</Btn>}
+                {c.status==='running' && <Btn small bg={AMB} onClick={()=>campaignAction(c.id,'pause')}><Pause size={12} /> Pause</Btn>}
+                {(c.status==='running'||c.status==='paused') && <Btn small bg={R} onClick={()=>campaignAction(c.id,'stop')}><Square size={12} /> Stop</Btn>}
+                <Btn small bg={c.is_test_mode?`${AMB}20`:'#e5e7eb'} color={c.is_test_mode?AMB:BLK} onClick={()=>campaignAction(c.id,'toggle_test')}>
+                  <AlertTriangle size={12} /> {c.is_test_mode?'Test ON':'Test OFF'}
+                </Btn>
+                <Btn small bg="#fee2e2" color={R} onClick={()=>{ if(confirm('Delete campaign?')) campaignAction(c.id,'delete') }}><Trash2 size={12} /></Btn>
+              </div>
+            </Card>
+          )
+        })}
+      </div>
+    </div>
+  )
 
-    async function startCampaign(id) {
-      try {
-        await api({ action: 'start_campaign', campaign_id: id, agency_id: agencyId })
-        toast.success('Campaign started - calls beginning...')
-        loadAll()
-      } catch { toast.error('Failed to start campaign') }
-    }
+  const renderCampaignModal = () => (
+    <Modal title="New Campaign" onClose={()=>setShowCampaignModal(false)}>
+      <Input label="Campaign Name" value={campaignForm.name} onChange={v=>setCampaignForm(p=>({...p,name:v}))} placeholder="e.g. HVAC Spring Push" />
+      <Select label="Agent" value={campaignForm.agent_id} onChange={v=>setCampaignForm(p=>({...p,agent_id:v}))} placeholder="Select an agent..." options={agents.map(a=>({value:a.id,label:a.name||'Unnamed'}))} />
+      <div style={{ marginBottom:12 }}>
+        <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>Import Leads (CSV)</label>
+        <input ref={fileRef} type="file" accept=".csv" onChange={e=>setCampaignLeadFile(e.target.files[0])} style={{ fontSize:12 }} />
+      </div>
+      <div style={{ marginBottom:16 }}>
+        <Btn small bg={`${T}15`} color={T} onClick={useScoutLeads}><Zap size={12} /> Use Scout Leads</Btn>
+      </div>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+        <input type="checkbox" checked={campaignForm.is_test_mode} onChange={e=>setCampaignForm(p=>({...p,is_test_mode:e.target.checked}))} id="test-mode" />
+        <label htmlFor="test-mode" style={{ fontSize:12, fontWeight:600, color:'#666', fontFamily:FH }}>Test Mode (calls only your number)</label>
+      </div>
+      <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
+        <Btn bg="#e5e7eb" color={BLK} onClick={()=>setShowCampaignModal(false)}>Cancel</Btn>
+        <Btn onClick={createCampaign}><Check size={14} /> Create Campaign</Btn>
+      </div>
+    </Modal>
+  )
 
-    async function pauseCampaign(id) {
-      try {
-        await api({ action: 'pause_campaign', campaign_id: id, agency_id: agencyId })
-        toast.success('Campaign paused')
-        loadAll()
-      } catch { toast.error('Failed to pause campaign') }
-    }
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  LEADS TAB                                                             */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderLeads = () => (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16, flexWrap:'wrap', gap:8 }}>
+        <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Leads</h2>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <Select value={campaignFilter} onChange={setCampaignFilter} placeholder="All Campaigns" options={campaigns.map(c=>({value:c.id,label:c.name}))} style={{ marginBottom:0, minWidth:180 }} />
+          <div style={{ position:'relative' }}>
+            <Search size={14} style={{ position:'absolute', left:10, top:10, color:'#aaa' }} />
+            <input value={leadSearch} onChange={e=>setLeadSearch(e.target.value)} placeholder="Search leads..." style={{ padding:'8px 12px 8px 30px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, width:200 }} />
+          </div>
+          <input ref={csvRef} type="file" accept=".csv" style={{ display:'none' }} onChange={e=>{ if(e.target.files[0] && campaignFilter) importCSV(e.target.files[0], campaignFilter) }} />
+          <Btn small bg={`${T}15`} color={T} onClick={()=>{ if(!campaignFilter){ toast.error('Select a campaign first'); return }; csvRef.current?.click() }}><Upload size={12} /> Import CSV</Btn>
+        </div>
+      </div>
+      <Card style={{ padding:0, overflow:'hidden' }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
+            <thead>
+              <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
+                {['Name','Phone','Business','SIC','Status','Duration','Sentiment','Score'].map(h=>(
+                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLeads.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No leads found</td></tr>}
+              {filteredLeads.map(l => {
+                const sc = statusColor(l.status||'pending')
+                return (
+                  <tr key={l.id} style={{ borderBottom:'1px solid #f5f5f5' }}>
+                    <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{l.name||'-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#555' }}>{l.phone||'-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#555' }}>{l.business||'-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#555', fontSize:11 }}>{l.sic_code||'-'}</td>
+                    <td style={{ padding:'10px 14px' }}><Badge label={l.status||'pending'} color={sc.c} bg={sc.bg} /></td>
+                    <td style={{ padding:'10px 14px', color:'#555' }}>{l.duration ? `${l.duration}s` : '-'}</td>
+                    <td style={{ padding:'10px 14px' }}>{l.sentiment ? <span style={{ color:l.sentiment==='positive'?GRN:l.sentiment==='negative'?R:AMB, fontWeight:600, fontSize:12 }}>{l.sentiment}</span> : '-'}</td>
+                    <td style={{ padding:'10px 14px', fontWeight:700, color:PURP }}>{l.score ?? '-'}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  )
 
-    async function deleteCampaign(id) {
-      if (!confirm('Delete this campaign and all its data?')) return
-      try {
-        await api({ action: 'delete_campaign', campaign_id: id, agency_id: agencyId })
-        toast.success('Campaign deleted')
-        loadAll()
-      } catch { toast.error('Delete failed') }
-    }
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  CALL HISTORY TAB                                                      */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderCallHistory = () => (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16, flexWrap:'wrap', gap:8 }}>
+        <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Call History</h2>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <Select value={callFilter.campaign} onChange={v=>setCallFilter(p=>({...p,campaign:v}))} placeholder="All Campaigns" options={campaigns.map(c=>({value:c.id,label:c.name}))} style={{ marginBottom:0, minWidth:160 }} />
+          <Select value={callFilter.outcome} onChange={v=>setCallFilter(p=>({...p,outcome:v}))} placeholder="All Outcomes" options={[
+            {value:'answered',label:'Answered'},{value:'no_answer',label:'No Answer'},{value:'voicemail',label:'Voicemail'},
+            {value:'appointment_set',label:'Appointment Set'},{value:'callback',label:'Callback'},{value:'failed',label:'Failed'}
+          ]} style={{ marginBottom:0, minWidth:140 }} />
+          <Select value={callFilter.sentiment} onChange={v=>setCallFilter(p=>({...p,sentiment:v}))} placeholder="All Sentiments" options={[
+            {value:'positive',label:'Positive'},{value:'neutral',label:'Neutral'},{value:'negative',label:'Negative'}
+          ]} style={{ marginBottom:0, minWidth:130 }} />
+        </div>
+      </div>
+      <Card style={{ padding:0, overflow:'hidden' }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
+            <thead>
+              <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
+                {['','Name','Phone','Duration','Outcome','Sentiment','Appointment','TCPA'].map(h=>(
+                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCalls.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No calls found</td></tr>}
+              {filteredCalls.map(c => {
+                const sc = statusColor(c.outcome||'pending')
+                const expanded = callExpanded===c.id
+                return (
+                  <React.Fragment key={c.id}>
+                    <tr style={{ borderBottom:'1px solid #f5f5f5', cursor:'pointer', background:expanded?`${T}08`:W }} onClick={()=>setCallExpanded(expanded?null:c.id)}>
+                      <td style={{ padding:'10px 14px', width:30 }}>{expanded ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />}</td>
+                      <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{c.lead_name||'-'}</td>
+                      <td style={{ padding:'10px 14px', color:'#555' }}>{c.phone||'-'}</td>
+                      <td style={{ padding:'10px 14px', color:'#555' }}>{c.duration ? `${Math.floor(c.duration/60)}:${String(c.duration%60).padStart(2,'0')}` : '-'}</td>
+                      <td style={{ padding:'10px 14px' }}><Badge label={c.outcome||'pending'} color={sc.c} bg={sc.bg} /></td>
+                      <td style={{ padding:'10px 14px' }}>{c.sentiment ? <span style={{ color:c.sentiment==='positive'?GRN:c.sentiment==='negative'?R:AMB, fontWeight:600, fontSize:12 }}>{c.sentiment}</span> : '-'}</td>
+                      <td style={{ padding:'10px 14px' }}>{c.appointment_set ? <Check size={14} color={GRN} /> : <X size={14} color="#ddd" />}</td>
+                      <td style={{ padding:'10px 14px' }}>{c.tcpa_consent ? <Shield size={14} color={GRN} /> : <Shield size={14} color="#ddd" />}</td>
+                    </tr>
+                    {expanded && (
+                      <tr>
+                        <td colSpan={8} style={{ padding:0 }}>
+                          <div style={{ padding:20, background:'#fafafa', borderBottom:'2px solid #e5e7eb' }}>
+                            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+                              {/* Transcript */}
+                              <div>
+                                <h4 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}><FileText size={14} style={{ marginRight:4 }} />Transcript</h4>
+                                <div style={{ background:W, borderRadius:8, padding:12, maxHeight:200, overflow:'auto', fontSize:12, lineHeight:1.6, border:'1px solid #eee', whiteSpace:'pre-wrap' }}>
+                                  {c.transcript || 'No transcript available'}
+                                </div>
+                              </div>
+                              {/* AI Summary */}
+                              <div>
+                                <h4 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}><Brain size={14} style={{ marginRight:4 }} />AI Summary</h4>
+                                <div style={{ background:W, borderRadius:8, padding:12, fontSize:12, lineHeight:1.6, border:'1px solid #eee', marginBottom:12 }}>
+                                  {c.ai_summary || 'No summary available'}
+                                </div>
+                                <h4 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}><Star size={14} style={{ marginRight:4 }} />Key Moments</h4>
+                                <div style={{ background:W, borderRadius:8, padding:12, fontSize:12, border:'1px solid #eee' }}>
+                                  {c.key_moments ? (Array.isArray(c.key_moments) ? c.key_moments.map((m,i)=><div key={i} style={{ marginBottom:4 }}>- {m}</div>) : c.key_moments) : 'None identified'}
+                                </div>
+                              </div>
+                            </div>
+                            {/* Audio player */}
+                            {c.recording_url && (
+                              <div style={{ marginTop:12 }}>
+                                <h4 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}><Volume2 size={14} style={{ marginRight:4 }} />Recording</h4>
+                                <audio controls src={c.recording_url} style={{ width:'100%' }} />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  )
+
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  ANALYTICS TAB                                                         */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderAnalytics = () => {
+    const a = analytics || {}
+    const hourlyData = a.hourly_connection || Array(24).fill(0)
+    const dailyData = a.daily_appointments || Array(7).fill(0)
+    const maxH = Math.max(...hourlyData, 1)
+    const maxD = Math.max(...dailyData, 1)
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    const funnel = a.funnel || { called:0, answered:0, engaged:0, qualified:0, appointment:0 }
+    const funnelMax = Math.max(funnel.called, 1)
+    const industryData = a.industry_breakdown || []
+    const insights = a.insights || {}
 
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div style={{ position: 'relative', width: 280 }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#aaa' }} />
-            <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search campaigns..." style={{ width: '100%', padding: '8px 12px 8px 32px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB }} />
-          </div>
-          <Btn onClick={() => setShowCampaignModal(true)}><Plus size={14} /> New Campaign</Btn>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+          <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Call Intelligence</h2>
+          <Btn small bg={`${T}15`} color={T} onClick={loadAnalytics}><RefreshCw size={12} /> Refresh</Btn>
         </div>
 
-        {filtered.length === 0 && !loading && (
-          <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>
-            <Target size={40} style={{ marginBottom: 12, opacity: .3 }} />
-            <p style={{ fontFamily: FH, fontWeight: 600 }}>No campaigns yet</p>
-            <p style={{ fontSize: 13 }}>Create a campaign to start making automated calls.</p>
-          </div>
-        )}
+        {/* Stat cards */}
+        <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:20 }}>
+          <StatCard icon={Phone} label="Total Calls" value={a.total_calls||0} color={T} />
+          <StatCard icon={PhoneCall} label="Connection Rate" value={`${a.connection_rate||0}%`} color={GRN} />
+          <StatCard icon={Target} label="Appointment Rate" value={`${a.appointment_rate||0}%`} color={PURP} />
+          <StatCard icon={Clock} label="Avg Duration" value={a.avg_duration ? `${Math.floor(a.avg_duration/60)}:${String(Math.round(a.avg_duration%60)).padStart(2,'0')}` : '0:00'} color={AMB} />
+          <StatCard icon={Zap} label="Best Call Time" value={a.best_call_time||'N/A'} color={R} />
+          <StatCard icon={TrendingUp} label="Avg Sentiment" value={a.avg_sentiment?.toFixed(1)||'N/A'} color={GRN} sub="out of 10" />
+        </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {filtered.map(c => {
-            const agent = agents.find(a => a.id === c.agent_id)
-            const total = c.total_leads || 0
-            const called = c.called || 0
-            const pct = total > 0 ? Math.round((called / total) * 100) : 0
-            const sc = statusColor(c.status || 'draft')
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:20 }}>
+          {/* Hourly connection rate chart */}
+          <Card>
+            <h3 style={{ margin:'0 0 12px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Connection Rate by Hour</h3>
+            <svg viewBox="0 0 480 160" style={{ width:'100%' }}>
+              {hourlyData.map((v,i) => {
+                const barH = (v/maxH)*120
+                return (
+                  <g key={i}>
+                    <rect x={i*20+2} y={140-barH} width={16} height={barH} rx={3} fill={v===Math.max(...hourlyData)?GRN:T} opacity={0.85} />
+                    <text x={i*20+10} y={155} textAnchor="middle" fontSize="7" fill="#888">{i}</text>
+                  </g>
+                )
+              })}
+              <line x1="0" y1="140" x2="480" y2="140" stroke="#e5e7eb" strokeWidth="1" />
+            </svg>
+          </Card>
 
+          {/* Daily appointment rate chart */}
+          <Card>
+            <h3 style={{ margin:'0 0 12px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Appointments by Day</h3>
+            <svg viewBox="0 0 280 160" style={{ width:'100%' }}>
+              {dailyData.map((v,i) => {
+                const barH = (v/maxD)*120
+                return (
+                  <g key={i}>
+                    <rect x={i*40+4} y={140-barH} width={32} height={barH} rx={4} fill={v===Math.max(...dailyData)?PURP:T} opacity={0.85} />
+                    <text x={i*40+20} y={155} textAnchor="middle" fontSize="9" fill="#888">{days[i]}</text>
+                    <text x={i*40+20} y={135-barH} textAnchor="middle" fontSize="8" fill="#666" fontWeight="600">{v}</text>
+                  </g>
+                )
+              })}
+              <line x1="0" y1="140" x2="280" y2="140" stroke="#e5e7eb" strokeWidth="1" />
+            </svg>
+          </Card>
+        </div>
+
+        {/* Outcome funnel */}
+        <Card style={{ marginBottom:20 }}>
+          <h3 style={{ margin:'0 0 16px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Outcome Funnel</h3>
+          {['called','answered','engaged','qualified','appointment'].map((stage,i) => {
+            const val = funnel[stage]||0
+            const pct = funnelMax>0 ? (val/funnelMax)*100 : 0
+            const colors = [T,GRN,AMB,PURP,R]
             return (
-              <div key={c.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div>
-                    <h4 style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, margin: 0 }}>{c.name}</h4>
-                    <p style={{ fontSize: 12, color: '#888', margin: '3px 0 0' }}>Agent: {agent?.name || 'Unknown'} {c.scheduled_start ? ` | Start: ${new Date(c.scheduled_start).toLocaleDateString()}` : ''}</p>
+              <div key={stage} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
+                <span style={{ width:90, fontSize:12, fontWeight:600, color:'#555', textTransform:'capitalize', fontFamily:FH }}>{stage}</span>
+                <div style={{ flex:1, background:'#f0f0f0', borderRadius:999, height:24, overflow:'hidden', position:'relative' }}>
+                  <div style={{ height:'100%', width:`${pct}%`, background:colors[i], borderRadius:999, transition:'width .5s', minWidth:pct>0?40:0, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:8 }}>
+                    <span style={{ fontSize:11, fontWeight:700, color:W }}>{val}</span>
                   </div>
-                  <Badge label={c.status || 'draft'} color={sc.c} bg={sc.bg} />
                 </div>
-
-                {/* Stats pills */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                  <StatPill label="Total" value={total} color="#6b7280" />
-                  <StatPill label="Called" value={called} color={T} />
-                  <StatPill label="Answered" value={c.answered || 0} color={GRN} />
-                  <StatPill label="Appointments" value={c.appointments || 0} color={T} />
-                  <StatPill label="No Answer" value={c.no_answer || 0} color={R} />
-                </div>
-
-                {/* Progress bar */}
-                <div style={{ background: '#f3f4f6', borderRadius: 999, height: 6, marginBottom: 14, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${T}, ${GRN})`, borderRadius: 999, transition: 'width .3s' }} />
-                </div>
-                <div style={{ fontSize: 11, color: '#999', marginBottom: 12 }}>{called}/{total} called ({pct}%)</div>
-
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {(c.status === 'draft' || c.status === 'paused') && (
-                    <Btn small bg={GRN} onClick={() => startCampaign(c.id)}><Play size={12} /> Start Calling</Btn>
-                  )}
-                  {c.status === 'active' && (
-                    <Btn small bg={AMB} onClick={() => pauseCampaign(c.id)}><Pause size={12} /> Pause</Btn>
-                  )}
-                  <Btn small bg="#fef2f2" color={R} onClick={() => deleteCampaign(c.id)}><Trash2 size={12} /> Delete</Btn>
-                </div>
+                <span style={{ fontSize:11, color:'#888', width:45, textAlign:'right' }}>{pct.toFixed(0)}%</span>
               </div>
             )
           })}
-        </div>
+        </Card>
+
+        {/* Industry breakdown */}
+        {industryData.length > 0 && (
+          <Card style={{ marginBottom:20 }}>
+            <h3 style={{ margin:'0 0 12px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Industry Breakdown</h3>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, fontFamily:FB }}>
+                <thead>
+                  <tr style={{ borderBottom:'1px solid #e5e7eb' }}>
+                    {['SIC','Industry','Calls','Connection %','Appointment %','Avg Duration','Sentiment'].map(h=>(
+                      <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontSize:10, fontWeight:700, color:'#888', textTransform:'uppercase', fontFamily:FH }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {industryData.map((row,i) => (
+                    <tr key={i} style={{ borderBottom:'1px solid #f5f5f5' }}>
+                      <td style={{ padding:'8px 12px', fontWeight:600 }}>{row.sic_code}</td>
+                      <td style={{ padding:'8px 12px' }}>{SIC_CODES.find(s=>s.code===row.sic_code)?.label||row.sic_code}</td>
+                      <td style={{ padding:'8px 12px' }}>{row.calls}</td>
+                      <td style={{ padding:'8px 12px', color:GRN, fontWeight:600 }}>{row.connection_pct}%</td>
+                      <td style={{ padding:'8px 12px', color:PURP, fontWeight:600 }}>{row.appointment_pct}%</td>
+                      <td style={{ padding:'8px 12px' }}>{row.avg_duration}s</td>
+                      <td style={{ padding:'8px 12px' }}>{row.sentiment?.toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {/* AI Insights */}
+        <Card>
+          <h3 style={{ margin:'0 0 16px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}><Brain size={16} style={{ marginRight:6 }} />AI Insights</h3>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:16 }}>
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:GRN, marginBottom:8, fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}><TrendingUp size={14} /> What's Working</div>
+              {(insights.working || ['No data yet']).map((item,i) => (
+                <div key={i} style={{ fontSize:12, color:'#555', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${GRN}`, lineHeight:1.5 }}>{item}</div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:R, marginBottom:8, fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}><AlertTriangle size={14} /> What's Failing</div>
+              {(insights.failing || ['No data yet']).map((item,i) => (
+                <div key={i} style={{ fontSize:12, color:'#555', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${R}`, lineHeight:1.5 }}>{item}</div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize:12, fontWeight:700, color:PURP, marginBottom:8, fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}><Sparkles size={14} /> Recommendations</div>
+              {(insights.recommendations || ['No data yet']).map((item,i) => (
+                <div key={i} style={{ fontSize:12, color:'#555', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${PURP}`, lineHeight:1.5 }}>{item}</div>
+              ))}
+            </div>
+          </div>
+        </Card>
       </div>
     )
   }
 
-  /* ═══════════════════════════════════════════════
-     CAMPAIGN MODAL
-     ═══════════════════════════════════════════════ */
-  function CampaignModal() {
-    const [form, setForm] = useState({ name: '', agent_id: '', client_id: '', scheduled_start: '', scheduled_end: '' })
-    const [saving, setSaving] = useState(false)
-    const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-    async function save() {
-      if (!form.name.trim()) { toast.error('Name is required'); return }
-      if (!form.agent_id) { toast.error('Select an agent'); return }
-      setSaving(true)
-      try {
-        await api({ action: 'create_campaign', agency_id: agencyId, ...form })
-        toast.success('Campaign created')
-        setShowCampaignModal(false)
-        loadAll()
-      } catch { toast.error('Failed to create campaign') }
-      setSaving(false)
-    }
-
-    return (
-      <Modal title="New Campaign" onClose={() => setShowCampaignModal(false)}>
-        <Input label="Campaign Name" value={form.name} onChange={v => set('name', v)} placeholder="e.g. Q1 Lead Outreach" />
-        <Select label="Voice Agent" value={form.agent_id} onChange={v => set('agent_id', v)}
-          options={agents.map(a => ({ value: a.id, label: a.name }))} placeholder="Select agent..." />
-        <Select label="Client (optional)" value={form.client_id} onChange={v => set('client_id', v)}
-          options={clients.map(c => ({ value: c.id, label: c.name }))} placeholder="Select client..." />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-          <Input label="Scheduled Start" value={form.scheduled_start} onChange={v => set('scheduled_start', v)} type="datetime-local" />
-          <Input label="Scheduled End" value={form.scheduled_end} onChange={v => set('scheduled_end', v)} type="datetime-local" />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
-          <Btn bg="#f3f4f6" color="#333" onClick={() => setShowCampaignModal(false)}>Cancel</Btn>
-          <Btn onClick={save} disabled={saving}>{saving ? <Loader2 size={14} /> : <Check size={14} />} Create Campaign</Btn>
-        </div>
-      </Modal>
-    )
-  }
-
-  /* ═══════════════════════════════════════════════
-     LEADS TAB
-     ═══════════════════════════════════════════════ */
-  function LeadsTab() {
-    const campaignLeads = selectedCampaign ? leads.filter(l => l.campaign_id === selectedCampaign) : leads
-    const filtered = campaignLeads.filter(l => !searchQ || (l.name || '').toLowerCase().includes(searchQ.toLowerCase()) || (l.business || '').toLowerCase().includes(searchQ.toLowerCase()))
-
-    function toggleSelect(id) {
-      const s = new Set(selectedLeads)
-      s.has(id) ? s.delete(id) : s.add(id)
-      setSelectedLeads(s)
-    }
-
-    function toggleAll() {
-      if (selectedLeads.size === filtered.length) setSelectedLeads(new Set())
-      else setSelectedLeads(new Set(filtered.map(l => l.id)))
-    }
-
-    async function bulkDelete() {
-      if (selectedLeads.size === 0) return
-      if (!confirm(`Delete ${selectedLeads.size} lead(s)?`)) return
-      try {
-        await api({ action: 'delete_leads', lead_ids: [...selectedLeads], agency_id: agencyId })
-        toast.success(`${selectedLeads.size} leads deleted`)
-        setSelectedLeads(new Set())
-        loadAll()
-      } catch { toast.error('Delete failed') }
-    }
-
-    function handleCSV(e) {
-      const file = e.target.files?.[0]
-      if (!file) return
-      const reader = new FileReader()
-      reader.onload = async (ev) => {
-        try {
-          const text = ev.target.result
-          const lines = text.split('\n').filter(l => l.trim())
-          if (lines.length < 2) { toast.error('CSV must have header row + data'); return }
-          const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
-          const rows = lines.slice(1).map(line => {
-            const vals = line.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''))
-            const obj = {}
-            headers.forEach((h, i) => { obj[h] = vals[i] || '' })
-            return obj
-          })
-          if (!selectedCampaign) { toast.error('Select a campaign first'); return }
-          await api({ action: 'add_leads', campaign_id: selectedCampaign, leads: rows, agency_id: agencyId })
-          toast.success(`${rows.length} leads imported`)
-          loadAll()
-        } catch { toast.error('CSV parse error') }
-      }
-      reader.readAsText(file)
-      e.target.value = ''
-    }
-
-    async function importFromScout() {
-      if (!selectedCampaign) { toast.error('Select a campaign first'); return }
-      try {
-        const res = await api({ action: 'import_scout_leads', campaign_id: selectedCampaign, agency_id: agencyId })
-        toast.success(`${res.count || 0} leads imported from Scout`)
-        loadAll()
-      } catch { toast.error('Import failed') }
-    }
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  TCPA TAB                                                              */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderTcpa = () => {
+    const totalRecords = tcpaData.length
+    const withConsent = tcpaData.filter(r=>r.consent_phone).length
+    const complianceScore = totalRecords > 0 ? Math.round((withConsent/totalRecords)*100) : 100
+    const optedOut = tcpaData.filter(r=>r.opted_out).length
+    const dncFlagged = tcpaData.filter(r=>r.dnc_flagged).length
+    const redFlags = tcpaData.filter(r=>r.dnc_flagged || (!r.consent_phone && r.called))
 
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <Select label="" value={selectedCampaign} onChange={setSelectedCampaign}
-              options={campaigns.map(c => ({ value: c.id, label: c.name }))} placeholder="All Campaigns" />
-            <div style={{ position: 'relative', width: 220 }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#aaa' }} />
-              <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search leads..." style={{ width: '100%', padding: '8px 12px 8px 32px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {selectedLeads.size > 0 && (
-              <Btn small bg="#fef2f2" color={R} onClick={bulkDelete}><Trash2 size={12} /> Delete ({selectedLeads.size})</Btn>
-            )}
-            <Btn small bg={T} onClick={importFromScout}><Sparkles size={12} /> Import from Scout</Btn>
-            <Btn small onClick={() => csvRef.current?.click()}><Upload size={12} /> Import CSV</Btn>
-            <input ref={csvRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleCSV} />
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+          <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}><Shield size={20} style={{ marginRight:6 }} />TCPA Compliance</h2>
+          <div style={{ display:'flex', gap:8 }}>
+            <Btn small bg={`${T}15`} color={T} onClick={loadTcpa}><RefreshCw size={12} /> Refresh</Btn>
+            <Btn small bg={`${GRN}15`} color={GRN} onClick={exportTcpaCsv}><Download size={12} /> Export CSV</Btn>
           </div>
         </div>
 
-        {filtered.length === 0 && !loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>
-            <Users size={40} style={{ marginBottom: 12, opacity: .3 }} />
-            <p style={{ fontFamily: FH, fontWeight: 600 }}>No leads found</p>
-            <p style={{ fontSize: 13 }}>Import leads via CSV or from Scout to get started.</p>
-          </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: FB }}>
+        {/* Compliance stats */}
+        <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:20 }}>
+          <StatCard icon={Shield} label="Compliance Score" value={`${complianceScore}%`} color={complianceScore>=80?GRN:complianceScore>=60?AMB:R} />
+          <StatCard icon={Check} label="With Consent" value={withConsent} color={GRN} />
+          <StatCard icon={PhoneOff} label="Opted Out" value={optedOut} color={AMB} />
+          <StatCard icon={AlertTriangle} label="DNC Flagged" value={dncFlagged} color={R} />
+        </div>
+
+        {/* Red flags panel */}
+        {redFlags.length > 0 && (
+          <Card style={{ marginBottom:16, borderColor:`${R}40`, background:`${R}05` }}>
+            <h3 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:14, fontWeight:700, color:R }}><AlertTriangle size={16} style={{ marginRight:6 }} />Red Flags ({redFlags.length})</h3>
+            {redFlags.slice(0,5).map((r,i) => (
+              <div key={i} style={{ fontSize:12, color:'#666', marginBottom:4, paddingLeft:12, borderLeft:`2px solid ${R}` }}>
+                {r.phone} - {r.dnc_flagged ? 'On DNC list' : 'Missing consent'} {r.called ? '(Already called!)' : ''}
+              </div>
+            ))}
+            {redFlags.length>5 && <div style={{ fontSize:11, color:'#aaa', marginTop:4 }}>...and {redFlags.length-5} more</div>}
+          </Card>
+        )}
+
+        {/* Consent tracking table */}
+        <Card style={{ padding:0, overflow:'hidden' }}>
+          <div style={{ overflowX:'auto' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                  <th style={{ padding: '10px 8px', textAlign: 'left' }}>
-                    <input type="checkbox" checked={selectedLeads.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
-                  </th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Name</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Phone</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Business</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Location</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Source</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Status</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Duration</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 600, fontSize: 11, color: '#888', textTransform: 'uppercase' }}>Actions</th>
+                <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
+                  {['Phone','Phone Consent','SMS Consent','Email Consent','Method','DNC','Timestamp','Actions'].map(h=>(
+                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(l => {
-                  const sc = statusColor(l.status || 'pending')
-                  return (
-                    <tr key={l.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '8px' }}>
-                        <input type="checkbox" checked={selectedLeads.has(l.id)} onChange={() => toggleSelect(l.id)} />
-                      </td>
-                      <td style={{ padding: '8px', fontWeight: 600 }}>{l.name || '-'}</td>
-                      <td style={{ padding: '8px', color: '#666' }}>{l.phone || '-'}</td>
-                      <td style={{ padding: '8px', color: '#666' }}>{l.business || '-'}</td>
-                      <td style={{ padding: '8px', color: '#666' }}>{[l.city, l.state].filter(Boolean).join(', ') || '-'}</td>
-                      <td style={{ padding: '8px', color: '#888', fontSize: 12 }}>{l.source || '-'}</td>
-                      <td style={{ padding: '8px' }}><Badge label={l.status || 'pending'} color={sc.c} bg={sc.bg} /></td>
-                      <td style={{ padding: '8px', color: '#666' }}>{l.call_duration ? `${l.call_duration}s` : '-'}</td>
-                      <td style={{ padding: '8px' }}>
-                        <button onClick={async () => {
-                          if (!confirm('Delete this lead?')) return
-                          await api({ action: 'delete_leads', lead_ids: [l.id], agency_id: agencyId })
-                          toast.success('Lead deleted')
-                          loadAll()
-                        }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: R }}><Trash2 size={14} /></button>
-                      </td>
-                    </tr>
-                  )
-                })}
+                {tcpaData.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No TCPA records</td></tr>}
+                {tcpaData.map((r,i) => (
+                  <tr key={i} style={{ borderBottom:'1px solid #f5f5f5', background:r.dnc_flagged?`${R}05`:W }}>
+                    <td style={{ padding:'10px 14px', fontWeight:600 }}>{r.phone}</td>
+                    <td style={{ padding:'10px 14px' }}>{r.consent_phone ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}</td>
+                    <td style={{ padding:'10px 14px' }}>{r.consent_sms ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}</td>
+                    <td style={{ padding:'10px 14px' }}>{r.consent_email ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}</td>
+                    <td style={{ padding:'10px 14px', fontSize:12, color:'#666' }}>{r.method||'-'}</td>
+                    <td style={{ padding:'10px 14px' }}>{r.dnc_flagged ? <Badge label="DNC" color={W} bg={R} /> : <Badge label="Clear" color={GRN} bg={`${GRN}15`} />}</td>
+                    <td style={{ padding:'10px 14px', fontSize:11, color:'#888' }}>{r.timestamp ? new Date(r.timestamp).toLocaleString() : '-'}</td>
+                    <td style={{ padding:'10px 14px' }}>
+                      <Btn small bg="#fee2e2" color={R} onClick={async ()=>{
+                        await api({ action:'opt_out', agency_id:aid, phone:r.phone })
+                        toast.success('Opted out')
+                        loadTcpa()
+                      }}><PhoneOff size={10} /> Opt Out</Btn>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        )}
+        </Card>
       </div>
     )
   }
 
-  /* ═══════════════════════════════════════════════
-     CALL HISTORY TAB
-     ═══════════════════════════════════════════════ */
-  function CallHistoryTab() {
-    let filtered = [...calls]
-    if (callFilterCampaign) filtered = filtered.filter(c => c.campaign_id === callFilterCampaign)
-    if (callFilterStatus) filtered = filtered.filter(c => c.status === callFilterStatus)
-    if (callFilterAppt === 'yes') filtered = filtered.filter(c => c.has_appointment)
-    if (callFilterAppt === 'no') filtered = filtered.filter(c => !c.has_appointment)
-    if (searchQ) filtered = filtered.filter(c => (c.lead_name || '').toLowerCase().includes(searchQ.toLowerCase()))
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  CALENDAR TAB                                                          */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const [availGrid, setAvailGrid] = useState({
+    Mon:{ enabled:true, start:'09:00', end:'17:00' },
+    Tue:{ enabled:true, start:'09:00', end:'17:00' },
+    Wed:{ enabled:true, start:'09:00', end:'17:00' },
+    Thu:{ enabled:true, start:'09:00', end:'17:00' },
+    Fri:{ enabled:true, start:'09:00', end:'17:00' },
+    Sat:{ enabled:false, start:'10:00', end:'14:00' },
+    Sun:{ enabled:false, start:'10:00', end:'14:00' },
+  })
 
-    const sentimentColor = s => {
-      if (s === 'positive') return { c: '#fff', bg: GRN }
-      if (s === 'negative') return { c: '#fff', bg: R }
-      if (s === 'neutral') return { c: '#555', bg: '#e5e7eb' }
-      return { c: '#555', bg: '#e5e7eb' }
-    }
+  useEffect(() => {
+    if (availability && Object.keys(availability).length > 0) setAvailGrid(availability)
+  }, [availability])
 
-    return (
-      <div>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', width: 220 }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#aaa' }} />
-            <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search calls..." style={{ width: '100%', padding: '8px 12px 8px 32px', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, fontFamily: FB }} />
-          </div>
-          <Select label="" value={callFilterCampaign} onChange={setCallFilterCampaign}
-            options={campaigns.map(c => ({ value: c.id, label: c.name }))} placeholder="All Campaigns" />
-          <Select label="" value={callFilterStatus} onChange={setCallFilterStatus}
-            options={[{ value: 'answered', label: 'Answered' }, { value: 'no_answer', label: 'No Answer' }, { value: 'failed', label: 'Failed' }, { value: 'voicemail', label: 'Voicemail' }]} placeholder="All Statuses" />
-          <Select label="" value={callFilterAppt} onChange={setCallFilterAppt}
-            options={[{ value: 'yes', label: 'Has Appointment' }, { value: 'no', label: 'No Appointment' }]} placeholder="Appointments" />
-          {(callFilterCampaign || callFilterStatus || callFilterAppt) && (
-            <Btn small bg="#f3f4f6" color="#333" onClick={() => { setCallFilterCampaign(''); setCallFilterStatus(''); setCallFilterAppt('') }}><X size={12} /> Clear</Btn>
-          )}
+  const renderCalendar = () => (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+        <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}><Calendar size={20} style={{ marginRight:6 }} />Calendar & Scheduling</h2>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <Select value={calendarTimezone} onChange={setCalendarTimezone} options={[
+            {value:'America/New_York',label:'Eastern'},{value:'America/Chicago',label:'Central'},
+            {value:'America/Denver',label:'Mountain'},{value:'America/Los_Angeles',label:'Pacific'},
+            {value:'America/Phoenix',label:'Arizona'},{value:'America/Anchorage',label:'Alaska'},
+            {value:'Pacific/Honolulu',label:'Hawaii'},
+          ]} style={{ marginBottom:0, minWidth:140 }} />
+          <Btn small bg={`${PURP}15`} color={PURP} onClick={()=>toast.success('Google Calendar integration coming soon')}><ExternalLink size={12} /> Connect Google Calendar</Btn>
         </div>
-
-        {filtered.length === 0 && !loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#999' }}>
-            <PhoneOff size={40} style={{ marginBottom: 12, opacity: .3 }} />
-            <p style={{ fontFamily: FH, fontWeight: 600 }}>No calls found</p>
-            <p style={{ fontSize: 13 }}>Call history will appear here once campaigns start running.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {filtered.map(c => {
-              const sc = statusColor(c.status || 'pending')
-              const sentC = sentimentColor(c.sentiment)
-              const isExpanded = expandedCall === c.id
-
-              return (
-                <div key={c.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
-                  <div onClick={() => setExpandedCall(isExpanded ? null : c.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', cursor: 'pointer' }}>
-                    {isExpanded ? <ChevronDown size={14} color="#999" /> : <ChevronRight size={14} color="#999" />}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontFamily: FH, fontWeight: 600, fontSize: 14 }}>{c.lead_name || 'Unknown'}</span>
-                        <span style={{ fontSize: 12, color: '#999' }}>{c.phone || ''}</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {c.duration && <span style={{ fontSize: 12, color: '#888' }}><Clock size={11} style={{ marginRight: 3 }} />{c.duration}s</span>}
-                      <Badge label={c.status || 'unknown'} color={sc.c} bg={sc.bg} />
-                      {c.sentiment && <Badge label={c.sentiment} color={sentC.c} bg={sentC.bg} />}
-                      {c.has_appointment && <Badge label="Appt Set" color="#fff" bg={T} />}
-                      <span style={{ fontSize: 11, color: '#aaa' }}>{c.created_at ? new Date(c.created_at).toLocaleString() : ''}</span>
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div style={{ borderTop: '1px solid #f3f4f6', padding: '16px 18px', background: '#fafafa' }}>
-                      {c.summary && (
-                        <div style={{ marginBottom: 14 }}>
-                          <h5 style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#555', margin: '0 0 6px', textTransform: 'uppercase' }}>AI Summary</h5>
-                          <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6, margin: 0 }}>{c.summary}</p>
-                        </div>
-                      )}
-                      {c.transcript && (
-                        <div style={{ marginBottom: 14 }}>
-                          <h5 style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#555', margin: '0 0 6px', textTransform: 'uppercase' }}>Transcript</h5>
-                          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 14, maxHeight: 300, overflow: 'auto', fontSize: 13, color: '#333', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: FB }}>
-                            {c.transcript}
-                          </div>
-                        </div>
-                      )}
-                      {c.recording_url && (
-                        <div>
-                          <h5 style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#555', margin: '0 0 6px', textTransform: 'uppercase' }}>Recording</h5>
-                          <audio controls src={c.recording_url} style={{ width: '100%', borderRadius: 8 }} />
-                        </div>
-                      )}
-                      {!c.summary && !c.transcript && !c.recording_url && (
-                        <p style={{ fontSize: 13, color: '#999', fontStyle: 'italic' }}>No additional details available for this call.</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
       </div>
-    )
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+        {/* Availability grid */}
+        <Card>
+          <h3 style={{ margin:'0 0 16px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Availability</h3>
+          {Object.entries(availGrid).map(([day, cfg]) => (
+            <div key={day} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10, padding:'8px 0', borderBottom:'1px solid #f5f5f5' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:6, width:80 }}>
+                <input type="checkbox" checked={cfg.enabled} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],enabled:e.target.checked}}))} />
+                <span style={{ fontSize:13, fontWeight:600, color:cfg.enabled?BLK:'#aaa', fontFamily:FH }}>{day}</span>
+              </div>
+              <input type="time" value={cfg.start} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],start:e.target.value}}))} disabled={!cfg.enabled} style={{ padding:'4px 8px', border:'1px solid #ddd', borderRadius:6, fontSize:12, fontFamily:FB, opacity:cfg.enabled?1:0.4 }} />
+              <span style={{ color:'#aaa', fontSize:12 }}>to</span>
+              <input type="time" value={cfg.end} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],end:e.target.value}}))} disabled={!cfg.enabled} style={{ padding:'4px 8px', border:'1px solid #ddd', borderRadius:6, fontSize:12, fontFamily:FB, opacity:cfg.enabled?1:0.4 }} />
+            </div>
+          ))}
+          <Btn onClick={()=>saveAvailability(availGrid)} style={{ marginTop:12 }} bg={GRN}><Check size={14} /> Save Availability</Btn>
+        </Card>
+
+        {/* Upcoming appointments */}
+        <Card>
+          <h3 style={{ margin:'0 0 16px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Upcoming Appointments</h3>
+          {appointments.length === 0 && <p style={{ color:'#aaa', fontSize:13, textAlign:'center', margin:20 }}>No upcoming appointments</p>}
+          {appointments.map((apt,i) => (
+            <div key={i} style={{ padding:12, background:'#fafafa', borderRadius:10, marginBottom:8, border:'1px solid #eee' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:700, color:BLK, fontFamily:FH }}>{apt.lead_name || 'Unknown'}</div>
+                  <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{apt.phone}</div>
+                  {apt.business && <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{apt.business}</div>}
+                </div>
+                <Badge label={apt.status||'scheduled'} color={statusColor(apt.status||'active').c} bg={statusColor(apt.status||'active').bg} />
+              </div>
+              <div style={{ display:'flex', gap:8, marginTop:8, fontSize:12, color:'#666' }}>
+                <span style={{ display:'flex', alignItems:'center', gap:4 }}><Calendar size={12} />{apt.date ? new Date(apt.date).toLocaleDateString() : '-'}</span>
+                <span style={{ display:'flex', alignItems:'center', gap:4 }}><Clock size={12} />{apt.time || '-'}</span>
+                {apt.agent_name && <span style={{ display:'flex', alignItems:'center', gap:4 }}><Users size={12} />{apt.agent_name}</span>}
+              </div>
+              {apt.notes && <div style={{ fontSize:12, color:'#888', marginTop:6, fontStyle:'italic' }}>{apt.notes}</div>}
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  )
+
+  /* ════════════════════════════════════════════════════════════════════════ */
+  /*  MAIN RENDER                                                           */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const renderTab = () => {
+    switch(tab) {
+      case 'agents': return renderAgents()
+      case 'campaigns': return renderCampaigns()
+      case 'leads': return renderLeads()
+      case 'history': return renderCallHistory()
+      case 'analytics': return renderAnalytics()
+      case 'tcpa': return renderTcpa()
+      case 'calendar': return renderCalendar()
+      default: return renderAgents()
+    }
   }
 
-  /* ═══════════════════════════════════════════════
-     RENDER
-     ═══════════════════════════════════════════════ */
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: GRY }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
       <Sidebar />
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
         {/* Header */}
-        <header style={{ background: BLK, padding: '18px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Phone size={22} color={T} />
-            <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff', margin: 0 }}>Voice Agent</h1>
-          </div>
-          <div style={{ display: 'flex', gap: 20 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', fontFamily: FH }}>{totalAgents}</div>
-              <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: .5 }}>Agents</div>
+        <div style={{ background:BLK, padding:'16px 28px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background:`linear-gradient(135deg,${R},${T})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <PhoneCall size={18} color={W} />
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: T, fontFamily: FH }}>{activeCampaigns}</div>
-              <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: .5 }}>Active</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: GRN, fontFamily: FH }}>{callsToday}</div>
-              <div style={{ fontSize: 10, color: '#999', textTransform: 'uppercase', letterSpacing: .5 }}>Calls Today</div>
+            <div>
+              <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:W, fontFamily:FH }}>Voice Agent Intelligence</h1>
+              <p style={{ margin:0, fontSize:11, color:'#888', fontFamily:FB }}>AI-powered outbound calling platform</p>
             </div>
           </div>
-        </header>
-
-        {/* Tabs */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '0 28px', display: 'flex', gap: 0 }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => { setTab(t.key); setSearchQ('') }}
-              style={{
-                fontFamily: FH, fontSize: 13, fontWeight: 600, padding: '14px 20px',
-                background: 'none', border: 'none', borderBottom: tab === t.key ? `3px solid ${R}` : '3px solid transparent',
-                color: tab === t.key ? BLK : '#999', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                transition: 'all .15s'
-              }}>
-              {t.icon} {t.label}
-            </button>
-          ))}
-          <div style={{ flex: 1 }} />
-          <button onClick={loadAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', padding: 10, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontFamily: FH }}>
-            <RefreshCw size={13} /> Refresh
-          </button>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            {loading && <Loader2 size={16} color={T} className="spin" />}
+            <Btn small bg={`${T}30`} color={T} onClick={loadAll}><RefreshCw size={12} /> Refresh</Btn>
+            <div style={{ display:'flex', gap:6 }}>
+              <StatPill label="agents" value={agents.length} color={T} />
+              <StatPill label="campaigns" value={campaigns.length} color={GRN} />
+              <StatPill label="leads" value={leads.length} color={PURP} />
+            </div>
+          </div>
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, padding: 28, overflowY: 'auto' }}>
-          {loading ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80 }}>
-              <Loader2 size={28} color={T} style={{ animation: 'spin 1s linear infinite' }} />
-              <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
-            </div>
-          ) : (
-            <>
-              {tab === 'agents' && <AgentsTab />}
-              {tab === 'campaigns' && <CampaignsTab />}
-              {tab === 'leads' && <LeadsTab />}
-              {tab === 'history' && <CallHistoryTab />}
-            </>
-          )}
+        <div style={{ padding:24, flex:1, overflow:'auto' }}>
+          <TabBar tabs={TABS} active={tab} onChange={setTab} />
+          {renderTab()}
         </div>
-      </main>
+      </div>
 
       {/* Modals */}
-      {showAgentModal && <AgentModal />}
-      {showCampaignModal && <CampaignModal />}
+      {showAgentWizard && renderAgentWizard()}
+      {showCampaignModal && renderCampaignModal()}
+
+      {/* Spin animation */}
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}.spin{animation:spin 1s linear infinite}`}</style>
     </div>
   )
 }

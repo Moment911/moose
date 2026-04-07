@@ -218,6 +218,8 @@ export default function Sidebar() {
             <Activity size={14} style={{flexShrink:0,opacity:.65}}/><span style={{flex:1,lineHeight:1.2}}>System Status ↗</span>
           </a>
           <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
+          <NavLink to="/voice/test-console" icon={Phone} label="Voice Test Lab"/>
+          <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
           </>)}
         </div>
 
