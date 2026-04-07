@@ -448,14 +448,18 @@ export async function POST(req: NextRequest) {
   if (action === 'start_run') {
     const suites = body.suites || Object.keys(TEST_SUITES)
     const agencyId = body.agency_id || null
+    const triggeredBy = body.triggered_by || 'manual'
 
-    // Create run record
-    const { data: run, error: runErr } = await sb.from('koto_qa_runs').insert({
-      agency_id: agencyId,
-      triggered_by: body.triggered_by || 'manual',
+    // Create run record — only include agency_id if it's a valid uuid
+    const insertData: Record<string, any> = {
       status: 'running',
       total_tests: 0,
-    }).select().single()
+      triggered_by: triggeredBy,
+    }
+    if (agencyId) insertData.agency_id = agencyId
+
+    const { data: run, error: runErr } = await sb.from('koto_qa_runs')
+      .insert(insertData).select().single()
 
     if (runErr) return NextResponse.json({ error: runErr.message }, { status: 500 })
 
@@ -478,13 +482,14 @@ export async function POST(req: NextRequest) {
     // Log any failures as errors
     const failures = allResults.filter(r => r.status === 'fail')
     for (const f of failures) {
-      await sb.from('koto_qa_errors').insert({
-        agency_id: agencyId,
+      const errInsert: Record<string, any> = {
         suite: f.suite,
         error_type: 'test_failure',
         message: `${f.test_name}: ${f.message}`,
         severity: 'medium',
-      })
+      }
+      if (agencyId) errInsert.agency_id = agencyId
+      await sb.from('koto_qa_errors').insert(errInsert)
     }
 
     const healthScore = calculateHealthScore(allResults)
@@ -507,14 +512,15 @@ export async function POST(req: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .eq('resolved', false)
 
-    await sb.from('koto_qa_metrics').insert({
-      agency_id: agencyId,
+    const metricsInsert: Record<string, any> = {
       health_score: healthScore,
       pass_rate: allResults.length > 0
         ? Math.round((allResults.filter(r => r.status === 'pass').length / allResults.length) * 100)
         : 0,
       open_errors: openErrors || 0,
-    })
+    }
+    if (agencyId) metricsInsert.agency_id = agencyId
+    await sb.from('koto_qa_metrics').insert(metricsInsert)
 
     return NextResponse.json({
       run_id: run.id,
