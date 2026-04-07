@@ -125,24 +125,32 @@ export default function QAConsolePage() {
       const data = await res.json()
       setRunResult(data)
 
-      // Auto-heal if enabled and there were failures
-      if (selfHealMode && data.failed > 0) {
-        try {
-          const healRes = await fetch('/api/qa', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'auto_heal_run' }),
-          })
-          const healData = await healRes.json()
-          toast.success(`Self-Heal: ${healData.total} errors detected, ${healData.healed} auto-resolved, ${healData.pending} need review`)
-        } catch {
-          toast.error('Self-heal failed to run')
+      if (!data || data.error) {
+        toast.error(data?.error || 'Test run failed')
+      } else if (data.failed > 0) {
+        // Show failure count toast
+        toast(`${data.passed}/${data.total} passed — ${data.failed} failed`, { icon: '⚠️' })
+
+        // Auto-heal if enabled
+        if (selfHealMode) {
+          try {
+            const healRes = await fetch('/api/qa', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'auto_heal_run' }),
+            })
+            const healData = await healRes.json()
+            toast.success(`Self-Heal: ${healData.total} errors processed, ${healData.healed} auto-resolved, ${healData.pending} need review`, { duration: 5000 })
+          } catch {
+            toast.error('Self-heal failed to run')
+          }
         }
-      } else if (data.failed === 0 && data.total > 0) {
-        toast.success(`All ${data.total} tests passed!`)
+      } else if (data.total > 0) {
+        toast.success(`All ${data.total} tests passed — platform healthy`)
       }
     } catch (e) {
       setRunResult({ error: 'Failed to run tests' })
+      toast.error('Failed to run tests')
     }
     setRunning(false)
   }
@@ -578,31 +586,51 @@ export default function QAConsolePage() {
                 <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : runs.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontFamily: FB, fontSize: 13 }}>
-                No test runs yet
-              </div>
-            ) : runs.map(run => (
-              <div key={run.id} onClick={() => viewRunDetails(run.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 8px',
-                  borderBottom: '1px solid #f8f8f6', cursor: 'pointer',
-                  background: selectedRun === run.id ? '#f8f8f6' : 'transparent',
-                  borderRadius: 8, transition: 'background .12s',
-                }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, background: (run.health_score >= 80 ? GRN : run.health_score >= 50 ? AMB : R) + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: run.health_score >= 80 ? GRN : run.health_score >= 50 ? AMB : R }}>{run.health_score}%</span>
+              <div style={{ padding: 40, textAlign: 'center' }}>
+                <Play size={24} color="#d0d0cc" style={{ marginBottom: 8 }} />
+                <div style={{ color: '#9a9a96', fontFamily: FB, fontSize: 13, marginBottom: 12 }}>
+                  No test runs yet
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontFamily: FH, fontWeight: 700, color: BLK }}>
-                    {run.passed}/{run.total_tests} passed &middot; {run.failed} failed
-                  </div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>
-                    {run.triggered_by} &middot; {run.duration_ms}ms &middot; {timeAgo(run.started_at)}
-                  </div>
-                </div>
-                <ChevronRight size={14} color="#9a9a96" />
+                <button onClick={() => { setTab(0) }}
+                  style={{ fontSize: 12, fontWeight: 700, color: R, background: R + '10', border: 'none', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontFamily: FH }}>
+                  Go to Test Runner →
+                </button>
               </div>
-            ))}
+            ) : runs.map(run => {
+              const sc = run.health_score >= 80 ? GRN : run.health_score >= 50 ? AMB : R
+              const pct = run.total_tests > 0 ? Math.round((run.passed / run.total_tests) * 100) : 0
+              return (
+                <div key={run.id} onClick={() => viewRunDetails(run.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '14px 10px',
+                    borderBottom: '1px solid #f8f8f6', cursor: 'pointer',
+                    background: selectedRun === run.id ? '#f8f8f6' : 'transparent',
+                    borderRadius: 8, transition: 'background .12s',
+                  }}>
+                  <div style={{ width: 42, height: 42, borderRadius: 10, background: sc + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: sc }}>{run.health_score}%</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 700, color: BLK }}>
+                        {run.passed}/{run.total_tests} passed
+                      </span>
+                      {run.failed > 0 && (
+                        <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R + '15', color: R }}>{run.failed} failed</span>
+                      )}
+                    </div>
+                    {/* Pass rate bar */}
+                    <div style={{ height: 4, borderRadius: 2, background: '#ececea', overflow: 'hidden', marginBottom: 4, maxWidth: 180 }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: sc, borderRadius: 2 }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: '#9a9a96' }}>
+                      {run.triggered_by} · {run.duration_ms}ms · {timeAgo(run.completed_at || run.started_at)}
+                    </div>
+                  </div>
+                  <ChevronRight size={14} color="#9a9a96" />
+                </div>
+              )
+            })}
           </div>
         </div>
 
