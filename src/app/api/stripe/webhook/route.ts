@@ -65,6 +65,25 @@ async function upsertSubscription(sub: any, overrideMeta?: Record<string,string>
   } else {
     console.log(`[webhook] ✓ Synced agency ${agency_id} → plan:${planName}, status:${sub.status}`)
   }
+
+  // Sync to koto_billing_accounts
+  const billingStatus = sub.status === 'active' || sub.status === 'trialing' ? sub.status : sub.status === 'past_due' ? 'past_due' : 'cancelled'
+  const planPrices: Record<string, number> = { starter: 297, growth: 597, agency: 997, enterprise: 1997 }
+  await fetch(`${SUPABASE_URL}/rest/v1/koto_billing_accounts`, {
+    method: 'POST',
+    headers: { ...headers(), 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify({
+      agency_id,
+      stripe_customer_id: sub.customer,
+      stripe_subscription_id: sub.id,
+      plan: planName,
+      plan_price: planPrices[planName] || 297,
+      status: billingStatus,
+      current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
+      current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
+      updated_at: new Date().toISOString(),
+    }),
+  }).catch(e => console.error('[webhook] koto_billing_accounts sync error:', e.message))
 }
 
 async function handleCheckoutComplete(session: any) {
