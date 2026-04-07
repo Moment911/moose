@@ -27,8 +27,12 @@ export async function GET(req: NextRequest) {
   const s = sb()
 
   if (action === 'list') {
-    if (!agencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
-    let q = s.from('koto_phone_numbers').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false })
+    const isSuperAdmin = p.get('super_admin') === 'true'
+    let q = s.from('koto_phone_numbers').select('*').order('created_at', { ascending: false })
+    if (!isSuperAdmin) {
+      if (!agencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      q = q.eq('agency_id', agencyId)
+    }
     const status = p.get('status')
     const type = p.get('type')
     const purpose = p.get('purpose')

@@ -92,7 +92,7 @@ const TABS = [
 /*  MAIN COMPONENT                                                         */
 /* ══════════════════════════════════════════════════════════════════════════ */
 export default function PhoneNumbersPage() {
-  const { agencyId: authAgencyId } = useAuth()
+  const { agencyId: authAgencyId, isSuperAdmin } = useAuth()
   const aid = authAgencyId || '00000000-0000-0000-0000-000000000099'
 
   const [tab, setTab] = useState('numbers')
@@ -102,6 +102,8 @@ export default function PhoneNumbersPage() {
   const [numbers, setNumbers] = useState([])
   const [stats, setStats] = useState({ total:0, active:0, monthly_cost:0, last_purchased:null })
   const [available, setAvailable] = useState([])
+  const [agencyNames, setAgencyNames] = useState({})
+  const [clientNames, setClientNames] = useState({})
 
   // Search / filter
   const [areaCode, setAreaCode] = useState('')
@@ -125,12 +127,37 @@ export default function PhoneNumbersPage() {
   const loadAll = async () => {
     setLoading(true)
     try {
+      const listParams = `action=list&agency_id=${aid}${isSuperAdmin ? '&super_admin=true' : ''}`
       const [numsRes, statsRes, provRes] = await Promise.all([
-        fetch(`${API}?action=list&agency_id=${aid}`).then(r => r.json()),
+        fetch(`${API}?${listParams}`).then(r => r.json()),
         fetch(`${API}?action=stats&agency_id=${aid}`).then(r => r.json()),
         fetch(`${API}?action=providers`).then(r => r.json()),
       ])
-      if (Array.isArray(numsRes)) setNumbers(numsRes)
+      if (Array.isArray(numsRes)) {
+        setNumbers(numsRes)
+        // Fetch agency and client names for display
+        const agIds = [...new Set(numsRes.map(n => n.agency_id).filter(Boolean))]
+        const clIds = [...new Set(numsRes.map(n => n.client_id).filter(Boolean))]
+        if (agIds.length > 0) {
+          fetch(`/api/billing?action=get_all_agencies_billing`).then(r => r.json()).then(data => {
+            if (Array.isArray(data)) {
+              const map = {}
+              data.forEach(a => { map[a.agency_id] = a.agencies?.brand_name || a.agencies?.name || a.agency_id?.slice(0, 8) })
+              setAgencyNames(map)
+            }
+          }).catch(() => {})
+        }
+        if (clIds.length > 0) {
+          // Simple client name lookup via supabase
+          const params = clIds.map(id => `id=eq.${id}`).join(',')
+          fetch(`/api/billing?action=get_client_pricing&agency_id=${aid}`).then(r => r.json()).then(() => {
+            // Client names would need a dedicated endpoint; for now use ID prefix
+            const map = {}
+            clIds.forEach(id => { map[id] = `Client ${id.slice(0, 8)}...` })
+            setClientNames(map)
+          }).catch(() => {})
+        }
+      }
       if (statsRes && !statsRes.error) setStats(statsRes)
       if (provRes && !provRes.error) setProviders(provRes)
     } catch (e) { console.error(e) }
@@ -223,7 +250,7 @@ export default function PhoneNumbersPage() {
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
-                  {['Phone Number','Friendly Name','Provider','Type','Purpose','Status','Cost/mo','Actions'].map(h => (
+                  {['Phone Number','Friendly Name','Assigned To','Provider','Type','Purpose','Status','Cost/mo','Actions'].map(h => (
                     <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
@@ -237,6 +264,23 @@ export default function PhoneNumbersPage() {
                     <tr key={n.id} style={{ borderBottom:'1px solid #f3f4f6' }}>
                       <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{fmt(n.phone_number)}</td>
                       <td style={{ padding:'10px 14px', color:'#555' }}>{n.friendly_name || '-'}</td>
+                      <td style={{ padding:'10px 14px' }}>
+                        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                            <div style={{ width:6, height:6, borderRadius:'50%', background: n.client_id ? GRN : n.agency_id ? T : AMB, flexShrink:0 }} />
+                            <span style={{ fontSize:12, fontWeight:600, color:BLK }}>
+                              {n.client_id
+                                ? (clientNames[n.client_id] || `Client ${n.client_id.slice(0,8)}...`)
+                                : n.agency_id
+                                  ? (agencyNames[n.agency_id] || `Agency ${n.agency_id.slice(0,8)}...`)
+                                  : 'Koto Platform'}
+                            </span>
+                          </div>
+                          <span style={{ fontSize:10, color:'#999', fontFamily:FH, fontWeight:600, textTransform:'uppercase', letterSpacing:'.04em' }}>
+                            {n.client_id ? 'Client' : n.agency_id ? 'Agency' : 'Platform'}
+                          </span>
+                        </div>
+                      </td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.provider || 'twilio'} color={n.provider === 'telnyx' ? '#16a34a' : '#1d4ed8'} bg={n.provider === 'telnyx' ? '#dcfce7' : '#dbeafe'} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.type} color={tc.c} bg={tc.bg} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.purpose} color={pc.c} bg={pc.bg} /></td>
