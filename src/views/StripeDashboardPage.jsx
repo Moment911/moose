@@ -66,6 +66,7 @@ export default function StripeDashboardPage() {
   const [revenue, setRevenue] = useState({ mrr: 0, arr: 0, active_subscriptions: 0, failed_payments: 0 })
   const [showProductModal, setShowProductModal] = useState(false)
   const [showCouponModal, setShowCouponModal] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
   const [productForm, setProductForm] = useState({ name: '', description: '', monthly_price: '', annual_price: '', category: 'plan', features: [] })
   const [couponForm, setCouponForm] = useState({ name: '', percent_off: '', amount_off: '', duration: 'once', duration_in_months: '', max_redemptions: '' })
   const [saving, setSaving] = useState(false)
@@ -93,7 +94,7 @@ export default function StripeDashboardPage() {
     setSyncing(true)
     try {
       const res = await fetch('/api/stripe-admin?action=sync', { method: 'POST' }).then(r => r.json())
-      toast.success(`Synced: ${res.products || 0} products, ${res.subscriptions || 0} subs, ${res.invoices || 0} invoices`)
+      toast.success(`Synced: ${res.synced?.products || res.products || 0} products, ${res.synced?.prices || 0} prices, ${res.synced?.coupons || 0} coupons`)
       loadData()
     } catch { toast.error('Sync failed') }
     setSyncing(false)
@@ -102,16 +103,35 @@ export default function StripeDashboardPage() {
   async function saveProduct() {
     setSaving(true)
     try {
-      await fetch('/api/stripe-admin', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create_product', ...productForm }),
-      })
-      toast.success('Product created')
+      if (editingProduct) {
+        await fetch('/api/stripe-admin', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_product', stripe_product_id: editingProduct.stripe_product_id, name: productForm.name, description: productForm.description }),
+        })
+        toast.success('Product updated in Stripe')
+      } else {
+        await fetch('/api/stripe-admin', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create_product', ...productForm }),
+        })
+        toast.success('Product created in Stripe')
+      }
       setShowProductModal(false)
+      setEditingProduct(null)
       setProductForm({ name: '', description: '', monthly_price: '', annual_price: '', category: 'plan', features: [] })
       loadData()
-    } catch { toast.error('Failed to create product') }
+    } catch { toast.error('Failed to save product') }
     setSaving(false)
+  }
+
+  function openEditProduct(p) {
+    setEditingProduct(p)
+    setProductForm({
+      name: p.name || '', description: p.description || '',
+      monthly_price: p.monthly_price || '', annual_price: p.annual_price || '',
+      category: p.metadata?.category || 'plan', features: [],
+    })
+    setShowProductModal(true)
   }
 
   async function saveCoupon() {
@@ -129,14 +149,14 @@ export default function StripeDashboardPage() {
     setSaving(false)
   }
 
-  async function archiveProduct(id) {
-    if (!confirm('Archive this product?')) return
+  async function archiveProduct(stripeProductId) {
+    if (!confirm('Archive this product in Stripe? This will deactivate it.')) return
     try {
       await fetch('/api/stripe-admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'archive_product', product_id: id }),
+        body: JSON.stringify({ action: 'archive_product', stripe_product_id: stripeProductId }),
       })
-      toast.success('Product archived')
+      toast.success('Product archived in Stripe')
       loadData()
     } catch { toast.error('Failed to archive') }
   }
@@ -230,7 +250,7 @@ export default function StripeDashboardPage() {
           {tab === 1 && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                <Btn onClick={() => setShowProductModal(true)} icon={Plus} label="Add Product" accent={T} />
+                <Btn onClick={() => { setEditingProduct(null); setProductForm({ name:'', description:'', monthly_price:'', annual_price:'', category:'plan', features:[] }); setShowProductModal(true) }} icon={Plus} label="Add Product" accent={T} />
               </div>
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
                 <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
@@ -242,20 +262,27 @@ export default function StripeDashboardPage() {
                   </tr></thead>
                   <tbody>
                     {products.length === 0 ? (
-                      <tr><td colSpan={5} style={{ padding: 30, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No products found</td></tr>
+                      <tr><td colSpan={5} style={{ padding: 30, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No products — click "Add Product" or "Sync" to pull from Stripe</td></tr>
                     ) : products.map(p => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid #f8f8f6' }}>
+                      <tr key={p.stripe_product_id || p.id} style={{ borderBottom: '1px solid #f8f8f6' }}>
                         <TD>
                           <div style={{ fontWeight: 700, color: BLK }}>{p.name}</div>
                           {p.description && <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>{p.description}</div>}
+                          <div style={{ fontSize: 10, color: '#c0c0c0', marginTop: 2, fontFamily: 'monospace' }}>{p.stripe_product_id}</div>
                         </TD>
-                        <TD style={{ fontFamily: FH, fontWeight: 700 }}>{p.monthly_price ? fmt$(p.monthly_price / 100) : '—'}</TD>
-                        <TD style={{ fontFamily: FH, fontWeight: 700 }}>{p.annual_price ? fmt$(p.annual_price / 100) : '—'}</TD>
-                        <TD><Badge label={p.active ? 'Active' : 'Inactive'} color={p.active ? GRN : '#6b7280'} /></TD>
+                        <TD style={{ fontFamily: FH, fontWeight: 700 }}>{p.monthly_price ? `$${Number(p.monthly_price).toFixed(2)}` : '—'}</TD>
+                        <TD style={{ fontFamily: FH, fontWeight: 700 }}>{p.annual_price ? `$${Number(p.annual_price).toFixed(2)}` : '—'}</TD>
+                        <TD><Badge label={p.is_active !== false ? 'Active' : 'Inactive'} color={p.is_active !== false ? GRN : '#6b7280'} /></TD>
                         <TD>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <Btn onClick={() => {}} icon={Edit2} label="Edit" accent={T} small />
-                            <Btn onClick={() => archiveProduct(p.id)} icon={Trash2} label="Archive" accent={R} small />
+                            <Btn onClick={() => openEditProduct(p)} icon={Edit2} label="Edit" accent={T} small />
+                            <Btn onClick={() => archiveProduct(p.stripe_product_id)} icon={Trash2} label="Archive" accent={R} small />
+                            {p.stripe_product_id && (
+                              <a href={`https://dashboard.stripe.com/test/products/${p.stripe_product_id}`} target="_blank" rel="noreferrer"
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 11, fontWeight: 600, textDecoration: 'none', cursor: 'pointer' }}>
+                                <ExternalLink size={10} /> Stripe
+                              </a>
+                            )}
                           </div>
                         </TD>
                       </tr>
@@ -374,7 +401,7 @@ export default function StripeDashboardPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 16, width: 480, maxWidth: '95vw', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}><Package size={18} color={T} /> Add Product</div>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}><Package size={18} color={T} /> {editingProduct ? 'Edit Product' : 'Add Product'}</div>
               <button onClick={() => setShowProductModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a9a96' }}><X size={18} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -396,7 +423,7 @@ export default function StripeDashboardPage() {
             <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowProductModal(false)} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: FH, color: '#6b7280' }}>Cancel</button>
               <button onClick={saveProduct} disabled={saving || !productForm.name} style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: saving || !productForm.name ? '#ccc' : T, cursor: saving || !productForm.name ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, fontFamily: FH, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
-                {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} />} Create Product
+                {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} />} {editingProduct ? 'Update in Stripe' : 'Create in Stripe'}
               </button>
             </div>
           </div>
