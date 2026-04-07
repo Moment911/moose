@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Shield, X, ChevronRight, Eye, Crown } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -13,6 +14,7 @@ export default function ImpersonationBar() {
     impersonateAgency, impersonateClient, stopImpersonating,
     isPreviewingClient, clientPreview, stopClientPreview } = auth || {}
 
+  const navigate = useNavigate()
   const [agencies, setAgencies] = useState([])
   const [clients, setClients] = useState([])
   const [loadingAgencies, setLoadingAgencies] = useState(false)
@@ -59,14 +61,20 @@ export default function ImpersonationBar() {
     const id = e.target.value
     if (!id) return
     const agency = agencies.find(a => a.id === id)
-    if (agency) impersonateAgency?.({ id: agency.id, name: agency.brand_name || agency.name })
+    if (agency) {
+      impersonateAgency?.({ id: agency.id, name: agency.brand_name || agency.name })
+      navigate('/dashboard')
+    }
   }
 
   function handleClientSelect(e) {
     const id = e.target.value
     if (!id) return
     const client = clients.find(c => c.id === id)
-    if (client) impersonateClient?.({ id: client.id, name: client.name })
+    if (client) {
+      impersonateClient?.({ id: client.id, name: client.name })
+      navigate('/clients')
+    }
   }
 
   function exitToSuperAdmin() {
@@ -75,6 +83,7 @@ export default function ImpersonationBar() {
       sessionStorage.removeItem('koto_view_as_agency')
       sessionStorage.removeItem('koto_view_as_client')
     } catch {}
+    navigate('/dashboard')
   }
 
   function exitToAgency() {
