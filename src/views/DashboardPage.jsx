@@ -87,10 +87,9 @@ function SkeletonCard({ children, style }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, role, isOwner, agency } = useAuth()
+  const { user, firstName, agencyId, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin } = useAuth()
   const isMobile = useMobile()
 
-  const isSuperAdmin  = role === 'super_admin' || role === 'koto_admin'
   const isAgencyAdmin = !isSuperAdmin
   const [showViewAs, setShowViewAs] = useState(false)
 
