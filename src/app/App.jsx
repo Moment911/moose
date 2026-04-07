@@ -248,8 +248,6 @@ function AppRoutes() {
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
           <Route path="/proposal-library" element={<ProposalLibraryPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
-          <Route path="/p/:token" element={<ProposalPublicPage />} />
-          <Route path="/" element={<DashboardPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />
           <Route path="/messages" element={<MessagesPage />} />
@@ -274,7 +272,6 @@ function AppRoutes() {
           <Route path="/email-designer" element={<EmailDesignerPage />} />
           <Route path="/email-designer/:templateId" element={<EmailDesignerPage />} />
           <Route path="/automations" element={<AutomationsPage />} />
-          <Route path="/review/:token" element={<PublicReviewPage />} />
           <Route path="/review-internal/:projectId" element={<ReviewPage />} />
           <Route path="/client-portal" element={<ClientDashboardPage />} />
           <Route path="/client-auth" element={<ClientAuthPage />} />
@@ -298,7 +295,6 @@ function AppRoutes() {
           <Route path="/scout/saved" element={<ScoutSavedPage />} />
           <Route path="/scout/company/:id" element={<CompanyProfilePage />} />
           <Route path="/scout/report" element={<ProspectReportPage />} />
-          <Route path="/r/:token" element={<PublicReportPage />} />
           <Route path="/scout/reports" element={<ScoutReportsPage />} />
           <Route path="/scout/history" element={<ScoutHistoryPage />} />
           <Route path="/desk" element={<KotoDeskPage />} />
