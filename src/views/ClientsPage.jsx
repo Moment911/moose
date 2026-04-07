@@ -16,8 +16,22 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, MobileEmpty, MobileButton, MobileTabs } from '../components/mobile/MobilePage'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+/* ── Design tokens ──────────────────────────────────────────────────────────── */
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const BRD = '#e5e7eb'
+const BRD_LT = '#f3f4f6'
+const GRY400 = '#9ca3af'
+const GRY700 = '#374151'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+const ACCENT = R
+const TEAL = T
 
 const STATUS_COLORS = {
   active:   { bg:'#f0fdf4', color:'#16a34a', dot:'#16a34a' },

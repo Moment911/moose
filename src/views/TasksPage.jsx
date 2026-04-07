@@ -11,6 +11,21 @@ import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileEmpty, Mobil
 import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
+/* ── Design tokens ──────────────────────────────────────────────────────────── */
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const W   = '#ffffff'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const BRD = '#e5e7eb'
+const BRD_LT = '#f3f4f6'
+const GRY400 = '#9ca3af'
+const GRY700 = '#374151'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
+
 const STATUSES = [
   { key: 'todo', label: 'To Do', color: '#4b5563' },
   { key: 'acknowledged', label: 'Acknowledged', color: '#3b82f6' },
