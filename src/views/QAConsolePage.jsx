@@ -67,7 +67,7 @@ export default function QAConsolePage() {
   const [runDetails, setRunDetails] = useState([])
 
   useEffect(() => { loadSuites() }, [])
-  useEffect(() => { loadTabData() }, [tab])
+  useEffect(() => { loadTabData() }, [tab, commsFilter])
 
   async function loadSuites() {
     try {
@@ -415,7 +415,7 @@ export default function QAConsolePage() {
         {/* Filter tabs */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
           {['all', 'email', 'sms', 'voice'].map(f => (
-            <button key={f} onClick={() => { setCommsFilter(f); setTimeout(loadTabData, 50) }}
+            <button key={f} onClick={() => setCommsFilter(f)}
               style={{
                 padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
                 fontSize: 12, fontWeight: 700, fontFamily: FH,
