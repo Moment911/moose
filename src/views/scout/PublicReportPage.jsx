@@ -495,7 +495,7 @@ export default function PublicReportPage() {
   const TABS = ['overview','gaps','seo','revenue','solutions']
 
   return (
-    <div style={{fontFamily:'"DM Sans",system-ui,sans-serif',background:'#f0f0f2',minHeight:'100vh'}}>
+    <div style={{fontFamily:'"DM Sans",system-ui,sans-serif',background:'#f2f2f0',minHeight:'100vh'}}>
       <Toaster position="top-right"/>
 
       {/* Auth gate */}

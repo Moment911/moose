@@ -5,7 +5,7 @@ import {
   TrendingUp, Star, Target, BarChart2, MessageSquare, Send,
   RefreshCw, Loader2, Clock, X, Calendar,
   ToggleLeft, ToggleRight, ChevronDown, Building2,
-  Users, Globe, Shield, Layers
+  Users, Globe, Shield, Layers, Trophy, Lightbulb, AlertTriangle, MapPin, DollarSign
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ClientSearchSelect from '../components/ClientSearchSelect'
@@ -26,25 +26,25 @@ const FB    = "'Raleway','Helvetica Neue',sans-serif"
 const KOTO_AGENCY_ID = '00000000-0000-0000-0000-000000000099'
 
 const INSIGHT_CFG = {
-  win:            { color: GREEN, bg: '#f0fdf4', icon: '🏆', border: '#bbf7d0' },
-  alert:          { color: RED,   bg: '#fef2f2', icon: '🚨', border: '#fecaca' },
-  opportunity:    { color: TEAL,  bg: '#f0fbfc', icon: '🎯', border: '#a5f3fc' },
-  recommendation: { color: PURP,  bg: '#f5f3ff', icon: '💡', border: '#ddd6fe' },
-  warning:        { color: AMBER, bg: '#fffbeb', icon: '⚠️', border: '#fde68a' },
+  win:            { color: GREEN, bg: '#f0fdf4', icon: Trophy, border: '#bbf7d0' },
+  alert:          { color: RED,   bg: '#fef2f2', icon: AlertCircle, border: '#fecaca' },
+  opportunity:    { color: TEAL,  bg: '#f0fbfc', icon: Target, border: '#a5f3fc' },
+  recommendation: { color: PURP,  bg: '#f5f3ff', icon: Lightbulb, border: '#ddd6fe' },
+  warning:        { color: AMBER, bg: '#fffbeb', icon: AlertTriangle, border: '#fde68a' },
 }
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 }
 
 const GOALS_OPTIONS = [
-  { key: 'rank_top3',         label: 'Rank #1-3 on Google',      icon: '🥇' },
-  { key: 'increase_reviews',  label: 'Get More Reviews',          icon: '⭐' },
-  { key: 'grow_traffic',      label: 'Grow Organic Traffic',      icon: '📈' },
-  { key: 'generate_leads',    label: 'Generate More Leads',       icon: '🎯' },
-  { key: 'improve_gbp',       label: 'Optimize Google Profile',   icon: '📍' },
-  { key: 'beat_competitors',  label: 'Outrank Competitors',       icon: '🏆' },
-  { key: 'ppc_roi',           label: 'Improve PPC ROI',           icon: '💰' },
-  { key: 'content_authority', label: 'Build Content Authority',   icon: '✍️' },
-  { key: 'ai_visibility',     label: 'Appear in AI Answers (AEO)',icon: '🤖' },
+  { key: 'rank_top3',         label: 'Rank #1-3 on Google',      icon: Trophy },
+  { key: 'increase_reviews',  label: 'Get More Reviews',          icon: Star },
+  { key: 'grow_traffic',      label: 'Grow Organic Traffic',      icon: TrendingUp },
+  { key: 'generate_leads',    label: 'Generate More Leads',       icon: Target },
+  { key: 'improve_gbp',       label: 'Optimize Google Profile',   icon: MapPin },
+  { key: 'beat_competitors',  label: 'Outrank Competitors',       icon: Trophy },
+  { key: 'ppc_roi',           label: 'Improve PPC ROI',           icon: DollarSign },
+  { key: 'content_authority', label: 'Build Content Authority',   icon: Sparkles },
+  { key: 'ai_visibility',     label: 'Appear in AI Answers (AEO)',icon: Brain },
 ]
 
 const MODEL_COLORS = { 'Claude': TEAL, 'GPT-4o': GREEN, 'Gemini': AMBER }
@@ -54,7 +54,7 @@ function InsightCard({ insight, onDismiss }) {
   return (
     <div style={{ background: cfg.bg, borderRadius: 14, border: `1px solid ${cfg.border}`, padding: '14px 16px', position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{cfg.icon}</span>
+        <span style={{ flexShrink: 0, marginTop: 1 }}>{(() => { const Icon = cfg.icon; return <Icon size={18} color={cfg.color}/> })()}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK }}>{insight.title}</span>
@@ -615,7 +615,7 @@ export default function AgentPage() {
                         return (
                           <button key={g.key} onClick={() => setSetup(s => ({ ...s, business_goals: sel ? s.business_goals.filter(x=>x!==g.key) : [...s.business_goals, g.key] }))}
                             style={{ padding: '8px 10px', borderRadius: 9, border: `2px solid ${sel?RED:'#e5e7eb'}`, background: sel?RED+'10':'#fff', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 7 }}>
-                            <span style={{ fontSize: 14 }}>{g.icon}</span>
+                            <span style={{ display:'flex',alignItems:'center' }}>{(() => { const Icon = g.icon; return <Icon size={14} color={sel?RED:'#6b7280'}/> })()}</span>
                             <span style={{ fontFamily: FB, fontSize: 11, fontWeight: sel?700:400, color: sel?RED:'#374151' }}>{g.label}</span>
                           </button>
                         )

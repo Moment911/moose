@@ -416,7 +416,7 @@ export default function AIAgentsPage() {
   )
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
       <Sidebar/>
 
       {/* Client list */}

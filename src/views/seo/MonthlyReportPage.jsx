@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { FileText, Sparkles, Download, Mail, RefreshCw, Loader2, Star, TrendingUp, Target, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Calendar, BarChart2, Send } from 'lucide-react'
+import { FileText, Sparkles, Download, Mail, RefreshCw, Loader2, Star, TrendingUp, Target, CheckCircle, AlertCircle, ChevronDown, ChevronUp, Calendar, BarChart2, Send, MapPin, Search } from 'lucide-react'
 import Sidebar from '../../components/Sidebar'
 import ClientSearchSelect from '../../components/ClientSearchSelect'
 import { supabase } from '../../lib/supabase'
@@ -298,17 +298,19 @@ export default function MonthlyReportPage() {
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, maxWidth:680, margin:'0 auto' }}>
                 {[
-                  { icon:'⭐', label:'Reviews',    desc:'Rating trends + response rate' },
-                  { icon:'📍', label:'GBP Health', desc:'Profile score + top issues' },
-                  { icon:'🔍', label:'SEO Score',  desc:'On-page audit results' },
-                  { icon:'🎯', label:'Keywords',   desc:'Opportunities + quick wins' },
-                ].map((item,i)=>(
+                  { icon: Star, label:'Reviews',    desc:'Rating trends + response rate' },
+                  { icon: MapPin, label:'GBP Health', desc:'Profile score + top issues' },
+                  { icon: Search, label:'SEO Score',  desc:'On-page audit results' },
+                  { icon: Target, label:'Keywords',   desc:'Opportunities + quick wins' },
+                ].map((item,i)=>{
+                  const Icon = item.icon
+                  return (
                   <div key={i} style={{ padding:'16px 12px', background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6' }}>
-                    <div style={{ fontSize:24, marginBottom:6 }}>{item.icon}</div>
+                    <div style={{ marginBottom:6 }}><Icon size={18} color={TEAL}/></div>
                     <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK, marginBottom:3 }}>{item.label}</div>
                     <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{item.desc}</div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           )}

@@ -80,7 +80,7 @@ export default function ProposalPublicPage() {
   const totalOneTime = sections.filter(s=>s.price_type==='one_time').reduce((sum,s)=>sum+(s.price||0),0)
 
   return (
-    <div style={{ minHeight:'100vh', background:'#f4f4f5' }}>
+    <div style={{ minHeight:'100vh', background:'#f2f2f0' }}>
       <Toaster position="top-right"/>
       {/* Header */}
       <div style={{ background:'#18181b', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>

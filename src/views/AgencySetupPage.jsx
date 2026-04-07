@@ -342,7 +342,7 @@ export default function AgencySetupPage() {
   const currentTutStep = step.tutorial[tutStep]
 
   return (
-    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
       <Sidebar/>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', height:'100vh' }}>

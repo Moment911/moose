@@ -39,7 +39,7 @@ export default function PaymentsPage() {
   const totalOverdue = MOCK_INVOICES.filter(i=>i.status==='overdue').reduce((s,i)=>s+i.amount,0)
 
   return (
-    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f4f4f5' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'16px 24px', display:'flex', alignItems:'center', gap:14 }}>
