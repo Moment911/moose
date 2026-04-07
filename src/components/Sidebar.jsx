@@ -165,6 +165,10 @@ export default function Sidebar() {
             <NavLink to="/automations" icon={Workflow} label="Automations"/>
 
             {/* SEO & CONTENT */}
+            {/* DESIGN */}
+            <Section label="Design"/>
+            <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof"/>
+
             <Section label="SEO & Content"/>
             <NavLink to="/page-builder" icon={Sparkles} label="Page Builder"/>
             <NavLink to="/wordpress" icon={Globe} label="WP Plugin"/>

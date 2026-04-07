@@ -126,6 +126,7 @@ import ServicesPage from '../views/ServicesPage'
 import ContactPage from '../views/ContactPage'
 import BillingAdminPage from '../views/BillingAdminPage'
 import StripeDashboardPage from '../views/StripeDashboardPage'
+import KotoProofPage from '../views/KotoProofPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -259,6 +260,8 @@ function AppRoutes() {
           <Route path="/platform" element={<AgencySettingsPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
           <Route path="/project/:projectId" element={<ProjectPage />} />
+          <Route path="/proof/:projectId" element={<KotoProofPage />} />
+          <Route path="/proof" element={<KotoProofPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
