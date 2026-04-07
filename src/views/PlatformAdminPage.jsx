@@ -25,6 +25,32 @@ const SECTIONS = [
   { key:'branding',    label:'Agency Branding',        icon:Globe,          desc:'Colors, logo, white-label' },
   { key:'integrations',label:'Platform Integrations',  icon:Zap,            desc:'API keys and connections' },
   { key:'access',      label:'Access & Permissions',   icon:Lock,           desc:'Team roles and client access' },
+  { key:'features',    label:'Agency Features',        icon:ToggleRight,    desc:'Control which features each agency can access' },
+]
+
+const FEATURE_GROUPS = [
+  { label: 'Core Features', features: [
+    { key: 'page_builder', label: 'Page Builder' }, { key: 'wordpress_plugin', label: 'WordPress Plugin' },
+    { key: 'seo_hub', label: 'SEO Hub' }, { key: 'reviews', label: 'Reviews' },
+    { key: 'review_campaigns', label: 'Review Campaigns' }, { key: 'proposals', label: 'Proposals' },
+    { key: 'proposal_library', label: 'Proposal Library' }, { key: 'automations', label: 'Automations' },
+    { key: 'tasks', label: 'Tasks' }, { key: 'koto_desk', label: 'KotoDesk' },
+    { key: 'help_center', label: 'Help Center' }, { key: 'scout', label: 'Scout' },
+    { key: 'pipeline_crm', label: 'Pipeline CRM' }, { key: 'performance_dashboard', label: 'Performance Dashboard' },
+  ]},
+  { label: 'AI / Premium', features: [
+    { key: 'cmo_agent', label: 'CMO Agent' }, { key: 'voice_agent', label: 'Voice Agent (Outbound)' },
+    { key: 'answering_service', label: 'Answering Service (Inbound)' },
+    { key: 'ai_page_research', label: 'AI Page Research' }, { key: 'ai_script_generation', label: 'AI Script Generation' },
+  ]},
+  { label: 'Billing', features: [
+    { key: 'client_billing', label: 'Client Billing' }, { key: 'credit_system', label: 'Credit System' },
+    { key: 'phone_numbers', label: 'Phone Numbers' },
+  ]},
+  { label: 'Admin', features: [
+    { key: 'team_management', label: 'Team Management' }, { key: 'white_label', label: 'White Label' },
+    { key: 'custom_domain', label: 'Custom Domain' }, { key: 'api_access', label: 'API Access' },
+  ]},
 ]
 
 // ── Simple rich text editor field ─────────────────────────────────────────
@@ -70,6 +96,12 @@ export default function PlatformAdminPage() {
   const { agencyId, firstName, agencyName, isOwner } = useAuth()
   const [section, setSection] = useState('onboarding')
   const [saving, setSaving]   = useState(false)
+
+  // Agency features state
+  const [featAgencies, setFeatAgencies] = useState([])
+  const [featExpanded, setFeatExpanded] = useState(null)
+  const [featData, setFeatData] = useState({})
+  const [featSaving, setFeatSaving] = useState(false)
 
   // Onboarding template state
   const [onboardingFields, setOnboardingFields] = useState([])
@@ -440,9 +472,147 @@ export default function PlatformAdminPage() {
             </div>
           )}
 
+          {section === 'features' && (
+            <AgencyFeaturesPanel
+              agencies={featAgencies} setAgencies={setFeatAgencies}
+              expanded={featExpanded} setExpanded={setFeatExpanded}
+              featData={featData} setFeatData={setFeatData}
+              saving={featSaving} setSaving={setFeatSaving}
+            />
+          )}
+
         </div>
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  )
+}
+
+/* ── Agency Features Panel (inline sub-component) ──────────────────────── */
+function AgencyFeaturesPanel({ agencies, setAgencies, expanded, setExpanded, featData, setFeatData, saving, setSaving }) {
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => { loadAgencies() }, [])
+
+  async function loadAgencies() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/permissions?action=get_all_agency_features')
+      const data = await res.json()
+      if (Array.isArray(data)) setAgencies(data)
+    } catch {}
+    setLoading(false)
+  }
+
+  async function toggleExpand(agencyId) {
+    if (expanded === agencyId) { setExpanded(null); return }
+    setExpanded(agencyId)
+    const existing = agencies.find(a => a.agency_id === agencyId)
+    if (existing) {
+      setFeatData(existing)
+    }
+  }
+
+  function toggleFeature(key) {
+    setFeatData(d => ({ ...d, [key]: !d[key] }))
+  }
+
+  async function saveFeatures(agencyId) {
+    setSaving(true)
+    try {
+      const features = {}
+      FEATURE_GROUPS.forEach(g => g.features.forEach(f => { features[f.key] = !!featData[f.key] }))
+      await fetch('/api/permissions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_agency_features', agency_id: agencyId, features }),
+      })
+      toast.success('Features saved')
+      loadAgencies()
+    } catch { toast.error('Save failed') }
+    setSaving(false)
+  }
+
+  async function applyPlanDefaults(agencyId, plan) {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/permissions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'apply_plan_defaults', agency_id: agencyId, plan }),
+      })
+      const data = await res.json()
+      if (data.agency_id) { setFeatData(data); toast.success(`${plan} defaults applied`) }
+      else toast.error(data.error || 'Failed')
+      loadAgencies()
+    } catch { toast.error('Failed') }
+    setSaving(false)
+  }
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center' }}><Loader2 size={20} color="#999" style={{ animation: 'spin 1s linear infinite' }} /></div>
+
+  return (
+    <div>
+      {agencies.length === 0 ? (
+        <div style={{ padding: 40, textAlign: 'center', color: '#999', fontSize: 14 }}>No agencies found</div>
+      ) : agencies.map(a => {
+        const name = a.agencies?.brand_name || a.agencies?.name || a.agency_id?.slice(0, 8)
+        const plan = a.agencies?.plan || 'starter'
+        const isExpanded = expanded === a.agency_id
+        const enabledCount = FEATURE_GROUPS.reduce((sum, g) => sum + g.features.filter(f => a[f.key]).length, 0)
+        const totalCount = FEATURE_GROUPS.reduce((sum, g) => sum + g.features.length, 0)
+
+        return (
+          <div key={a.agency_id} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 10, overflow: 'hidden' }}>
+            <button onClick={() => toggleExpand(a.agency_id)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', border: 'none', cursor: 'pointer', background: isExpanded ? '#f9fafb' : '#fff', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{name}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: plan === 'agency' ? ACCENT + '15' : plan === 'growth' ? TEAL + '15' : '#f3f4f6', color: plan === 'agency' ? ACCENT : plan === 'growth' ? TEAL : '#6b7280', textTransform: 'uppercase' }}>{plan}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 12, color: '#6b7280' }}>{enabledCount}/{totalCount} features</span>
+                <ChevronRight size={14} color="#9ca3af" style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }} />
+              </div>
+            </button>
+
+            {isExpanded && (
+              <div style={{ padding: '0 18px 18px', borderTop: '1px solid #f3f4f6' }}>
+                {/* Plan preset buttons */}
+                <div style={{ display: 'flex', gap: 8, padding: '14px 0', borderBottom: '1px solid #f3f4f6', marginBottom: 14 }}>
+                  <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, lineHeight: '28px' }}>Apply plan defaults:</span>
+                  {['starter', 'growth', 'agency'].map(p => (
+                    <button key={p} onClick={() => applyPlanDefaults(a.agency_id, p)} disabled={saving}
+                      style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textTransform: 'uppercase', color: p === 'agency' ? ACCENT : p === 'growth' ? TEAL : '#6b7280' }}>
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Feature toggles by group */}
+                {FEATURE_GROUPS.map(g => (
+                  <div key={g.label} style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>{g.label}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                      {g.features.map(f => (
+                        <label key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, cursor: 'pointer', background: featData[f.key] ? '#dcfce7' : '#f9fafb', border: featData[f.key] ? '1px solid #bbf7d0' : '1px solid #e5e7eb', transition: 'all .15s' }}>
+                          <input type="checkbox" checked={!!featData[f.key]} onChange={() => toggleFeature(f.key)}
+                            style={{ accentColor: '#16a34a', width: 16, height: 16 }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: featData[f.key] ? '#111' : '#6b7280' }}>{f.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <button onClick={() => saveFeatures(a.agency_id)} disabled={saving}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 20px', borderRadius: 8, border: 'none', background: ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={13} />}
+                  Save Changes
+                </button>
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

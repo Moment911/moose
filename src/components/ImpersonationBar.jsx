@@ -1,165 +1,173 @@
-"use client";
-import { useState } from 'react';
-import { Shield, X, ChevronRight, AlertTriangle, Eye, Users } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+"use client"
+import { useState, useEffect } from 'react'
+import { Shield, X, ChevronRight, Eye, Crown } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 
-const R = '#ea2729', T = '#5bc6d0', BLK = '#0a0a0a', GRN = '#16a34a', AMB = '#f59e0b';
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
-const FB = "'Raleway','Helvetica Neue',sans-serif";
-
-const BAR_HEIGHT = 36;
+const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const BAR_HEIGHT = 36
 
 export default function ImpersonationBar() {
-  const auth = useAuth();
-  const navigate = useNavigate();
-  const [viewRole, setViewRole] = useState('agency_admin');
+  const auth = useAuth()
+  const { isSuperAdmin, isImpersonating, impersonatedAgency, impersonatedClient,
+    impersonateAgency, impersonateClient, stopImpersonating,
+    isPreviewingClient, clientPreview, stopClientPreview } = auth || {}
 
-  const isImpersonating = auth?.isImpersonating;
-  const hasSessionAgency = (() => {
-    try { return !!sessionStorage.getItem('koto_view_as_agency'); } catch { return false; }
-  })();
+  const [agencies, setAgencies] = useState([])
+  const [clients, setClients] = useState([])
+  const [loadingAgencies, setLoadingAgencies] = useState(false)
 
-  if (!isImpersonating && !hasSessionAgency) return null;
+  // Only show for super admins
+  if (!isSuperAdmin) return null
 
-  const agencyName = auth?.impersonatedAgency?.name || (() => {
+  // Load agencies for dropdown
+  useEffect(() => {
+    if (!isSuperAdmin) return
+    setLoadingAgencies(true)
+    supabase.from('agencies')
+      .select('id, name, brand_name, status')
+      .order('name')
+      .then(({ data }) => { setAgencies(data || []); setLoadingAgencies(false) })
+      .catch(() => setLoadingAgencies(false))
+  }, [isSuperAdmin])
+
+  // Load clients when impersonating an agency
+  useEffect(() => {
+    if (!impersonatedAgency?.id) { setClients([]); return }
+    supabase.from('clients')
+      .select('id, name, status')
+      .eq('agency_id', impersonatedAgency.id)
+      .order('name')
+      .then(({ data }) => setClients(data || []))
+      .catch(() => {})
+  }, [impersonatedAgency?.id])
+
+  function handleAgencySelect(e) {
+    const id = e.target.value
+    if (!id) return
+    const agency = agencies.find(a => a.id === id)
+    if (agency) impersonateAgency?.({ id: agency.id, name: agency.brand_name || agency.name })
+  }
+
+  function handleClientSelect(e) {
+    const id = e.target.value
+    if (!id) return
+    const client = clients.find(c => c.id === id)
+    if (client) impersonateClient?.({ id: client.id, name: client.name })
+  }
+
+  function exitToSuperAdmin() {
+    stopImpersonating?.()
     try {
-      const stored = sessionStorage.getItem('koto_view_as_agency');
-      return stored ? JSON.parse(stored).name : 'Unknown Agency';
-    } catch { return 'Unknown Agency'; }
-  })();
-
-  const clientName = auth?.impersonatedClient?.name || (() => {
-    try {
-      const stored = sessionStorage.getItem('koto_view_as_client');
-      return stored ? JSON.parse(stored).name : null;
-    } catch { return null; }
-  })();
-
-  function handleExit() {
-    auth?.stopImpersonating?.();
-    try {
-      sessionStorage.removeItem('koto_view_as_agency');
-      sessionStorage.removeItem('koto_view_as_client');
+      sessionStorage.removeItem('koto_view_as_agency')
+      sessionStorage.removeItem('koto_view_as_client')
     } catch {}
-    navigate('/');
   }
 
-  function handleRoleChange(e) {
-    const role = e.target.value;
-    setViewRole(role);
-    // Future: auth.setViewAs could be wired here
+  function exitToAgency() {
+    // Keep agency, drop client
+    if (stopClientPreview) stopClientPreview()
+    try { sessionStorage.removeItem('koto_view_as_client') } catch {}
+    // Re-impersonate just the agency
+    if (impersonatedAgency) {
+      impersonateAgency?.(impersonatedAgency)
+    }
   }
 
-  const base = {
-    fontSize: 12,
-    fontFamily: FH,
-    fontWeight: 600,
-  };
+  const base = { fontSize: 12, fontFamily: FH, fontWeight: 600 }
+  const selectStyle = {
+    ...base, background: 'rgba(255,255,255,.12)', color: '#fff',
+    border: '1px solid rgba(255,255,255,.2)', borderRadius: 6,
+    padding: '2px 8px', height: 26, cursor: 'pointer', outline: 'none',
+    maxWidth: 200,
+  }
+  const btnStyle = {
+    ...base, display: 'flex', alignItems: 'center', gap: 4,
+    background: 'rgba(255,255,255,.12)', color: '#fff',
+    border: '1px solid rgba(255,255,255,.2)', borderRadius: 6,
+    padding: '2px 12px', height: 26, cursor: 'pointer', whiteSpace: 'nowrap',
+  }
+
+  // Determine state
+  const viewingClient = isImpersonating && (impersonatedClient || isPreviewingClient)
+  const viewingAgency = isImpersonating && !viewingClient
+  const barBg = viewingClient ? '#c2410c' : viewingAgency ? '#92400e' : '#7f1d1d'
 
   return (
     <>
-      {/* Spacer to push content down */}
-      <div style={{ height: BAR_HEIGHT }} />
-
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 99999,
-          height: BAR_HEIGHT,
-          background: '#7f1d1d',
-          color: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 16px',
-          ...base,
-        }}
-      >
-        {/* Left — Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: '1 1 0' }}>
-          <Shield size={14} style={{ flexShrink: 0 }} />
-          <span style={{ opacity: 0.8, whiteSpace: 'nowrap' }}>Koto Super Admin</span>
-          <ChevronRight size={12} style={{ opacity: 0.5, flexShrink: 0 }} />
-          <span style={{ whiteSpace: 'nowrap', color: T }}>{agencyName}</span>
-          {clientName && (
+      <div style={{ height: BAR_HEIGHT, flexShrink: 0 }} />
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999,
+        height: BAR_HEIGHT, background: barBg, color: '#fff',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', ...base,
+      }}>
+        {/* Left — Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 0', minWidth: 0 }}>
+          {!isImpersonating ? (
             <>
-              <ChevronRight size={12} style={{ opacity: 0.5, flexShrink: 0 }} />
-              <span style={{ whiteSpace: 'nowrap', color: '#fbbf24' }}>{clientName}</span>
+              <Crown size={13} style={{ flexShrink: 0 }} />
+              <span style={{ fontWeight: 800 }}>Koto Super Admin</span>
+            </>
+          ) : (
+            <>
+              <Eye size={13} style={{ flexShrink: 0 }} />
+              <span style={{ opacity: .6 }}>Viewing as:</span>
+              <span style={{ fontWeight: 800, color: '#fbbf24' }}>{impersonatedAgency?.name || 'Agency'}</span>
+              {(impersonatedClient || clientPreview) && (
+                <>
+                  <ChevronRight size={11} style={{ opacity: .4 }} />
+                  <span style={{ fontWeight: 800, color: '#fb923c' }}>{impersonatedClient?.name || clientPreview?.name || 'Client'}</span>
+                </>
+              )}
             </>
           )}
         </div>
 
-        {/* Middle — Warning */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            flex: '0 0 auto',
-            padding: '0 24px',
-          }}
-        >
-          <AlertTriangle size={13} style={{ color: AMB }} />
-          <span style={{ color: AMB, whiteSpace: 'nowrap' }}>
-            View-as mode — changes affect real data
-          </span>
+        {/* Center — Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+          {!isImpersonating && (
+            <>
+              <span style={{ opacity: .5, whiteSpace: 'nowrap' }}>Switch to agency:</span>
+              <select onChange={handleAgencySelect} value="" style={selectStyle}>
+                <option value="" style={{ color: '#111' }}>
+                  {loadingAgencies ? 'Loading...' : 'Select agency...'}
+                </option>
+                {agencies.map(a => (
+                  <option key={a.id} value={a.id} style={{ color: '#111' }}>
+                    {a.brand_name || a.name}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+          {viewingAgency && clients.length > 0 && (
+            <>
+              <span style={{ opacity: .5, whiteSpace: 'nowrap' }}>View client:</span>
+              <select onChange={handleClientSelect} value="" style={selectStyle}>
+                <option value="" style={{ color: '#111' }}>Select client...</option>
+                {clients.map(c => (
+                  <option key={c.id} value={c.id} style={{ color: '#111' }}>{c.name}</option>
+                ))}
+              </select>
+            </>
+          )}
         </div>
 
-        {/* Right — Role selector + Exit */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            flex: '1 1 0',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <select
-            value={viewRole}
-            onChange={handleRoleChange}
-            style={{
-              ...base,
-              background: 'rgba(255,255,255,0.15)',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.25)',
-              borderRadius: 4,
-              padding: '2px 8px',
-              height: 24,
-              cursor: 'pointer',
-              outline: 'none',
-            }}
-          >
-            <option value="super_admin" style={{ color: BLK }}>Super Admin</option>
-            <option value="agency_admin" style={{ color: BLK }}>Agency Admin</option>
-            <option value="client" style={{ color: BLK }}>Client</option>
-          </select>
-
-          <button
-            onClick={handleExit}
-            style={{
-              ...base,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              background: 'rgba(255,255,255,0.15)',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.25)',
-              borderRadius: 4,
-              padding: '2px 10px',
-              height: 24,
-              cursor: 'pointer',
-            }}
-          >
-            <X size={12} />
-            Exit
-          </button>
+        {/* Right — Exit buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 0', justifyContent: 'flex-end' }}>
+          {viewingClient && (
+            <button onClick={exitToAgency} style={btnStyle}>
+              Back to Agency
+            </button>
+          )}
+          {isImpersonating && (
+            <button onClick={exitToSuperAdmin} style={{ ...btnStyle, background: 'rgba(239,68,68,.3)', borderColor: 'rgba(239,68,68,.4)' }}>
+              <X size={12} /> Exit to Super Admin
+            </button>
+          )}
         </div>
       </div>
     </>
-  );
+  )
 }
