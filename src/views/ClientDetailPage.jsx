@@ -1080,8 +1080,8 @@ export default function ClientDetailPage() {
             ))}
           </div>
 
-          {/* Tab content */}
-          {tabContent[activeTab]}
+          {/* Tab content — key forces remount on tab switch to avoid hooks mismatch */}
+          <div key={activeTab}>{tabContent[activeTab]}</div>
         </div>
       </main>
     </div>
