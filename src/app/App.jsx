@@ -120,6 +120,8 @@ import ProposalBuilderPage from '../views/ProposalBuilderPage'
 import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
 import QAConsolePage from '../views/QAConsolePage'
+import ServicesPage from '../views/ServicesPage'
+import ContactPage from '../views/ContactPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -183,6 +185,8 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<AgencySignupPage />} />
           <Route path="/welcome" element={<MarketingSitePage />} />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/review/:token" element={<PublicReviewPage />} />
