@@ -43,6 +43,7 @@ export default function DialPad() {
   const callRef = useRef(null)
   const timerRef = useRef(null)
   const startTimeRef = useRef(0)
+  const audioRef = useRef(null)
 
   // Load numbers
   useEffect(() => {
@@ -73,9 +74,12 @@ export default function DialPad() {
     setInitError('')
     setActiveProvider(provider)
 
-    // Request mic
+    // Request mic permission then release
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true })
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      })
+      stream.getTracks().forEach(t => t.stop())
     } catch {
       setInitError('Microphone access required')
       return
@@ -111,6 +115,10 @@ export default function DialPad() {
           if (call.state === 'active') {
             setCallStatus('connected')
             startTimer()
+            // Attach remote audio for Telnyx
+            if (audioRef.current && call.remoteStream) {
+              audioRef.current.srcObject = call.remoteStream
+            }
           } else if (call.state === 'hangup' || call.state === 'destroy') {
             endCall()
           } else if (call.state === 'ringing') {
@@ -140,9 +148,21 @@ export default function DialPad() {
       if (data.error) { setInitError(data.error); return }
 
       const { Device } = await import('@twilio/voice-sdk')
-      const device = new Device(data.token, { logLevel: 1, codecPreferences: ['opus', 'pcmu'] })
+      const device = new Device(data.token, {
+        logLevel: 1,
+        codecPreferences: ['opus', 'pcmu'],
+        enableRingingState: true,
+        allowIncomingWhileBusy: false,
+      })
 
-      device.on('registered', () => { setDeviceReady(true) })
+      device.on('registered', () => {
+        setDeviceReady(true)
+        // Set audio output to default speaker
+        try {
+          device.audio.speakerDevices.set('default')
+          device.audio.ringtoneDevices.set('default')
+        } catch (e) { console.warn('[DialPad] Audio device setup:', e) }
+      })
       device.on('error', (e) => {
         console.error('[DialPad] Twilio error:', e)
         setInitError(e.message || 'Twilio error')
@@ -156,6 +176,13 @@ export default function DialPad() {
         const d = await r.json()
         if (d.token) device.updateToken(d.token)
       })
+
+      // Set audio constraints for echo cancellation
+      try {
+        await device.audio.setAudioConstraints({
+          echoCancellation: true, noiseSuppression: true, autoGainControl: true
+        })
+      } catch (e) { console.warn('[DialPad] Audio constraints:', e) }
 
       await device.register()
       twilioDeviceRef.current = device
@@ -176,7 +203,21 @@ export default function DialPad() {
   function setupTwilioCall(call) {
     callRef.current = call
     setCallStatus('connecting')
-    call.on('accept', () => { setCallStatus('connected'); startTimer() })
+    call.on('accept', () => {
+      setCallStatus('connected')
+      startTimer()
+      // Attach remote audio stream to audio element
+      if (audioRef.current && call.getRemoteStream) {
+        try {
+          const remoteStream = call.getRemoteStream()
+          if (remoteStream) audioRef.current.srcObject = remoteStream
+        } catch {}
+      }
+      // Ensure speaker output
+      if (twilioDeviceRef.current?.audio) {
+        try { twilioDeviceRef.current.audio.speakerDevices.set('default') } catch {}
+      }
+    })
     call.on('ringing', () => { setCallStatus('ringing') })
     call.on('disconnect', () => { endCall() })
     call.on('cancel', () => { endCall() })
@@ -189,6 +230,7 @@ export default function DialPad() {
     setMuted(false)
     callRef.current = null
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    if (audioRef.current) { audioRef.current.srcObject = null }
   }
 
   // Cleanup on unmount
@@ -440,6 +482,8 @@ export default function DialPad() {
         )}
       </div>
 
+      {/* Hidden audio element for remote call audio */}
+      <audio ref={audioRef} autoPlay playsInline />
       <style>{`@keyframes koto-pulse{0%,100%{box-shadow:0 0 0 0 ${GRN}60}50%{box-shadow:0 0 0 14px ${GRN}00}} @keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
