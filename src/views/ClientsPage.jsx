@@ -1,6 +1,7 @@
 "use client"
 import { SIC_CODES, SIC_DIVISIONS, getSICContext } from '../lib/sicCodes'
 import SearchableSelect from '../components/SearchableSelect'
+import NAICSSelector from '../components/NAICSSelector'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -90,7 +91,8 @@ export default function ClientsPage() {
 
   const [form, setForm] = useState({
     name:'', email:'', phone:'', website:'', industry:'', status:'active',
-    address:'', city:'', state:'', zip:'', notes:'', monthly_value:''
+    address:'', city:'', state:'', zip:'', notes:'', monthly_value:'',
+    naics_code:'', naics_title:''
   })
   const [bizSearch,    setBizSearch]    = useState('')
   const [bizResults,   setBizResults]   = useState([])
@@ -176,6 +178,8 @@ export default function ClientsPage() {
         website:       form.website.trim() || null,
         industry:      form.sic_label || form.industry || null,
         sic_code:      form.sic_code || null,
+        naics_code:    form.naics_code || null,
+        naics_title:   form.naics_title || null,
         status:        form.status || 'active',
         address:       form.address || null,
         city:          form.city || null,
@@ -202,7 +206,7 @@ export default function ClientsPage() {
       toast.success('Client added')
     }
     setShowAdd(false); setEditingId(null)
-    setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
+    setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
     await load()
     await refreshClients()
   }
@@ -219,7 +223,8 @@ export default function ClientsPage() {
   function startEdit(client) {
     setEditingId(client.id)
     setForm({ name:client.name||'', email:client.email||'', phone:client.phone||'',
-      website:client.website||'', industry:client.industry||'', sic_code:client.sic_code||'', sic_label:client.industry||'', status:client.status||'active' })
+      website:client.website||'', industry:client.industry||'', sic_code:client.sic_code||'', sic_label:client.industry||'', status:client.status||'active',
+      naics_code:client.naics_code||'', naics_title:client.naics_title||'' })
     setShowAdd(true)
     setMenuOpen(null)
   }
@@ -371,7 +376,7 @@ export default function ClientsPage() {
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
-            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
+            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
               style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
               <Plus size={16}/> Add Client
             </button>
@@ -476,6 +481,17 @@ export default function ClientsPage() {
                     grouped={true}
                     placeholder="Select industry / SIC code…"
                     searchPlaceholder="Type to search — e.g. plumber, dentist, salon…"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>NAICS Code</label>
+                  <NAICSSelector
+                    value={form.naics_code ? { code: form.naics_code, title: form.naics_title } : null}
+                    onChange={(val) => {
+                      setF('naics_code', val?.code || '')
+                      setF('naics_title', val?.title || '')
+                    }}
+                    placeholder="Search NAICS code or industry…"
                   />
                 </div>
               </div>

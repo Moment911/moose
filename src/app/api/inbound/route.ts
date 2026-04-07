@@ -826,10 +826,11 @@ export async function POST(request: NextRequest) {
       // Generate Script
       // -------------------------------------------------------------------
       case 'generate_script': {
-        const { business_name: scriptBiz, business_type: scriptType, script_type, custom_instructions } = body
+        const { business_name: scriptBiz, business_type: scriptType, script_type, custom_instructions, naics_code, naics_title } = body
         if (!scriptType) return NextResponse.json({ error: 'script_type required (greeting, closed, emergency)' }, { status: 400 })
 
-        const systemPrompt = `You are an expert at writing professional answering service scripts. Generate a ${script_type} script for a ${scriptType || 'general'} business called "${scriptBiz || 'the business'}". The script should be conversational, warm, and professional. Keep it under 200 words.`
+        const naicsContext = naics_code ? ` NAICS code: ${naics_code} (${naics_title}). Use this industry classification to tailor terminology, compliance requirements, and caller expectations.` : ''
+        const systemPrompt = `You are an expert at writing professional answering service scripts. Generate a ${script_type} script for a ${scriptType || 'general'} business called "${scriptBiz || 'the business'}".${naicsContext} The script should be conversational, warm, and professional. Keep it under 200 words.`
         const userMsg = custom_instructions
           ? `Additional instructions: ${custom_instructions}`
           : `Generate a ${script_type} script.`
@@ -842,9 +843,10 @@ export async function POST(request: NextRequest) {
       // Generate Questions
       // -------------------------------------------------------------------
       case 'generate_questions': {
-        const { industry, business_description, num_questions } = body
+        const { industry, business_description, num_questions, naics_code: qNaics, naics_title: qNaicsTitle } = body
 
-        const systemPrompt = 'You are an expert at creating intake questionnaires for answering services. Generate intake questions that a virtual receptionist should ask callers. Return ONLY a JSON array of objects with "text" (string) and "type" (one of: text, phone, email, date, number, boolean).'
+        const naicsInfo = qNaics ? ` The business is classified under NAICS ${qNaics} (${qNaicsTitle}). Tailor questions to this specific industry — use correct terminology, ask about industry-specific needs, and consider regulatory requirements.` : ''
+        const systemPrompt = `You are an expert at creating intake questionnaires for answering services. Generate intake questions that a virtual receptionist should ask callers. Return ONLY a JSON array of objects with "text" (string) and "type" (one of: text, phone, email, date, number, boolean).${naicsInfo}`
         const userMsg = `Generate ${num_questions || 6} intake questions for a ${industry || 'general'} business. ${business_description ? `Business description: ${business_description}` : ''}`
 
         const raw = await anthropicChat(systemPrompt, userMsg, 1024)
