@@ -1,5 +1,5 @@
 "use client"
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
 import MobileShell from '../components/mobile/MobileShell'
@@ -225,9 +225,8 @@ export default function App() {
 
 /* ── All authenticated app routes (rendered inside /app/*) ── */
 function AppRoutes() {
-  const location = useLocation()
   return (
-    <Routes location={location} key={location.pathname}>
+    <Routes>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/db-setup" element={<DbSetupPage />} />
