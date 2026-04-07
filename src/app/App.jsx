@@ -150,6 +150,21 @@ function setupErrorTracking() {
   }
 }
 
+function HomeSplitter() {
+  const { user, loading, bypassMode } = useAuth()
+  if (loading) return null
+  if (user || bypassMode) {
+    return (
+      <MobileShell>
+        <ImpersonationBar />
+        <AgencyControlPanel />
+        <DashboardPage />
+      </MobileShell>
+    )
+  }
+  return <MarketingSitePage />
+}
+
 export default function App() {
   useEffect(() => { setupErrorTracking() }, [])
 
@@ -163,23 +178,11 @@ export default function App() {
         <CommandPalette />
         <OnboardingWizard />
         <Routes>
-          {/* ── Public routes (no /app prefix, no shell) ── */}
+          {/* ── Public routes (no shell) ── */}
+          <Route path="/" element={<HomeSplitter />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<AgencySignupPage />} />
-          <Route path="/" element={<MarketingSitePage />} />
-
-          {/* ── App routes (under /app, with full shell) ── */}
-          <Route path="/app/*" element={
-            <MobileShell>
-            <ImpersonationBar/>
-            <AgencyControlPanel/>
-            <RequireAuth>
-            <AppRoutes />
-            </RequireAuth>
-            </MobileShell>
-          } />
-
-          {/* ── Public token routes (no shell needed) ── */}
+          <Route path="/welcome" element={<MarketingSitePage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/review/:token" element={<PublicReviewPage />} />
@@ -189,9 +192,19 @@ export default function App() {
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
-          <Route path="/status" element={<StatusPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
-          <Route path="/welcome" element={<MarketingSitePage />} />
+          <Route path="/status" element={<StatusPage />} />
+
+          {/* ── All app routes (with shell + auth) ── */}
+          <Route path="/*" element={
+            <MobileShell>
+            <ImpersonationBar/>
+            <AgencyControlPanel/>
+            <RequireAuth>
+            <AppRoutes />
+            </RequireAuth>
+            </MobileShell>
+          } />
         </Routes>
       </MobileMenuProvider>
       </ClientProvider>

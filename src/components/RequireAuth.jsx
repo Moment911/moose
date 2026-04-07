@@ -26,7 +26,7 @@ export default function RequireAuth({ children }) {
   if (isPublic) return children
 
   // Not logged in — redirect to login, remembering where they wanted to go
-  if (!user) return <Navigate to="/login" state={{ from: '/app' + location.pathname }} replace/>
+  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace/>
 
   return children
 }

@@ -70,7 +70,7 @@ export default function LoginPage() {
       triggerShake()
       return
     }
-    const from = location.state?.from || '/app'
+    const from = location.state?.from || '/'
     window.location.href = from
   }
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
     setGoogleLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/app' },
+      options: { redirectTo: window.location.origin + '/' },
     })
     setGoogleLoading(false)
     if (oauthError) {
