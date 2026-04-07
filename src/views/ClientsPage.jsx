@@ -2,6 +2,7 @@
 import { SIC_CODES, SIC_DIVISIONS, getSICContext } from '../lib/sicCodes'
 import SearchableSelect from '../components/SearchableSelect'
 import NAICSSelector from '../components/NAICSSelector'
+import PlacesAutocomplete from '../components/PlacesAutocomplete'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -92,8 +93,10 @@ export default function ClientsPage() {
   const [form, setForm] = useState({
     name:'', email:'', phone:'', website:'', industry:'', status:'active',
     address:'', city:'', state:'', zip:'', notes:'', monthly_value:'',
-    naics_code:'', naics_title:''
+    naics_code:'', naics_title:'', google_place_id:'', review_rating:'', review_count:'',
+    lat:'', lng:'', google_photo_url:''
   })
+  const [placesPreview, setPlacesPreview] = useState(null)
   const [bizSearch,    setBizSearch]    = useState('')
   const [bizResults,   setBizResults]   = useState([])
   const [bizSearching, setBizSearching] = useState(false)
@@ -187,6 +190,10 @@ export default function ClientsPage() {
         zip:           form.zip || null,
         notes:         form.notes || null,
         monthly_value: form.monthly_value ? parseFloat(form.monthly_value) : null,
+        google_place_id: form.google_place_id || null,
+        review_rating: form.review_rating || null,
+        review_count:  form.review_count || null,
+        google_photo_url: form.google_photo_url || null,
         agency_id:     agencyId,
       }).select().single()
       if (error) {
@@ -205,7 +212,7 @@ export default function ClientsPage() {
       }
       toast.success('Client added')
     }
-    setShowAdd(false); setEditingId(null)
+    setShowAdd(false); setEditingId(null); setPlacesPreview(null)
     setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
     await load()
     await refreshClients()
@@ -453,8 +460,53 @@ export default function ClientsPage() {
 
               {/* Core fields */}
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                {/* Business Name with Places Autocomplete */}
+                <div style={{ gridColumn:'1 / -1' }}>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Business Name * <span style={{ fontSize:11, color:'#9ca3af', fontWeight:400 }}>— search to auto-fill</span></label>
+                  <PlacesAutocomplete
+                    value={form.name}
+                    onChange={v => setF('name', v)}
+                    onPlaceSelected={(place) => {
+                      setF('name', place.name || form.name)
+                      if (place.website) setF('website', place.website)
+                      if (place.phone) setF('phone', place.phone)
+                      if (place.address) setF('address', place.address)
+                      if (place.city) setF('city', place.city)
+                      if (place.state) setF('state', place.state)
+                      if (place.zip) setF('zip', place.zip)
+                      if (place.rating) setF('review_rating', String(place.rating))
+                      if (place.review_count) setF('review_count', String(place.review_count))
+                      if (place.place_id) setF('google_place_id', place.place_id)
+                      if (place.lat) setF('lat', String(place.lat))
+                      if (place.lng) setF('lng', String(place.lng))
+                      if (place.photo_url) setF('google_photo_url', place.photo_url)
+                      setPlacesPreview(place)
+                      toast.success('Business details auto-filled!')
+                    }}
+                    placeholder="Search by business name..."
+                    type="establishment"
+                    style={{ padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14 }}
+                  />
+                </div>
+                {/* Places preview card */}
+                {placesPreview && (
+                  <div style={{ gridColumn:'1 / -1', background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:10, padding:12, marginBottom:4 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                      {placesPreview.photo_url && <img src={placesPreview.photo_url} alt="" style={{ width:48, height:48, borderRadius:8, objectFit:'cover' }} />}
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{placesPreview.name}</div>
+                        <div style={{ fontSize:12, color:'#6b7280' }}>{placesPreview.formatted_address}</div>
+                        <div style={{ display:'flex', gap:12, marginTop:4 }}>
+                          {placesPreview.rating && <span style={{ fontSize:12, color:'#f59e0b' }}>★ {placesPreview.rating} ({placesPreview.review_count} reviews)</span>}
+                          {placesPreview.phone && <span style={{ fontSize:12, color:'#6b7280' }}>📞 {placesPreview.phone}</span>}
+                          {placesPreview.website && <span style={{ fontSize:12, color:'#5bc6d0' }}>🌐 Website found</span>}
+                        </div>
+                      </div>
+                      <span style={{ fontSize:11, color:'#16a34a', fontWeight:700, background:'#dcfce7', padding:'3px 8px', borderRadius:6 }}>✓ Auto-filled</span>
+                    </div>
+                  </div>
+                )}
                 {[
-                  { label:'Client Name *', key:'name', placeholder:'Apex Dental Studio', type:'text' },
                   { label:'Email',         key:'email', placeholder:'info@client.com',   type:'email' },
                   { label:'Phone',         key:'phone', placeholder:'(305) 555-0100',    type:'tel' },
                   { label:'Website',       key:'website', placeholder:'https://client.com', type:'url' },
@@ -496,21 +548,39 @@ export default function ClientsPage() {
                 </div>
               </div>
 
-              {/* Address fields */}
+              {/* Address with Places Autocomplete */}
+              <div style={{ marginBottom:12 }}>
+                <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>Street Address <span style={{ fontSize:11, color:'#9ca3af', fontWeight:400 }}>— search to auto-fill city/state/zip</span></label>
+                <PlacesAutocomplete
+                  value={form.address}
+                  onChange={v => setF('address', v)}
+                  onPlaceSelected={(place) => {
+                    if (place.address) setF('address', place.address)
+                    if (place.city) setF('city', place.city)
+                    if (place.state) setF('state', place.state)
+                    if (place.zip) setF('zip', place.zip)
+                  }}
+                  placeholder="Start typing address..."
+                  type="address"
+                  style={{ padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14 }}
+                />
+              </div>
               <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:12, marginBottom:12 }}>
-                {[
-                  { label:'Street Address', key:'address', placeholder:'123 Main St',  type:'text' },
-                  { label:'City',           key:'city',    placeholder:'Miami',         type:'text' },
-                  { label:'State / ZIP',    key:'state',   placeholder:'FL',            type:'text' },
-                ].map(f=>(
-                  <div key={f.key}>
-                    <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>{f.label}</label>
-                    <input type={f.type} value={form[f.key]||''} onChange={e=>setF(f.key,e.target.value)}
-                      placeholder={f.placeholder}
-                      style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }}
-                      onFocus={e=>e.target.style.borderColor=ACCENT} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
-                  </div>
-                ))}
+                <div>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>City</label>
+                  <input value={form.city||''} onChange={e=>setF('city',e.target.value)} placeholder="Miami"
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>State</label>
+                  <input value={form.state||''} onChange={e=>setF('state',e.target.value)} placeholder="FL" maxLength={2}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize:13, fontWeight:700, color:'#374151', display:'block', marginBottom:4 }}>ZIP Code</label>
+                  <input value={form.zip||''} onChange={e=>setF('zip',e.target.value)} placeholder="33301" maxLength={10}
+                    style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:'#111', boxSizing:'border-box' }} />
+                </div>
               </div>
 
               {/* Status + Notes */}
