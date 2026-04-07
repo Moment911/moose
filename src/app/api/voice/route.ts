@@ -630,6 +630,61 @@ Return ONLY the script text, no markdown or JSON.`
       return NextResponse.json(results)
     }
 
+    // ── Analyze Personality from recordings ─────────────────────────────────
+    if (action === 'analyze_personality') {
+      const { filenames } = body
+      const AKEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const prompt = `Based on a sales professional's call recordings titled: ${(filenames || []).join(', ')}, analyze and generate a communication style profile. Return JSON only: {"pace":"fast/moderate/slow","pause_usage":"frequent/moderate/rare","vocabulary_level":"simple/moderate/advanced","warmth_level":"high/moderate/low","humor_level":"high/moderate/low/none","question_style":"open-ended/direct/socratic","energy_level":"high/moderate/calm","signature_phrases":["phrase1","phrase2"],"dos":["do1","do2"],"donts":["dont1","dont2"]}`
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': AKEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, messages: [{ role: 'user', content: prompt }] }),
+      })
+      const data = await res.json()
+      let profile = {}
+      try { profile = JSON.parse(data.content?.[0]?.text || '{}') } catch {}
+      if (body.agent_id) {
+        await sb.from('koto_voice_agents').update({ personality_profile: profile }).eq('id', body.agent_id)
+      }
+      return NextResponse.json({ profile })
+    }
+
+    // ── Post-call AI coaching ────────────────────────────────────────────────
+    if (action === 'generate_coaching') {
+      const { call_id: cId, transcript: tx, outcome: oc, lead_score: ls } = body
+      const AKEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      const prompt = `You are a 25-year expert cold calling coach. Grade this AI agent call.
+Transcript: ${(tx || '').slice(0, 3000)}
+Outcome: ${oc || 'unknown'}
+Lead score: ${ls || 50}
+
+Grade 1-10 on: Opening effectiveness, Qualification depth, Objection handling, Closing attempt, Tone/naturalness, TCPA compliance.
+For each: score, what_went_well (1 sentence), what_to_improve (1 sentence), specific_line_improvement.
+Overall grade: A/B/C/D/F. Key insight (2-3 sentences). Script change recommendation (before/after).
+Return JSON only: {"criteria":[{"name":"Opening","score":N,"well":"...","improve":"...","line":"..."}],"overall_grade":"B","key_insight":"...","script_change":{"before":"...","after":"..."}}`
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': AKEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] }),
+      })
+      const data = await res.json()
+      let coaching = {}
+      try { coaching = JSON.parse(data.content?.[0]?.text || '{}') } catch {}
+      if (cId) await sb.from('koto_voice_calls').update({ coaching_report: coaching }).eq('id', cId)
+      return NextResponse.json({ coaching })
+    }
+
+    // ── Update appointment outcome ───────────────────────────────────────────
+    if (action === 'update_appointment_outcome') {
+      const { appointment_id, outcome: apptOutcome, deal_value: dv, notes: apptNotes } = body
+      const patch: any = { appointment_outcome: apptOutcome, closer_notes: apptNotes }
+      if (apptOutcome === 'closed') { patch.deal_value = dv; patch.status = 'completed' }
+      if (apptOutcome === 'no_show') patch.status = 'no_show'
+      if (apptOutcome === 'rescheduled') patch.status = 'rescheduled'
+      await sb.from('koto_voice_appointments').update(patch).eq('id', appointment_id)
+      return NextResponse.json({ ok: true })
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     console.error('[Voice API Error]', e)
