@@ -106,8 +106,10 @@ export default function PhoneNumbersPage() {
   // Search / filter
   const [areaCode, setAreaCode] = useState('')
   const [searchType, setSearchType] = useState('local')
+  const [searchProvider, setSearchProvider] = useState('telnyx')
   const [searching, setSearching] = useState(false)
   const [buying, setBuying] = useState(null)
+  const [providers, setProviders] = useState(null)
 
   // Edit modal
   const [editModal, setEditModal] = useState(null)
@@ -123,12 +125,14 @@ export default function PhoneNumbersPage() {
   const loadAll = async () => {
     setLoading(true)
     try {
-      const [numsRes, statsRes] = await Promise.all([
+      const [numsRes, statsRes, provRes] = await Promise.all([
         fetch(`${API}?action=list&agency_id=${aid}`).then(r => r.json()),
         fetch(`${API}?action=stats&agency_id=${aid}`).then(r => r.json()),
+        fetch(`${API}?action=providers`).then(r => r.json()),
       ])
       if (Array.isArray(numsRes)) setNumbers(numsRes)
       if (statsRes && !statsRes.error) setStats(statsRes)
+      if (provRes && !provRes.error) setProviders(provRes)
     } catch (e) { console.error(e) }
     setLoading(false)
   }
@@ -138,7 +142,7 @@ export default function PhoneNumbersPage() {
     setSearching(true)
     setAvailable([])
     try {
-      const params = new URLSearchParams({ action:'available', type:searchType })
+      const params = new URLSearchParams({ action:'available', type:searchType, provider:searchProvider })
       if (areaCode) params.set('area_code', areaCode)
       const res = await fetch(`${API}?${params}`).then(r => r.json())
       if (res.error) { toast.error(res.error); return }
@@ -154,7 +158,7 @@ export default function PhoneNumbersPage() {
     try {
       const res = await fetch(API, {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'purchase', agency_id:aid, phone_number:num.phone_number, friendly_name:num.friendly_name || num.phone_number, type:searchType }),
+        body: JSON.stringify({ action:'purchase', agency_id:aid, phone_number:num.phone_number, friendly_name:num.friendly_name || num.phone_number, type:searchType, provider: num.provider || searchProvider }),
       }).then(r => r.json())
       if (res.error) { toast.error(res.error); return }
       toast.success(`Purchased ${fmt(num.phone_number)}`)
@@ -219,7 +223,7 @@ export default function PhoneNumbersPage() {
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
-                  {['Phone Number','Friendly Name','Type','Purpose','Status','Monthly Cost','Actions'].map(h => (
+                  {['Phone Number','Friendly Name','Provider','Type','Purpose','Status','Cost/mo','Actions'].map(h => (
                     <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
@@ -233,6 +237,7 @@ export default function PhoneNumbersPage() {
                     <tr key={n.id} style={{ borderBottom:'1px solid #f3f4f6' }}>
                       <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{fmt(n.phone_number)}</td>
                       <td style={{ padding:'10px 14px', color:'#555' }}>{n.friendly_name || '-'}</td>
+                      <td style={{ padding:'10px 14px' }}><Badge label={n.provider || 'twilio'} color={n.provider === 'telnyx' ? '#16a34a' : '#1d4ed8'} bg={n.provider === 'telnyx' ? '#dcfce7' : '#dbeafe'} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.type} color={tc.c} bg={tc.bg} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.purpose} color={pc.c} bg={pc.bg} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.status} color={sc.c} bg={sc.bg} /></td>
@@ -265,6 +270,83 @@ export default function PhoneNumbersPage() {
   /* ── TAB 2: BUY NUMBERS ── */
   const renderBuy = () => (
     <div>
+      {/* Provider selection */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:20 }}>
+        {/* Telnyx card */}
+        <div onClick={()=>setSearchProvider('telnyx')} style={{
+          padding:20, borderRadius:14, cursor:'pointer', transition:'all .2s',
+          border: searchProvider === 'telnyx' ? `2px solid ${GRN}` : '2px solid #e5e7eb',
+          background: searchProvider === 'telnyx' ? GRN+'06' : W,
+        }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:32, height:32, borderRadius:8, background:'#dcfce7', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Phone size={16} color={GRN} />
+              </div>
+              <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:BLK }}>Telnyx</div>
+            </div>
+            <Badge label="RECOMMENDED" color={GRN} bg="#dcfce7" />
+          </div>
+          <div style={{ fontSize:13, color:'#555', lineHeight:1.6, marginBottom:12 }}>
+            Next-gen carrier with lower costs and no setup fees. Ideal for AI voice agents and local presence dialing.
+          </div>
+          <div style={{ display:'flex', gap:16, marginBottom:12 }}>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$1.00</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$2.00</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$0</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
+          </div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+            {['No setup fees', 'Local presence', 'Lower per-min rates', 'Number porting', 'SIP trunking'].map(f => (
+              <span key={f} style={{ fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#dcfce7', color:GRN }}>{f}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Twilio card */}
+        <div onClick={()=>setSearchProvider('twilio')} style={{
+          padding:20, borderRadius:14, cursor:'pointer', transition:'all .2s',
+          border: searchProvider === 'twilio' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+          background: searchProvider === 'twilio' ? '#3b82f608' : W,
+        }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+            <div style={{ width:32, height:32, borderRadius:8, background:'#dbeafe', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Phone size={16} color="#3b82f6" />
+            </div>
+            <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:BLK }}>Twilio</div>
+          </div>
+          <div style={{ fontSize:13, color:'#555', lineHeight:1.6, marginBottom:12 }}>
+            Industry standard with worldwide coverage and rich programmable features. Higher cost but most established provider.
+          </div>
+          <div style={{ display:'flex', gap:16, marginBottom:12 }}>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$1.15</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$2.15</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:AMB }}>$1.00</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
+          </div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+            {['Worldwide coverage', 'Rich SMS/MMS', 'Programmable voice', 'Established provider'].map(f => (
+              <span key={f} style={{ fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#dbeafe', color:'#3b82f6' }}>{f}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Local Presence explainer (Telnyx only) */}
+      {searchProvider === 'telnyx' && (
+        <Card style={{ marginBottom:16, background:'#f0fdf4', border:'1px solid #bbf7d0' }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background:GRN+'20', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <PhoneCall size={16} color={GRN} />
+            </div>
+            <div>
+              <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, marginBottom:4 }}>Local Presence Dialing</div>
+              <div style={{ fontSize:13, color:'#555', lineHeight:1.6 }}>
+                Telnyx supports <strong>local presence</strong> — your AI voice agent can call from a number with the same area code as the person being called. This dramatically increases answer rates (up to 4x) because recipients see a local number, not a random out-of-state call. Numbers purchased from Telnyx automatically support this feature.
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Search bar */}
       <Card style={{ marginBottom:20 }}>
         <div style={{ display:'flex', gap:12, alignItems:'flex-end', flexWrap:'wrap' }}>
@@ -279,25 +361,31 @@ export default function PhoneNumbersPage() {
               <option value="tollfree">Toll-Free</option>
             </select>
           </div>
-          <Btn onClick={searchAvailable} disabled={searching} bg={T} style={{ marginBottom:0 }}>
-            {searching ? <Loader2 size={14} className="spin" /> : <Search size={14} />} Search
+          <Btn onClick={searchAvailable} disabled={searching} bg={searchProvider === 'telnyx' ? GRN : T} style={{ marginBottom:0 }}>
+            {searching ? <Loader2 size={14} className="spin" /> : <Search size={14} />} Search {searchProvider === 'telnyx' ? 'Telnyx' : 'Twilio'}
           </Btn>
         </div>
       </Card>
 
       {/* Results */}
       {available.length > 0 && (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:12 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:12 }}>
           {available.map(n => (
             <Card key={n.phone_number} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div>
-                <div style={{ fontSize:15, fontWeight:700, color:BLK, fontFamily:FH }}>{fmt(n.phone_number)}</div>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <div style={{ fontSize:15, fontWeight:700, color:BLK, fontFamily:FH }}>{fmt(n.phone_number)}</div>
+                  <Badge label={n.provider || searchProvider} color={n.provider === 'telnyx' || searchProvider === 'telnyx' ? GRN : '#3b82f6'} bg={n.provider === 'telnyx' || searchProvider === 'telnyx' ? '#dcfce7' : '#dbeafe'} />
+                </div>
                 <div style={{ fontSize:12, color:'#888', marginTop:2 }}>
                   {[n.locality, n.region].filter(Boolean).join(', ') || 'US'}
                 </div>
-                <div style={{ fontSize:12, color:'#666', marginTop:4 }}>${searchType === 'tollfree' ? '2.15' : '1.45'}/mo</div>
+                <div style={{ fontSize:13, fontWeight:700, color:BLK, marginTop:4, fontFamily:FH }}>
+                  ${(n.cost_monthly || (searchType === 'tollfree' ? 2.00 : 1.00)).toFixed(2)}/mo
+                  {(n.cost_setup || 0) > 0 && <span style={{ fontSize:11, color:'#888', fontWeight:500 }}> + ${n.cost_setup} setup</span>}
+                </div>
               </div>
-              <Btn small onClick={()=>purchaseNumber(n)} disabled={buying === n.phone_number}>
+              <Btn small onClick={()=>purchaseNumber(n)} disabled={buying === n.phone_number} bg={searchProvider === 'telnyx' ? GRN : R}>
                 {buying === n.phone_number ? <Loader2 size={12} className="spin" /> : <Plus size={12} />} Buy
               </Btn>
             </Card>
@@ -308,7 +396,7 @@ export default function PhoneNumbersPage() {
       {!searching && available.length === 0 && (
         <Card style={{ textAlign:'center', padding:48 }}>
           <Search size={40} color="#ccc" style={{ marginBottom:12 }} />
-          <div style={{ fontSize:14, color:'#888', fontFamily:FH }}>Search for available phone numbers by area code</div>
+          <div style={{ fontSize:14, color:'#888', fontFamily:FH }}>Select a provider above, then search by area code</div>
         </Card>
       )}
     </div>
@@ -454,7 +542,7 @@ export default function PhoneNumbersPage() {
             <AlertTriangle size={24} color={R} />
             <div>
               <div style={{ fontSize:14, fontWeight:600, color:BLK, fontFamily:FH }}>Are you sure?</div>
-              <div style={{ fontSize:13, color:'#666' }}>This will release <strong>{fmt(releaseConfirm.phone_number)}</strong> back to Twilio. This action cannot be undone.</div>
+              <div style={{ fontSize:13, color:'#666' }}>This will release <strong>{fmt(releaseConfirm.phone_number)}</strong> back to {releaseConfirm.provider === 'telnyx' ? 'Telnyx' : 'Twilio'}. This action cannot be undone.</div>
             </div>
           </div>
           <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
