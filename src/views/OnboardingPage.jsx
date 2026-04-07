@@ -687,7 +687,7 @@ function Banner({ stepIdx, firstName, VC }) {
   if (!msg) return null;
   return (
     <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
-      <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
+      <img src="/koto_logo_white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
       <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
       <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName, VC)}</span>
     </div>
@@ -1068,7 +1068,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   const Header = () => (
     <div style={{ background: '#18181b', padding: '0 24px', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 2px 16px rgba(0,0,0,.3)' }}>
       <div style={{ maxWidth: 820, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 14, height: 62 }}>
-        <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 26 }} />
+        <img src="/koto_logo_white.svg" alt="Koto" style={{ height: 26 }} />
         <div style={{ width: 1, height: 22, background: 'rgba(255,255,255,.15)' }} />
         <span style={{ fontSize: 14, color: '#52525b', fontWeight: 600 }}>Client Onboarding</span>
         <div style={{ flex: 1 }} />
@@ -1138,16 +1138,32 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
 
         {/* Top bar */}
         <div style={{ padding:'18px 32px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <img src="/koto-logo-white.svg" alt="Koto" style={{ height:26, filter:'invert(1)' }} />
+          <img src="/koto_logo_white.svg" alt="Koto" style={{ height:26, filter:'invert(1)' }} />
           <div style={{ fontSize:13, color:'#9ca3af', fontWeight:600, letterSpacing:'.02em' }}>Client Onboarding</div>
         </div>
 
         {/* Main content */}
         <div style={{ flex:1, maxWidth:760, margin:'0 auto', padding:'64px 32px 80px', width:'100%' }}>
 
+          {/* Agency welcome banner */}
+          <div style={{ background:'#0a0a0a', borderRadius:16, padding:'28px 32px', marginBottom:40, display:'flex', alignItems:'center', gap:20 }}>
+            <div style={{ width:52, height:52, borderRadius:14, background:'#ea2729', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22, fontWeight:900, color:'#fff' }}>
+              {(tokenData?.clients?.name || 'K')[0].toUpperCase()}
+            </div>
+            <div>
+              <div style={{ fontSize:13, color:'rgba(255,255,255,.5)', fontWeight:600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom:4 }}>Welcome to your personalized onboarding</div>
+              <div style={{ fontSize:22, fontWeight:800, color:'#fff', letterSpacing:'-.02em' }}>
+                {tokenData?.clients?.name || 'Your Business'}
+              </div>
+              <div style={{ fontSize:14, color:'rgba(255,255,255,.45)', marginTop:4 }}>
+                Prepared by Momenta Marketing · Powered by Koto
+              </div>
+            </div>
+          </div>
+
           {/* Greeting */}
-          <h1 style={{ fontSize:48, fontWeight:900, color:'#0a0a0a', margin:'0 0 20px', letterSpacing:'-1.5px', lineHeight:1.1 }}>
-            Welcome{tokenData?.clients?.name ? `, ${tokenData.clients.name.split(' ')[0]}` : ''}
+          <h1 style={{ fontSize:42, fontWeight:900, color:'#0a0a0a', margin:'0 0 20px', letterSpacing:'-1.5px', lineHeight:1.1 }}>
+            Let's get started{tokenData?.clients?.name ? `, ${tokenData.clients.name}` : ''}
           </h1>
           <p style={{ fontSize:20, color:'#374151', lineHeight:1.75, margin:'0 0 16px', maxWidth:640 }}>
             We're building your marketing strategy from the ground up — and this form is where it all starts. Every question here directly shapes your campaigns, your ad targeting, and the strategy we build for you.
@@ -1310,7 +1326,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           <span style={{ fontSize:12, color:'#d1d5db' }}>Powered by</span>
           <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
             style={{ display:'inline-flex', alignItems:'center', gap:4, textDecoration:'none' }}>
-            <img src="/koto-logo-white.svg" alt="Koto" style={{ height:14, filter:'invert(1)', opacity:.35 }} />
+            <img src="/koto_logo_white.svg" alt="Koto" style={{ height:14, filter:'invert(1)', opacity:.35 }} />
           </a>
           <span style={{ color:'#e5e7eb' }}>·</span>
           <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
@@ -2668,7 +2684,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <span style={{ fontSize:11, color:'#d1d5db' }}>Powered by</span>
         <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
           style={{ display:'inline-flex', alignItems:'center', textDecoration:'none' }}>
-          <img src="/koto-logo-white.svg" alt="Koto" style={{ height:12, filter:'invert(1)', opacity:.3 }} />
+          <img src="/koto_logo_white.svg" alt="Koto" style={{ height:12, filter:'invert(1)', opacity:.3 }} />
         </a>
         <span style={{ color:'#e5e7eb', fontSize:11 }}>·</span>
         <a href="https://hellokoto.com" target="_blank" rel="noreferrer"
