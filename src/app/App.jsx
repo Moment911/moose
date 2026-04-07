@@ -111,6 +111,7 @@ import VoiceAgentPage from '../views/VoiceAgentPage'
 import VoiceTestConsolePage from '../views/VoiceTestConsolePage'
 import VoiceLiveMonitorPage from '../views/VoiceLiveMonitorPage'
 import AnsweringServicePage from '../views/AnsweringServicePage'
+import VoiceCloserPage from '../views/VoiceCloserPage'
 import CommandPalette from '../components/CommandPalette'
 import ClientPermissionsPage from '../views/ClientPermissionsPage'
 import ProposalsPage from '../views/ProposalsPage'
@@ -240,6 +241,7 @@ export default function App() {
           <Route path="/voice/test-console" element={<VoiceTestConsolePage />} />
           <Route path="/voice/live" element={<VoiceLiveMonitorPage />} />
           <Route path="/answering" element={<AnsweringServicePage />} />
+          <Route path="/voice/closer" element={<VoiceCloserPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />

@@ -1,0 +1,41 @@
+-- Voice Agent Closer & Intelligence Upgrades
+-- Run in Supabase SQL Editor
+
+-- Closer fields on agents
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_name text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_title text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_phone text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_calendar_url text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_bio text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_expertise_tags text[];
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_years_experience int;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_results_proof text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_company_name text;
+ALTER TABLE koto_voice_agents ADD COLUMN IF NOT EXISTS closer_photo_url text;
+
+-- Lead intelligence fields
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS closer_assigned text;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS appointment_confirmed_via text;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS no_show_risk text;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS prospect_pain_point text;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS prospect_objection text;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS prospect_intent_level text;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS lead_score int;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS probability_of_close int;
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS ai_talking_points jsonb DEFAULT '[]';
+ALTER TABLE koto_voice_leads ADD COLUMN IF NOT EXISTS transcript_highlights jsonb DEFAULT '[]';
+
+-- Appointment outcome tracking
+ALTER TABLE koto_voice_appointments ADD COLUMN IF NOT EXISTS appointment_outcome text;
+ALTER TABLE koto_voice_appointments ADD COLUMN IF NOT EXISTS deal_value numeric(12,2);
+ALTER TABLE koto_voice_appointments ADD COLUMN IF NOT EXISTS closer_notes text;
+ALTER TABLE koto_voice_appointments ADD COLUMN IF NOT EXISTS close_probability int;
+
+-- Campaign pacing
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS calls_per_hour int DEFAULT 20;
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS hours_between_retries int DEFAULT 24;
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS max_attempts int DEFAULT 3;
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS best_call_time text;
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS closer_name text;
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS ab_test_enabled boolean DEFAULT false;
+ALTER TABLE koto_voice_campaigns ADD COLUMN IF NOT EXISTS ab_script_b text;
