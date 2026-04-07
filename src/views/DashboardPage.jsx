@@ -9,6 +9,7 @@ import {
   DollarSign, Check, RefreshCw, FileText
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import ViewAsModal from '../components/ViewAsModal'
 import { supabase } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
@@ -91,6 +92,7 @@ export default function DashboardPage() {
 
   const isSuperAdmin  = role === 'super_admin' || role === 'koto_admin'
   const isAgencyAdmin = !isSuperAdmin
+  const [showViewAs, setShowViewAs] = useState(false)
 
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
@@ -449,6 +451,7 @@ export default function DashboardPage() {
 
   const SUPER_ACTIONS = [
     { icon: Globe,  label: 'View Agencies',  to: '/platform-admin', bg: T },
+    { icon: Users,  label: 'View As...',     action: ()=>setShowViewAs(true), bg: '#7f1d1d' },
     { icon: Shield, label: 'Debug Console',  to: '/debug',          bg: AMB },
     { icon: Activity, label: 'System Status', to: '/status',        bg: GRN },
     { icon: Users,  label: 'Manage Users',   to: '/master-admin',   bg: R },
@@ -500,7 +503,7 @@ export default function DashboardPage() {
           padding: '0 16px', marginBottom: 16,
         }}>
           {AGENCY_ACTIONS.map(a => (
-            <button key={a.to} onClick={() => navigate(a.to)} style={{
+            <button key={a.label} onClick={() => a.action ? a.action() : navigate(a.to)} style={{
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px', borderRadius: 14, border: 'none',
               cursor: 'pointer', background: '#fff', textAlign: 'left',
@@ -634,7 +637,7 @@ export default function DashboardPage() {
           padding: '0 16px', marginBottom: 16,
         }}>
           {SUPER_ACTIONS.map(a => (
-            <button key={a.to} onClick={() => navigate(a.to)} style={{
+            <button key={a.label} onClick={() => a.action ? a.action() : navigate(a.to)} style={{
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '14px', borderRadius: 14, border: 'none',
               cursor: 'pointer', background: '#fff', textAlign: 'left',
@@ -1089,6 +1092,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      {showViewAs && <ViewAsModal open={showViewAs} onClose={() => setShowViewAs(false)} />}
     </div>
   )
 }

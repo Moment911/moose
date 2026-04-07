@@ -25,7 +25,7 @@ import AdminPortalPage from '../views/AdminPortalPage'
 import MasterAdminPage from '../views/MasterAdminPage'
 import KotoSuperAdminPage from '../views/KotoSuperAdminPage'
 import RequireAuth from '../components/RequireAuth'
-import ImpersonationBanner from '../components/ImpersonationBanner'
+import ImpersonationBar from '../components/ImpersonationBar'
 import AgencyControlPanel from '../components/AgencyControlPanel'
 import BrandGuidelinesPage from '../views/BrandGuidelinesPage'
 import TemplatesPage from '../views/TemplatesPage'
@@ -153,7 +153,7 @@ export default function App() {
         <Toaster position="top-right" />
         <CommandPalette />
         <MobileShell>
-        <ImpersonationBanner/>
+        <ImpersonationBar/>
         <AgencyControlPanel/>
         <RequireAuth>
         <Routes>
