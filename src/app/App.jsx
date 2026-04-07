@@ -133,22 +133,25 @@ function setupErrorTracking() {
   window.__kotoErrorTracking = true
 
   window.onerror = (message, source, lineno, colno, error) => {
+    const msg = String(message)
+    const isReactError = msg.includes('Minified React error') || msg.includes('rendered more hooks') || msg.includes('rendered fewer hooks')
     fetch('/api/errors', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'js_error', severity: 'p2', message: String(message),
+        type: 'js_error', severity: isReactError ? 'p1' : 'p2', message: msg,
         stack: error?.stack || '', url: source || window.location.href,
-        metadata: { lineno, colno, source },
+        metadata: { lineno, colno, source, react_error: isReactError },
       }),
     }).catch(() => {})
   }
 
   window.onunhandledrejection = (event) => {
     const msg = event.reason?.message || String(event.reason)
+    const isReactError = msg.includes('Minified React error')
     fetch('/api/errors', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'js_error', severity: 'p2', message: `Unhandled promise: ${msg}`,
+        type: 'js_error', severity: isReactError ? 'p1' : 'p2', message: `Unhandled promise: ${msg}`,
         stack: event.reason?.stack || '', url: window.location.href,
       }),
     }).catch(() => {})
