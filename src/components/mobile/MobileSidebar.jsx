@@ -66,111 +66,111 @@ export default function MobileSidebar({ isOpen, onClose }) {
         animation: 'kotoFade .2s ease',
       }} />
 
-      {/* Panel */}
+      {/* Full-screen white tile overlay */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0,
-        width: '80vw', maxWidth: 300,
-        background: '#0a0a0a',
+        position: 'fixed', inset: 0,
         display: 'flex', flexDirection: 'column',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        animation: 'kotoSlide .25s cubic-bezier(.22,1,.36,1)',
-        boxShadow: '8px 0 40px rgba(0,0,0,.5)',
+        animation: 'kotoFade .2s ease',
       }}>
-        {/* Header */}
+        {/* Dark header */}
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '16px 16px 14px', borderBottom: '1px solid rgba(255,255,255,.08)', flexShrink: 0,
+          background: '#0a0a0a', flexShrink: 0,
+          paddingTop: 'env(safe-area-inset-top, 0px)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: R,
-              display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={14} color="#fff" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.03em' }}>Koto</span>
-          </div>
-          <button onClick={onClose} style={{
-            width: 34, height: 34, borderRadius: 9,
-            background: 'rgba(255,255,255,.06)', border: 'none',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            WebkitTapHighlightColor: 'transparent',
+          <div style={{
+            height: 52, display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', padding: '0 16px',
           }}>
-            <X size={15} color="rgba(255,255,255,.4)" />
-          </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap size={14} color="#fff" strokeWidth={2.5} />
+              </div>
+              <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.03em' }}>Koto</span>
+            </div>
+            <button onClick={onClose} style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'rgba(255,255,255,.1)', border: 'none',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              WebkitTapHighlightColor: 'transparent',
+            }}>
+              <X size={18} color="#fff" />
+            </button>
+          </div>
         </div>
 
-        {/* Nav */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '6px 8px', WebkitOverflowScrolling: 'touch' }}>
-          {SECTIONS.map(sec => (
-            <div key={sec.title} style={{ marginBottom: 4 }}>
+        {/* White tile nav */}
+        <div style={{ flex: 1, background: '#ffffff', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '12px 16px' }}>
+          {SECTIONS.map((sec, si) => (
+            <div key={sec.title}>
+              {si > 0 && <div style={{ height: 1, background: '#e5e7eb', margin: '8px 0 12px' }} />}
               <div style={{
-                padding: '12px 10px 4px', fontFamily: FH, fontSize: 10, fontWeight: 700,
-                color: 'rgba(255,255,255,.25)', textTransform: 'uppercase', letterSpacing: '.12em',
+                fontFamily: FH, fontSize: 11, fontWeight: 700, color: '#6b7280',
+                textTransform: 'uppercase', letterSpacing: '.1em', padding: '4px 4px 10px',
               }}>{sec.title}</div>
-              {sec.items.map(item => {
-                const Icon = item.icon
-                const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
-                const Component = item.external ? 'a' : Link
-                const linkProps = item.external
-                  ? { href: item.path, target: '_blank', rel: 'noopener noreferrer', onClick: onClose }
-                  : { to: item.path, onClick: onClose }
-                return (
-                  <Component key={item.path} {...linkProps} style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 11,
-                    padding: '11px 10px', borderRadius: 10, border: 'none',
-                    background: active ? R + '18' : 'transparent',
-                    borderLeft: `2.5px solid ${active ? R : 'transparent'}`,
-                    cursor: 'pointer', marginBottom: 1, minHeight: 44,
-                    textDecoration: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                    transition: 'background .15s ease',
-                  }}>
-                    <Icon size={16} color={active ? R : 'rgba(255,255,255,.5)'} strokeWidth={active ? 2.5 : 1.8} />
-                    <span style={{
-                      fontFamily: FH, fontSize: 14, fontWeight: active ? 700 : 500,
-                      flex: 1, color: active ? R : 'rgba(255,255,255,.65)',
-                    }}>{item.label}</span>
-                    {item.badge && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 4 }}>
+                {sec.items.map(item => {
+                  const Icon = item.icon
+                  const active = item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+                  const handleClick = () => {
+                    if (item.external) { window.open(item.path, '_blank') } else { navigate(item.path) }
+                    onClose()
+                  }
+                  return (
+                    <button key={item.path} onClick={handleClick} style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: 6, padding: '14px 8px', borderRadius: 14, border: 'none',
+                      background: active ? R : '#f2f2f0',
+                      cursor: 'pointer', minHeight: 80,
+                      WebkitTapHighlightColor: 'transparent',
+                      transition: 'all .2s ease', position: 'relative',
+                    }}>
+                      <Icon size={20} color={active ? '#fff' : '#0a0a0a'} strokeWidth={1.8} />
                       <span style={{
-                        fontFamily: FH, fontSize: 9, fontWeight: 800,
-                        padding: '2px 6px', borderRadius: 20,
-                        background: item.badge === 'AI' ? R : T, color: '#fff',
-                        letterSpacing: '.06em',
-                      }}>{item.badge}</span>
-                    )}
-                    {item.external && <span style={{ fontSize: 10, color: 'rgba(255,255,255,.2)' }}>↗</span>}
-                  </Component>
-                )
-              })}
+                        fontFamily: FH, fontSize: 11, fontWeight: 600,
+                        color: active ? '#fff' : '#0a0a0a',
+                        textAlign: 'center', lineHeight: 1.2,
+                      }}>{item.label}</span>
+                      {item.badge && (
+                        <span style={{
+                          position: 'absolute', top: 6, right: 6,
+                          fontFamily: FH, fontSize: 8, fontWeight: 800,
+                          padding: '1px 5px', borderRadius: 10,
+                          background: active ? 'rgba(255,255,255,.3)' : R, color: '#fff',
+                        }}>{item.badge}</span>
+                      )}
+                      {item.external && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: 9, color: active ? 'rgba(255,255,255,.5)' : '#9ca3af' }}>↗</span>}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '10px 10px 12px', borderTop: '1px solid rgba(255,255,255,.06)', flexShrink: 0 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '10px 10px', borderRadius: 12,
-            background: 'rgba(255,255,255,.04)', marginBottom: 8,
-          }}>
+        {/* White footer */}
+        <div style={{
+          background: '#ffffff', flexShrink: 0, borderTop: '1px solid #e5e7eb',
+          padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{
-              width: 34, height: 34, borderRadius: '50%', background: R,
+              width: 36, height: 36, borderRadius: '50%', background: R,
               flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#fff',
+              fontFamily: FH, fontSize: 15, fontWeight: 800, color: '#fff',
             }}>{initial}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontFamily: FH, fontSize: 13, fontWeight: 700, color: '#fff',
+                fontFamily: FH, fontSize: 14, fontWeight: 700, color: '#0a0a0a',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'capitalize',
               }}>{name}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', fontFamily: FB }}>Agency Admin</div>
+              <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>Agency Admin</div>
             </div>
           </div>
           <button onClick={handleSignOut} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: 8, padding: '11px', borderRadius: 10,
-            border: '1px solid rgba(255,255,255,.08)', background: 'transparent',
-            color: 'rgba(255,255,255,.4)', fontSize: 13, fontWeight: 600,
+            gap: 8, padding: '12px', borderRadius: 10,
+            border: 'none', background: R,
+            color: '#fff', fontSize: 14, fontWeight: 700,
             cursor: 'pointer', fontFamily: FH, minHeight: 44,
             WebkitTapHighlightColor: 'transparent',
           }}>

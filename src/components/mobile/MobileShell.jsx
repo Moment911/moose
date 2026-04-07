@@ -311,80 +311,78 @@ export default function MobileShell({ children }) {
         </div>
       </div>
 
-      {/* ── Drawer ── */}
+      {/* ── Full-screen tile nav overlay ── */}
       {drawerOpen && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 1000,
-          background: 'rgba(0,0,0,.65)',
-          backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          display: 'flex', flexDirection: 'column',
           animation: 'kotoFade .2s ease',
         }}>
-          <div ref={drawerRef} style={{
-            position: 'absolute', top: 0, left: 0, bottom: 0,
-            width: '80vw', maxWidth: 300,
-            background: '#0a0a0a',
-            display: 'flex', flexDirection: 'column',
+          {/* Dark header strip */}
+          <div style={{
+            background: '#0a0a0a', flexShrink: 0,
             paddingTop: 'env(safe-area-inset-top,0px)',
-            paddingBottom: 'env(safe-area-inset-bottom,0px)',
-            animation: 'kotoSlide .25s cubic-bezier(.22,1,.36,1)',
-            boxShadow: '8px 0 40px rgba(0,0,0,.5)',
           }}>
-            {/* Header */}
             <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '16px 16px 14px', borderBottom: '1px solid rgba(255,255,255,.06)', flexShrink: 0,
+              height: 52, display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', padding: '0 16px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8, background: R,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Zap size={14} color="#fff" strokeWidth={2.5} />
                 </div>
                 <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.03em' }}>Koto</span>
               </div>
               <button onClick={() => setDrawerOpen(false)} style={{
-                width: 34, height: 34, borderRadius: 9,
-                background: 'rgba(255,255,255,.06)', border: 'none',
+                width: 40, height: 40, borderRadius: 10,
+                background: 'rgba(255,255,255,.1)', border: 'none',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 WebkitTapHighlightColor: 'transparent',
               }}>
-                <X size={15} color="rgba(255,255,255,.4)" />
+                <X size={18} color="#fff" />
               </button>
             </div>
+          </div>
 
-            {/* Nav */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '6px 8px', WebkitOverflowScrolling: 'touch' }}>
-              {DRAWER_SECTIONS.map(sec => (
-                <div key={sec.title} style={{ marginBottom: 4 }}>
-                  <div style={{
-                    padding: '12px 10px 4px', fontFamily: FH, fontSize: 10, fontWeight: 700,
-                    color: 'rgba(255,255,255,.25)', textTransform: 'uppercase', letterSpacing: '.12em',
-                  }}>{sec.title}</div>
+          {/* White tile area */}
+          <div ref={drawerRef} style={{
+            flex: 1, background: '#ffffff', overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch', padding: '12px 16px',
+          }}>
+            {DRAWER_SECTIONS.map((sec, si) => (
+              <div key={sec.title}>
+                {si > 0 && <div style={{ height: 1, background: '#e5e7eb', margin: '8px 0 12px' }} />}
+                <div style={{
+                  fontFamily: FH, fontSize: 11, fontWeight: 700, color: '#6b7280',
+                  textTransform: 'uppercase', letterSpacing: '.1em',
+                  padding: '4px 4px 10px',
+                }}>{sec.title}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 4 }}>
                   {sec.items.map(item => {
                     const Icon = item.icon
                     const active = item.to === '/' ? path === '/' : path.startsWith(item.to)
                     return (
                       <button key={item.to} onClick={() => { navigate(item.to); setDrawerOpen(false) }} style={{
-                        width: '100%', display: 'flex', alignItems: 'center', gap: 11,
-                        padding: '11px 10px', borderRadius: 10, border: 'none',
-                        background: active ? R + '18' : 'transparent',
-                        borderLeft: `2.5px solid ${active ? R : 'transparent'}`,
-                        cursor: 'pointer', marginBottom: 1, minHeight: 44,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: 6, padding: '14px 8px', borderRadius: 14, border: 'none',
+                        background: active ? R : '#f2f2f0',
+                        cursor: 'pointer', minHeight: 80,
                         WebkitTapHighlightColor: 'transparent',
-                        transition: 'background .15s ease',
+                        transition: 'all .2s ease',
+                        position: 'relative',
                       }}>
-                        <Icon size={16} color={active ? R : 'rgba(255,255,255,.5)'} strokeWidth={active ? 2.5 : 1.8} />
+                        <Icon size={20} color={active ? '#fff' : '#0a0a0a'} strokeWidth={1.8} />
                         <span style={{
-                          fontFamily: FH, fontSize: 14, fontWeight: active ? 700 : 500,
-                          flex: 1, textAlign: 'left',
-                          color: active ? R : 'rgba(255,255,255,.65)',
+                          fontFamily: FH, fontSize: 11, fontWeight: 600,
+                          color: active ? '#fff' : '#0a0a0a',
+                          textAlign: 'center', lineHeight: 1.2,
                         }}>{item.label}</span>
                         {item.badge && (
                           <span style={{
-                            fontFamily: FH, fontSize: 9, fontWeight: 800,
-                            padding: '2px 6px', borderRadius: 20,
-                            background: item.badge === 'AI' ? R : T, color: '#fff',
+                            position: 'absolute', top: 6, right: 6,
+                            fontFamily: FH, fontSize: 8, fontWeight: 800,
+                            padding: '1px 5px', borderRadius: 10,
+                            background: active ? 'rgba(255,255,255,.3)' : R, color: '#fff',
                             letterSpacing: '.06em',
                           }}>{item.badge}</span>
                         )}
@@ -392,42 +390,45 @@ export default function MobileShell({ children }) {
                     )
                   })}
                 </div>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div style={{ padding: '10px 10px 12px', borderTop: '1px solid rgba(255,255,255,.06)', flexShrink: 0 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 10px', borderRadius: 12,
-                background: 'rgba(255,255,255,.04)', marginBottom: 8,
-              }}>
-                <div style={{
-                  width: 34, height: 34, borderRadius: '50%', background: R,
-                  flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#fff',
-                }}>
-                  {(firstName || 'K')[0].toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontFamily: FH, fontSize: 13, fontWeight: 700, color: '#fff',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'capitalize',
-                  }}>{firstName || 'Agent'}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', fontFamily: FB }}>Agency Admin</div>
-                </div>
               </div>
-              <button onClick={() => signOut().then(() => navigate('/login'))} style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: 8, padding: '11px', borderRadius: 10,
-                border: '1px solid rgba(255,255,255,.08)', background: 'transparent',
-                color: 'rgba(255,255,255,.4)', fontSize: 13, fontWeight: 600,
-                cursor: 'pointer', fontFamily: FH, minHeight: 44,
-                WebkitTapHighlightColor: 'transparent',
+            ))}
+          </div>
+
+          {/* White footer with user info */}
+          <div style={{
+            background: '#ffffff', flexShrink: 0,
+            borderTop: '1px solid #e5e7eb',
+            padding: '12px 16px',
+            paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%', background: R,
+                flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: FH, fontSize: 15, fontWeight: 800, color: '#fff',
               }}>
-                <LogOut size={14} /> Sign Out
-              </button>
+                {(firstName || 'K')[0].toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: FH, fontSize: 14, fontWeight: 700, color: '#0a0a0a',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'capitalize',
+                }}>{firstName || 'Agent'}</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>Agency Admin</div>
+              </div>
             </div>
+            <button onClick={() => signOut().then(() => navigate('/login'))} style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 8, padding: '12px', borderRadius: 10,
+              border: 'none', background: R,
+              color: '#fff', fontSize: 14, fontWeight: 700,
+              cursor: 'pointer', fontFamily: FH, minHeight: 44,
+              WebkitTapHighlightColor: 'transparent',
+            }}>
+              <LogOut size={14} /> Sign Out
+            </button>
           </div>
         </div>
       )}
