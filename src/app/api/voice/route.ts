@@ -580,8 +580,52 @@ Return ONLY the script text, no markdown or JSON.`
 
     // ── Get Live Calls (super admin) ─────────────────────────────────────────
     if (action === 'get_live_calls') {
-      const { data: active } = await sb.from('koto_voice_calls').select('*, koto_voice_leads(first_name, last_name, phone, business_name)').in('status', ['initiated', 'in_progress']).order('created_at', { ascending: false }).limit(50)
-      return NextResponse.json({ calls: active || [] })
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0)
+      const todayISO = todayStart.toISOString()
+
+      // Active calls (both outbound + inbound)
+      const [{ data: outActive }, { data: inActive }] = await Promise.all([
+        sb.from('koto_voice_calls').select('*, koto_voice_leads(first_name, last_name, phone, business_name)').in('status', ['initiated', 'in_progress']).order('created_at', { ascending: false }).limit(20),
+        sb.from('koto_inbound_calls').select('*, koto_inbound_agents(agent_name)').in('outcome', ['in_progress', 'ringing']).order('created_at', { ascending: false }).limit(20),
+      ])
+
+      const activeCalls = [
+        ...(outActive || []).map((c: any) => { const lead = Array.isArray(c.koto_voice_leads) ? c.koto_voice_leads[0] : c.koto_voice_leads; return { ...c, direction: 'outbound', contact_name: lead?.first_name ? `${lead.first_name} ${lead.last_name || ''}`.trim() : lead?.phone || 'Unknown', contact_phone: lead?.phone || '' } }),
+        ...(inActive || []).map((c: any) => { const agent = Array.isArray(c.koto_inbound_agents) ? c.koto_inbound_agents[0] : c.koto_inbound_agents; return { ...c, direction: 'inbound', contact_name: c.caller_name || c.caller_number || 'Unknown', contact_phone: c.caller_number || '', agent_name: agent?.agent_name || '' } }),
+      ]
+
+      // Recent calls (last 50 from both tables)
+      const [{ data: outRecent }, { data: inRecent }] = await Promise.all([
+        sb.from('koto_voice_calls').select('id, status, duration_seconds, sentiment, appointment_set, recording_url, created_at, agency_id, retell_call_id, koto_voice_leads(first_name, last_name, phone, business_name)').order('created_at', { ascending: false }).limit(30),
+        sb.from('koto_inbound_calls').select('id, outcome, duration_seconds, sentiment, recording_url, caller_number, caller_name, summary, urgency, created_at, agency_id, koto_inbound_agents(agent_name)').order('created_at', { ascending: false }).limit(30),
+      ])
+
+      const recentCalls = [
+        ...(outRecent || []).map((c: any) => { const lead = Array.isArray(c.koto_voice_leads) ? c.koto_voice_leads[0] : c.koto_voice_leads; return { id: c.id, direction: 'outbound', type: 'Campaign Call', agent: '', contact: lead?.first_name || '', phone: lead?.phone || '', duration: c.duration_seconds || 0, outcome: c.appointment_set ? 'appointment' : c.status || 'unknown', sentiment: c.sentiment || 'neutral', recording_url: c.recording_url, created_at: c.created_at } }),
+        ...(inRecent || []).map((c: any) => { const agent = Array.isArray(c.koto_inbound_agents) ? c.koto_inbound_agents[0] : c.koto_inbound_agents; return { id: c.id, direction: 'inbound', type: 'Answering Service', agent: agent?.agent_name || '', contact: c.caller_name || '', phone: c.caller_number || '', duration: c.duration_seconds || 0, outcome: c.outcome || 'completed', sentiment: c.sentiment || 'neutral', recording_url: c.recording_url, urgency: c.urgency, created_at: c.created_at } }),
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50)
+
+      // Stats for today
+      const [{ count: outToday }, { count: inToday }, { count: outAnswered }, { count: appts }] = await Promise.all([
+        sb.from('koto_voice_calls').select('*', { count: 'exact', head: true }).gte('created_at', todayISO),
+        sb.from('koto_inbound_calls').select('*', { count: 'exact', head: true }).gte('created_at', todayISO),
+        sb.from('koto_voice_calls').select('*', { count: 'exact', head: true }).gte('created_at', todayISO).eq('status', 'completed'),
+        sb.from('koto_voice_calls').select('*', { count: 'exact', head: true }).gte('created_at', todayISO).eq('appointment_set', true),
+      ])
+
+      const totalToday = (outToday || 0) + (inToday || 0)
+      const answeredRate = (outToday || 0) > 0 ? Math.round(((outAnswered || 0) / (outToday || 1)) * 100) : 0
+
+      // Check webhook status
+      const { data: lastWebhook } = await sb.from('koto_system_logs').select('created_at').eq('service', 'voice_webhook').order('created_at', { ascending: false }).limit(1)
+      const retellConfigured = !!process.env.RETELL_API_KEY
+
+      return NextResponse.json({
+        active_calls: activeCalls,
+        recent_calls: recentCalls,
+        stats: { total_today: totalToday, active_now: activeCalls.length, answered_rate: answeredRate, appointments_today: appts || 0, outbound_today: outToday || 0, inbound_today: inToday || 0 },
+        webhook: { retell_configured: retellConfigured, last_received: lastWebhook?.[0]?.created_at || null, webhook_url: 'https://hellokoto.com/api/voice' },
+      })
     }
 
     // ── Stop Call ────────────────────────────────────────────────────────────
