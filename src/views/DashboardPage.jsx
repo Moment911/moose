@@ -267,16 +267,14 @@ export default function DashboardPage() {
   /* ── Super Admin loader ───────────────────────────────────────────────────── */
   async function loadSuperAdminData() {
     const [
-      statsRes,
+      adminStats,
       { data: errors },
       { data: feed },
       { data: agencies },
       commsStatsRes,
       qaHealthRes,
-      { count: voiceAgentCount },
-      { count: totalCallCount },
     ] = await Promise.all([
-      fetch('/api/health?action=stats').then(r => r.json()).catch(() => ({})),
+      fetch('/api/admin?action=dashboard_stats').then(r => r.json()).catch(() => ({})),
       supabase.from('koto_system_logs')
         .select('id, level, message, created_at')
         .eq('level', 'error')
@@ -284,25 +282,21 @@ export default function DashboardPage() {
       supabase.from('koto_system_logs')
         .select('id, level, message, created_at')
         .order('created_at', { ascending: false }).limit(15),
-      supabase.from('agencies')
-        .select('id, name, slug, status, brand_name, created_at, owner_email, plan')
-        .order('created_at', { ascending: false }).limit(50),
+      fetch('/api/admin?action=list_agencies').then(r => r.json()).catch(() => []),
       fetch('/api/qa?action=comms_stats').then(r => r.json()).catch(() => ({ emails24h: 0, sms24h: 0, failed24h: 0, total24h: 0 })),
       fetch('/api/qa?action=health_score').then(r => r.json()).catch(() => ({ health_score: 0, pass_rate: 0, open_errors: 0 })),
-      supabase.from('koto_voice_agents').select('*', { count: 'exact', head: true }),
-      supabase.from('koto_voice_calls').select('*', { count: 'exact', head: true }),
     ])
 
     setSuperStats({
-      totalAgencies:  statsRes.agencyCount   || 0,
-      totalUsers:     statsRes.userCount     || 0,
-      totalPages:     statsRes.pageCount     || 0,
-      totalClients:   statsRes.totalClients  || 0,
-      activeWpSites:  statsRes.wpSitesCount  || 0,
-      totalErrors24h: statsRes.errorCount    || 0,
+      totalAgencies:  adminStats.agency_count  || 0,
+      totalUsers:     0,
+      totalPages:     adminStats.page_count    || 0,
+      totalClients:   adminStats.client_count  || 0,
+      activeWpSites:  adminStats.wp_site_count || 0,
+      totalErrors24h: 0,
       uptime:         '99.97%',
-      voiceAgents:    voiceAgentCount         || 0,
-      totalCalls:     totalCallCount          || 0,
+      voiceAgents:    0,
+      totalCalls:     adminStats.call_count    || 0,
     })
     setRecentErrors(errors || [])
     setActivityFeed(feed || [])
@@ -783,8 +777,8 @@ export default function DashboardPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 14,
             }}>
-              <StatCard label="Total Agencies"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
-              <StatCard label="Total Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
+              <StatCard label="Agency Clients"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
+              <StatCard label="End Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
               <StatCard label="Total Pages"       value={superStats.totalPages}     icon={FileText}    accent={GRN} />
               <StatCard label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
             </div>
@@ -856,7 +850,7 @@ export default function DashboardPage() {
                           {a.brand_name || a.name}
                         </div>
                         <div style={{ fontSize: 11, color: '#9a9a96' }}>
-                          {a.owner_email || a.slug} &middot; {a.plan || 'starter'}
+                          {a.owner_email || a.slug} &middot; {a.plan || 'starter'} &middot; {a.client_count || 0} clients
                         </div>
                       </div>
                       <span style={{
