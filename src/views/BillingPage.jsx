@@ -24,6 +24,23 @@ const CREDIT_AMOUNTS = [50, 100, 250, 500]
 
 const TABS = ['Overview', 'Credits', 'Usage', 'Invoices', 'Client Billing']
 
+function StatCard({ label, value, icon: Icon, accent = T }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>{value}</div>
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+        </div>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={16} color={accent} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function BillingPage() {
   const { agencyId } = useAuth()
   const isMobile = useMobile()
@@ -105,23 +122,6 @@ export default function BillingPage() {
     })
     toast.success('Billing account created')
     loadDashboard()
-  }
-
-  function StatCard({ label, value, icon: Icon, accent = T }) {
-    return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>{value}</div>
-            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
-          </div>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={16} color={accent} />
-          </div>
-        </div>
-      </div>
-    )
   }
 
   const statusColor = (s) => s === 'paid' ? GRN : s === 'sent' || s === 'open' ? T : s === 'overdue' || s === 'past_due' ? R : '#6b7280'

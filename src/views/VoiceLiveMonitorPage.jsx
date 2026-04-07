@@ -22,6 +22,24 @@ function fmtPhone(n) { if (!n) return ''; const d = n.replace(/\D/g,''); if (d.l
 const OUTCOME_COLORS = { completed: GRN, answered: GRN, appointment: '#7c3aed', voicemail: AMB, no_answer: '#6b7280', transferred: T, emergency: R, in_progress: GRN, ringing: AMB, initiated: AMB, stopped: R }
 const SENTIMENT_EMOJI = { positive: '😊', neutral: '😐', negative: '😟', frustrated: '😤' }
 
+function StatCard({ label, value, icon: Icon, accent = T, sub, loading }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden', flex: 1, minWidth: 140 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, lineHeight: 1 }}>{loading ? '—' : value}</div>
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+          {sub && <div style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>{sub}</div>}
+        </div>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={16} color={accent} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function VoiceLiveMonitorPage() {
   const { agencyId } = useAuth()
   const isMobile = useMobile()
@@ -68,24 +86,6 @@ export default function VoiceLiveMonitorPage() {
     } catch { toast.error('Failed to stop call') }
   }
 
-  function StatCard({ label, value, icon: Icon, accent = T, sub }) {
-    return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden', flex: 1, minWidth: 140 }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, lineHeight: 1 }}>{loading ? '—' : value}</div>
-            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
-            {sub && <div style={{ fontSize: 10, color: '#bbb', marginTop: 2 }}>{sub}</div>}
-          </div>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={16} color={accent} />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
       {!isMobile && <Sidebar />}
@@ -114,10 +114,10 @@ export default function VoiceLiveMonitorPage() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 32px' }}>
           {/* Stats Row */}
           <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-            <StatCard label="Calls Today" value={stats.total_today} icon={Phone} accent={T} sub={`↑${stats.outbound_today} out · ↓${stats.inbound_today} in`} />
-            <StatCard label="Active Now" value={stats.active_now} icon={Activity} accent={stats.active_now > 0 ? GRN : '#6b7280'} />
-            <StatCard label="Answer Rate" value={`${stats.answered_rate}%`} icon={TrendingUp} accent={stats.answered_rate >= 50 ? GRN : AMB} />
-            <StatCard label="Appointments" value={stats.appointments_today} icon={Calendar} accent={'#7c3aed'} />
+            <StatCard label="Calls Today" value={stats.total_today} icon={Phone} accent={T} sub={`↑${stats.outbound_today} out · ↓${stats.inbound_today} in`} loading={loading} />
+            <StatCard label="Active Now" value={stats.active_now} icon={Activity} accent={stats.active_now > 0 ? GRN : '#6b7280'} loading={loading} />
+            <StatCard label="Answer Rate" value={`${stats.answered_rate}%`} icon={TrendingUp} accent={stats.answered_rate >= 50 ? GRN : AMB} loading={loading} />
+            <StatCard label="Appointments" value={stats.appointments_today} icon={Calendar} accent={'#7c3aed'} loading={loading} />
           </div>
 
           {/* Active Calls */}

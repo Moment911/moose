@@ -682,6 +682,43 @@ const ENCOURAGEMENT = {
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
+function Banner({ stepIdx, firstName, VC }) {
+  const msg = ENCOURAGEMENT[stepIdx];
+  if (!msg) return null;
+  return (
+    <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
+      <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
+      <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
+      <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName, VC)}</span>
+    </div>
+  );
+}
+
+function Nav({ step, setStep, saving, submit, firstName }) {
+  const isLast = step === STEPS.length - 2;
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24 }}>
+      <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
+        style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 24px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: step === 0 ? 'not-allowed' : 'pointer', color: '#374151', opacity: step === 0 ? .4 : 1, fontWeight: 700 }}>
+        <ChevronLeft size={16} /> Back
+      </button>
+      <span style={{ fontSize: 15, color: '#4b5563' }}>Step {step} of {STEPS.length - 2}</span>
+      {!isLast ? (
+        <button type="button" onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: `0 6px 20px ${ACCENT}40` }}>
+          {step === 1 && firstName ? `Let's go, ${firstName}!` : step === STEPS.length - 2 ? 'Almost done →' : 'Continue'} <ChevronRight size={16} />
+        </button>
+      ) : (
+        <button type="button" onClick={submit} disabled={saving}
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: '#22c55e', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', opacity: saving ? .7 : 1, boxShadow: '0 6px 20px rgba(34,197,94,.4)' }}>
+          {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
+          {saving ? 'Submitting...' : 'Submit & Finish'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function OnboardingPage() {
   const { token } = useParams();
   const [status, setStatus] = useState('loading');
@@ -1024,18 +1061,6 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     `Customers: "${(Array.isArray(form.customer_types) ? form.customer_types : []).join(', ') || 'not yet specified'}", ` +
     `Avg job value: $${form.avg_transaction || 'unknown'}, Pricing: "${(Array.isArray(form.service_pricing_model) ? form.service_pricing_model : []).join(', ') || 'unknown'}"`
 
-  function Banner({ stepIdx }) {
-    const msg = ENCOURAGEMENT[stepIdx];
-    if (!msg) return null;
-    // Pass VC to encouragement messages that accept it
-    return (
-      <div style={{ background: '#18181b', borderRadius: 16, padding: '16px 22px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
-        <img src="/koto-logo-white.svg" alt="Koto" style={{ height: 22, opacity: .85 }} />
-        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,.15)' }} />
-        <span style={{ fontSize: 15, color: '#e5e7eb', fontWeight: 600 }}>{msg(firstName, VC)}</span>
-      </div>
-    );
-  }
 
   // ── Status screens ──────────────────────────────────────────────────────────
   const Header = () => (
@@ -1101,31 +1126,6 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
     </>
   );
 
-  // ── Step navigation ──────────────────────────────────────────────────────────
-  function Nav() {
-    const isLast = step === STEPS.length - 2;
-    return (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24 }}>
-        <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
-          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 24px', borderRadius: 12, border: '2px solid #e5e7eb', background: '#fff', fontSize: 15, cursor: step === 0 ? 'not-allowed' : 'pointer', color: '#374151', opacity: step === 0 ? .4 : 1, fontWeight: 700 }}>
-          <ChevronLeft size={16} /> Back
-        </button>
-        <span style={{ fontSize: 15, color: '#4b5563' }}>Step {step} of {STEPS.length - 2}</span>
-        {!isLast ? (
-          <button type="button" onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: ACCENT, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: `0 6px 20px ${ACCENT}40` }}>
-            {step === 1 && firstName ? `Let's go, ${firstName}!` : step === STEPS.length - 2 ? 'Almost done →' : 'Continue'} <ChevronRight size={16} />
-          </button>
-        ) : (
-          <button type="button" onClick={submit} disabled={saving}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '13px 28px', borderRadius: 12, border: 'none', background: '#22c55e', color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', opacity: saving ? .7 : 1, boxShadow: '0 6px 20px rgba(34,197,94,.4)' }}>
-            {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle size={16} />}
-            {saving ? 'Submitting…' : 'Submit & Finish'}
-          </button>
-        )}
-      </div>
-    );
-  }
 
   // ── WELCOME ──────────────────────────────────────────────────────────────────
   if (step === 0) return (
@@ -1331,7 +1331,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 20px 80px' }} ref={topRef}>
 
-        <Banner stepIdx={step} />
+        <Banner stepIdx={step} firstName={firstName} VC={VC} />
 
         {/* ── STEP 1: About You ── */}
         {step === 1 && (
@@ -2656,7 +2656,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
           </div>
         )}
 
-        <Nav />
+        <Nav step={step} setStep={setStep} saving={saving} submit={submit} firstName={firstName} />
       </div>
 
       {/* ── Koto powered footer ── */}

@@ -14,6 +14,23 @@ const R = '#ea2729', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
+function StatCard({ label, value, icon: Icon, accent = T, loading }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>{loading ? '—' : value}</div>
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+        </div>
+        <div style={{ width: 38, height: 38, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={18} color={accent} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function BillingAdminPage() {
   const navigate = useNavigate()
   const { isSuperAdmin } = useAuth()
@@ -77,23 +94,6 @@ export default function BillingAdminPage() {
     loadData()
   }
 
-  function StatCard({ label, value, icon: Icon, accent = T }) {
-    return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>{loading ? '—' : value}</div>
-            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
-          </div>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={18} color={accent} />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   const statusColor = (s) => s === 'active' ? GRN : s === 'past_due' ? AMB : s === 'cancelled' ? R : '#6b7280'
   const TABS = ['Revenue', 'Agencies', 'Profitability', 'Platform Pricing']
 
@@ -128,16 +128,16 @@ export default function BillingAdminPage() {
           {tab === 0 && (
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-                <StatCard label="Monthly Recurring Revenue" value={`$${mrr.mrr?.toLocaleString()}`} icon={DollarSign} accent={GRN} />
-                <StatCard label="Total Agencies" value={mrr.total_agencies} icon={Users} accent={T} />
-                <StatCard label="Usage Revenue (Month)" value={`$${mrr.total_usage_revenue?.toFixed(2)}`} icon={TrendingUp} accent={AMB} />
-                <StatCard label="Credits Purchased (Month)" value={`$${mrr.credits_purchased_this_month?.toFixed(2)}`} icon={CreditCard} accent={R} />
+                <StatCard label="Monthly Recurring Revenue" value={`$${mrr.mrr?.toLocaleString()}`} icon={DollarSign} accent={GRN} loading={loading} />
+                <StatCard label="Total Agencies" value={mrr.total_agencies} icon={Users} accent={T} loading={loading} />
+                <StatCard label="Usage Revenue (Month)" value={`$${mrr.total_usage_revenue?.toFixed(2)}`} icon={TrendingUp} accent={AMB} loading={loading} />
+                <StatCard label="Credits Purchased (Month)" value={`$${mrr.credits_purchased_this_month?.toFixed(2)}`} icon={CreditCard} accent={R} loading={loading} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-                <StatCard label="Starter Plans" value={mrr.by_plan?.starter || 0} icon={Users} accent="#6b7280" />
-                <StatCard label="Growth Plans" value={mrr.by_plan?.growth || 0} icon={Users} accent={T} />
-                <StatCard label="Agency Plans" value={mrr.by_plan?.agency || 0} icon={Users} accent={R} />
-                <StatCard label="Cancelled" value={mrr.cancelled || 0} icon={AlertCircle} accent={R} />
+                <StatCard label="Starter Plans" value={mrr.by_plan?.starter || 0} icon={Users} accent="#6b7280" loading={loading} />
+                <StatCard label="Growth Plans" value={mrr.by_plan?.growth || 0} icon={Users} accent={T} loading={loading} />
+                <StatCard label="Agency Plans" value={mrr.by_plan?.agency || 0} icon={Users} accent={R} loading={loading} />
+                <StatCard label="Cancelled" value={mrr.cancelled || 0} icon={AlertCircle} accent={R} loading={loading} />
               </div>
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 24 }}>
                 <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Revenue Breakdown</div>
@@ -208,10 +208,10 @@ export default function BillingAdminPage() {
             <div>
               {/* Summary cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-                <StatCard label="Usage Revenue" value={`$${profitability.total_revenue?.toFixed(2)}`} icon={DollarSign} accent={GRN} />
-                <StatCard label="Platform Cost" value={`$${profitability.total_cost?.toFixed(2)}`} icon={DollarSign} accent={R} />
-                <StatCard label="Gross Margin" value={`$${profitability.total_margin?.toFixed(2)}`} icon={TrendingUp} accent={T} />
-                <StatCard label="Margin %" value={`${profitability.margin_pct}%`} icon={BarChart2} accent={profitability.margin_pct >= 50 ? GRN : profitability.margin_pct >= 20 ? AMB : R} />
+                <StatCard label="Usage Revenue" value={`$${profitability.total_revenue?.toFixed(2)}`} icon={DollarSign} accent={GRN} loading={loading} />
+                <StatCard label="Platform Cost" value={`$${profitability.total_cost?.toFixed(2)}`} icon={DollarSign} accent={R} loading={loading} />
+                <StatCard label="Gross Margin" value={`$${profitability.total_margin?.toFixed(2)}`} icon={TrendingUp} accent={T} loading={loading} />
+                <StatCard label="Margin %" value={`${profitability.margin_pct}%`} icon={BarChart2} accent={profitability.margin_pct >= 50 ? GRN : profitability.margin_pct >= 20 ? AMB : R} loading={loading} />
               </div>
 
               {/* Revenue by feature */}

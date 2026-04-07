@@ -35,6 +35,48 @@ function timeAgo(d) {
   return `${Math.floor(h / 24)}d ago`
 }
 
+function SuiteCheckbox({ suite, selectedSuites, toggleSuite }) {
+  const checked = selectedSuites.includes(suite.key)
+  return (
+    <label style={{
+      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+      borderRadius: 10, cursor: 'pointer', border: '1px solid #ececea',
+      background: checked ? R + '08' : '#fff', transition: 'all .15s',
+    }}>
+      <input type="checkbox" checked={checked} onChange={() => toggleSuite(suite.key)}
+        style={{ accentColor: R }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{suite.name}</div>
+        <div style={{ fontSize: 11, color: '#9a9a96' }}>{suite.testCount} tests</div>
+      </div>
+    </label>
+  )
+}
+
+function ResultBadge({ status }) {
+  const c = status === 'pass' ? GRN : status === 'fail' ? R : status === 'warn' ? AMB : '#6b7280'
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
+      background: c + '15', color: c, textTransform: 'uppercase', letterSpacing: '.05em',
+    }}>
+      {status}
+    </span>
+  )
+}
+
+function HealthBar({ score }) {
+  const c = score >= 80 ? GRN : score >= 50 ? AMB : R
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#ececea', overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: c, borderRadius: 4, transition: 'width .5s ease' }} />
+      </div>
+      <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: c }}>{score}%</span>
+    </div>
+  )
+}
+
 export default function QAConsolePage() {
   const navigate = useNavigate()
   const { isSuperAdmin } = useAuth()
@@ -279,49 +321,6 @@ export default function QAConsolePage() {
     )
   }
 
-  /* ── Shared sub-components ────────────────────────────────────────────── */
-  function SuiteCheckbox({ suite }) {
-    const checked = selectedSuites.includes(suite.key)
-    return (
-      <label style={{
-        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-        borderRadius: 10, cursor: 'pointer', border: '1px solid #ececea',
-        background: checked ? R + '08' : '#fff', transition: 'all .15s',
-      }}>
-        <input type="checkbox" checked={checked} onChange={() => toggleSuite(suite.key)}
-          style={{ accentColor: R }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{suite.name}</div>
-          <div style={{ fontSize: 11, color: '#9a9a96' }}>{suite.testCount} tests</div>
-        </div>
-      </label>
-    )
-  }
-
-  function ResultBadge({ status }) {
-    const c = status === 'pass' ? GRN : status === 'fail' ? R : status === 'warn' ? AMB : '#6b7280'
-    return (
-      <span style={{
-        fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
-        background: c + '15', color: c, textTransform: 'uppercase', letterSpacing: '.05em',
-      }}>
-        {status}
-      </span>
-    )
-  }
-
-  function HealthBar({ score }) {
-    const c = score >= 80 ? GRN : score >= 50 ? AMB : R
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#ececea', overflow: 'hidden' }}>
-          <div style={{ width: `${score}%`, height: '100%', background: c, borderRadius: 4, transition: 'width .5s ease' }} />
-        </div>
-        <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: c }}>{score}%</span>
-      </div>
-    )
-  }
-
   const channelIcon = (ch) => ch === 'email' ? Mail : ch === 'sms' ? MessageSquare : Phone
   const statusColor = (s) => s === 'delivered' || s === 'sent' ? GRN : s === 'failed' || s === 'bounced' ? R : AMB
 
@@ -351,7 +350,7 @@ export default function QAConsolePage() {
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-            {suites.map(s => <SuiteCheckbox key={s.key} suite={s} />)}
+            {suites.map(s => <SuiteCheckbox key={s.key} suite={s} selectedSuites={selectedSuites} toggleSuite={toggleSuite} />)}
           </div>
         </div>
 
