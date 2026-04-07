@@ -5,6 +5,8 @@ import { MobileMenuProvider } from '../context/MobileMenuContext'
 import MobileShell from '../components/mobile/MobileShell'
 import { AuthProvider } from '../hooks/useAuth'
 import { ClientProvider } from '../context/ClientContext'
+import { ThemeProvider } from '../context/ThemeContext'
+import OnboardingWizard from '../components/OnboardingWizard'
 
 import LoginPage from '../views/LoginPage'
 import ClientsPage from '../views/ClientsPage'
@@ -149,10 +151,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+      <ThemeProvider>
       <ClientProvider>
       <MobileMenuProvider>
         <Toaster position="top-right" />
         <CommandPalette />
+        <OnboardingWizard />
         <MobileShell>
         <ImpersonationBar/>
         <AgencyControlPanel/>
@@ -269,6 +273,7 @@ export default function App() {
         </MobileShell>
       </MobileMenuProvider>
       </ClientProvider>
+      </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   )
