@@ -30,22 +30,22 @@ async function api(body) {
 
 /* ── RETELL VOICES ── */
 const RETELL_VOICES = [
-  { id:'11labs-Adrian', name:'Adrian', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Professional' },
-  { id:'11labs-Myra', name:'Myra', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Friendly' },
-  { id:'11labs-Josh', name:'Josh', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Conversational' },
-  { id:'11labs-Sarah', name:'Sarah', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Warm' },
-  { id:'11labs-Mark', name:'Mark', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Authoritative' },
-  { id:'11labs-Evelyn', name:'Evelyn', provider:'ElevenLabs', gender:'Female', accent:'British', tone:'Elegant' },
-  { id:'11labs-Ryan', name:'Ryan', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Casual' },
-  { id:'11labs-Nicole', name:'Nicole', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Energetic' },
-  { id:'11labs-Chris', name:'Chris', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Trustworthy' },
-  { id:'11labs-Laura', name:'Laura', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Soothing' },
-  { id:'11labs-Alex', name:'Alex', provider:'ElevenLabs', gender:'Male', accent:'British', tone:'Polished' },
-  { id:'11labs-Sophia', name:'Sophia', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Persuasive' },
-  { id:'11labs-Daniel', name:'Daniel', provider:'ElevenLabs', gender:'Male', accent:'Australian', tone:'Relaxed' },
-  { id:'11labs-Emily', name:'Emily', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Cheerful' },
-  { id:'11labs-James', name:'James', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Commanding' },
-  { id:'11labs-Aria', name:'Aria', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Natural' },
+  { id:'11labs-Marissa', name:'Marissa', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Professional', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/marissa.mp3' },
+  { id:'11labs-Lily', name:'Lily', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Friendly', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/lily.mp3' },
+  { id:'11labs-Billy', name:'Billy', provider:'ElevenLabs', gender:'Male', accent:'American', tone:'Casual', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/billy.mp3' },
+  { id:'11labs-Anthony', name:'Anthony', provider:'ElevenLabs', gender:'Male', accent:'British', tone:'Professional', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/anthony.mp3' },
+  { id:'11labs-Merritt', name:'Merritt', provider:'ElevenLabs', gender:'Female', accent:'American', tone:'Warm', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/11labs-Merritt.mp3' },
+  { id:'11labs-Dorothy', name:'Dorothy', provider:'ElevenLabs', gender:'Female', accent:'British', tone:'Authoritative', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/Dorothy.mp3' },
+  { id:'openai-Nova', name:'Nova', provider:'OpenAI', gender:'Female', accent:'American', tone:'Energetic', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/nova_.wav' },
+  { id:'cartesia-Brian', name:'Brian', provider:'Cartesia', gender:'Male', accent:'American', tone:'Trustworthy', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/cartesia-ccb4cea5-13c8-4559-a9c8-e83bc8171c4d.mp3' },
+  { id:'cartesia-Cleo', name:'Cleo', provider:'Cartesia', gender:'Female', accent:'American', tone:'Confident', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/cartesia-cc444464-5920-438d-ac33-e6a6dd34a955.mp3' },
+  { id:'cartesia-Emily', name:'Emily', provider:'Cartesia', gender:'Female', accent:'American', tone:'Empathetic', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/cartesia-9b63a859-58b7-4388-a5ff-eeb3cbb701ed.mp3' },
+  { id:'cartesia-Victoria', name:'Victoria', provider:'Cartesia', gender:'Female', accent:'American', tone:'Executive', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/cartesia-10389723-cc73-4d94-a4ba-9fe7eccd98d3.mp3' },
+  { id:'cartesia-Andrew', name:'Andrew', provider:'Cartesia', gender:'Male', accent:'American', tone:'Consultative', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/cartesia-57b18927-80da-4929-a185-517ccc549976.mp3' },
+  { id:'minimax-Daniel', name:'Daniel', provider:'Minimax', gender:'Male', accent:'American', tone:'Persuasive', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/daniel.mp3' },
+  { id:'minimax-Ashley', name:'Ashley', provider:'Minimax', gender:'Female', accent:'American', tone:'Upbeat', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/ashley.mp3' },
+  { id:'retell-Nico', name:'Nico', provider:'Retell', gender:'Male', accent:'American', tone:'Natural', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/minimax_nico.mp3' },
+  { id:'retell-Della', name:'Della', provider:'Retell', gender:'Female', accent:'American', tone:'Conversational', preview:'https://retell-utils-public.s3.us-west-2.amazonaws.com/minimax-Della.mp3' },
 ]
 
 /* ── SIC CODES ── */
@@ -310,15 +310,20 @@ export default function VoiceAgentPage() {
     setGeneratingSection(null)
   }
 
-  /* ── VOICE PREVIEW ── */
+  /* ── VOICE PREVIEW — plays real Retell AI voice sample ── */
+  const audioRef = useRef(null)
+  const [playingVoice, setPlayingVoice] = useState(null)
   const previewVoice = (voice) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(`Hi, my name is ${voice.name}. I'm here to help grow your business.`)
-      u.rate = 0.95
-      u.pitch = voice.gender === 'Female' ? 1.1 : 0.9
-      window.speechSynthesis.speak(u)
-    } else { toast.error('Speech synthesis not supported') }
+    if (!voice.preview) { toast.error('No preview available'); return }
+    // Stop any currently playing preview
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
+    if (playingVoice === voice.id) { setPlayingVoice(null); return }
+    const audio = new Audio(voice.preview)
+    audio.onended = () => setPlayingVoice(null)
+    audio.onerror = () => { setPlayingVoice(null); toast.error('Failed to load preview') }
+    audio.play().catch(() => toast.error('Browser blocked audio playback'))
+    audioRef.current = audio
+    setPlayingVoice(voice.id)
   }
 
   /* ── TCPA EXPORT ── */
@@ -467,7 +472,9 @@ export default function VoiceAgentPage() {
                 <div key={v.id} onClick={()=>setWizardData(p=>({...p,voice_id:v.id}))} style={{ padding:12, borderRadius:10, border:`2px solid ${wizardData.voice_id===v.id?T:'#e5e7eb'}`, background:wizardData.voice_id===v.id?`${T}10`:W, cursor:'pointer', transition:'all .15s' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
                     <span style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:BLK }}>{v.name}</span>
-                    <button onClick={e=>{ e.stopPropagation(); previewVoice(v) }} style={{ background:`${PURP}15`, border:'none', borderRadius:6, padding:'3px 6px', cursor:'pointer', display:'flex', alignItems:'center' }}><Play size={10} color={PURP} /></button>
+                    <button onClick={e=>{ e.stopPropagation(); previewVoice(v) }} style={{ background: playingVoice===v.id ? R+'20' : `${PURP}15`, border:'none', borderRadius:6, padding:'3px 6px', cursor:'pointer', display:'flex', alignItems:'center' }}>
+                      {playingVoice===v.id ? <Square size={10} color={R} /> : <Play size={10} color={PURP} />}
+                    </button>
                   </div>
                   <div style={{ fontSize:10, color:'#888' }}>{v.gender} - {v.accent}</div>
                   <div style={{ fontSize:10, color:T, fontWeight:600 }}>{v.tone}</div>
