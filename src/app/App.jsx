@@ -1,5 +1,5 @@
 "use client"
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
 import MobileShell from '../components/mobile/MobileShell'
@@ -161,16 +161,11 @@ function setupErrorTracking() {
 function HomeSplitter() {
   const { user, loading, bypassMode } = useAuth()
   if (loading) return null
-  if (user || bypassMode) {
-    return (
-      <MobileShell>
-        <ImpersonationBar />
-        <AgencyControlPanel />
-        <DashboardPage />
-      </MobileShell>
-    )
-  }
-  return <MarketingSitePage />
+  // Not logged in → show marketing page (no shell, no hooks from app components)
+  if (!user && !bypassMode) return <MarketingSitePage />
+  // Logged in → redirect to /dashboard so the catch-all route handles it
+  // with the SAME component tree (MobileShell + RequireAuth + AppRoutes + DialPad)
+  return <Navigate to="/dashboard" replace />
 }
 
 export default function App() {
@@ -230,6 +225,7 @@ function AppRoutes() {
   return (
     <Routes>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/db-setup" element={<DbSetupPage />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/agent" element={<AgentPage />} />
