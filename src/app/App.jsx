@@ -112,6 +112,7 @@ import VoiceTestConsolePage from '../views/VoiceTestConsolePage'
 import VoiceLiveMonitorPage from '../views/VoiceLiveMonitorPage'
 import AnsweringServicePage from '../views/AnsweringServicePage'
 import VoiceCloserPage from '../views/VoiceCloserPage'
+import PhoneNumbersPage from '../views/PhoneNumbersPage'
 import CommandPalette from '../components/CommandPalette'
 import ClientPermissionsPage from '../views/ClientPermissionsPage'
 import ProposalsPage from '../views/ProposalsPage'
@@ -294,6 +295,7 @@ function AppRoutes() {
           <Route path="/voice/live" element={<VoiceLiveMonitorPage />} />
           <Route path="/answering" element={<AnsweringServicePage />} />
           <Route path="/voice/closer" element={<VoiceCloserPage />} />
+          <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />

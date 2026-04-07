@@ -158,6 +158,7 @@ export default function Sidebar() {
           <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub/>
           <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R}/>
           <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub/>
+          <NavLink to="/phones" icon={Phone} label="Phone Numbers" sub/>
 
           {/* Dynamic Clients */}
           {clients.length > 0 && (
