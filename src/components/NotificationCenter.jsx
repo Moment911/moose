@@ -44,20 +44,20 @@ export default function NotificationCenter() {
   useEffect(() => {
     async function fetchNotifications() {
       try {
-        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const { data, error } = await supabase
-          .from('koto_system_logs')
-          .select('*')
-          .in('level', ['error', 'warn', 'notification'])
-          .gte('created_at', since)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (!error && data) {
-          setNotifications(data);
-        }
+        const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const [logsRes, notifsRes] = await Promise.all([
+          supabase.from('koto_system_logs').select('id, level, message, created_at')
+            .in('level', ['error', 'warn', 'notification']).gte('created_at', since)
+            .order('created_at', { ascending: false }).limit(10),
+          supabase.from('notifications').select('id, type, title, message, read, created_at')
+            .order('created_at', { ascending: false }).limit(10),
+        ]);
+        const logs = (logsRes.data || []).map(l => ({ ...l, title: l.level === 'error' ? 'Error' : 'Warning', source: 'log' }));
+        const notifs = (notifsRes.data || []).map(n => ({ ...n, level: n.type, source: 'notification' }));
+        const merged = [...notifs, ...logs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 15);
+        setNotifications(merged);
       } catch (err) {
-        console.error('Failed to fetch notifications:', err);
+        // Silently fail
       }
     }
 

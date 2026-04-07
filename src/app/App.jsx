@@ -240,8 +240,6 @@ function AppRoutes() {
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
           <Route path="/clients/:clientId/documents" element={<ClientDocumentsPage />} />
           <Route path="/clients/:clientId/permissions" element={<ClientPermissionsPage />} />
-          <Route path="/onboard/:token" element={<OnboardingPage />} />
-          <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/clients/:clientId/persona" element={<ClientPersonaPage />} />
