@@ -52,6 +52,8 @@ export default function QAConsolePage() {
 
   // Error Log state
   const [errors, setErrors] = useState([])
+  const [errorCount, setErrorCount] = useState(0)
+  const [testingPipeline, setTestingPipeline] = useState(false)
 
   // Repair Center state
   const [repairs, setRepairs] = useState([])
@@ -70,8 +72,27 @@ export default function QAConsolePage() {
   const [selectedRun, setSelectedRun] = useState(null)
   const [runDetails, setRunDetails] = useState([])
 
-  useEffect(() => { loadSuites() }, [])
+  useEffect(() => { loadSuites(); loadErrorCount() }, [])
   useEffect(() => { loadTabData() }, [tab, commsFilter])
+
+  // Auto-refresh error count every 30s
+  useEffect(() => {
+    const interval = setInterval(loadErrorCount, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  async function loadErrorCount() {
+    try {
+      const since = new Date(Date.now() - 86400000).toISOString()
+      const res = await fetch(`/api/errors?severity=p1&since=${since}&limit=100`)
+      const data = await res.json()
+      const count = (data.errors || []).length
+      if (count > errorCount && errorCount > 0) {
+        toast.error(`${count - errorCount} new error(s) detected`)
+      }
+      setErrorCount(count)
+    } catch {}
+  }
 
   async function loadSuites() {
     try {
@@ -86,8 +107,27 @@ export default function QAConsolePage() {
     setLoading(true)
     try {
       if (tab === 1) {
-        const res = await fetch('/api/qa?action=errors&resolved=false')
-        setErrors(await res.json())
+        // Fetch REAL app errors from koto_system_logs + QA test errors
+        const [realRes, qaRes] = await Promise.all([
+          fetch('/api/errors?limit=50'),
+          fetch('/api/qa?action=errors&resolved=false'),
+        ])
+        const realData = await realRes.json()
+        const qaData = await qaRes.json()
+        const realErrors = (realData.errors || []).map(e => ({
+          id: e.id, message: e.message, severity: e.metadata?.severity || 'p2',
+          suite: e.service || 'runtime', source: 'app',
+          created_at: e.created_at, url: e.metadata?.url,
+          stack: e.metadata?.stack, resolved: e.metadata?.resolved,
+        }))
+        const qaErrors = (Array.isArray(qaData) ? qaData : []).map(e => ({
+          ...e, source: 'qa_test',
+        }))
+        // Merge, dedupe by message, sort by date
+        const all = [...realErrors, ...qaErrors]
+          .filter(e => !e.resolved)
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        setErrors(all)
       } else if (tab === 2) {
         const res = await fetch('/api/qa?action=repairs')
         setRepairs(await res.json())
@@ -184,6 +224,34 @@ export default function QAConsolePage() {
       })
       loadTabData()
     } catch {}
+  }
+
+  async function testErrorPipeline() {
+    setTestingPipeline(true)
+    try {
+      // Send a test error
+      await fetch('/api/errors', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'test_pipeline', severity: 'p2',
+          message: `[TEST] Error pipeline verification — ${new Date().toISOString()}`,
+          url: window.location.href,
+        }),
+      })
+      // Wait 2 seconds then check if it appeared
+      await new Promise(r => setTimeout(r, 2000))
+      const res = await fetch('/api/errors?limit=1')
+      const data = await res.json()
+      const latest = data.errors?.[0]
+      if (latest?.message?.includes('[TEST] Error pipeline')) {
+        toast.success('Error pipeline working — test error logged and retrieved')
+      } else {
+        toast.error('Error pipeline may be broken — test error not found')
+      }
+    } catch (e) {
+      toast.error('Error pipeline broken — API unreachable')
+    }
+    setTestingPipeline(false)
   }
 
   async function resolveError(errorId) {
@@ -350,45 +418,72 @@ export default function QAConsolePage() {
 
   /* ── Error Log ────────────────────────────────────────────────────────── */
   function renderErrorLog() {
+    const appErrors = errors.filter(e => e.source === 'app')
+    const qaErrors = errors.filter(e => e.source === 'qa_test')
     return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Open Errors</div>
-          <span style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: R + '15', color: R }}>{errors.length}</span>
+      <div>
+        {/* Test pipeline button */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          <button onClick={testErrorPipeline} disabled={testingPipeline}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: testingPipeline ? 'wait' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, color: BLK }}>
+            {testingPipeline ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={13} />}
+            Test Error Pipeline
+          </button>
+          <button onClick={() => loadTabData()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280' }}>
+            <RefreshCw size={13} /> Refresh
+          </button>
+          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, color: '#9a9a96' }}>App: {appErrors.length}</span>
+            <span style={{ fontSize: 11, color: '#9a9a96' }}>QA: {qaErrors.length}</span>
+          </div>
         </div>
-        <div style={{ padding: '4px 12px' }}>
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96' }}>
-              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-            </div>
-          ) : errors.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontFamily: FB, fontSize: 13 }}>
-              <CheckCircle size={24} color={GRN} style={{ marginBottom: 8 }} /><br />
-              No open errors
-            </div>
-          ) : errors.map(err => (
-            <div key={err.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 8px', borderBottom: '1px solid #f8f8f6' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: err.severity === 'critical' ? R : err.severity === 'high' ? '#f97316' : AMB, marginTop: 5, flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontFamily: FB, color: BLK, marginBottom: 4 }}>{err.message}</div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#f2f2f0', color: '#6b7280', textTransform: 'uppercase' }}>{err.suite || 'unknown'}</span>
-                  <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: (err.severity === 'critical' ? R : AMB) + '15', color: err.severity === 'critical' ? R : AMB, textTransform: 'uppercase' }}>{err.severity}</span>
-                  <span style={{ fontSize: 11, color: '#9a9a96' }}>{timeAgo(err.created_at)}</span>
+
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>All Errors (Live)</div>
+            <span style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: errors.length > 0 ? R + '15' : GRN + '15', color: errors.length > 0 ? R : GRN }}>{errors.length}</span>
+          </div>
+          <div style={{ padding: '4px 12px' }}>
+            {loading ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96' }}>
+                <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+              </div>
+            ) : errors.length === 0 ? (
+              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontFamily: FB, fontSize: 13 }}>
+                <CheckCircle size={24} color={GRN} style={{ marginBottom: 8 }} /><br />
+                No open errors — platform healthy
+              </div>
+            ) : errors.map(err => {
+              const sevColor = err.severity === 'p1' || err.severity === 'critical' ? R : err.severity === 'p2' || err.severity === 'high' ? '#f97316' : AMB
+              return (
+                <div key={err.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 8px', borderBottom: '1px solid #f8f8f6' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: sevColor, marginTop: 5, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontFamily: FB, color: BLK, marginBottom: 4 }}>{err.message}</div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: err.source === 'app' ? R + '12' : T + '12', color: err.source === 'app' ? R : T, textTransform: 'uppercase' }}>{err.source === 'app' ? 'APP' : 'QA TEST'}</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#f2f2f0', color: '#6b7280', textTransform: 'uppercase' }}>{err.suite || 'runtime'}</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: sevColor + '15', color: sevColor, textTransform: 'uppercase' }}>{err.severity}</span>
+                      <span style={{ fontSize: 11, color: '#9a9a96' }}>{timeAgo(err.created_at)}</span>
+                      {err.url && <span style={{ fontSize: 10, color: '#9a9a96', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.url}</span>}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    {err.source === 'qa_test' && (
+                      <button onClick={() => selfHeal(err.id)} style={{ fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, border: 'none', background: T + '15', color: T, cursor: 'pointer' }}>
+                        <Zap size={11} /> Heal
+                      </button>
+                    )}
+                    <button onClick={() => resolveError(err.id)} style={{ fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, border: 'none', background: GRN + '15', color: GRN, cursor: 'pointer' }}>
+                      <Check size={11} /> Resolve
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <button onClick={() => selfHeal(err.id)} style={{ fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, border: 'none', background: T + '15', color: T, cursor: 'pointer' }}>
-                  <Zap size={11} /> Heal
-                </button>
-                <button onClick={() => resolveError(err.id)} style={{ fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 6, border: 'none', background: GRN + '15', color: GRN, cursor: 'pointer' }}>
-                  <Check size={11} /> Resolve
-                </button>
-              </div>
-            </div>
-          ))}
+              )
+            })}
+          </div>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     )
   }
@@ -739,6 +834,9 @@ export default function QAConsolePage() {
                   }}>
                   <Icon size={14} />
                   {t}
+                  {i === 1 && errorCount > 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R, color: '#fff', marginLeft: 4 }}>{errorCount}</span>
+                  )}
                 </button>
               )
             })}
