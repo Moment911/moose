@@ -90,7 +90,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (BYPASS_AUTH) {
       // Check if bypass user is a platform admin
-      checkPlatformAdmin(BYPASS_USER.email)
+      checkPlatformAdmin(BYPASS_USER.email, BYPASS_USER.id)
       loadAgencyData(BYPASS_USER.id)
       supabase.from('agencies').select('*').eq('id', BYPASS_AGENCY_ID).single()
         .then(({ data }) => { if (data) setAgency(data) })
@@ -101,7 +101,7 @@ export function AuthProvider({ children }) {
       setUser(session?.user ?? null)
       setLoading(false)
       if (session?.user) {
-        checkPlatformAdmin(session.user.email)
+        checkPlatformAdmin(session.user.email, session.user.id)
         loadAgencyData(session.user.id)
       }
     })
@@ -109,7 +109,7 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        checkPlatformAdmin(session.user.email)
+        checkPlatformAdmin(session.user.email, session.user.id)
         loadAgencyData(session.user.id)
       } else {
         setAgencyId(null); setRole(null); setAgency(null)
@@ -120,10 +120,23 @@ export function AuthProvider({ children }) {
   }, [])
 
   // ── Check if user is platform admin ────────────────────────────────────────
-  async function checkPlatformAdmin(email) {
-    if (!email) return
-    const { data } = await supabase.from('koto_platform_admins').select('id').eq('email', email).maybeSingle()
-    setIsSuperAdmin(!!data)
+  async function checkPlatformAdmin(email, userId) {
+    if (!email && !userId) return
+    // Check by email first, then by user_id
+    let found = false
+    if (email) {
+      const { data } = await supabase.from('koto_platform_admins').select('id').eq('email', email).maybeSingle()
+      if (data) found = true
+    }
+    if (!found && userId) {
+      const { data } = await supabase.from('koto_platform_admins').select('id').eq('user_id', userId).maybeSingle()
+      if (data) found = true
+    }
+    if (found) {
+      console.log('[Koto] Super admin detected:', email || userId)
+      setIsSuperAdmin(true)
+      setRole('super_admin')
+    }
   }
 
   // ── Load agency membership + features ──────────────────────────────────────

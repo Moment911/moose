@@ -112,11 +112,12 @@ export default function DashboardPage() {
 
   /* ── Super Admin state ────────────────────────────────────────────────────── */
   const [superStats,     setSuperStats]     = useState({
-    totalAgencies: 0, totalUsers: 0, totalPages: 0,
+    totalAgencies: 0, totalUsers: 0, totalPages: 0, totalClients: 0,
     activeWpSites: 0, totalErrors24h: 0, uptime: '99.97%',
   })
   const [recentErrors,   setRecentErrors]   = useState([])
   const [activityFeed,   setActivityFeed]   = useState([])
+  const [agencyList,     setAgencyList]     = useState([])
 
   const greeting = getGreeting(firstName)
 
@@ -262,27 +263,14 @@ export default function DashboardPage() {
 
   /* ── Super Admin loader ───────────────────────────────────────────────────── */
   async function loadSuperAdminData() {
+    // Use health stats API for platform totals + direct queries for feeds
     const [
-      { count: totalAgencies },
-      { count: totalUsers },
-      { count: totalPages },
-      { count: activeWpSites },
-      { count: totalErrors24h },
+      statsRes,
       { data: errors },
       { data: feed },
+      { data: agencies },
     ] = await Promise.all([
-      supabase.from('agencies')
-        .select('*', { count: 'exact', head: true }),
-      supabase.from('profiles')
-        .select('*', { count: 'exact', head: true }),
-      supabase.from('koto_wp_pages')
-        .select('*', { count: 'exact', head: true }),
-      supabase.from('koto_wp_sites')
-        .select('*', { count: 'exact', head: true })
-        .eq('connected', true),
-      supabase.from('koto_system_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('level', 'error').gte('created_at', last24h()),
+      fetch('/api/health?action=stats').then(r => r.json()).catch(() => ({})),
       supabase.from('koto_system_logs')
         .select('id, level, message, created_at')
         .eq('level', 'error')
@@ -290,18 +278,24 @@ export default function DashboardPage() {
       supabase.from('koto_system_logs')
         .select('id, level, message, created_at')
         .order('created_at', { ascending: false }).limit(15),
+      supabase.from('agencies')
+        .select('id, name, slug, status, brand_name, created_at, owner_email, plan')
+        .order('created_at', { ascending: false }).limit(50),
     ])
 
     setSuperStats({
-      totalAgencies:  totalAgencies  || 0,
-      totalUsers:     totalUsers     || 0,
-      totalPages:     totalPages     || 0,
-      activeWpSites:  activeWpSites  || 0,
-      totalErrors24h: totalErrors24h || 0,
+      totalAgencies:  statsRes.agencyCount   || 0,
+      totalUsers:     statsRes.userCount     || 0,
+      totalPages:     statsRes.pageCount     || 0,
+      totalClients:   statsRes.totalClients  || 0,
+      activeWpSites:  statsRes.wpSitesCount  || 0,
+      totalErrors24h: statsRes.errorCount    || 0,
       uptime:         '99.97%',
     })
     setRecentErrors(errors || [])
     setActivityFeed(feed || [])
+    // Store agencies for View As table
+    if (agencies) setAgencyList(agencies)
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -624,7 +618,7 @@ export default function DashboardPage() {
 
         <MobileStatStrip stats={[
           { label: 'Agencies', value: loading ? '—' : superStats.totalAgencies,  color: T },
-          { label: 'Users',    value: loading ? '—' : superStats.totalUsers,     color: '#fff' },
+          { label: 'Clients',  value: loading ? '—' : superStats.totalClients,   color: '#fff' },
           { label: 'Pages',    value: loading ? '—' : superStats.totalPages,     color: GRN },
           { label: 'Errors',   value: loading ? '—' : superStats.totalErrors24h, color: superStats.totalErrors24h > 0 ? R : '#fff' },
         ]} />
@@ -750,12 +744,12 @@ export default function DashboardPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 24,
             }}>
-              <StatCard label="Total Agencies"   value={superStats.totalAgencies}  icon={Globe}     accent={T} />
-              <StatCard label="Total Users"       value={superStats.totalUsers}     icon={Users}     accent={R} />
-              <StatCard label="Total Pages"       value={superStats.totalPages}     icon={FileText}  accent={GRN} />
-              <StatCard label="Active WP Sites"   value={superStats.activeWpSites}  icon={HardDrive} accent={AMB} />
+              <StatCard label="Total Agencies"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
+              <StatCard label="Total Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
+              <StatCard label="Total Pages"       value={superStats.totalPages}     icon={FileText}    accent={GRN} />
+              <StatCard label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
               <StatCard label="Errors (24h)"      value={superStats.totalErrors24h} icon={AlertCircle} accent={superStats.totalErrors24h > 0 ? R : '#6b7280'} />
-              <StatCard label="System Uptime"     value={superStats.uptime}         icon={Activity}  accent={GRN} />
+              <StatCard label="System Uptime"     value={superStats.uptime}         icon={Activity}    accent={GRN} />
             </div>
 
             {/* Quick Actions */}

@@ -74,13 +74,24 @@ export async function GET(req: NextRequest) {
 
   if (action === 'stats') {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    const [{ count: userCount }, { count: pageCount }, { count: errorCount }, { data: recentChecks }] = await Promise.all([
-      sb.from('profiles').select('*', { count: 'exact', head: true }),
-      sb.from('koto_wp_pages').select('*', { count: 'exact', head: true }).gte('created_at', since),
+    const [
+      { count: userCount },
+      { count: pageCount },
+      { count: errorCount },
+      { count: agencyCount },
+      { count: wpSitesCount },
+      { count: totalClients },
+      { data: recentChecks },
+    ] = await Promise.all([
+      sb.from('agency_members').select('user_id', { count: 'exact', head: true }),
+      sb.from('koto_wp_pages').select('*', { count: 'exact', head: true }),
       sb.from('koto_system_logs').select('*', { count: 'exact', head: true }).eq('level', 'error').gte('created_at', since),
+      sb.from('agencies').select('*', { count: 'exact', head: true }),
+      sb.from('koto_wp_sites').select('*', { count: 'exact', head: true }),
+      sb.from('clients').select('*', { count: 'exact', head: true }),
       sb.from('koto_health_checks').select('*').order('checked_at', { ascending: false }).limit(100),
     ])
-    return NextResponse.json({ userCount, pageCount, errorCount, recentChecks: recentChecks || [] })
+    return NextResponse.json({ userCount, pageCount, errorCount, agencyCount, wpSitesCount, totalClients, recentChecks: recentChecks || [] })
   }
 
   // WordPress monitor — ping all sites, log failures, create incidents
