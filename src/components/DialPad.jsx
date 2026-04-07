@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Phone, PhoneOff, X, ChevronDown, Delete, Mic, MicOff,
-  Volume2, VolumeX, Loader2, PhoneIncoming
+  Volume2, Loader2, PhoneIncoming
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
@@ -33,11 +33,13 @@ export default function DialPad() {
   const [showPicker, setShowPicker] = useState(false)
   const [muted, setMuted] = useState(false)
   const [elapsed, setElapsed] = useState(0)
-  const [callStatus, setCallStatus] = useState('idle') // idle, connecting, ringing, connected, ended
+  const [callStatus, setCallStatus] = useState('idle')
   const [deviceReady, setDeviceReady] = useState(false)
+  const [activeProvider, setActiveProvider] = useState(null) // 'twilio' or 'telnyx'
   const [initError, setInitError] = useState('')
 
-  const deviceRef = useRef(null)
+  const twilioDeviceRef = useRef(null)
+  const telnyxClientRef = useRef(null)
   const callRef = useRef(null)
   const timerRef = useRef(null)
   const startTimeRef = useRef(0)
@@ -57,32 +59,97 @@ export default function DialPad() {
     }).catch(() => {})
   }, [open, aid])
 
-  // Initialize Twilio Device
-  const initDevice = useCallback(async () => {
-    if (deviceRef.current) return
+  // Init provider when selected number changes
+  useEffect(() => {
+    if (!open || !selectedNumber) return
+    const provider = selectedNumber.provider || 'telnyx'
+    if (provider !== activeProvider) {
+      initProvider(provider)
+    }
+  }, [selectedNumber, open])
+
+  const initProvider = useCallback(async (provider) => {
+    setDeviceReady(false)
     setInitError('')
+    setActiveProvider(provider)
+
+    // Request mic
     try {
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch {
+      setInitError('Microphone access required')
+      return
+    }
+
+    if (provider === 'telnyx') {
+      await initTelnyx()
+    } else {
+      await initTwilio()
+    }
+  }, [aid, user])
+
+  async function initTelnyx() {
+    try {
+      // Destroy old Twilio device if any
+      if (twilioDeviceRef.current) { twilioDeviceRef.current.destroy(); twilioDeviceRef.current = null }
+
+      const res = await fetch('/api/telnyx/token')
+      const data = await res.json()
+      if (data.error) { setInitError(data.error); return }
+
+      const { TelnyxRTC } = await import('@telnyx/webrtc')
+      const client = new TelnyxRTC({ login_token: data.token })
+
+      client.on('telnyx.ready', () => { setDeviceReady(true) })
+      client.on('telnyx.error', (e) => {
+        console.error('[DialPad] Telnyx error:', e)
+        setInitError(e.message || 'Telnyx connection error')
+      })
+      client.on('telnyx.notification', (notification) => {
+        if (notification.type === 'callUpdate') {
+          const call = notification.call
+          if (call.state === 'active') {
+            setCallStatus('connected')
+            startTimer()
+          } else if (call.state === 'hangup' || call.state === 'destroy') {
+            endCall()
+          } else if (call.state === 'ringing') {
+            setCallStatus('ringing')
+          } else if (call.state === 'trying') {
+            setCallStatus('connecting')
+          }
+        }
+      })
+
+      await client.connect()
+      telnyxClientRef.current = client
+    } catch (e) {
+      console.error('[DialPad] Telnyx init failed:', e)
+      setInitError(e.message || 'Failed to initialize Telnyx')
+    }
+  }
+
+  async function initTwilio() {
+    try {
+      // Destroy old Telnyx client if any
+      if (telnyxClientRef.current) { telnyxClientRef.current.disconnect(); telnyxClientRef.current = null }
+
       const identity = user?.email || `koto_${aid.slice(0,8)}`
       const res = await fetch(`/api/twilio/token?identity=${encodeURIComponent(identity)}`)
       const data = await res.json()
       if (data.error) { setInitError(data.error); return }
 
       const { Device } = await import('@twilio/voice-sdk')
-      const device = new Device(data.token, {
-        logLevel: 1,
-        codecPreferences: ['opus', 'pcmu'],
-        allowIncomingWhileBusy: false,
-      })
+      const device = new Device(data.token, { logLevel: 1, codecPreferences: ['opus', 'pcmu'] })
 
       device.on('registered', () => { setDeviceReady(true) })
       device.on('error', (e) => {
-        console.error('[DialPad] Device error:', e)
-        toast.error(`Phone error: ${e.message || 'Unknown'}`)
+        console.error('[DialPad] Twilio error:', e)
+        setInitError(e.message || 'Twilio error')
       })
       device.on('incoming', (call) => {
-        // Auto-accept incoming for now
         call.accept()
-        setupCallHandlers(call, 'inbound')
+        setupTwilioCall(call)
       })
       device.on('tokenWillExpire', async () => {
         const r = await fetch(`/api/twilio/token?identity=${encodeURIComponent(identity)}`)
@@ -91,54 +158,29 @@ export default function DialPad() {
       })
 
       await device.register()
-      deviceRef.current = device
-
-      // Request mic permission
-      try {
-        await navigator.mediaDevices.getUserMedia({ audio: true })
-      } catch {
-        toast.error('Microphone access required for calls')
-      }
+      twilioDeviceRef.current = device
     } catch (e) {
-      console.error('[DialPad] Init failed:', e)
-      setInitError(e.message || 'Failed to initialize phone')
+      console.error('[DialPad] Twilio init failed:', e)
+      setInitError(e.message || 'Failed to initialize Twilio')
     }
-  }, [aid, user])
+  }
 
-  useEffect(() => {
-    if (open && !deviceRef.current) initDevice()
-  }, [open, initDevice])
+  function startTimer() {
+    startTimeRef.current = Date.now()
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000))
+    }, 1000)
+  }
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (deviceRef.current) {
-        deviceRef.current.destroy()
-        deviceRef.current = null
-      }
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
-
-  function setupCallHandlers(call, direction) {
+  function setupTwilioCall(call) {
     callRef.current = call
     setCallStatus('connecting')
-
-    call.on('accept', () => {
-      setCallStatus('connected')
-      startTimeRef.current = Date.now()
-      timerRef.current = setInterval(() => {
-        setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000))
-      }, 1000)
-    })
+    call.on('accept', () => { setCallStatus('connected'); startTimer() })
     call.on('ringing', () => { setCallStatus('ringing') })
     call.on('disconnect', () => { endCall() })
     call.on('cancel', () => { endCall() })
-    call.on('error', (e) => {
-      console.error('[DialPad] Call error:', e)
-      toast.error(`Call error: ${e.message || 'Unknown'}`)
-      endCall()
-    })
+    call.on('error', (e) => { toast.error(`Call error: ${e.message}`); endCall() })
   }
 
   function endCall() {
@@ -149,19 +191,39 @@ export default function DialPad() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
   }
 
-  async function dial() {
-    if (!digits || !deviceRef.current) {
-      if (!deviceRef.current) toast.error('Phone not ready — initializing...')
-      else toast.error('Enter a number to call')
-      return
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (twilioDeviceRef.current) twilioDeviceRef.current.destroy()
+      if (telnyxClientRef.current) telnyxClientRef.current.disconnect()
+      if (timerRef.current) clearInterval(timerRef.current)
     }
+  }, [])
+
+  async function dial() {
+    if (!digits) { toast.error('Enter a number to call'); return }
+    if (!deviceReady) { toast.error('Phone not ready'); return }
+
     const to = digits.startsWith('+') ? digits : digits.length === 10 ? `+1${digits}` : `+${digits}`
+    const provider = activeProvider || selectedNumber?.provider || 'telnyx'
+
     try {
       setCallStatus('connecting')
-      const call = await deviceRef.current.connect({
-        params: { To: to },
-      })
-      setupCallHandlers(call, 'outbound')
+
+      if (provider === 'telnyx' && telnyxClientRef.current) {
+        const call = telnyxClientRef.current.newCall({
+          destinationNumber: to,
+          callerNumber: selectedNumber?.phone_number || '',
+        })
+        callRef.current = call
+      } else if (twilioDeviceRef.current) {
+        const call = await twilioDeviceRef.current.connect({ params: { To: to } })
+        setupTwilioCall(call)
+      } else {
+        toast.error('No phone provider ready')
+        setCallStatus('idle')
+        return
+      }
 
       // Record billing (best effort)
       fetch('/api/phone/call', {
@@ -173,26 +235,43 @@ export default function DialPad() {
         }),
       }).catch(() => {})
     } catch (e) {
-      toast.error(`Failed to connect: ${e.message}`)
+      toast.error(`Failed: ${e.message}`)
       setCallStatus('idle')
     }
   }
 
   function hangup() {
-    if (callRef.current) callRef.current.disconnect()
+    if (callRef.current) {
+      if (activeProvider === 'telnyx') {
+        callRef.current.hangup()
+      } else {
+        callRef.current.disconnect()
+      }
+    }
     endCall()
   }
 
   function toggleMute() {
     if (!callRef.current) return
     const next = !muted
-    callRef.current.mute(next)
+    if (activeProvider === 'telnyx') {
+      if (next) callRef.current.muteAudio()
+      else callRef.current.unmuteAudio()
+    } else {
+      callRef.current.mute(next)
+    }
     setMuted(next)
   }
 
   function pressKey(key) {
     setDigits(d => d + key)
-    if (callRef.current) callRef.current.sendDigits(key)
+    if (callRef.current) {
+      if (activeProvider === 'telnyx') {
+        callRef.current.dtmf(key)
+      } else {
+        callRef.current.sendDigits(key)
+      }
+    }
   }
 
   function formatTime(s) {
@@ -201,8 +280,9 @@ export default function DialPad() {
   }
 
   const isInCall = callStatus !== 'idle'
+  const providerColor = activeProvider === 'telnyx' ? GRN : T
 
-  // ── Floating button (closed) ──
+  // ── Floating button ──
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} style={{
@@ -215,11 +295,7 @@ export default function DialPad() {
       }}>
         {isInCall ? <PhoneIncoming size={24} color="#fff" /> : <Phone size={24} color="#fff" />}
         {isInCall && (
-          <span style={{
-            position: 'absolute', top: -4, right: -4, width: 22, height: 22,
-            borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: 9, fontWeight: 800, color: GRN, fontFamily: FH,
-          }}>{formatTime(elapsed).split(':')[0]}</span>
+          <span style={{ position: 'absolute', top: -4, right: -4, width: 22, height: 22, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: GRN, fontFamily: FH }}>{formatTime(elapsed).split(':')[0]}</span>
         )}
         <style>{`@keyframes koto-pulse{0%,100%{box-shadow:0 0 0 0 ${GRN}60}50%{box-shadow:0 0 0 14px ${GRN}00}}`}</style>
       </button>
@@ -229,21 +305,14 @@ export default function DialPad() {
   // ── Minimized bar ──
   if (minimized && isInCall) {
     return (
-      <div style={{
-        position: 'fixed', bottom: 24, right: 24, zIndex: 7000,
-        background: BLK, borderRadius: 16, padding: '12px 20px',
-        display: 'flex', alignItems: 'center', gap: 14,
-        boxShadow: '0 12px 48px rgba(0,0,0,.3)', border: '1px solid rgba(255,255,255,.1)',
-      }}>
+      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 7000, background: BLK, borderRadius: 16, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 12px 48px rgba(0,0,0,.3)', border: '1px solid rgba(255,255,255,.1)' }}>
         <div style={{ width: 10, height: 10, borderRadius: '50%', background: GRN, animation: 'koto-pulse 2s infinite' }} />
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: FH }}>{fmt(digits)}</div>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)' }}>{formatTime(elapsed)}</div>
         </div>
         <button onClick={() => setMinimized(false)} style={{ background: 'rgba(255,255,255,.1)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>Expand</button>
-        <button onClick={hangup} style={{ background: R, border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <PhoneOff size={16} color="#fff" />
-        </button>
+        <button onClick={hangup} style={{ background: R, border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><PhoneOff size={16} color="#fff" /></button>
         <style>{`@keyframes koto-pulse{0%,100%{box-shadow:0 0 0 0 ${GRN}60}50%{box-shadow:0 0 0 14px ${GRN}00}}`}</style>
       </div>
     )
@@ -251,72 +320,51 @@ export default function DialPad() {
 
   // ── Full dial pad ──
   return (
-    <div style={{
-      position: 'fixed', bottom: 24, right: 24, zIndex: 7000,
-      width: 320, background: BLK, borderRadius: 24,
-      boxShadow: '0 20px 60px rgba(0,0,0,.5)', border: '1px solid rgba(255,255,255,.08)',
-      overflow: 'hidden',
-    }}>
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 7000, width: 320, background: BLK, borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,.5)', border: '1px solid rgba(255,255,255,.08)', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ padding: '16px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', fontFamily: FH }}>
-            {isInCall ? 'Active Call' : 'Dial Pad'}
-          </div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', fontFamily: FH }}>{isInCall ? 'Active Call' : 'Dial Pad'}</div>
           {deviceReady && !isInCall && (
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: GRN, boxShadow: `0 0 6px ${GRN}` }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: providerColor, boxShadow: `0 0 6px ${providerColor}` }} />
+              <span style={{ fontSize: 9, fontWeight: 700, color: providerColor, fontFamily: FH, textTransform: 'uppercase' }}>{activeProvider}</span>
+            </div>
           )}
-          {!deviceReady && !initError && (
-            <Loader2 size={12} color="rgba(255,255,255,.3)" style={{ animation: 'spin 1s linear infinite' }} />
-          )}
+          {!deviceReady && !initError && <Loader2 size={12} color="rgba(255,255,255,.3)" style={{ animation: 'spin 1s linear infinite' }} />}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {isInCall && (
-            <button onClick={() => setMinimized(true)} style={{ background: 'rgba(255,255,255,.08)', border: 'none', color: 'rgba(255,255,255,.5)', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: FH }}>Minimize</button>
-          )}
-          <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.4)', cursor: 'pointer', padding: 4 }}>
-            <X size={18} />
-          </button>
+          {isInCall && <button onClick={() => setMinimized(true)} style={{ background: 'rgba(255,255,255,.08)', border: 'none', color: 'rgba(255,255,255,.5)', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: FH }}>Minimize</button>}
+          <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.4)', cursor: 'pointer', padding: 4 }}><X size={18} /></button>
         </div>
       </div>
 
-      {/* Init error */}
+      {/* Error */}
       {initError && (
         <div style={{ margin: '0 20px 12px', padding: '10px 14px', borderRadius: 10, background: R + '20', border: `1px solid ${R}40` }}>
           <div style={{ fontSize: 11, color: R, fontWeight: 700, fontFamily: FH, marginBottom: 4 }}>Phone Not Ready</div>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.4 }}>{initError}</div>
-          <button onClick={initDevice} style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#fff', background: R, border: 'none', padding: '5px 12px', borderRadius: 6, cursor: 'pointer', fontFamily: FH }}>Retry</button>
+          <button onClick={() => initProvider(activeProvider || 'telnyx')} style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#fff', background: R, border: 'none', padding: '5px 12px', borderRadius: 6, cursor: 'pointer', fontFamily: FH }}>Retry</button>
         </div>
       )}
 
       {/* Number selector */}
       <div style={{ padding: '0 20px 12px' }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, fontFamily: FH }}>Caller ID</div>
-        <button onClick={() => setShowPicker(!showPicker)} style={{
-          width: '100%', padding: '10px 14px', borderRadius: 10,
-          background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)',
-          color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', fontSize: 13, fontFamily: FH, fontWeight: 600, textAlign: 'left',
-        }}>
+        <button onClick={() => setShowPicker(!showPicker)} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, fontFamily: FH, fontWeight: 600, textAlign: 'left' }}>
           <span>
             {selectedNumber ? fmt(selectedNumber.phone_number) : 'Select number...'}
-            {selectedNumber && <span style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', marginLeft: 8 }}>{selectedNumber.provider}</span>}
+            {selectedNumber && <span style={{ fontSize: 10, color: providerColor, marginLeft: 8, fontWeight: 700 }}>{selectedNumber.provider?.toUpperCase()}</span>}
           </span>
           <ChevronDown size={14} style={{ opacity: .5 }} />
         </button>
         {showPicker && (
           <div style={{ marginTop: 4, borderRadius: 10, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.1)', maxHeight: 160, overflowY: 'auto' }}>
             {numbers.length === 0 ? (
-              <div style={{ padding: 16, textAlign: 'center', color: 'rgba(255,255,255,.3)', fontSize: 12 }}>No numbers</div>
+              <div style={{ padding: 16, textAlign: 'center', color: 'rgba(255,255,255,.3)', fontSize: 12 }}>No numbers available</div>
             ) : numbers.map(n => (
               <button key={n.id} onClick={() => { setSelectedNumber(n); setShowPicker(false) }}
-                style={{
-                  width: '100%', padding: '10px 14px', border: 'none', cursor: 'pointer',
-                  background: selectedNumber?.id === n.id ? 'rgba(255,255,255,.1)' : 'transparent',
-                  color: '#fff', fontSize: 13, fontFamily: FH, fontWeight: 600,
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  borderBottom: '1px solid rgba(255,255,255,.05)', textAlign: 'left',
-                }}>
+                style={{ width: '100%', padding: '10px 14px', border: 'none', cursor: 'pointer', background: selectedNumber?.id === n.id ? 'rgba(255,255,255,.1)' : 'transparent', color: '#fff', fontSize: 13, fontFamily: FH, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.05)', textAlign: 'left' }}>
                 <div>
                   <div>{fmt(n.phone_number)}</div>
                   <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)' }}>{n.friendly_name || n.purpose}</div>
@@ -341,19 +389,8 @@ export default function DialPad() {
             </div>
           </div>
         ) : (
-          <input
-            value={digits}
-            onChange={e => setDigits(e.target.value.replace(/[^0-9+*#\-()\s]/g, ''))}
-            placeholder="Enter number"
-            autoFocus
-            style={{
-              width: '100%', textAlign: 'center', padding: '8px 0', minHeight: 44,
-              fontSize: digits.length > 12 ? 20 : 28, fontWeight: 700,
-              color: '#fff', fontFamily: FH, letterSpacing: '.04em',
-              background: 'transparent', border: 'none', outline: 'none',
-              caretColor: R, boxSizing: 'border-box',
-            }}
-          />
+          <input value={digits} onChange={e => setDigits(e.target.value.replace(/[^0-9+*#\-()\s]/g, ''))} placeholder="Enter number" autoFocus
+            style={{ width: '100%', textAlign: 'center', padding: '8px 0', minHeight: 44, fontSize: digits.length > 12 ? 20 : 28, fontWeight: 700, color: '#fff', fontFamily: FH, letterSpacing: '.04em', background: 'transparent', border: 'none', outline: 'none', caretColor: R, boxSizing: 'border-box' }} />
         )}
       </div>
 
@@ -363,12 +400,7 @@ export default function DialPad() {
           <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
             {row.map(key => (
               <button key={key} onClick={() => pressKey(key)}
-                style={{
-                  padding: '14px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: 'rgba(255,255,255,.06)', color: '#fff', fontSize: 22,
-                  fontWeight: 700, fontFamily: FH, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', transition: 'background .1s',
-                }}
+                style={{ padding: '14px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,.06)', color: '#fff', fontSize: 22, fontWeight: 700, fontFamily: FH, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'background .1s' }}
                 onMouseDown={e => e.currentTarget.style.background = 'rgba(255,255,255,.15)'}
                 onMouseUp={e => e.currentTarget.style.background = 'rgba(255,255,255,.06)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,.06)'}>
@@ -384,46 +416,23 @@ export default function DialPad() {
       <div style={{ padding: '0 20px 20px' }}>
         {isInCall ? (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
-            <button onClick={toggleMute} style={{
-              width: 48, height: 48, borderRadius: '50%',
-              background: muted ? AMB + '30' : 'rgba(255,255,255,.08)',
-              border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <button onClick={toggleMute} style={{ width: 48, height: 48, borderRadius: '50%', background: muted ? AMB + '30' : 'rgba(255,255,255,.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {muted ? <MicOff size={20} color={AMB} /> : <Mic size={20} color="rgba(255,255,255,.6)" />}
             </button>
-            <button onClick={hangup} style={{
-              width: 64, height: 64, borderRadius: '50%', background: R, border: 'none',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 6px 24px ${R}50`,
-            }}>
+            <button onClick={hangup} style={{ width: 64, height: 64, borderRadius: '50%', background: R, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 6px 24px ${R}50` }}>
               <PhoneOff size={26} color="#fff" />
             </button>
-            <button style={{
-              width: 48, height: 48, borderRadius: '50%',
-              background: 'rgba(255,255,255,.08)', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <button style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Volume2 size={20} color="rgba(255,255,255,.6)" />
             </button>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setDigits(d => d.slice(0, -1))} style={{
-              width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.06)',
-              border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <button onClick={() => setDigits(d => d.slice(0, -1))} style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Delete size={20} color="rgba(255,255,255,.4)" />
             </button>
             <button onClick={dial} disabled={!digits || !deviceReady}
-              style={{
-                flex: 1, height: 48, borderRadius: 12,
-                background: (!digits || !deviceReady) ? 'rgba(255,255,255,.06)' : GRN,
-                border: 'none', cursor: (!digits || !deviceReady) ? 'default' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH,
-                boxShadow: digits && deviceReady ? `0 6px 24px ${GRN}40` : 'none',
-                transition: 'all .2s',
-              }}>
+              style={{ flex: 1, height: 48, borderRadius: 12, background: (!digits || !deviceReady) ? 'rgba(255,255,255,.06)' : GRN, border: 'none', cursor: (!digits || !deviceReady) ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, boxShadow: digits && deviceReady ? `0 6px 24px ${GRN}40` : 'none', transition: 'all .2s' }}>
               {callStatus === 'connecting' ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Phone size={18} />}
               {callStatus === 'connecting' ? 'Connecting...' : 'Call'}
             </button>
@@ -431,10 +440,7 @@ export default function DialPad() {
         )}
       </div>
 
-      <style>{`
-        @keyframes koto-pulse{0%,100%{box-shadow:0 0 0 0 ${GRN}60}50%{box-shadow:0 0 0 14px ${GRN}00}}
-        @keyframes spin{to{transform:rotate(360deg)}}
-      `}</style>
+      <style>{`@keyframes koto-pulse{0%,100%{box-shadow:0 0 0 0 ${GRN}60}50%{box-shadow:0 0 0 14px ${GRN}00}} @keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }
