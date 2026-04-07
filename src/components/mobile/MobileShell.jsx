@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  BarChart2, Brain, ChevronRight, Clock, FileSignature, Globe, Inbox,
+  BarChart2, Brain, ChevronRight, Clock, FileSignature, Globe, HelpCircle, Inbox,
   LayoutGrid, LogOut, Menu, Plug, Settings, Sparkles, Star, Target,
   TrendingUp, Users, X, Zap, Bug, Activity, DollarSign, Shield
 } from 'lucide-react'
@@ -45,7 +45,8 @@ const DRAWER_SECTIONS = [
   ]},
   { title: 'Support', items: [
     { to: '/desk',            icon: Inbox,  label: 'KotoDesk'       },
-    { to: '/desk/knowledge',  icon: Brain,  label: 'Knowledge Base' },
+    { to: '/desk/knowledge',  icon: Brain,      label: 'Knowledge Base' },
+    { to: '/help',             icon: HelpCircle, label: 'Help Center' },
   ]},
   { title: 'Agency', items: [
     { to: '/agency-settings', icon: Settings,   label: 'Settings'      },

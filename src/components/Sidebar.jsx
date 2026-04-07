@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  Activity, BarChart2, BookOpen, Brain, CheckCircle, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -141,6 +141,7 @@ export default function Sidebar() {
           <NavLink to="/desk"          startsWith icon={Inbox}      label="KotoDesk"/>
           <NavLink to="/desk/knowledge" startsWith icon={Brain}     label="Q&A Knowledge" sub/>
           <NavLink to="/desk/reports"  startsWith icon={BarChart2}  label="Desk Reports"  sub/>
+          <NavLink to="/help"          icon={HelpCircle}  label="Help Center"/>
 
           {/* Client tree */}
           {clients.length > 0 && (

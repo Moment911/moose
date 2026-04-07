@@ -2,7 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Star, Target, TrendingUp, Inbox, Brain,
-  FileSignature, Clock, BarChart2, Settings, Plug, Shield, Globe,
+  FileSignature, Clock, BarChart2, HelpCircle, Settings, Plug, Shield, Globe,
   Sparkles, Zap, Bug, Activity, ChevronRight, LogOut, X, DollarSign
 } from 'lucide-react'
 import { signOut } from '../../lib/supabase'
@@ -32,7 +32,8 @@ const SECTIONS = [
   ]},
   { title: 'Support', items: [
     { label: 'KotoDesk',       icon: Inbox, path: '/desk' },
-    { label: 'Knowledge Base', icon: Brain, path: '/desk/knowledge' },
+    { label: 'Knowledge Base', icon: Brain,      path: '/desk/knowledge' },
+    { label: 'Help Center',   icon: HelpCircle, path: '/help' },
   ]},
   { title: 'Agency', items: [
     { label: 'Agency Settings', icon: Settings,    path: '/agency-settings' },
