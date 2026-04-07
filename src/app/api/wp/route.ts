@@ -248,6 +248,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    if (action === 'connect_site') {
+      const { site_url, site_name, agency_id, client_id } = body
+      if (!site_url || !agency_id) return NextResponse.json({ error: 'site_url and agency_id required' }, { status: 400 })
+      // Test connection
+      try {
+        const testRes = await fetch(`${site_url.replace(/\/$/, '')}/wp-json/wp/v2/posts?per_page=1`, { signal: AbortSignal.timeout(8000) })
+        const isWP = testRes.ok
+        const { data, error } = await sb.from('koto_wp_sites').upsert({
+          site_url: site_url.replace(/\/$/, ''), site_name: site_name || site_url,
+          agency_id, client_id: client_id || null,
+          connected: isWP, last_connected_at: isWP ? new Date().toISOString() : null,
+        }, { onConflict: 'site_url' }).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ success: true, connected: isWP, site: data })
+      } catch (e: any) {
+        return NextResponse.json({ error: `Connection failed: ${e.message}`, connected: false }, { status: 200 })
+      }
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     console.error('[WP API Error]', e)
