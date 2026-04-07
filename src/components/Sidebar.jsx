@@ -60,7 +60,7 @@ function Section({ label }) {
 }
 
 export default function Sidebar() {
-  const { user, firstName, agencyId, isImpersonating, isPreviewingClient } = useAuth()
+  const { user, firstName, agencyId, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -196,15 +196,18 @@ export default function Sidebar() {
             </>
           )}
 
-          {/* AGENCY */}
+          {/* AGENCY — only for agency admins+ */}
+          {(isAgencyAdmin || isSuperAdmin) && (<>
           <Section label="Agency"/>
           <NavLink to="/marketplace" icon={Sparkles} label="Marketplace"/>
           <NavLink to="/integrations" icon={Plug} label="Integrations"/>
           <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
           <NavLink to="/billing" icon={CreditCard} label="Billing"/>
+          </>)}
           <NavLink to="/help" icon={HelpCircle} label="Help Center"/>
 
-          {/* ADMIN */}
+          {/* ADMIN — super admin only */}
+          {isSuperAdmin && (<>
           <Section label="Admin"/>
           <NavLink to="/master-admin" icon={Shield} label="Master Admin"/>
           <NavLink to="/platform-admin" icon={Shield} label="Platform Admin"/>
@@ -215,6 +218,7 @@ export default function Sidebar() {
             <Activity size={14} style={{flexShrink:0,opacity:.65}}/><span style={{flex:1,lineHeight:1.2}}>System Status ↗</span>
           </a>
           <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
+          </>)}
         </div>
 
         {/* Footer */}

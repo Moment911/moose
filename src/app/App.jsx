@@ -107,6 +107,7 @@ import UptimeMonitorPage from '../views/UptimeMonitorPage'
 import PublicUptimePage from '../views/PublicUptimePage'
 import VoiceAgentPage from '../views/VoiceAgentPage'
 import CommandPalette from '../components/CommandPalette'
+import ClientPermissionsPage from '../views/ClientPermissionsPage'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
@@ -170,6 +171,7 @@ export default function App() {
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
           <Route path="/clients/:clientId/documents" element={<ClientDocumentsPage />} />
+          <Route path="/clients/:clientId/permissions" element={<ClientPermissionsPage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />
