@@ -83,13 +83,51 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ userCount, pageCount, errorCount, recentChecks: recentChecks || [] })
   }
 
+  // WordPress monitor — ping all sites, log failures, create incidents
+  if (action === 'monitor_wp') {
+    const { data: sites } = await sb.from('koto_wp_sites').select('id,site_url,api_key,connected')
+    const results = []
+    for (const site of (sites || []).slice(0, 20)) {
+      const start = Date.now()
+      let ok = false
+      try {
+        const res = await fetch(`${site.site_url}/wp-json/koto/v1/agency/test`, {
+          headers: { 'X-Koto-API-Key': site.api_key || '' },
+          signal: AbortSignal.timeout(8000),
+        })
+        ok = res.ok
+      } catch {}
+      const ms = Date.now() - start
+      await sb.from('koto_wp_sites').update({ connected: ok, last_ping: new Date().toISOString() }).eq('id', site.id)
+      if (!ok) {
+        // Log P1 error for down sites
+        await sb.from('koto_system_logs').insert({
+          level: 'error', service: 'wp_error', action: 'p1',
+          message: `WordPress site down: ${site.site_url}`,
+          metadata: { site_id: site.id, site_url: site.site_url, response_ms: ms, severity: 'p1' },
+        })
+      }
+      results.push({ site_url: site.site_url, connected: ok, response_ms: ms })
+    }
+    return NextResponse.json({ results })
+  }
+
   // Full health check
   const [supabaseCheck, vercelCheck] = await Promise.all([checkSupabase(sb), checkVercel()])
   const wpChecks = await checkWordPressSites(sb)
 
   const checks = [supabaseCheck, vercelCheck]
   for (const check of checks) {
-    await sb.from('koto_health_checks').insert({ ...check, checked_at: new Date().toISOString() })
+    await sb.from('koto_health_checks').insert({ ...check, checked_at: new Date().toISOString() })  }
+
+  // Log P1 for any outages
+  for (const check of checks) {
+    if (check.status === 'outage') {
+      await sb.from('koto_system_logs').insert({
+        level: 'error', service: check.service, action: 'p1',
+        message: `Service outage: ${check.service} — ${check.message}`,
+        metadata: { severity: 'p1', response_ms: check.response_ms },
+      })    }
   }
 
   const overall = checks.every(c => c.status === 'operational') ? 'operational' : checks.some(c => c.status === 'outage') ? 'outage' : 'degraded'

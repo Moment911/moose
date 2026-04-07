@@ -109,7 +109,38 @@ import ProposalBuilderPage from '../views/ProposalBuilderPage'
 import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
 
+// Global error handler — reports to /api/errors
+function setupErrorTracking() {
+  if (typeof window === 'undefined') return
+  if (window.__kotoErrorTracking) return
+  window.__kotoErrorTracking = true
+
+  window.onerror = (message, source, lineno, colno, error) => {
+    fetch('/api/errors', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'js_error', severity: 'p2', message: String(message),
+        stack: error?.stack || '', url: source || window.location.href,
+        metadata: { lineno, colno, source },
+      }),
+    }).catch(() => {})
+  }
+
+  window.onunhandledrejection = (event) => {
+    const msg = event.reason?.message || String(event.reason)
+    fetch('/api/errors', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'js_error', severity: 'p2', message: `Unhandled promise: ${msg}`,
+        stack: event.reason?.stack || '', url: window.location.href,
+      }),
+    }).catch(() => {})
+  }
+}
+
 export default function App() {
+  useEffect(() => { setupErrorTracking() }, [])
+
   return (
     <BrowserRouter>
       <AuthProvider>
