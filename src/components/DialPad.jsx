@@ -96,6 +96,7 @@ export default function DialPad() {
           from_number: selectedNumber.phone_number,
           to_number: to,
           agency_id: aid,
+          client_id: isClient ? clientId : selectedNumber.client_id || null,
         }),
       })
       const data = await res.json()

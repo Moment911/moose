@@ -66,14 +66,18 @@ export async function POST(req: NextRequest) {
 
   /* ── Initiate outbound call via Telnyx ─────────────────────────────── */
   if (action === 'dial') {
-    const { from_number, to_number, agency_id, user_phone } = body
+    const { from_number, to_number, agency_id, client_id } = body
     if (!from_number || !to_number) {
       return NextResponse.json({ error: 'from_number and to_number required' }, { status: 400 })
     }
 
-    // Determine provider from the from_number
+    // Determine provider + ownership from the from_number
     const { data: phoneRecord } = await s.from('koto_phone_numbers')
-      .select('provider, provider_sid').eq('phone_number', from_number).single()
+      .select('provider, provider_sid, agency_id, client_id').eq('phone_number', from_number).single()
+
+    // Use the phone number's agency_id if caller didn't specify
+    const effectiveAgencyId = agency_id || phoneRecord?.agency_id || null
+    const effectiveClientId = client_id || phoneRecord?.client_id || null
 
     const provider = phoneRecord?.provider || 'telnyx'
 
@@ -119,7 +123,8 @@ export async function POST(req: NextRequest) {
           await fetch(new URL('/api/billing', req.url).toString(), {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              action: 'record_usage', agency_id: agency_id || null,
+              action: 'record_usage', agency_id: effectiveAgencyId,
+              client_id: effectiveClientId,
               feature: 'voice_outbound', quantity: 1, unit: 'minutes', unit_cost: 0.05,
             }),
           })
