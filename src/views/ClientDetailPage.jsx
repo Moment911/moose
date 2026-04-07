@@ -602,6 +602,77 @@ function OnboardingTab({ profile, clientId, tokens, loadTokens, portalLink, setP
   )
 }
 
+function ProfileTab({ profile, clientId }) {
+  const p = profile || {}
+  const contact = p.contact || {}
+  const products = p.products_services || {}
+  const customers = p.customers || {}
+  const competitors = p.competitors || {}
+  const geo = p.geography || {}
+  const brand = p.brand || {}
+  const social = p.social || {}
+  const hosting = p.hosting || {}
+  const cms = p.cms || {}
+  const tracking = p.tracking || {}
+  const marketing = p.marketing || {}
+  const goals = p.goals || {}
+  const parsePersona = (raw) => {
+    if (!raw) return {}
+    try { return typeof raw === 'string' ? JSON.parse(raw) : raw } catch { return {} }
+  }
+  const persona = parsePersona(p.ai_persona)
+
+  if (!p.business_name && !p.description) {
+    return (
+      <div style={{ maxWidth: 900 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: '0 0 20px' }}>Client Intelligence Profile</h2>
+        <div style={{ background: '#f0fbfc', borderRadius: 14, border: '1.5px dashed #ea272940', padding: 40, textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: '#374151', marginBottom: 8 }}>No onboarding data yet</div>
+          <div style={{ fontSize: 15, color: '#4b5563', lineHeight: 1.6, maxWidth: 380, margin: '0 auto' }}>
+            Go to the <strong>Onboarding</strong> tab to generate a link, then send it to your client.
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ maxWidth: 900 }}>
+      <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: '0 0 20px' }}>Client Intelligence Profile</h2>
+      <DataSection title="Business Overview" icon={Building2}>
+        <DataRow label="Business Name" value={p.business_name} />
+        <DataRow label="Description" value={p.description} />
+        <DataRow label="Industry" value={p.industry} />
+        <DataRow label="Website" value={p.website} link />
+        <DataRow label="Phone" value={contact.phone} />
+        <DataRow label="Email" value={contact.email} />
+        <DataRow label="Address" value={[contact.address, contact.city, contact.state, contact.zip].filter(Boolean).join(', ')} />
+      </DataSection>
+      <DataSection title="Products & Services" icon={Star}>
+        <DataPills label="Top Services" value={products.top_services} />
+        <DataRow label="Avg Transaction" value={products.avg_transaction ? `$${products.avg_transaction}` : null} />
+        <DataPills label="Pricing Model" value={products.service_pricing_model} />
+      </DataSection>
+      <DataSection title="Target Customers" icon={Users}>
+        <DataPills label="Customer Types" value={customers.customer_types} />
+        <DataRow label="Decision Maker" value={customers.decision_maker} />
+        <DataRow label="Purchase Cycle" value={customers.purchase_cycle} />
+      </DataSection>
+      <DataSection title="Geography" icon={Globe}>
+        <DataPills label="Service Areas" value={geo.service_areas} />
+        <DataRow label="Radius" value={geo.service_radius} />
+      </DataSection>
+      {persona.headline && (
+        <DataSection title="AI Persona" icon={Brain}>
+          <DataRow label="Headline" value={persona.headline} />
+          <DataRow label="Summary" value={persona.summary} />
+        </DataSection>
+      )}
+    </div>
+  )
+}
+
 export default function ClientDetailPage() {
   const { clientId } = useParams()
   const navigate = useNavigate()
@@ -705,7 +776,8 @@ export default function ClientDetailPage() {
     marketing: <MarketingTab profile={profile} saveNestedField={saveNestedField} />,
     contacts: <ContactsTab profile={profile} saveField={saveField} />,
     onboarding: <OnboardingTab profile={profile} clientId={clientId} tokens={tokens} loadTokens={loadTokens} portalLink={portalLink} setPortalLink={setPortalLink} portalCopied={portalCopied} setPortalCopied={setPortalCopied} genPortal={genPortal} setGenPortal={setGenPortal} copiedToken={copiedToken} setCopiedToken={setCopiedToken} />,
-    profile: (() => {
+    profile: <ProfileTab profile={profile} clientId={clientId} />,
+    _old_profile: (() => {
       const p = profile || {}
       const contact = p.contact || {}
       const products = p.products_services || {}
