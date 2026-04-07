@@ -447,85 +447,91 @@ export async function POST(req: NextRequest) {
   /* ── Start a full QA run ────────────────────────────────────────────── */
   if (action === 'start_run') {
     const suites = body.suites || Object.keys(TEST_SUITES)
-    const agencyId = body.agency_id || null
-    const triggeredBy = body.triggered_by || 'manual'
+    // Validate agency_id is a real uuid if provided, otherwise omit
+    const rawAgencyId = body.agency_id
+    const agencyId = rawAgencyId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawAgencyId)
+      ? rawAgencyId : undefined
 
-    // Create run record — only include agency_id if it's a valid uuid
-    const insertData: Record<string, any> = {
-      status: 'running',
-      total_tests: 0,
-      triggered_by: triggeredBy,
-    }
-    if (agencyId) insertData.agency_id = agencyId
-
-    const { data: run, error: runErr } = await sb.from('koto_qa_runs')
-      .insert(insertData).select().single()
-
-    if (runErr) return NextResponse.json({ error: runErr.message }, { status: 500 })
-
-    // Run all requested suites
+    // Run all requested suites first (no DB needed)
     const allResults: any[] = []
     const startTime = Date.now()
-
     for (const suiteKey of suites) {
       const results = await runSuite(suiteKey)
       allResults.push(...results)
     }
-
-    // Save results
-    if (allResults.length > 0) {
-      await sb.from('koto_qa_results').insert(
-        allResults.map(r => ({ ...r, run_id: run.id }))
-      )
-    }
-
-    // Log any failures as errors
-    const failures = allResults.filter(r => r.status === 'fail')
-    for (const f of failures) {
-      const errInsert: Record<string, any> = {
-        suite: f.suite,
-        error_type: 'test_failure',
-        message: `${f.test_name}: ${f.message}`,
-        severity: 'medium',
-      }
-      if (agencyId) errInsert.agency_id = agencyId
-      await sb.from('koto_qa_errors').insert(errInsert)
-    }
-
     const healthScore = calculateHealthScore(allResults)
     const durationMs = Date.now() - startTime
+    const passed = allResults.filter(r => r.status === 'pass').length
+    const failures = allResults.filter(r => r.status === 'fail')
+    const passRate = allResults.length > 0 ? Math.round((passed / allResults.length) * 100) : 0
 
-    // Update run
-    await sb.from('koto_qa_runs').update({
-      status: 'completed',
-      total_tests: allResults.length,
-      passed: allResults.filter(r => r.status === 'pass').length,
-      failed: failures.length,
-      skipped: allResults.filter(r => r.status === 'skip').length,
-      health_score: healthScore,
-      duration_ms: durationMs,
-      completed_at: new Date().toISOString(),
-    }).eq('id', run.id)
+    // Try to persist to DB — if tables don't exist yet, still return results
+    let runId: string | null = null
+    try {
+      // Create run record
+      const runInsert: Record<string, any> = {
+        status: 'completed',
+        total_tests: allResults.length,
+        passed,
+        failed: failures.length,
+        skipped: allResults.filter(r => r.status === 'skip').length,
+        health_score: healthScore,
+        duration_ms: durationMs,
+        triggered_by: 'manual',
+        completed_at: new Date().toISOString(),
+      }
+      if (agencyId) runInsert.agency_id = agencyId
 
-    // Snapshot metrics
-    const { count: openErrors } = await sb.from('koto_qa_errors')
-      .select('*', { count: 'exact', head: true })
-      .eq('resolved', false)
+      const { data: run } = await sb.from('koto_qa_runs')
+        .insert(runInsert).select().single()
+      runId = run?.id
 
-    const metricsInsert: Record<string, any> = {
-      health_score: healthScore,
-      pass_rate: allResults.length > 0
-        ? Math.round((allResults.filter(r => r.status === 'pass').length / allResults.length) * 100)
-        : 0,
-      open_errors: openErrors || 0,
+      // Save individual results
+      if (runId && allResults.length > 0) {
+        await sb.from('koto_qa_results').insert(
+          allResults.map(r => ({
+            run_id: runId,
+            suite: r.suite,
+            test_name: r.test_name,
+            status: r.status,
+            duration_ms: r.duration_ms,
+            message: r.message,
+          }))
+        )
+      }
+
+      // Log failures as errors
+      for (const f of failures) {
+        const errInsert: Record<string, any> = {
+          suite: f.suite,
+          error_type: 'test_failure',
+          message: `${f.test_name}: ${f.message}`,
+          severity: 'medium',
+        }
+        if (agencyId) errInsert.agency_id = agencyId
+        await sb.from('koto_qa_errors').insert(errInsert)
+      }
+
+      // Snapshot metrics
+      const { count: openErrors } = await sb.from('koto_qa_errors')
+        .select('*', { count: 'exact', head: true })
+        .eq('resolved', false)
+
+      const metricsInsert: Record<string, any> = {
+        health_score: healthScore,
+        pass_rate: passRate,
+        open_errors: openErrors || 0,
+      }
+      if (agencyId) metricsInsert.agency_id = agencyId
+      await sb.from('koto_qa_metrics').insert(metricsInsert)
+    } catch (dbErr: any) {
+      console.error('QA DB persist error (non-fatal):', dbErr.message)
     }
-    if (agencyId) metricsInsert.agency_id = agencyId
-    await sb.from('koto_qa_metrics').insert(metricsInsert)
 
     return NextResponse.json({
-      run_id: run.id,
+      run_id: runId,
       total: allResults.length,
-      passed: allResults.filter(r => r.status === 'pass').length,
+      passed,
       failed: failures.length,
       health_score: healthScore,
       duration_ms: durationMs,
@@ -596,8 +602,8 @@ export async function POST(req: NextRequest) {
 
   /* ── Log communication ──────────────────────────────────────────────── */
   if (action === 'log_comm') {
-    const { data, error } = await sb.from('koto_communications_log').insert({
-      agency_id: body.agency_id,
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const commInsert: Record<string, any> = {
       channel: body.channel,
       direction: body.direction || 'outbound',
       recipient: body.recipient,
@@ -608,10 +614,15 @@ export async function POST(req: NextRequest) {
       provider_id: body.provider_id,
       error_message: body.error_message,
       metadata: body.metadata || {},
-      client_id: body.client_id,
       related_type: body.related_type,
-      related_id: body.related_id,
-    }).select().single()
+    }
+    // Only include uuid fields if they're valid uuids
+    if (body.agency_id && uuidRe.test(body.agency_id)) commInsert.agency_id = body.agency_id
+    if (body.client_id && uuidRe.test(body.client_id)) commInsert.client_id = body.client_id
+    if (body.related_id && uuidRe.test(body.related_id)) commInsert.related_id = body.related_id
+
+    const { data, error } = await sb.from('koto_communications_log')
+      .insert(commInsert).select().single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json(data)
