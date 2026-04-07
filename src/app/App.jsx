@@ -208,7 +208,6 @@ export default function App() {
             <RequireAuth>
             <AppRoutes />
             </RequireAuth>
-            <DialPad />
             </MobileShell>
           } />
         </Routes>
