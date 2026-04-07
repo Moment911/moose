@@ -221,6 +221,7 @@ export default function VoiceAgentPage() {
   function AgentModal() {
     const [form, setForm] = useState({
       name: editingAgent?.name || '',
+      voice_id: editingAgent?.voice_id || '',
       voice_name: editingAgent?.voice_name || '',
       gender: editingAgent?.gender || 'female',
       language: editingAgent?.language || 'en',
@@ -255,21 +256,29 @@ export default function VoiceAgentPage() {
     }
 
     const voices = [
-      { value: 'sarah', label: 'Sarah (Female, Warm)' },
-      { value: 'james', label: 'James (Male, Professional)' },
-      { value: 'emma', label: 'Emma (Female, Energetic)' },
-      { value: 'michael', label: 'Michael (Male, Authoritative)' },
-      { value: 'sophia', label: 'Sophia (Female, Friendly)' },
-      { value: 'david', label: 'David (Male, Casual)' },
-      { value: 'olivia', label: 'Olivia (Female, Confident)' },
-      { value: 'daniel', label: 'Daniel (Male, Calm)' },
+      { value: '11labs-Marissa',   label: 'Marissa — Female, American (ElevenLabs)' },
+      { value: '11labs-Lily',      label: 'Lily — Female, American (ElevenLabs)' },
+      { value: '11labs-Billy',     label: 'Billy — Male, American (ElevenLabs)' },
+      { value: '11labs-Anthony',   label: 'Anthony — Male, British (ElevenLabs)' },
+      { value: 'openai-Nova',     label: 'Nova — Female, American (OpenAI)' },
+      { value: 'cartesia-Brian',  label: 'Brian — Male, American (Cartesia)' },
+      { value: 'cartesia-Cleo',   label: 'Cleo — Female, American (Cartesia)' },
+      { value: 'cartesia-Emily',  label: 'Emily — Female, American (Cartesia)' },
+      { value: 'minimax-Daniel',  label: 'Daniel — Male, American (Minimax)' },
+      { value: 'minimax-Ashley',  label: 'Ashley — Female, American (Minimax)' },
+      { value: 'cartesia-Victoria', label: 'Victoria — Female, American (Cartesia)' },
+      { value: 'cartesia-Andrew', label: 'Andrew — Male, American (Cartesia)' },
+      { value: '11labs-Merritt',  label: 'Merritt — Female, American (ElevenLabs)' },
+      { value: '11labs-Dorothy',  label: 'Dorothy — Female, British (ElevenLabs)' },
+      { value: 'retell-Nico',    label: 'Nico — Male, American (Retell)' },
+      { value: 'retell-Della',   label: 'Della — Female, American (Retell)' },
     ]
 
     return (
       <Modal title={editingAgent ? 'Edit Agent' : 'Create Voice Agent'} onClose={() => setShowAgentModal(false)} width={620}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
           <Input label="Agent Name" value={form.name} onChange={v => set('name', v)} placeholder="e.g. Sales Outreach Bot" />
-          <Select label="Voice" value={form.voice_name} onChange={v => set('voice_name', v)} options={voices} placeholder="Select voice..." />
+          <Select label="Voice" value={form.voice_id} onChange={v => { set('voice_id', v); const found = voices.find(x => x.value === v); if (found) set('voice_name', found.label.split(' — ')[0]) }} options={voices} placeholder="Select voice..." />
           <Select label="Gender" value={form.gender} onChange={v => set('gender', v)} options={[{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }]} />
           <Select label="Language" value={form.language} onChange={v => set('language', v)} options={[{ value: 'en', label: 'English' }, { value: 'es', label: 'Spanish' }, { value: 'fr', label: 'French' }, { value: 'de', label: 'German' }, { value: 'pt', label: 'Portuguese' }]} />
         </div>

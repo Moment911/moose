@@ -113,7 +113,7 @@ RULES:
       // Create agent in Retell
       const retellAgent = await retellFetch('/create-agent', 'POST', {
         agent_name: name,
-        voice_id: voice_id || '11labs-Adrian',
+        voice_id: voice_id || '11labs-Marissa',
         response_engine: {
           type: 'retell-llm',
           llm_id: null, // Use default Retell LLM
