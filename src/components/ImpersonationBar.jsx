@@ -17,14 +17,17 @@ export default function ImpersonationBar() {
   const [clients, setClients] = useState([])
   const [loadingAgencies, setLoadingAgencies] = useState(false)
 
-  // Load agencies for dropdown
+  // Load agencies via admin API (uses service role key, bypasses RLS)
   useEffect(() => {
     if (!isSuperAdmin) return
     setLoadingAgencies(true)
-    supabase.from('agencies')
-      .select('id, name, brand_name, status')
-      .order('name')
-      .then(({ data }) => { setAgencies(data || []); setLoadingAgencies(false) })
+    fetch('/api/admin?action=list_agencies')
+      .then(r => r.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : []
+        setAgencies(list)
+        setLoadingAgencies(false)
+      })
       .catch(() => setLoadingAgencies(false))
   }, [isSuperAdmin])
 
@@ -34,6 +37,7 @@ export default function ImpersonationBar() {
     supabase.from('clients')
       .select('id, name, status')
       .eq('agency_id', impersonatedAgency.id)
+      .is('deleted_at', null)
       .order('name')
       .then(({ data }) => setClients(data || []))
       .catch(() => {})
