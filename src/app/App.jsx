@@ -207,8 +207,8 @@ export default function App() {
             <AgencyControlPanel/>
             <RequireAuth>
             <AppRoutes />
-            <DialPad />
             </RequireAuth>
+            <DialPad />
             </MobileShell>
           } />
         </Routes>
