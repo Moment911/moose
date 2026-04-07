@@ -392,5 +392,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ plan, price: PLANS[plan] })
   }
 
+  if (action === 'redeem_promo') {
+    const { agency_id, code, user_email } = body
+    if (!agency_id || !code) return NextResponse.json({ error: 'agency_id and code required' }, { status: 400 })
+    const { data: promo } = await s.from('koto_promo_codes').select('*').eq('code', code.toUpperCase().trim()).eq('is_active', true).single()
+    if (!promo) return NextResponse.json({ error: 'Invalid or expired promo code' }, { status: 400 })
+    if (promo.max_uses && promo.current_uses >= promo.max_uses) return NextResponse.json({ error: 'Code used up' }, { status: 400 })
+    if (promo.valid_until && new Date(promo.valid_until) < new Date()) return NextResponse.json({ error: 'Code expired' }, { status: 400 })
+    const { data: existing } = await s.from('koto_promo_redemptions').select('id').eq('code_id', promo.id).eq('agency_id', agency_id).single()
+    if (existing) return NextResponse.json({ error: 'Already redeemed' }, { status: 400 })
+
+    const expiresAt = promo.duration_days ? new Date(Date.now() + promo.duration_days * 86400000).toISOString() : null
+    await s.from('koto_promo_redemptions').insert({ code_id: promo.id, agency_id, redeemed_by_email: user_email, credits_added: promo.free_credits || 0, plan_unlocked: promo.plan, expires_at: expiresAt, is_active: true })
+    await s.from('koto_promo_codes').update({ current_uses: (promo.current_uses || 0) + 1 }).eq('id', promo.id)
+
+    const updates: Record<string, any> = { updated_at: new Date().toISOString() }
+    if (promo.bypass_billing || promo.bypass_subscription) updates.status = 'active'
+    if (promo.plan) { updates.plan = promo.plan; updates.plan_price = PLANS[promo.plan] || 0 }
+    if (promo.free_credits > 0) {
+      const { data: acct } = await s.from('koto_billing_accounts').select('credit_balance').eq('agency_id', agency_id).single()
+      updates.credit_balance = Number(acct?.credit_balance || 0) + Number(promo.free_credits)
+      await s.from('koto_credit_transactions').insert({ agency_id, type: 'bonus', amount: Number(promo.free_credits), balance_after: updates.credit_balance, description: `Promo ${code}: +$${promo.free_credits}` })
+    }
+    await s.from('koto_billing_accounts').upsert({ agency_id, ...updates }, { onConflict: 'agency_id' })
+
+    return NextResponse.json({ success: true, code: promo.code, credits_added: promo.free_credits || 0, plan_unlocked: promo.plan, bypass: promo.bypass_subscription, expires_at: expiresAt, message: promo.free_credits ? `$${promo.free_credits} credits added!` : promo.plan ? `${promo.plan} plan unlocked!` : 'Code applied!' })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
