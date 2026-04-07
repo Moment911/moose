@@ -17,9 +17,6 @@ export default function ImpersonationBar() {
   const [clients, setClients] = useState([])
   const [loadingAgencies, setLoadingAgencies] = useState(false)
 
-  // Only show for super admins
-  if (!isSuperAdmin) return null
-
   // Load agencies for dropdown
   useEffect(() => {
     if (!isSuperAdmin) return
@@ -41,6 +38,9 @@ export default function ImpersonationBar() {
       .then(({ data }) => setClients(data || []))
       .catch(() => {})
   }, [impersonatedAgency?.id])
+
+  // Only show for super admins (AFTER all hooks)
+  if (!isSuperAdmin) return null
 
   function handleAgencySelect(e) {
     const id = e.target.value
