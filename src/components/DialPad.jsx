@@ -102,7 +102,15 @@ export default function DialPad() {
       if (data.error) { setInitError(data.error); return }
 
       const { TelnyxRTC } = await import('@telnyx/webrtc')
-      const client = new TelnyxRTC({ login_token: data.token })
+
+      // Ensure audio element exists with ID for Telnyx to attach to
+      if (audioRef.current) audioRef.current.id = 'koto-remote-audio'
+
+      const client = new TelnyxRTC({
+        login_token: data.token,
+        // Tell Telnyx SDK where to play remote audio
+        remoteElement: 'koto-remote-audio',
+      })
 
       client.on('telnyx.ready', () => { setDeviceReady(true) })
       client.on('telnyx.error', (e) => {
@@ -115,10 +123,13 @@ export default function DialPad() {
           if (call.state === 'active') {
             setCallStatus('connected')
             startTimer()
-            // Attach remote audio for Telnyx
-            if (audioRef.current && call.remoteStream) {
-              audioRef.current.srcObject = call.remoteStream
-            }
+            // Also manually attach if SDK didn't
+            try {
+              if (audioRef.current && call.remoteStream) {
+                audioRef.current.srcObject = call.remoteStream
+                audioRef.current.play().catch(() => {})
+              }
+            } catch {}
           } else if (call.state === 'hangup' || call.state === 'destroy') {
             endCall()
           } else if (call.state === 'ringing') {
@@ -148,19 +159,35 @@ export default function DialPad() {
       if (data.error) { setInitError(data.error); return }
 
       const { Device } = await import('@twilio/voice-sdk')
+
+      // Ensure audio element has ID for Twilio
+      if (audioRef.current) audioRef.current.id = 'koto-remote-audio'
+
       const device = new Device(data.token, {
-        logLevel: 1,
+        logLevel: 'DEBUG',
         codecPreferences: ['opus', 'pcmu'],
         enableRingingState: true,
         allowIncomingWhileBusy: false,
+        edge: 'ashburn',
+        sounds: {
+          // Use our audio element for output
+          outgoing: undefined,
+          incoming: undefined,
+        },
       })
 
       device.on('registered', () => {
         setDeviceReady(true)
         // Set audio output to default speaker
         try {
-          device.audio.speakerDevices.set('default')
-          device.audio.ringtoneDevices.set('default')
+          if (device.audio) {
+            device.audio.speakerDevices.set('default')
+            device.audio.ringtoneDevices.set('default')
+            // Attach output audio element
+            if (audioRef.current) {
+              device.audio.addOutputDevice('default')
+            }
+          }
         } catch (e) { console.warn('[DialPad] Audio device setup:', e) }
       })
       device.on('error', (e) => {
@@ -206,17 +233,28 @@ export default function DialPad() {
     call.on('accept', () => {
       setCallStatus('connected')
       startTimer()
-      // Attach remote audio stream to audio element
-      if (audioRef.current && call.getRemoteStream) {
-        try {
-          const remoteStream = call.getRemoteStream()
-          if (remoteStream) audioRef.current.srcObject = remoteStream
-        } catch {}
-      }
-      // Ensure speaker output
+      // Twilio SDK v2 handles audio output internally via Device.audio
+      // Force speaker to default in case it got unset
       if (twilioDeviceRef.current?.audio) {
         try { twilioDeviceRef.current.audio.speakerDevices.set('default') } catch {}
       }
+      // As a fallback, try to get the underlying audio element from the SDK
+      // and ensure volume is up
+      try {
+        const audioCtx = call._mediaHandler || call.mediaStream
+        if (audioCtx) {
+          const pcConn = audioCtx._peerConnection || audioCtx.peerConnection
+          if (pcConn) {
+            const receivers = pcConn.getReceivers()
+            if (receivers.length > 0 && audioRef.current) {
+              const remoteStream = new MediaStream(receivers.map(r => r.track))
+              audioRef.current.srcObject = remoteStream
+              audioRef.current.volume = 1.0
+              audioRef.current.play().catch(() => {})
+            }
+          }
+        }
+      } catch (e) { console.warn('[DialPad] Manual audio attach:', e) }
     })
     call.on('ringing', () => { setCallStatus('ringing') })
     call.on('disconnect', () => { endCall() })
@@ -256,6 +294,8 @@ export default function DialPad() {
         const call = telnyxClientRef.current.newCall({
           destinationNumber: to,
           callerNumber: selectedNumber?.phone_number || '',
+          audio: true,
+          video: false,
         })
         callRef.current = call
       } else if (twilioDeviceRef.current) {
