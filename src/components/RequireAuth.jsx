@@ -13,20 +13,30 @@ export default function RequireAuth({ children }) {
   // Bypass mode — skip auth entirely (dev/single-tenant mode)
   if (bypassMode) return children
 
-  // Still loading session
-  if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#f2f2f0' }}>
-      <Loader2 size={32} color='#ea2729' style={{ animation:'spin 1s linear infinite' }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
-
   // Check if current path is public
   const isPublic = PUBLIC_ROUTES.some(r => location.pathname.startsWith(r))
   if (isPublic) return children
 
-  // Not logged in — redirect to login, remembering where they wanted to go
-  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace/>
+  // Not logged in and not loading — redirect to login
+  if (!loading && !user) return <Navigate to="/login" state={{ from: location.pathname }} replace/>
 
-  return children
+  // ALWAYS render children so their hooks are called consistently.
+  // Show a loading overlay on top while auth is loading.
+  // This prevents React #310 — if we conditionally returned a spinner
+  // INSTEAD of children, the hook count would change when auth loads.
+  return (
+    <>
+      {loading && (
+        <div style={{
+          position:'fixed', inset:0, zIndex:9998,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          background:'#f2f2f0',
+        }}>
+          <Loader2 size={32} color='#ea2729' style={{ animation:'spin 1s linear infinite' }}/>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
+      )}
+      {children}
+    </>
+  )
 }
