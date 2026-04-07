@@ -22,8 +22,9 @@ export const signOut = () => supabase.auth.signOut()
 export const getSession = () => supabase.auth.getSession()
 
 // ─── Clients ─────────────────────────────────────────────────────────────────
-export const getClients = (agencyId = null) => {
-  const q = supabase.from('clients').select('*').order('name')
+export const getClients = (agencyId = null, includeDeleted = false) => {
+  let q = supabase.from('clients').select('*').order('name')
+  if (!includeDeleted) q = q.is('deleted_at', null)
   return agencyId ? q.eq('agency_id', agencyId) : q
 }
 

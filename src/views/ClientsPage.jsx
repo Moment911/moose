@@ -76,7 +76,7 @@ function SortIcon({ field, sortKey, sortDir }) {
 
 export default function ClientsPage() {
   const navigate = useNavigate()
-  const { agencyId, firstName } = useAuth()
+  const { agencyId, firstName, isSuperAdmin, isImpersonating, impersonatedAgency } = useAuth()
   const { refreshClients } = useClient()
 
   const [clients, setClients]   = useState([])
@@ -266,7 +266,9 @@ export default function ClientsPage() {
         <div style={{ background:'#0a0a0a', padding:'16px 16px 14px' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>Clients</h1>
+              <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>
+                {isSuperAdmin && !isImpersonating ? 'All Clients' : 'Clients'}
+              </h1>
               <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'2px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
@@ -376,7 +378,9 @@ export default function ClientsPage() {
           {/* Header */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
             <div>
-              <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>{firstName ? `${firstName}'s Clients` : 'Clients'}</h1>
+              <h1 style={{ fontSize:24, fontWeight:900, color:'#111', margin:0 }}>
+                {isSuperAdmin && !isImpersonating ? 'All Clients' : isImpersonating ? `${impersonatedAgency?.name || 'Agency'}'s Clients` : 'Clients'}
+              </h1>
               <p style={{ fontSize:15, color:'#4b5563', margin:'4px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>

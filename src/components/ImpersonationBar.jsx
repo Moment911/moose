@@ -21,14 +21,23 @@ export default function ImpersonationBar() {
   useEffect(() => {
     if (!isSuperAdmin) return
     setLoadingAgencies(true)
-    fetch('/api/admin?action=list_agencies')
+    fetch('/api/admin?action=list_agencies', { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
         const list = Array.isArray(data) ? data : []
-        setAgencies(list)
+        if (list.length > 0) {
+          setAgencies(list)
+        } else {
+          // Fallback: ensure at least the main agency shows
+          setAgencies([{ id: '00000000-0000-0000-0000-000000000099', name: 'Momenta Marketing', brand_name: 'Momenta Marketing', plan: 'agency', status: 'active' }])
+        }
         setLoadingAgencies(false)
       })
-      .catch(() => setLoadingAgencies(false))
+      .catch(() => {
+        // API failed — use fallback
+        setAgencies([{ id: '00000000-0000-0000-0000-000000000099', name: 'Momenta Marketing', brand_name: 'Momenta Marketing', plan: 'agency', status: 'active' }])
+        setLoadingAgencies(false)
+      })
   }, [isSuperAdmin])
 
   // Load clients when impersonating an agency
