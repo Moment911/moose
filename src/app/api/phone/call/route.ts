@@ -82,6 +82,20 @@ export async function POST(req: NextRequest) {
       if (!key) return NextResponse.json({ error: 'Telnyx not configured' }, { status: 500 })
 
       try {
+        // Look up connection_id from Telnyx for this number
+        let connectionId = ''
+        try {
+          const numRes = await fetch(`https://api.telnyx.com/v2/phone_numbers/${encodeURIComponent(from_number)}`, {
+            headers: { Authorization: `Bearer ${key}` },
+          })
+          const numData = await numRes.json()
+          connectionId = numData.data?.connection_id || ''
+        } catch {}
+
+        if (!connectionId) {
+          return NextResponse.json({ error: 'Phone number has no Call Control App assigned. Configure it in Telnyx portal.' }, { status: 400 })
+        }
+
         // Telnyx Call Control: create outbound call
         const res = await fetch('https://api.telnyx.com/v2/calls', {
           method: 'POST',
@@ -89,9 +103,7 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             to: to_number,
             from: from_number,
-            connection_id: phoneRecord?.provider_sid || undefined,
-            webhook_url: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hellokoto.com'}/api/phone/call`,
-            webhook_url_method: 'POST',
+            connection_id: connectionId,
           }),
         })
         const json = await res.json()
