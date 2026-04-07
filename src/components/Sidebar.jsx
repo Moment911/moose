@@ -62,6 +62,7 @@ function Section({ label }) {
 export default function Sidebar() {
   const { user, firstName, agencyId, isImpersonating, isPreviewingClient } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
   const [clients,      setClients]      = useState([])
@@ -110,43 +111,54 @@ export default function Sidebar() {
         <div style={{flex:1,overflowY:'auto',padding:'8px 6px',
           scrollbarWidth:'none'}}>
 
-          <Section label="Workspace"/>
-          <NavLink to="/"            exact icon={LayoutGrid}    label="Dashboard"/>
-        <NavLink to="/agent"        startsWith icon={Brain}   label="CMO Agent" badge="AI"/>
-          <NavLink to="/clients"     startsWith icon={Users}    label="Clients"/>
-        <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
-          <NavLink to="/reviews"     startsWith icon={Star}     label="Reviews"/>
-        <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns"/>
-          <NavLink to="/proposals"   startsWith icon={FileSignature} label="Proposals"/>
-        <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
-          <NavLink to="/automations" icon={Workflow}            label="Automations"/>
-        <NavLink to="/tasks"        startsWith icon={CheckSquare} label="Tasks"/>
+          {/* HOME */}
+          <NavLink to="/" exact icon={LayoutGrid} label="Dashboard"/>
 
+          {/* CLIENTS */}
+          <Section label="Clients"/>
+          <NavLink to="/clients" startsWith icon={Users} label="Clients"/>
+          <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
+          <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks"/>
+          <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk"/>
+          <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub/>
+          <NavLink to="/desk/reports" startsWith icon={BarChart2} label="Desk Reports" sub/>
+
+          {/* GROWTH */}
+          <Section label="Growth"/>
+          <NavLink to="/reviews" startsWith icon={Star} label="Reviews"/>
+          <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns"/>
+          <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals"/>
+          <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
+          <NavLink to="/automations" icon={Workflow} label="Automations"/>
+
+          {/* SEO & CONTENT */}
+          <Section label="SEO & Content"/>
+          <NavLink to="/page-builder" icon={Sparkles} label="Page Builder"/>
+          <NavLink to="/wordpress" icon={Globe} label="WP Plugin"/>
+          <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub"/>
+          {location.pathname.startsWith('/seo') && (<>
+            <NavLink to="/seo/gbp-audit" icon={MapPin} label="GBP Audit" sub/>
+            <NavLink to="/seo/onpage" icon={Globe} label="On-Page Audit" sub/>
+            <NavLink to="/seo/keyword-gap" icon={Search} label="Keyword Gap" sub/>
+            <NavLink to="/seo/monthly-report" icon={FileText} label="Monthly Report" sub/>
+            <NavLink to="/seo/content-gap" icon={BookOpen} label="Content Gap" sub/>
+            <NavLink to="/seo/technical-audit" icon={Code2} label="Tech Audit" sub/>
+            <NavLink to="/seo/ai-visibility" icon={Brain} label="AI Visibility" sub/>
+            <NavLink to="/seo/white-label" icon={Download} label="White-Label Report" sub/>
+            <NavLink to="/seo/competitor-intel" icon={BarChart2} label="Competitor Intel" sub/>
+            <NavLink to="/seo/citations" icon={MapPin} label="Citation Tracker" sub/>
+          </>)}
+
+          {/* INTELLIGENCE */}
           <Section label="Intelligence"/>
-          <NavLink to="/perf"          startsWith icon={TrendingUp} label="Performance"  badge="AI" badgeColor={R}/>
-          <NavLink to="/voice"         startsWith icon={Phone}      label="Voice Agent"  badge="AI" badgeColor={R}/>
-          <NavLink to="/scout"         startsWith icon={Target}     label="Scout"        badge="NEW" badgeColor={T}/>
-          <NavLink to="/scout/history" startsWith icon={Clock}      label="Scout History" sub/>
-        <NavLink to="/scout/pipeline"  startsWith icon={Target}     label="Pipeline CRM"  sub/>
-          <NavLink to="/seo"           startsWith icon={BarChart2}  label="SEO Hub"/>
-        <NavLink to="/seo/gbp-audit"            icon={MapPin}    label="GBP Audit"/>
-        <NavLink to="/seo/onpage"               icon={Globe}     label="On-Page Audit"/>
-        <NavLink to="/seo/keyword-gap"          icon={Search}    label="Keyword Gap"/>
-        <NavLink to="/seo/monthly-report"       icon={FileText}  label="Monthly Report"/>
-        <NavLink to="/seo/content-gap"          icon={BookOpen}  label="Content Gap"/>
-        <NavLink to="/seo/technical-audit"      icon={Code2}     label="Tech Audit"/>
-        <NavLink to="/seo/ai-visibility"        icon={Brain}     label="AI Visibility"/>
-        <NavLink to="/seo/white-label"          icon={Download}  label="White-Label Report"/>
-        <NavLink to="/seo/competitor-intel"    icon={BarChart2} label="Competitor Intel"/>
-        <NavLink to="/seo/citations"            icon={MapPin}    label="Citation Tracker"/>
+          <NavLink to="/agent" icon={Brain} label="CMO Agent" badge="AI"/>
+          <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R}/>
+          <NavLink to="/scout" startsWith icon={Target} label="Scout" badge="NEW" badgeColor={T}/>
+          <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub/>
+          <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub/>
+          <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R}/>
 
-          <Section label="Support"/>
-          <NavLink to="/desk"          startsWith icon={Inbox}      label="KotoDesk"/>
-          <NavLink to="/desk/knowledge" startsWith icon={Brain}     label="Q&A Knowledge" sub/>
-          <NavLink to="/desk/reports"  startsWith icon={BarChart2}  label="Desk Reports"  sub/>
-          <NavLink to="/help"          icon={HelpCircle}  label="Help Center"/>
-
-          {/* Client tree */}
+          {/* Dynamic Clients */}
           {clients.length > 0 && (
             <>
               <Section label="Clients"/>
@@ -184,21 +196,25 @@ export default function Sidebar() {
             </>
           )}
 
+          {/* AGENCY */}
           <Section label="Agency"/>
-          <NavLink to="/billing"     icon={CreditCard} label="Billing"/>
-        <NavLink to="/marketplace"   icon={Sparkles}  label="Marketplace"/>
-        <NavLink to="/master-admin"    icon={Shield}   label="Master Admin"/>
-        <NavLink to="/debug"           icon={Shield}   label="Debug Console"/>
-        <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
-          onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}
-          onMouseLeave={e=>{e.currentTarget.style.color='#374151';e.currentTarget.style.background='transparent'}}>
-          <Activity size={14} style={{flexShrink:0,opacity:.65}}/><span style={{flex:1,lineHeight:1.2}}>System Status ↗</span>
-        </a>
-        <NavLink to="/platform-admin"  icon={Shield}   label="Platform Admin"/>
-        <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
-          <NavLink to="/page-builder" icon={Sparkles} label="Page Builder"/>
-              <NavLink to="/wordpress"    icon={Globe} label="WP Plugin"/>
+          <NavLink to="/marketplace" icon={Sparkles} label="Marketplace"/>
           <NavLink to="/integrations" icon={Plug} label="Integrations"/>
+          <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
+          <NavLink to="/billing" icon={CreditCard} label="Billing"/>
+          <NavLink to="/help" icon={HelpCircle} label="Help Center"/>
+
+          {/* ADMIN */}
+          <Section label="Admin"/>
+          <NavLink to="/master-admin" icon={Shield} label="Master Admin"/>
+          <NavLink to="/platform-admin" icon={Shield} label="Platform Admin"/>
+          <NavLink to="/debug" icon={Shield} label="Debug Console"/>
+          <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
+            onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}
+            onMouseLeave={e=>{e.currentTarget.style.color='#374151';e.currentTarget.style.background='transparent'}}>
+            <Activity size={14} style={{flexShrink:0,opacity:.65}}/><span style={{flex:1,lineHeight:1.2}}>System Status ↗</span>
+          </a>
+          <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
         </div>
 
         {/* Footer */}

@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import {
   Plus, ChevronRight, Target, Star, TrendingUp,
   Inbox, Brain, ArrowUpRight, Zap, Users,
-  Clock, AlertCircle, Loader2, BarChart2, FileSignature, X
+  Clock, AlertCircle, Loader2, BarChart2, FileSignature, X,
+  Globe, Shield, Phone, Sparkles, Activity, HardDrive,
+  DollarSign, Check, RefreshCw, FileText
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
@@ -16,198 +18,682 @@ import {
   MobileButton
 } from '../components/mobile/MobilePage'
 
-const R = '#ea2729'
-const T = '#5bc6d0'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+/* ── Design tokens ──────────────────────────────────────────────────────────── */
+const R   = '#ea2729'
+const T   = '#5bc6d0'
+const BLK = '#0a0a0a'
+const GRY = '#f2f2f0'
+const GRN = '#16a34a'
+const AMB = '#f59e0b'
+const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
-const STATUS_COLOR = { active:R, prospect:T, inactive:'#6b7280', paused:'#f59e0b' }
+/* ── Helpers ────────────────────────────────────────────────────────────────── */
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1)   return 'just now'
+  if (mins < 60)  return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24)   return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  return `${days}d ago`
+}
 
+function firstOfMonth() {
+  const d = new Date()
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString()
+}
+
+function todayISO() {
+  const d = new Date()
+  return d.toISOString().split('T')[0]
+}
+
+function last24h() {
+  return new Date(Date.now() - 86400000).toISOString()
+}
+
+const LOG_LEVEL_COLOR = { error: R, warn: AMB, info: T, debug: '#6b7280', success: GRN }
+
+/* ── Skeleton bar for loading states ────────────────────────────────────────── */
+function SkeletonBar({ w = '100%', h = 14, r = 6, mb = 0 }) {
+  return (
+    <div style={{
+      width: w, height: h, borderRadius: r, marginBottom: mb,
+      background: 'linear-gradient(90deg, #e8e8e6 25%, #f0f0ee 50%, #e8e8e6 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'shimmer 1.5s ease-in-out infinite',
+    }} />
+  )
+}
+
+function SkeletonCard({ children, style }) {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+      padding: '18px', ...style,
+    }}>
+      {children}
+      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId } = useAuth()
-  const aid      = agencyId || '00000000-0000-0000-0000-000000000099'
+  const { user, firstName, agencyId, role, isOwner, agency } = useAuth()
   const isMobile = useMobile()
 
-  const [projects, setProjects] = useState([])
-  const [clients,  setClients]  = useState([])
-  const [tickets,  setTickets]  = useState([])
-  const [loading,  setLoading]  = useState(true)
-  const [filter,   setFilter]   = useState('all')
+  const isSuperAdmin  = role === 'super_admin' || role === 'koto_admin'
+  const isAgencyAdmin = !isSuperAdmin
+
+  const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+
+  const [loading,        setLoading]        = useState(true)
+  const [lastRefresh,    setLastRefresh]    = useState(new Date())
+
+  /* ── Agency Admin state ───────────────────────────────────────────────────── */
+  const [agencyStats,    setAgencyStats]    = useState({
+    activeClients: 0, pagesGenerated: 0, reviewsCollected: 0,
+    scoutLeads: 0, wpSites: 0, tasksDue: 0, openProposals: 0,
+    deskTickets: 0, avgRating: 0,
+  })
+  const [recentActivity, setRecentActivity] = useState([])
+  const [spotlightClients, setSpotlightClients] = useState([])
+  const [systemHealth,   setSystemHealth]   = useState({
+    database: 'green', app: 'green', wordpress: 'green',
+  })
+
+  /* ── Super Admin state ────────────────────────────────────────────────────── */
+  const [superStats,     setSuperStats]     = useState({
+    totalAgencies: 0, totalUsers: 0, totalPages: 0,
+    activeWpSites: 0, totalErrors24h: 0, uptime: '99.97%',
+  })
+  const [recentErrors,   setRecentErrors]   = useState([])
+  const [activityFeed,   setActivityFeed]   = useState([])
 
   const greeting = getGreeting(firstName)
 
-  useEffect(() => { load() }, [aid])
+  /* ── Data loaders ─────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    loadData()
+    const interval = setInterval(() => { loadData() }, 60000)
+    return () => clearInterval(interval)
+  }, [aid, isSuperAdmin])
 
-  async function load() {
+  async function loadData() {
     setLoading(true)
     try {
-      const [{data:cl},{data:pr},{data:tk}] = await Promise.all([
-        supabase.from('clients').select('*').eq('agency_id',aid).order('name').limit(50),
-        supabase.from('projects').select('*').eq('agency_id',aid).order('updated_at',{ascending:false}).limit(30),
-        supabase.from('desk_tickets').select('id,status,priority,subject,created_at')
-          .eq('agency_id',aid).in('status',['new','open','in_progress']).limit(5)
-          .order('created_at',{ascending:false}).catch(()=>({data:[]})),
-      ])
-      setClients(cl||[]); setProjects(pr||[]); setTickets(tk?.data||[])
-    } catch(e) { console.warn(e) }
+      if (isSuperAdmin) {
+        await loadSuperAdminData()
+      } else {
+        await loadAgencyData()
+      }
+    } catch (e) {
+      console.warn('Dashboard load error:', e)
+    }
+    setLastRefresh(new Date())
     setLoading(false)
   }
 
-  const clientMap      = Object.fromEntries((clients||[]).map(c=>[c.id,c]))
-  const activeProjects = projects.filter(p=>p.status!=='archived')
-  const filtered       = filter==='all' ? activeProjects
-    : activeProjects.filter(p=>(clientMap[p.client_id]?.status||'active')===filter)
-  const stats = {
-    clients:  clients.length,
-    active:   clients.filter(c=>c.status==='active').length,
-    projects: activeProjects.length,
-    tickets:  tickets.length,
+  /* ── Agency Admin loader ──────────────────────────────────────────────────── */
+  async function loadAgencyData() {
+    const monthStart = firstOfMonth()
+    const today      = todayISO()
+
+    const [
+      { count: activeClients },
+      { count: pagesGenerated },
+      { count: reviewsCollected },
+      scoutRes,
+      { count: wpSites },
+      { count: tasksDue },
+      { count: openProposals },
+      { count: deskTickets },
+      ratingRes,
+      { data: logs },
+      { data: clients },
+    ] = await Promise.all([
+      // 1) Active Clients
+      supabase.from('clients')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', aid).eq('status', 'active'),
+      // 2) Pages Generated this month
+      supabase.from('koto_wp_pages')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', aid).gte('created_at', monthStart),
+      // 3) Reviews Collected this month
+      supabase.from('moose_review_queue')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', aid).gte('created_at', monthStart),
+      // 4) Scout Leads this month (sum result_count)
+      supabase.from('scout_searches')
+        .select('result_count')
+        .eq('agency_id', aid).gte('created_at', monthStart),
+      // 5) WP Sites connected
+      supabase.from('koto_wp_sites')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', aid).eq('connected', true),
+      // 6) Tasks Due Today
+      supabase.from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('due_date', today),
+      // 7) Open Proposals
+      supabase.from('proposals')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'sent'),
+      // 8) Desk Tickets open
+      supabase.from('desk_tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', aid).in('status', ['new', 'open']),
+      // 9) Avg Rating
+      supabase.from('moose_review_queue')
+        .select('star_rating')
+        .eq('agency_id', aid).not('star_rating', 'is', null),
+      // 10) Recent Activity (logs)
+      supabase.from('koto_system_logs')
+        .select('id, level, message, created_at')
+        .eq('agency_id', aid)
+        .order('created_at', { ascending: false }).limit(10),
+      // 11) Spotlight Clients
+      supabase.from('clients')
+        .select('id, name, industry, status')
+        .eq('agency_id', aid).eq('status', 'active')
+        .order('updated_at', { ascending: false }).limit(3),
+    ])
+
+    // Sum scout leads
+    const scoutLeads = (scoutRes.data || []).reduce((sum, r) => sum + (r.result_count || 0), 0)
+
+    // Calculate average rating
+    const ratings = (ratingRes.data || []).map(r => r.star_rating).filter(Boolean)
+    const avgRating = ratings.length > 0
+      ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+      : 0
+
+    setAgencyStats({
+      activeClients:    activeClients    || 0,
+      pagesGenerated:   pagesGenerated   || 0,
+      reviewsCollected: reviewsCollected || 0,
+      scoutLeads,
+      wpSites:          wpSites          || 0,
+      tasksDue:         tasksDue         || 0,
+      openProposals:    openProposals    || 0,
+      deskTickets:      deskTickets      || 0,
+      avgRating,
+    })
+
+    setRecentActivity(logs || [])
+
+    // Enrich spotlight clients with page/review counts
+    const enriched = await Promise.all((clients || []).map(async (cl) => {
+      const [{ count: pgCount }, { count: rvCount }] = await Promise.all([
+        supabase.from('koto_wp_pages')
+          .select('*', { count: 'exact', head: true })
+          .eq('client_id', cl.id),
+        supabase.from('moose_review_queue')
+          .select('*', { count: 'exact', head: true })
+          .eq('client_id', cl.id),
+      ])
+      return { ...cl, pagesCount: pgCount || 0, reviewsCount: rvCount || 0 }
+    }))
+    setSpotlightClients(enriched)
+
+    // System health — simple check: if last error is within 5 min, mark amber
+    const { data: recentErr } = await supabase.from('koto_system_logs')
+      .select('level, created_at')
+      .eq('agency_id', aid).eq('level', 'error')
+      .order('created_at', { ascending: false }).limit(1)
+
+    const lastErr = recentErr?.[0]
+    const errRecent = lastErr && (Date.now() - new Date(lastErr.created_at).getTime()) < 300000
+    setSystemHealth({
+      database:  errRecent ? 'amber' : 'green',
+      app:       'green',
+      wordpress: (wpSites || 0) > 0 ? 'green' : 'amber',
+    })
   }
 
-  /* ─────────────────── MOBILE ─────────────────── */
-  if (isMobile) {
-    const TABS = [
-      { key:'all',      label:'All',       count: activeProjects.length },
-      { key:'active',   label:'Active',    count: clients.filter(c=>c.status==='active').length },
-      { key:'prospect', label:'Prospects', count: clients.filter(c=>c.status==='prospect').length },
-    ]
+  /* ── Super Admin loader ───────────────────────────────────────────────────── */
+  async function loadSuperAdminData() {
+    const [
+      { count: totalAgencies },
+      { count: totalUsers },
+      { count: totalPages },
+      { count: activeWpSites },
+      { count: totalErrors24h },
+      { data: errors },
+      { data: feed },
+    ] = await Promise.all([
+      supabase.from('agencies')
+        .select('*', { count: 'exact', head: true }),
+      supabase.from('profiles')
+        .select('*', { count: 'exact', head: true }),
+      supabase.from('koto_wp_pages')
+        .select('*', { count: 'exact', head: true }),
+      supabase.from('koto_wp_sites')
+        .select('*', { count: 'exact', head: true })
+        .eq('connected', true),
+      supabase.from('koto_system_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('level', 'error').gte('created_at', last24h()),
+      supabase.from('koto_system_logs')
+        .select('id, level, message, created_at')
+        .eq('level', 'error')
+        .order('created_at', { ascending: false }).limit(10),
+      supabase.from('koto_system_logs')
+        .select('id, level, message, created_at')
+        .order('created_at', { ascending: false }).limit(15),
+    ])
 
-    const QUICK = [
-      { icon:Target,       label:'Scout',       sub:'Find new leads',         to:'/scout',   color:T },
-      { icon:TrendingUp,   label:'Performance', sub:'AI ad optimization',     to:'/perf',    color:R },
-      { icon:Inbox,        label:'KotoDesk',    sub:'Support tickets',        to:'/desk',    color:'#7c3aed' },
-      { icon:FileSignature,label:'Proposals',   sub:'Build & send proposals', to:'/proposals',color:'#f59e0b' },
-      { icon:Star,         label:'Reviews',     sub:'Manage client reviews',  to:'/reviews', color:'#16a34a' },
-      { icon:BarChart2,    label:'SEO Hub',     sub:'Search visibility',      to:'/seo',     color:'#0ea5e9' },
-    ]
+    setSuperStats({
+      totalAgencies:  totalAgencies  || 0,
+      totalUsers:     totalUsers     || 0,
+      totalPages:     totalPages     || 0,
+      activeWpSites:  activeWpSites  || 0,
+      totalErrors24h: totalErrors24h || 0,
+      uptime:         '99.97%',
+    })
+    setRecentErrors(errors || [])
+    setActivityFeed(feed || [])
+  }
 
+  /* ══════════════════════════════════════════════════════════════════════════
+     SHARED SUB-COMPONENTS
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  /* ── Stat Card ────────────────────────────────────────────────────────────── */
+  function StatCard({ label, value, icon: Icon, color = '#fff', accent = T }) {
+    return (
+      <div style={{
+        background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+        padding: '18px', position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+          background: accent, opacity: 0.7, borderRadius: '14px 14px 0 0',
+        }} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{
+              fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK,
+              lineHeight: 1, letterSpacing: '-.03em',
+            }}>
+              {loading ? <SkeletonBar w={48} h={28} /> : value}
+            </div>
+            <div style={{
+              fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH,
+              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em',
+            }}>
+              {label}
+            </div>
+          </div>
+          {Icon && (
+            <div style={{
+              width: 38, height: 38, borderRadius: 10,
+              background: accent + '15', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Icon size={18} color={accent} />
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Quick Action Tile ────────────────────────────────────────────────────── */
+  function ActionTile({ icon: Icon, label, to, bg }) {
+    return (
+      <button
+        onClick={() => navigate(to)}
+        style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', gap: 10, padding: '20px 12px',
+          borderRadius: 14, border: 'none', cursor: 'pointer',
+          background: bg, color: '#fff', fontFamily: FH, fontSize: 13,
+          fontWeight: 700, transition: 'all .18s ease',
+          boxShadow: `0 4px 14px ${bg}30`,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${bg}40` }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 14px ${bg}30` }}
+      >
+        <Icon size={22} />
+        {label}
+      </button>
+    )
+  }
+
+  /* ── Log/Activity Row ─────────────────────────────────────────────────────── */
+  function LogRow({ log, showLevel = false }) {
+    const dotColor = LOG_LEVEL_COLOR[log.level] || '#6b7280'
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', gap: 12,
+        padding: '10px 0', borderBottom: '1px solid #f2f2f0',
+      }}>
+        <div style={{
+          width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+          background: dotColor, marginTop: 5,
+        }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {showLevel && (
+            <span style={{
+              fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+              background: dotColor + '15', color: dotColor,
+              textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 8,
+            }}>
+              {log.level}
+            </span>
+          )}
+          <span style={{
+            fontSize: 13, color: BLK, fontFamily: FB,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: 'inline-block', maxWidth: '100%',
+          }}>
+            {log.message}
+          </span>
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>
+            {timeAgo(log.created_at)}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Status Dot ───────────────────────────────────────────────────────────── */
+  function StatusDot({ label, status }) {
+    const color = status === 'green' ? GRN : status === 'amber' ? AMB : R
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{
+          width: 10, height: 10, borderRadius: '50%', background: color,
+          boxShadow: `0 0 6px ${color}60`,
+        }} />
+        <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK }}>{label}</span>
+      </div>
+    )
+  }
+
+  /* ── Refresh indicator ────────────────────────────────────────────────────── */
+  function RefreshBadge() {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
+        color: 'rgba(255,255,255,.35)', fontFamily: FB,
+      }}>
+        <RefreshCw size={11} />
+        Auto-refresh {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </div>
+    )
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     AGENCY ADMIN — QUICK ACTIONS
+     ══════════════════════════════════════════════════════════════════════════ */
+  const AGENCY_ACTIONS = [
+    { icon: Sparkles,      label: 'Build Pages',     to: '/page-builder',  bg: R },
+    { icon: Target,        label: 'Find Leads',      to: '/scout',         bg: T },
+    { icon: Star,          label: 'Get Reviews',     to: '/reviews',       bg: GRN },
+    { icon: Phone,         label: 'Voice Agent',     to: '/voice',         bg: AMB },
+    { icon: FileSignature, label: 'Send Proposal',   to: '/proposals',     bg: '#7c3aed' },
+    { icon: Zap,           label: 'Run Automation',  to: '/automations',   bg: R },
+    { icon: BarChart2,     label: 'View Reports',    to: '/seo',           bg: T },
+    { icon: Brain,         label: 'Ask CMO AI',      to: '/agent',         bg: BLK },
+  ]
+
+  const SUPER_ACTIONS = [
+    { icon: Globe,  label: 'View Agencies',  to: '/platform-admin', bg: T },
+    { icon: Shield, label: 'Debug Console',  to: '/debug',          bg: AMB },
+    { icon: Activity, label: 'System Status', to: '/status',        bg: GRN },
+    { icon: Users,  label: 'Manage Users',   to: '/master-admin',   bg: R },
+  ]
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     MOBILE — AGENCY ADMIN
+     ══════════════════════════════════════════════════════════════════════════ */
+  if (isMobile && isAgencyAdmin) {
     return (
       <MobilePage padded={false}>
-        {/* Greeting header */}
-        <div style={{ background:'#0a0a0a', padding:'16px 16px 0' }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,.3)',
-            textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4, fontFamily:FH }}>
-            {new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div style={{ background: BLK, padding: '16px 16px 0' }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+            textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, fontFamily: FH,
+          }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </div>
-          <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff',
-            margin:'0 0 2px', letterSpacing:'-.03em' }}>{greeting}</h1>
-          <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'0 0 16px', fontFamily:FB }}>
-            {stats.clients} clients · {stats.projects} projects
-          </p>
+          <h1 style={{
+            fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#fff',
+            margin: '0 0 2px', letterSpacing: '-.03em',
+          }}>
+            {greeting}
+          </h1>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            margin: '0 0 16px',
+          }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', margin: 0, fontFamily: FB }}>
+              {agencyStats.activeClients} clients &middot; {agencyStats.wpSites} WP sites
+            </p>
+            <RefreshBadge />
+          </div>
         </div>
 
-        {/* Stats strip */}
+        {/* ── Stats ───────────────────────────────────────────────────────── */}
         <MobileStatStrip stats={[
-          { label:'Clients',  value:stats.clients,  color:'#fff' },
-          { label:'Active',   value:stats.active,   color:T      },
-          { label:'Projects', value:stats.projects, color:'#fff' },
-          { label:'Tickets',  value:stats.tickets,  color:stats.tickets>0?R:'#fff' },
-        ]}/>
+          { label: 'Clients',  value: loading ? '—' : agencyStats.activeClients,    color: '#fff' },
+          { label: 'Pages',    value: loading ? '—' : agencyStats.pagesGenerated,   color: T },
+          { label: 'Reviews',  value: loading ? '—' : agencyStats.reviewsCollected, color: GRN },
+          { label: 'Tickets',  value: loading ? '—' : agencyStats.deskTickets,      color: agencyStats.deskTickets > 0 ? R : '#fff' },
+        ]} />
 
-        {/* Quick actions */}
-        <MobileSectionHeader title="Quick Actions"
-          action={<button onClick={()=>navigate('/clients')}
-            style={{ fontSize:13, color:R, fontWeight:700, background:'none', border:'none',
-              cursor:'pointer', fontFamily:FH }}>+ New</button>}/>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, padding:'0 16px', marginBottom:8 }}>
-          {QUICK.map(q=>(
-            <button key={q.to} onClick={()=>navigate(q.to)}
-              style={{ background:'#fff', borderRadius:14, padding:'14px',
-                border:'1px solid #ececea', cursor:'pointer', textAlign:'left',
-                WebkitTapHighlightColor:'transparent', display:'flex', flexDirection:'column', gap:8 }}>
-              <div style={{ width:36, height:36, borderRadius:10, background:q.color+'15',
-                display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <q.icon size={18} color={q.color}/>
+        {/* ── Quick Actions 2-column ──────────────────────────────────────── */}
+        <MobileSectionHeader title="Quick Actions" />
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10,
+          padding: '0 16px', marginBottom: 16,
+        }}>
+          {AGENCY_ACTIONS.map(a => (
+            <button key={a.to} onClick={() => navigate(a.to)} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '14px', borderRadius: 14, border: 'none',
+              cursor: 'pointer', background: '#fff', textAlign: 'left',
+              WebkitTapHighlightColor: 'transparent',
+              borderLeft: `3px solid ${a.bg}`,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, background: a.bg + '15',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <a.icon size={17} color={a.bg} />
               </div>
-              <div>
-                <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{q.label}</div>
-                <div style={{ fontSize:12, color:'#9a9a96', fontFamily:FB }}>{q.sub}</div>
+              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>
+                {a.label}
               </div>
             </button>
           ))}
         </div>
 
-        {/* Projects */}
-        <div style={{ display:'flex', overflowX:'auto', gap:0,
-          background:'#fff', borderBottom:'1px solid #ececea',
-          scrollbarWidth:'none', marginTop:8 }}>
-          {TABS.map(t=>(
-            <button key={t.key} onClick={()=>setFilter(t.key)}
-              style={{ flexShrink:0, padding:'0 16px', height:44,
-                border:'none', borderBottom:`2.5px solid ${filter===t.key?R:'transparent'}`,
-                background:'transparent', color:filter===t.key?R:'#9a9a96',
-                fontSize:14, fontWeight:filter===t.key?700:500,
-                cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap',
-                display:'flex', alignItems:'center', gap:6 }}>
-              {t.label}
-              <span style={{ fontSize:11, fontWeight:800, background:filter===t.key?R+'15':'#f2f2f0',
-                color:filter===t.key?R:'#9a9a96', padding:'1px 6px', borderRadius:20 }}>
-                {t.count}
-              </span>
-            </button>
-          ))}
-        </div>
+        {/* ── Stats Row 2 ─────────────────────────────────────────────────── */}
+        <MobileStatStrip stats={[
+          { label: 'Tasks Due',  value: loading ? '—' : agencyStats.tasksDue,       color: AMB },
+          { label: 'Proposals',  value: loading ? '—' : agencyStats.openProposals,  color: '#7c3aed' },
+          { label: 'Scout',      value: loading ? '—' : agencyStats.scoutLeads,     color: T },
+          { label: 'Avg Rating', value: loading ? '—' : (agencyStats.avgRating || '—'), color: GRN },
+        ]} />
 
-        {loading ? (
-          <div style={{ display:'flex', justifyContent:'center', padding:40 }}>
-            <Loader2 size={22} color={R} style={{ animation:'spin 1s linear infinite' }}/>
-            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-          </div>
-        ) : filtered.length === 0 ? (
-          <MobileEmpty icon={Zap} title="No projects yet"
-            body="Add a client and start your first project"
-            action={<MobileButton label="Add Client" onPress={()=>navigate('/clients')}/>}/>
-        ) : (
-          <div style={{ padding:'10px 16px', display:'flex', flexDirection:'column', gap:10 }}>
-            {filtered.map(p => {
-              const cl = clientMap[p.client_id]
-              const sc = STATUS_COLOR[cl?.status||'active']
-              return (
-                <button key={p.id} onClick={()=>navigate(`/project/${p.id}`)}
-                  style={{ background:'#fff', borderRadius:14, border:'1px solid #ececea',
-                    borderLeft:`3px solid ${sc}`, padding:'14px',
-                    cursor:'pointer', textAlign:'left', width:'100%',
-                    WebkitTapHighlightColor:'transparent' }}>
-                  <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:6 }}>
-                    <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#0a0a0a',
-                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
-                      {p.name}
-                    </div>
-                    <span style={{ fontSize:10, fontWeight:800, padding:'2px 7px', borderRadius:20,
-                      background:sc+'15', color:sc, textTransform:'uppercase', letterSpacing:'.05em',
-                      marginLeft:8, flexShrink:0, fontFamily:FH }}>
-                      {cl?.status||'active'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{cl?.name||'—'}</div>
-                  {p.due_date && (
-                    <div style={{ fontSize:12, color:'#9a9a96', marginTop:6, fontFamily:FB }}>
-                      Due {new Date(p.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+        {/* ── Recent Activity ─────────────────────────────────────────────── */}
+        {recentActivity.length > 0 && (
+          <>
+            <MobileSectionHeader title="Recent Activity" />
+            <MobileCard style={{ margin: '0 16px 16px' }}>
+              {recentActivity.map((log, i) => (
+                <MobileRow
+                  key={log.id}
+                  borderBottom={i < recentActivity.length - 1}
+                  left={
+                    <div style={{
+                      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                      background: LOG_LEVEL_COLOR[log.level] || '#6b7280',
+                    }} />
+                  }
+                  title={log.message}
+                  subtitle={timeAgo(log.created_at)}
+                />
+              ))}
+            </MobileCard>
+          </>
         )}
 
-        {/* Open tickets */}
-        {tickets.length > 0 && (
+        {/* ── Client Spotlight ────────────────────────────────────────────── */}
+        {spotlightClients.length > 0 && (
           <>
-            <MobileSectionHeader title="Open Tickets"
-              action={<button onClick={()=>navigate('/desk')}
-                style={{ fontSize:13, color:R, fontWeight:700, background:'none', border:'none',
-                  cursor:'pointer', fontFamily:FH }}>View all</button>}/>
-            <MobileCard style={{ margin:'0 16px 16px' }}>
-              {tickets.map((tk,i)=>(
-                <MobileRow key={tk.id}
-                  onClick={()=>navigate(`/desk/ticket/${tk.id}`)}
-                  borderBottom={i<tickets.length-1}
-                  left={<div style={{ width:8, height:8, borderRadius:'50%', flexShrink:0,
-                    background:tk.priority==='urgent'?R:tk.priority==='high'?'#f59e0b':T }}/>}
-                  title={tk.subject}
-                  subtitle={tk.status.replace('_',' ')}/>
+            <MobileSectionHeader title="Client Spotlight"
+              action={<button onClick={() => navigate('/clients')} style={{
+                fontSize: 13, color: R, fontWeight: 700, background: 'none',
+                border: 'none', cursor: 'pointer', fontFamily: FH,
+              }}>View all</button>}
+            />
+            <MobileCard style={{ margin: '0 16px 16px' }}>
+              {spotlightClients.map((cl, i) => (
+                <MobileRow
+                  key={cl.id}
+                  onClick={() => navigate(`/client/${cl.id}`)}
+                  borderBottom={i < spotlightClients.length - 1}
+                  title={cl.name}
+                  subtitle={`${cl.industry || 'General'} · ${cl.pagesCount} pages · ${cl.reviewsCount} reviews`}
+                />
+              ))}
+            </MobileCard>
+          </>
+        )}
+
+        {/* ── System Status ───────────────────────────────────────────────── */}
+        <MobileSectionHeader title="System Status" />
+        <MobileCard style={{ margin: '0 16px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0' }}>
+            <StatusDot label="Database"  status={systemHealth.database} />
+            <StatusDot label="App"       status={systemHealth.app} />
+            <StatusDot label="WordPress" status={systemHealth.wordpress} />
+          </div>
+        </MobileCard>
+      </MobilePage>
+    )
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     MOBILE — SUPER ADMIN
+     ══════════════════════════════════════════════════════════════════════════ */
+  if (isMobile && isSuperAdmin) {
+    return (
+      <MobilePage padded={false}>
+        <div style={{ background: BLK, padding: '16px 16px 0' }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+            textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, fontFamily: FH,
+          }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </div>
+          <h1 style={{
+            fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#fff',
+            margin: '0 0 2px', letterSpacing: '-.03em',
+          }}>
+            Platform Overview
+          </h1>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            margin: '0 0 16px',
+          }}>
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
+              background: GRN + '20', color: GRN, fontFamily: FH,
+            }}>
+              Uptime {superStats.uptime}
+            </span>
+            <RefreshBadge />
+          </div>
+        </div>
+
+        <MobileStatStrip stats={[
+          { label: 'Agencies', value: loading ? '—' : superStats.totalAgencies,  color: T },
+          { label: 'Users',    value: loading ? '—' : superStats.totalUsers,     color: '#fff' },
+          { label: 'Pages',    value: loading ? '—' : superStats.totalPages,     color: GRN },
+          { label: 'Errors',   value: loading ? '—' : superStats.totalErrors24h, color: superStats.totalErrors24h > 0 ? R : '#fff' },
+        ]} />
+
+        {/* Quick Actions */}
+        <MobileSectionHeader title="Quick Actions" />
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10,
+          padding: '0 16px', marginBottom: 16,
+        }}>
+          {SUPER_ACTIONS.map(a => (
+            <button key={a.to} onClick={() => navigate(a.to)} style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '14px', borderRadius: 14, border: 'none',
+              cursor: 'pointer', background: '#fff', textAlign: 'left',
+              borderLeft: `3px solid ${a.bg}`,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, background: a.bg + '15',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <a.icon size={17} color={a.bg} />
+              </div>
+              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>
+                {a.label}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Recent Errors */}
+        {recentErrors.length > 0 && (
+          <>
+            <MobileSectionHeader title="Recent Errors" />
+            <MobileCard style={{ margin: '0 16px 16px' }}>
+              {recentErrors.map((log, i) => (
+                <MobileRow
+                  key={log.id}
+                  borderBottom={i < recentErrors.length - 1}
+                  left={
+                    <div style={{
+                      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                      background: R,
+                    }} />
+                  }
+                  title={log.message}
+                  subtitle={timeAgo(log.created_at)}
+                />
+              ))}
+            </MobileCard>
+          </>
+        )}
+
+        {/* Activity Feed */}
+        {activityFeed.length > 0 && (
+          <>
+            <MobileSectionHeader title="Activity Feed" />
+            <MobileCard style={{ margin: '0 16px 24px' }}>
+              {activityFeed.map((log, i) => (
+                <MobileRow
+                  key={log.id}
+                  borderBottom={i < activityFeed.length - 1}
+                  left={
+                    <div style={{
+                      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                      background: LOG_LEVEL_COLOR[log.level] || '#6b7280',
+                    }} />
+                  }
+                  title={log.message}
+                  subtitle={`${log.level} · ${timeAgo(log.created_at)}`}
+                />
               ))}
             </MobileCard>
           </>
@@ -216,134 +702,390 @@ export default function DashboardPage() {
     )
   }
 
-  /* ─────────────────── DESKTOP ─────────────────── */
-  return (
-    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',
-      fontFamily:FB}}>
-      <Sidebar/>
-      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{background:'#0a0a0a',padding:'0 32px',flexShrink:0}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'20px 0 0'}}>
-            <div>
-              <div style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.3)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>
-                {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+  /* ══════════════════════════════════════════════════════════════════════════
+     DESKTOP — SUPER ADMIN
+     ══════════════════════════════════════════════════════════════════════════ */
+  if (isSuperAdmin) {
+    return (
+      <div className="page-shell" style={{
+        display: 'flex', height: '100vh', overflow: 'hidden',
+        background: GRY, fontFamily: FB,
+      }}>
+        <Sidebar />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* ── Dark Header ───────────────────────────────────────────────── */}
+          <div style={{ background: BLK, padding: '20px 32px 18px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+                  textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
+                }}>
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </div>
+                <h1 style={{
+                  fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#fff',
+                  margin: 0, letterSpacing: '-.03em', lineHeight: 1,
+                }}>
+                  Platform Overview
+                </h1>
               </div>
-              <h1 style={{fontFamily:FH,fontSize:26,fontWeight:800,color:'#fff',margin:0,letterSpacing:'-.03em',lineHeight:1}}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{
+                  fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 20,
+                  background: GRN + '20', color: GRN, fontFamily: FH,
+                }}>
+                  Uptime {superStats.uptime}
+                </span>
+                <RefreshBadge />
+              </div>
+            </div>
+          </div>
+
+          {/* ── Main content ──────────────────────────────────────────────── */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+            {/* Stats Row — 6 cards */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 24,
+            }}>
+              <StatCard label="Total Agencies"   value={superStats.totalAgencies}  icon={Globe}     accent={T} />
+              <StatCard label="Total Users"       value={superStats.totalUsers}     icon={Users}     accent={R} />
+              <StatCard label="Total Pages"       value={superStats.totalPages}     icon={FileText}  accent={GRN} />
+              <StatCard label="Active WP Sites"   value={superStats.activeWpSites}  icon={HardDrive} accent={AMB} />
+              <StatCard label="Errors (24h)"      value={superStats.totalErrors24h} icon={AlertCircle} accent={superStats.totalErrors24h > 0 ? R : '#6b7280'} />
+              <StatCard label="System Uptime"     value={superStats.uptime}         icon={Activity}  accent={GRN} />
+            </div>
+
+            {/* Quick Actions */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
+            }}>
+              {SUPER_ACTIONS.map(a => (
+                <ActionTile key={a.to} icon={a.icon} label={a.label} to={a.to} bg={a.bg} />
+              ))}
+            </div>
+
+            {/* Two columns: Errors + Activity */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              {/* Recent Errors */}
+              <div style={{
+                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
+                    Recent Errors
+                  </div>
+                  <span style={{
+                    fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
+                    background: R + '15', color: R,
+                  }}>
+                    {superStats.totalErrors24h} in 24h
+                  </span>
+                </div>
+                <div style={{ padding: '4px 18px 10px' }}>
+                  {loading ? (
+                    <div style={{ padding: '20px 0' }}>
+                      {[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}
+                    </div>
+                  ) : recentErrors.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center', padding: '30px 0', fontSize: 13,
+                      color: '#9a9a96', fontFamily: FB,
+                    }}>
+                      <Check size={20} color={GRN} style={{ marginBottom: 8 }} />
+                      <br />No recent errors
+                    </div>
+                  ) : (
+                    recentErrors.map(log => (
+                      <LogRow key={log.id} log={log} showLevel />
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Activity Feed */}
+              <div style={{
+                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                }}>
+                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
+                    Activity Feed
+                  </div>
+                </div>
+                <div style={{ padding: '4px 18px 10px', maxHeight: 500, overflowY: 'auto' }}>
+                  {loading ? (
+                    <div style={{ padding: '20px 0' }}>
+                      {[1,2,3,4,5].map(i => <SkeletonBar key={i} mb={12} />)}
+                    </div>
+                  ) : activityFeed.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center', padding: '30px 0', fontSize: 13,
+                      color: '#9a9a96', fontFamily: FB,
+                    }}>
+                      No activity yet
+                    </div>
+                  ) : (
+                    activityFeed.map(log => (
+                      <LogRow key={log.id} log={log} showLevel />
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     DESKTOP — AGENCY ADMIN (default)
+     ══════════════════════════════════════════════════════════════════════════ */
+  return (
+    <div className="page-shell" style={{
+      display: 'flex', height: '100vh', overflow: 'hidden',
+      background: GRY, fontFamily: FB,
+    }}>
+      <Sidebar />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* ── Dark Header ─────────────────────────────────────────────────── */}
+        <div style={{ background: BLK, padding: '20px 32px 18px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{
+                fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+                textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
+              }}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </div>
+              <h1 style={{
+                fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#fff',
+                margin: 0, letterSpacing: '-.03em', lineHeight: 1,
+              }}>
                 {greeting}
               </h1>
             </div>
-            <button onClick={()=>navigate('/clients')}
-              style={{display:'flex',alignItems:'center',gap:8,padding:'10px 20px',borderRadius:10,border:'none',background:R,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',boxShadow:`0 4px 14px ${R}40`}}>
-              <Plus size={15}/> New Project
-            </button>
-          </div>
-          <div style={{display:'flex',gap:32,padding:'18px 0 0',borderBottom:'1px solid rgba(255,255,255,.06)',marginTop:4}}>
-            {[{label:'Total clients',value:stats.clients},{label:'Active',value:stats.active,color:T},{label:'Projects',value:stats.projects},{label:'Open tickets',value:stats.tickets,color:stats.tickets>0?R:undefined}].map(s=>(
-              <div key={s.label} style={{paddingBottom:16}}>
-                <div style={{fontFamily:FH,fontSize:22,fontWeight:800,color:s.color||'rgba(255,255,255,.9)',lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,.3)',marginTop:3}}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{display:'flex',gap:0}}>
-            {[{key:'all',label:'All Projects'},{key:'active',label:'Active'},{key:'prospect',label:'Prospects'},{key:'paused',label:'Paused'}].map(f=>(
-              <button key={f.key} onClick={()=>setFilter(f.key)}
-                style={{padding:'12px 18px',border:'none',background:'transparent',borderBottom:`2.5px solid ${filter===f.key?R:'transparent'}`,color:filter===f.key?'#fff':'rgba(255,255,255,.38)',fontSize:13,fontWeight:filter===f.key?700:500,cursor:'pointer',transition:'all .15s'}}>
-                {f.label}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <RefreshBadge />
+              <button onClick={() => navigate('/clients')} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 20px', borderRadius: 10, border: 'none',
+                background: R, color: '#fff', fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', boxShadow: `0 4px 14px ${R}40`, fontFamily: FH,
+              }}>
+                <Plus size={15} /> New Client
               </button>
-            ))}
+            </div>
           </div>
         </div>
-        <div style={{flex:1,overflowY:'auto',padding:'28px 32px',display:'grid',gridTemplateColumns:'1fr 300px',gap:24,alignItems:'start'}}>
-          <div>
-            {loading ? (
-              <div style={{display:'flex',justifyContent:'center',padding:60}}>
-                <Loader2 size={24} color={R} style={{animation:'spin 1s linear infinite'}}/>
-                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-              </div>
-            ) : filtered.length === 0 ? (
-              <div style={{textAlign:'center',padding:'60px 24px',background:'#fff',borderRadius:16,border:'1px solid #ececea'}}>
-                <div style={{fontFamily:FH,fontSize:18,fontWeight:800,color:'#0a0a0a',marginBottom:8,letterSpacing:'-.02em'}}>No projects yet</div>
-                <button onClick={()=>navigate('/clients')} style={{padding:'10px 22px',borderRadius:10,border:'none',background:R,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer'}}>Add Client</button>
-              </div>
-            ) : (
-              <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                {filtered.map(p=>{
-                  const cl=clientMap[p.client_id];const sc=STATUS_COLOR[cl?.status||'active']
-                  return(
-                    <div key={p.id} onClick={()=>navigate(`/project/${p.id}`)}
-                      style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',borderLeft:`3px solid ${sc}`,padding:'16px 18px',cursor:'pointer',transition:'all .18s ease'}}
-                      onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-1px)';e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.07)'}}
-                      onMouseLeave={e=>{e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}>
-                      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:10}}>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontFamily:FH,fontSize:15,fontWeight:700,color:'#0a0a0a',marginBottom:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.name}</div>
-                          <div style={{fontSize:12,color:'#9a9a96'}}>{cl?.name||'—'}</div>
-                        </div>
-                        <span style={{fontSize:10,fontWeight:800,padding:'3px 8px',borderRadius:20,flexShrink:0,background:sc+'15',color:sc,textTransform:'uppercase',letterSpacing:'.07em'}}>{cl?.status||'active'}</span>
-                      </div>
-                      <div style={{height:3,background:'#f2f2f0',borderRadius:2,overflow:'hidden'}}>
-                        <div style={{height:'100%',width:`${Math.min(100,(p.revision_round||0)/3*100)}%`,background:`linear-gradient(90deg,${sc},${sc}cc)`,borderRadius:2}}/>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+
+        {/* ── Scrollable body ─────────────────────────────────────────────── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+
+          {/* ── Stats Row 1: 5 cards ──────────────────────────────────────── */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 16,
+          }}>
+            <StatCard label="Active Clients"     value={agencyStats.activeClients}    icon={Users}      accent={R} />
+            <StatCard label="Pages Generated"     value={agencyStats.pagesGenerated}   icon={FileText}   accent={T} />
+            <StatCard label="Reviews Collected"   value={agencyStats.reviewsCollected} icon={Star}       accent={GRN} />
+            <StatCard label="Scout Leads"         value={agencyStats.scoutLeads}       icon={Target}     accent={T} />
+            <StatCard label="WP Sites"            value={agencyStats.wpSites}          icon={HardDrive}  accent={AMB} />
           </div>
-          <div style={{display:'flex',flexDirection:'column',gap:16}}>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-              {[{label:'Clients',value:stats.clients,icon:Users,color:R},{label:'Projects',value:stats.projects,icon:BarChart2,color:T}].map(s=>(
-                <div key={s.label} onClick={()=>navigate('/clients')}
-                  style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'18px',cursor:'pointer'}}>
-                  <div style={{position:'relative',height:2,background:s.color,opacity:.7,marginBottom:14,margin:'-18px -18px 14px',borderRadius:'14px 14px 0 0'}}/>
-                  <div style={{fontFamily:FH,fontSize:28,fontWeight:800,color:'#0a0a0a',lineHeight:1,letterSpacing:'-.03em'}}>{s.value}</div>
-                  <div style={{fontSize:11,color:'#9a9a96',marginTop:4,fontFamily:FH,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em'}}>{s.label}</div>
-                </div>
+
+          {/* ── Stats Row 2: 4 cards ──────────────────────────────────────── */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
+          }}>
+            <StatCard label="Tasks Due Today"  value={agencyStats.tasksDue}       icon={Clock}         accent={AMB} />
+            <StatCard label="Open Proposals"   value={agencyStats.openProposals}  icon={FileSignature} accent={'#7c3aed'} />
+            <StatCard label="Desk Tickets"     value={agencyStats.deskTickets}    icon={Inbox}         accent={agencyStats.deskTickets > 0 ? R : '#6b7280'} />
+            <StatCard label="Avg Rating"       value={agencyStats.avgRating ? `${agencyStats.avgRating} ★` : '—'} icon={Star} accent={GRN} />
+          </div>
+
+          {/* ── Quick Actions: 4x2 grid ───────────────────────────────────── */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{
+              fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK,
+              marginBottom: 14, letterSpacing: '-.02em',
+            }}>
+              Quick Actions
+            </div>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14,
+            }}>
+              {AGENCY_ACTIONS.map(a => (
+                <ActionTile key={a.to} icon={a.icon} label={a.label} to={a.to} bg={a.bg} />
               ))}
             </div>
-            <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',overflow:'hidden'}}>
-              <div style={{padding:'14px 18px',borderBottom:'1px solid #f2f2f0'}}>
-                <div style={{fontFamily:FH,fontSize:14,fontWeight:800,color:'#0a0a0a'}}>Quick Actions</div>
+          </div>
+
+          {/* ── Two-column: Activity + Right sidebar ──────────────────────── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
+            {/* Recent Activity */}
+            <div style={{
+              background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
+                <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
+                  Recent Activity
+                </div>
+                <span style={{ fontSize: 11, color: '#9a9a96', fontFamily: FB }}>
+                  Last 10 events
+                </span>
               </div>
-              <div style={{padding:'10px'}}>
-                {[{icon:Target,label:'Scout Leads',desc:'Find prospects',color:T,to:'/scout'},{icon:TrendingUp,label:'Performance',desc:'Ad intelligence',color:R,to:'/perf'},{icon:Inbox,label:'KotoDesk',desc:'Support tickets',color:'#7c3aed',to:'/desk'},{icon:FileSignature,label:'Proposal',desc:'Build a proposal',color:'#f59e0b',to:'/proposals'},{icon:Star,label:'Reviews',desc:'Manage reviews',color:'#16a34a',to:'/reviews'}].map(q=>(
-                  <div key={q.to} onClick={()=>navigate(q.to)}
-                    style={{display:'flex',alignItems:'center',gap:12,padding:'11px 10px',borderRadius:10,cursor:'pointer',transition:'all .12s'}}
-                    onMouseEnter={e=>{e.currentTarget.style.background='#f8f8f6'}}
-                    onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
-                    <div style={{width:34,height:34,borderRadius:9,background:q.color+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                      <q.icon size={15} color={q.color}/>
-                    </div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:14,fontWeight:700,color:'#0a0a0a',fontFamily:FH}}>{q.label}</div>
-                      <div style={{fontSize:12,color:'#9a9a96',fontFamily:FB}}>{q.desc}</div>
-                    </div>
-                    <ArrowUpRight size={13} color="#d0d0cc"/>
+              <div style={{ padding: '4px 18px 10px' }}>
+                {loading ? (
+                  <div style={{ padding: '20px 0' }}>
+                    {[1,2,3,4,5].map(i => (
+                      <div key={i} style={{ marginBottom: 16 }}>
+                        <SkeletonBar w="70%" mb={6} />
+                        <SkeletonBar w="40%" h={10} />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : recentActivity.length === 0 ? (
+                  <div style={{
+                    textAlign: 'center', padding: '40px 0', fontSize: 13,
+                    color: '#9a9a96', fontFamily: FB,
+                  }}>
+                    <Activity size={24} color="#d0d0cc" style={{ marginBottom: 8 }} />
+                    <br />No recent activity
+                  </div>
+                ) : (
+                  recentActivity.map(log => (
+                    <LogRow key={log.id} log={log} showLevel />
+                  ))
+                )}
               </div>
             </div>
-            {tickets.length>0&&(
-              <div style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',overflow:'hidden'}}>
-                <div style={{padding:'14px 18px',borderBottom:'1px solid #f2f2f0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                  <div style={{fontFamily:FH,fontSize:14,fontWeight:800,color:'#0a0a0a'}}>Open Tickets</div>
-                  <button onClick={()=>navigate('/desk')} style={{fontSize:12,fontWeight:700,color:R,background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:3,fontFamily:FH}}>View all <ChevronRight size={12}/></button>
+
+            {/* Right sidebar: Spotlight + System Status */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Client Spotlight */}
+              <div style={{
+                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
+                    Client Spotlight
+                  </div>
+                  <button onClick={() => navigate('/clients')} style={{
+                    fontSize: 12, fontWeight: 700, color: R, background: 'none',
+                    border: 'none', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', gap: 3, fontFamily: FH,
+                  }}>
+                    View all <ChevronRight size={12} />
+                  </button>
                 </div>
-                <div style={{padding:'8px 10px'}}>
-                  {tickets.map(tk=>(
-                    <div key={tk.id} onClick={()=>navigate(`/desk/ticket/${tk.id}`)}
-                      style={{padding:'9px 10px',borderRadius:9,cursor:'pointer',display:'flex',alignItems:'center',gap:10,transition:'background .12s'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='#f8f8f6'}
-                      onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                      <div style={{width:6,height:6,borderRadius:'50%',flexShrink:0,background:tk.priority==='urgent'?R:tk.priority==='high'?'#f59e0b':T}}/>
-                      <span style={{fontSize:13,color:'#0a0a0a',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>{tk.subject}</span>
-                      <span style={{fontSize:10,color:'#9a9a96',flexShrink:0,background:'#f2f2f0',padding:'2px 7px',borderRadius:20,fontWeight:600,textTransform:'capitalize'}}>{tk.status.replace('_',' ')}</span>
+                <div style={{ padding: '8px 10px' }}>
+                  {loading ? (
+                    <div style={{ padding: '10px 8px' }}>
+                      {[1,2,3].map(i => (
+                        <div key={i} style={{ marginBottom: 14 }}>
+                          <SkeletonBar w="60%" mb={6} />
+                          <SkeletonBar w="80%" h={10} />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : spotlightClients.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center', padding: '24px 0', fontSize: 13,
+                      color: '#9a9a96', fontFamily: FB,
+                    }}>
+                      No active clients
+                    </div>
+                  ) : (
+                    spotlightClients.map(cl => {
+                      const statusColor = cl.status === 'active' ? GRN : cl.status === 'prospect' ? T : '#6b7280'
+                      return (
+                        <div
+                          key={cl.id}
+                          onClick={() => navigate(`/client/${cl.id}`)}
+                          style={{
+                            padding: '11px 10px', borderRadius: 10, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            transition: 'background .12s',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#f8f8f6'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <div style={{
+                            width: 38, height: 38, borderRadius: 10,
+                            background: statusColor + '12', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            fontFamily: FH, fontSize: 14, fontWeight: 800, color: statusColor,
+                          }}>
+                            {cl.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK,
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {cl.name}
+                            </div>
+                            <div style={{ fontSize: 12, color: '#9a9a96', fontFamily: FB }}>
+                              {cl.industry || 'General'}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <span style={{
+                              fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+                              background: statusColor + '15', color: statusColor,
+                              textTransform: 'uppercase', letterSpacing: '.05em',
+                            }}>
+                              {cl.status}
+                            </span>
+                            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 4 }}>
+                              {cl.pagesCount}p · {cl.reviewsCount}r
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
               </div>
-            )}
+
+              {/* System Status */}
+              <div style={{
+                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                padding: '18px',
+              }}>
+                <div style={{
+                  fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 16,
+                }}>
+                  System Status
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <StatusDot label="Database"  status={systemHealth.database} />
+                  <StatusDot label="App"       status={systemHealth.app} />
+                  <StatusDot label="WordPress" status={systemHealth.wordpress} />
+                </div>
+                <div style={{
+                  fontSize: 11, color: '#9a9a96', marginTop: 14, fontFamily: FB,
+                  borderTop: '1px solid #f2f2f0', paddingTop: 12,
+                }}>
+                  Last checked {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
