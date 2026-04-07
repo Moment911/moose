@@ -128,6 +128,7 @@ export default function Sidebar() {
               <NavLink to="/" exact icon={LayoutGrid} label="Platform Overview"/>
               <NavLink to="/platform-admin" icon={Shield} label="Platform Admin"/>
               <NavLink to="/billing-admin" icon={CreditCard} label="Billing Admin"/>
+              <NavLink to="/stripe-admin" icon={CreditCard} label="Stripe Control"/>
               <NavLink to="/debug" icon={Shield} label="Debug Console"/>
               <NavLink to="/qa" icon={Shield} label="QA Console" badge="NEW" badgeColor={T}/>
               <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
