@@ -122,6 +122,7 @@ import ProposalPublicPage from '../views/ProposalPublicPage'
 import QAConsolePage from '../views/QAConsolePage'
 import ServicesPage from '../views/ServicesPage'
 import ContactPage from '../views/ContactPage'
+import BillingAdminPage from '../views/BillingAdminPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -328,6 +329,7 @@ function AppRoutes() {
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
           <Route path="/qa" element={<QAConsolePage />} />
+          <Route path="/billing-admin" element={<BillingAdminPage />} />
     </Routes>
   )
 }

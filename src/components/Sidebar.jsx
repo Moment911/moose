@@ -225,6 +225,7 @@ export default function Sidebar() {
           <NavLink to="/voice/test-console" icon={Phone} label="Voice Test Lab"/>
           <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
           <NavLink to="/qa" icon={Shield} label="QA Console" badge="NEW" badgeColor={T}/>
+          <NavLink to="/billing-admin" icon={CreditCard} label="Billing Admin"/>
           </>)}
         </div>
 
