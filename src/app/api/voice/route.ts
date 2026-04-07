@@ -381,6 +381,21 @@ RULES:
           ai_summary: call.call_analysis?.call_summary || '',
         }).eq('retell_call_id', retell_call_id)
 
+        // Bill for the call (outbound voice)
+        if (duration > 0 && callRecord?.agency_id) {
+          const minutes = Math.ceil(duration / 60)
+          try {
+            await fetch(new URL('/api/billing', req.url).toString(), {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'record_usage', agency_id: callRecord.agency_id,
+                feature: 'voice_outbound', quantity: minutes, unit: 'minutes',
+                unit_cost: 0.05,
+              }),
+            })
+          } catch {}
+        }
+
         // Update lead status
         const leadStatus = appointmentSet ? 'appointment_set'
           : callbackRequested ? 'callback'

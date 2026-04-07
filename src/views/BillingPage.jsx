@@ -38,6 +38,7 @@ export default function BillingPage() {
   const [clientPricing, setClientPricing] = useState([])
   const [purchasing, setPurchasing] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [clientProfit, setClientProfit] = useState([])
 
   useEffect(() => { loadDashboard() }, [aid])
   useEffect(() => { loadTabData() }, [tab])
@@ -45,8 +46,13 @@ export default function BillingPage() {
   async function loadDashboard() {
     setLoading(true)
     try {
-      const res = await fetch(`/api/billing?action=get_dashboard&agency_id=${aid}`)
-      setDash(await res.json())
+      const [dashRes, profRes] = await Promise.all([
+        fetch(`/api/billing?action=get_dashboard&agency_id=${aid}`),
+        fetch(`/api/billing?action=get_client_profitability&agency_id=${aid}`),
+      ])
+      setDash(await dashRes.json())
+      const profData = await profRes.json()
+      if (Array.isArray(profData)) setClientProfit(profData)
     } catch {}
     setLoading(false)
   }
@@ -193,6 +199,38 @@ export default function BillingPage() {
                       </div>
                     )
                   })}
+                </div>
+              )}
+
+              {/* Client Profitability */}
+              {clientProfit.length > 0 && (
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden', marginBottom: 20 }}>
+                  <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Client Profitability</div>
+                    <span style={{ fontSize: 11, color: '#9a9a96' }}>Your cost vs what you charge</span>
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #f2f2f0' }}>
+                        {['Client', 'Your Cost', 'Client Revenue', 'Margin'].map(h => (
+                          <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 11, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clientProfit.map(c => (
+                        <tr key={c.client_id} style={{ borderBottom: '1px solid #f8f8f6' }}>
+                          <td style={{ padding: '12px 14px', fontWeight: 700, color: BLK }}>{c.name}</td>
+                          <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: R }}>${c.cost.toFixed(2)}</td>
+                          <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: GRN }}>${c.revenue.toFixed(2)}</td>
+                          <td style={{ padding: '12px 14px' }}>
+                            <span style={{ fontFamily: FH, fontWeight: 800, color: c.margin >= 0 ? GRN : R }}>${c.margin.toFixed(2)}</span>
+                            {c.revenue > 0 && <span style={{ fontSize: 11, color: '#9a9a96', marginLeft: 6 }}>({Math.round(c.margin / c.revenue * 100)}%)</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
 

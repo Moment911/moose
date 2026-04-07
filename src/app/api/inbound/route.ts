@@ -740,6 +740,22 @@ export async function POST(request: NextRequest) {
             .single()
           if (callErr) throw callErr
 
+          // Bill for the call (inbound voice)
+          const callDuration = call.duration_ms ? Math.round(call.duration_ms / 1000) : 0
+          if (callDuration > 0 && agency_id) {
+            const minutes = Math.ceil(callDuration / 60)
+            try {
+              await fetch(new URL('/api/billing', request.url).toString(), {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'record_usage', agency_id,
+                  feature: 'voice_inbound', quantity: minutes, unit: 'minutes',
+                  unit_cost: 0.02,
+                }),
+              })
+            } catch {}
+          }
+
           // Extract and insert intake answers
           if (agentInfo?.intake_questions?.length) {
             try {

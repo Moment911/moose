@@ -126,6 +126,110 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(data || [])
   }
 
+  if (action === 'get_profitability') {
+    // Super admin: cost vs revenue by feature
+    const period = p.get('period') || new Date().toISOString().slice(0, 7)
+    const { data: platformPricing } = await s.from('koto_platform_pricing').select('feature, cost_per_unit')
+    const costMap: Record<string, number> = {}
+    for (const pp of platformPricing || []) costMap[pp.feature] = Number(pp.cost_per_unit)
+
+    const { data: usageData } = await s.from('koto_usage_records').select('feature, quantity, unit_cost, total_cost, agency_id').eq('billing_period', period)
+    const byFeature: Record<string, { revenue: number; cost: number; qty: number }> = {}
+    for (const u of usageData || []) {
+      if (!byFeature[u.feature]) byFeature[u.feature] = { revenue: 0, cost: 0, qty: 0 }
+      byFeature[u.feature].revenue += Number(u.total_cost || 0)
+      byFeature[u.feature].cost += Number(u.quantity || 0) * (costMap[u.feature] || 0)
+      byFeature[u.feature].qty += Number(u.quantity || 0)
+    }
+    const features = Object.entries(byFeature).map(([feature, d]) => ({
+      feature, revenue: Math.round(d.revenue * 100) / 100,
+      cost: Math.round(d.cost * 100) / 100,
+      margin: Math.round((d.revenue - d.cost) * 100) / 100,
+      margin_pct: d.revenue > 0 ? Math.round(((d.revenue - d.cost) / d.revenue) * 100) : 0,
+      quantity: d.qty,
+    }))
+    const totalRevenue = features.reduce((s, f) => s + f.revenue, 0)
+    const totalCost = features.reduce((s, f) => s + f.cost, 0)
+
+    // Per-agency profitability
+    const agencyMap: Record<string, { revenue: number; cost: number; name: string }> = {}
+    for (const u of usageData || []) {
+      if (!agencyMap[u.agency_id]) agencyMap[u.agency_id] = { revenue: 0, cost: 0, name: '' }
+      agencyMap[u.agency_id].revenue += Number(u.total_cost || 0)
+      agencyMap[u.agency_id].cost += Number(u.quantity || 0) * (costMap[u.feature] || 0)
+    }
+    // Enrich with agency names
+    const agencyIds = Object.keys(agencyMap)
+    if (agencyIds.length > 0) {
+      const { data: agencies } = await s.from('agencies').select('id, name, brand_name').in('id', agencyIds)
+      for (const a of agencies || []) {
+        if (agencyMap[a.id]) agencyMap[a.id].name = a.brand_name || a.name || a.id
+      }
+    }
+    const byAgency = Object.entries(agencyMap).map(([id, d]) => ({
+      agency_id: id, name: d.name || id.slice(0, 8),
+      revenue: Math.round(d.revenue * 100) / 100,
+      cost: Math.round(d.cost * 100) / 100,
+      margin: Math.round((d.revenue - d.cost) * 100) / 100,
+    })).sort((a, b) => b.revenue - a.revenue)
+
+    return NextResponse.json({
+      period, total_revenue: Math.round(totalRevenue * 100) / 100,
+      total_cost: Math.round(totalCost * 100) / 100,
+      total_margin: Math.round((totalRevenue - totalCost) * 100) / 100,
+      margin_pct: totalRevenue > 0 ? Math.round(((totalRevenue - totalCost) / totalRevenue) * 100) : 0,
+      by_feature: features, by_agency: byAgency,
+    })
+  }
+
+  if (action === 'get_client_profitability') {
+    if (!agencyId) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+    const period = p.get('period') || new Date().toISOString().slice(0, 7)
+    const { data: usageData } = await s.from('koto_usage_records').select('client_id, feature, quantity, unit_cost, total_cost').eq('agency_id', agencyId).eq('billing_period', period)
+    const { data: pricing } = await s.from('koto_client_pricing').select('*').eq('agency_id', agencyId)
+    const { data: clients } = await s.from('clients').select('id, name').eq('agency_id', agencyId)
+
+    const clientMap: Record<string, { name: string; cost: number; revenue: number; usage: Record<string, number> }> = {}
+    for (const c of clients || []) {
+      clientMap[c.id] = { name: c.name, cost: 0, revenue: 0, usage: {} }
+    }
+    const rateMap: Record<string, any> = {}
+    for (const p of pricing || []) rateMap[p.client_id] = p
+
+    for (const u of usageData || []) {
+      const cid = u.client_id
+      if (!cid || !clientMap[cid]) continue
+      clientMap[cid].cost += Number(u.total_cost || 0)
+      clientMap[cid].usage[u.feature] = (clientMap[cid].usage[u.feature] || 0) + Number(u.quantity || 0)
+      // Estimate revenue based on agency's client pricing
+      const rates = rateMap[cid]
+      if (rates) {
+        if (u.feature === 'voice_outbound' || u.feature === 'voice_inbound') {
+          clientMap[cid].revenue += Number(u.quantity || 0) * Number(rates.voice_call_rate || 0.10)
+        } else if (u.feature.includes('sms')) {
+          clientMap[cid].revenue += Number(u.quantity || 0) * Number(rates.sms_rate || 0.02)
+        } else if (u.feature === 'phone_number') {
+          clientMap[cid].revenue += Number(u.quantity || 0) * Number(rates.phone_number_rate || 3.00)
+        } else if (u.feature === 'page_deploy') {
+          clientMap[cid].revenue += Number(u.quantity || 0) * Number(rates.page_build_rate || 50.00)
+        }
+      }
+    }
+    // Add retainer revenue
+    for (const [cid, rates] of Object.entries(rateMap)) {
+      if (clientMap[cid]) clientMap[cid].revenue += Number((rates as any).monthly_retainer || 0)
+    }
+
+    const result = Object.entries(clientMap).map(([id, d]) => ({
+      client_id: id, name: d.name, cost: Math.round(d.cost * 100) / 100,
+      revenue: Math.round(d.revenue * 100) / 100,
+      margin: Math.round((d.revenue - d.cost) * 100) / 100,
+      usage: d.usage,
+    })).sort((a, b) => b.margin - a.margin)
+
+    return NextResponse.json(result)
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 

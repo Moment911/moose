@@ -12,6 +12,21 @@ async function logComm(params: {
   } catch {}
 }
 
+async function billSMS(agencyId?: string) {
+  if (!agencyId) return
+  try {
+    await fetch((process.env.NEXT_PUBLIC_SITE_URL || '') + '/api/billing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'record_usage', agency_id: agencyId,
+        feature: 'sms_outbound', quantity: 1, unit: 'messages',
+        unit_cost: 0.0075,
+      }),
+    })
+  } catch {}
+}
+
 export async function sendSMS(
   to: string,
   message: string,
@@ -42,6 +57,7 @@ export async function sendSMS(
           channel: 'sms', recipient: to, body_preview: message.slice(0, 120),
           status: 'sent', provider: 'twilio', provider_id: data.sid, agency_id: agencyId,
         })
+        billSMS(agencyId)
         return { success: true, sid: data.sid }
       }
       if (attempt === 2) {
