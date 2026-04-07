@@ -52,15 +52,19 @@ export async function GET(req: NextRequest) {
       .select('id, name, brand_name, owner_name, owner_email, plan, status, slug, created_at')
       .order('created_at', { ascending: false })
 
-    // Get client counts per agency
+    // Get client counts per agency (exclude soft-deleted)
     const result = await Promise.all((agencies || []).map(async (a) => {
       const { count: clientCount } = await s.from('clients')
         .select('*', { count: 'exact', head: true })
         .eq('agency_id', a.id)
+        .is('deleted_at', null)
       const { count: pageCount } = await s.from('koto_wp_pages')
         .select('*', { count: 'exact', head: true })
         .eq('agency_id', a.id)
-      return { ...a, client_count: clientCount || 0, page_count: pageCount || 0 }
+      const { count: wpSiteCount } = await s.from('koto_wp_sites')
+        .select('*', { count: 'exact', head: true })
+        .eq('agency_id', a.id)
+      return { ...a, client_count: clientCount || 0, page_count: pageCount || 0, wp_site_count: wpSiteCount || 0 }
     }))
 
     return NextResponse.json(result)
@@ -72,7 +76,7 @@ export async function GET(req: NextRequest) {
 
     const [{ data: agency }, { data: clients }, { data: billing }, { data: features }] = await Promise.all([
       s.from('agencies').select('*').eq('id', agencyId).single(),
-      s.from('clients').select('id, name, industry, status, created_at').eq('agency_id', agencyId).order('name'),
+      s.from('clients').select('id, name, industry, status, created_at').eq('agency_id', agencyId).is('deleted_at', null).order('name'),
       s.from('koto_billing_accounts').select('*').eq('agency_id', agencyId).single(),
       s.from('agency_features').select('*').eq('agency_id', agencyId).single(),
     ])
@@ -81,9 +85,10 @@ export async function GET(req: NextRequest) {
   }
 
   if (action === 'list_all_clients') {
-    // All clients across all agencies with agency name
+    // All clients across all agencies with agency name (exclude soft-deleted)
     const { data } = await s.from('clients')
       .select('id, name, industry, status, agency_id, website, phone, created_at, agencies!inner(name, brand_name)')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(500)
     return NextResponse.json(data || [])
@@ -98,7 +103,7 @@ export async function GET(req: NextRequest) {
       { count: wpSiteCount },
     ] = await Promise.all([
       s.from('agencies').select('*', { count: 'exact', head: true }),
-      s.from('clients').select('*', { count: 'exact', head: true }),
+      s.from('clients').select('*', { count: 'exact', head: true }).is('deleted_at', null),
       s.from('koto_wp_pages').select('*', { count: 'exact', head: true }),
       s.from('koto_voice_calls').select('*', { count: 'exact', head: true }),
       s.from('koto_wp_sites').select('*', { count: 'exact', head: true }),
