@@ -583,8 +583,6 @@ export default function ScoutPage() {
         if (!googleError && googleLeads.length > 0) {
           leads  = googleLeads
           source = 'google'
-          console.log('[Scout] Using Google Places data:', leads.length, 'results')
-          console.log('[Scout] First result:', leads[0]?.name, leads[0]?.rating, leads[0]?.review_count)
         } else if (googleError) {
           console.warn('Google Places failed, falling back to AI:', googleError)
         }

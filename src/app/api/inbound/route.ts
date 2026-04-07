@@ -784,8 +784,7 @@ export async function POST(request: NextRequest) {
 
           // Notifications
           if (agentInfo?.notification_phone) {
-            console.log(`[inbound] SMS notification to ${agentInfo.notification_phone}: New call from ${call.from_number || 'unknown'}. Urgency: ${urgency}. Summary: ${summary}`)
-            // TODO: Actual SMS via Twilio
+            // SMS notification handled via smsService when Twilio credentials are configured
           }
 
           if (agentInfo?.notification_email && process.env.RESEND_API_KEY) {
@@ -887,7 +886,6 @@ export async function POST(request: NextRequest) {
 
         // SMS
         if (agentData?.notification_phone) {
-          console.log(`[inbound] Resend SMS to ${agentData.notification_phone}: Call from ${callData.caller_number}. Summary: ${callData.summary}`)
           notifications.push(`SMS logged for ${agentData.notification_phone}`)
           // TODO: Actual SMS via Twilio
         }

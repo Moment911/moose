@@ -11,9 +11,7 @@ const keys = {
 
 // Log on load in dev
 if (process.env.NODE_ENV === 'development') {
-  console.log('[DevApiDebug] API Key Status:')
   Object.entries(keys).forEach(([name, key]) => {
-    console.log(`  ${name}: ${key ? 'SET (' + key.slice(0, 8) + '...)' : 'MISSING'}`)
   })
 }
 

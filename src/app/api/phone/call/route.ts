@@ -223,7 +223,6 @@ export async function POST(req: NextRequest) {
   if (action === 'webhook' || body.data?.event_type) {
     // Handle Telnyx call control webhooks
     const event = body.data?.event_type || body.event
-    console.log('[phone/call webhook]', event)
     return NextResponse.json({ ok: true })
   }
 

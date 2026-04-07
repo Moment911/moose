@@ -133,7 +133,6 @@ export function AuthProvider({ children }) {
       if (data) found = true
     }
     if (found) {
-      console.log('[Koto] Super admin detected:', email || userId)
       setIsSuperAdmin(true)
       setRole('super_admin')
     }

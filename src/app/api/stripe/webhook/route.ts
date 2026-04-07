@@ -63,7 +63,6 @@ async function upsertSubscription(sub: any, overrideMeta?: Record<string,string>
   if (!agRes.ok) {
     console.error('[webhook] Failed to update agency:', await agRes.text())
   } else {
-    console.log(`[webhook] ✓ Synced agency ${agency_id} → plan:${planName}, status:${sub.status}`)
   }
 
   // Sync to koto_billing_accounts
@@ -168,7 +167,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 400 })
   }
 
-  console.log('[webhook] Received event:', event.type)
 
   try {
     switch (event.type) {
@@ -219,7 +217,6 @@ export async function POST(req: NextRequest) {
 
       // ── Trial ending reminder (3 days before) ─────────────────────────
       case 'customer.subscription.trial_will_end': {
-        console.log('[webhook] Trial ending soon:', event.data.object.id)
         const trialSub = event.data.object as any
         const trialEnd = new Date(trialSub.trial_end * 1000).toLocaleDateString('en-US', {month:'long',day:'numeric'})
         if (process.env.RESEND_API_KEY) {
@@ -240,7 +237,6 @@ export async function POST(req: NextRequest) {
       }
 
       default:
-        console.log('[webhook] Unhandled event type:', event.type)
     }
   } catch (e: any) {
     console.error('[webhook] Handler error:', e.message)

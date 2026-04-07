@@ -36,7 +36,6 @@ const badge = (bg,c='#fff') => ({ display:'inline-block', padding:'2px 8px', bor
 const tabStyle = (active) => ({ padding:'8px 16px', borderRadius:'8px 8px 0 0', background:active?'#fff':'transparent', color:active?R:'#6b7280', fontWeight:active?700:500, border:'none', borderBottom:active?`2px solid ${R}`:'2px solid transparent', cursor:'pointer', fontSize:13, fontFamily:FH })
 
 export default function AnsweringServicePage() {
-  console.log('[AnsweringServicePage] mounted')
   const { user, agencyId: authAgencyId } = useAuth()
   const agencyId = authAgencyId || '00000000-0000-0000-0000-000000000099'
 

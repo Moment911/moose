@@ -124,11 +124,9 @@ export default function ClientsPage() {
         body: JSON.stringify({ query: query.trim() }),
       })
       const data = await res.json()
-      console.log('[Koto] places search response:', data)
       setBizDebug(data)
       if (data.error) toast.error(data.error)
       const results = data.results || []
-      console.log('[Koto] setting bizResults:', results.length, 'items')
       bizResultsRef.current = results
       setBizResults(results)
       setBizSearched(true)
