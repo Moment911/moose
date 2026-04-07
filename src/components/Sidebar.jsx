@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Phone, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  Activity, BarChart2, BookOpen, Brain, CheckCircle, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -195,6 +195,9 @@ export default function Sidebar() {
               ))}
             </>
           )}
+
+          <Section label="Answering"/>
+          <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service"/>
 
           {/* AGENCY — only for agency admins+ */}
           {(isAgencyAdmin || isSuperAdmin) && (<>

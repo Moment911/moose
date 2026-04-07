@@ -58,10 +58,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ calls: data || [] })
   }
 
-  if (action === 'get_voices') {
+  if (action === 'get_voices' || action === 'list_voices') {
     try {
-      const voices = await retellFetch('/list-voices')
-      return NextResponse.json({ voices })
+      const raw = await retellFetch('/list-voices')
+      const voices = (Array.isArray(raw) ? raw : []).map((v: any) => ({
+        id: v.voice_id, name: v.voice_name, provider: v.provider,
+        gender: v.gender, accent: v.accent, language: v.language || 'en',
+        age: v.age, preview_url: v.preview_audio_url, avatar_url: v.avatar_url,
+        recommended: v.recommended || false,
+      }))
+      return new NextResponse(JSON.stringify({ voices }), {
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' },
+      })
     } catch (e: any) {
       return NextResponse.json({ voices: [], error: e.message })
     }
