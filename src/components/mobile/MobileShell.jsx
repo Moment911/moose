@@ -41,6 +41,7 @@ const DRAWER_SECTIONS = [
     { to: '/scout',          icon: Target,     label: 'Scout',       badge: 'AI' },
     { to: '/scout/history',  icon: Clock,      label: 'Scout History'  },
     { to: '/perf',           icon: TrendingUp, label: 'Performance', badge: 'AI' },
+    { to: '/voice',          icon: Globe,      label: 'Voice Agent', badge: 'AI' },
     { to: '/agent',          icon: Brain,      label: 'AI CMO',      badge: 'AI' },
   ]},
   { title: 'Support', items: [

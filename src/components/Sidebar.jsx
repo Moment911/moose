@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  Activity, BarChart2, BookOpen, Brain, CheckCircle, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Phone, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
+import NotificationCenter from './NotificationCenter'
+import DarkModeToggle from './DarkModeToggle'
 import toast from 'react-hot-toast'
 
 const R  = '#ea2729'
@@ -122,6 +124,7 @@ export default function Sidebar() {
 
           <Section label="Intelligence"/>
           <NavLink to="/perf"          startsWith icon={TrendingUp} label="Performance"  badge="AI" badgeColor={R}/>
+          <NavLink to="/voice"         startsWith icon={Phone}      label="Voice Agent"  badge="AI" badgeColor={R}/>
           <NavLink to="/scout"         startsWith icon={Target}     label="Scout"        badge="NEW" badgeColor={T}/>
           <NavLink to="/scout/history" startsWith icon={Clock}      label="Scout History" sub/>
         <NavLink to="/scout/pipeline"  startsWith icon={Target}     label="Pipeline CRM"  sub/>
@@ -214,13 +217,17 @@ export default function Sidebar() {
               </div>
               <div style={{fontSize:13,color:'#9ca3af'}}>Agency</div>
             </div>
-            <button onClick={()=>signOut().then(()=>navigate('/login'))}
-              style={{padding:5,border:'none',background:'none',cursor:'pointer',
-                color:'#9ca3af',borderRadius:6,transition:'color .15s'}}
-              onMouseEnter={e=>e.currentTarget.style.color='#374151'}
-              onMouseLeave={e=>e.currentTarget.style.color='#9ca3af'}>
-              <LogOut size={13}/>
-            </button>
+            <div style={{display:'flex',alignItems:'center',gap:4}}>
+              <NotificationCenter/>
+              <DarkModeToggle/>
+              <button onClick={()=>signOut().then(()=>navigate('/login'))}
+                style={{padding:5,border:'none',background:'none',cursor:'pointer',
+                  color:'#9ca3af',borderRadius:6,transition:'color .15s'}}
+                onMouseEnter={e=>e.currentTarget.style.color='#374151'}
+                onMouseLeave={e=>e.currentTarget.style.color='#9ca3af'}>
+                <LogOut size={13}/>
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -105,6 +105,8 @@ import DebugConsolePage from '../views/DebugConsolePage'
 import HelpCenterPage from '../views/HelpCenterPage'
 import UptimeMonitorPage from '../views/UptimeMonitorPage'
 import PublicUptimePage from '../views/PublicUptimePage'
+import VoiceAgentPage from '../views/VoiceAgentPage'
+import CommandPalette from '../components/CommandPalette'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
@@ -149,6 +151,7 @@ export default function App() {
       <ClientProvider>
       <MobileMenuProvider>
         <Toaster position="top-right" />
+        <CommandPalette />
         <MobileShell>
         <ImpersonationBanner/>
         <AgencyControlPanel/>
@@ -224,6 +227,7 @@ export default function App() {
           <Route path="/help" element={<HelpCenterPage />} />
           <Route path="/uptime" element={<UptimeMonitorPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
+          <Route path="/voice" element={<VoiceAgentPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />
           <Route path="/scout/leads" element={<ScoutLeadsPage />} />
