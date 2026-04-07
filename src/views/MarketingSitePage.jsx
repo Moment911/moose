@@ -1,575 +1,1177 @@
 "use client";
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  ChevronRight, Check, Star, Zap, Globe, Users, BarChart2,
-  Shield, ArrowRight, Play, Menu, X, ChevronDown,
-  Sparkles, Target, TrendingUp, DollarSign, Clock,
-  MessageSquare, Phone, Mail, Building, Cpu, RefreshCw
-} from 'lucide-react'
+  Menu, X, ChevronRight, Check, Phone, MessageSquare,
+  BarChart2, Zap, Users, Star, ArrowRight, Search,
+  Globe, Shield, TrendingUp, Target, Cpu, Mail
+} from 'lucide-react';
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
-const DARK   = '#0f0f11'
-const DARK2  = '#18181b'
+/* ─── Design tokens ─────────────────────────────────────────── */
+const RED   = '#ea2729';
+const BLACK = '#0a0a0a';
+const WHITE = '#ffffff';
+const GRAY  = '#6b7280';
+const LIGHT = '#f5f5f5';
 
-// ── Reusable primitives ───────────────────────────────────────────────────────
-function Btn({ children, variant='primary', size='md', onClick, href, style={} }) {
-  const base = {
-    display:'inline-flex', alignItems:'center', gap:8, fontWeight:700,
-    cursor:'pointer', borderRadius:12, textDecoration:'none', border:'none',
-    transition:'all .15s', fontFamily:'inherit',
-    ...(size==='lg' ? { padding:'16px 32px', fontSize:17 } :
-        size==='sm' ? { padding:'8px 16px', fontSize:15 } :
-                      { padding:'12px 24px', fontSize:15 }),
-    ...(variant==='primary' ? { background:ACCENT, color:'#fff', boxShadow:`0 6px 24px ${ACCENT}40` } :
-        variant==='dark'    ? { background:DARK2, color:'#fff', boxShadow:'0 4px 16px rgba(0,0,0,.3)' } :
-        variant==='outline' ? { background:'transparent', color:ACCENT, border:`2px solid ${ACCENT}` } :
-        variant==='ghost'   ? { background:'rgba(255,255,255,.08)', color:'#fff', border:'1px solid rgba(255,255,255,.15)' } :
-                              { background:'#fff', color:'#111' }),
-    ...style,
+const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
+const FB = "'Raleway','Helvetica Neue',sans-serif";
+
+/* ─── Global styles injected once ───────────────────────────── */
+const GLOBAL_CSS = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: ${BLACK}; color: ${WHITE}; font-family: ${FH}; }
+
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
-  const el = href
-    ? <a href={href} style={base} onClick={onClick}>{children}</a>
-    : <button style={base} onClick={onClick}>{children}</button>
-  return el
-}
+  @keyframes marquee2 {
+    0%   { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 ${RED}60; }
+    50%       { box-shadow: 0 0 0 12px ${RED}00; }
+  }
 
-function Badge({ children, color=ACCENT }) {
+  .fade-in-section {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity .65s ease, transform .65s ease;
+  }
+  .fade-in-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .marquee-track { display: flex; width: max-content; }
+  .marquee-inner { animation: marquee 28s linear infinite; }
+  .marquee-inner2 { animation: marquee2 32s linear infinite; }
+  .marquee-track:hover .marquee-inner,
+  .marquee-track:hover .marquee-inner2 { animation-play-state: paused; }
+
+  .pill-filter {
+    cursor: pointer;
+    padding: 8px 22px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border: 1.5px solid #d1d5db;
+    background: transparent;
+    color: #374151;
+    transition: all .2s;
+    font-family: ${FH};
+  }
+  .pill-filter:hover { border-color: ${RED}; color: ${RED}; }
+  .pill-filter.active { background: ${RED}; color: ${WHITE}; border-color: ${RED}; }
+
+  .tool-card {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 32px 28px;
+    background: ${WHITE};
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .tool-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 48px rgba(0,0,0,.10);
+    border-color: ${RED}40;
+  }
+
+  .pricing-card {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 40px 32px;
+    background: ${WHITE};
+    transition: transform .25s, box-shadow .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .pricing-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 56px rgba(0,0,0,.12);
+  }
+  .pricing-card.popular {
+    border-color: ${RED};
+    box-shadow: 0 0 0 4px ${RED}18;
+  }
+
+  .feature-card {
+    background: #f9fafb;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 32px 28px;
+    transition: transform .22s, box-shadow .22s;
+  }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 36px rgba(0,0,0,.08);
+  }
+
+  .testimonial-card {
+    background: ${WHITE};
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 32px;
+    transition: transform .22s, box-shadow .22s;
+  }
+  .testimonial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 36px rgba(0,0,0,.08);
+  }
+
+  .phase-card {
+    border: 1.5px solid rgba(255,255,255,.1);
+    border-radius: 16px;
+    padding: 32px 28px;
+    background: rgba(255,255,255,.04);
+    transition: border-color .25s, background .25s;
+  }
+  .phase-card:hover {
+    border-color: ${RED}60;
+    background: rgba(234,39,41,.04);
+  }
+
+  .nav-link {
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    transition: color .2s;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: ${FH};
+    padding: 0;
+  }
+  .nav-link:hover { color: ${WHITE}; }
+
+  .hamburger-menu {
+    position: fixed;
+    inset: 0;
+    background: ${BLACK};
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 24px;
+    gap: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .hide-mobile { display: none !important; }
+    .hero-headline { font-size: 44px !important; }
+    .hero-stats { flex-wrap: wrap; gap: 24px !important; }
+    .tools-grid { grid-template-columns: 1fr !important; }
+    .pricing-grid { grid-template-columns: 1fr !important; }
+    .phases-grid { grid-template-columns: 1fr 1fr !important; }
+    .proof-grid { grid-template-columns: 1fr 1fr !important; }
+    .testimonials-grid { grid-template-columns: 1fr !important; }
+    .feature-cards-grid { grid-template-columns: 1fr !important; }
+    .footer-grid { grid-template-columns: 1fr 1fr !important; }
+    .voice-inner { flex-direction: column !important; }
+    .section-pad { padding: 72px 24px !important; }
+    .hero-pad { padding: 120px 24px 80px !important; }
+  }
+  @media (min-width: 769px) {
+    .show-only-mobile { display: none !important; }
+  }
+`;
+
+/* ─── Tiny helpers ──────────────────────────────────────────── */
+function SectionLabel({ children, dark = false }) {
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:14, fontWeight:800, color, background:color+'15', border:`1px solid ${color}30`, borderRadius:20, padding:'4px 14px', textTransform:'uppercase', letterSpacing:'.06em' }}>
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 8,
+      fontSize: 11, fontWeight: 800, letterSpacing: '.12em',
+      textTransform: 'uppercase', fontFamily: FH,
+      color: dark ? 'rgba(255,255,255,.55)' : GRAY,
+      marginBottom: 20,
+    }}>
+      <span style={{ color: RED, fontSize: 10 }}>◆</span>
       {children}
-    </span>
-  )
+    </div>
+  );
 }
 
-function SectionLabel({ children }) {
-  return <Badge color={ACCENT}><Sparkles size={11}/>{children}</Badge>
-}
-
-// ── Nav ───────────────────────────────────────────────────────────────────────
-function Nav({ onLogin }) {
-  const [scrolled, setScrolled] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', h)
-    return () => window.removeEventListener('scroll', h)
-  }, [])
-  const links = ['Features','Pricing','How It Works','FAQ']
+function RedBtn({ children, onClick, size = 'md', outline = false, style = {} }) {
+  const pad = size === 'lg' ? '17px 38px' : size === 'sm' ? '10px 22px' : '13px 28px';
+  const fs  = size === 'lg' ? 16 : 14;
   return (
-    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, transition:'all .3s', background: scrolled?'rgba(15,15,17,.95)':'transparent', backdropFilter: scrolled?'blur(20px)':'none', borderBottom: scrolled?'1px solid rgba(255,255,255,.08)':'none' }}>
-      <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 24px', height:68, display:'flex', alignItems:'center', gap:32 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
-          <img src="/moose-logo.svg" alt="Koto" style={{ height:28, filter:'brightness(0) invert(1)' }} />
-        </div>
-        <div style={{ flex:1, display:'flex', gap:28, justifyContent:'center' }}>
-          {links.map(l => <a key={l} href={`#${l.toLowerCase().replace(/ /g,'-')}`} style={{ fontSize:15, fontWeight:600, color:'rgba(255,255,255,.7)', textDecoration:'none', transition:'color .15s' }} onMouseEnter={e=>e.target.style.color='#fff'} onMouseLeave={e=>e.target.style.color='rgba(255,255,255,.7)'}>{l}</a>)}
-        </div>
-        <div style={{ display:'flex', gap:10 }}>
-          <Btn variant="ghost" size="sm" onClick={onLogin}>Sign In</Btn>
-          <Btn variant="primary" size="sm" href="#pricing">Start Free Trial</Btn>
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        padding: pad, fontSize: fs, fontWeight: 700,
+        borderRadius: 8, cursor: 'pointer', fontFamily: FH,
+        border: outline ? `2px solid ${RED}` : 'none',
+        background: outline ? 'transparent' : RED,
+        color: WHITE,
+        transition: 'all .2s',
+        letterSpacing: '.02em',
+        ...style,
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.opacity = '.85';
+        e.currentTarget.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.opacity = '1';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function WhiteOutlineBtn({ children, onClick, size = 'md', style = {} }) {
+  const pad = size === 'lg' ? '17px 38px' : '13px 28px';
+  const fs  = size === 'lg' ? 16 : 14;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        padding: pad, fontSize: fs, fontWeight: 700,
+        borderRadius: 8, cursor: 'pointer', fontFamily: FH,
+        border: `2px solid rgba(255,255,255,.35)`,
+        background: 'transparent', color: WHITE,
+        transition: 'all .2s', letterSpacing: '.02em',
+        ...style,
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = WHITE;
+        e.currentTarget.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,.35)';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ─── IntersectionObserver hook ────────────────────────────── */
+function useFadeIn() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.classList.add('fade-in-section');
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add('visible'); obs.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+/* ─── Animated counter ─────────────────────────────────────── */
+function AnimatedStat({ value, label, suffix = '', color = BLACK, labelColor = GRAY }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+  // Parse numeric value once; stable across renders unless value prop changes
+  const numeric = parseInt(value.replace(/\D/g, ''), 10) || 0;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        let current = 0;
+        const step = Math.max(16, 1400 / numeric);
+        const increment = Math.ceil(numeric / 60);
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= numeric) { setCount(numeric); clearInterval(timer); }
+          else setCount(current);
+        }, step);
+        obs.disconnect();
+      }
+    }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [numeric]);
+
+  return (
+    <div ref={ref} style={{ textAlign: 'center' }}>
+      <div style={{
+        fontSize: 56, fontWeight: 900, fontFamily: FB, letterSpacing: '-.04em',
+        color, lineHeight: 1,
+      }}>
+        {count}{suffix}
+      </div>
+      <div style={{ fontSize: 13, color: labelColor, marginTop: 6, letterSpacing: '.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Marquee strip ─────────────────────────────────────────── */
+function Marquee({ items, dark = true, reverse = false, speed = 28 }) {
+  const text = items.join('  ●  ') + '  ●  ';
+  const doubled = text + text;
+  return (
+    <div style={{
+      background: dark ? '#111' : LIGHT,
+      borderTop: dark ? '1px solid rgba(255,255,255,.07)' : '1px solid #e5e7eb',
+      borderBottom: dark ? '1px solid rgba(255,255,255,.07)' : '1px solid #e5e7eb',
+      padding: '14px 0', overflow: 'hidden', width: '100%',
+    }}>
+      <div className="marquee-track">
+        <div
+          className={reverse ? 'marquee-inner2' : 'marquee-inner'}
+          style={{ animation: `${reverse ? 'marquee2' : 'marquee'} ${speed}s linear infinite` }}
+        >
+          <span style={{
+            whiteSpace: 'nowrap', fontSize: 13, fontWeight: 800,
+            letterSpacing: '.1em', textTransform: 'uppercase',
+            color: dark ? 'rgba(255,255,255,.45)' : GRAY,
+            fontFamily: FH,
+          }}>
+            {doubled}
+          </span>
         </div>
       </div>
-    </nav>
-  )
+    </div>
+  );
 }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
-function Hero({ onLogin }) {
+/* ─── Static module-level data (hoisted to avoid recreation on every render) ─ */
+const TOOLS = [
+  {
+    num: '01', cat: 'Growth', title: 'AI Page Builder',
+    desc: 'Generate full landing pages from a single prompt. SEO-optimized, mobile-ready, published in minutes.',
+    tags: ['Auto-SEO', 'Templates', 'Live Deploy'],
+    icon: <Globe size={22} color={RED} />,
+  },
+  {
+    num: '02', cat: 'Voice', title: 'Cold Call Agent',
+    desc: 'AI-powered outbound calling that books appointments 24/7. Sounds human, converts like a pro.',
+    tags: ['Auto Dial', 'CRM Sync', 'Live Transcripts'],
+    icon: <Phone size={22} color={RED} />,
+  },
+  {
+    num: '03', cat: 'Voice', title: 'AI Answering Service',
+    desc: 'Never miss an inbound call. Route, qualify, and respond to leads around the clock.',
+    tags: ['IVR', 'Lead Capture', '24/7 Active'],
+    icon: <MessageSquare size={22} color={RED} />,
+  },
+  {
+    num: '04', cat: 'Intelligence', title: 'Review Management',
+    desc: 'Monitor, respond to, and generate 5-star reviews across every platform automatically.',
+    tags: ['Multi-Platform', 'Auto-Reply', 'Sentiment AI'],
+    icon: <Star size={22} color={RED} />,
+  },
+  {
+    num: '05', cat: 'SEO', title: 'Scout Leads',
+    desc: 'Find and qualify your perfect prospects using AI-driven research and enrichment pipelines.',
+    tags: ['Lead Scoring', 'Enrichment', 'Export'],
+    icon: <Search size={22} color={RED} />,
+  },
+  {
+    num: '06', cat: 'Intelligence', title: 'CMO Agent',
+    desc: 'Your always-on fractional CMO. Strategy, campaigns, and competitive analysis on demand.',
+    tags: ['Strategy', 'Campaigns', 'Analytics'],
+    icon: <BarChart2 size={22} color={RED} />,
+  },
+];
+
+const CATEGORIES = ['All', 'SEO', 'Voice', 'Growth', 'Intelligence'];
+
+const HERO_TICKER = [
+  'AI PAGE BUILDER', 'VOICE AGENT', 'ANSWERING SERVICE',
+  'REVIEW MANAGEMENT', 'SCOUT LEADS', 'CMO AI',
+];
+
+const INDUSTRIES = [
+  'Roofing', 'HVAC', 'Law Firms', 'Dental', 'Real Estate',
+  'Med Spa', 'Auto Dealers', 'Restaurants', 'Insurance', 'Fitness',
+  'Home Services', 'Financial Advisors', 'Contractors', 'Retail',
+];
+
+const HERO_STATS = [
+  { num: '247+', label: 'Agencies Onboarded' },
+  { num: '3x',   label: 'Avg. Revenue Growth' },
+  { num: '24/7', label: 'AI Always Active' },
+  { num: '318',  label: 'Leads Generated Daily' },
+];
+
+const VOICE_BULLETS = [
+  { title: 'Human-Sounding AI Calls', desc: 'Hyper-realistic voice AI that qualifies prospects and books meetings without human intervention.' },
+  { title: 'Unlimited Concurrent Calls', desc: 'Scale your outreach to hundreds of simultaneous calls. No hiring. No burnout.' },
+  { title: 'Real-Time CRM Updates', desc: 'Every call is transcribed, scored, and synced directly to your CRM automatically.' },
+  { title: 'Smart Follow-Up Sequences', desc: 'Automated multi-touch follow-up sequences triggered by call outcomes.' },
+];
+
+const VOICE_STATS = [
+  { num: '89%', label: 'Answer Rate vs. Human Cold Call' },
+  { num: '4.2x', label: 'More Appointments Booked' },
+  { num: '67%', label: 'Reduction in Cost Per Lead' },
+  { num: '∞', label: 'Calls Running Simultaneously' },
+];
+
+const ANSWER_FEATURES = [
+  {
+    icon: <Phone size={28} color={RED} />,
+    title: 'Instant Call Routing',
+    desc: 'Smart IVR that qualifies callers and routes them to the right team in seconds — or captures a lead if no one is available.',
+  },
+  {
+    icon: <MessageSquare size={28} color={RED} />,
+    title: 'Lead Capture & Nurture',
+    desc: 'Every inbound call creates a qualified lead in your CRM with full context, transcript, and next-step triggers.',
+  },
+  {
+    icon: <Zap size={28} color={RED} />,
+    title: '24/7 FAQ Handling',
+    desc: 'Train your AI on your services, pricing, and FAQs. It answers like your best rep — at any hour.',
+  },
+];
+
+const PHASES = [
+  {
+    num: '01', title: 'Connect',
+    desc: 'Link your CRM, phone system, and existing tools in minutes with our no-code integrations.',
+    icon: <Zap size={26} color={RED} />,
+  },
+  {
+    num: '02', title: 'Research',
+    desc: 'Koto audits your market, competitors, and prospects to build a data-driven growth blueprint.',
+    icon: <Search size={26} color={RED} />,
+  },
+  {
+    num: '03', title: 'Generate',
+    desc: 'AI creates pages, sequences, scripts, and campaigns tailored to your exact market and offer.',
+    icon: <Cpu size={26} color={RED} />,
+  },
+  {
+    num: '04', title: 'Deploy',
+    desc: 'Launch your AI agents. They call, answer, build, review, and optimize — all without a break.',
+    icon: <TrendingUp size={26} color={RED} />,
+  },
+];
+
+const PROOF_STATS = [
+  { value: '247', suffix: '+', label: 'Agencies Powered' },
+  { value: '318', suffix: 'k', label: 'Leads Generated' },
+  { value: '98',  suffix: '%', label: 'Client Retention' },
+  { value: '4',   suffix: 'x', label: 'Avg. ROI Multiplier' },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: "Koto completely transformed how we operate. We scaled from 12 to 47 clients in 6 months without hiring a single extra person.",
+    name: "Marcus T.", role: "Founder, Apex Digital", stars: 5,
+  },
+  {
+    quote: "The AI answering service alone pays for itself 10x over. We never miss a lead now — even at 2am on a Sunday.",
+    name: "Sarah K.", role: "CEO, Momentum Marketing", stars: 5,
+  },
+  {
+    quote: "The cold call agent booked 34 demos in the first week. My sales team thought I'd hired a full outbound team overnight.",
+    name: "Derek L.", role: "VP Sales, Elevate Agency", stars: 5,
+  },
+];
+
+const PRICING_PLANS = [
+  {
+    name: 'Starter', price: '$297', period: '/mo',
+    desc: 'Perfect for solo operators and new agencies.',
+    popular: false,
+    features: [
+      'AI Page Builder (5 pages/mo)',
+      'Cold Call Agent (500 calls/mo)',
+      'AI Answering Service',
+      'Review Management',
+      '1 User Seat',
+      'Email Support',
+    ],
+    cta: 'Start Free Trial',
+  },
+  {
+    name: 'Growth', price: '$597', period: '/mo',
+    desc: 'For growing agencies ready to scale fast.',
+    popular: true,
+    features: [
+      'AI Page Builder (Unlimited)',
+      'Cold Call Agent (5,000 calls/mo)',
+      'AI Answering Service (Unlimited)',
+      'Review Management + Auto-Reply',
+      'Scout Leads (500 leads/mo)',
+      'CMO Agent',
+      '5 User Seats',
+      'Priority Support',
+    ],
+    cta: 'Start Free Trial',
+  },
+  {
+    name: 'Agency', price: '$997', period: '/mo',
+    desc: 'Full power for established agencies.',
+    popular: false,
+    features: [
+      'Everything in Growth',
+      'Cold Call Agent (Unlimited)',
+      'Scout Leads (Unlimited)',
+      'White-Label Option',
+      'Custom AI Training',
+      'Dedicated Account Manager',
+      'Unlimited User Seats',
+      'SLA Support',
+    ],
+    cta: 'Start Free Trial',
+  },
+];
+
+const TRUST_BADGES = [
+  { icon: <Shield size={16} />, text: 'No Credit Card Required' },
+  { icon: <Check size={16} />, text: '14-Day Free Trial' },
+  { icon: <Zap size={16} />, text: 'Setup in 10 Minutes' },
+  { icon: <Users size={16} />, text: 'Cancel Anytime' },
+];
+
+const FOOTER_SOCIAL_ICONS = [Mail, Globe, MessageSquare];
+
+const FOOTER_COLUMNS = [
+  { title: 'Platform', links: ['AI Page Builder', 'Cold Call Agent', 'Answering Service', 'Review Management', 'Scout Leads', 'CMO Agent'] },
+  { title: 'Company', links: ['About', 'Blog', 'Careers', 'Press', 'Contact'] },
+  { title: 'Resources', links: ['Documentation', 'API', 'Case Studies', 'Webinars', 'Help Center'] },
+  { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'GDPR'] },
+];
+
+const NAV_LINKS = ['platform', 'services', 'pricing', 'contact'];
+const MOBILE_NAV_LINKS = ['Platform', 'Services', 'Pricing', 'Contact'];
+const PHASE_STEPS = ['Connect', 'Research', 'Generate', 'Deploy'];
+
+/* ════════════════════════════════════════════════════════════ */
+export default function MarketingSitePage() {
+  const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const filteredTools = activeFilter === 'All'
+    ? TOOLS
+    : TOOLS.filter(t => t.cat === activeFilter);
+
+  /* section refs for fade-in */
+  const defRef      = useFadeIn();
+  const platformRef = useFadeIn();
+  const voiceRef    = useFadeIn();
+  const answerRef   = useFadeIn();
+  const howRef      = useFadeIn();
+  const proofRef    = useFadeIn();
+  const pricingRef  = useFadeIn();
+
   return (
-    <section style={{ background:`linear-gradient(160deg, ${DARK} 0%, #1a0a04 50%, ${DARK} 100%)`, minHeight:'100vh', display:'flex', alignItems:'center', position:'relative', overflow:'hidden', paddingTop:80 }}>
-      {/* Background glow orbs */}
-      <div style={{ position:'absolute', top:'20%', left:'10%', width:500, height:500, borderRadius:'50%', background:`radial-gradient(circle, ${ACCENT}18 0%, transparent 70%)`, pointerEvents:'none' }}/>
-      <div style={{ position:'absolute', bottom:'10%', right:'5%', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, #8b5cf615 0%, transparent 70%)', pointerEvents:'none' }}/>
+    <>
+      {/* Inject global CSS */}
+      <style>{GLOBAL_CSS}</style>
 
-      <div style={{ maxWidth:1200, margin:'0 auto', padding:'80px 24px', textAlign:'center', position:'relative', zIndex:1 }}>
-        <div style={{ marginBottom:28 }}>
-          <SectionLabel>The AI Platform for Marketing Agencies</SectionLabel>
+      {/* ── HAMBURGER MENU ── */}
+      {menuOpen && (
+        <div className="hamburger-menu">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <img src="/koto_logo.svg" alt="Koto" style={{ height: 32 }} />
+            <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: WHITE }}>
+              <X size={28} />
+            </button>
+          </div>
+          {MOBILE_NAV_LINKS.map(l => (
+            <button key={l} onClick={() => { setMenuOpen(false); document.getElementById(l.toLowerCase())?.scrollIntoView({ behavior: 'smooth' }); }}
+              style={{ background: 'none', border: 'none', color: WHITE, fontSize: 28, fontWeight: 800, fontFamily: FB, letterSpacing: '-.02em', cursor: 'pointer', textAlign: 'left' }}>
+              {l}
+            </button>
+          ))}
+          <div style={{ display: 'flex', gap: 12, marginTop: 'auto' }}>
+            <WhiteOutlineBtn onClick={() => { setMenuOpen(false); navigate('/login'); }}>Login</WhiteOutlineBtn>
+            <RedBtn onClick={() => { setMenuOpen(false); navigate('/signup'); }}>Get Demo →</RedBtn>
+          </div>
         </div>
+      )}
 
-        <h1 style={{ fontSize:'clamp(42px,7vw,80px)', fontWeight:900, color:'#fff', margin:'0 0 24px', lineHeight:1.05, letterSpacing:-2 }}>
-          Your agency runs on{' '}
-          <span style={{ background:`linear-gradient(135deg, ${ACCENT}, #ff8c42)`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-            AI now.
-          </span>
-        </h1>
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 1. NAV                                            */}
+      {/* ══════════════════════════════════════════════════ */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 8000,
+        background: BLACK,
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,.1)' : '1px solid transparent',
+        transition: 'border-color .3s',
+        padding: '0 48px',
+        height: 68,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        {/* Logo */}
+        <img src="/koto_logo.svg" alt="Koto" style={{ height: 30, cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
 
-        <p style={{ fontSize:'clamp(17px,2.5vw,22px)', color:'rgba(255,255,255,.65)', maxWidth:680, margin:'0 auto 48px', lineHeight:1.65 }}>
-          White-label Koto under your agency brand. Your clients fill out one smart onboarding form. Our AI builds their marketing strategy, generates their persona, writes their content, and manages their accounts — automatically.
-        </p>
-
-        <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap', marginBottom:60 }}>
-          <Btn variant="primary" size="lg" href="#pricing">
-            Start 14-Day Free Trial <ArrowRight size={18}/>
-          </Btn>
-          <Btn variant="ghost" size="lg" href="#how-it-works">
-            <Play size={16}/> See It In Action
-          </Btn>
-        </div>
-
-        {/* Social proof bar */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:32, flexWrap:'wrap' }}>
-          {[
-            { n:'500+', label:'Agency Clients Onboarded' },
-            { n:'94%', label:'Client Retention Rate' },
-            { n:'12hrs', label:'Saved Per Client Per Week' },
-            { n:'$0', label:'Per Seat to Get Started' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign:'center' }}>
-              <div style={{ fontSize:28, fontWeight:900, color:'#fff' }}>{s.n}</div>
-              <div style={{ fontSize:14, color:'rgba(255,255,255,.4)', marginTop:2 }}>{s.label}</div>
-            </div>
+        {/* Center links */}
+        <div className="hide-mobile" style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
+          {NAV_LINKS.map(id => (
+            <button key={id} className="nav-link"
+              onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>
+              {id.charAt(0).toUpperCase() + id.slice(1)}
+            </button>
           ))}
         </div>
 
-        {/* Hero visual mockup */}
-        <div style={{ marginTop:72, maxWidth:900, margin:'72px auto 0', position:'relative' }}>
-          <div style={{ background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.1)', borderRadius:20, padding:3, backdropFilter:'blur(10px)' }}>
-            <div style={{ background:DARK2, borderRadius:18, overflow:'hidden' }}>
-              {/* Fake browser chrome */}
-              <div style={{ background:'#0a0a0d', padding:'12px 16px', display:'flex', alignItems:'center', gap:8, borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-                {['#ff5f57','#febc2e','#28c840'].map(c=><div key={c} style={{ width:10, height:10, borderRadius:'50%', background:c }}/>)}
-                <div style={{ flex:1, background:'rgba(255,255,255,.05)', borderRadius:6, height:24, marginLeft:12, display:'flex', alignItems:'center', paddingLeft:12 }}>
-                  <span style={{ fontSize:13, color:'rgba(255,255,255,.3)' }}>app.youragency.com</span>
-                </div>
-              </div>
-              {/* Dashboard preview */}
-              <div style={{ display:'grid', gridTemplateColumns:'200px 1fr', height:380 }}>
-                {/* Sidebar */}
-                <div style={{ background:'#111113', borderRight:'1px solid rgba(255,255,255,.06)', padding:'16px 12px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:24, padding:'0 8px' }}>
-                    <div style={{ width:28, height:28, borderRadius:7, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, color:'#fff' }}>Y</div>
-                    <div>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>Your Agency</div>
-                      <div style={{ fontSize:13, color:'rgba(255,255,255,.3)' }}>White-labeled</div>
-                    </div>
-                  </div>
-                  {['Project Hub','Clients','Scout','AI Agents','Social Planner','Reporting','Payments'].map((item, i) => (
-                    <div key={item} style={{ padding:'8px 10px', borderRadius:8, marginBottom:2, background: i===1?'rgba(232,85,26,.15)':'transparent', display:'flex', alignItems:'center', gap:8 }}>
-                      <div style={{ width:6, height:6, borderRadius:'50%', background: i===1?ACCENT:'rgba(255,255,255,.15)' }}/>
-                      <span style={{ fontSize:14, color: i===1?ACCENT:'rgba(255,255,255,.45)', fontWeight: i===1?700:400 }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-                {/* Main area */}
-                <div style={{ padding:20, overflow:'hidden' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-                    <div style={{ fontSize:15, fontWeight:700, color:'#fff' }}>Clients — 18 Active</div>
-                    <div style={{ fontSize:13, padding:'4px 10px', borderRadius:7, background:ACCENT+'20', color:ACCENT, fontWeight:700 }}>+ Add Client</div>
-                  </div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10 }}>
-                    {['Acme Plumbing','Miami Dental','FitLife Gym','Sunrise HVAC','LexGroup Law','GreenThumb Co'].map((name,i) => (
-                      <div key={name} style={{ background:'rgba(255,255,255,.04)', borderRadius:10, padding:'10px 12px', border:'1px solid rgba(255,255,255,.07)' }}>
-                        <div style={{ width:24, height:24, borderRadius:6, background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'#fff', marginBottom:6 }}>{name[0]}</div>
-                        <div style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:2 }}>{name}</div>
-                        <div style={{ fontSize:13, color:'rgba(255,255,255,.3)' }}>{['Active','Onboarding','Active','Active','Onboarding','Active'][i]}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* AI activity pulse */}
-                  <div style={{ marginTop:14, background:'rgba(232,85,26,.08)', border:'1px solid rgba(232,85,26,.2)', borderRadius:10, padding:'10px 14px', display:'flex', alignItems:'center', gap:10 }}>
-                    <div style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', animation:'pulse 1.5s infinite' }}/>
-                    <span style={{ fontSize:13, color:'rgba(255,255,255,.6)' }}>AI generated 3 social posts, responded to 7 reviews, sent 12 follow-up emails today</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Glow under mockup */}
-          <div style={{ position:'absolute', bottom:-40, left:'50%', transform:'translateX(-50%)', width:'60%', height:60, background:ACCENT, borderRadius:'50%', filter:'blur(40px)', opacity:.2 }}/>
+        {/* Right CTAs */}
+        <div className="hide-mobile" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <button className="nav-link" onClick={() => navigate('/login')} style={{ color: WHITE }}>Login</button>
+          <RedBtn onClick={() => navigate('/signup')} size="sm">Get Demo →</RedBtn>
         </div>
-      </div>
-    </section>
-  )
-}
 
-// ── How It Works ──────────────────────────────────────────────────────────────
-function HowItWorks() {
-  const steps = [
-    { n:'01', icon:'🏷️', title:'You white-label it', desc:'Add your agency name, logo, and colors. Share your custom URL with clients. They never see "Koto" — just your brand.' },
-    { n:'02', icon:'📋', title:'Client fills out onboarding', desc:'A beautiful 14-step AI-assisted form captures everything: business info, competitors, ideal customers, brand voice, logins, and goals.' },
-    { n:'03', icon:'🤖', title:'AI builds their profile', desc:'Claude generates a detailed customer persona, ad targeting strategy, keyword list, headline angles, and channel recommendations — automatically.' },
-    { n:'04', icon:'🚀', title:'AI works every day', desc:'Review responses, social posts, lead follow-ups, performance reports — generated and queued automatically. You review and approve in seconds.' },
-    { n:'05', icon:'📈', title:'You look like a superagency', desc:'Your clients get Fortune-500 quality marketing intelligence. You deliver 10x more value with the same team size. Everyone wins.' },
-  ]
-  return (
-    <section id="how-it-works" style={{ background:'#fff', padding:'100px 24px' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:64 }}>
-          <SectionLabel>How It Works</SectionLabel>
-          <h2 style={{ fontSize:'clamp(32px,5vw,52px)', fontWeight:900, color:'#111', margin:'16px 0 20px', letterSpacing:-1 }}>
-            Up and running in one afternoon
-          </h2>
-          <p style={{ fontSize:18, color:'#374151', maxWidth:560, margin:'0 auto' }}>
-            No engineers needed. No long onboarding. Your first client can be set up today.
+        {/* Mobile hamburger */}
+        <button className="show-only-mobile" onClick={() => setMenuOpen(true)}
+          style={{ background: 'none', border: 'none', color: WHITE, cursor: 'pointer' }}>
+          <Menu size={26} />
+        </button>
+      </nav>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 2. HERO                                           */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section style={{ background: BLACK, paddingTop: 0 }}>
+        <div className="hero-pad" style={{
+          maxWidth: 1100, margin: '0 auto',
+          padding: '140px 48px 90px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          textAlign: 'center', gap: 28,
+        }}>
+          {/* Label */}
+          <SectionLabel dark>THE FUTURE OF AGENCY MANAGEMENT</SectionLabel>
+
+          {/* Headline */}
+          <h1 className="hero-headline" style={{
+            fontSize: 78, fontWeight: 900, fontFamily: FB,
+            letterSpacing: '-.045em', lineHeight: .95,
+            color: WHITE, maxWidth: 780,
+          }}>
+            YOUR AGENCY<br />
+            <span style={{ color: RED }}>NEEDS KOTO</span>
+          </h1>
+
+          {/* Sub */}
+          <p style={{
+            fontSize: 18, fontStyle: 'italic', color: 'rgba(255,255,255,.6)',
+            fontFamily: FH, maxWidth: 520, lineHeight: 1.6,
+          }}>
+            <em>ko·to</em> — the intelligence layer for modern marketing agencies.
           </p>
-        </div>
-        <div style={{ position:'relative' }}>
-          {/* Connecting line */}
-          <div style={{ position:'absolute', top:40, left:40, right:40, height:2, background:'linear-gradient(90deg,#f3f4f6,#e5e7eb,#f3f4f6)', zIndex:0 }}/>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:20, position:'relative', zIndex:1 }}>
-            {steps.map((s,i) => (
-              <div key={s.n} style={{ textAlign:'center' }}>
-                <div style={{ width:80, height:80, borderRadius:'50%', background: i===2?ACCENT:'#f9fafb', border: `2px solid ${i===2?ACCENT:'#e5e7eb'}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', fontSize:32, boxShadow: i===2?`0 8px 24px ${ACCENT}35`:'none', position:'relative' }}>
-                  {s.icon}
-                  <div style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:900, color:'#fff' }}>{s.n}</div>
+
+          {/* CTAs */}
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
+            <RedBtn size="lg" onClick={() => navigate('/signup')}>
+              Start Free Trial <ArrowRight size={17} />
+            </RedBtn>
+            <WhiteOutlineBtn size="lg" onClick={() => document.getElementById('platform')?.scrollIntoView({ behavior: 'smooth' })}>
+              See it in action →
+            </WhiteOutlineBtn>
+          </div>
+
+          {/* Stats */}
+          <div className="hero-stats" style={{
+            display: 'flex', gap: 48, marginTop: 48,
+            borderTop: '1px solid rgba(255,255,255,.08)',
+            paddingTop: 40, justifyContent: 'center', width: '100%',
+          }}>
+            {HERO_STATS.map(s => (
+              <div key={s.label} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 44, fontWeight: 900, fontFamily: FB, letterSpacing: '-.04em', color: WHITE, lineHeight: 1 }}>
+                  {s.num}
                 </div>
-                <h3 style={{ fontSize:15, fontWeight:800, color:'#111', marginBottom:8, lineHeight:1.3 }}>{s.title}</h3>
-                <p style={{ fontSize:15, color:'#374151', lineHeight:1.6 }}>{s.desc}</p>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,.45)', marginTop: 6, letterSpacing: '.07em', textTransform: 'uppercase', fontWeight: 600 }}>
+                  {s.label}
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
-    </section>
-  )
-}
 
-// ── Features ─────────────────────────────────────────────────────────────────
-function Features() {
-  const features = [
-    {
-      icon:'🎯', color:'#8b5cf6', title:'Smart Client Onboarding',
-      desc:'14-step AI-assisted form collects everything your team needs: competitors, ideal customers, brand voice, logins, goals, and more. Clients love it.',
-      bullets:['AI suggests answers when clients get stuck','Secure encrypted password storage','Step-by-step platform access guides (GA4, Meta, GBP)','Persona generated automatically on submit'],
-    },
-    {
-      icon:'🤖', color:ACCENT, title:'AI Customer Persona Builder',
-      desc:'After onboarding, Claude analyzes everything and builds a detailed marketing persona — complete with targeting, messaging, and channel strategy.',
-      bullets:['Named persona with psychographic profile','Google keywords + Facebook interests','Ad headline angles that convert','Client approves and can request changes'],
-    },
-    {
-      icon:'🔑', color:'#10b981', title:'Account Access Checklist',
-      desc:'A live checklist of every platform your team needs access to — with step-by-step instructions for each. Clients fill it out on their own.',
-      bullets:['GA4, Search Console, GTM, GBP, Meta, Google Ads','Real-time updates — see when clients grant access','Staff verification stamps with timestamps','Live activity feed on agency dashboard'],
-    },
-    {
-      icon:'📊', color:'#3b82f6', title:'Client Intelligence Dashboard',
-      desc:'Every client\'s full profile, beautifully organized. Business info, brand colors, competitor analysis, social accounts, logins — all in one place.',
-      bullets:['Passwords masked by default — click to reveal','Color-coded pill tags for quick scanning','Change history on every client record','AI persona saved and accessible to your whole team'],
-    },
-    {
-      icon:'⚡', color:'#f59e0b', title:'AI Agents (Coming Soon)',
-      desc:'Set-and-forget automation that runs for every client: review responses, social posts, lead follow-ups, and monthly performance reports.',
-      bullets:['Review response bot (Google + Yelp)','Social planner auto-posts 3-5x/week','Lead qualifier via SMS + email','Monthly report auto-generated and sent'],
-    },
-    {
-      icon:'🏷️', color:'#ec4899', title:'Complete White Label',
-      desc:'Your brand, your domain, your colors. Clients never see Koto. You look like you built a $500K platform from scratch.',
-      bullets:['Custom domain support (app.youragency.com)','Your logo, colors, and agency name everywhere','Branded onboarding forms','Branded client portal'],
-    },
-  ]
-  return (
-    <section id="features" style={{ background:'#f4f4f5', padding:'100px 24px' }}>
-      <div style={{ maxWidth:1200, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:64 }}>
-          <SectionLabel>Everything Included</SectionLabel>
-          <h2 style={{ fontSize:'clamp(32px,5vw,52px)', fontWeight:900, color:'#111', margin:'16px 0 20px', letterSpacing:-1 }}>
-            Built for agencies who want to scale
+        {/* Marquee ticker */}
+        <Marquee items={HERO_TICKER} dark speed={22} />
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 3. DEFINITION                                     */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={defRef} style={{ background: WHITE, padding: '96px 48px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <div style={{ fontSize: 13, letterSpacing: '.18em', color: GRAY, textTransform: 'uppercase', fontWeight: 700, marginBottom: 16 }}>
+            /ˈkōtō/
+          </div>
+          <h2 style={{ fontSize: 96, fontWeight: 900, fontFamily: FB, letterSpacing: '-.05em', color: BLACK, lineHeight: .9, marginBottom: 32 }}>
+            KO·TO
           </h2>
-          <p style={{ fontSize:18, color:'#374151', maxWidth:540, margin:'0 auto' }}>
-            Every tool your team needs to deliver world-class marketing without the overhead of a 20-person agency.
+          <div style={{
+            fontSize: 15, color: GRAY, fontStyle: 'italic', marginBottom: 24, lineHeight: 1.7,
+            borderLeft: `3px solid ${RED}`, paddingLeft: 20, textAlign: 'left', maxWidth: 480, margin: '0 auto 32px',
+          }}>
+            <em>noun.</em> An AI-powered command center that gives marketing agencies the tools,
+            intelligence, and automation to scale faster than they ever thought possible.
+          </div>
+          <p style={{
+            fontSize: 26, fontWeight: 900, fontFamily: FB, letterSpacing: '-.02em', color: BLACK, lineHeight: 1.3,
+          }}>
+            "Stop managing your agency.<br />
+            <span style={{ color: RED }}>Let Koto run it for you.</span>"
           </p>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:20 }}>
-          {features.map(f => (
-            <div key={f.title} style={{ background:'#fff', borderRadius:20, border:'1px solid #e5e7eb', padding:'28px 28px', transition:'transform .15s, box-shadow .15s' }}
-              onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow=`0 16px 40px rgba(0,0,0,.1)` }}
-              onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none' }}>
-              <div style={{ fontSize:36, marginBottom:16 }}>{f.icon}</div>
-              <h3 style={{ fontSize:20, fontWeight:800, color:'#111', marginBottom:10, letterSpacing:-.3 }}>{f.title}</h3>
-              <p style={{ fontSize:15, color:'#374151', lineHeight:1.65, marginBottom:18 }}>{f.desc}</p>
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {f.bullets.map(b => (
-                  <div key={b} style={{ display:'flex', gap:10, fontSize:15, color:'#374151' }}>
-                    <div style={{ width:18, height:18, borderRadius:'50%', background:f.color+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <Check size={10} color={f.color} strokeWidth={3}/>
-                    </div>
-                    {b}
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 4. PLATFORM OVERVIEW                              */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={platformRef} id="platform" style={{ background: WHITE, padding: '96px 48px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div style={{ marginBottom: 52, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
+            <SectionLabel>// THE TOOLS WE GIVE YOU</SectionLabel>
+            <h2 style={{
+              fontSize: 64, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+              color: BLACK, lineHeight: .95, marginBottom: 32,
+            }}>
+              YOUR AGENCY<br />ARSENAL
+            </h2>
+
+            {/* Filter pills */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {CATEGORIES.map(c => (
+                <button key={c} className={`pill-filter${activeFilter === c ? ' active' : ''}`}
+                  onClick={() => setActiveFilter(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tool cards grid */}
+          <div className="tools-grid" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24,
+          }}>
+            {filteredTools.map(t => (
+              <div key={t.num} className="tool-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{
+                    fontSize: 13, fontWeight: 900, color: 'rgba(0,0,0,.18)',
+                    fontFamily: FB, letterSpacing: '.04em',
+                  }}>{t.num}</span>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing: '.1em',
+                    textTransform: 'uppercase', color: RED,
+                    background: RED + '12', padding: '4px 10px', borderRadius: 100,
+                    border: `1px solid ${RED}30`,
+                  }}>{t.cat}</span>
+                </div>
+                <div style={{ color: RED }}>{t.icon}</div>
+                <h3 style={{ fontSize: 22, fontWeight: 800, fontFamily: FB, letterSpacing: '-.02em', color: BLACK }}>
+                  {t.title}
+                </h3>
+                <p style={{ fontSize: 14, color: GRAY, lineHeight: 1.65 }}>{t.desc}</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                  {t.tags.map(tag => (
+                    <span key={tag} style={{
+                      fontSize: 11, fontWeight: 700, letterSpacing: '.06em',
+                      textTransform: 'uppercase', color: '#374151',
+                      background: '#f3f4f6', padding: '4px 10px', borderRadius: 6,
+                    }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 5. VOICE SPOTLIGHT                                */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={voiceRef} id="services" style={{ background: BLACK, padding: '96px 48px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <SectionLabel dark>// OUTBOUND INTELLIGENCE</SectionLabel>
+          <h2 style={{
+            fontSize: 64, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+            color: WHITE, lineHeight: .95, marginBottom: 56, maxWidth: 680,
+          }}>
+            YOUR AI SALES TEAM<br />
+            <span style={{ color: RED }}>NEVER SLEEPS</span>
+          </h2>
+
+          <div className="voice-inner" style={{ display: 'flex', gap: 64, alignItems: 'flex-start' }}>
+            {/* Left: bullets */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 28 }}>
+              {VOICE_BULLETS.map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: 36, height: 36, background: RED, borderRadius: 8,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <Check size={18} color={WHITE} />
                   </div>
-                ))}
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: WHITE, fontFamily: FB, marginBottom: 4 }}>{item.title}</div>
+                    <div style={{ fontSize: 14, color: 'rgba(255,255,255,.55)', lineHeight: 1.6 }}>{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ marginTop: 8 }}>
+                <RedBtn size="lg" onClick={() => navigate('/signup')}>
+                  Activate Your AI Sales Team <ArrowRight size={17} />
+                </RedBtn>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
-// ── Pricing ───────────────────────────────────────────────────────────────────
-function Pricing() {
-  const [annual, setAnnual] = useState(false)
-  const plans = [
-    {
-      name:'Starter', price: annual?247:297, period:'mo',
-      desc:'Perfect for solo consultants and small agencies just getting started.',
-      color:'#374151',
-      seats:3, clients:25,
-      features:['3 team seats','Up to 25 clients','Smart onboarding forms','AI persona builder','Client intelligence dashboard','Account access checklist','Email support'],
-      cta:'Start Free Trial',
-    },
-    {
-      name:'Growth', price: annual?397:497, period:'mo',
-      desc:'For growing agencies ready to automate client delivery.',
-      color:ACCENT, popular:true,
-      seats:10, clients:100,
-      features:['10 team seats','Up to 100 clients','Everything in Starter','AI review response bot','AI social planner','AI lead qualifier (SMS)','White-label branding','Priority support'],
-      cta:'Start Free Trial',
-    },
-    {
-      name:'Pro', price: annual?697:897, period:'mo',
-      desc:'For established agencies managing 100+ clients at scale.',
-      color:'#8b5cf6',
-      seats:25, clients:500,
-      features:['25 team seats','Up to 500 clients','Everything in Growth','Custom domain','API access','Dedicated account manager','Monthly strategy call','SLA guarantee'],
-      cta:'Start Free Trial',
-    },
-    {
-      name:'Enterprise', price:null,
-      desc:'For agencies with 500+ clients or custom requirements.',
-      color:'#111',
-      seats:'Unlimited', clients:'Unlimited',
-      features:['Unlimited seats & clients','Everything in Pro','Custom AI training on your brand','Custom feature development','On-premise option','SSO / SAML','99.9% uptime SLA','Slack support channel'],
-      cta:'Contact Sales',
-    },
-  ]
-  return (
-    <section id="pricing" style={{ background:DARK, padding:'100px 24px', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', top:-100, left:'30%', width:600, height:600, borderRadius:'50%', background:`radial-gradient(circle, ${ACCENT}10 0%, transparent 70%)`, pointerEvents:'none' }}/>
-      <div style={{ maxWidth:1200, margin:'0 auto', position:'relative', zIndex:1 }}>
-        <div style={{ textAlign:'center', marginBottom:20 }}>
-          <SectionLabel>Simple Pricing</SectionLabel>
-          <h2 style={{ fontSize:'clamp(32px,5vw,52px)', fontWeight:900, color:'#fff', margin:'16px 0 20px', letterSpacing:-1 }}>
-            One tool. Unlimited leverage.
-          </h2>
-          <p style={{ fontSize:18, color:'rgba(255,255,255,.55)', marginBottom:32 }}>
-            14-day free trial, no credit card required. Cancel anytime.
-          </p>
-          {/* Annual toggle */}
-          <div style={{ display:'inline-flex', alignItems:'center', gap:12, background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.1)', borderRadius:40, padding:'8px 16px' }}>
-            <span style={{ fontSize:15, color: !annual?'#fff':'rgba(255,255,255,.4)', fontWeight: !annual?700:400 }}>Monthly</span>
-            <div onClick={() => setAnnual(a=>!a)} style={{ width:44, height:24, borderRadius:12, background: annual?ACCENT:'rgba(255,255,255,.15)', cursor:'pointer', position:'relative', transition:'background .2s' }}>
-              <div style={{ position:'absolute', top:3, left: annual?22:3, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .2s', boxShadow:'0 1px 4px rgba(0,0,0,.3)' }}/>
+            {/* Right: stats */}
+            <div style={{
+              flex: '0 0 360px', background: 'rgba(255,255,255,.04)',
+              border: '1.5px solid rgba(255,255,255,.1)', borderRadius: 20, padding: 40,
+              display: 'flex', flexDirection: 'column', gap: 32,
+            }}>
+              {VOICE_STATS.map(s => (
+                <div key={s.label} style={{ borderBottom: '1px solid rgba(255,255,255,.07)', paddingBottom: 24 }}>
+                  <div style={{ fontSize: 48, fontWeight: 900, fontFamily: FB, letterSpacing: '-.04em', color: RED, lineHeight: 1 }}>{s.num}</div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginTop: 6, lineHeight: 1.4 }}>{s.label}</div>
+                </div>
+              ))}
             </div>
-            <span style={{ fontSize:15, color: annual?'#fff':'rgba(255,255,255,.4)', fontWeight: annual?700:400 }}>Annual</span>
-            {annual && <span style={{ fontSize:13, fontWeight:800, color:'#22c55e', background:'rgba(34,197,94,.15)', padding:'2px 8px', borderRadius:20 }}>Save 17%</span>}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 6. ANSWERING SPOTLIGHT                            */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={answerRef} style={{ background: WHITE, paddingTop: '96px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 48px 64px' }}>
+          <SectionLabel>// INBOUND INTELLIGENCE</SectionLabel>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 24, marginBottom: 56 }}>
+            <h2 style={{
+              fontSize: 64, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+              color: BLACK, lineHeight: .95, maxWidth: 600,
+            }}>
+              NEVER MISS<br />
+              <span style={{ color: RED }}>ANOTHER CALL</span>
+            </h2>
+            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.7, maxWidth: 360 }}>
+              Your AI answering service is live 24/7 — greeting callers, capturing leads,
+              routing to the right team, and handling FAQs without a single human touch.
+            </p>
           </div>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))', gap:20, marginTop:40 }}>
-          {plans.map(plan => (
-            <div key={plan.name} style={{ background: plan.popular?'#fff':'rgba(255,255,255,.04)', borderRadius:20, border: plan.popular?`2px solid ${ACCENT}`:'1px solid rgba(255,255,255,.1)', padding:'28px 24px', position:'relative', transition:'transform .15s' }}
-              onMouseEnter={e=>e.currentTarget.style.transform='translateY(-4px)'}
-              onMouseLeave={e=>e.currentTarget.style.transform='translateY(0)'}>
-              {plan.popular && <div style={{ position:'absolute', top:-12, left:'50%', transform:'translateX(-50%)', fontSize:13, fontWeight:800, color:'#fff', background:ACCENT, borderRadius:20, padding:'3px 14px', whiteSpace:'nowrap' }}>MOST POPULAR</div>}
-              <div style={{ fontSize:15, fontWeight:700, color: plan.popular?'#6b7280':'rgba(255,255,255,.5)', marginBottom:8 }}>{plan.name}</div>
-              <div style={{ marginBottom:12 }}>
-                {plan.price ? (
-                  <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
-                    <span style={{ fontSize:44, fontWeight:900, color: plan.popular?'#111':'#fff', letterSpacing:-2 }}>${plan.price}</span>
-                    <span style={{ fontSize:16, color: plan.popular?'#6b7280':'rgba(255,255,255,.4)' }}>/mo</span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize:36, fontWeight:900, color:'#fff', letterSpacing:-1 }}>Custom</div>
+        {/* Industry pill marquee */}
+        <Marquee items={INDUSTRIES} dark={false} reverse speed={36} />
+
+        {/* Feature cards */}
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '64px 48px 96px' }}>
+          <div className="feature-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+            {ANSWER_FEATURES.map((c, i) => (
+              <div key={i} className="feature-card">
+                <div style={{ marginBottom: 16 }}>{c.icon}</div>
+                <h3 style={{ fontSize: 20, fontWeight: 800, fontFamily: FB, letterSpacing: '-.02em', color: BLACK, marginBottom: 10 }}>{c.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, lineHeight: 1.65 }}>{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 7. HOW IT WORKS                                   */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={howRef} style={{ background: BLACK, padding: '96px 48px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <SectionLabel dark>// FOUR PHASES TO SCALE</SectionLabel>
+          <h2 style={{
+            fontSize: 64, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+            color: WHITE, lineHeight: .95, marginBottom: 56,
+          }}>
+            HOW KOTO<br />
+            <span style={{ color: RED }}>WORKS</span>
+          </h2>
+
+          <div className="phases-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+            {PHASES.map(p => (
+              <div key={p.num} className="phase-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,.2)', fontFamily: FB, letterSpacing: '.04em' }}>{p.num}</span>
+                  {p.icon}
+                </div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, fontFamily: FB, letterSpacing: '-.03em', color: WHITE, marginBottom: 12 }}>
+                  {p.title}
+                </h3>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.55)', lineHeight: 1.65 }}>{p.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Connector line (desktop only) */}
+          <div className="hide-mobile" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 32, gap: 0,
+          }}>
+            {PHASE_STEPS.map((step, i, arr) => (
+              <div key={step} style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{
+                  width: 10, height: 10, borderRadius: '50%',
+                  background: i === 0 ? RED : 'rgba(255,255,255,.2)',
+                  boxShadow: i === 0 ? `0 0 0 3px ${RED}30` : 'none',
+                }} />
+                {i < arr.length - 1 && (
+                  <div style={{ width: 240, height: 1, background: 'rgba(255,255,255,.1)' }} />
                 )}
               </div>
-              <p style={{ fontSize:15, color: plan.popular?'#6b7280':'rgba(255,255,255,.45)', lineHeight:1.6, marginBottom:20 }}>{plan.desc}</p>
-              <div style={{ display:'flex', gap:12, marginBottom:24 }}>
-                {[`${plan.seats} seats`, `${plan.clients} clients`].map(badge => (
-                  <span key={badge} style={{ fontSize:13, fontWeight:700, padding:'3px 10px', borderRadius:20, background: plan.popular?`${ACCENT}15`:'rgba(255,255,255,.08)', color: plan.popular?ACCENT:'rgba(255,255,255,.6)' }}>{badge}</span>
-                ))}
-              </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:9, marginBottom:24 }}>
-                {plan.features.map(f => (
-                  <div key={f} style={{ display:'flex', gap:9, fontSize:15, color: plan.popular?'#374151':'rgba(255,255,255,.65)', alignItems:'flex-start' }}>
-                    <Check size={14} color={plan.popular?ACCENT:'#22c55e'} strokeWidth={3} style={{ flexShrink:0, marginTop:1 }}/>
-                    {f}
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => {}} style={{ width:'100%', padding:'13px 0', borderRadius:12, border:'none', background: plan.popular?ACCENT: plan.name==='Enterprise'?'rgba(255,255,255,.1)':'rgba(255,255,255,.08)', color:'#fff', fontSize:15, fontWeight:800, cursor:'pointer', transition:'opacity .15s' }}
-                onMouseEnter={e=>e.currentTarget.style.opacity='.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
-                {plan.cta}
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+      </section>
 
-        <div style={{ textAlign:'center', marginTop:40, fontSize:15, color:'rgba(255,255,255,.35)' }}>
-          All plans include: 99.9% uptime SLA · SOC 2 compliant data storage · GDPR ready · Cancel anytime
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ── Testimonials ──────────────────────────────────────────────────────────────
-function Testimonials() {
-  const testimonials = [
-    { name:'Sarah Chen', role:'Founder, Apex Digital Agency', avatar:'SC', stars:5, text:'We onboarded 12 new clients last month without hiring anyone. The AI persona builder alone has saved us 6+ hours per client. Our proposals close at 40% higher rates because we walk in with a strategy already built.' },
-    { name:'Marcus Rodriguez', role:'CEO, LocalBoost Marketing', avatar:'MR', stars:5, text:'Our clients think we built this platform ourselves. The white-label is flawless. We went from $18K MRR to $47K MRR in 4 months, same team size. This is the unfair advantage we needed.' },
-    { name:'Jennifer Walsh', role:'Director, Walsh & Partners', avatar:'JW', stars:5, text:'The account access checklist alone is worth the price. We used to spend 3 weeks chasing clients for logins. Now they do it themselves in 20 minutes and we get real-time notifications when it\'s done.' },
-  ]
-  return (
-    <section style={{ background:'#fff', padding:'100px 24px' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:56 }}>
-          <SectionLabel>Agency Stories</SectionLabel>
-          <h2 style={{ fontSize:'clamp(28px,4vw,44px)', fontWeight:900, color:'#111', margin:'16px 0 0', letterSpacing:-.5 }}>
-            Agencies are scaling faster than ever
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 8. PROOF                                          */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={proofRef} style={{ background: WHITE, padding: '96px 48px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <SectionLabel>// KOTO IN NUMBERS</SectionLabel>
+          <h2 style={{
+            fontSize: 64, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+            color: BLACK, lineHeight: .95, marginBottom: 64,
+          }}>
+            PROOF OF<br />PERFORMANCE
           </h2>
-        </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:20 }}>
-          {testimonials.map(t => (
-            <div key={t.name} style={{ background:'#f9fafb', borderRadius:20, border:'1px solid #f3f4f6', padding:'28px 26px' }}>
-              <div style={{ display:'flex', gap:3, marginBottom:16 }}>
-                {[...Array(t.stars)].map((_,i) => <Star key={i} size={16} color="#f59e0b" fill="#f59e0b"/>)}
+
+          {/* Animated stats */}
+          <div className="proof-grid" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32,
+            marginBottom: 80,
+          }}>
+            {PROOF_STATS.map(s => (
+              <div key={s.label} style={{
+                textAlign: 'center', padding: '32px 20px',
+                borderRadius: 16, background: '#f9fafb',
+                border: '1.5px solid #e5e7eb',
+              }}>
+                <AnimatedStat value={s.value} label={s.label} suffix={s.suffix} />
               </div>
-              <p style={{ fontSize:15, color:'#374151', lineHeight:1.75, marginBottom:20, fontStyle:'italic' }}>"{t.text}"</p>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{ width:40, height:40, borderRadius:'50%', background:ACCENT, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:800, color:'#fff' }}>{t.avatar}</div>
+            ))}
+          </div>
+
+          {/* Testimonials */}
+          <div className="testimonials-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className="testimonial-card">
+                <div style={{ display: 'flex', gap: 3, marginBottom: 16 }}>
+                  {[...Array(t.stars)].map((_, j) => <Star key={j} size={14} color={RED} fill={RED} />)}
+                </div>
+                <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.7, marginBottom: 20, fontStyle: 'italic' }}>
+                  "{t.quote}"
+                </p>
                 <div>
-                  <div style={{ fontSize:15, fontWeight:700, color:'#111' }}>{t.name}</div>
-                  <div style={{ fontSize:14, color:'#4b5563' }}>{t.role}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: BLACK }}>{t.name}</div>
+                  <div style={{ fontSize: 12, color: GRAY, marginTop: 2 }}>{t.role}</div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
-  )
-}
+      </section>
 
-// ── FAQ ───────────────────────────────────────────────────────────────────────
-function FAQ() {
-  const [open, setOpen] = useState(null)
-  const faqs = [
-    { q:'How does the white-label work exactly?', a:'You get a custom URL (like app.youragency.com or youragency.hellokoto.com), your logo, and your brand colors throughout the entire platform. Your clients never see any Koto branding. You can even use your own custom domain on the Pro plan.' },
-    { q:'Do my clients need to pay anything?', a:'No. You pay one flat monthly fee and use the platform for as many clients as your plan allows. Your clients fill out the onboarding form and interact with the platform through your white-labeled version at no cost to them.' },
-    { q:'What AI model powers it?', a:"Claude by Anthropic — the same model that powers Claude.ai. It's trained to give highly specific, practical marketing advice rather than generic suggestions. All AI calls are included in your plan up to your monthly limit." },
-    { q:'How long does client onboarding take?', a:'The onboarding form takes clients 20–30 minutes to complete. Once submitted, the AI persona and strategy brief are generated in about 30 seconds. Your team gets a notification and can start work immediately.' },
-    { q:'Is client data secure?', a:'Yes. All data is stored on SOC 2 compliant infrastructure. Passwords and credentials are encrypted at rest. Your clients\' data is never used to train AI models. Each agency\'s data is completely isolated from other agencies.' },
-    { q:'Can I try it before paying?', a:'Yes — 14-day free trial, no credit card required. You can onboard up to 3 real clients during the trial. If you love it (you will), just add your card to continue.' },
-    { q:'What if my client doesn\'t finish the onboarding form?', a:'The form auto-saves at every step. Clients can leave and come back anytime using the same link. You can also see their progress in real time on your dashboard and send them a reminder if they get stuck.' },
-    { q:"Can I cancel anytime?", a:"Yes. No contracts, no cancellation fees. If you cancel, your account stays active until the end of your billing period. You can export all your client data at any time." },
-  ]
-  return (
-    <section id="faq" style={{ background:'#f4f4f5', padding:'100px 24px' }}>
-      <div style={{ maxWidth:760, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:56 }}>
-          <SectionLabel>FAQ</SectionLabel>
-          <h2 style={{ fontSize:'clamp(28px,4vw,44px)', fontWeight:900, color:'#111', margin:'16px 0 0', letterSpacing:-.5 }}>
-            Questions? We've got answers.
-          </h2>
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-          {faqs.map((faq,i) => (
-            <div key={i} style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
-              <button onClick={() => setOpen(open===i?null:i)}
-                style={{ width:'100%', padding:'20px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'none', border:'none', cursor:'pointer', textAlign:'left', gap:16 }}>
-                <span style={{ fontSize:16, fontWeight:800, color:'#111', lineHeight:1.4 }}>{faq.q}</span>
-                <ChevronDown size={18} color="#9ca3af" style={{ transform:open===i?'rotate(180deg)':'rotate(0)', transition:'transform .2s', flexShrink:0 }}/>
-              </button>
-              {open===i && (
-                <div style={{ padding:'0 22px 20px', fontSize:15, color:'#4b5563', lineHeight:1.75, borderTop:'1px solid #f3f4f6' }}>
-                  <div style={{ paddingTop:16 }}>{faq.a}</div>
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 9. PRICING                                        */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section ref={pricingRef} id="pricing" style={{ background: WHITE, padding: '96px 48px', borderTop: '1px solid #e5e7eb' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 64 }}>
+            <SectionLabel>// SIMPLE PRICING</SectionLabel>
+            <h2 style={{
+              fontSize: 64, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+              color: BLACK, lineHeight: .95, marginBottom: 16,
+            }}>
+              ONE PLATFORM.<br />THREE PLANS.
+            </h2>
+            <p style={{ fontSize: 16, color: GRAY }}>No contracts. Cancel anytime. All plans include a 14-day free trial.</p>
+          </div>
+
+          <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, alignItems: 'start' }}>
+            {PRICING_PLANS.map((plan, i) => (
+              <div key={plan.name} className={`pricing-card${plan.popular ? ' popular' : ''}`}>
+                {plan.popular && (
+                  <div style={{
+                    position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)',
+                    background: RED, color: WHITE, fontSize: 11, fontWeight: 800,
+                    letterSpacing: '.1em', textTransform: 'uppercase',
+                    padding: '6px 20px', borderRadius: '0 0 10px 10px',
+                  }}>
+                    Most Popular
+                  </div>
+                )}
+                <div style={{ paddingTop: plan.popular ? 16 : 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: GRAY, marginBottom: 8 }}>
+                    {plan.name}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+                    <span style={{ fontSize: 52, fontWeight: 900, fontFamily: FB, letterSpacing: '-.04em', color: BLACK }}>{plan.price}</span>
+                    <span style={{ fontSize: 15, color: GRAY }}>{plan.period}</span>
+                  </div>
+                  <p style={{ fontSize: 14, color: GRAY, marginBottom: 28, lineHeight: 1.5 }}>{plan.desc}</p>
+
+                  <RedBtn
+                    onClick={() => navigate('/signup')}
+                    style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}
+                    outline={!plan.popular}
+                  >
+                    {plan.cta} <ChevronRight size={15} />
+                  </RedBtn>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {plan.features.map(f => (
+                      <div key={f} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                        <div style={{
+                          width: 18, height: 18, borderRadius: '50%',
+                          background: plan.popular ? RED + '15' : '#f3f4f6',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
+                        }}>
+                          <Check size={11} color={plan.popular ? RED : GRAY} />
+                        </div>
+                        <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 10. FINAL CTA                                     */}
+      {/* ══════════════════════════════════════════════════ */}
+      <section style={{ background: BLACK, padding: '112px 48px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto' }}>
+          <SectionLabel dark>// GET STARTED TODAY</SectionLabel>
+          <h2 style={{
+            fontSize: 68, fontWeight: 900, fontFamily: FB, letterSpacing: '-.045em',
+            color: WHITE, lineHeight: .92, marginBottom: 24,
+          }}>
+            READY TO BUILD<br />YOUR AGENCY'S<br />
+            <span style={{ color: RED }}>FUTURE?</span>
+          </h2>
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,.55)', lineHeight: 1.7, marginBottom: 44, maxWidth: 480, margin: '0 auto 44px' }}>
+            Join 247+ agencies already using Koto to automate growth, win more clients, and reclaim their time.
+          </p>
+          <RedBtn size="lg" onClick={() => navigate('/signup')} style={{ animation: 'pulse-red 2.5s ease-in-out infinite', marginBottom: 40 }}>
+            Start Your Free Trial <ArrowRight size={18} />
+          </RedBtn>
+
+          {/* Trust badges */}
+          <div style={{
+            display: 'flex', gap: 32, justifyContent: 'center', flexWrap: 'wrap',
+            marginTop: 48, paddingTop: 40, borderTop: '1px solid rgba(255,255,255,.08)',
+          }}>
+            {TRUST_BADGES.map(b => (
+              <div key={b.text} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,.45)', fontSize: 13, fontWeight: 600 }}>
+                {b.icon}{b.text}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════ */}
+      {/* 11. FOOTER                                        */}
+      {/* ══════════════════════════════════════════════════ */}
+      <footer id="contact" style={{ background: '#080808', padding: '72px 48px 40px', borderTop: '1px solid rgba(255,255,255,.06)' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+          <div className="footer-grid" style={{
+            display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: 40, marginBottom: 64,
+          }}>
+            {/* Brand */}
+            <div>
+              <img src="/koto_logo.svg" alt="Koto" style={{ height: 28, marginBottom: 16 }} />
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', lineHeight: 1.7, maxWidth: 260 }}>
+                The intelligence layer for modern marketing agencies. Built to scale, designed to win.
+              </p>
+              <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+                {FOOTER_SOCIAL_ICONS.map((Icon, i) => (
+                  <button key={i} style={{
+                    width: 36, height: 36, borderRadius: 8,
+                    background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'rgba(255,255,255,.5)',
+                    transition: 'all .2s',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.background = RED; e.currentTarget.style.borderColor = RED; e.currentTarget.style.color = WHITE; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.1)'; e.currentTarget.style.color = 'rgba(255,255,255,.5)'; }}
+                  >
+                    <Icon size={15} />
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
-// ── CTA ───────────────────────────────────────────────────────────────────────
-function CTA({ onLogin }) {
-  return (
-    <section style={{ background:DARK, padding:'100px 24px', position:'relative', overflow:'hidden' }}>
-      <div style={{ position:'absolute', inset:0, background:`radial-gradient(ellipse at center, ${ACCENT}15 0%, transparent 60%)`, pointerEvents:'none' }}/>
-      <div style={{ maxWidth:700, margin:'0 auto', textAlign:'center', position:'relative', zIndex:1 }}>
-        <h2 style={{ fontSize:'clamp(36px,6vw,64px)', fontWeight:900, color:'#fff', margin:'0 0 20px', letterSpacing:-1.5, lineHeight:1.05 }}>
-          Ready to 10x your agency?
-        </h2>
-        <p style={{ fontSize:18, color:'rgba(255,255,255,.55)', marginBottom:40, lineHeight:1.6 }}>
-          Join the agencies already using Koto to deliver better results with smaller teams. 14-day free trial. No credit card. Cancel anytime.
-        </p>
-        <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
-          <Btn variant="primary" size="lg" href="#pricing">
-            Start Your Free Trial <ArrowRight size={18}/>
-          </Btn>
-          <Btn variant="ghost" size="lg" onClick={onLogin}>
-            Sign Into Your Account
-          </Btn>
-        </div>
-        <div style={{ marginTop:40, display:'flex', gap:24, justifyContent:'center', flexWrap:'wrap' }}>
-          {['✓ 14-day free trial', '✓ No credit card', '✓ Cancel anytime', '✓ White-label ready on day 1'].map(t => (
-            <span key={t} style={{ fontSize:15, color:'rgba(255,255,255,.4)', fontWeight:600 }}>{t}</span>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
+            {/* Link columns */}
+            {FOOTER_COLUMNS.map(col => (
+              <div key={col.title}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 16 }}>
+                  {col.title}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {col.links.map(l => (
+                    <a key={l} href="#" style={{
+                      fontSize: 13, color: 'rgba(255,255,255,.5)', textDecoration: 'none',
+                      transition: 'color .2s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.color = WHITE}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.5)'}
+                    >{l}</a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
 
-// ── Footer ────────────────────────────────────────────────────────────────────
-function Footer() {
-  return (
-    <footer style={{ background:'#0a0a0d', padding:'60px 24px 32px', borderTop:'1px solid rgba(255,255,255,.06)' }}>
-      <div style={{ maxWidth:1200, margin:'0 auto' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:48, marginBottom:48 }}>
-          <div>
-            <img src="/moose-logo.svg" alt="Koto" style={{ height:28, filter:'brightness(0) invert(1)', marginBottom:16 }} />
-            <p style={{ fontSize:15, color:'rgba(255,255,255,.35)', lineHeight:1.7, maxWidth:280 }}>The AI-powered agency platform for marketing agencies who want to scale without scaling their headcount.</p>
-            <div style={{ display:'flex', gap:12, marginTop:20 }}>
-              {['Twitter','LinkedIn','YouTube'].map(s => <a key={s} href="#" style={{ fontSize:14, color:'rgba(255,255,255,.3)', textDecoration:'none' }}>{s}</a>)}
+          {/* Bottom bar */}
+          <div style={{
+            borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 28,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
+          }}>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,.25)' }}>
+              © 2026 Koto Technologies, Inc. All rights reserved. · hellokoto.com
+            </div>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse-red 2s ease-in-out infinite' }} />
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.25)' }}>All systems operational</span>
             </div>
           </div>
-          {[
-            { label:'Product', links:['Features','Pricing','Changelog','Roadmap','API Docs'] },
-            { label:'Company', links:['About','Blog','Careers','Press','Contact'] },
-            { label:'Legal', links:['Privacy Policy','Terms of Service','Security','GDPR','Cookie Policy'] },
-          ].map(col => (
-            <div key={col.label}>
-              <div style={{ fontSize:14, fontWeight:800, color:'rgba(255,255,255,.25)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:16 }}>{col.label}</div>
-              {col.links.map(l => <a key={l} href="#" style={{ display:'block', fontSize:15, color:'rgba(255,255,255,.45)', textDecoration:'none', marginBottom:10 }}>{l}</a>)}
-            </div>
-          ))}
         </div>
-        <div style={{ borderTop:'1px solid rgba(255,255,255,.06)', paddingTop:24, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>© 2026 Koto Inc. All rights reserved.</span>
-          <span style={{ fontSize:15, color:'rgba(255,255,255,.2)' }}>Powered by Claude AI</span>
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
-export default function MarketingSitePage() {
-  const navigate = useNavigate()
-  function goToLogin() { navigate('/login') }
-
-  return (
-    <div style={{ fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', overflowX:'hidden' }}>
-      <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-        html { scroll-behavior: smooth; }
-      `}</style>
-      <Nav onLogin={goToLogin} />
-      <Hero onLogin={goToLogin} />
-      <HowItWorks />
-      <Features />
-      <Testimonials />
-      <Pricing />
-      <FAQ />
-      <CTA onLogin={goToLogin} />
-      <Footer />
-    </div>
-  )
+      </footer>
+    </>
+  );
 }
