@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '../hooks/useAuth'
 import { ClientProvider } from '../context/ClientContext'
 import { ThemeProvider } from '../context/ThemeContext'
 import OnboardingWizard from '../components/OnboardingWizard'
+import DialPad from '../components/DialPad'
 
 import LoginPage from '../views/LoginPage'
 import ClientsPage from '../views/ClientsPage'
@@ -208,6 +209,7 @@ export default function App() {
             <AgencyControlPanel/>
             <RequireAuth>
             <AppRoutes />
+            <DialPad />
             </RequireAuth>
             </MobileShell>
           } />
