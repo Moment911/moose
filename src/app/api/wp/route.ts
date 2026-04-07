@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { resolveAgencyId } from '../../../lib/apiAuth'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
