@@ -287,13 +287,19 @@ export default function DialPad() {
             </div>
           </div>
         ) : (
-          <div style={{
-            textAlign: 'center', padding: '8px 0', minHeight: 44,
-            fontSize: digits.length > 12 ? 20 : 28, fontWeight: 700,
-            color: '#fff', fontFamily: FH, letterSpacing: '.04em',
-          }}>
-            {digits ? fmt(digits) || digits : <span style={{ color: 'rgba(255,255,255,.2)' }}>Enter number</span>}
-          </div>
+          <input
+            value={digits}
+            onChange={e => setDigits(e.target.value.replace(/[^0-9+*#\-()\s]/g, ''))}
+            placeholder="Enter number"
+            autoFocus
+            style={{
+              width: '100%', textAlign: 'center', padding: '8px 0', minHeight: 44,
+              fontSize: digits.length > 12 ? 20 : 28, fontWeight: 700,
+              color: '#fff', fontFamily: FH, letterSpacing: '.04em',
+              background: 'transparent', border: 'none', outline: 'none',
+              caretColor: R, boxSizing: 'border-box',
+            }}
+          />
         )}
       </div>
 
