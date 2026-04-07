@@ -727,7 +727,7 @@ export default function PageBuilderPage() {
      Render
      ══════════════════════════════════════════════════════════════ */
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY }}>
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY }}>
       <Sidebar />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

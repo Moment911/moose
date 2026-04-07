@@ -612,7 +612,7 @@ Return ONLY valid JSON (no markdown):
               </div>
 
               {/* Content */}
-              <div style={{ flex:1, overflowY:'auto', padding:'24px 28px' }}>
+              <div style={{ flex:1, overflowY:'auto', overflowX:'hidden', padding:'20px 20px' }}>
                 {loading ? (
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:80 }}>
                     <Loader2 size={32} color={RED} style={{ animation:'spin 1s linear infinite' }}/>

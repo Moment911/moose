@@ -61,28 +61,12 @@ export default function AgencyControlPanel() {
 
   const STATUS_COLOR = { active: '#16a34a', prospect: RED, inactive: '#9ca3af', paused: '#f59e0b' }
 
+  // Floating button removed — control panel accessible via sidebar
   return (
     <>
-      {/* Floating trigger button */}
-      <button
-        onClick={() => setOpen(!open)}
-        title="Agency Control Panel"
-        style={{
-          position:'fixed', bottom:24, right:24, zIndex:8888,
-          width:52, height:52, borderRadius:'50%',
-          background: isPreviewingClient ? PURPLE : isImpersonating ? '#f59e0b' : RED,
-          border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-          boxShadow:`0 4px 20px ${isPreviewingClient ? PURPLE : RED}60`,
-          transition:'all .2s',
-        }}>
-        {isPreviewingClient
-          ? <Eye size={20} color="#fff"/>
-          : <Users size={20} color="#fff"/>
-        }
-      </button>
 
-      {/* Panel */}
-      {open && (
+      {/* Panel — hidden, accessible via sidebar */}
+      {false && open && (
         <div style={{
           position:'fixed', bottom:88, right:24, zIndex:8888,
           width:380, maxHeight:'70vh',

@@ -147,6 +147,8 @@ export default function TasksPage() {
   const [mStatus, setMStatus] = useState('all')
   const [mSearch, setMSearch] = useState('')
 
+  const [mShowAdd, setMShowAdd] = useState(false)
+
   /* ─── MOBILE ─── */
   if (isMobile) {
     const statusTabs = [
@@ -163,10 +165,27 @@ export default function TasksPage() {
     return (
       <MobilePage padded={false}>
         <MobilePageHeader title="Tasks" subtitle={`${tasks.length} total`}
-          action={<button onClick={()=>setNewTask&&setNewTask(true)}
-            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+          action={<button onClick={()=>setMShowAdd(true)}
+            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent',minHeight:44}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>}/>
+
+        {/* Mobile add task form */}
+        {mShowAdd && (
+          <div style={{padding:'12px 16px',background:'#fff',borderBottom:'1px solid #e5e7eb'}}>
+            <div style={{display:'flex',gap:8}}>
+              <input value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)}
+                onKeyDown={e=>{if(e.key==='Enter'){handleAddTask();setMShowAdd(false)}}}
+                placeholder="Task title..." autoFocus
+                style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1.5px solid #e5e7eb',fontSize:16,outline:'none',fontFamily:"'Raleway','Helvetica Neue',sans-serif",minHeight:44}}/>
+              <button onClick={()=>{handleAddTask();setMShowAdd(false)}}
+                style={{padding:'10px 18px',borderRadius:10,border:'none',background:'#ea2729',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',minHeight:44,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Add</button>
+              <button onClick={()=>setMShowAdd(false)}
+                style={{padding:'10px',borderRadius:10,border:'1px solid #e5e7eb',background:'#fff',color:'#9ca3af',cursor:'pointer',minHeight:44,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+            </div>
+          </div>
+        )}
+
         <MobileSearch value={mSearch} onChange={setMSearch} placeholder="Search tasks…"/>
         <MobileTabs tabs={statusTabs} active={mStatus} onChange={setMStatus}/>
         {filteredTasks.length===0 ? (
