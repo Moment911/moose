@@ -299,7 +299,7 @@ export default function DialPad() {
         })
         callRef.current = call
       } else if (twilioDeviceRef.current) {
-        const call = await twilioDeviceRef.current.connect({ params: { To: to } })
+        const call = await twilioDeviceRef.current.connect({ params: { To: to, From: selectedNumber?.phone_number || '' } })
         setupTwilioCall(call)
       } else {
         toast.error('No phone provider ready')

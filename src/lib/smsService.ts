@@ -1,3 +1,12 @@
+import { createClient } from '@supabase/supabase-js'
+
+function getDb() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  )
+}
+
 async function logComm(params: {
   channel: string; recipient: string; body_preview?: string;
   status: string; provider: string; provider_id?: string;
@@ -27,15 +36,54 @@ async function billSMS(agencyId?: string) {
   } catch {}
 }
 
+// Look up agency's default SMS number
+async function getAgencySMSNumber(agencyId: string): Promise<string | null> {
+  try {
+    const db = getDb()
+    const { data } = await db.from('koto_phone_numbers')
+      .select('phone_number')
+      .eq('agency_id', agencyId)
+      .eq('status', 'active')
+      .eq('is_default_sms', true)
+      .single()
+    if (data?.phone_number) return data.phone_number
+    // Fallback: any active number with SMS capability
+    const { data: any_num } = await db.from('koto_phone_numbers')
+      .select('phone_number')
+      .eq('agency_id', agencyId)
+      .eq('status', 'active')
+      .in('purpose', ['sms', 'both'])
+      .limit(1)
+      .single()
+    return any_num?.phone_number || null
+  } catch { return null }
+}
+
 export async function sendSMS(
   to: string,
   message: string,
-  agencyId?: string
+  agencyId?: string,
+  isSystemAlert?: boolean
 ): Promise<{ success: boolean; sid?: string; error?: string }> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN
-  const from = process.env.TWILIO_PHONE_NUMBER
-  if (!accountSid || !authToken || !from) return { success: false, error: 'Twilio not configured' }
+  const kotoNumber = process.env.TWILIO_PHONE_NUMBER
+  if (!accountSid || !authToken) return { success: false, error: 'Twilio not configured' }
+
+  // Determine FROM number:
+  // System alerts (errors, platform notifications) → always use Koto's number
+  // Agency messages (appointments, summaries) → use agency's own number
+  let from = kotoNumber || ''
+  if (!isSystemAlert && agencyId) {
+    const agencyNum = await getAgencySMSNumber(agencyId)
+    if (agencyNum) {
+      from = agencyNum
+    } else {
+      console.warn(`[SMS] Agency ${agencyId} has no SMS number — falling back to Koto platform number`)
+    }
+  }
+
+  if (!from) return { success: false, error: 'No SMS number available' }
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
