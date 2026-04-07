@@ -139,7 +139,7 @@ export default function ImpersonationBar() {
                 </option>
                 {agencies.map(a => (
                   <option key={a.id} value={a.id} style={{ color: '#111' }}>
-                    {a.brand_name || a.name}
+                    {a.brand_name || a.name} ({a.plan || 'starter'})
                   </option>
                 ))}
               </select>
