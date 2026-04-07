@@ -857,23 +857,25 @@ export default function OnboardingPage() {
     if (!token) { setStatus('invalid'); return; }
     getOnboardingToken(token).then(({ data, error }) => {
       if (error || !data) { setStatus('invalid'); return; }
-      if (data.status === 'used') { setStatus('used'); return; }
+      if (data.used_at) { setStatus('used'); return; }
       if (data.expires_at && new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
       setTokenData(data);
-      // Pre-fill from existing profile
-      if (data.profile) {
-        const p = data.profile;
-        setForm(f => ({
-          ...f,
-          business_name: p.business_name || '',
-          email: data.clients?.email || '',
-          primary_city: p.address?.city || '',
-          primary_state: p.address?.state || '',
-          website: p.website || '',
-          industry: p.industry || '',
-        }));
-      }
+      // Pre-fill from client record
+      const c = data.clients || {};
+      const p = data.profile || {};
+      setForm(f => ({
+        ...f,
+        business_name: c.name || p.business_name || '',
+        email: c.email || '',
+        phone: c.phone || '',
+        website: c.website || '',
+        industry: c.industry || p.industry || '',
+        primary_city: p.address?.city || c.city || '',
+        primary_state: p.address?.state || c.state || '',
+      }));
       setStatus('ready');
+    }).catch(() => {
+      setStatus('invalid');
     });
   }, [token]);
 
@@ -1087,8 +1089,10 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   );
 
   if (status === 'loading') return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f4f4f5' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f4f4f5' }}>
       <Loader2 size={36} color={ACCENT} style={{ animation: 'spin 1s linear infinite' }} />
+      <div style={{ marginTop: 16, fontSize: 15, color: '#6b7280', fontFamily: 'sans-serif' }}>Loading your onboarding form...</div>
+      <div style={{ marginTop: 8, fontSize: 12, color: '#9ca3af' }}>Token: {token}</div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
