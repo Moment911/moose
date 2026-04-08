@@ -20,8 +20,8 @@ const AMB = '#f59e0b'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
-const TABS = ['Test Runner', 'Error Log', 'Repair Center', 'Communications', 'Reports', 'History']
-const TAB_ICONS = [Play, AlertCircle, Wrench, Mail, BarChart2, Clock]
+const TABS = ['Platform Health', 'Test Runner', 'Error Log', 'Repair Center', 'Communications', 'Reports', 'History']
+const TAB_ICONS = [Shield, Play, AlertCircle, Wrench, Mail, BarChart2, Clock]
 const QA_CSS = `@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}`
 
 function timeAgo(d) {
@@ -148,8 +148,7 @@ export default function QAConsolePage() {
   async function loadTabData() {
     setLoading(true)
     try {
-      if (tab === 1) {
-        // Fetch REAL app errors from koto_system_logs + QA test errors
+      if (tab === 2) {
         const [realRes, qaRes] = await Promise.all([
           fetch('/api/errors?limit=50'),
           fetch('/api/qa?action=errors&resolved=false'),
@@ -165,29 +164,28 @@ export default function QAConsolePage() {
         const qaErrors = (Array.isArray(qaData) ? qaData : []).map(e => ({
           ...e, source: 'qa_test',
         }))
-        // Merge, dedupe by message, sort by date
         const all = [...realErrors, ...qaErrors]
           .filter(e => !e.resolved)
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         setErrors(all)
-      } else if (tab === 2) {
+      } else if (tab === 3) {
         const res = await fetch('/api/qa?action=repairs')
         setRepairs(await res.json())
-      } else if (tab === 3) {
+      } else if (tab === 4) {
         const [commsRes, statsRes] = await Promise.all([
           fetch(`/api/qa?action=comms${commsFilter !== 'all' ? `&channel=${commsFilter}` : ''}`),
           fetch('/api/qa?action=comms_stats'),
         ])
         setComms(await commsRes.json())
         setCommsStats(await statsRes.json())
-      } else if (tab === 4) {
+      } else if (tab === 5) {
         const [metricsRes, healthRes] = await Promise.all([
           fetch('/api/qa?action=metrics'),
           fetch('/api/qa?action=health_score'),
         ])
         setMetrics(await metricsRes.json())
         setHealthScore(await healthRes.json())
-      } else if (tab === 5) {
+      } else if (tab === 6) {
         const res = await fetch('/api/qa?action=runs')
         setRuns(await res.json())
       }
@@ -326,12 +324,191 @@ export default function QAConsolePage() {
 
   /* ── Tab content ──────────────────────────────────────────────────────── */
   function renderTab() {
-    if (tab === 0) return renderTestRunner()
-    if (tab === 1) return renderErrorLog()
-    if (tab === 2) return renderRepairCenter()
-    if (tab === 3) return renderCommunications()
-    if (tab === 4) return renderReports()
-    if (tab === 5) return renderHistory()
+    if (tab === 0) return renderPlatformHealth()
+    if (tab === 1) return renderTestRunner()
+    if (tab === 2) return renderErrorLog()
+    if (tab === 3) return renderRepairCenter()
+    if (tab === 4) return renderCommunications()
+    if (tab === 5) return renderReports()
+    if (tab === 6) return renderHistory()
+  }
+
+  /* ── Platform Health ──────────────────────────────────────────────────── */
+  const [healthResults, setHealthResults] = useState(null)
+  const [healthLoading, setHealthLoading] = useState(false)
+  const [healthSummary, setHealthSummary] = useState(null)
+  const [fixingAll, setFixingAll] = useState(false)
+  const [fixLog, setFixLog] = useState([])
+
+  async function runPlatformCheck() {
+    setHealthLoading(true); setHealthResults(null); setHealthSummary(null); setFixLog([])
+    try {
+      const res = await fetch('/api/qa', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'run_functional_tests' }),
+      })
+      const data = await res.json()
+      setHealthResults(data.results || [])
+      setHealthSummary(data.summary || {})
+    } catch (e) { toast.error('Platform check failed') }
+    setHealthLoading(false)
+  }
+
+  async function fixAllIssues() {
+    if (!healthResults) return
+    const failed = healthResults.filter(r => !r.pass).map(r => r.id)
+    if (!failed.length) { toast.success('Nothing to fix!'); return }
+    setFixingAll(true); setFixLog([`Starting auto-fix for ${failed.length} issues...`])
+    try {
+      const res = await fetch('/api/qa', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'auto_fix', failed_test_ids: failed }),
+      })
+      const data = await res.json()
+      for (const fix of (data.fixes || [])) {
+        setFixLog(l => [...l, `${fix.fixed ? '✅' : '❌'} ${fix.id}: ${fix.message}`])
+      }
+      setFixLog(l => [...l, `Done: ${data.fixed_count}/${data.total} fixed. Re-running checks...`])
+      toast.success(`Fixed ${data.fixed_count} issues`)
+      // Re-run tests
+      setTimeout(() => runPlatformCheck(), 1500)
+    } catch (e) { toast.error('Fix failed'); setFixLog(l => [...l, 'Fix failed: ' + e.message]) }
+    setFixingAll(false)
+  }
+
+  async function quickAction(action) {
+    toast.success(`Running: ${action}...`)
+    try {
+      if (action === 'seed_qa') {
+        await fetch('/api/qa', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'auto_fix', failed_test_ids:['flow_qa_database'] }) })
+        toast.success('Q&A database seeded')
+      } else if (action === 'sync_retell') {
+        await fetch('/api/qa', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'auto_fix', failed_test_ids:['flow_voice_agent_sync'] }) })
+        toast.success('Retell agents synced')
+      } else if (action === 'seed_industries') {
+        await fetch('/api/qa', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'auto_fix', failed_test_ids:['flow_industry_intelligence'] }) })
+        toast.success('Industry data seeded')
+      }
+      runPlatformCheck()
+    } catch { toast.error('Action failed') }
+  }
+
+  function renderPlatformHealth() {
+    const grade = healthSummary ? (healthSummary.pass_rate >= 90 ? 'A' : healthSummary.pass_rate >= 75 ? 'B' : healthSummary.pass_rate >= 60 ? 'C' : healthSummary.pass_rate >= 40 ? 'D' : 'F') : '--'
+    const gradeColor = grade === 'A' || grade === 'B' ? GRN : grade === 'C' ? AMB : R
+
+    const suites = {}
+    for (const r of (healthResults || [])) {
+      if (!suites[r.suite]) suites[r.suite] = []
+      suites[r.suite].push(r)
+    }
+
+    const failedCount = healthResults ? healthResults.filter(r => !r.pass).length : 0
+    const fixableIds = ['flow_qa_database','flow_voice_agent_sync','flow_industry_intelligence','integrity_voice_agents']
+    const fixableCount = healthResults ? healthResults.filter(r => !r.pass && fixableIds.includes(r.id)).length : 0
+
+    return (
+      <div>
+        {/* Health score + run button */}
+        <div style={{ display:'flex', gap:24, alignItems:'center', marginBottom:24 }}>
+          <div style={{ width:100, height:100, borderRadius:'50%', border:`4px solid ${healthSummary ? gradeColor : '#e5e7eb'}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ fontSize:32, fontWeight:800, fontFamily:FH, color:healthSummary ? gradeColor : '#ccc' }}>{grade}</div>
+            {healthSummary && <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>{healthSummary.pass_rate}%</div>}
+          </div>
+          <div style={{ flex:1 }}>
+            <h2 style={{ margin:'0 0 4px', fontFamily:FH, fontSize:20, fontWeight:800, color:BLK }}>Platform Health</h2>
+            <p style={{ margin:0, fontSize:13, color:'#6b7280', fontFamily:FB }}>
+              {healthSummary ? `${healthSummary.passed}/${healthSummary.total} tests passing. ${healthSummary.critical_failures} critical failures.` : 'Run a full platform check to see status.'}
+            </p>
+          </div>
+          <button onClick={runPlatformCheck} disabled={healthLoading} style={{
+            padding:'12px 28px', borderRadius:10, border:'none', background:R, color:'#fff',
+            fontSize:14, fontWeight:700, fontFamily:FH, cursor:healthLoading?'wait':'pointer',
+            display:'flex', alignItems:'center', gap:8, opacity:healthLoading?.7:1,
+          }}>
+            {healthLoading ? <><Loader2 size={16} style={{ animation:'spin 1s linear infinite' }} /> Running...</> : <><Shield size={16} /> Run Full Platform Check</>}
+          </button>
+        </div>
+
+        {/* Fix All button */}
+        {failedCount > 0 && (
+          <div style={{ padding:'14px 20px', background:'#fef2f2', borderRadius:10, marginBottom:20, display:'flex', alignItems:'center', justifyContent:'space-between', border:`1px solid ${R}30` }}>
+            <div>
+              <div style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:R }}>{failedCount} issue{failedCount!==1?'s':''} found</div>
+              <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{fixableCount} can be auto-fixed. {failedCount-fixableCount} need manual action.</div>
+            </div>
+            <button onClick={fixAllIssues} disabled={fixingAll} style={{
+              padding:'10px 20px', borderRadius:8, border:'none', background:R, color:'#fff',
+              fontSize:13, fontWeight:700, fontFamily:FH, cursor:'pointer', display:'flex', alignItems:'center', gap:6,
+            }}>
+              {fixingAll ? <><Loader2 size={14} style={{ animation:'spin 1s linear infinite' }} /> Fixing...</> : <><Wrench size={14} /> Fix All Issues</>}
+            </button>
+          </div>
+        )}
+
+        {/* Fix log */}
+        {fixLog.length > 0 && (
+          <div style={{ background:BLK, borderRadius:10, padding:'12px 16px', marginBottom:20, maxHeight:160, overflow:'auto' }}>
+            {fixLog.map((line, i) => (
+              <div key={i} style={{ fontSize:12, fontFamily:'monospace', color:line.startsWith('Done') ? GRN : line.includes('❌') ? '#f87171' : '#a3e635', lineHeight:1.6 }}>{line}</div>
+            ))}
+          </div>
+        )}
+
+        {/* Results by suite */}
+        {healthResults && Object.entries(suites).map(([suiteName, tests]) => (
+          <div key={suiteName} style={{ marginBottom:16 }}>
+            <div style={{ fontSize:12, fontWeight:700, fontFamily:FH, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8 }}>{suiteName}</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {tests.map((t, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:8, background:'#fff', border:`1px solid ${t.pass ? '#dcfce7' : '#fef2f2'}` }}>
+                  <div style={{ width:24, height:24, borderRadius:'50%', background:t.pass?'#dcfce7':'#fef2f2', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    {t.pass ? <Check size={12} color={GRN} /> : <X size={12} color={R} />}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:600, fontFamily:FH, color:BLK }}>{t.name}</div>
+                    <div style={{ fontSize:11, color:t.pass?GRN:R, fontFamily:FB }}>{t.message || t.error}</div>
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:99, background:t.severity==='critical'?'#fef2f2':t.severity==='high'?'#fef3c7':t.severity==='medium'?'#f0f9ff':'#f3f4f6', color:t.severity==='critical'?R:t.severity==='high'?AMB:t.severity==='medium'?'#0369a1':'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{t.severity}</span>
+                  <span style={{ fontSize:10, color:'#bbb', fontFamily:FB, minWidth:40, textAlign:'right' }}>{t.duration_ms}ms</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Quick actions */}
+        {healthResults && (
+          <div style={{ marginTop:20 }}>
+            <div style={{ fontSize:12, fontWeight:700, fontFamily:FH, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Quick Actions</div>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+              {[
+                { label:'Seed Q&A Database', action:'seed_qa', icon:Zap },
+                { label:'Sync Retell Agents', action:'sync_retell', icon:RefreshCw },
+                { label:'Seed Industry Data', action:'seed_industries', icon:TrendingUp },
+              ].map(qa => (
+                <button key={qa.action} onClick={() => quickAction(qa.action)} style={{
+                  display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8,
+                  border:'1px solid #e5e7eb', background:'#fff', fontSize:12, fontWeight:600,
+                  fontFamily:FB, cursor:'pointer', color:BLK,
+                }}>
+                  <qa.icon size={14} color={T} /> {qa.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!healthResults && !healthLoading && (
+          <div style={{ textAlign:'center', padding:'60px 20px' }}>
+            <Shield size={48} color="#d1d5db" style={{ marginBottom:16 }} />
+            <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 8px' }}>No Health Data Yet</h3>
+            <p style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>Click "Run Full Platform Check" to test all systems.</p>
+          </div>
+        )}
+      </div>
+    )
   }
 
   /* ── Test Runner ──────────────────────────────────────────────────────── */

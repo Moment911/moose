@@ -719,5 +719,185 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  /* ── Run functional tests ─────────────────────────────────────────────── */
+  if (action === 'run_functional_tests') {
+    const results: any[] = []
+
+    const tests = [
+      { id:'flow_voice_agent_sync', suite:'User Flows', name:'Voice agents synced with Retell', severity:'critical',
+        run: async () => {
+          const { data, error } = await sb.from('koto_voice_agents').select('id, name, retell_agent_id').limit(10)
+          if (error) return { pass:false, error:error.message }
+          if (!data?.length) return { pass:false, error:'No agents in koto_voice_agents -- run Sync from Retell' }
+          const retellRes = await fetch('https://api.retellai.com/list-agents', { headers:{ Authorization:`Bearer ${process.env.RETELL_API_KEY}` }, signal:AbortSignal.timeout(8000) })
+          if (!retellRes.ok) return { pass:false, error:`Retell API returned ${retellRes.status}` }
+          const retellAgents = await retellRes.json()
+          const synced = data.filter((la: any) => retellAgents.some((ra: any) => ra.agent_id === la.retell_agent_id))
+          if (!synced.length) return { pass:false, error:`${data.length} agents in DB but none match Retell` }
+          return { pass:true, message:`${synced.length}/${data.length} agents synced with Retell` }
+        }
+      },
+      { id:'flow_qa_database', suite:'User Flows', name:'Q&A intelligence database populated', severity:'high',
+        run: async () => {
+          const { count } = await sb.from('koto_qa_intelligence').select('*', { count:'exact', head:true })
+          if (!count || count < 10) return { pass:false, error:`Only ${count||0} Q&A pairs. Seed expert pairs from /qa-intelligence` }
+          const { count: ac } = await sb.from('koto_answer_intelligence').select('*', { count:'exact', head:true })
+          return { pass:true, message:`${count} questions and ${ac||0} answers` }
+        }
+      },
+      { id:'flow_billing_balance', suite:'User Flows', name:'Billing account working', severity:'high',
+        run: async () => {
+          const { data, error } = await sb.from('koto_billing_accounts').select('id, credit_balance, plan, status').eq('agency_id','00000000-0000-0000-0000-000000000099').single()
+          if (error || !data) return { pass:false, error:'No billing account for Momenta Marketing' }
+          return { pass:true, message:`Billing: ${data.plan} plan, $${data.credit_balance} credits` }
+        }
+      },
+      { id:'flow_industry_intelligence', suite:'User Flows', name:'Industry intelligence populated', severity:'medium',
+        run: async () => {
+          const { count } = await sb.from('koto_industry_intelligence').select('*', { count:'exact', head:true })
+          if (!count || count < 15) return { pass:false, error:`Only ${count||0} industries. Need 15+` }
+          return { pass:true, message:`${count} industries seeded` }
+        }
+      },
+      { id:'flow_synthetic_data', suite:'User Flows', name:'Synthetic training data ready', severity:'low',
+        run: async () => {
+          const { count } = await sb.from('koto_voice_calls').select('*', { count:'exact', head:true }).eq('is_synthetic', true)
+          if (!count) return { pass:false, error:'No synthetic calls. Use Voice Agent > Training Data tab.' }
+          return { pass:true, message:`${count} synthetic training calls` }
+        }
+      },
+      { id:'integrity_agencies', suite:'Data Integrity', name:'Agencies have required fields', severity:'critical',
+        run: async () => {
+          const { data } = await sb.from('agencies').select('id, name, owner_email').is('deleted_at', null)
+          if (!data?.length) return { pass:false, error:'No agencies' }
+          const missing = data.filter((a: any) => !a.owner_email || !a.name)
+          if (missing.length) return { pass:false, error:`${missing.length} agencies missing fields` }
+          return { pass:true, message:`${data.length} agencies valid` }
+        }
+      },
+      { id:'integrity_clients', suite:'Data Integrity', name:'Clients linked to valid agencies', severity:'critical',
+        run: async () => {
+          const { data: clients } = await sb.from('clients').select('id, name, agency_id').is('deleted_at', null)
+          if (!clients?.length) return { pass:false, error:'No active clients' }
+          const { data: agencies } = await sb.from('agencies').select('id')
+          const ids = new Set((agencies||[]).map((a: any) => a.id))
+          const orphaned = clients.filter((c: any) => !ids.has(c.agency_id))
+          if (orphaned.length) return { pass:false, error:`${orphaned.length} orphaned clients` }
+          return { pass:true, message:`${clients.length} clients linked` }
+        }
+      },
+      { id:'integrity_voice_agents', suite:'Data Integrity', name:'Voice agents have Retell IDs', severity:'high',
+        run: async () => {
+          const { data } = await sb.from('koto_voice_agents').select('id, name, retell_agent_id')
+          if (!data?.length) return { pass:false, error:'No voice agents' }
+          const noId = data.filter((a: any) => !a.retell_agent_id)
+          if (noId.length) return { pass:false, error:`${noId.length} agents missing retell_agent_id` }
+          return { pass:true, message:`${data.length} agents valid` }
+        }
+      },
+      { id:'env_anthropic', suite:'Environment', name:'Anthropic API key', severity:'critical',
+        run: async () => { return process.env.ANTHROPIC_API_KEY ? { pass:true, message:'Key present' } : { pass:false, error:'ANTHROPIC_API_KEY not set' } }
+      },
+      { id:'env_retell', suite:'Environment', name:'Retell API key', severity:'critical',
+        run: async () => {
+          if (!process.env.RETELL_API_KEY) return { pass:false, error:'RETELL_API_KEY not set' }
+          const res = await fetch('https://api.retellai.com/list-agents', { headers:{ Authorization:`Bearer ${process.env.RETELL_API_KEY}` }, signal:AbortSignal.timeout(8000) })
+          if (!res.ok) return { pass:false, error:`Retell returned ${res.status}` }
+          const agents = await res.json()
+          return { pass:true, message:`Retell: ${agents?.length||0} agents` }
+        }
+      },
+      { id:'env_openai', suite:'Environment', name:'OpenAI API key', severity:'high',
+        run: async () => { return process.env.OPENAI_API_KEY ? { pass:true, message:'Key present' } : { pass:false, error:'Not set' } }
+      },
+      { id:'env_resend', suite:'Environment', name:'Resend email API', severity:'high',
+        run: async () => { return process.env.RESEND_API_KEY ? { pass:true, message:'Key present' } : { pass:false, error:'Not set' } }
+      },
+      { id:'env_twilio', suite:'Environment', name:'Twilio SMS', severity:'high',
+        run: async () => {
+          if (!process.env.TWILIO_ACCOUNT_SID) return { pass:false, error:'TWILIO_ACCOUNT_SID not set' }
+          return { pass:true, message:`Configured: ${process.env.TWILIO_PHONE_NUMBER || 'no phone'}` }
+        }
+      },
+      { id:'env_google_places', suite:'Environment', name:'Google Places', severity:'medium',
+        run: async () => { return process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY ? { pass:true, message:'Key present' } : { pass:false, error:'Not set' } }
+      },
+      { id:'env_gemini', suite:'Environment', name:'Google Gemini', severity:'low',
+        run: async () => { return process.env.GOOGLE_GEMINI_API_KEY ? { pass:true, message:'All 3 AI providers active' } : { pass:false, error:'Not set (Claude fallback active)' } }
+      },
+    ]
+
+    for (const test of tests) {
+      const start = Date.now()
+      try {
+        const result = await test.run()
+        results.push({ id:test.id, suite:test.suite, name:test.name, severity:test.severity, ...result, duration_ms:Date.now()-start })
+      } catch (e: any) {
+        results.push({ id:test.id, suite:test.suite, name:test.name, severity:test.severity, pass:false, error:e.message, duration_ms:Date.now()-start })
+      }
+    }
+
+    const passed = results.filter((r: any) => r.pass).length
+    const failed = results.filter((r: any) => !r.pass).length
+    return NextResponse.json({
+      results,
+      summary: { total:results.length, passed, failed, pass_rate:results.length ? Math.round(passed/results.length*100) : 0, critical_failures:results.filter((r: any) => !r.pass && r.severity==='critical').length }
+    })
+  }
+
+  /* ── Auto-fix failed tests ──────────────────────────────────────────── */
+  if (action === 'auto_fix') {
+    const { failed_test_ids } = body
+    if (!failed_test_ids?.length) return NextResponse.json({ error:'failed_test_ids required' }, { status:400 })
+    const fixResults: any[] = []
+
+    for (const testId of failed_test_ids) {
+      try {
+        if (testId === 'flow_qa_database') {
+          const { EXPERT_QA_SEEDS } = await import('@/data/expertQASeeds')
+          let imported = 0
+          for (const row of EXPERT_QA_SEEDS.slice(0, 60)) {
+            const norm = row.question_text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g,' ').trim()
+            const { data: ex } = await sb.from('koto_qa_intelligence').select('id').eq('question_normalized', norm).maybeSingle()
+            if (!ex) { await sb.from('koto_qa_intelligence').insert({ question_text:row.question_text, question_normalized:norm, question_type:row.question_type, industry_sic_code:row.industry_sic_code, industry_name:row.industry_name, times_asked:1, total_calls_with_question:0 }); imported++ }
+          }
+          fixResults.push({ id:testId, fixed:imported>0, message:`Seeded ${imported} Q&A pairs` })
+        } else if (testId === 'flow_voice_agent_sync' || testId === 'integrity_voice_agents') {
+          const res = await fetch('https://api.retellai.com/list-agents', { headers:{ Authorization:`Bearer ${process.env.RETELL_API_KEY}` } })
+          if (!res.ok) { fixResults.push({ id:testId, fixed:false, message:'Retell API unreachable' }); continue }
+          const agents = await res.json()
+          let synced = 0
+          for (const agent of agents) {
+            const { data: ex } = await sb.from('koto_voice_agents').select('id').eq('retell_agent_id', agent.agent_id).maybeSingle()
+            if (!ex) { await sb.from('koto_voice_agents').insert({ agency_id:'00000000-0000-0000-0000-000000000099', name:agent.agent_name, retell_agent_id:agent.agent_id, voice_id:agent.voice_id, status:'active' }); synced++ }
+          }
+          fixResults.push({ id:testId, fixed:synced>0, message:`Synced ${synced} agents` })
+        } else if (testId === 'flow_industry_intelligence') {
+          const inds = [
+            { industry_sic_code:'1711', industry_name:'Plumbing', confidence_score:40 },
+            { industry_sic_code:'7389', industry_name:'Marketing Services', confidence_score:45 },
+            { industry_sic_code:'8021', industry_name:'Dental', confidence_score:40 },
+            { industry_sic_code:'1761', industry_name:'Roofing', confidence_score:40 },
+            { industry_sic_code:'8011', industry_name:'Medical Office', confidence_score:40 },
+            { industry_sic_code:'8049', industry_name:'Chiropractic', confidence_score:40 },
+            { industry_sic_code:'8111', industry_name:'Legal Services', confidence_score:35 },
+            { industry_sic_code:'6531', industry_name:'Real Estate', confidence_score:35 },
+            { industry_sic_code:'5812', industry_name:'Restaurant', confidence_score:30 },
+            { industry_sic_code:'7532', industry_name:'Auto Repair', confidence_score:35 },
+          ]
+          let seeded = 0
+          for (const ind of inds) {
+            const { data: ex } = await sb.from('koto_industry_intelligence').select('id').eq('industry_sic_code', ind.industry_sic_code).maybeSingle()
+            if (!ex) { await sb.from('koto_industry_intelligence').insert(ind); seeded++ }
+          }
+          fixResults.push({ id:testId, fixed:seeded>0, message:`Seeded ${seeded} industries` })
+        } else {
+          fixResults.push({ id:testId, fixed:false, message:'No auto-fix available. Manual action required.' })
+        }
+      } catch (e: any) { fixResults.push({ id:testId, fixed:false, message:e.message }) }
+    }
+    return NextResponse.json({ fixes:fixResults, total:fixResults.length, fixed_count:fixResults.filter((f: any) => f.fixed).length })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
