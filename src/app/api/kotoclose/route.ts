@@ -142,6 +142,60 @@ export async function GET(req: NextRequest) {
       return Response.json({ data: data || [] })
     }
 
+    if (action === 'campaigns') {
+      let query = s.from('kc_campaigns').select('*')
+      if (agencyFilter) query = query.eq('agency_id', agencyFilter)
+      const { data } = await query.order('created_at', { ascending: false })
+      return Response.json({ data: data || [] })
+    }
+
+    if (action === 'signal_feed') {
+      const limit = parseInt(searchParams.get('limit') || '20')
+      let query = s.from('kc_lead_signals').select('*')
+      if (agencyFilter) query = query.eq('agency_id', agencyFilter)
+      const { data } = await query.order('detected_at', { ascending: false }).limit(limit)
+      return Response.json({ data: data || [] })
+    }
+
+    if (action === 'leaderboard') {
+      let query = s.from('kc_agent_stats').select('*').eq('stat_date', new Date().toISOString().split('T')[0])
+      if (agencyFilter) query = query.eq('agency_id', agencyFilter)
+      const { data } = await query.order('appointments', { ascending: false })
+      return Response.json({ data: data || [] })
+    }
+
+    if (action === 'analytics_weekly') {
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 86400000).toISOString()
+      let query = s.from('kc_calls').select('created_at, opted_in, appointment_set')
+      if (agencyFilter) query = query.eq('agency_id', agencyFilter)
+      const { data: rows } = await query.gte('created_at', fourteenDaysAgo)
+      const byDate: Record<string, { total: number; opted_ins: number; appointments: number }> = {}
+      for (const r of rows || []) {
+        const d = (r.created_at || '').split('T')[0]
+        if (!byDate[d]) byDate[d] = { total: 0, opted_ins: 0, appointments: 0 }
+        byDate[d].total++
+        if (r.opted_in) byDate[d].opted_ins++
+        if (r.appointment_set) byDate[d].appointments++
+      }
+      return Response.json({ data: Object.entries(byDate).sort().map(([date, v]) => ({ date, ...v })) })
+    }
+
+    if (action === 'industries') {
+      let query = s.from('kc_industry_brains').select('*')
+      if (agencyFilter) query = query.eq('agency_id', agencyFilter)
+      const { data } = await query.order('industry_name', { ascending: true })
+      return Response.json({ data: data || [] })
+    }
+
+    if (action === 'all_agencies') {
+      if (!access.isSuperAdmin) return Response.json({ error: 'Super admin only' }, { status: 403 })
+      const { data } = await s.from('agencies').select('id, name, owner_email, created_at').is('deleted_at', null).order('created_at', { ascending: false })
+      const { data: kcAccess } = await s.from('kc_agency_access').select('*')
+      const accessMap: Record<string, any> = {}
+      for (const a of kcAccess || []) accessMap[a.agency_id] = a
+      return Response.json({ data: (data || []).map((a: any) => ({ ...a, kc: accessMap[a.id] || null })) })
+    }
+
     return Response.json({ error: 'Unknown action' }, { status: 400 })
   } catch (error: any) {
     return Response.json({ error: error.message }, { status: 500 })
@@ -189,6 +243,62 @@ export async function POST(req: NextRequest) {
       const agencyId = access.agencyId || '00000000-0000-0000-0000-000000000099'
       await s.from('kc_voicemails').delete().eq('id', body.id).eq('agency_id', agencyId)
       return Response.json({ success: true })
+    }
+
+    if (action === 'create_campaign') {
+      const { name, industry_id, daily_limit, start_hour, end_hour, ghl_pipeline } = body
+      const { data } = await s.from('kc_campaigns').insert({
+        agency_id: access.agencyId || '00000000-0000-0000-0000-000000000099',
+        name, industry_id: industry_id || null, daily_limit: daily_limit || 150,
+        start_hour: start_hour || 9, end_hour: end_hour || 17, ghl_pipeline: ghl_pipeline || null,
+        status: 'draft',
+      }).select('*').maybeSingle()
+      return Response.json({ data })
+    }
+
+    if (action === 'toggle_campaign') {
+      const agencyId = access.agencyId || '00000000-0000-0000-0000-000000000099'
+      const { data } = await s.from('kc_campaigns').update({ status: body.status, updated_at: new Date().toISOString() })
+        .eq('id', body.id).eq('agency_id', agencyId).select('*').maybeSingle()
+      return Response.json({ data })
+    }
+
+    if (action === 'build_brain') {
+      if (!access.features.brainBuilder) return Response.json({ error: 'Feature not enabled' }, { status: 403 })
+      const { industry_name, sic_code, naics_code } = body
+      const apiKey = process.env.ANTHROPIC_API_KEY || ''
+      let brainData: any = { persona_name: `${industry_name} Specialist`, voice_tone: 'professional', pain_points: [], objections: [], qa_bank: [] }
+      if (apiKey) {
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST', headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: `You are configuring an AI cold calling brain for the ${industry_name} industry (SIC: ${sic_code}, NAICS: ${naics_code}). Generate a complete JSON config: {"persona_name":"","voice_tone":"","opening_script":"","optin_bridge":"","callback_bridge":"","pain_points":["5 strings"],"objections":["4 strings"],"qa_bank":[{"stage":"Connect|Discovery|Problem|Consequence|Solution|Close","question":"","coaching_note":""}],"data_signals":["5 strings"]}. Return ONLY valid JSON.` }] }),
+            signal: AbortSignal.timeout(15000),
+          })
+          if (res.ok) {
+            const d = await res.json()
+            const txt = d.content?.[0]?.text || '{}'
+            try { brainData = JSON.parse(txt.replace(/```json|```/g, '').trim()) } catch {}
+          }
+        } catch {}
+      }
+      const agencyId = access.agencyId || '00000000-0000-0000-0000-000000000099'
+      const { data } = await s.from('kc_industry_brains').upsert({
+        agency_id: agencyId, sic_code, naics_code, industry_name, ...brainData, learning_score: 65, built: true, updated_at: new Date().toISOString(),
+      }, { onConflict: 'agency_id,sic_code' }).select('*').maybeSingle()
+      return Response.json({ data })
+    }
+
+    if (action === 'save_brain') {
+      const { id, ...updates } = body
+      delete updates.action
+      const agencyId = access.agencyId || '00000000-0000-0000-0000-000000000099'
+      if (id) {
+        const { data } = await s.from('kc_industry_brains').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).select('*').maybeSingle()
+        return Response.json({ data })
+      }
+      const { data } = await s.from('kc_industry_brains').insert({ agency_id: agencyId, ...updates }).select('*').maybeSingle()
+      return Response.json({ data })
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })
