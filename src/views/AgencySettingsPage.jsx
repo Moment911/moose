@@ -11,7 +11,7 @@ import {
   Wrench, Check, AlertTriangle, ExternalLink, Copy,
   RefreshCw, Loader2, Info, Sliders, Save, Plus,
   Trash2, ChevronRight, ArrowRight, ToggleLeft, ToggleRight,
-  Lock, BarChart2
+  Lock, BarChart2, Mail, Send
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
@@ -35,6 +35,7 @@ const SECTIONS = [
   { key:'branding',     label:'Branding',         icon:Palette,   group:'Agency' },
   { key:'team',         label:'Team & Access',    icon:Users,     group:'Agency' },
   { key:'billing',      label:'Plan & Billing',   icon:CreditCard,group:'Agency' },
+  { key:'email',        label:'Email Settings',   icon:Mail,      group:'Agency' },
   { key:'connections',  label:'API Connections',  icon:Plug,      group:'Platform' },
   { key:'notifications',label:'Notifications',    icon:Bell,      group:'Platform' },
   { key:'security',     label:'Security',         icon:Shield,    group:'Platform' },
@@ -161,6 +162,11 @@ export default function AgencySettingsPage() {
   const [agency, setAgency]   = useState({ name:'', slug:'', billing_email:'', brand_domain:'',
     brand_name:'', brand_color:R, brand_logo_url:'', plan:'growth', metadata:{} })
 
+  // Email
+  const [emailSettings, setEmailSettings] = useState({ sender_name:'', sender_email:'', reply_to_email:'', support_email:'', billing_email:'', noreply_email:'', email_signature:'', email_domain_verified:false })
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [emailTesting, setEmailTesting] = useState(false)
+  const [domainVerifying, setDomainVerifying] = useState(false)
   // Team
   const [members, setMembers] = useState([])
 
@@ -209,6 +215,7 @@ export default function AgencySettingsPage() {
         const meta = ag.metadata || {}
         setOnboardingTitle(meta.onboarding_title || 'Tell us about your business')
         setOnboardingIntro(meta.onboarding_intro || '')
+        setEmailSettings({ sender_name:ag.sender_name||'', sender_email:ag.sender_email||'', reply_to_email:ag.reply_to_email||'', support_email:ag.support_email||'', billing_email:ag.billing_email||'', noreply_email:ag.noreply_email||'', email_signature:ag.email_signature||'', email_domain_verified:ag.email_domain_verified||false })
       }
       setMembers(mem||[])
       setModules(mods||[])
@@ -450,6 +457,32 @@ export default function AgencySettingsPage() {
               color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
             <Users size={14}/> Manage Full Team Settings
           </button>
+        </SectionCard>
+      )
+
+      case 'email': return (
+        <SectionCard title="Email Settings" subtitle="Configure how emails are sent on behalf of your agency">
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:16}}>
+            {[{k:'sender_name',l:'Sender Name',p:'Your Agency'},{k:'sender_email',l:'From Email',p:'hello@youragency.com'},{k:'reply_to_email',l:'Reply-To',p:'support@youragency.com'},{k:'support_email',l:'Support Email',p:'support@youragency.com'},{k:'billing_email',l:'Billing Email',p:'billing@youragency.com'},{k:'noreply_email',l:'No-Reply',p:'noreply@youragency.com'}].map(f=>(
+              <div key={f.k}><label style={{fontSize:12,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase',letterSpacing:'.04em'}}>{f.l}</label>
+              <input value={emailSettings[f.k]||''} onChange={e=>setEmailSettings(p=>({...p,[f.k]:e.target.value}))} placeholder={f.p} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',fontSize:14,outline:'none',boxSizing:'border-box'}}/></div>
+            ))}
+          </div>
+          <div style={{marginBottom:16}}><label style={{fontSize:12,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,textTransform:'uppercase',letterSpacing:'.04em'}}>Email Signature</label>
+          <textarea value={emailSettings.email_signature||''} onChange={e=>setEmailSettings(p=>({...p,email_signature:e.target.value}))} rows={4} placeholder="Your signature" style={{width:'100%',padding:'9px 12px',borderRadius:8,border:'1.5px solid #e5e7eb',fontSize:14,outline:'none',boxSizing:'border-box',resize:'vertical'}}/></div>
+          <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:emailSettings.email_domain_verified?'#f0fdf4':'#f9fafb',borderRadius:10,border:'1px solid '+(emailSettings.email_domain_verified?'#bbf7d0':'#e5e7eb'),marginBottom:16}}>
+            <div style={{width:10,height:10,borderRadius:'50%',background:emailSettings.email_domain_verified?'#16a34a':'#9ca3af'}}/>
+            <span style={{fontSize:13,fontWeight:600,color:emailSettings.email_domain_verified?'#16a34a':'#6b7280'}}>{emailSettings.email_domain_verified?'Domain verified':emailSettings.sender_email?'Domain not verified':'Set sender email first'}</span>
+            {emailSettings.sender_email&&!emailSettings.email_domain_verified&&<button onClick={async()=>{setDomainVerifying(true);try{const r=await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify_email_domain',agency_id:aid})});const d=await r.json();d.domain_id?toast.success('Domain registered — add DNS records'):toast.error(d.error||'Failed')}catch{toast.error('Failed')}setDomainVerifying(false)}} disabled={domainVerifying} style={{marginLeft:'auto',padding:'6px 14px',borderRadius:8,border:'none',background:'#5bc6d015',color:'#5bc6d0',fontSize:12,fontWeight:700,cursor:'pointer'}}>{domainVerifying?'Verifying...':'Verify Domain'}</button>}
+          </div>
+          <div style={{display:'flex',gap:10}}>
+            <button onClick={async()=>{setEmailSaving(true);try{await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_email_settings',agency_id:aid,...emailSettings})});toast.success('Saved')}catch{toast.error('Failed')}setEmailSaving(false)}} disabled={emailSaving} style={{padding:'10px 20px',borderRadius:10,border:'none',background:R,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+              {emailSaving?<Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/>:<Save size={14}/>} Save
+            </button>
+            <button onClick={async()=>{setEmailTesting(true);try{const r=await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_test_email',agency_id:aid})});const d=await r.json();d.success?toast.success('Test email sent!'):toast.error(d.error||'Failed')}catch{toast.error('Failed')}setEmailTesting(false)}} disabled={emailTesting} style={{padding:'10px 20px',borderRadius:10,border:'1px solid #5bc6d0',background:'#5bc6d010',color:'#5bc6d0',fontSize:14,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+              {emailTesting?<Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/>:<Send size={14}/>} Test Email
+            </button>
+          </div>
         </SectionCard>
       )
 
