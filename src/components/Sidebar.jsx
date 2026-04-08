@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  Activity, BarChart2, BookOpen, Brain, CheckCircle, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -200,6 +200,10 @@ export default function Sidebar() {
             <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T}/>
             <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub/>
             <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R}/>
+
+            {/* OUTREACH */}
+            <Section label="Outreach"/>
+            <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T}/>
 
             {/* AGENCY */}
             <Section label="Agency"/>
