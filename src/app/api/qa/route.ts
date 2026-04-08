@@ -899,5 +899,75 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fixes:fixResults, total:fixResults.length, fixed_count:fixResults.filter((f: any) => f.fixed).length })
   }
 
+  /* ── Fix all issues (runs tests then fixes) ─────────────────────────── */
+  if (action === 'fix_all_issues') {
+    // Run tests first
+    const testRes = await fetch(new URL('/api/qa', req.url).toString(), {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'run_functional_tests' })
+    })
+    const testData = await testRes.json()
+    const failed = (testData.results || []).filter((r: any) => !r.pass)
+
+    if (!failed.length) return NextResponse.json({ fixed:[], failed:[], manual_required:[], message:'All tests passing!' })
+
+    // Fix fixable ones
+    const fixable = ['flow_qa_database','flow_voice_agent_sync','flow_industry_intelligence','integrity_voice_agents']
+    const toFix = failed.filter((f: any) => fixable.includes(f.id)).map((f: any) => f.id)
+    const manual = failed.filter((f: any) => !fixable.includes(f.id))
+
+    let fixResults: any[] = []
+    if (toFix.length) {
+      const fixRes = await fetch(new URL('/api/qa', req.url).toString(), {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ action:'auto_fix', failed_test_ids:toFix })
+      })
+      const fixData = await fixRes.json()
+      fixResults = fixData.fixes || []
+    }
+
+    return NextResponse.json({
+      fixed: fixResults.filter((f: any) => f.fixed),
+      failed: fixResults.filter((f: any) => !f.fixed),
+      manual_required: manual.map((m: any) => ({
+        issue: m.name,
+        error: m.error,
+        severity: m.severity,
+        instruction: m.id.startsWith('env_') ? `Add ${m.id.replace('env_','').toUpperCase()} to Vercel: vercel env add ${m.id.replace('env_','').toUpperCase()}_API_KEY` : 'Check the specific test error message for guidance.'
+      }))
+    })
+  }
+
+  /* ── Generate health report ─────────────────────────────────────────── */
+  if (action === 'generate_health_report') {
+    const testRes = await fetch(new URL('/api/qa', req.url).toString(), {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'run_functional_tests' })
+    })
+    const testData = await testRes.json()
+    const results = testData.results || []
+    const summary = testData.summary || {}
+
+    const overall = summary.critical_failures > 0 ? 'critical' : summary.pass_rate >= 80 ? 'healthy' : 'degraded'
+    const suites: Record<string, any> = {}
+    for (const r of results) {
+      if (!suites[r.suite]) suites[r.suite] = { name:r.suite, passed:0, failed:0, warnings:0 }
+      if (r.pass) suites[r.suite].passed++
+      else suites[r.suite].failed++
+    }
+
+    return NextResponse.json({
+      generated_at: new Date().toISOString(),
+      overall_health: overall,
+      score: summary.pass_rate || 0,
+      suites: Object.values(suites),
+      results,
+      manual_required: results.filter((r: any) => !r.pass).map((r: any) => ({
+        issue: r.name, instruction: r.error, priority: r.severity
+      })),
+      recommendations: results.filter((r: any) => !r.pass && r.severity === 'critical').map((r: any) => `Fix ${r.name}: ${r.error}`)
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
