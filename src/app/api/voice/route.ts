@@ -804,6 +804,30 @@ Return ONLY the script text, no markdown or JSON.`
       return NextResponse.json({ research, cached: false })
     }
 
+    // ── Live Routing ──────────────────────────────────────────────────────────
+    if (action === 'get_live_routing') {
+      const { call_id } = body
+      if (!call_id) return NextResponse.json({ error: 'Missing call_id' }, { status: 400 })
+
+      const { data: call } = await sb.from('koto_voice_calls').select('*').eq('id', call_id).single()
+      if (!call) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+
+      const { data: lead } = call.lead_id
+        ? await sb.from('koto_voice_leads').select('*').eq('id', call.lead_id).single()
+        : { data: null }
+
+      const { computeLiveRouting } = await import('../../../lib/liveConversationEngine')
+
+      const transcript = call.transcript || ''
+      const durationSec = call.duration_seconds || Math.floor((Date.now() - new Date(call.created_at).getTime()) / 1000)
+      const leadScore = lead?.lead_score || 0
+      const sentiment = call.sentiment || 'neutral'
+
+      const routing = computeLiveRouting(transcript, durationSec, leadScore, sentiment)
+
+      return NextResponse.json({ routing })
+    }
+
     // ── Stop Call ────────────────────────────────────────────────────────────
     if (action === 'stop_call') {
       const { call_id: cId, retell_call_id: rId } = body

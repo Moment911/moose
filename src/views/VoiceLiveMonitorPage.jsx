@@ -63,8 +63,10 @@ function LiveCallCard({ call: c, onStop }) {
   const [tab, setTab] = useState('score')
   const [score, setScore] = useState(null)
   const [research, setResearch] = useState(null)
+  const [routing, setRouting] = useState(null)
   const [elapsed, setElapsed] = useState(c.duration_seconds || 0)
   const [loadingResearch, setLoadingResearch] = useState(false)
+  const [loadingRouting, setLoadingRouting] = useState(false)
   const timerRef = useRef(null)
   const scoreRef = useRef(null)
 
@@ -81,9 +83,10 @@ function LiveCallCard({ call: c, onStop }) {
     return () => clearInterval(scoreRef.current)
   }, [])
 
-  // Fetch research when tab switches
+  // Fetch research/routing when tab switches
   useEffect(() => {
     if (tab === 'research' && !research) fetchResearch()
+    if (tab === 'routing' && !routing) fetchRouting()
   }, [tab])
 
   async function fetchScore() {
@@ -110,6 +113,19 @@ function LiveCallCard({ call: c, onStop }) {
     setLoadingResearch(false)
   }
 
+  async function fetchRouting() {
+    setLoadingRouting(true)
+    try {
+      const res = await fetch('/api/voice', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_live_routing', call_id: c.id }),
+      })
+      const data = await res.json()
+      if (!data.error) setRouting(data.routing)
+    } catch {}
+    setLoadingRouting(false)
+  }
+
   const alertLabel = score?.score >= 85 ? '🔥 OFFER TRANSFER' : score?.score >= 70 ? '⚡ ALERT CLOSER' : null
   const alertColor = score?.score >= 85 ? R : score?.score >= 70 ? AMB : null
 
@@ -132,11 +148,11 @@ function LiveCallCard({ call: c, onStop }) {
         </div>
         <div style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, color: GRN }}>{fmtDur(elapsed)}</div>
         <div style={{ display: 'flex', gap: 4 }}>
-          {['score', 'research'].map(t => (
+          {['score', 'research', 'routing'].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
               padding: '4px 10px', borderRadius: 6, border: 'none', fontSize: 10, fontWeight: 700, fontFamily: FH,
               background: tab === t ? BLK : '#f3f4f6', color: tab === t ? '#fff' : '#6b7280', cursor: 'pointer', textTransform: 'capitalize',
-            }}>{t}</button>
+            }}>{t === 'routing' ? 'Next Move' : t}</button>
           ))}
         </div>
         <button onClick={() => onStop(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8, border: 'none', background: R + '15', color: R, cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>
@@ -195,6 +211,75 @@ function LiveCallCard({ call: c, onStop }) {
             </div>
           ) : (
             <div style={{ fontSize: 12, color: '#9a9a96' }}>No research data available.</div>
+          )}
+        </div>
+      )}
+
+      {/* Routing tab */}
+      {tab === 'routing' && (
+        <div style={{ padding: '8px 0 4px 50px' }}>
+          {loadingRouting ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9a9a96', fontSize: 12 }}>
+              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Analyzing conversation...
+            </div>
+          ) : routing ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Next Move */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: routing.next_move.action === 'transfer' ? R + '08' : routing.next_move.action === 'offer_appointment' ? GRN + '08' : '#f9fafb', border: `1px solid ${routing.next_move.action === 'transfer' ? R + '25' : routing.next_move.action === 'offer_appointment' ? GRN + '25' : '#e5e7eb'}` }}>
+                <div style={{ fontSize: 20 }}>
+                  {routing.next_move.action === 'transfer' ? '🔥' : routing.next_move.action === 'offer_appointment' ? '📅' : routing.next_move.action === 'wrap_up' ? '👋' : routing.next_move.action === 'send_info' ? '📧' : routing.next_move.action === 'escalate' ? '⚡' : '💬'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'uppercase', letterSpacing: '.02em' }}>
+                    Next Move: {routing.next_move.action.replace(/_/g, ' ')}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{routing.next_move.reason}</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: routing.next_move.confidence >= 80 ? GRN : routing.next_move.confidence >= 60 ? AMB : '#6b7280' }}>{routing.next_move.confidence}%</div>
+                  <div style={{ fontSize: 9, color: '#9a9a96', textTransform: 'uppercase' }}>confidence</div>
+                </div>
+              </div>
+
+              {/* Momentum + Talk ratio */}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>
+                  Momentum: <strong style={{ color: routing.momentum === 'rising' ? GRN : routing.momentum === 'falling' ? R : '#6b7280' }}>
+                    {routing.momentum === 'rising' ? '📈 Rising' : routing.momentum === 'falling' ? '📉 Falling' : '➡️ Steady'}
+                  </strong>
+                </div>
+                {routing.talk_ratio_warning && (
+                  <div style={{ fontSize: 11, fontWeight: 700, color: AMB, background: AMB + '15', padding: '2px 8px', borderRadius: 10 }}>⚠️ Agent talking too much</div>
+                )}
+              </div>
+
+              {/* Battle Cards */}
+              {routing.battle_cards?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>⚔️ Competitor Battle Cards</div>
+                  {routing.battle_cards.map((bc, i) => (
+                    <div key={i} style={{ background: '#fff', border: '1px solid #ececea', borderRadius: 10, padding: '10px 14px', marginBottom: 6 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 4 }}>{bc.competitor}</div>
+                      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>Weaknesses: {bc.weaknesses.join(' · ')}</div>
+                      <div style={{ fontSize: 11, color: GRN, fontWeight: 600, marginBottom: 4 }}>✓ {bc.our_advantage}</div>
+                      <div style={{ fontSize: 11, color: BLK, fontStyle: 'italic', background: '#f9fafb', padding: '6px 10px', borderRadius: 6 }}>💬 "{bc.suggested_rebuttal}"</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Suggested Questions */}
+              {routing.suggested_questions?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>💡 Suggested Questions</div>
+                  {routing.suggested_questions.map((q, i) => (
+                    <div key={i} style={{ fontSize: 12, color: '#374151', padding: '4px 0', borderBottom: '1px solid #f8f8f6' }}>"{q}"</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: '#9a9a96' }}>No routing data available.</div>
           )}
         </div>
       )}
