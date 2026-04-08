@@ -128,6 +128,7 @@ import BillingAdminPage from '../views/BillingAdminPage'
 import StripeDashboardPage from '../views/StripeDashboardPage'
 import InvoiceBuilderPage from '../views/InvoiceBuilderPage'
 import KotoProofPage from '../views/KotoProofPage'
+import QAIntelligencePage from '../views/QAIntelligencePage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -299,6 +300,7 @@ function AppRoutes() {
           <Route path="/voice/live" element={<VoiceLiveMonitorPage />} />
           <Route path="/answering" element={<AnsweringServicePage />} />
           <Route path="/voice/closer" element={<VoiceCloserPage />} />
+          <Route path="/qa-intelligence" element={<QAIntelligencePage />} />
           <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/scout" element={<ScoutPage />} />

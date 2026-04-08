@@ -197,6 +197,7 @@ export default function Sidebar() {
             <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R}/>
             <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub/>
             <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service"/>
+            <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T}/>
 
             {/* AGENCY */}
             <Section label="Agency"/>
