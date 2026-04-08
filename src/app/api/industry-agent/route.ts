@@ -20,6 +20,15 @@ export async function GET(req: NextRequest) {
     const action = searchParams.get('action') || 'list_industries'
     const s = sb()
 
+    if (action === 'list_trades') {
+      const { data } = await s
+        .from('koto_industry_registry')
+        .select('*')
+        .eq('industry_category', 'trades')
+        .order('industry_name', { ascending: true })
+      return Response.json({ data: data || [] })
+    }
+
     if (action === 'list_industries') {
       const { data } = await s
         .from('koto_industry_intelligence')

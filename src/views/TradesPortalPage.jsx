@@ -44,15 +44,10 @@ export default function TradesPortalPage() {
   const [generating, setGenerating] = useState(null)
 
   useEffect(() => {
-    fetch(`${API_REGISTRY}?action=list_industries`).then(r => r.json()).then(r => {
-      // Also fetch from registry for trades-specific data
-      fetch(`https://suqpieuasfudgdtylotn.supabase.co/rest/v1/koto_industry_registry?industry_category=eq.trades&order=industry_name`, {
-        headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1cXBpZXVhc2Z1ZGdkdHlsb3RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1NDIzNDMsImV4cCI6MjA1OTExODM0M30.bkWCCDwi7jGy09xODnnsmygp8VCiDk3TBmjBByFJkig' }
-      }).then(r2 => r2.json()).then(trades => {
-        setIndustries(Array.isArray(trades) ? trades : [])
-        setLoading(false)
-      }).catch(() => { setIndustries([]); setLoading(false) })
-    }).catch(() => setLoading(false))
+    fetch(`${API_INDUSTRY}?action=list_trades`).then(r => r.json()).then(r => {
+      setIndustries(Array.isArray(r.data) ? r.data : [])
+      setLoading(false)
+    }).catch(() => { setIndustries([]); setLoading(false) })
   }, [])
 
   async function loadDetail(ind) {
