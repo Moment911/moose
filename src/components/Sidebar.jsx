@@ -206,6 +206,15 @@ export default function Sidebar() {
             <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub/>
             <NavLink to="/avatars" icon={Users} label="AI Avatars" sub/>
 
+            {/* KOTOCLOSE */}
+            <Section label="KotoClose"/>
+            <NavLink to="/kotoclose/dashboard" startsWith icon={Target} label="Live Dashboard" badge="AI" badgeColor={R}/>
+            <NavLink to="/kotoclose/calls" icon={Phone} label="Call Log" sub/>
+            <NavLink to="/kotoclose/callbacks" icon={Clock} label="Callbacks" sub/>
+            <NavLink to="/kotoclose/campaigns" icon={Globe} label="Campaigns" sub/>
+            <NavLink to="/kotoclose/voicemail" icon={PhoneIncoming} label="VM Studio" sub/>
+            <NavLink to="/kotoclose/analytics" icon={BarChart2} label="Performance" sub/>
+
             {/* OUTREACH */}
             <Section label="Outreach"/>
             <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T}/>
