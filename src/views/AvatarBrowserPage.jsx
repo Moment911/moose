@@ -27,6 +27,10 @@ export default function AvatarBrowserPage() {
   const [aiMessage, setAiMessage] = useState('')
   const [aiGenerating, setAiGenerating] = useState(false)
   const [aiResult, setAiResult] = useState('')
+  const [scriptText, setScriptText] = useState('')
+  const [emailTo, setEmailTo] = useState('')
+  const [generatingVideo, setGeneratingVideo] = useState(false)
+  const [generatedVideoId, setGeneratedVideoId] = useState(null)
   const videoRef = useRef(null)
   const debounceRef = useRef(null)
 
@@ -97,6 +101,34 @@ export default function AvatarBrowserPage() {
     setAiGenerating(false)
   }
 
+  async function createVideoFromScript() {
+    if (!scriptText.trim()) { toast.error('Enter or generate a script first'); return }
+    if (!selectedId) { toast.error('Select an avatar first'); return }
+    setGeneratingVideo(true)
+    try {
+      const res = await fetch(API, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          agency_id: agencyId,
+          lead: { prospect_email: emailTo || '', business_name: 'Video Message' },
+          avatar_id: selectedId,
+          custom_script: scriptText,
+          email_to: emailTo || undefined,
+        }),
+      }).then(r => r.json())
+      if (res.success) {
+        setGeneratedVideoId(res.vm_id)
+        toast.success('Video generating! This takes 30-60 seconds.')
+      } else { toast.error(res.error || 'Failed to create video') }
+    } catch { toast.error('Failed to create video') }
+    setGeneratingVideo(false)
+  }
+
+  function useAiScript() {
+    if (aiResult) { setScriptText(aiResult); toast.success('Script loaded into editor') }
+  }
+
   const FILTERS = [
     { key: '', label: 'All' },
     { key: 'female', label: 'Female' },
@@ -116,37 +148,109 @@ export default function AvatarBrowserPage() {
         </div>
 
         <div style={{ padding: 24 }}>
-          {/* AI Message Composer */}
-          <div style={{ background: W, borderRadius: 8, border: '1px solid rgba(0,0,0,0.08)', padding: '18px 20px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <Sparkles size={16} color={R} />
-              <span style={{ fontSize: 14, fontWeight: 500, color: BLK }}>AI Message Writer</span>
-              <span style={{ fontSize: 11, color: '#999' }}>-- describe what you want to say and AI writes the script</span>
+          {/* Create Video Message Panel */}
+          <div style={{ background: W, borderRadius: 8, border: selectedId ? `2px solid ${R}` : '1px solid rgba(0,0,0,0.08)', padding: '20px 24px', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <Send size={16} color={R} />
+              <span style={{ fontSize: 15, fontWeight: 500, color: BLK }}>Create Video Message</span>
+              {selectedId && (
+                <span style={{ fontSize: 11, color: R, fontWeight: 500 }}>
+                  Avatar: {avatars.find(a => a.avatar_id === selectedId)?.avatar_name || 'Selected'}
+                </span>
+              )}
+              {!selectedId && <span style={{ fontSize: 11, color: '#999' }}>-- select an avatar below first</span>}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                value={aiMessage}
-                onChange={e => setAiMessage(e.target.value)}
-                placeholder="e.g. I tried calling Mike at Martinez Plumbing about their low Google reviews..."
-                onKeyDown={e => e.key === 'Enter' && generateAiMessage()}
-                style={{ flex: 1, padding: '10px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }}
-              />
-              <button onClick={generateAiMessage} disabled={aiGenerating} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 6,
-                border: 'none', background: R, color: W, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                opacity: aiGenerating ? 0.5 : 1,
-              }}>
-                {aiGenerating ? <Loader2 size={14} className="ds-spin" /> : <Sparkles size={14} />}
-                Generate
-              </button>
-            </div>
-            {aiResult && (
-              <div style={{ marginTop: 12, padding: '12px 16px', background: '#F5F5F5', borderRadius: 6, fontSize: 13, color: '#333', lineHeight: 1.6 }}>
-                <div style={{ fontSize: 11, fontWeight: 500, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Generated Script:</div>
-                {aiResult}
-                <button onClick={() => { navigator.clipboard.writeText(aiResult); toast.success('Copied') }} style={{ marginTop: 8, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(0,0,0,0.14)', background: W, fontSize: 11, cursor: 'pointer', color: '#555' }}>
-                  Copy Script
+
+            {/* Step 1: AI assist OR paste script */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                Option A: Let AI write it
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  value={aiMessage}
+                  onChange={e => setAiMessage(e.target.value)}
+                  placeholder="Describe what you want to say... e.g. I tried calling Mike about their low Google reviews"
+                  onKeyDown={e => e.key === 'Enter' && generateAiMessage()}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }}
+                />
+                <button onClick={generateAiMessage} disabled={aiGenerating} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 6,
+                  border: 'none', background: '#111', color: W, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                  opacity: aiGenerating ? 0.5 : 1,
+                }}>
+                  {aiGenerating ? <Loader2 size={14} className="ds-spin" /> : <Sparkles size={14} />}
+                  Write with AI
                 </button>
+              </div>
+              {aiResult && (
+                <div style={{ padding: '10px 14px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7', fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 500, color: GRN, marginBottom: 4, textTransform: 'uppercase' }}>AI Generated:</div>
+                  {aiResult}
+                  <button onClick={useAiScript} style={{ marginTop: 8, padding: '5px 12px', borderRadius: 4, border: 'none', background: GRN, color: W, fontSize: 11, fontWeight: 500, cursor: 'pointer' }}>
+                    Use This Script
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Script editor */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Option B: Type or paste your script
+                </span>
+                <span style={{ fontSize: 11, color: scriptText.length > 80 ? (scriptText.length > 120 ? '#dc2626' : '#d97706') : '#999' }}>
+                  {scriptText.length} chars {scriptText.length > 0 && `(~${Math.round(scriptText.split(/\s+/).filter(Boolean).length / 2.5)}s)`}
+                </span>
+              </div>
+              <textarea
+                value={scriptText}
+                onChange={e => setScriptText(e.target.value)}
+                placeholder="Type or paste what you want the avatar to say... Keep it under 60 words for a 15-20 second video."
+                rows={4}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, lineHeight: 1.6, resize: 'vertical', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* Step 3: Email (optional) */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                Send to email (optional)
+              </div>
+              <input
+                value={emailTo}
+                onChange={e => setEmailTo(e.target.value)}
+                placeholder="prospect@business.com (leave blank to just generate the video)"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* Generate button */}
+            <button
+              onClick={createVideoFromScript}
+              disabled={generatingVideo || !scriptText.trim() || !selectedId}
+              style={{
+                width: '100%', padding: '12px 0', borderRadius: 8,
+                border: 'none', background: (!scriptText.trim() || !selectedId) ? '#e5e7eb' : R,
+                color: (!scriptText.trim() || !selectedId) ? '#999' : W,
+                fontSize: 14, fontWeight: 500, cursor: (!scriptText.trim() || !selectedId) ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {generatingVideo ? (
+                <><Loader2 size={16} className="ds-spin" /> Generating Video...</>
+              ) : (
+                <><Send size={16} /> Generate Video{emailTo ? ' & Send Email' : ''}</>
+              )}
+            </button>
+
+            {/* Success state */}
+            {generatedVideoId && (
+              <div style={{ marginTop: 12, padding: '12px 16px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Check size={16} color={GRN} />
+                <span style={{ fontSize: 13, color: '#374151' }}>Video generating! Takes 30-60 seconds.</span>
+                <a href="/video-voicemails" style={{ fontSize: 12, color: R, fontWeight: 500, marginLeft: 'auto' }}>View in Dashboard</a>
               </div>
             )}
           </div>
