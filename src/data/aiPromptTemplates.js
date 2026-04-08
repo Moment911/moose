@@ -128,4 +128,91 @@ export function calculateLeadScore(signals) {
   return Math.max(0, Math.min(100, score))
 }
 
+// ── Convenience wrappers for voice routes ────────────────────────────────────
+
+export function getOutboundPrompt(agent, closer, intel) {
+  // If pre-call intelligence is available, inject it into the base prompt
+  let prompt = buildAgentPrompt(agent, closer)
+
+  if (intel) {
+    const sections = []
+
+    if (intel.lead) {
+      const l = intel.lead
+      sections.push(`PROSPECT: ${l.prospect_name || 'Unknown'}${l.prospect_company ? ' at ' + l.prospect_company : ''}${l.industry ? ' (' + l.industry + ')' : ''}`)
+      if (l.prospect_pain_point) sections.push(`KNOWN PAIN POINT: ${l.prospect_pain_point}`)
+      if (l.lead_score) sections.push(`LEAD SCORE: ${l.lead_score}/100`)
+    }
+
+    if (intel.callerHistory && intel.callerHistory.totalCalls > 0) {
+      sections.push(`CALL HISTORY: ${intel.callerHistory.totalCalls} previous calls. Last outcome: ${intel.callerHistory.lastOutcome || 'unknown'}.`)
+    }
+
+    if (intel.businessInfo) {
+      const b = intel.businessInfo
+      let line = `BUSINESS: ${b.name}`
+      if (b.rating) line += ` — ${b.rating}/5 (${b.reviewCount || 0} reviews)`
+      sections.push(line)
+    }
+
+    if (intel.aiBriefing) {
+      sections.push(`AI BRIEFING:\n${intel.aiBriefing}`)
+    }
+
+    if (sections.length > 0) {
+      prompt += `\n\n── PRE-CALL INTELLIGENCE ──\n${sections.join('\n')}`
+    }
+  }
+
+  return prompt
+}
+
+export function getInboundPrompt(agent, closer, intel) {
+  const c = closer || {}
+  const closerName = c.closer_name || 'our team'
+  const companyName = c.closer_company_name || agent.business_context?.business_name || 'our company'
+
+  let prompt = `You are ${agent.name}, the AI receptionist for ${companyName}.
+
+PERSONALITY: ${agent.personality || 'Warm, professional, helpful'}
+GOAL: Answer the caller's question, qualify them, and book a meeting with ${closerName} if appropriate.
+
+CALL FLOW:
+1. Greet: "Thank you for calling ${companyName}, this is ${agent.name}. How can I help you today?"
+2. Identify their name and reason for calling
+3. Qualify — existing client? New prospect? General inquiry?
+4. If qualified, offer to schedule with ${closerName}
+5. Always capture name, phone, email before ending
+
+RULES:
+- Be warm and unhurried — inbound callers are warm leads
+- If you can't answer, say "Let me have ${closerName} follow up on that"
+- Capture consent before ending
+- Thank them for calling`
+
+  if (intel) {
+    const sections = []
+
+    if (intel.client) {
+      sections.push(`EXISTING CLIENT: ${intel.client.business_name || intel.client.name || 'Known client'} — greet by name, prioritize their needs`)
+    } else if (intel.lead) {
+      sections.push(`KNOWN LEAD: ${intel.lead.prospect_name || 'Known prospect'}${intel.lead.prospect_company ? ' from ' + intel.lead.prospect_company : ''}`)
+    }
+
+    if (intel.callerHistory && intel.callerHistory.totalCalls > 0) {
+      sections.push(`PREVIOUS CONTACT: ${intel.callerHistory.totalCalls} prior calls`)
+    }
+
+    if (intel.aiBriefing) {
+      sections.push(`BRIEFING:\n${intel.aiBriefing}`)
+    }
+
+    if (sections.length > 0) {
+      prompt += `\n\n── CALLER INTELLIGENCE ──\n${sections.join('\n')}`
+    }
+  }
+
+  return prompt
+}
+
 export default buildAgentPrompt

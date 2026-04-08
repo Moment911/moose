@@ -1,5 +1,8 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { enrichCallerData } from '@/lib/preCallIntelligence'
+import { buildRetellDynamicVars } from '@/lib/dynamicPromptBuilder'
+import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
 
 function sb() {
   return createClient(
@@ -33,6 +36,28 @@ export async function POST(req: NextRequest) {
     // Call started
     if (event === 'call_started' || event === 'call_created') {
       if (callId) {
+        // Run pre-call intelligence enrichment (non-blocking — don't fail the webhook)
+        let preCallIntel = null
+        try {
+          const callerPhone = call.from_number || call.to_number || ''
+          if (callerPhone) {
+            preCallIntel = await enrichCallerData(callerPhone)
+            const dynamicVars = buildRetellDynamicVars(preCallIntel)
+
+            // Push dynamic variables to Retell for this call
+            const retellKey = process.env.RETELL_API_KEY
+            if (retellKey && Object.keys(dynamicVars).length > 0) {
+              fetch(`https://api.retellai.com/v2/calls/${callId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${retellKey}` },
+                body: JSON.stringify({ metadata: { pre_call_intel: preCallIntel, dynamic_vars: dynamicVars } }),
+              }).catch(() => {}) // fire-and-forget
+            }
+          }
+        } catch (e: any) {
+          console.error('Pre-call intel error (non-fatal):', e.message)
+        }
+
         await s.from('koto_voice_calls').upsert({
           retell_call_id: callId,
           status: 'in_progress',
@@ -40,6 +65,7 @@ export async function POST(req: NextRequest) {
           to_number: call.to_number || '',
           start_timestamp: call.start_timestamp ? new Date(call.start_timestamp).toISOString() : new Date().toISOString(),
           metadata: body,
+          pre_call_intel: preCallIntel,
         }, { onConflict: 'retell_call_id' })
       }
     }
@@ -69,9 +95,9 @@ export async function POST(req: NextRequest) {
           transcript: call.transcript || '',
         }).eq('retell_call_id', callId)
 
-        // Bill the call
+        // Bill the call + parse Q&A intelligence
         if (duration > 0) {
-          const { data: callRecord } = await s.from('koto_voice_calls').select('agency_id').eq('retell_call_id', callId).single()
+          const { data: callRecord } = await s.from('koto_voice_calls').select('id, agency_id, campaign_id, lead_id').eq('retell_call_id', callId).single()
           if (callRecord?.agency_id) {
             await fetch(new URL('/api/billing', req.url).toString(), {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -80,6 +106,30 @@ export async function POST(req: NextRequest) {
                 feature: 'voice_outbound', quantity: Math.ceil(duration / 60), unit: 'minutes', unit_cost: 0.05,
               }),
             })
+          }
+
+          // Parse Q&A from transcript into intelligence database (non-blocking)
+          const transcript = call.transcript || ''
+          if (transcript && callRecord?.id) {
+            const leadId = callRecord.lead_id || ''
+            let sicCode = 'unknown'
+            if (leadId) {
+              const { data: lead } = await s.from('koto_voice_leads').select('industry_sic_code').eq('id', leadId).maybeSingle()
+              if (lead?.industry_sic_code) sicCode = lead.industry_sic_code
+            }
+            parseTranscriptIntoQA(
+              transcript,
+              callRecord.id,
+              callRecord.agency_id || '',
+              sicCode,
+              {
+                appointment_set: call.call_analysis?.call_successful === true,
+                lead_score: call.call_analysis?.lead_score || 50,
+                duration_seconds: duration,
+                campaign_id: callRecord.campaign_id,
+                lead_id: leadId,
+              }
+            ).catch(e => console.error('QA parse error (non-fatal):', e.message))
           }
         }
       }
