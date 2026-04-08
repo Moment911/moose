@@ -77,9 +77,9 @@ export default function AvatarBrowserPage() {
       setPlayingId(null)
       return
     }
-    if (videoRef.current) { videoRef.current.pause() }
+    if (videoRef.current) { videoRef.current.pause(); videoRef.current.muted = true }
     const vid = document.getElementById(`vid-${avatarId}`)
-    if (vid) { vid.play(); videoRef.current = vid; setPlayingId(avatarId) }
+    if (vid) { vid.muted = false; vid.play(); videoRef.current = vid; setPlayingId(avatarId) }
   }
 
   async function generateAiMessage() {
@@ -204,8 +204,8 @@ export default function AvatarBrowserPage() {
                     {av.preview_video_url && (
                       <video
                         id={`vid-${av.avatar_id}`}
-                        src={av.preview_video_url}
-                        muted loop playsInline
+                        src={isPlaying ? av.preview_video_url : undefined}
+                        playsInline
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: isPlaying ? 'block' : 'none' }}
                         onEnded={() => setPlayingId(null)}
                       />
