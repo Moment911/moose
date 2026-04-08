@@ -88,13 +88,49 @@ export const DISCOVERY_QUESTION_BANKS = {
       trust_building: false,
       requires_benchmark: true,
     },
+    {
+      question: 'Are you currently doing anything for your Google rankings or local SEO?',
+      purpose: 'Open SEO conversation - most SMBs know they need it but aren\'t doing it right',
+      follow_up: 'How are you showing up when someone searches for your service in your city?',
+      emotional_effect: 'awareness_of_gap',
+      trust_building: false,
+    },
+    {
+      question: 'How are you currently handling your online reviews?',
+      purpose: 'Opens reputation management conversation',
+      follow_up: 'Do you have a system for asking customers to leave reviews?',
+      emotional_effect: 'reflection',
+      trust_building: false,
+    },
+    {
+      question: 'Are you running any paid ads right now — Google, Facebook, anything like that?',
+      purpose: 'Identify paid media opportunity or frustration',
+      follow_up: 'And are you happy with the results you\'re getting from them?',
+      emotional_effect: 'reflection',
+      trust_building: false,
+    },
+    {
+      question: 'When someone finds you online, what happens? Do they go to your website?',
+      purpose: 'Uncover website and conversion issues',
+      follow_up: 'And are those people actually turning into customers?',
+      emotional_effect: 'reflection',
+      trust_building: false,
+    },
+    {
+      question: 'Are you tracking where your leads are actually coming from?',
+      purpose: 'Open analytics and attribution conversation',
+      follow_up: 'So you know which marketing is working and which isn\'t?',
+      emotional_effect: 'awareness_of_gap',
+      trust_building: false,
+    },
   ],
 
   plumbing_hvac: [
     'How many service calls are you handling per week right now?',
     'What percentage of your calls are emergencies vs scheduled?',
-    'Are you using any software to manage dispatch and scheduling?',
-    'How are you handling after-hours calls?',
+    'How are you showing up on Google Maps when someone searches for a plumber near them?',
+    'Are you running Google Local Service Ads?',
+    'Do you have a system for getting reviews after each job?',
     "What's your average ticket size on a service call?",
   ],
 
@@ -102,16 +138,16 @@ export const DISCOVERY_QUESTION_BANKS = {
     "What's your new patient acquisition like right now?",
     "What's your current patient retention rate?",
     'How are you handling appointment reminders and no-shows?',
-    'Are you seeing the insurance case mix you want?',
-    "What's your biggest operational challenge right now?",
+    'How are you showing up when someone searches for a dentist or doctor in your area?',
+    'Do you have a system for collecting patient reviews after visits?',
   ],
 
   contractor_roofing: [
     'How many estimates are you running per week?',
     "What's your close rate on estimates?",
-    'How do you handle the slow winter months?',
-    'Are you working mostly residential or commercial?',
-    "What's your average project size?",
+    'When someone in your area needs a roofer, are they finding you on Google?',
+    'Are you running any Google Ads or Local Service Ads?',
+    'Do you have a system for getting reviews from completed jobs?',
   ],
 
   marketing_agency: [

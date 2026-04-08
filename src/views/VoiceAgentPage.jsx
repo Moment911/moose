@@ -136,6 +136,7 @@ const TABS = [
   { key:'analytics', label:'Analytics', icon:BarChart2 },
   { key:'tcpa', label:'TCPA', icon:Shield },
   { key:'calendar', label:'Calendar', icon:Calendar },
+  { key:'training', label:'Training Data', icon:Brain },
 ]
 
 /* ──────────────────────────────────────────────────────────────────────────── */
@@ -1055,6 +1056,189 @@ export default function VoiceAgentPage() {
   )
 
   /* ════════════════════════════════════════════════════════════════════════ */
+  /*  TRAINING DATA TAB                                                     */
+  /* ════════════════════════════════════════════════════════════════════════ */
+  const [syntheticStatus, setSyntheticStatus] = useState(null)
+  const [generatingIndustry, setGeneratingIndustry] = useState(null)
+  const [generatingAll, setGeneratingAll] = useState(false)
+  const [genLog, setGenLog] = useState([])
+  const [selectedIndustry, setSelectedIndustry] = useState('1711')
+
+  const SYNTHETIC_INDUSTRIES = [
+    { sic:'1711', name:'Plumbing' }, { sic:'1731', name:'Electrical' }, { sic:'1521', name:'General Contractor' },
+    { sic:'1761', name:'Roofing' }, { sic:'7389', name:'Marketing Services' }, { sic:'8011', name:'Medical Office' },
+    { sic:'8021', name:'Dental' }, { sic:'8049', name:'Chiropractic' }, { sic:'5812', name:'Restaurant' },
+    { sic:'7532', name:'Auto Body' }, { sic:'8721', name:'Accounting' }, { sic:'6411', name:'Insurance' },
+    { sic:'6159', name:'Mortgage' }, { sic:'7231', name:'Beauty Salon' }, { sic:'8742', name:'Consulting' },
+  ]
+
+  useEffect(() => {
+    if (tab === 'training') {
+      fetch('/api/synthetic?action=get_status').then(r => r.json()).then(r => setSyntheticStatus(r.data)).catch(() => {})
+    }
+  }, [tab])
+
+  async function generateForIndustry() {
+    const ind = SYNTHETIC_INDUSTRIES.find(i => i.sic === selectedIndustry)
+    if (!ind) return
+    setGeneratingIndustry(ind.name)
+    setGenLog(l => [...l, `Starting generation for ${ind.name}...`])
+    try {
+      const res = await fetch('/api/synthetic', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'generate_industry', sic_code:ind.sic, industry_name:ind.name })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setGenLog(l => [...l, `${ind.name}: ${data.data.saved}/${data.data.generated} saved, ${data.data.errors} errors`])
+        toast.success(`Generated ${data.data.saved} calls for ${ind.name}`)
+      } else {
+        setGenLog(l => [...l, `Error: ${data.error}`])
+        toast.error(data.error || 'Generation failed')
+      }
+    } catch (e) {
+      setGenLog(l => [...l, `Error: ${e.message}`])
+      toast.error('Generation failed')
+    }
+    setGeneratingIndustry(null)
+    fetch('/api/synthetic?action=get_status').then(r => r.json()).then(r => setSyntheticStatus(r.data)).catch(() => {})
+  }
+
+  async function generateAllIndustries() {
+    setGeneratingAll(true)
+    setGenLog(l => [...l, 'Starting generation for ALL 15 industries...'])
+    try {
+      const res = await fetch('/api/synthetic', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'generate_all' })
+      })
+      const data = await res.json()
+      if (data.success) {
+        for (const r of data.data.results || []) {
+          setGenLog(l => [...l, `${r.industry}: ${r.saved}/${r.generated} saved, ${r.errors} errors`])
+        }
+        toast.success('All industries generated')
+      } else {
+        setGenLog(l => [...l, `Error: ${data.error}`])
+        toast.error(data.error || 'Generation failed')
+      }
+    } catch (e) {
+      setGenLog(l => [...l, `Error: ${e.message}`])
+    }
+    setGeneratingAll(false)
+    fetch('/api/synthetic?action=get_status').then(r => r.json()).then(r => setSyntheticStatus(r.data)).catch(() => {})
+  }
+
+  async function clearSynthetic() {
+    if (!confirm('Delete ALL synthetic training data? This cannot be undone.')) return
+    const res = await fetch('/api/synthetic', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'clear_synthetic' })
+    })
+    const data = await res.json()
+    if (data.success) { toast.success('Synthetic data cleared'); setSyntheticStatus(null) }
+    else toast.error(data.error || 'Failed')
+    fetch('/api/synthetic?action=get_status').then(r => r.json()).then(r => setSyntheticStatus(r.data)).catch(() => {})
+  }
+
+  const renderTrainingData = () => (
+    <div>
+      {/* Warning banner */}
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 16px', borderRadius:10, background:'#fef3c7', marginBottom:20, border:'1px solid #fbbf24' }}>
+        <AlertTriangle size={18} color={AMB} />
+        <span style={{ fontSize:13, fontFamily:FB, color:'#92400e' }}>
+          Synthetic calls are labeled <strong>[SYNTHETIC]</strong> and excluded from client-facing reports. They are only used for AI training.
+        </span>
+      </div>
+
+      <Card title="Synthetic Call Generator" sub="Seed your AI with realistic training calls before going live">
+        {/* Stats row */}
+        <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
+          <div style={{ flex:1, minWidth:130, padding:'14px 16px', background:'#f9fafb', borderRadius:10, borderTop:`3px solid ${T}` }}>
+            <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>Synthetic Calls</div>
+            <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:BLK }}>{syntheticStatus?.total_synthetic || 0}</div>
+          </div>
+          <div style={{ flex:1, minWidth:130, padding:'14px 16px', background:'#f9fafb', borderRadius:10, borderTop:`3px solid ${GRN}` }}>
+            <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>Real Calls</div>
+            <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:BLK }}>{syntheticStatus?.total_real || 0}</div>
+          </div>
+          <div style={{ flex:1, minWidth:130, padding:'14px 16px', background:'#f9fafb', borderRadius:10, borderTop:`3px solid ${PURP}` }}>
+            <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>Total Combined</div>
+            <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:BLK }}>{(syntheticStatus?.total_synthetic || 0) + (syntheticStatus?.total_real || 0)}</div>
+          </div>
+        </div>
+
+        {/* Industry status grid */}
+        <div style={{ marginBottom:20 }}>
+          <div style={{ fontSize:12, fontWeight:700, fontFamily:FB, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>Industry Status</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:8 }}>
+            {SYNTHETIC_INDUSTRIES.map(ind => {
+              const data = syntheticStatus?.by_industry?.[ind.sic]
+              const count = data?.synthetic || 0
+              const bg = count >= 10 ? '#dcfce7' : count > 0 ? '#fef3c7' : '#f3f4f6'
+              const color = count >= 10 ? GRN : count > 0 ? AMB : '#9ca3af'
+              return (
+                <div key={ind.sic} style={{ padding:'10px 14px', borderRadius:8, background:bg, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:BLK }}>{ind.name}</span>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:FH, color }}>{count} calls</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Generate controls */}
+        <div style={{ padding:'20px', background:'#f9fafb', borderRadius:12, marginBottom:20 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
+            <select value={selectedIndustry} onChange={e => setSelectedIndustry(e.target.value)} style={{
+              padding:'8px 12px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, flex:1, cursor:'pointer'
+            }}>
+              {SYNTHETIC_INDUSTRIES.map(i => <option key={i.sic} value={i.sic}>{i.name} ({i.sic})</option>)}
+            </select>
+            <Btn small bg={R} color={W} onClick={generateForIndustry} disabled={!!generatingIndustry || generatingAll}>
+              {generatingIndustry ? <><Loader2 size={12} className="spin" /> Generating...</> : <><Zap size={12} /> Generate 16 Calls</>}
+            </Btn>
+          </div>
+          <div style={{ display:'flex', gap:10 }}>
+            <Btn small bg={BLK} color={W} onClick={generateAllIndustries} disabled={!!generatingIndustry || generatingAll}>
+              {generatingAll ? <><Loader2 size={12} className="spin" /> Generating All...</> : <><Sparkles size={12} /> Generate All Industries (~240 calls)</>}
+            </Btn>
+            <Btn small bg='#fef2f2' color={R} onClick={clearSynthetic} disabled={!!generatingIndustry || generatingAll}>
+              <Trash2 size={12} /> Clear All Synthetic
+            </Btn>
+          </div>
+        </div>
+
+        {/* Generation log */}
+        {genLog.length > 0 && (
+          <div style={{ background:BLK, borderRadius:10, padding:'14px 16px', maxHeight:200, overflow:'auto' }}>
+            <div style={{ fontSize:11, fontWeight:700, fontFamily:FB, color:'rgba(255,255,255,.4)', marginBottom:8, textTransform:'uppercase', letterSpacing:'.08em' }}>Generation Log</div>
+            {genLog.map((line, i) => (
+              <div key={i} style={{ fontSize:12, fontFamily:'monospace', color:line.startsWith('Error') ? '#f87171' : '#a3e635', lineHeight:1.6 }}>
+                {line}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Provider info */}
+      <div style={{ display:'flex', gap:12, marginTop:16 }}>
+        {[
+          { name:'Claude', color:'#d97706', desc:'Anthropic Sonnet 4.5' },
+          { name:'GPT-4o', color:GRN, desc:'OpenAI' },
+          { name:'Gemini', color:'#3b82f6', desc:'Google (fallback to Claude)' },
+        ].map(p => (
+          <div key={p.name} style={{ flex:1, padding:'12px 16px', background:W, borderRadius:10, borderLeft:`3px solid ${p.color}`, boxShadow:'0 1px 3px rgba(0,0,0,.04)' }}>
+            <div style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:BLK }}>{p.name}</div>
+            <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>{p.desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  /* ════════════════════════════════════════════════════════════════════════ */
   /*  MAIN RENDER                                                           */
   /* ════════════════════════════════════════════════════════════════════════ */
   const renderTab = () => {
@@ -1066,6 +1250,7 @@ export default function VoiceAgentPage() {
       case 'analytics': return renderAnalytics()
       case 'tcpa': return renderTcpa()
       case 'calendar': return renderCalendar()
+      case 'training': return renderTrainingData()
       default: return renderAgents()
     }
   }
