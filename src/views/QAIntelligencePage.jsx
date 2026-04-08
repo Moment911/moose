@@ -9,7 +9,8 @@ import {
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
-import { generateQATemplateCSV, EXPERT_QA_SEED_DATA, QA_TYPE_OPTIONS } from '../data/qaImportTemplate'
+import { generateQATemplateCSV, QA_TYPE_OPTIONS } from '../data/qaImportTemplate'
+import { EXPERT_QA_SEEDS, INDUSTRY_COUNTS } from '../data/expertQASeeds'
 
 const R   = '#ea2729'
 const T   = '#5bc6d0'
@@ -321,14 +322,19 @@ export default function QAIntelligencePage() {
     }
   }
 
-  // Seed expert data
+  // Seed expert data (450+ pairs across 25 industries)
   async function seedExpertData() {
-    const res = await apiPost({ action: 'batch_import', rows: EXPERT_QA_SEED_DATA, overwrite_existing: false })
-    if (res.success) {
-      toast.success(`Seeded ${res.data.imported} expert Q&A pairs`)
-      doSearch()
-      api('get_stats').then(r => setStats(r.data))
-    } else toast.error(res.error || 'Seed failed')
+    toast.success(`Seeding ${EXPERT_QA_SEEDS.length} expert Q&A pairs across 25 industries...`)
+    // Batch in chunks of 50 to avoid timeout
+    let totalImported = 0
+    for (let i = 0; i < EXPERT_QA_SEEDS.length; i += 50) {
+      const chunk = EXPERT_QA_SEEDS.slice(i, i + 50)
+      const res = await apiPost({ action: 'batch_import', rows: chunk, overwrite_existing: false })
+      if (res.success) totalImported += res.data.imported
+    }
+    toast.success(`Seeded ${totalImported} expert Q&A pairs`)
+    doSearch()
+    api('get_stats').then(r => setStats(r.data))
   }
 
   // Bulk handlers
@@ -386,7 +392,7 @@ export default function QAIntelligencePage() {
                 <FileDown size={14} /> Template
               </button>
               <button onClick={seedExpertData} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
-                <Zap size={14} /> Seed 30 Expert Q&A
+                <Zap size={14} /> Seed {EXPERT_QA_SEEDS.length} Expert Q&A
               </button>
             </div>
           </div>
