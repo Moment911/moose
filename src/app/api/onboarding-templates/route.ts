@@ -8,23 +8,119 @@ function sb() {
   )
 }
 
-async function scrapeUrl(url: string) {
+async function scrapeUrl(url: string, type?: string) {
+  const ts = new Date().toISOString()
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
-      signal: AbortSignal.timeout(8000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      signal: AbortSignal.timeout(10000), redirect: 'follow',
     })
     const html = await res.text()
+
+    // Extract all meta tags
+    const getMeta = (name: string) => html.match(new RegExp(`<meta[^>]*(?:name|property)=["']${name}["'][^>]*content=["']([^"']*)["']`, 'i'))?.[1] || ''
+    const title = html.match(/<title[^>]*>(.*?)<\/title>/is)?.[1]?.trim() || ''
+    const description = getMeta('description') || getMeta('og:description')
+    const ogImage = getMeta('og:image')
+    const ogTitle = getMeta('og:title')
+    const ogType = getMeta('og:type')
+
+    const base: any = { title: ogTitle || title, description, ogImage, url, scanned_at: ts }
+
+    // Platform-specific extraction
+    if (type === 'facebook' || url.includes('facebook.com')) {
+      const likes = html.match(/(\d[\d,]*)\s*(?:likes?|people like)/i)?.[1]?.replace(/,/g, '') || ''
+      const followers = html.match(/(\d[\d,]*)\s*(?:followers?|people follow)/i)?.[1]?.replace(/,/g, '') || ''
+      const category = getMeta('og:type') || html.match(/<span[^>]*>([^<]*)<\/span>\s*·\s*(?:Business|Company|Service)/i)?.[1] || ''
+      return { ...base, platform: 'facebook', likes, followers, category, page_name: ogTitle || title }
+    }
+    if (type === 'instagram' || url.includes('instagram.com')) {
+      const followers = html.match(/(\d[\d,.]*[KkMm]?)\s*[Ff]ollowers/)?.[1] || getMeta('og:description')?.match(/(\d[\d,.]*[KkMm]?)\s*Followers/)?.[1] || ''
+      const following = html.match(/(\d[\d,.]*[KkMm]?)\s*[Ff]ollowing/)?.[1] || ''
+      const posts = html.match(/(\d[\d,.]*[KkMm]?)\s*[Pp]osts/)?.[1] || ''
+      const bio = description.split(' Followers')[0]?.split(' - ').pop() || description
+      return { ...base, platform: 'instagram', followers, following, posts, bio, username: url.split('instagram.com/')[1]?.split('/')[0]?.split('?')[0] || '' }
+    }
+    if (type === 'linkedin' || url.includes('linkedin.com')) {
+      const followers = html.match(/(\d[\d,]*)\s*followers/i)?.[1]?.replace(/,/g, '') || ''
+      const employees = html.match(/(\d[\d,]*(?:-\d[\d,]*)?)\s*employees/i)?.[1] || ''
+      const industry = html.match(/Industry[:\s]*([^<\n]+)/i)?.[1]?.trim() || ''
+      return { ...base, platform: 'linkedin', followers, employees, industry, company_name: ogTitle || title }
+    }
+    if (type === 'tiktok' || url.includes('tiktok.com')) {
+      const followers = html.match(/(\d[\d,.]*[KkMm]?)\s*Followers/)?.[1] || ''
+      const likes = html.match(/(\d[\d,.]*[KkMm]?)\s*Likes/)?.[1] || ''
+      const following = html.match(/(\d[\d,.]*[KkMm]?)\s*Following/)?.[1] || ''
+      return { ...base, platform: 'tiktok', followers, likes, following, username: url.split('tiktok.com/@')[1]?.split('/')[0]?.split('?')[0] || '' }
+    }
+    if (type === 'youtube' || url.includes('youtube.com')) {
+      const subscribers = html.match(/(\d[\d,.]*[KkMm]?)\s*subscribers/i)?.[1] || ''
+      const videos = html.match(/(\d[\d,]*)\s*videos/i)?.[1] || ''
+      const channelName = getMeta('og:title') || title.replace(' - YouTube', '')
+      return { ...base, platform: 'youtube', subscribers, videos, channel_name: channelName }
+    }
+    if (type === 'pinterest' || url.includes('pinterest.com')) {
+      const followers = html.match(/(\d[\d,.]*[KkMm]?)\s*followers/i)?.[1] || ''
+      const pins = html.match(/(\d[\d,]*)\s*[Pp]ins/)?.[1] || ''
+      return { ...base, platform: 'pinterest', followers, pins }
+    }
+    if (type === 'twitter' || url.includes('twitter.com') || url.includes('x.com')) {
+      const followers = html.match(/(\d[\d,.]*[KkMm]?)\s*Followers/)?.[1] || ''
+      const following = html.match(/(\d[\d,.]*[KkMm]?)\s*Following/)?.[1] || ''
+      return { ...base, platform: 'x', followers, following, username: url.split(/twitter\.com\/|x\.com\//)[1]?.split('/')[0]?.split('?')[0] || '' }
+    }
+
+    // Website (default)
+    const isWordPress = html.includes('wp-content') || html.includes('wp-includes')
+    const h1 = html.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]?.replace(/<[^>]+>/g, '').trim() || ''
+    const phone = html.match(/(?:tel:|href="tel:)([^"]+)/i)?.[1] || html.match(/\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)?.[0] || ''
+    const email = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0] || ''
+    return { ...base, platform: 'website', isWordPress, h1, phone, email }
+  } catch (e: any) {
+    return { error: e.message, url, scanned_at: ts }
+  }
+}
+
+async function scanGoogleBusiness(query: string, placeId?: string) {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_KEY
+  if (!key) return { error: 'Google Places API key not configured' }
+  try {
+    let place: any = null
+    if (placeId) {
+      const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,formatted_phone_number,formatted_address,website,opening_hours,business_status,photos,types,reviews&key=${key}`)
+      const data = await res.json()
+      place = data.result
+    } else if (query) {
+      const searchRes = await fetch(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(query)}&inputtype=textquery&fields=place_id&key=${key}`)
+      const searchData = await searchRes.json()
+      const pid = searchData.candidates?.[0]?.place_id
+      if (pid) {
+        const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${pid}&fields=name,rating,user_ratings_total,formatted_phone_number,formatted_address,website,opening_hours,business_status,photos,types,reviews&key=${key}`)
+        const data = await res.json()
+        place = data.result
+      }
+    }
+    if (!place) return { error: 'Business not found on Google' }
     return {
-      title: html.match(/<title[^>]*>(.*?)<\/title>/is)?.[1]?.trim() || '',
-      description: html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/i)?.[1] || '',
-      ogImage: html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]*)"[^>]*>/i)?.[1] || '',
-      isWordPress: html.includes('wp-content') || html.includes('wp-includes'),
-      h1: html.match(/<h1[^>]*>(.*?)<\/h1>/is)?.[1]?.replace(/<[^>]+>/g, '').trim() || '',
-      url, scanned_at: new Date().toISOString(),
+      platform: 'google',
+      name: place.name,
+      rating: place.rating,
+      review_count: place.user_ratings_total,
+      phone: place.formatted_phone_number,
+      address: place.formatted_address,
+      website: place.website,
+      business_status: place.business_status,
+      hours: place.opening_hours?.weekday_text || [],
+      photo_count: place.photos?.length || 0,
+      types: place.types || [],
+      reviews: (place.reviews || []).slice(0, 5).map((r: any) => ({
+        author: r.author_name, rating: r.rating, text: r.text,
+        time: r.relative_time_description,
+      })),
+      scanned_at: new Date().toISOString(),
     }
   } catch (e: any) {
-    return { error: e.message, url, scanned_at: new Date().toISOString() }
+    return { error: e.message }
   }
 }
 
@@ -143,33 +239,65 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === 'scan_social') {
-    const { client_id, url, type } = body
-    if (!client_id || !url) return NextResponse.json({ error: 'client_id and url required' }, { status: 400 })
-    const data = await scrapeUrl(url)
-    const col = type === 'website' ? 'website_data' : `${type}_data`
-    await s.from('clients').update({ [col]: data, social_last_scanned_at: new Date().toISOString() }).eq('id', client_id)
+    const { client_id, url, type, query, place_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    let data: any
+    if (type === 'google' || type === 'google_business') {
+      data = await scanGoogleBusiness(query || '', place_id)
+    } else if (url) {
+      data = await scrapeUrl(url, type)
+    } else {
+      return NextResponse.json({ error: 'url or query required' }, { status: 400 })
+    }
+
+    const col = type === 'website' ? 'website_data' : type === 'google' || type === 'google_business' ? 'google_business_data' : `${type}_data`
+    const updates: Record<string, any> = { [col]: data, social_last_scanned_at: new Date().toISOString() }
+    if (type === 'google' || type === 'google_business') {
+      if (data.rating) updates.review_rating = String(data.rating)
+      if (data.review_count) updates.review_count = String(data.review_count)
+      if (data.phone) updates.phone = data.phone
+    }
+    await s.from('clients').update(updates).eq('id', client_id)
     return NextResponse.json(data)
   }
 
   if (action === 'scan_all_social') {
     const { client_id } = body
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
-    const { data: client } = await s.from('clients').select('website, google_business_url, facebook_url, instagram_url, linkedin_url, tiktok_url, youtube_url').eq('id', client_id).single()
+    const { data: client } = await s.from('clients')
+      .select('name, website, google_business_url, google_place_id, facebook_url, instagram_url, linkedin_url, tiktok_url, youtube_url')
+      .eq('id', client_id).single()
     if (!client) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const results: Record<string, any> = {}
-    const fields = [
-      { key: 'website', col: 'website_data' }, { key: 'google_business_url', col: 'google_business_data' },
-      { key: 'facebook_url', col: 'facebook_data' }, { key: 'instagram_url', col: 'instagram_data' },
-      { key: 'linkedin_url', col: 'linkedin_data' }, { key: 'tiktok_url', col: 'tiktok_data' },
-      { key: 'youtube_url', col: 'youtube_data' },
-    ]
-    for (const f of fields) {
-      const url = (client as any)[f.key]
-      if (url && typeof url === 'string' && url.startsWith('http')) {
-        results[f.col] = await scrapeUrl(url)
+
+    // Google Business — use Places API
+    if (client.google_place_id || client.google_business_url || client.name) {
+      const gbData = await scanGoogleBusiness(client.name || '', client.google_place_id || undefined)
+      if (!gbData.error) {
+        results.google_business_data = gbData
+        if (gbData.rating) results.review_rating = String(gbData.rating)
+        if (gbData.review_count) results.review_count = String(gbData.review_count)
       }
     }
+
+    // All other platforms — enhanced scraper
+    const platforms = [
+      { key: 'website', col: 'website_data', type: 'website' },
+      { key: 'facebook_url', col: 'facebook_data', type: 'facebook' },
+      { key: 'instagram_url', col: 'instagram_data', type: 'instagram' },
+      { key: 'linkedin_url', col: 'linkedin_data', type: 'linkedin' },
+      { key: 'tiktok_url', col: 'tiktok_data', type: 'tiktok' },
+      { key: 'youtube_url', col: 'youtube_data', type: 'youtube' },
+    ]
+    for (const p of platforms) {
+      const url = (client as any)[p.key]
+      if (url && typeof url === 'string' && url.startsWith('http')) {
+        results[p.col] = await scrapeUrl(url, p.type)
+      }
+    }
+
     results.social_last_scanned_at = new Date().toISOString()
     await s.from('clients').update(results).eq('id', client_id)
     return NextResponse.json({ scanned: Object.keys(results).length - 1, results })
