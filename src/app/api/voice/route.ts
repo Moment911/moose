@@ -745,6 +745,68 @@ Return JSON only: {"criteria":[{"name":"Opening","score":N,"well":"...","improve
       return NextResponse.json({ ok: true })
     }
 
+    // ── List handlers (POST mirrors of GET) ────────────────────────────────
+    if (action === 'list_agents') {
+      const { data } = await sb.from('koto_voice_agents').select('*')
+        .eq('agency_id', agency_id).order('created_at', { ascending: false })
+      return NextResponse.json({ agents: data || [] })
+    }
+
+    if (action === 'list_campaigns') {
+      const { data } = await sb.from('koto_voice_campaigns').select('*, koto_voice_agents(name, voice_name)')
+        .eq('agency_id', agency_id).order('created_at', { ascending: false })
+      return NextResponse.json({ campaigns: data || [] })
+    }
+
+    if (action === 'list_leads') {
+      const cid = body.campaign_id
+      let query = sb.from('koto_voice_leads').select('*')
+      if (cid) query = query.eq('campaign_id', cid)
+      else query = query.eq('agency_id', agency_id)
+      const { data } = await query.order('created_at', { ascending: false }).limit(500)
+      return NextResponse.json({ leads: data || [] })
+    }
+
+    if (action === 'list_calls') {
+      const cid = body.campaign_id
+      let query = sb.from('koto_voice_calls').select('*, koto_voice_leads(prospect_name, prospect_phone, prospect_company)')
+      if (cid) query = query.eq('campaign_id', cid)
+      else if (agency_id) query = query.eq('agency_id', agency_id)
+      const { data } = await query.order('created_at', { ascending: false }).limit(200)
+      return NextResponse.json({ calls: data || [] })
+    }
+
+    if (action === 'list_tcpa') {
+      const { data } = await sb.from('koto_voice_leads').select('id, prospect_name, prospect_phone, tcpa_consent, tcpa_consent_timestamp, status')
+        .eq('agency_id', agency_id).not('tcpa_consent', 'is', null).order('tcpa_consent_timestamp', { ascending: false }).limit(200)
+      return NextResponse.json({ records: data || [] })
+    }
+
+    // ── Sync Agents from Retell ──────────────────────────────────────────────
+    if (action === 'sync_from_retell') {
+      const retellAgents = await retellFetch('/list-agents')
+      const agents = Array.isArray(retellAgents) ? retellAgents : []
+      let synced = 0
+
+      for (const ra of agents) {
+        const { data: existing } = await sb.from('koto_voice_agents')
+          .select('id').eq('retell_agent_id', ra.agent_id).maybeSingle()
+
+        if (!existing) {
+          await sb.from('koto_voice_agents').insert({
+            agency_id: agency_id || '00000000-0000-0000-0000-000000000099',
+            name: ra.agent_name || 'Unnamed Agent',
+            retell_agent_id: ra.agent_id,
+            voice_id: ra.voice_id || '',
+            status: 'active',
+          })
+          synced++
+        }
+      }
+
+      return NextResponse.json({ synced, total_retell: agents.length })
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     console.error('[Voice API Error]', e)

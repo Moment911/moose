@@ -375,7 +375,16 @@ export default function VoiceAgentPage() {
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
         <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Voice Agents</h2>
-        <Btn onClick={()=>{ setEditAgent(null); setWizardData({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{} }); setWizardStep(1); setShowAgentWizard(true) }}><Plus size={14} /> New Agent</Btn>
+        <div style={{ display:'flex', gap:8 }}>
+          <Btn small bg={`${T}20`} color={T} onClick={async ()=>{
+            try {
+              const res = await api({ action:'sync_from_retell', agency_id:aid })
+              if (res.synced > 0) { toast.success(`Synced ${res.synced} agents from Retell`); loadAll() }
+              else toast.success(`All ${res.total_retell} Retell agents already synced`)
+            } catch(e) { toast.error('Sync failed') }
+          }}><RefreshCw size={12} /> Sync from Retell</Btn>
+          <Btn onClick={()=>{ setEditAgent(null); setWizardData({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{} }); setWizardStep(1); setShowAgentWizard(true) }}><Plus size={14} /> New Agent</Btn>
+        </div>
       </div>
       {agents.length === 0 && !loading && <Card><p style={{ color:'#888', textAlign:'center', margin:20 }}>No agents yet. Create your first voice agent to get started.</p></Card>}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340,1fr))', gap:16 }}>
