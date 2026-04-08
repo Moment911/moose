@@ -164,7 +164,7 @@ export default function BillingPage() {
       })
       const data = await res.json()
       if (data.balance !== undefined) {
-        toast.success(`$${amount} credits added! Balance: $${data.balance.toFixed(2)}`)
+        toast.success(`$${amount} credits added! Balance: $${Number(data.balance||0).toFixed(2)}`)
         loadDashboard(); loadTabData()
       } else {
         toast.error(data.error || 'Purchase failed')
@@ -399,7 +399,7 @@ export default function BillingPage() {
       <div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
           <StatCard label="Current Plan" value={dash?.plan?.toUpperCase() || 'STARTER'} icon={Shield} accent={R} />
-          <StatCard label="Credit Balance" value={`$${balance.toFixed(2)}`} icon={DollarSign} accent={balance < 20 ? R : GRN} />
+          <StatCard label="Credit Balance" value={`$${Number(balance||0).toFixed(2)}`} icon={DollarSign} accent={balance < 20 ? R : GRN} />
           <StatCard label="Usage This Month" value={`$${Number(dash?.usage_this_month || 0).toFixed(2)}`} icon={TrendingUp} accent={T} />
           <StatCard label="Plan Price" value={`$${dash?.plan_price || 297}/mo`} icon={CreditCard} accent={AMB} />
         </div>

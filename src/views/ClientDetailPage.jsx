@@ -600,7 +600,7 @@ export default function ClientDetailPage() {
           <div style={sectionTitle}><Star size={16} color={R} /> Reviews</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 24 }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 48, fontWeight: 800, fontFamily: FH, color: BLK, lineHeight: 1 }}>{rating.toFixed(1)}</div>
+              <div style={{ fontSize: 48, fontWeight: 800, fontFamily: FH, color: BLK, lineHeight: 1 }}>{Number(rating||0).toFixed(1)}</div>
               <div style={{ fontSize: 22, color: AMB, letterSpacing: 2, marginTop: 4 }}>{renderStars(rating)}</div>
               <div style={{ fontSize: 12, fontFamily: FH, color: '#9ca3af', marginTop: 4 }}>{count} reviews</div>
             </div>

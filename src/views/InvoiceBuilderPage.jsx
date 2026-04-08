@@ -99,7 +99,7 @@ export default function InvoiceBuilderPage() {
   async function aiSuggest(field) {
     setAiSuggesting(true)
     try {
-      const context = `Client: ${selectedClient?.name || 'Unknown'}, Industry: ${selectedClient?.industry || 'General'}, Invoice total: $${total.toFixed(2)}, Services: ${lineItems.map(i => i.description).filter(Boolean).join(', ')}`
+      const context = `Client: ${selectedClient?.name || 'Unknown'}, Industry: ${selectedClient?.industry || 'General'}, Invoice total: $${Number(total||0).toFixed(2)}, Services: ${lineItems.map(i => i.description).filter(Boolean).join(', ')}`
 
       const prompts = {
         notes: `Write a brief, professional invoice note for a marketing agency sending an invoice to a ${selectedClient?.industry || 'general'} business client. Include a thank you and mention next steps. Keep under 3 sentences.`,
@@ -293,7 +293,7 @@ export default function InvoiceBuilderPage() {
               <div style={{ borderTop: '2px solid #f2f2f0', paddingTop: 14, marginTop: 14, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
                   <span style={{ fontSize: 13, color: '#6b7280' }}>Subtotal</span>
-                  <span style={{ fontSize: 15, fontWeight: 700, fontFamily: FH, color: BLK, width: 100, textAlign: 'right' }}>${subtotal.toFixed(2)}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, fontFamily: FH, color: BLK, width: 100, textAlign: 'right' }}>${Number(subtotal||0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <span style={{ fontSize: 13, color: '#6b7280' }}>Discount</span>
@@ -304,16 +304,16 @@ export default function InvoiceBuilderPage() {
                       <option value="percent">%</option>
                     </select>
                   </div>
-                  <span style={{ fontSize: 13, color: R, fontWeight: 700, width: 100, textAlign: 'right' }}>-${discountAmount.toFixed(2)}</span>
+                  <span style={{ fontSize: 13, color: R, fontWeight: 700, width: 100, textAlign: 'right' }}>-${Number(discountAmount||0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <span style={{ fontSize: 13, color: '#6b7280' }}>Tax Rate</span>
                   <input type="number" value={taxRate} onChange={e => setTaxRate(Number(e.target.value))} style={{ ...inp, width: 70, textAlign: 'center' }} placeholder="0" />
-                  <span style={{ fontSize: 13, color: '#6b7280', width: 100, textAlign: 'right' }}>+${taxAmount.toFixed(2)}</span>
+                  <span style={{ fontSize: 13, color: '#6b7280', width: 100, textAlign: 'right' }}>+${Number(taxAmount||0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 20, alignItems: 'center', borderTop: '2px solid #0a0a0a', paddingTop: 10 }}>
                   <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Total Due</span>
-                  <span style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: R }}>${total.toFixed(2)}</span>
+                  <span style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: R }}>${Number(total||0).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -416,12 +416,12 @@ export default function InvoiceBuilderPage() {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 32 }}>
               <div style={{ width: 250 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, color: '#6b7280' }}>Subtotal</span><span style={{ fontSize: 13, fontWeight: 700 }}>${subtotal.toFixed(2)}</span></div>
-                {discountAmount > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, color: R }}>Discount</span><span style={{ fontSize: 13, color: R }}>-${discountAmount.toFixed(2)}</span></div>}
-                {taxAmount > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, color: '#6b7280' }}>Tax ({taxRate}%)</span><span style={{ fontSize: 13 }}>${taxAmount.toFixed(2)}</span></div>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, color: '#6b7280' }}>Subtotal</span><span style={{ fontSize: 13, fontWeight: 700 }}>${Number(subtotal||0).toFixed(2)}</span></div>
+                {discountAmount > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, color: R }}>Discount</span><span style={{ fontSize: 13, color: R }}>-${Number(discountAmount||0).toFixed(2)}</span></div>}
+                {taxAmount > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 13, color: '#6b7280' }}>Tax ({taxRate}%)</span><span style={{ fontSize: 13 }}>${Number(taxAmount||0).toFixed(2)}</span></div>}
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #0a0a0a', paddingTop: 8 }}>
                   <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH }}>Total</span>
-                  <span style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: R }}>${total.toFixed(2)}</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: R }}>${Number(total||0).toFixed(2)}</span>
                 </div>
               </div>
             </div>

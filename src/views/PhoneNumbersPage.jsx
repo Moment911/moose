@@ -456,9 +456,9 @@ export default function PhoneNumbersPage() {
       <div>
         {/* Stats */}
         <div style={{ display:'flex', gap:16, marginBottom:20, flexWrap:'wrap' }}>
-          <StatCard icon={DollarSign} label="Total Monthly Cost" value={`$${totalCost.toFixed(2)}`} color={R} />
+          <StatCard icon={DollarSign} label="Total Monthly Cost" value={`$${Number(totalCost||0).toFixed(2)}`} color={R} />
           <StatCard icon={Hash} label="Active Numbers" value={activeNums.length} color={GRN} />
-          <StatCard icon={DollarSign} label="Avg Cost / Number" value={`$${avgCost.toFixed(2)}`} color={T} />
+          <StatCard icon={DollarSign} label="Avg Cost / Number" value={`$${Number(avgCost||0).toFixed(2)}`} color={T} />
         </div>
 
         {/* Billing table */}
@@ -497,7 +497,7 @@ export default function PhoneNumbersPage() {
                 <tr style={{ background:'#fafafa', borderTop:'2px solid #e5e7eb' }}>
                   <td style={{ padding:'10px 14px', fontWeight:700, fontFamily:FH }}>Total</td>
                   <td />
-                  <td style={{ padding:'10px 14px', fontWeight:700, fontFamily:FH, color:R }}>${totalCost.toFixed(2)}</td>
+                  <td style={{ padding:'10px 14px', fontWeight:700, fontFamily:FH, color:R }}>${Number(totalCost||0).toFixed(2)}</td>
                   <td />
                   <td />
                 </tr>

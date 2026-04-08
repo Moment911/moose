@@ -229,9 +229,9 @@ export default function BillingAdminPage() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                           <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 700, color: BLK }}>{f.feature.replace(/_/g, ' ')}</span>
                           <div style={{ display: 'flex', gap: 16, fontSize: 12, fontFamily: FH }}>
-                            <span style={{ color: GRN, fontWeight: 700 }}>Rev: ${f.revenue.toFixed(2)}</span>
-                            <span style={{ color: R, fontWeight: 700 }}>Cost: ${f.cost.toFixed(2)}</span>
-                            <span style={{ color: f.margin >= 0 ? GRN : R, fontWeight: 800 }}>Margin: ${f.margin.toFixed(2)} ({f.margin_pct}%)</span>
+                            <span style={{ color: GRN, fontWeight: 700 }}>Rev: ${Number(f.revenue||0).toFixed(2)}</span>
+                            <span style={{ color: R, fontWeight: 700 }}>Cost: ${Number(f.cost||0).toFixed(2)}</span>
+                            <span style={{ color: f.margin >= 0 ? GRN : R, fontWeight: 800 }}>Margin: ${Number(f.margin||0).toFixed(2)} ({f.margin_pct}%)</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: 4, height: 8 }}>
@@ -263,9 +263,9 @@ export default function BillingAdminPage() {
                     ) : (profitability.by_agency || []).map(a => (
                       <tr key={a.agency_id} style={{ borderBottom: '1px solid #f8f8f6' }}>
                         <td style={{ padding: '12px 14px', fontWeight: 700, color: BLK }}>{a.name}</td>
-                        <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: GRN }}>${a.revenue.toFixed(2)}</td>
-                        <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: R }}>${a.cost.toFixed(2)}</td>
-                        <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 800, color: a.margin >= 0 ? GRN : R }}>${a.margin.toFixed(2)}</td>
+                        <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: GRN }}>${Number(a.revenue||0).toFixed(2)}</td>
+                        <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: R }}>${Number(a.cost||0).toFixed(2)}</td>
+                        <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 800, color: a.margin >= 0 ? GRN : R }}>${Number(a.margin||0).toFixed(2)}</td>
                         <td style={{ padding: '12px 14px' }}>
                           <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: (a.revenue > 0 ? (a.margin / a.revenue * 100 >= 50 ? GRN : AMB) : '#6b7280') + '15', color: a.revenue > 0 ? (a.margin / a.revenue * 100 >= 50 ? GRN : AMB) : '#6b7280' }}>
                             {a.revenue > 0 ? Math.round(a.margin / a.revenue * 100) : 0}%
