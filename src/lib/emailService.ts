@@ -12,6 +12,31 @@ async function logComm(params: {
   } catch {}
 }
 
+async function resolveAgencySender(agencyId?: string): Promise<{ from: string; replyTo?: string }> {
+  const defaultFrom = process.env.DESK_EMAIL_FROM || 'Koto <notifications@hellokoto.com>'
+  if (!agencyId) return { from: defaultFrom }
+  try {
+    const { createClient } = await import('@supabase/supabase-js')
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    )
+    const { data } = await sb.from('agencies')
+      .select('sender_name, sender_email, reply_to_email, email_domain_verified')
+      .eq('id', agencyId).single()
+    if (data?.sender_email && data?.email_domain_verified) {
+      return {
+        from: `${data.sender_name || 'Agency'} <${data.sender_email}>`,
+        replyTo: data.reply_to_email || data.sender_email,
+      }
+    }
+    if (data?.sender_email) {
+      return { from: defaultFrom, replyTo: data.reply_to_email || data.sender_email }
+    }
+  } catch {}
+  return { from: defaultFrom }
+}
+
 export async function sendEmail(
   to: string,
   subject: string,
@@ -19,8 +44,9 @@ export async function sendEmail(
   agencyId?: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.DESK_EMAIL_FROM || 'Koto <notifications@hellokoto.com>'
   if (!apiKey) return { success: false, error: 'Resend not configured' }
+  const sender = await resolveAgencySender(agencyId)
+  const from = sender.from
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -28,7 +54,7 @@ export async function sendEmail(
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, ...(sender.replyTo ? { reply_to: sender.replyTo } : {}) }),
     })
     const data = await res.json()
     const result = res.ok ? { success: true, id: data.id } : { success: false, error: data.message }
