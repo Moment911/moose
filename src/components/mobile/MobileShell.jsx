@@ -221,6 +221,7 @@ export default function MobileShell({ children }) {
           background: '#ffffff', flexShrink: 0,
           paddingTop: 'env(safe-area-inset-top,0px)',
           zIndex: 100, position: 'relative',
+          borderBottom: '1px solid #e5e7eb',
         }}>
           <div style={{
             height: 52, display: 'flex', alignItems: 'center',
@@ -232,7 +233,7 @@ export default function MobileShell({ children }) {
               justifyContent: 'center', background: 'none', border: 'none',
               cursor: 'pointer', WebkitTapHighlightColor: 'transparent', borderRadius: 10,
             }}>
-              <Menu size={22} color="rgba(255,255,255,.7)" strokeWidth={1.8} />
+              <Menu size={22} color="#111111" strokeWidth={1.8} />
             </button>
 
             {/* Center */}
@@ -245,10 +246,10 @@ export default function MobileShell({ children }) {
                   }}>
                     <Zap size={13} color="#fff" strokeWidth={2.5} />
                   </div>
-                  <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.03em' }}>Koto</span>
+                  <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-.03em' }}>Koto</span>
                 </div>
               ) : (
-                <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 700, color: '#fff', letterSpacing: '-.02em' }}>{pageLabel}</span>
+                <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 700, color: '#111111', letterSpacing: '-.02em' }}>{pageLabel}</span>
               )}
             </div>
 
@@ -275,6 +276,7 @@ export default function MobileShell({ children }) {
           background: '#ffffff',
           flexShrink: 0, zIndex: 100,
           paddingBottom: 'env(safe-area-inset-bottom,0px)',
+          borderTop: '1px solid #e5e7eb',
         }}>
           <div style={{ display: 'flex', height: 56 }}>
             {TABS.map((tab, i) => {
@@ -296,13 +298,13 @@ export default function MobileShell({ children }) {
                     transition: 'background .2s ease',
                   }}>
                     <Icon size={20}
-                      color={active ? R : 'rgba(255,255,255,.35)'}
+                      color={active ? R : '#6b7280'}
                       strokeWidth={active ? 2.5 : 1.7}
                     />
                   </div>
                   <span style={{
                     fontFamily: FH, fontSize: 10, fontWeight: active ? 700 : 500,
-                    color: active ? R : 'rgba(255,255,255,.35)',
+                    color: active ? R : '#6b7280',
                     letterSpacing: '.01em', lineHeight: 1,
                     transition: 'color .15s ease',
                   }}>{tab.label}</span>
@@ -333,7 +335,7 @@ export default function MobileShell({ children }) {
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Zap size={14} color="#fff" strokeWidth={2.5} />
                 </div>
-                <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.03em' }}>Koto</span>
+                <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-.03em' }}>Koto</span>
               </div>
               <button onClick={() => setDrawerOpen(false)} style={{
                 width: 40, height: 40, borderRadius: 10,
@@ -341,7 +343,7 @@ export default function MobileShell({ children }) {
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 WebkitTapHighlightColor: 'transparent',
               }}>
-                <X size={18} color="#fff" />
+                <X size={18} color="#111111" />
               </button>
             </div>
           </div>
