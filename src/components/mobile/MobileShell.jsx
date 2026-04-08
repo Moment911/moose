@@ -240,12 +240,7 @@ export default function MobileShell({ children }) {
             <div style={{ flex: 1, textAlign: 'center' }}>
               {path === '/' ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 7, background: R,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Zap size={13} color="#fff" strokeWidth={2.5} />
-                  </div>
+                  <img src="/koto_icon_red_black.svg" alt="Koto" style={{ height: 28, width: 28, borderRadius: 6 }} />
                   <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-.03em' }}>Koto</span>
                 </div>
               ) : (
@@ -332,9 +327,7 @@ export default function MobileShell({ children }) {
               justifyContent: 'space-between', padding: '0 16px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Zap size={14} color="#fff" strokeWidth={2.5} />
-                </div>
+                <img src="/koto_icon_red_black.svg" alt="Koto" style={{ height: 28, width: 28, borderRadius: 6 }} />
                 <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#111111', letterSpacing: '-.03em' }}>Koto</span>
               </div>
               <button onClick={() => setDrawerOpen(false)} style={{
