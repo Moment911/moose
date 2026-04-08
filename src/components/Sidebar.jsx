@@ -203,6 +203,7 @@ export default function Sidebar() {
             <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R}/>
             <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R}/>
             <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub/>
+            <NavLink to="/avatars" icon={Users} label="AI Avatars" sub/>
 
             {/* OUTREACH */}
             <Section label="Outreach"/>

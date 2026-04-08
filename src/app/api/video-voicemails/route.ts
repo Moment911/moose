@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createVideoVoicemail, checkVideoStatus, sendVideoEmail, listHeyGenAvatars } from '@/lib/heygenVideoEngine'
 
+const HEYGEN_API = 'https://api.heygen.com'
+
 function sb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
 }
@@ -33,6 +35,44 @@ export async function GET(req: NextRequest) {
     if (action === 'get_avatars') {
       const avatars = await listHeyGenAvatars()
       return Response.json({ data: avatars })
+    }
+
+    if (action === 'get_all_avatars') {
+      // Return ALL avatars with pagination
+      const page = parseInt(searchParams.get('page') || '0')
+      const gender = searchParams.get('gender') || ''
+      const search = searchParams.get('search') || ''
+      const perPage = 24
+
+      try {
+        const res = await fetch(`${HEYGEN_API}/v2/avatars`, {
+          headers: { 'X-Api-Key': process.env.HEYGEN_API_KEY || '' },
+          signal: AbortSignal.timeout(15000),
+        })
+        if (!res.ok) return Response.json({ data: [], total: 0 })
+        const raw = await res.json()
+        let avatars = raw.data?.avatars || []
+
+        // Filter
+        if (gender) avatars = avatars.filter((a: any) => a.gender === gender)
+        if (search) {
+          const q = search.toLowerCase()
+          avatars = avatars.filter((a: any) => a.avatar_name?.toLowerCase().includes(q))
+        }
+
+        const total = avatars.length
+        const sliced = avatars.slice(page * perPage, (page + 1) * perPage)
+
+        return Response.json({
+          data: sliced.map((a: any) => ({
+            avatar_id: a.avatar_id, avatar_name: a.avatar_name, gender: a.gender,
+            preview_image_url: a.preview_image_url, preview_video_url: a.preview_video_url,
+          })),
+          total,
+          page,
+          pages: Math.ceil(total / perPage),
+        })
+      } catch { return Response.json({ data: [], total: 0 }) }
     }
 
     if (action === 'get_stats') {
@@ -84,6 +124,35 @@ export async function POST(req: NextRequest) {
         return Response.json({ success: true, video_ready: true, email_sent: sent })
       }
       return Response.json({ success: true, video_ready: false, status: status.status })
+    }
+
+    if (action === 'set_default_avatar') {
+      const { agency_id, avatar_id, avatar_name } = body
+      const s = sb()
+      await s.from('koto_video_avatars').update({ is_default: false }).eq('agency_id', agency_id).eq('is_default', true)
+      const { data: ex } = await s.from('koto_video_avatars').select('id').eq('heygen_avatar_id', avatar_id).eq('agency_id', agency_id).maybeSingle()
+      if (ex) { await s.from('koto_video_avatars').update({ is_default: true }).eq('id', ex.id) }
+      else { await s.from('koto_video_avatars').insert({ agency_id, avatar_name: avatar_name || 'Avatar', heygen_avatar_id: avatar_id, heygen_voice_id: '', is_default: true }) }
+      return Response.json({ success: true })
+    }
+
+    if (action === 'generate_script') {
+      const apiKey = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY
+      if (!apiKey) return Response.json({ script: 'AI not configured' })
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001', max_tokens: 300,
+            messages: [{ role: 'user', content: `Write a 15-20 second video voicemail script based on this:\n\n${body.prompt}\n\nRules: Under 60 words. Casual warm tone. End with CTA to check email. Sound natural. Return ONLY the script.` }],
+          }),
+          signal: AbortSignal.timeout(10000),
+        })
+        if (!res.ok) return Response.json({ script: 'Generation failed' })
+        const data = await res.json()
+        return Response.json({ script: data.content?.[0]?.text?.trim() || 'Could not generate' })
+      } catch { return Response.json({ script: 'Generation failed' }) }
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })
