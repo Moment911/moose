@@ -131,6 +131,7 @@ import KotoProofPage from '../views/KotoProofPage'
 import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
+import PixelTrackingPage from '../views/PixelTrackingPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -304,6 +305,7 @@ function AppRoutes() {
           <Route path="/voice/closer" element={<VoiceCloserPage />} />
           <Route path="/qa-intelligence" element={<QAIntelligencePage />} />
           <Route path="/industry-agents" element={<IndustryAgentPage />} />
+          <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/clients/:id/intelligence" element={<ClientIntelligencePage />} />
           <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />
