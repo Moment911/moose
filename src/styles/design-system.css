@@ -1,0 +1,56 @@
+/* ── Koto Design System ──────────────────────────────────────────────────── */
+/* Colors hardcoded — no CSS vars for brand colors */
+
+/*
+  Brand:
+    Red:    #E6007E
+    Cyan:   #00C2CB
+
+  Neutrals:
+    Black:  #111111
+    Gray-1: #333333
+    Gray-2: #555555
+    Gray-3: #999999
+    Gray-4: #AAAAAA
+
+  Backgrounds:
+    BG-0:   #FFFFFF
+    BG-1:   #F9F9F9
+    BG-2:   #F5F5F5
+
+  Borders:
+    Light:  rgba(0,0,0,0.08)
+    Medium: rgba(0,0,0,0.14)
+
+  Semantic:
+    Red BG:   #FFF0F7
+    Red Text:  #B5005B
+    Cyan BG:  #F0FAFA
+    Cyan Text: #00878E
+    Green:    #16a34a
+    Green BG: #f0fdf4
+    Amber:    #d97706
+    Amber BG: #fffbeb
+*/
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography scale */
+.ds-title { font-size: 19px; font-weight: 500; color: #111111; letter-spacing: -0.01em; }
+.ds-subtitle { font-size: 12px; font-weight: 400; color: #999999; }
+.ds-body { font-size: 13px; font-weight: 400; color: #555555; line-height: 1.5; }
+.ds-caption { font-size: 12px; font-weight: 400; color: #999999; }
+.ds-label { font-size: 11px; font-weight: 500; color: #AAAAAA; text-transform: uppercase; letter-spacing: 0.06em; }
+.ds-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+
+/* Animations */
+@keyframes ds-spin { to { transform: rotate(360deg); } }
+@keyframes ds-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes ds-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.ds-spin { animation: ds-spin 1s linear infinite; }
+.ds-pulse { animation: ds-pulse 1.5s ease-in-out infinite; }

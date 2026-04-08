@@ -1,4 +1,5 @@
 "use client"
+import '../styles/design-system.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
