@@ -280,6 +280,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    // ── Seed test data ──
+    if (action === 'seed_test_data') {
+      const samples = [
+        { source: 'web_visitor', company_name: 'Sunrise Plumbing Co', contact_name: 'Mike Torres', contact_email: 'mike@sunriseplumbing.com', contact_phone: '(555) 234-5678', website: 'sunriseplumbing.com', industry: 'Plumbing', score: 82, stage: 'qualified', intent_signals: [{ signal: 'Visited pricing page 3x' }, { signal: 'Viewed case studies' }, { signal: 'Returned within 24h' }] },
+        { source: 'scout', company_name: 'Elite Auto Body', contact_name: 'Sarah Chen', contact_email: 'sarah@eliteautobody.net', contact_phone: '(555) 876-5432', website: 'eliteautobody.net', industry: 'Auto Body', score: 65, stage: 'engaged', intel: { google_rating: 3.2, review_count: 18, competitor: 'Maaco' } },
+        { source: 'voice_call', company_name: 'Peak Dental Group', contact_name: 'Dr. James Wright', contact_phone: '(555) 345-6789', industry: 'Dental', score: 91, stage: 'proposal', intel: { sentiment: 'positive', outcome: 'appointment', call_duration: 342 } },
+        { source: 'import', company_name: 'Coastal Realty Partners', contact_name: 'Amanda Liu', contact_email: 'amanda@coastalrealty.com', contact_phone: '(555) 567-8901', website: 'coastalrealty.com', industry: 'Real Estate', score: 45, stage: 'new', import_source: 'CSV upload' },
+        { source: 'inbound_call', company_name: 'GreenLeaf Landscaping', contact_name: 'Carlos Mendez', contact_phone: '(555) 789-0123', industry: 'Landscaping', score: 74, stage: 'engaged', intel: { sentiment: 'positive', outcome: 'callback_requested' } },
+      ]
+
+      const inserted = []
+      for (const s of samples) {
+        const hot = (s.score || 0) >= 70
+        const { data, error } = await sb.from('koto_opportunities').insert({
+          agency_id, ...s, hot, tags: [],
+        }).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        inserted.push(data)
+        await sb.from('koto_opportunity_activities').insert({ opportunity_id: data.id, activity_type: 'created', description: `Seeded test opportunity from ${s.source}` })
+      }
+
+      return NextResponse.json({ ok: true, count: inserted.length, ids: inserted.map(i => i.id) })
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
