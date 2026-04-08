@@ -134,6 +134,7 @@ import ClientIntelligencePage from '../views/ClientIntelligencePage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
 import EmailSequencePage from '../views/EmailSequencePage'
+import IntelligenceDashboardPage from '../views/IntelligenceDashboardPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -310,6 +311,7 @@ function AppRoutes() {
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/integrations/ghl" element={<GHLIntegrationPage />} />
           <Route path="/sequences" element={<EmailSequencePage />} />
+          <Route path="/intelligence" element={<IntelligenceDashboardPage />} />
           <Route path="/clients/:id/intelligence" element={<ClientIntelligencePage />} />
           <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />
