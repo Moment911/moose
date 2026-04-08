@@ -176,13 +176,81 @@ RULES:
 
     // ── Create Campaign ──────────────────────────────────────────────────────
     if (action === 'create_campaign') {
-      const { client_id, agent_id, name, scheduled_start, scheduled_end } = body
+      const { client_id, agent_id, name, scheduled_start, scheduled_end,
+              ab_test_enabled, ab_test_variant_a, ab_test_variant_b, ab_test_split } = body
       const { data, error } = await sb.from('koto_voice_campaigns').insert({
         agency_id, client_id, agent_id, name,
         scheduled_start, scheduled_end,
+        ab_test_enabled: ab_test_enabled || false,
+        ab_test_variant_a: ab_test_variant_a || {},
+        ab_test_variant_b: ab_test_variant_b || {},
+        ab_test_split: ab_test_split || 50,
       }).select().single()
       if (error) throw error
       return NextResponse.json({ campaign: data })
+    }
+
+    // ── Update A/B Test Results ──────────────────────────────────────────────
+    if (action === 'update_ab_test') {
+      const { campaign_id, variant, appointment } = body
+      const field_calls = variant === 'a' ? 'ab_test_calls_a' : 'ab_test_calls_b'
+      const field_appts = variant === 'a' ? 'ab_test_appointments_a' : 'ab_test_appointments_b'
+
+      const { data: campaign } = await sb.from('koto_voice_campaigns').select('*').eq('id', campaign_id).single()
+      if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+
+      const updates: any = { [field_calls]: (campaign[field_calls] || 0) + 1 }
+      if (appointment) updates[field_appts] = (campaign[field_appts] || 0) + 1
+
+      // Check for winner (>20 calls per variant, >95% confidence)
+      const callsA = variant === 'a' ? updates.ab_test_calls_a || campaign.ab_test_calls_a + 1 : campaign.ab_test_calls_a || 0
+      const callsB = variant === 'b' ? updates.ab_test_calls_b || campaign.ab_test_calls_b + 1 : campaign.ab_test_calls_b || 0
+      const apptsA = campaign.ab_test_appointments_a || 0
+      const apptsB = campaign.ab_test_appointments_b || 0
+
+      if (callsA >= 20 && callsB >= 20) {
+        const rateA = callsA > 0 ? apptsA / callsA : 0
+        const rateB = callsB > 0 ? apptsB / callsB : 0
+        const diff = Math.abs(rateA - rateB)
+        if (diff > 0.15) {
+          updates.ab_test_winner = rateA > rateB ? 'a' : 'b'
+        }
+      }
+
+      await sb.from('koto_voice_campaigns').update(updates).eq('id', campaign_id)
+      return NextResponse.json({ success: true })
+    }
+
+    // ── Promote A/B Winner ──────────────────────────────────────────────────
+    if (action === 'promote_ab_winner') {
+      const { campaign_id } = body
+      const { data: campaign } = await sb.from('koto_voice_campaigns').select('*').eq('id', campaign_id).single()
+      if (!campaign?.ab_test_winner) return NextResponse.json({ error: 'No winner declared yet' }, { status: 400 })
+
+      const winnerScript = campaign.ab_test_winner === 'a' ? campaign.ab_test_variant_a : campaign.ab_test_variant_b
+      await sb.from('koto_voice_campaigns').update({
+        ab_test_enabled: false,
+        ab_test_variant_a: winnerScript,
+        ab_test_variant_b: {},
+      }).eq('id', campaign_id)
+
+      return NextResponse.json({ success: true, promoted: campaign.ab_test_winner })
+    }
+
+    // ── Get Rotation Number ─────────────────────────────────────────────────
+    if (action === 'get_rotation_number') {
+      const { getRotationNumber } = await import('@/lib/callerIdRotation')
+      const { prospect_phone } = body
+      if (!prospect_phone) return NextResponse.json({ error: 'prospect_phone required' }, { status: 400 })
+      const result = await getRotationNumber(prospect_phone, agency_id)
+      return NextResponse.json({ rotation: result })
+    }
+
+    // ── Check Spam Health ───────────────────────────────────────────────────
+    if (action === 'check_spam_health') {
+      const { checkSpamHealth } = await import('@/lib/callerIdRotation')
+      const health = await checkSpamHealth(agency_id)
+      return NextResponse.json({ numbers: health })
     }
 
     // ── Add Leads (bulk) ─────────────────────────────────────────────────────
