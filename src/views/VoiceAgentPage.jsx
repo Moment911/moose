@@ -252,7 +252,23 @@ export default function VoiceAgentPage() {
 
   const openEditAgent = (ag) => {
     setEditAgent(ag)
-    setWizardData({ business_name:ag.business_name||'', sic_code:ag.sic_code||'', description:ag.description||'', service:ag.service||'', target:ag.target||'', differentiator:ag.differentiator||'', service_area:ag.service_area||'', deal_size:ag.deal_size||'', voice_id:ag.voice_id||'', agent_name:ag.name||'', personality:ag.personality||'professional', script:ag.script||{} })
+    setWizardData({
+      business_name:ag.business_name||'', sic_code:ag.sic_code||'', description:ag.description||'',
+      service:ag.service||'', target:ag.target||'', differentiator:ag.differentiator||'',
+      service_area:ag.service_area||'', deal_size:ag.deal_size||'', voice_id:ag.voice_id||'',
+      agent_name:ag.name||'', personality:ag.personality||'professional', script:ag.script||{},
+      closer_name:ag.closer_name||'', closer_title:ag.closer_title||'', closer_phone:ag.closer_phone||'',
+      closer_calendar:ag.closer_calendar||'', closer_bio:ag.closer_bio||'', closer_expertise:ag.closer_expertise||'',
+      closer_experience:ag.closer_experience||'', closer_proof:ag.closer_proof||'',
+      meeting_duration:ag.meeting_duration||'15',
+      max_call_duration:ag.max_call_duration||5, silence_timeout:ag.silence_timeout||10,
+      interruption_sensitivity:ag.interruption_sensitivity||'medium',
+      enable_backchannel:ag.enable_backchannel!==false, amd_enabled:ag.amd_enabled!==false,
+      dnc_check:ag.dnc_check!==false, timezone_enforce:ag.timezone_enforce!==false,
+      tcpa_required:ag.tcpa_required!==false, recording_enabled:ag.recording_enabled!==false,
+      transfer_phone:ag.transfer_phone||'', transfer_phrases:ag.transfer_phrases||'',
+      agent_purpose:ag.agent_purpose||'outbound',
+    })
     setWizardStep(1)
     setShowAgentWizard(true)
   }
@@ -371,6 +387,46 @@ export default function VoiceAgentPage() {
   /* ════════════════════════════════════════════════════════════════════════ */
   /*  AGENTS TAB                                                            */
   /* ════════════════════════════════════════════════════════════════════════ */
+  // Voice preview with waveform on agent cards
+  const previewAgentVoice = (ag) => {
+    const voice = RETELL_VOICES.find(v => v.id === ag.voice_id)
+    if (voice) { previewVoice(voice); return }
+    // Fallback: browser SpeechSynthesis
+    if (window.speechSynthesis) {
+      if (playingVoice === ag.id) { window.speechSynthesis.cancel(); setPlayingVoice(null); return }
+      const u = new SpeechSynthesisUtterance("Hi, this is calling from Momenta Marketing. I wanted to reach out because we have been helping businesses like yours get significantly more leads.")
+      u.rate = 0.9; u.pitch = 1.0
+      u.onend = () => setPlayingVoice(null)
+      window.speechSynthesis.speak(u)
+      setPlayingVoice(ag.id)
+    } else { toast.error('No voice preview available') }
+  }
+
+  // Duplicate agent
+  const duplicateAgent = (ag) => {
+    setEditAgent(null)
+    setWizardData({
+      business_name: ag.business_name || '', sic_code: ag.sic_code || '', description: ag.description || '',
+      service: ag.service || '', target: ag.target || '', differentiator: ag.differentiator || '',
+      service_area: ag.service_area || '', deal_size: ag.deal_size || '', voice_id: ag.voice_id || '',
+      agent_name: (ag.name || '') + ' (Copy)', personality: ag.personality || 'professional',
+      script: ag.script || {},
+      closer_name: ag.closer_name || '', closer_title: ag.closer_title || '', closer_phone: ag.closer_phone || '',
+      closer_calendar: ag.closer_calendar || '', closer_bio: ag.closer_bio || '',
+      closer_expertise: ag.closer_expertise || '', closer_experience: ag.closer_experience || '',
+      closer_proof: ag.closer_proof || '', meeting_duration: ag.meeting_duration || '15',
+      max_call_duration: ag.max_call_duration || 5, silence_timeout: ag.silence_timeout || 10,
+      interruption_sensitivity: ag.interruption_sensitivity || 'medium',
+      enable_backchannel: ag.enable_backchannel !== false, amd_enabled: ag.amd_enabled !== false,
+      dnc_check: ag.dnc_check !== false, timezone_enforce: ag.timezone_enforce !== false,
+      tcpa_required: ag.tcpa_required !== false, recording_enabled: ag.recording_enabled !== false,
+      transfer_phone: ag.transfer_phone || '', transfer_phrases: ag.transfer_phrases || '',
+      agent_purpose: ag.agent_purpose || 'outbound',
+    })
+    setWizardStep(1)
+    setShowAgentWizard(true)
+  }
+
   const renderAgents = () => (
     <div>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
@@ -383,160 +439,335 @@ export default function VoiceAgentPage() {
               else toast.success(`All ${res.total_retell} Retell agents already synced`)
             } catch(e) { toast.error('Sync failed') }
           }}><RefreshCw size={12} /> Sync from Retell</Btn>
-          <Btn onClick={()=>{ setEditAgent(null); setWizardData({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{} }); setWizardStep(1); setShowAgentWizard(true) }}><Plus size={14} /> New Agent</Btn>
+          <Btn onClick={()=>{
+            setEditAgent(null)
+            setWizardData({ business_name:'', sic_code:'', description:'', service:'', target:'', differentiator:'', service_area:'', deal_size:'', voice_id:'', agent_name:'', personality:'professional', script:{}, closer_name:'', closer_title:'', closer_phone:'', closer_calendar:'', closer_bio:'', closer_expertise:'', closer_experience:'', closer_proof:'', meeting_duration:'15', max_call_duration:5, silence_timeout:10, interruption_sensitivity:'medium', enable_backchannel:true, amd_enabled:true, dnc_check:true, timezone_enforce:true, tcpa_required:true, recording_enabled:true, transfer_phone:'', transfer_phrases:'', agent_purpose:'outbound' })
+            setWizardStep(1); setShowAgentWizard(true)
+          }}><Plus size={14} /> New Agent</Btn>
         </div>
       </div>
       {agents.length === 0 && !loading && <Card><p style={{ color:'#888', textAlign:'center', margin:20 }}>No agents yet. Create your first voice agent to get started.</p></Card>}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340,1fr))', gap:16 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:16 }}>
         {agents.map(ag => {
           const voice = RETELL_VOICES.find(v=>v.id===ag.voice_id)
           const sic = SIC_CODES.find(s=>s.code===ag.sic_code)
           const sc = statusColor(ag.status || 'active')
+          const isPlaying = playingVoice === ag.voice_id || playingVoice === ag.id
           return (
             <Card key={ag.id} style={{ position:'relative' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 }}>
                 <div>
                   <div style={{ fontSize:16, fontWeight:700, fontFamily:FH, color:BLK }}>{ag.name || 'Unnamed Agent'}</div>
-                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{voice?.name || ag.voice_id || 'No voice'} - {voice?.tone || ''}</div>
+                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>
+                    {voice?.name || ag.voice_id || 'No voice'} ({voice?.provider || 'Unknown'}) -- {voice?.tone || ''}
+                  </div>
                 </div>
                 <Badge label={ag.status||'active'} color={sc.c} bg={sc.bg} />
               </div>
-              {sic && <div style={{ fontSize:12, color:'#666', marginBottom:8 }}><Globe size={12} style={{ marginRight:4 }} />{sic.code} - {sic.label}</div>}
-              {ag.business_name && <div style={{ fontSize:12, color:'#666', marginBottom:4 }}>{ag.business_name}</div>}
-              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8, marginBottom:12 }}>
+
+              {/* Voice preview with waveform */}
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, padding:'6px 10px', background:isPlaying?`${PURP}10`:'#f9fafb', borderRadius:8, border:`1px solid ${isPlaying?PURP:'#e5e7eb'}` }}>
+                <button onClick={()=>previewAgentVoice(ag)} style={{ width:28, height:28, borderRadius:'50%', border:'none', background:isPlaying?R:PURP, color:W, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                  {isPlaying ? <Square size={10} /> : <Play size={10} style={{ marginLeft:1 }} />}
+                </button>
+                {isPlaying ? (
+                  <div style={{ display:'flex', alignItems:'center', gap:2, height:20 }}>
+                    {[1,2,3,4,5].map(i => (
+                      <div key={i} style={{ width:3, borderRadius:2, background:PURP, animation:`waveBar .6s ease-in-out ${i*0.1}s infinite alternate`, height:8 }} />
+                    ))}
+                    <span style={{ fontSize:11, color:PURP, fontWeight:600, fontFamily:FB, marginLeft:6 }}>Playing...</span>
+                  </div>
+                ) : (
+                  <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>Preview Voice</span>
+                )}
+              </div>
+
+              {sic && <div style={{ fontSize:11, color:'#666', marginBottom:4 }}><Globe size={11} style={{ marginRight:3, verticalAlign:'middle' }} />{sic.code} - {sic.label}</div>}
+              {ag.business_name && <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{ag.business_name}</div>}
+              {ag.closer_name && <div style={{ fontSize:11, color:T, marginBottom:4 }}>Closer: {ag.closer_name}</div>}
+
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8, marginBottom:10 }}>
                 <StatPill label="calls" value={ag.call_count||0} color={T} />
                 <StatPill label="appts" value={ag.appointment_count||0} color={GRN} />
                 <StatPill label="rate" value={`${ag.connection_rate||0}%`} color={PURP} />
               </div>
+
+              {ag.updated_at && <div style={{ fontSize:10, color:'#bbb', fontFamily:FB, marginBottom:8 }}>Edited {new Date(ag.updated_at).toLocaleDateString()}</div>}
+
               <div style={{ display:'flex', gap:6 }}>
-                <Btn small bg="#e5e7eb" color={BLK} onClick={()=>openEditAgent(ag)}><Edit2 size={12} /> Edit</Btn>
-                <Btn small bg="#fee2e2" color={R} onClick={()=>deleteAgent(ag.id)}><Trash2 size={12} /> Delete</Btn>
+                <Btn small bg={`${T}15`} color={T} onClick={()=>openEditAgent(ag)}><Edit2 size={12} /> Edit</Btn>
+                <Btn small bg="#f3f4f6" color="#6b7280" onClick={()=>duplicateAgent(ag)}><Copy size={12} /> Duplicate</Btn>
+                <Btn small bg="#fee2e2" color={R} onClick={()=>deleteAgent(ag.id)}><Trash2 size={12} /></Btn>
               </div>
             </Card>
           )
         })}
       </div>
+      <style>{`@keyframes waveBar{0%{height:4px}100%{height:18px}}`}</style>
     </div>
   )
 
-  /* ── AGENT WIZARD ── */
-  const renderAgentWizard = () => {
-    const steps = ['Business Context','Voice & Personality','Script Builder']
-    return (
-      <Modal title={editAgent ? 'Edit Agent' : 'New Agent'} onClose={()=>{ setShowAgentWizard(false); setEditAgent(null) }} wide>
-        {/* Step indicators */}
-        <div style={{ display:'flex', gap:8, marginBottom:24 }}>
-          {steps.map((s,i) => (
-            <div key={i} onClick={()=>setWizardStep(i+1)} style={{ flex:1, textAlign:'center', padding:'8px 0', borderRadius:8, background:wizardStep===i+1?`${T}20`:wizardStep>i+1?`${GRN}15`:'#f5f5f5', border:`2px solid ${wizardStep===i+1?T:wizardStep>i+1?GRN:'#e5e7eb'}`, cursor:'pointer', transition:'all .15s' }}>
-              <div style={{ fontSize:11, fontWeight:700, color:wizardStep===i+1?T:wizardStep>i+1?GRN:'#aaa', fontFamily:FH }}>STEP {i+1}</div>
-              <div style={{ fontSize:12, fontWeight:600, color:wizardStep===i+1?BLK:'#888', fontFamily:FH }}>{s}</div>
-            </div>
-          ))}
-        </div>
+  /* ── AGENT BUILDER (5 TABS) ── */
+  const BUILDER_TABS = ['Identity','Business','Closer','Scripts','Advanced']
+  const wd = wizardData
+  const setWd = (key, val) => setWizardData(p => ({ ...p, [key]: val }))
+  const setScript = (key, val) => setWizardData(p => ({ ...p, script: { ...p.script, [key]: val } }))
 
-        {/* Step 1: Business Context */}
-        {wizardStep === 1 && (
-          <div>
-            <Input label="Business Name" value={wizardData.business_name} onChange={v=>setWizardData(p=>({...p,business_name:v}))} placeholder="e.g. Smith Plumbing Co." />
-            <div style={{ marginBottom:12 }}>
-              <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>SIC Code / Industry</label>
-              <input value={sicSearch} onChange={e=>setSicSearch(e.target.value)} placeholder="Search SIC codes..." style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', marginBottom:4 }} />
-              {sicSearch && (
-                <div style={{ maxHeight:160, overflow:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:W }}>
-                  {filteredSic.slice(0,15).map(s => (
-                    <div key={s.code} onClick={()=>{ setWizardData(p=>({...p,sic_code:s.code})); setSicSearch(`${s.code} - ${s.label}`) }} style={{ padding:'6px 12px', fontSize:12, cursor:'pointer', background:wizardData.sic_code===s.code?`${T}15`:W, borderBottom:'1px solid #f5f5f5' }} onMouseEnter={e=>e.target.style.background=`${T}10`} onMouseLeave={e=>e.target.style.background=wizardData.sic_code===s.code?`${T}15`:W}>
-                      <strong>{s.code}</strong> - {s.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {wizardData.sic_code && !sicSearch && <div style={{ fontSize:12, color:T, fontWeight:600 }}>Selected: {wizardData.sic_code} - {SIC_CODES.find(s=>s.code===wizardData.sic_code)?.label}</div>}
-            </div>
-            <Input label="Business Description" value={wizardData.description} onChange={v=>setWizardData(p=>({...p,description:v}))} textarea placeholder="What does this business do?" />
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-              <Input label="Primary Service" value={wizardData.service} onChange={v=>setWizardData(p=>({...p,service:v}))} placeholder="e.g. Emergency plumbing" />
-              <Input label="Target Audience" value={wizardData.target} onChange={v=>setWizardData(p=>({...p,target:v}))} placeholder="e.g. Homeowners 35-65" />
-            </div>
-            <Input label="Key Differentiator" value={wizardData.differentiator} onChange={v=>setWizardData(p=>({...p,differentiator:v}))} placeholder="What makes this business unique?" />
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-              <Input label="Service Area" value={wizardData.service_area} onChange={v=>setWizardData(p=>({...p,service_area:v}))} placeholder="e.g. Greater Denver Metro" />
-              <Input label="Avg Deal Size" value={wizardData.deal_size} onChange={v=>setWizardData(p=>({...p,deal_size:v}))} placeholder="e.g. $2,500" />
-            </div>
-            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:16 }}>
-              <Btn onClick={()=>setWizardStep(2)}>Next: Voice & Personality <ChevronRight size={14} /></Btn>
-            </div>
+  // Generate all scripts at once
+  const generateAllScripts = async () => {
+    for (const section of ['intro','questions','value_prop','objections','closing','voicemail','tcpa_consent']) {
+      await generateSection(section)
+    }
+    toast.success('All scripts generated')
+  }
+
+  const renderAgentWizard = () => (
+    <Modal title={editAgent ? 'Edit Agent' : 'New Agent'} onClose={()=>{ setShowAgentWizard(false); setEditAgent(null) }} wide>
+      {/* Tab bar */}
+      <div style={{ display:'flex', gap:4, marginBottom:20, borderBottom:'1px solid #e5e7eb', paddingBottom:0 }}>
+        {BUILDER_TABS.map((t, i) => (
+          <button key={t} onClick={()=>setWizardStep(i+1)} style={{
+            padding:'8px 16px', fontSize:12, fontWeight:wizardStep===i+1?700:500, fontFamily:FH,
+            border:'none', borderBottom:wizardStep===i+1?`2px solid ${R}`:'2px solid transparent',
+            background:'none', cursor:'pointer', color:wizardStep===i+1?BLK:'#9ca3af',
+          }}>{i+1}. {t}</button>
+        ))}
+      </div>
+
+      {/* TAB 1: IDENTITY */}
+      {wizardStep === 1 && (
+        <div>
+          <Input label="Agent Name (what it calls itself on calls)" value={wd.agent_name} onChange={v=>setWd('agent_name',v)} placeholder="e.g. Alex, Sarah, Jordan" />
+          <Select label="Agent Purpose" value={wd.agent_purpose||'outbound'} onChange={v=>setWd('agent_purpose',v)} options={[
+            {value:'outbound',label:'Cold Outbound'},{value:'answering',label:'Answering Service'},{value:'reminder',label:'Appointment Reminder'},{value:'followup',label:'Follow-up'}
+          ]} />
+          <Select label="Personality" value={wd.personality} onChange={v=>setWd('personality',v)} options={[
+            {value:'professional',label:'Professional'},{value:'friendly',label:'Friendly'},{value:'energetic',label:'Energetic'},
+            {value:'consultative',label:'Consultative'},{value:'empathetic',label:'Empathetic'},{value:'authoritative',label:'Authoritative'}
+          ]} />
+          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, padding:'10px 14px', background:'#f9fafb', borderRadius:8 }}>
+            <span style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:'#444' }}>Status:</span>
+            <button onClick={()=>setWd('status',wd.status==='inactive'?'active':'inactive')} style={{
+              padding:'4px 14px', borderRadius:99, border:'none', fontSize:11, fontWeight:700, fontFamily:FB, cursor:'pointer',
+              background:wd.status==='inactive'?'#e5e7eb':GRN, color:wd.status==='inactive'?'#6b7280':W,
+            }}>{wd.status==='inactive'?'Inactive':'Active'}</button>
           </div>
-        )}
 
-        {/* Step 2: Voice & Personality */}
-        {wizardStep === 2 && (
-          <div>
-            <Input label="Agent Name" value={wizardData.agent_name} onChange={v=>setWizardData(p=>({...p,agent_name:v}))} placeholder="e.g. Sarah from Smith Plumbing" />
-            <Select label="Personality" value={wizardData.personality} onChange={v=>setWizardData(p=>({...p,personality:v}))} options={[
-              {value:'professional',label:'Professional'},{value:'friendly',label:'Friendly'},{value:'energetic',label:'Energetic'},
-              {value:'consultative',label:'Consultative'},{value:'empathetic',label:'Empathetic'},{value:'authoritative',label:'Authoritative'}
-            ]} />
-            <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:8, fontFamily:FH }}>Select Voice</label>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(155,1fr))', gap:10, maxHeight:380, overflow:'auto' }}>
-              {RETELL_VOICES.map(v => (
-                <div key={v.id} onClick={()=>setWizardData(p=>({...p,voice_id:v.id}))} style={{ padding:12, borderRadius:10, border:`2px solid ${wizardData.voice_id===v.id?T:'#e5e7eb'}`, background:wizardData.voice_id===v.id?`${T}10`:W, cursor:'pointer', transition:'all .15s' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                    <span style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:BLK }}>{v.name}</span>
-                    <button onClick={e=>{ e.stopPropagation(); previewVoice(v) }} style={{ background: playingVoice===v.id ? R+'20' : `${PURP}15`, border:'none', borderRadius:6, padding:'3px 6px', cursor:'pointer', display:'flex', alignItems:'center' }}>
-                      {playingVoice===v.id ? <Square size={10} color={R} /> : <Play size={10} color={PURP} />}
-                    </button>
-                  </div>
-                  <div style={{ fontSize:10, color:'#888' }}>{v.gender} - {v.accent}</div>
-                  <div style={{ fontSize:10, color:T, fontWeight:600 }}>{v.tone}</div>
-                  <div style={{ fontSize:9, color:'#aaa', marginTop:2 }}>{v.provider}</div>
+          <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:8, fontFamily:FH }}>Select Voice</label>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, maxHeight:340, overflow:'auto' }}>
+            {RETELL_VOICES.map(v => (
+              <div key={v.id} onClick={()=>setWd('voice_id',v.id)} style={{
+                padding:10, borderRadius:10,
+                border:`2px solid ${wd.voice_id===v.id?R:'#e5e7eb'}`,
+                background:wd.voice_id===v.id?`${R}08`:W,
+                cursor:'pointer', transition:'all .15s', position:'relative',
+              }}>
+                {wd.voice_id===v.id && <div style={{ position:'absolute', top:6, right:6, width:18, height:18, borderRadius:'50%', background:R, display:'flex', alignItems:'center', justifyContent:'center' }}><Check size={10} color={W} /></div>}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:FH, color:BLK }}>{v.name}</span>
+                  <button onClick={e=>{ e.stopPropagation(); previewVoice(v) }} style={{ background:playingVoice===v.id?`${R}20`:`${PURP}15`, border:'none', borderRadius:6, padding:'3px 6px', cursor:'pointer', display:'flex', alignItems:'center' }}>
+                    {playingVoice===v.id ? <Square size={9} color={R} /> : <Play size={9} color={PURP} />}
+                  </button>
                 </div>
-              ))}
-            </div>
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
-              <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(1)}>Back</Btn>
-              <Btn onClick={()=>setWizardStep(3)}>Next: Script Builder <ChevronRight size={14} /></Btn>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Script Builder */}
-        {wizardStep === 3 && (
-          <div>
-            {['intro','questions','value_prop','objections','closing','voicemail','tcpa_consent'].map(section => (
-              <div key={section} style={{ marginBottom:16, padding:14, background:'#fafafa', borderRadius:10, border:'1px solid #eee' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                  <label style={{ fontSize:12, fontWeight:700, color:'#444', fontFamily:FH, textTransform:'capitalize' }}>{section.replace(/_/g,' ')}</label>
-                  <Btn small bg={`${PURP}15`} color={PURP} disabled={generatingSection===section} onClick={()=>generateSection(section)}>
-                    {generatingSection===section ? <><Loader2 size={12} className="spin" /> Generating...</> : <><Sparkles size={12} /> Generate with AI</>}
-                  </Btn>
-                </div>
-                <textarea
-                  value={(section==='questions'||section==='objections') ? (Array.isArray(wizardData.script[section]) ? wizardData.script[section].join('\n') : wizardData.script[section]||'') : (wizardData.script[section]||'')}
-                  onChange={e => {
-                    const val = e.target.value
-                    setWizardData(p => ({
-                      ...p,
-                      script:{
-                        ...p.script,
-                        [section]: (section==='questions'||section==='objections') ? val.split('\n') : val
-                      }
-                    }))
-                  }}
-                  rows={section==='questions'||section==='objections'?4:3}
-                  placeholder={section==='questions'?'One question per line...':section==='objections'?'One objection handler per line...':section==='tcpa_consent'?'TCPA consent language...': `Enter ${section.replace(/_/g,' ')} script...`}
-                  style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }}
-                />
+                <div style={{ fontSize:9, color:'#888' }}>{v.gender} -- {v.accent}</div>
+                <div style={{ fontSize:9, color:T, fontWeight:600 }}>{v.tone}</div>
+                <div style={{ display:'inline-block', fontSize:8, color:'#aaa', background:'#f3f4f6', padding:'1px 6px', borderRadius:4, marginTop:3 }}>{v.provider}</div>
               </div>
             ))}
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
-              <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(2)}>Back</Btn>
-              <Btn bg={GRN} onClick={saveAgent}><Check size={14} /> {editAgent ? 'Update Agent' : 'Create Agent'}</Btn>
-            </div>
           </div>
-        )}
-      </Modal>
-    )
-  }
+          <div style={{ display:'flex', justifyContent:'flex-end', marginTop:16 }}>
+            <Btn onClick={()=>setWizardStep(2)}>Next: Business Context <ChevronRight size={14} /></Btn>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: BUSINESS CONTEXT */}
+      {wizardStep === 2 && (
+        <div>
+          <Input label="Business Name" value={wd.business_name} onChange={v=>setWd('business_name',v)} placeholder="e.g. Smith Plumbing Co." />
+          <div style={{ marginBottom:12 }}>
+            <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>SIC Code / Industry</label>
+            <input value={sicSearch} onChange={e=>setSicSearch(e.target.value)} placeholder="Search SIC codes..." style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', marginBottom:4 }} />
+            {sicSearch && (
+              <div style={{ maxHeight:140, overflow:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:W }}>
+                {filteredSic.slice(0,12).map(s => (
+                  <div key={s.code} onClick={()=>{ setWd('sic_code',s.code); setSicSearch(`${s.code} - ${s.label}`) }} style={{ padding:'5px 12px', fontSize:12, cursor:'pointer', background:wd.sic_code===s.code?`${T}15`:W, borderBottom:'1px solid #f5f5f5' }}>
+                    <strong>{s.code}</strong> - {s.label}
+                  </div>
+                ))}
+              </div>
+            )}
+            {wd.sic_code && !sicSearch && <div style={{ fontSize:12, color:T, fontWeight:600 }}>Selected: {wd.sic_code} - {SIC_CODES.find(s=>s.code===wd.sic_code)?.label}</div>}
+          </div>
+          <Input label="Business Description" value={wd.description} onChange={v=>setWd('description',v)} textarea placeholder="What does this business do?" />
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <Input label="Main Service" value={wd.service} onChange={v=>setWd('service',v)} placeholder="e.g. Emergency plumbing repair" />
+            <Input label="Target Customer" value={wd.target} onChange={v=>setWd('target',v)} placeholder="e.g. Homeowners 35-65" />
+          </div>
+          <Input label="Key Differentiator" value={wd.differentiator} onChange={v=>setWd('differentiator',v)} placeholder="What makes this business better?" />
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <Input label="Service Area" value={wd.service_area} onChange={v=>setWd('service_area',v)} placeholder="e.g. Greater Denver Metro" />
+            <Select label="Average Deal Size" value={wd.deal_size} onChange={v=>setWd('deal_size',v)} options={[
+              {value:'',label:'Select...'},{value:'<$500',label:'Under $500'},{value:'$500-2k',label:'$500 - $2,000'},
+              {value:'$2k-10k',label:'$2,000 - $10,000'},{value:'$10k-50k',label:'$10,000 - $50,000'},{value:'$50k+',label:'$50,000+'}
+            ]} />
+          </div>
+          <Input label="Notable Results / Proof Points" value={wd.closer_proof} onChange={v=>setWd('closer_proof',v)} textarea placeholder="e.g. Helped 500+ businesses, 340% lead increase, 4.8 stars" />
+          <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
+            <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(1)}>Back</Btn>
+            <Btn onClick={()=>setWizardStep(3)}>Next: Human Closer <ChevronRight size={14} /></Btn>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: HUMAN CLOSER */}
+      {wizardStep === 3 && (
+        <div>
+          <div style={{ padding:'12px 16px', background:'#f0fdfa', borderRadius:8, marginBottom:16, borderLeft:`3px solid ${T}` }}>
+            <div style={{ fontSize:12, fontFamily:FB, color:'#0f766e' }}>The closer is the real person the AI books meetings for. This info helps the agent build credibility on calls.</div>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <Input label="Closer Name" value={wd.closer_name} onChange={v=>setWd('closer_name',v)} placeholder="e.g. Adam Segall" />
+            <Input label="Title" value={wd.closer_title} onChange={v=>setWd('closer_title',v)} placeholder="e.g. Senior Marketing Strategist" />
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <Input label="Phone (for live transfer)" value={wd.closer_phone} onChange={v=>setWd('closer_phone',v)} placeholder="+1 555-000-0000" />
+            <Input label="Calendar Link" value={wd.closer_calendar} onChange={v=>setWd('closer_calendar',v)} placeholder="https://calendly.com/..." />
+          </div>
+          <Input label="Bio (2-3 sentences the AI uses to build credibility)" value={wd.closer_bio} onChange={v=>setWd('closer_bio',v)} textarea placeholder="e.g. Adam has 10+ years of marketing experience and has helped over 500 local businesses..." />
+          <Input label="Expertise Areas (comma separated)" value={wd.closer_expertise} onChange={v=>setWd('closer_expertise',v)} placeholder="e.g. local SEO, paid ads, restaurant marketing" />
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <Input label="Years of Experience" value={wd.closer_experience} onChange={v=>setWd('closer_experience',v)} placeholder="e.g. 10" />
+            <Select label="Meeting Duration" value={wd.meeting_duration||'15'} onChange={v=>setWd('meeting_duration',v)} options={[
+              {value:'15',label:'15 minutes'},{value:'20',label:'20 minutes'},{value:'30',label:'30 minutes'},{value:'45',label:'45 minutes'},{value:'60',label:'60 minutes'}
+            ]} />
+          </div>
+          <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
+            <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(2)}>Back</Btn>
+            <Btn onClick={()=>setWizardStep(4)}>Next: AI Scripts <ChevronRight size={14} /></Btn>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: AI SCRIPTS */}
+      {wizardStep === 4 && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
+            <Btn small bg={`${PURP}15`} color={PURP} onClick={generateAllScripts}>
+              <Sparkles size={12} /> Generate All Scripts
+            </Btn>
+          </div>
+          {['intro','questions','value_prop','objections','closing','voicemail','tcpa_consent'].map(section => (
+            <div key={section} style={{ marginBottom:14, padding:12, background:'#fafafa', borderRadius:10, border:'1px solid #eee' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                <label style={{ fontSize:12, fontWeight:700, color:'#444', fontFamily:FH, textTransform:'capitalize' }}>{section.replace(/_/g,' ')}</label>
+                <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                  <span style={{ fontSize:10, color:'#bbb', fontFamily:FB }}>{((wd.script||{})[section]||'').length} chars</span>
+                  <Btn small bg={`${PURP}15`} color={PURP} disabled={generatingSection===section} onClick={()=>generateSection(section)}>
+                    {generatingSection===section ? <Loader2 size={11} className="spin" /> : <Sparkles size={11} />}
+                  </Btn>
+                </div>
+              </div>
+              <textarea
+                value={(section==='questions'||section==='objections') ? (Array.isArray((wd.script||{})[section]) ? (wd.script||{})[section].join('\n') : (wd.script||{})[section]||'') : ((wd.script||{})[section]||'')}
+                onChange={e => {
+                  const val = e.target.value
+                  setScript(section, (section==='questions'||section==='objections') ? val.split('\n') : val)
+                }}
+                rows={section==='questions'||section==='objections'?4:2}
+                placeholder={section==='questions'?'One question per line...':section==='objections'?'One objection handler per line...':section==='tcpa_consent'?'TCPA consent language...': `Enter ${section.replace(/_/g,' ')} script...`}
+                style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:12, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }}
+              />
+            </div>
+          ))}
+          <div style={{ display:'flex', justifyContent:'space-between', marginTop:16 }}>
+            <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(3)}>Back</Btn>
+            <Btn onClick={()=>setWizardStep(5)}>Next: Advanced <ChevronRight size={14} /></Btn>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: ADVANCED SETTINGS */}
+      {wizardStep === 5 && (
+        <div>
+          <h3 style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:BLK, margin:'0 0 12px' }}>Call Behavior</h3>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:16 }}>
+            <div>
+              <label style={{ display:'block', fontSize:11, fontWeight:600, color:'#444', fontFamily:FH, marginBottom:4 }}>Max Duration (min)</label>
+              <input type="number" min={1} max={30} value={wd.max_call_duration||5} onChange={e=>setWd('max_call_duration',parseInt(e.target.value)||5)} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display:'block', fontSize:11, fontWeight:600, color:'#444', fontFamily:FH, marginBottom:4 }}>Silence Timeout (sec)</label>
+              <select value={wd.silence_timeout||10} onChange={e=>setWd('silence_timeout',parseInt(e.target.value))} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', cursor:'pointer' }}>
+                <option value={5}>5 seconds</option><option value={10}>10 seconds</option><option value={15}>15 seconds</option><option value={20}>20 seconds</option>
+              </select>
+            </div>
+            <Select label="Interruption Sensitivity" value={wd.interruption_sensitivity||'medium'} onChange={v=>setWd('interruption_sensitivity',v)} options={[
+              {value:'low',label:'Low'},{value:'medium',label:'Medium'},{value:'high',label:'High'}
+            ]} />
+          </div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:20 }}>
+            {[
+              { key:'enable_backchannel', label:'Backchanneling', sub:'mm-hmm, I see, right' },
+              { key:'amd_enabled', label:'Voicemail Detection', sub:'Detect answering machines' },
+              { key:'recording_enabled', label:'Call Recording', sub:'Record all calls' },
+            ].map(tog => (
+              <div key={tog.key} style={{ padding:'10px 14px', background:'#f9fafb', borderRadius:8, border:'1px solid #e5e7eb' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:BLK }}>{tog.label}</div>
+                    <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>{tog.sub}</div>
+                  </div>
+                  <button onClick={()=>setWd(tog.key,!wd[tog.key])} style={{
+                    width:40, height:22, borderRadius:99, border:'none', cursor:'pointer', position:'relative',
+                    background:wd[tog.key]!==false?GRN:'#d1d5db', transition:'background .2s',
+                  }}>
+                    <div style={{ width:16, height:16, borderRadius:'50%', background:W, position:'absolute', top:3, left:wd[tog.key]!==false?21:3, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h3 style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:BLK, margin:'0 0 12px' }}>Compliance</h3>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:20 }}>
+            {[
+              { key:'dnc_check', label:'DNC Check', sub:'Check Do Not Call list' },
+              { key:'timezone_enforce', label:'Timezone Rules', sub:'Only call during allowed hours' },
+              { key:'tcpa_required', label:'TCPA Consent', sub:'Require consent on calls' },
+            ].map(tog => (
+              <div key={tog.key} style={{ padding:'10px 14px', background:'#f9fafb', borderRadius:8, border:'1px solid #e5e7eb' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:BLK }}>{tog.label}</div>
+                    <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>{tog.sub}</div>
+                  </div>
+                  <button onClick={()=>setWd(tog.key,!wd[tog.key])} style={{
+                    width:40, height:22, borderRadius:99, border:'none', cursor:'pointer', position:'relative',
+                    background:wd[tog.key]!==false?GRN:'#d1d5db', transition:'background .2s',
+                  }}>
+                    <div style={{ width:16, height:16, borderRadius:'50%', background:W, position:'absolute', top:3, left:wd[tog.key]!==false?21:3, transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.2)' }} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h3 style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:BLK, margin:'0 0 12px' }}>Transfer Settings</h3>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+            <Input label="Live Transfer Number" value={wd.transfer_phone} onChange={v=>setWd('transfer_phone',v)} placeholder="+1 555-000-0000" />
+            <Input label="Transfer Trigger Phrases (comma separated)" value={wd.transfer_phrases} onChange={v=>setWd('transfer_phrases',v)} placeholder="transfer me, speak to someone, manager" />
+          </div>
+
+          <div style={{ display:'flex', justifyContent:'space-between', marginTop:20 }}>
+            <Btn bg="#e5e7eb" color={BLK} onClick={()=>setWizardStep(4)}>Back</Btn>
+            <Btn bg={GRN} onClick={saveAgent}><Check size={14} /> {editAgent ? 'Update Agent' : 'Create Agent'}</Btn>
+          </div>
+        </div>
+      )}
+    </Modal>
+  )
 
   /* ════════════════════════════════════════════════════════════════════════ */
   /*  CAMPAIGNS TAB                                                         */
