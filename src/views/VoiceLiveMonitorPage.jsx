@@ -40,6 +40,168 @@ function StatCard({ label, value, icon: Icon, accent = T, sub, loading }) {
   )
 }
 
+function ScoreRing({ score, size = 80, strokeWidth = 7 }) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (score / 100) * circumference
+  const color = score >= 85 ? GRN : score >= 70 ? AMB : score >= 40 ? T : '#6b7280'
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#f0f0f0" strokeWidth={strokeWidth} />
+      <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
+        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset .6s ease, stroke .3s ease' }} />
+      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central"
+        style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontFamily: FH, fontSize: size * 0.28, fontWeight: 800, fill: color }}>
+        {score}
+      </text>
+    </svg>
+  )
+}
+
+function LiveCallCard({ call: c, onStop }) {
+  const [tab, setTab] = useState('score')
+  const [score, setScore] = useState(null)
+  const [research, setResearch] = useState(null)
+  const [elapsed, setElapsed] = useState(c.duration_seconds || 0)
+  const [loadingResearch, setLoadingResearch] = useState(false)
+  const timerRef = useRef(null)
+  const scoreRef = useRef(null)
+
+  // Live elapsed timer
+  useEffect(() => {
+    timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000)
+    return () => clearInterval(timerRef.current)
+  }, [])
+
+  // Poll score every 30s
+  useEffect(() => {
+    fetchScore()
+    scoreRef.current = setInterval(fetchScore, 30000)
+    return () => clearInterval(scoreRef.current)
+  }, [])
+
+  // Fetch research when tab switches
+  useEffect(() => {
+    if (tab === 'research' && !research) fetchResearch()
+  }, [tab])
+
+  async function fetchScore() {
+    try {
+      const res = await fetch('/api/voice', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_call_score', call_id: c.id }),
+      })
+      const data = await res.json()
+      if (!data.error) setScore(data)
+    } catch {}
+  }
+
+  async function fetchResearch() {
+    setLoadingResearch(true)
+    try {
+      const res = await fetch('/api/voice', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_call_research', call_id: c.id }),
+      })
+      const data = await res.json()
+      if (!data.error) setResearch(data.research)
+    } catch {}
+    setLoadingResearch(false)
+  }
+
+  const alertLabel = score?.score >= 85 ? '🔥 OFFER TRANSFER' : score?.score >= 70 ? '⚡ ALERT CLOSER' : null
+  const alertColor = score?.score >= 85 ? R : score?.score >= 70 ? AMB : null
+
+  return (
+    <div style={{ padding: '12px 8px', borderBottom: '1px solid #f8f8f6' }}>
+      {/* Call header row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: alertLabel || tab !== 'score' ? 10 : 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: c.direction === 'inbound' ? GRN + '15' : R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {c.direction === 'inbound' ? <PhoneIncoming size={16} color={GRN} /> : <PhoneOutgoing size={16} color={R} />}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{c.contact_name || c.contact_phone || 'Unknown'}</span>
+            <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: c.direction === 'inbound' ? GRN + '15' : R + '15', color: c.direction === 'inbound' ? GRN : R, textTransform: 'uppercase' }}>{c.direction}</span>
+            {alertLabel && (
+              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: alertColor + '15', color: alertColor, animation: 'pulse-live 2s infinite' }}>{alertLabel}</span>
+            )}
+          </div>
+          <div style={{ fontSize: 12, color: '#9a9a96' }}>{fmtPhone(c.contact_phone)} {c.agent_name ? `· ${c.agent_name}` : ''}</div>
+        </div>
+        <div style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, color: GRN }}>{fmtDur(elapsed)}</div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {['score', 'research'].map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              padding: '4px 10px', borderRadius: 6, border: 'none', fontSize: 10, fontWeight: 700, fontFamily: FH,
+              background: tab === t ? BLK : '#f3f4f6', color: tab === t ? '#fff' : '#6b7280', cursor: 'pointer', textTransform: 'capitalize',
+            }}>{t}</button>
+          ))}
+        </div>
+        <button onClick={() => onStop(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8, border: 'none', background: R + '15', color: R, cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>
+          <PhoneOff size={12} /> Stop
+        </button>
+      </div>
+
+      {/* Score tab */}
+      {tab === 'score' && score && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '8px 0 4px 50px' }}>
+          <ScoreRing score={score.score} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ fontSize: 12, color: '#6b7280' }}><Clock size={11} style={{ marginRight: 4, verticalAlign: -1 }} />Duration: <strong>{fmtDur(score.duration)}</strong></div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Sentiment: <strong>{SENTIMENT_EMOJI[score.sentiment] || '😐'} {score.sentiment || 'neutral'}</strong></div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}><Calendar size={11} style={{ marginRight: 4, verticalAlign: -1 }} />Appointment: <strong>{score.appointment_set ? '✅ Yes' : '—'}</strong></div>
+          </div>
+        </div>
+      )}
+
+      {/* Research tab */}
+      {tab === 'research' && (
+        <div style={{ padding: '8px 0 4px 50px' }}>
+          {loadingResearch ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9a9a96', fontSize: 12 }}>
+              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Loading research...
+            </div>
+          ) : research ? (
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+              {research.talking_points?.length > 0 && (
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Talking Points</div>
+                  {research.talking_points.map((tp, i) => (
+                    <div key={i} style={{ fontSize: 12, color: '#374151', padding: '3px 0', borderBottom: '1px solid #f8f8f6' }}>• {tp}</div>
+                  ))}
+                </div>
+              )}
+              {research.battle_cards?.length > 0 && (
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: AMB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Battle Cards</div>
+                  {research.battle_cards.map((bc, i) => (
+                    <div key={i} style={{ fontSize: 12, color: '#374151', padding: '3px 0', borderBottom: '1px solid #f8f8f6' }}>⚔️ {bc}</div>
+                  ))}
+                </div>
+              )}
+              {research.red_flags?.length > 0 && (
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Red Flags</div>
+                  {research.red_flags.map((rf, i) => (
+                    <div key={i} style={{ fontSize: 12, color: '#374151', padding: '3px 0', borderBottom: '1px solid #f8f8f6' }}>🚩 {rf}</div>
+                  ))}
+                </div>
+              )}
+              {!research.talking_points?.length && !research.battle_cards?.length && !research.red_flags?.length && (
+                <div style={{ fontSize: 12, color: '#9a9a96' }}>No research data available for this lead.</div>
+              )}
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: '#9a9a96' }}>No research data available.</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function VoiceLiveMonitorPage() {
   const { agencyId } = useAuth()
   const isMobile = useMobile()
@@ -132,22 +294,7 @@ export default function VoiceLiveMonitorPage() {
               </div>
               <div style={{ padding: '8px 12px' }}>
                 {activeCalls.map(c => (
-                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 8px', borderBottom: '1px solid #f8f8f6' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: c.direction === 'inbound' ? GRN + '15' : R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {c.direction === 'inbound' ? <PhoneIncoming size={16} color={GRN} /> : <PhoneOutgoing size={16} color={R} />}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{c.contact_name || c.contact_phone || 'Unknown'}</span>
-                        <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: c.direction === 'inbound' ? GRN + '15' : R + '15', color: c.direction === 'inbound' ? GRN : R, textTransform: 'uppercase' }}>{c.direction}</span>
-                      </div>
-                      <div style={{ fontSize: 12, color: '#9a9a96' }}>{fmtPhone(c.contact_phone)} {c.agent_name ? `· ${c.agent_name}` : ''}</div>
-                    </div>
-                    <div style={{ fontFamily: 'monospace', fontSize: 14, fontWeight: 700, color: GRN }}>{fmtDur(c.duration_seconds || 0)}</div>
-                    <button onClick={() => stopCall(c.id)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', borderRadius: 8, border: 'none', background: R + '15', color: R, cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>
-                      <PhoneOff size={12} /> Stop
-                    </button>
-                  </div>
+                  <LiveCallCard key={c.id} call={c} onStop={stopCall} />
                 ))}
               </div>
             </div>

@@ -697,6 +697,113 @@ Return ONLY the script text, no markdown or JSON.`
       })
     }
 
+    // ── Get Call Score (live) ───────────────────────────────────────────────
+    if (action === 'get_call_score') {
+      const { call_id } = body
+      if (!call_id) return NextResponse.json({ error: 'Missing call_id' }, { status: 400 })
+
+      const { data: call } = await sb.from('koto_voice_calls').select('*').eq('id', call_id).single()
+      if (!call) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+
+      const { data: lead } = call.lead_id
+        ? await sb.from('koto_voice_leads').select('*').eq('id', call.lead_id).single()
+        : { data: null }
+
+      const baseScore = lead?.lead_score || 0
+      const durationSec = call.duration_seconds || Math.floor((Date.now() - new Date(call.created_at).getTime()) / 1000)
+      const durationBonus = Math.min(durationSec / 10, 15) // up to 15 pts for 150s+
+      const sentimentMap: Record<string, number> = { positive: 15, neutral: 5, negative: -5, frustrated: -10 }
+      const sentimentBonus = sentimentMap[call.sentiment as string] || 0
+      const signalBonus =
+        (call.callback_requested ? 5 : 0) +
+        (call.transfer_requested ? 10 : 0) +
+        (call.appointment_set ? 20 : 0)
+
+      const raw = baseScore + durationBonus + sentimentBonus + signalBonus
+      const score = Math.max(0, Math.min(100, Math.round(raw)))
+
+      const alert = score >= 85 ? 'transfer' : score >= 70 ? 'closer' : null
+      const label = score >= 85 ? 'OFFER TRANSFER' : score >= 70 ? 'ALERT CLOSER' : score >= 40 ? 'Engaged' : 'Cold'
+      const color = score >= 85 ? '#E6007E' : score >= 70 ? '#f59e0b' : score >= 40 ? '#00C2CB' : '#6b7280'
+
+      return NextResponse.json({
+        score, alert, label, color,
+        duration: durationSec,
+        sentiment: call.sentiment || 'neutral',
+        appointment_set: !!call.appointment_set,
+      })
+    }
+
+    // ── Get Call Research ─────────────────────────────────────────────────────
+    if (action === 'get_call_research') {
+      const { call_id } = body
+      if (!call_id) return NextResponse.json({ error: 'Missing call_id' }, { status: 400 })
+
+      const { data: call } = await sb.from('koto_voice_calls').select('*').eq('id', call_id).single()
+      if (!call) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+
+      const { data: lead } = call.lead_id
+        ? await sb.from('koto_voice_leads').select('*').eq('id', call.lead_id).single()
+        : { data: null }
+
+      if (!lead) return NextResponse.json({ research: { talking_points: [], battle_cards: [], red_flags: [] }, cached: false })
+
+      // Check cache — skip if research is < 5 min old
+      const cache = lead.pre_call_research
+      if (cache && cache.fetched_at && (Date.now() - new Date(cache.fetched_at).getTime()) < 300000) {
+        return NextResponse.json({ research: cache, cached: true })
+      }
+
+      const talking_points: string[] = []
+      const battle_cards: string[] = []
+      const red_flags: string[] = []
+
+      if (lead.google_rating) {
+        if (lead.google_rating >= 4.5) talking_points.push(`Strong Google rating: ${lead.google_rating}/5`)
+        else if (lead.google_rating < 3.5) red_flags.push(`Low Google rating: ${lead.google_rating}/5 — may be defensive about online presence`)
+        else talking_points.push(`Google rating: ${lead.google_rating}/5`)
+      }
+      if (lead.review_count !== undefined && lead.review_count !== null) {
+        if (lead.review_count < 20) battle_cards.push(`Only ${lead.review_count} reviews — position review generation as quick win`)
+        else if (lead.review_count > 100) talking_points.push(`${lead.review_count} reviews — established presence, focus on conversion`)
+      }
+      if (lead.website) {
+        talking_points.push(`Has website: ${lead.website}`)
+      } else {
+        battle_cards.push('No website detected — offer web presence as entry point')
+      }
+      if (lead.competitor_mentioned) {
+        battle_cards.push(`Competitor mentioned: ${lead.competitor_mentioned} — prep differentiation points`)
+      }
+      if (lead.prospect_pain_point) {
+        talking_points.push(`Known pain point: ${lead.prospect_pain_point}`)
+      }
+
+      // Optional Google Places enrichment
+      const PLACES_KEY = process.env.GOOGLE_PLACES_API_KEY
+      if (PLACES_KEY && lead.business_name) {
+        try {
+          const placesRes = await fetch(
+            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(lead.business_name)}&inputtype=textquery&fields=formatted_address,rating,user_ratings_total,business_status,types&key=${PLACES_KEY}`
+          )
+          const placesData = await placesRes.json()
+          const place = placesData.candidates?.[0]
+          if (place) {
+            if (place.rating && !lead.google_rating) talking_points.push(`Google Places rating: ${place.rating}/5 (${place.user_ratings_total || 0} reviews)`)
+            if (place.business_status === 'CLOSED_TEMPORARILY') red_flags.push('Business listed as TEMPORARILY CLOSED on Google')
+            if (place.business_status === 'CLOSED_PERMANENTLY') red_flags.push('Business listed as PERMANENTLY CLOSED on Google')
+          }
+        } catch {}
+      }
+
+      const research = { talking_points, battle_cards, red_flags, fetched_at: new Date().toISOString() }
+
+      // Cache on lead
+      await sb.from('koto_voice_leads').update({ pre_call_research: research }).eq('id', lead.id)
+
+      return NextResponse.json({ research, cached: false })
+    }
+
     // ── Stop Call ────────────────────────────────────────────────────────────
     if (action === 'stop_call') {
       const { call_id: cId, retell_call_id: rId } = body
