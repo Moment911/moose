@@ -347,27 +347,188 @@ export default function PixelTrackingPage() {
           </div>
         )}
 
-        {/* INTEGRATION MODAL */}
-        {showIntegrate && (
-          <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,.5)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <div style={{ background:W, borderRadius:16, padding:28, width:520, maxWidth:'95vw' }}>
-              <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 4px' }}>Connect {PLATFORMS.find(p=>p.id===showIntegrate)?.name}</h3>
-              <p style={{ fontSize:12, color:'#6b7280', fontFamily:FB, margin:'0 0 16px' }}>Enter your pixel/tag ID to connect.</p>
-              <div style={{ marginBottom:12 }}>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>
-                  {showIntegrate === 'google' ? 'Measurement ID (G-XXXXXXXXX)' : showIntegrate === 'facebook' ? 'Pixel ID (16 digits)' : 'Pixel / Tag ID'}
-                </label>
-                <input value={newIntegration.platform_pixel_id} onChange={e => setNewIntegration(p => ({...p, platform_pixel_id:e.target.value}))} placeholder={showIntegrate === 'google' ? 'G-XXXXXXXXX' : showIntegrate === 'facebook' ? '1234567890123456' : 'Enter ID...'} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
-              </div>
-              <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
-                <button onClick={() => setShowIntegrate(null)} style={{ padding:'10px 20px', borderRadius:8, border:'1px solid #e5e7eb', background:W, fontSize:13, fontWeight:600, fontFamily:FB, cursor:'pointer', color:'#6b7280' }}>Cancel</button>
-                <button onClick={() => addIntegration(showIntegrate)} style={{ padding:'10px 20px', borderRadius:8, border:'none', background:R, color:W, fontSize:13, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>Connect</button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* INTEGRATION MODAL WITH INSTRUCTIONS */}
+        {showIntegrate && <IntegrationModal platform={showIntegrate} onClose={() => setShowIntegrate(null)} newIntegration={newIntegration} setNewIntegration={setNewIntegration} onConnect={() => addIntegration(showIntegrate)} />}
 
         <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+      </div>
+    </div>
+  )
+}
+
+// ── Integration Modal with Setup Instructions ────────────────────────────────
+
+const PLATFORM_INSTRUCTIONS = {
+  facebook: {
+    title: 'Facebook / Meta Pixel',
+    idLabel: 'Pixel ID (15-16 digits)',
+    placeholder: '1234567890123456',
+    steps: [
+      { title: 'Go to Meta Business Manager', detail: 'Visit business.facebook.com and log in. If you don\'t have an account, create one at business.facebook.com/overview.' },
+      { title: 'Open Events Manager', detail: 'In the left menu click "Events Manager" or go directly to business.facebook.com/events_manager.' },
+      { title: 'Create or Find Your Pixel', detail: 'Click the green "+ Connect Data Sources" button. Select "Web" then "Connect". Select "Facebook Pixel" and click "Connect". Name your pixel and enter your website URL.' },
+      { title: 'Copy Your Pixel ID', detail: 'Your pixel is now created. You\'ll see a 15-16 digit number (e.g. 1234567890123456). This is your Pixel ID -- copy it.' },
+      { title: 'Done!', detail: 'Paste the Pixel ID in the Connect tab. Koto fires Facebook events automatically -- no code needed on your site if using the Koto pixel.' },
+    ],
+    events: ['PageView -- every page visit', 'ViewContent -- key page views', 'Lead -- form submitted or hot visitor', 'Contact -- CTA button clicked', 'Schedule -- appointment booked', 'Purchase -- deal closed in Koto'],
+    tip: 'Install "Meta Pixel Helper" Chrome extension to verify it\'s working.',
+  },
+  google: {
+    title: 'Google Tag Manager / GA4',
+    idLabel: 'GTM Container ID (GTM-XXXXXXX)',
+    placeholder: 'GTM-XXXXXXX',
+    steps: [
+      { title: 'Create a GTM Account', detail: 'Go to tagmanager.google.com. Click "Create Account". Enter your company name and website URL. Target platform: Web. Click "Create" and accept Terms.' },
+      { title: 'Get Your Container ID', detail: 'After creating, you\'ll see a code snippet. At the top: GTM-XXXXXXX. This is your Container ID -- copy it.' },
+      { title: 'Install GTM on Your Website', detail: 'Copy the two code snippets shown. Add the first inside <head> and the second after opening <body>. Or use a WordPress plugin like "GTM4WP".' },
+      { title: 'Connect Google Ads (optional)', detail: 'Go to ads.google.com > Tools > Conversions. Click "+ New Conversion Action" > Website. Copy your Conversion ID and Label.' },
+      { title: 'Connect GA4 (optional)', detail: 'Go to analytics.google.com > Admin > Data Streams > Web. Copy the Measurement ID (G-XXXXXXXXXX).' },
+    ],
+    events: ['Page views to GA4', 'Form submissions as Google Ads conversions', 'Appointments as conversions ($0 value)', 'Deals closed as conversions (deal value)', 'Phone call clicks as call conversions'],
+    tip: 'Use Google Tag Assistant (tagassistant.google.com) to debug your GTM setup.',
+    extraFields: [
+      { key: 'google_ads_id', label: 'Google Ads Conversion ID (optional)', placeholder: 'AW-XXXXXXXXX' },
+      { key: 'ga4_id', label: 'GA4 Measurement ID (optional)', placeholder: 'G-XXXXXXXXXX' },
+    ],
+  },
+  tiktok: {
+    title: 'TikTok Pixel',
+    idLabel: 'Pixel ID',
+    placeholder: 'C5R7XXXXXXXXXXXXXXXX',
+    steps: [
+      { title: 'Access TikTok Ads Manager', detail: 'Go to ads.tiktok.com and log in or create a TikTok Ads account with a business email.' },
+      { title: 'Navigate to Events', detail: 'In the top menu click "Assets" then "Events". Click "Web Events".' },
+      { title: 'Create Your Pixel', detail: 'Click "Set Up Web Events". Select "TikTok Pixel" and click "Next". Name your pixel and click "Create".' },
+      { title: 'Copy Your Pixel ID', detail: 'After creation you\'ll see your Pixel ID (e.g. C5R7XXXXXXXXXXXXXXXX). Copy it.' },
+    ],
+    events: ['PageView', 'ViewContent', 'SubmitForm', 'Contact', 'PlaceOrder'],
+    tip: 'Best for restaurants, salons, gyms, retail -- any business targeting 18-35 year olds.',
+  },
+  linkedin: {
+    title: 'LinkedIn Insight Tag',
+    idLabel: 'Partner ID (7 digits)',
+    placeholder: '1234567',
+    steps: [
+      { title: 'Access Campaign Manager', detail: 'Go to linkedin.com/campaignmanager. Log in and select or create your ad account.' },
+      { title: 'Find Insight Tag', detail: 'In the left menu click "Analyze" then "Insight Tag". Click "Install my Insight Tag".' },
+      { title: 'Get Your Partner ID', detail: 'You\'ll see your unique Partner ID (7-digit number). Copy this number.' },
+      { title: 'Install the Tag', detail: 'Option A: Copy code and add to website. Option B: Install via GTM. Option C: Let Koto handle it automatically.' },
+    ],
+    events: ['Page views for retargeting', 'Lead generation events', 'Conversion tracking'],
+    tip: 'SPECIAL: LinkedIn can identify which COMPANIES visit your site -- extremely valuable for B2B. Check "Website Demographics" in Campaign Manager after connecting.',
+  },
+  twitter: {
+    title: 'Twitter / X Pixel',
+    idLabel: 'Pixel ID',
+    placeholder: 'XXXXXX',
+    steps: [
+      { title: 'Access Twitter Ads', detail: 'Go to ads.twitter.com and log in with your Twitter/X account.' },
+      { title: 'Go to Conversion Tracking', detail: 'In the top menu click "Tools" then "Conversion Tracking". Click "Generate website tag".' },
+      { title: 'Create Your Tag', detail: 'Click "Create new". Select "Universal website tag". Name it and click "Save".' },
+      { title: 'Get Your Pixel ID', detail: 'Find the line with twq(\'init\', \'XXXXXX\') in the code. The XXXXXX part is your Pixel ID.' },
+    ],
+    events: ['Page views', 'Conversions', 'Custom events'],
+    tip: 'Best for B2B, media companies, and brands targeting professional audiences.',
+  },
+  snapchat: {
+    title: 'Snapchat Pixel',
+    idLabel: 'Pixel ID',
+    placeholder: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    steps: [
+      { title: 'Access Snapchat Ads Manager', detail: 'Go to ads.snapchat.com. Log in or create a Snapchat Business account.' },
+      { title: 'Create Your Pixel', detail: 'Click "Assets" in the top menu then "Snap Pixel". Click "Create Pixel", name it, and click "Create".' },
+      { title: 'Get Your Pixel ID', detail: 'After creation you\'ll see your Pixel ID (UUID format). Copy it.' },
+    ],
+    events: ['PageView', 'ViewContent', 'AddToCart', 'Purchase'],
+    tip: 'Best for reaching 13-34 year olds and local businesses with visual products.',
+  },
+}
+
+function IntegrationModal({ platform, onClose, newIntegration, setNewIntegration, onConnect }) {
+  const [modalTab, setModalTab] = useState('instructions')
+  const info = PLATFORM_INSTRUCTIONS[platform]
+  if (!info) return null
+
+  const sty = { fontSize:13, fontFamily:FB, color:'#374151', lineHeight:1.6 }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,.5)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ background:W, borderRadius:16, padding:0, width:600, maxWidth:'95vw', maxHeight:'85vh', overflow:'auto' }}>
+        {/* Header */}
+        <div style={{ padding:'20px 28px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:0 }}>{info.title}</h3>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer' }}><X size={20} color="#9ca3af" /></button>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display:'flex', borderBottom:'1px solid #e5e7eb' }}>
+          {['instructions', 'connect'].map(t => (
+            <button key={t} onClick={() => setModalTab(t)} style={{
+              flex:1, padding:'10px', fontSize:13, fontWeight:modalTab===t?700:500, fontFamily:FH,
+              border:'none', borderBottom:modalTab===t?`2px solid ${R}`:'2px solid transparent',
+              background:'none', cursor:'pointer', color:modalTab===t?BLK:'#9ca3af',
+              textTransform:'capitalize',
+            }}>{t === 'instructions' ? 'How to Get Your ID' : 'Connect'}</button>
+          ))}
+        </div>
+
+        <div style={{ padding:'24px 28px' }}>
+          {modalTab === 'instructions' && (
+            <div>
+              <h4 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:'0 0 16px' }}>How to Get Your {info.title} ID</h4>
+              {info.steps.map((step, i) => (
+                <div key={i} style={{ display:'flex', gap:12, marginBottom:14 }}>
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:`${R}10`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:13, fontWeight:800, fontFamily:FH, color:R }}>{i+1}</div>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:BLK, marginBottom:2 }}>{step.title}</div>
+                    <div style={{ ...sty, fontSize:12 }}>{step.detail}</div>
+                  </div>
+                </div>
+              ))}
+
+              <div style={{ padding:'12px 16px', background:'#f0fdfa', borderRadius:8, borderLeft:`3px solid ${T}`, marginTop:16, marginBottom:12 }}>
+                <div style={{ fontSize:11, fontWeight:700, fontFamily:FB, color:'#0f766e', marginBottom:4 }}>What Koto sends automatically:</div>
+                {info.events.map((ev, i) => (
+                  <div key={i} style={{ fontSize:11, fontFamily:FB, color:'#374151', lineHeight:1.6 }}>
+                    <Check size={10} color={GRN} style={{ verticalAlign:'middle', marginRight:4 }} />{ev}
+                  </div>
+                ))}
+              </div>
+
+              {info.tip && (
+                <div style={{ padding:'10px 14px', background:'#fef3c7', borderRadius:8, fontSize:11, fontFamily:FB, color:'#92400e' }}>
+                  <strong>Pro tip:</strong> {info.tip}
+                </div>
+              )}
+
+              <div style={{ display:'flex', justifyContent:'flex-end', marginTop:16 }}>
+                <button onClick={() => setModalTab('connect')} style={{ padding:'10px 20px', borderRadius:8, border:'none', background:R, color:W, fontSize:13, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>
+                  Next: Connect <ChevronRight size={14} style={{ verticalAlign:'middle' }} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {modalTab === 'connect' && (
+            <div>
+              <h4 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:'0 0 16px' }}>Connect {info.title}</h4>
+              <div style={{ marginBottom:12 }}>
+                <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>{info.idLabel}</label>
+                <input value={newIntegration.platform_pixel_id} onChange={e => setNewIntegration(p => ({...p, platform_pixel_id:e.target.value}))} placeholder={info.placeholder} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
+              </div>
+              {info.extraFields?.map(f => (
+                <div key={f.key} style={{ marginBottom:12 }}>
+                  <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>{f.label}</label>
+                  <input value={newIntegration.config?.[f.key] || ''} onChange={e => setNewIntegration(p => ({...p, config:{...(p.config||{}), [f.key]:e.target.value}}))} placeholder={f.placeholder} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
+                </div>
+              ))}
+              <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:16 }}>
+                <button onClick={onClose} style={{ padding:'10px 20px', borderRadius:8, border:'1px solid #e5e7eb', background:W, fontSize:13, fontWeight:600, fontFamily:FB, cursor:'pointer', color:'#6b7280' }}>Cancel</button>
+                <button onClick={onConnect} style={{ padding:'10px 20px', borderRadius:8, border:'none', background:R, color:W, fontSize:13, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>Connect {info.title}</button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
