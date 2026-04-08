@@ -173,6 +173,51 @@ export async function GET(req: NextRequest) {
       return Response.json({ data: model })
     }
 
+    // export — download Q&A as CSV
+    if (action === 'export') {
+      const industry = searchParams.get('industry') || undefined
+      const type = searchParams.get('type') || undefined
+      const minRate = searchParams.get('min_rate') ? parseFloat(searchParams.get('min_rate')!) : undefined
+      const minAsked = searchParams.get('min_asked') ? parseInt(searchParams.get('min_asked')!) : undefined
+
+      let query = s
+        .from('koto_qa_intelligence')
+        .select(`
+          *,
+          koto_answer_intelligence(answer_text, answer_type, effectiveness_score)
+        `)
+
+      if (industry) query = query.eq('industry_sic_code', industry)
+      if (type) query = query.eq('question_type', type)
+      if (minRate) query = query.gte('appointment_rate_when_asked', minRate)
+      if (minAsked) query = query.gte('times_asked', minAsked)
+
+      const { data: rows } = await query.order('times_asked', { ascending: false }).limit(5000)
+
+      const csvHeaders = 'question_text,question_type,industry_sic_code,industry_name,answer_text,answer_type,notes,source,effectiveness_score'
+      const csvRows = (rows || []).map(q => {
+        const bestAnswer = (q.koto_answer_intelligence || [])[0]
+        return [
+          `"${(q.question_text || '').replace(/"/g, '""')}"`,
+          q.question_type || '',
+          q.industry_sic_code || '',
+          q.industry_name || '',
+          `"${(bestAnswer?.answer_text || '').replace(/"/g, '""')}"`,
+          bestAnswer?.answer_type || '',
+          '',
+          q.question_source || '',
+          bestAnswer?.effectiveness_score || '',
+        ].join(',')
+      }).join('\n')
+
+      return new Response(`${csvHeaders}\n${csvRows}`, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': 'attachment; filename="qa-intelligence-export.csv"',
+        },
+      })
+    }
+
     return Response.json({ error: 'Unknown action' }, { status: 400 })
   } catch (error: any) {
     console.error('QA Intelligence GET error:', error.message)
@@ -440,6 +485,172 @@ export async function POST(req: NextRequest) {
           answer_weights: answerWeights,
         },
       })
+    }
+
+    // validate_import — dry run validation
+    if (action === 'validate_import') {
+      const { rows } = body
+      if (!rows?.length) return Response.json({ error: 'rows required' }, { status: 400 })
+
+      const validTypes = ['discovery', 'objection', 'closing', 'price', 'timing', 'competitor', 'clarification', 'rapport', 'situational']
+      const validAnswerTypes = ['acceptance', 'objection', 'deflection', 'question', 'interest', 'commitment', 'neutral']
+      const errors: Array<{ row: number; field: string; message: string }> = []
+      let valid = 0
+      let invalid = 0
+      let duplicates = 0
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i]
+        const rowNum = i + 1
+        let rowValid = true
+
+        if (!r.question_text || r.question_text.length < 10) { errors.push({ row: rowNum, field: 'question_text', message: 'Required, min 10 chars' }); rowValid = false }
+        if (r.question_text && r.question_text.length > 500) { errors.push({ row: rowNum, field: 'question_text', message: 'Max 500 chars' }); rowValid = false }
+        if (!r.question_type || !validTypes.includes(r.question_type)) { errors.push({ row: rowNum, field: 'question_type', message: `Must be one of: ${validTypes.join(', ')}` }); rowValid = false }
+        if (!r.industry_sic_code) { errors.push({ row: rowNum, field: 'industry_sic_code', message: 'Required (use "ALL" for universal)' }); rowValid = false }
+        if (!r.industry_name) { errors.push({ row: rowNum, field: 'industry_name', message: 'Required' }); rowValid = false }
+        if (!r.answer_text || r.answer_text.length < 5) { errors.push({ row: rowNum, field: 'answer_text', message: 'Required, min 5 chars' }); rowValid = false }
+        if (r.answer_text && r.answer_text.length > 1000) { errors.push({ row: rowNum, field: 'answer_text', message: 'Max 1000 chars' }); rowValid = false }
+        if (!r.answer_type || !validAnswerTypes.includes(r.answer_type)) { errors.push({ row: rowNum, field: 'answer_type', message: `Must be one of: ${validAnswerTypes.join(', ')}` }); rowValid = false }
+        if (r.effectiveness_score !== undefined && r.effectiveness_score !== '' && (isNaN(Number(r.effectiveness_score)) || Number(r.effectiveness_score) < 0 || Number(r.effectiveness_score) > 100)) { errors.push({ row: rowNum, field: 'effectiveness_score', message: 'Must be 0-100' }); rowValid = false }
+
+        // Check duplicate
+        if (rowValid && r.question_text) {
+          const norm = normalizeText(r.question_text)
+          const { data: existing } = await s.from('koto_qa_intelligence').select('id').eq('question_normalized', norm).maybeSingle()
+          if (existing) duplicates++
+        }
+
+        if (rowValid) valid++
+        else invalid++
+      }
+
+      return Response.json({ data: { valid, invalid, duplicates, errors, total: rows.length } })
+    }
+
+    // batch_import — import validated rows
+    if (action === 'batch_import') {
+      const { rows, overwrite_existing } = body
+      if (!rows?.length) return Response.json({ error: 'rows required' }, { status: 400 })
+
+      let imported = 0
+      let skipped = 0
+      let updated = 0
+      const importErrors: string[] = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i]
+        try {
+          if (!r.question_text || r.question_text.length < 10 || !r.answer_text) {
+            skipped++
+            continue
+          }
+
+          const norm = normalizeText(r.question_text)
+          const { data: existing } = await s.from('koto_qa_intelligence').select('id').eq('question_normalized', norm).maybeSingle()
+
+          let questionId: string
+
+          if (existing) {
+            if (!overwrite_existing) { skipped++; continue }
+            // Update existing
+            await s.from('koto_qa_intelligence').update({
+              question_text: r.question_text,
+              question_type: r.question_type || classifyQuestion(r.question_text),
+              industry_sic_code: r.industry_sic_code === 'ALL' ? null : r.industry_sic_code,
+              industry_name: r.industry_name,
+              updated_at: new Date().toISOString(),
+            }).eq('id', existing.id)
+            questionId = existing.id
+            updated++
+          } else {
+            const { data: newQ } = await s.from('koto_qa_intelligence').insert({
+              question_text: r.question_text,
+              question_normalized: norm,
+              question_type: r.question_type || classifyQuestion(r.question_text),
+              question_source: r.source || 'system',
+              industry_sic_code: r.industry_sic_code === 'ALL' ? null : r.industry_sic_code,
+              industry_name: r.industry_name,
+              times_asked: 0,
+              total_calls_with_question: 0,
+            }).select('id').single()
+
+            if (!newQ) { importErrors.push(`Row ${i + 1}: Failed to create question`); continue }
+            questionId = newQ.id
+            imported++
+          }
+
+          // Upsert answer
+          const ansNorm = normalizeText(r.answer_text)
+          const { data: existingAns } = await s.from('koto_answer_intelligence')
+            .select('id').eq('question_id', questionId).eq('answer_normalized', ansNorm).maybeSingle()
+
+          if (existingAns) {
+            await s.from('koto_answer_intelligence').update({
+              answer_text: r.answer_text,
+              answer_type: r.answer_type || classifyAnswer(r.answer_text),
+              effectiveness_score: r.effectiveness_score || null,
+              edit_notes: r.notes || null,
+              updated_at: new Date().toISOString(),
+            }).eq('id', existingAns.id)
+          } else {
+            await s.from('koto_answer_intelligence').insert({
+              question_id: questionId,
+              answer_text: r.answer_text,
+              answer_normalized: ansNorm,
+              answer_source: r.source || 'system',
+              answer_type: r.answer_type || classifyAnswer(r.answer_text),
+              effectiveness_score: r.effectiveness_score || 50,
+              times_used: 0,
+              total_calls_with_answer: 0,
+              is_edited: true,
+              edit_notes: r.notes || 'Batch imported',
+            })
+          }
+        } catch (err: any) {
+          importErrors.push(`Row ${i + 1}: ${err.message}`)
+        }
+      }
+
+      return Response.json({ success: true, data: { imported, updated, skipped, errors: importErrors } })
+    }
+
+    // bulk_edit — update multiple records at once
+    if (action === 'bulk_edit') {
+      const { updates } = body
+      if (!updates?.length) return Response.json({ error: 'updates required' }, { status: 400 })
+
+      let updatedCount = 0
+      const bulkErrors: string[] = []
+
+      for (const u of updates) {
+        try {
+          if (u.table === 'answer') {
+            await s.from('koto_answer_intelligence').update({ [u.field]: u.value, updated_at: new Date().toISOString() }).eq('id', u.id)
+          } else {
+            await s.from('koto_qa_intelligence').update({ [u.field]: u.value, updated_at: new Date().toISOString() }).eq('id', u.id)
+          }
+          updatedCount++
+        } catch (err: any) {
+          bulkErrors.push(`${u.id}: ${err.message}`)
+        }
+      }
+
+      return Response.json({ success: true, data: { updated: updatedCount, errors: bulkErrors } })
+    }
+
+    // bulk_delete — soft delete questions
+    if (action === 'bulk_delete') {
+      const { question_ids } = body
+      if (!question_ids?.length) return Response.json({ error: 'question_ids required' }, { status: 400 })
+
+      // Delete answers first (cascade should handle this, but be safe)
+      for (const id of question_ids) {
+        await s.from('koto_answer_intelligence').delete().eq('question_id', id)
+        await s.from('koto_qa_intelligence').delete().eq('id', id)
+      }
+
+      return Response.json({ success: true, data: { deleted: question_ids.length } })
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })
