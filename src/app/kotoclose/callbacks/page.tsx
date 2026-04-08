@@ -87,12 +87,12 @@ export default function CallbacksPage() {
         {/* Form */}
         <div style={{ background:KC.white, borderRadius:14, border:`0.5px solid ${KC.borderMd}`, padding:16 }}>
           <div style={{ fontSize:13, fontWeight:600, color:KC.text, fontFamily:KC.fd, marginBottom:10 }}>Schedule Callback</div>
-          <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            <input value={form.contact_name} onChange={e=>setForm(f=>({...f,contact_name:e.target.value}))} placeholder="Contact name" required style={fi} />
+          <form onSubmit={submit} noValidate style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <input value={form.contact_name} onChange={e=>setForm(f=>({...f,contact_name:e.target.value}))} placeholder="Contact name" style={fi} />
             <input value={form.company_name} onChange={e=>setForm(f=>({...f,company_name:e.target.value}))} placeholder="Company name" style={fi} />
-            <input value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="Phone number" required style={fi} />
+            <input value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="Phone number" style={fi} />
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-              <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} required style={fi} />
+              <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={fi} />
               <input type="time" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={fi} />
             </div>
             <select value={form.reason} onChange={e=>setForm(f=>({...f,reason:e.target.value}))} style={fi}>
