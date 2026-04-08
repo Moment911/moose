@@ -49,7 +49,7 @@ export default function TradesPortalPage() {
       fetch(`https://suqpieuasfudgdtylotn.supabase.co/rest/v1/koto_industry_registry?industry_category=eq.trades&order=industry_name`, {
         headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1cXBpZXVhc2Z1ZGdkdHlsb3RuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1NDIzNDMsImV4cCI6MjA1OTExODM0M30.bkWCCDwi7jGy09xODnnsmygp8VCiDk3TBmjBByFJkig' }
       }).then(r2 => r2.json()).then(trades => {
-        setIndustries(trades || [])
+        setIndustries(Array.isArray(trades) ? trades : [])
         setLoading(false)
       }).catch(() => { setIndustries([]); setLoading(false) })
     }).catch(() => setLoading(false))
@@ -162,9 +162,9 @@ export default function TradesPortalPage() {
                         <span>Spend: ${ind.avg_monthly_marketing_spend_low}-${ind.avg_monthly_marketing_spend_high}/mo</span>
                         <span>Close: {ind.avg_close_rate_percent}%</span>
                       </div>
-                      {ind.best_call_days?.length > 0 && (
+                      {Array.isArray(ind.best_call_days) && ind.best_call_days.length > 0 && (
                         <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
-                          Best: {ind.best_call_days.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ')} {ind.best_call_hours?.slice(0, 3).map(h => `${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`).join(', ')}
+                          Best: {ind.best_call_days.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ')} {Array.isArray(ind.best_call_hours) ? ind.best_call_hours.slice(0, 3).map(h => `${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`).join(', ') : ''}
                         </div>
                       )}
                     </div>
@@ -212,7 +212,7 @@ export default function TradesPortalPage() {
                       </div>
 
                       {/* Pain points */}
-                      {detail.typical_pain_points?.length > 0 && (
+                      {Array.isArray(detail.typical_pain_points) && detail.typical_pain_points.length > 0 && (
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Common Pain Points</div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -229,7 +229,7 @@ export default function TradesPortalPage() {
                       <div style={{ background: W, borderRadius: 8, padding: '16px 20px', border: '1px solid rgba(0,0,0,0.08)', marginBottom: 12 }}>
                         <div style={{ fontSize: 13, fontWeight: 500, color: BLK, marginBottom: 8 }}>AI Configuration</div>
                         {detail.config.tone && <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>Tone: {detail.config.tone}</div>}
-                        {detail.config.vocabulary?.length > 0 && (
+                        {Array.isArray(detail.config.vocabulary) && detail.config.vocabulary.length > 0 && (
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
                             {detail.config.vocabulary.slice(0, 8).map((v, i) => (
                               <span key={i} style={{ padding: '2px 8px', borderRadius: 99, background: '#F0FAFA', color: '#00878E', fontSize: 10, fontWeight: 500 }}>{v}</span>
