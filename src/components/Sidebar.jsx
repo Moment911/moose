@@ -202,6 +202,7 @@ export default function Sidebar() {
             <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub/>
             <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R}/>
             <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R}/>
+            <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub/>
 
             {/* OUTREACH */}
             <Section label="Outreach"/>

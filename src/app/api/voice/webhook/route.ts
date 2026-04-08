@@ -4,6 +4,7 @@ import { enrichCallerData } from '@/lib/preCallIntelligence'
 import { buildRetellDynamicVars } from '@/lib/dynamicPromptBuilder'
 import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
 import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
+import { createVideoVoicemail } from '@/lib/heygenVideoEngine'
 
 function sb() {
   return createClient(
@@ -157,6 +158,18 @@ export async function POST(req: NextRequest) {
         if (call.call_type === 'voicemail_detected') updates.status = 'voicemail'
 
         await s.from('koto_voice_calls').update(updates).eq('retell_call_id', callId)
+
+        // Auto-generate video voicemail if voicemail detected and lead has email
+        if (call.call_type === 'voicemail_detected') {
+          const { data: callRecord } = await s.from('koto_voice_calls').select('agency_id, lead_id').eq('retell_call_id', callId).maybeSingle()
+          if (callRecord?.lead_id) {
+            const { data: lead } = await s.from('koto_voice_leads').select('*').eq('id', callRecord.lead_id).maybeSingle()
+            if (lead?.prospect_email) {
+              createVideoVoicemail(lead, callRecord.agency_id, { emailTo: lead.prospect_email })
+                .catch(e => console.error('Video voicemail error (non-fatal):', e.message))
+            }
+          }
+        }
       }
     }
 
