@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { enrichCallerData } from '@/lib/preCallIntelligence'
 import { buildRetellDynamicVars } from '@/lib/dynamicPromptBuilder'
 import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
+import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
 
 function sb() {
   return createClient(
@@ -130,6 +131,18 @@ export async function POST(req: NextRequest) {
                 lead_id: leadId,
               }
             ).catch(e => console.error('QA parse error (non-fatal):', e.message))
+          }
+
+          // Trigger follow-up sequence based on outcome (non-blocking)
+          if (callRecord?.lead_id && callRecord?.agency_id) {
+            const trigger = call.call_analysis?.call_successful ? 'appointment_set' :
+                           call.call_analysis?.callback_requested ? 'callback_requested' :
+                           duration < 5 ? 'no_answer' : 'not_interested'
+            const { data: leadData } = await s.from('koto_voice_leads').select('*').eq('id', callRecord.lead_id).maybeSingle()
+            if (leadData) {
+              triggerFollowUpSequence(trigger, leadData, callRecord.agency_id, callRecord.campaign_id)
+                .catch(e => console.error('Follow-up trigger error (non-fatal):', e.message))
+            }
           }
         }
       }
