@@ -92,7 +92,7 @@ export default function VoiceTestConsolePage() {
 
   async function fetchAgents() {
     try {
-      const { data, error } = await supabase.from('koto_voice_agents').select('*, koto_agencies(name)')
+      const { data, error } = await supabase.from('koto_voice_agents').select('*, agencies(name)')
       if (error) throw error
       setAgents(data || [])
     } catch (err) {
@@ -102,7 +102,7 @@ export default function VoiceTestConsolePage() {
 
   async function fetchCampaigns() {
     try {
-      const { data, error } = await supabase.from('koto_voice_campaigns').select('*, koto_agencies(name)')
+      const { data, error } = await supabase.from('koto_voice_campaigns').select('*, agencies(name)')
       if (error) throw error
       setCampaigns(data || [])
     } catch (err) {
@@ -357,7 +357,7 @@ export default function VoiceTestConsolePage() {
                       onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                     >
                       <span>{a.name}</span>
-                      <span style={{ color: '#aaa', fontSize: 11 }}>{a.koto_agencies?.name || 'No agency'}</span>
+                      <span style={{ color: '#aaa', fontSize: 11 }}>{a.agencies?.name || 'No agency'}</span>
                     </div>
                   ))}
                   {agents.length === 0 && <div style={{ padding: 14, color: '#aaa', fontFamily: FB, fontSize: 13 }}>No agents found</div>}
@@ -644,7 +644,7 @@ export default function VoiceTestConsolePage() {
               >
                 <option value="">Choose a campaign...</option>
                 {campaigns.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.koto_agencies?.name || 'No agency'})</option>
+                  <option key={c.id} value={c.id}>{c.name} ({c.agencies?.name || 'No agency'})</option>
                 ))}
               </select>
             </div>

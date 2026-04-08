@@ -209,11 +209,13 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'Missing required field: id' }, { status: 400 })
 
     const sb = getSupabase()
-    const { data: existing } = await sb.from('koto_system_logs').select('metadata').eq('id', id).single()
+    const { data: existing, error: fetchError } = await sb.from('koto_system_logs').select('metadata').eq('id', id).single()
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
 
-    await sb.from('koto_system_logs').update({
+    const { error: updateError } = await sb.from('koto_system_logs').update({
       metadata: { ...(existing?.metadata || {}), resolved: resolved ?? true, resolved_at: new Date().toISOString(), ...(notes ? { notes } : {}) },
     }).eq('id', id)
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
 
     return NextResponse.json({ ok: true })
   } catch (e: any) {
