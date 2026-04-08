@@ -43,7 +43,7 @@ export default function SatisfactionSurvey({ roundId, roundNumber, onClose }) {
           {[1, 2, 3, 4, 5].map(i => (
             <button key={i} onClick={() => setScore(i)} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(0)}
               className="transition-transform hover:scale-110">
-              <Star size={36} fill={(hover || score) >= i ? '#ea2729' : 'none'} stroke={(hover || score) >= i ? '#ea2729' : '#d1d5db'} strokeWidth={1.5} />
+              <Star size={36} fill={(hover || score) >= i ? '#E6007E' : 'none'} stroke={(hover || score) >= i ? '#E6007E' : '#d1d5db'} strokeWidth={1.5} />
             </button>
           ))}
         </div>

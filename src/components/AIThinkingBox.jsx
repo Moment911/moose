@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Sparkles, StopCircle } from 'lucide-react'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
 
 // ── Quip sets by task type ────────────────────────────────────────────────────
 const QUIPS = {

@@ -13,8 +13,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 
 // ── Agent definitions ─────────────────────────────────────────────────────────
 const AGENTS = [
@@ -416,7 +416,7 @@ export default function AIAgentsPage() {
   )
 
   return (
-    <div style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', minHeight:'100vh', background:'#F9F9F9' }}>
       <Sidebar/>
 
       {/* Client list */}

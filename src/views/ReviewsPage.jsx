@@ -20,7 +20,7 @@ import { MobilePage, MobileSearch, MobileRow, MobileCard, MobileEmpty, MobileBut
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -682,7 +682,7 @@ export default function ReviewsPage() {
           {label:'Total',   value:reviews.length},
           {label:'Avg ★',  value:avg},
           {label:'5 Star',  value:reviews.filter(r=>r.star_rating===5).length, color:'#16a34a'},
-          {label:'1-2 Star',value:reviews.filter(r=>r.star_rating<=2).length,  color:'#ea2729'},
+          {label:'1-2 Star',value:reviews.filter(r=>r.star_rating<=2).length,  color:'#E6007E'},
         ]}/>}
 
         {/* Client picker */}
@@ -714,7 +714,7 @@ export default function ReviewsPage() {
               </button>
               {googleReviews.length>0 && (
                 <button onClick={()=>setGoogleTab('reviews')}
-                  style={{ padding:'5px 12px', borderRadius:8, border:'none', background:googleTab==='reviews'?'#ea2729':'#f3f4f6', color:googleTab==='reviews'?'#fff':'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
+                  style={{ padding:'5px 12px', borderRadius:8, border:'none', background:googleTab==='reviews'?'#E6007E':'#f3f4f6', color:googleTab==='reviews'?'#fff':'#374151', fontSize:12, fontWeight:700, cursor:'pointer' }}>
                   Reviews {googleReviews.length}
                 </button>
               )}
@@ -731,9 +731,9 @@ export default function ReviewsPage() {
                   onKeyDown={e=>e.key==='Enter'&&searchGoogleBusiness(googleSearchQuery)}
                   placeholder={selectedClient?.name + ' ' + (selectedClient?.industry||'')}
                   style={{ flex:1, padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, outline:'none', color:'#111' }}
-                  onFocus={e=>e.target.style.borderColor='#5bc6d0'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
+                  onFocus={e=>e.target.style.borderColor='#00C2CB'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
                 <button onClick={()=>searchGoogleBusiness(googleSearchQuery)} disabled={googleSearching}
-                  style={{ padding:'9px 18px', borderRadius:9, border:'none', background:'#5bc6d0', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
+                  style={{ padding:'9px 18px', borderRadius:9, border:'none', background:'#00C2CB', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, whiteSpace:'nowrap' }}>
                   {googleSearching ? <Loader2 size={13} style={{animation:'spin 1s linear infinite'}}/> : <Search size={13}/>}
                   {googleSearching ? 'Searching…' : 'Search Google'}
                 </button>
@@ -743,7 +743,7 @@ export default function ReviewsPage() {
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   {googleSearchResults.map((biz,i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', background:GRY, cursor:'pointer' }}
-                      onMouseEnter={e=>e.currentTarget.style.borderColor='#ea2729'}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor='#E6007E'}
                       onMouseLeave={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
                       {biz.photo && <img src={biz.photo} alt="" style={{ width:44, height:44, borderRadius:8, objectFit:'cover', flexShrink:0 }} onError={e=>e.target.style.display='none'}/>}
                       <div style={{ flex:1, minWidth:0 }}>
@@ -752,7 +752,7 @@ export default function ReviewsPage() {
                         {biz.rating && <div style={{ fontSize:12, color:'#f59e0b', fontWeight:700 }}>★{biz.rating} ({biz.review_count} reviews)</div>}
                       </div>
                       <button onClick={()=>fetchGoogleReviews(biz.place_id, biz.name)} disabled={googleFetching}
-                        style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#ea2729', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
+                        style={{ padding:'7px 14px', borderRadius:8, border:'none', background:'#E6007E', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
                         {googleFetching ? <Loader2 size={12} style={{animation:'spin 1s linear infinite'}}/> : null}
                         {googleFetching ? 'Fetching…' : 'Fetch Reviews'}
                       </button>
@@ -774,14 +774,14 @@ export default function ReviewsPage() {
               {googleReviews.map((r, i) => (
                 <div key={i} style={{ padding:'14px 18px', borderBottom:'1px solid #f9fafb' }}>
                   <div style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:8 }}>
-                    <div style={{ width:34, height:34, borderRadius:9, background:'#5bc6d030', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, fontWeight:900, color:'#5bc6d0' }}>
+                    <div style={{ width:34, height:34, borderRadius:9, background:'#00C2CB30', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, fontWeight:900, color:'#00C2CB' }}>
                       {r.reviewer_name?.[0]?.toUpperCase()||'?'}
                     </div>
                     <div style={{ flex:1 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                         <span style={{ fontSize:13, fontWeight:700, color:'#111' }}>{r.reviewer_name||'Anonymous'}</span>
                         <span style={{ color:'#f59e0b', fontSize:13 }}>{'★'.repeat(r.rating||0)}{'☆'.repeat(5-(r.rating||0))}</span>
-                        <span style={{ fontSize:11, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#ea2729':'#f59e0b' }}>{r.rating}★</span>
+                        <span style={{ fontSize:11, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#E6007E':'#f59e0b' }}>{r.rating}★</span>
                         {r.is_responded && <span style={{ fontSize:11, fontWeight:700, padding:'1px 7px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>✓ Responded</span>}
                         <span style={{ fontSize:11, color:'#9ca3af', marginLeft:'auto' }}>
                           {r.review_date ? new Date(r.review_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}
@@ -796,12 +796,12 @@ export default function ReviewsPage() {
                     {editingId===r.review_id ? (
                       <div>
                         <textarea value={draftResponses[r.review_id]||''} onChange={e=>setDraftResponses(prev=>({...prev,[r.review_id]:e.target.value}))} rows={3}
-                          style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #5bc6d0', fontSize:13, resize:'vertical', outline:'none', boxSizing:'border-box' }}/>
+                          style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #00C2CB', fontSize:13, resize:'vertical', outline:'none', boxSizing:'border-box' }}/>
                         <div style={{ display:'flex', gap:6, marginTop:6 }}>
                           <button onClick={()=>saveGoogleResponse(r.review_id)}
-                            style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#ea2729', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>Save</button>
+                            style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#E6007E', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }}>Save</button>
                           <button onClick={()=>{ setGeneratingId(null); generateAIResponse(r) }} disabled={generatingId===r.review_id}
-                            style={{ padding:'5px 12px', borderRadius:7, border:'1px solid #5bc6d0', background:'transparent', color:'#5bc6d0', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                            style={{ padding:'5px 12px', borderRadius:7, border:'1px solid #00C2CB', background:'transparent', color:'#00C2CB', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                             {generatingId===r.review_id?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>} Regenerate
                           </button>
                           <button onClick={()=>setEditingId(null)} style={{ padding:'5px 10px', borderRadius:7, border:'1px solid #e5e7eb', background:'transparent', color:'#6b7280', fontSize:12, cursor:'pointer' }}>Cancel</button>
@@ -809,16 +809,16 @@ export default function ReviewsPage() {
                       </div>
                     ) : draftResponses[r.review_id] || r.response_text ? (
                       <div>
-                        <div style={{ fontSize:11, fontWeight:700, color:'#5bc6d0', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Response Draft</div>
+                        <div style={{ fontSize:11, fontWeight:700, color:'#00C2CB', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Response Draft</div>
                         <div style={{ fontSize:13, color:'#374151', lineHeight:1.6, cursor:'text' }} onClick={()=>setEditingId(r.review_id)}>
                           {draftResponses[r.review_id]||r.response_text}
                         </div>
-                        <button onClick={()=>setEditingId(r.review_id)} style={{ marginTop:4, fontSize:12, color:'#5bc6d0', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>Edit</button>
+                        <button onClick={()=>setEditingId(r.review_id)} style={{ marginTop:4, fontSize:12, color:'#00C2CB', background:'none', border:'none', cursor:'pointer', fontWeight:700 }}>Edit</button>
                       </div>
                     ) : (
                       <div style={{ display:'flex', gap:6 }}>
                         <button onClick={()=>{ generateAIResponse(r); setEditingId(r.review_id) }} disabled={generatingId===r.review_id}
-                          style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#5bc6d0', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                          style={{ padding:'5px 12px', borderRadius:7, border:'none', background:'#00C2CB', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                           {generatingId===r.review_id?<Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={11}/>}
                           {generatingId===r.review_id?'Generating…':'AI Draft'}
                         </button>
@@ -838,7 +838,7 @@ export default function ReviewsPage() {
         <div style={{display:'flex',gap:6,padding:'0 16px 10px',overflowX:'auto',scrollbarWidth:'none'}}>
           {[0,...starArr].map(s=>(
             <button key={s} onClick={()=>setFilterStars(s)}
-              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#ea2729':'#ececea'}`,background:filterStars===s?'#ea2729':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+              style={{flexShrink:0,padding:'5px 12px',borderRadius:20,border:`1px solid ${filterStars===s?'#E6007E':'#ececea'}`,background:filterStars===s?'#E6007E':'#fff',color:filterStars===s?'#fff':'#5a5a58',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
               {s===0?'All':'★'.repeat(s)}
             </button>
           ))}
@@ -856,7 +856,7 @@ export default function ReviewsPage() {
               const stars='★'.repeat(r.star_rating||0)+'☆'.repeat(5-(r.star_rating||0))
               const isNeg=(r.star_rating||0)<=2
               return (
-                <div key={r.id} style={{background:'#fff',borderRadius:14,border:`1px solid ${isNeg?'#fecaca':'#ececea'}`,padding:'14px',borderLeft:`3px solid ${isNeg?'#ea2729':'#16a34a'}`}}>
+                <div key={r.id} style={{background:'#fff',borderRadius:14,border:`1px solid ${isNeg?'#fecaca':'#ececea'}`,padding:'14px',borderLeft:`3px solid ${isNeg?'#E6007E':'#16a34a'}`}}>
                   <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:6}}>
                     <div>
                       <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{r.reviewer_name||'Anonymous'}</div>
@@ -866,12 +866,12 @@ export default function ReviewsPage() {
                   </div>
                   {r.review_text && <p style={{fontSize:14,color:'#5a5a58',margin:'0 0 8px',lineHeight:1.55,fontFamily:"'Raleway',sans-serif"}}>{r.review_text}</p>}
                   {r.response_text ? (
-                    <div style={{background:'#f8f8f6',borderRadius:9,padding:'10px 12px',borderLeft:'2px solid #5bc6d0'}}>
-                      <div style={{fontSize:11,fontWeight:700,color:'#5bc6d0',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
+                    <div style={{background:'#f8f8f6',borderRadius:9,padding:'10px 12px',borderLeft:'2px solid #00C2CB'}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#00C2CB',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
                       <p style={{fontSize:13,color:'#5a5a58',margin:0,lineHeight:1.5}}>{r.response_text}</p>
                     </div>
                   ) : isNeg && (
-                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #ea2729',background:'transparent',color:'#ea2729',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
+                    <button style={{width:'100%',padding:'9px',borderRadius:9,border:'1px solid #E6007E',background:'transparent',color:'#E6007E',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
                       Generate AI Response
                     </button>
                   )}
@@ -886,7 +886,7 @@ export default function ReviewsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#F9F9F9' }}>
       <Sidebar/>
 
       {/* Client list */}

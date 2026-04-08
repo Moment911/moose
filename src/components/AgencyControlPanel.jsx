@@ -6,9 +6,9 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const PURPLE = '#7c3aed'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB    = "'Raleway','Helvetica Neue',sans-serif"
@@ -77,7 +77,7 @@ export default function AgencyControlPanel() {
           overflow:'hidden',
         }}>
           {/* Header */}
-          <div style={{ background:BLK, padding:'14px 18px', flexShrink:0 }}>
+          <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'14px 18px', flexShrink:0 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
               <div>
                 <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:'#fff', display:'flex', alignItems:'center', gap:8 }}>
@@ -89,12 +89,12 @@ export default function AgencyControlPanel() {
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,.4)', fontFamily:FB, marginTop:2 }}>
+                <div style={{ fontSize:11, color:'#999999', fontFamily:FB, marginTop:2 }}>
                   {clients.length} clients · {stats.projects} projects · {stats.tickets} open tickets
                 </div>
               </div>
               <button onClick={()=>setOpen(false)}
-                style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,.5)', padding:4 }}>
+                style={{ background:'none', border:'none', cursor:'pointer', color:'#999999', padding:4 }}>
                 <X size={16}/>
               </button>
             </div>

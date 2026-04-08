@@ -271,15 +271,15 @@ export default function WireframePage() {
     if (c.visible === false) return <div style={{ ...base, opacity: 0.15, background: '#f3f4f6', border: '1px dashed #d1d5db' }} />
     if (c.type === 'rect') return <div style={{ ...base, background: c.bgColor || '#e5e7eb', border: `${c.borderWidth ?? 1}px solid ${c.borderColor || '#d1d5db'}`, borderRadius: c.borderRadius ?? 4, opacity: c.opacity ?? 1 }} />
     if (c.type === 'text') {
-      if (editing === c.id) return <div contentEditable suppressContentEditableWarning style={{ ...base, padding: 4, fontSize: c.fontSize || 14, color: '#231f20', outline: '2px solid #ea2729', outlineOffset: -2, cursor: 'text', whiteSpace: 'pre-wrap' }}
+      if (editing === c.id) return <div contentEditable suppressContentEditableWarning style={{ ...base, padding: 4, fontSize: c.fontSize || 14, color: '#231f20', outline: '2px solid #E6007E', outlineOffset: -2, cursor: 'text', whiteSpace: 'pre-wrap' }}
         onBlur={e => { updateComp(c.id, { text: e.target.innerText }); setEditing(null); pushHistory() }}>{c.text}</div>
       return <div style={{ ...base, padding: 4, fontSize: c.fontSize || 14, color: c.textColor || '#231f20', overflow: 'hidden', whiteSpace: 'pre-wrap', fontWeight: c.fontWeight || (c.bold ? 700 : 400), fontStyle: c.italic ? 'italic' : 'normal', fontFamily: c.fontFamily || 'Inter, sans-serif', textDecoration: c.underline ? 'underline' : 'none', textAlign: c.textAlign || 'left', lineHeight: c.lineHeight || 1.5 }}>{c.text || 'Click to edit'}</div>
     }
     if (c.type === 'image') { if (c.imageUrl) return <img src={c.imageUrl} alt="" style={{ ...base, objectFit: 'cover' }} draggable={false} />; return <div style={{ ...base, background: '#f3f4f6', border: '1px solid #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }} onClick={() => { setSelectedId(c.id); fileInputRef.current?.click() }}><ImageIcon size={24} style={{ color: '#4b5563' }} /><span style={{ fontSize: 13, color: '#4b5563' }}>Upload</span></div> }
-    if (c.type === 'button') { if (editing === c.id) return <input style={{ ...base, background: '#231f20', color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: 15, border: '2px solid #ea2729', padding: '0 12px', borderRadius: 8 }} value={c.text} onChange={e => updateComp(c.id, { text: e.target.value })} onBlur={() => { setEditing(null); pushHistory() }} autoFocus />; return <div style={{ ...base, background: '#231f20', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, borderRadius: 8 }}>{c.text || 'Button'}</div> }
+    if (c.type === 'button') { if (editing === c.id) return <input style={{ ...base, background: '#231f20', color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: 15, border: '2px solid #E6007E', padding: '0 12px', borderRadius: 8 }} value={c.text} onChange={e => updateComp(c.id, { text: e.target.value })} onBlur={() => { setEditing(null); pushHistory() }} autoFocus />; return <div style={{ ...base, background: '#231f20', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, borderRadius: 8 }}>{c.text || 'Button'}</div> }
     if (c.type === 'nav') return <div style={{ ...base, background: '#231f20', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 32, borderRadius: 0 }}><span style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>Logo</span></div>
     if (c.type === 'card') return <div style={{ ...base, background: '#fff', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }} />
-    if (c.type === 'input') { if (editing === c.id) return <input style={{ ...base, border: '1px solid #ea2729', padding: '0 12px', fontSize: 15, outline: 'none' }} value={c.text} onChange={e => updateComp(c.id, { text: e.target.value })} onBlur={() => { setEditing(null); pushHistory() }} autoFocus />; return <div style={{ ...base, border: '1px solid #d1d5db', background: '#fff', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: 15, color: '#4b5563' }}>{c.text || 'Input'}</div> }
+    if (c.type === 'input') { if (editing === c.id) return <input style={{ ...base, border: '1px solid #E6007E', padding: '0 12px', fontSize: 15, outline: 'none' }} value={c.text} onChange={e => updateComp(c.id, { text: e.target.value })} onBlur={() => { setEditing(null); pushHistory() }} autoFocus />; return <div style={{ ...base, border: '1px solid #d1d5db', background: '#fff', display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: 15, color: '#4b5563' }}>{c.text || 'Input'}</div> }
     if (c.type === 'divider') return <div style={{ width: '100%', height: 1, background: '#d1d5db', marginTop: c.height / 2 }} />
     if (c.type === 'circle') return <div style={{ ...base, background: '#e5e7eb', border: '1px solid #d1d5db', borderRadius: '50%' }} />
     if (c.type === 'icon') return <div style={{ ...base, background: '#9ca3af', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: '#fff', fontSize: 20 }}>{'\u2605'}</span></div>
@@ -402,10 +402,10 @@ export default function WireframePage() {
                 <svg className="absolute inset-0 pointer-events-none" width={1280} height={800} style={{ zIndex: 0 }}>
                   {Array.from({ length: gridCols + 1 }).map((_, i) => {
                     const x = (1280 / gridCols) * i
-                    return <line key={i} x1={x} y1={0} x2={x} y2={800} stroke="#ea272920" strokeWidth={1} />
+                    return <line key={i} x1={x} y1={0} x2={x} y2={800} stroke="#E6007E20" strokeWidth={1} />
                   })}
                   {Array.from({ length: Math.ceil(800 / 8) }).map((_, i) => (
-                    <line key={`h${i}`} x1={0} y1={i * 8} x2={1280} y2={i * 8} stroke="#ea272908" strokeWidth={0.5} />
+                    <line key={`h${i}`} x1={0} y1={i * 8} x2={1280} y2={i * 8} stroke="#E6007E08" strokeWidth={0.5} />
                   ))}
                 </svg>
               )}
@@ -413,7 +413,7 @@ export default function WireframePage() {
               {/* Snap lines */}
               {snapLines.length > 0 && (
                 <svg className="absolute inset-0 pointer-events-none" width={1280} height={800} style={{ zIndex: 100 }}>
-                  {snapLines.map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#ea2729" strokeWidth={1} strokeDasharray="4,3" />)}
+                  {snapLines.map((l, i) => <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#E6007E" strokeWidth={1} strokeDasharray="4,3" />)}
                 </svg>
               )}
 
@@ -426,21 +426,21 @@ export default function WireframePage() {
               {components.length === 0 && paths.length === 0 && <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><div className="text-center"><Layout size={32} className="text-gray-200 mx-auto mb-2" /><p className="text-[14px] text-gray-600">Click a component to add it</p></div></div>}
 
               {components.map(c => (
-                <div key={c.id} style={{ position: 'absolute', left: c.x, top: c.y, width: c.width, height: c.height, cursor: c.locked ? 'not-allowed' : activeTool === 'freehand' ? 'crosshair' : dragging?.id === c.id ? 'grabbing' : 'grab', outline: selectedId === c.id ? '2px solid #ea2729' : 'none', outlineOffset: 2, zIndex: selectedId === c.id ? 10 : 1, opacity: c.visible === false ? 0.2 : 1 }}
+                <div key={c.id} style={{ position: 'absolute', left: c.x, top: c.y, width: c.width, height: c.height, cursor: c.locked ? 'not-allowed' : activeTool === 'freehand' ? 'crosshair' : dragging?.id === c.id ? 'grabbing' : 'grab', outline: selectedId === c.id ? '2px solid #E6007E' : 'none', outlineOffset: 2, zIndex: selectedId === c.id ? 10 : 1, opacity: c.visible === false ? 0.2 : 1 }}
                   onMouseDown={e => handleCompMouseDown(e, c.id)} onDoubleClick={() => { if (['text', 'button', 'input'].includes(c.type)) setEditing(c.id) }}
                   onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY, comp: c }) }}>
                   {renderComp(c)}
                   {selectedId === c.id && !c.locked && <>
                     {/* 4 corner handles */}
-                    <div style={{ position:'absolute',right:-4,bottom:-4,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'se-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'se'})}} />
-                    <div style={{ position:'absolute',left:-4,bottom:-4,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'sw-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'sw'})}} />
-                    <div style={{ position:'absolute',right:-4,top:-4,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'ne-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'ne'})}} />
-                    <div style={{ position:'absolute',left:-4,top:-4,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'nw-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'nw'})}} />
+                    <div style={{ position:'absolute',right:-4,bottom:-4,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'se-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'se'})}} />
+                    <div style={{ position:'absolute',left:-4,bottom:-4,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'sw-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'sw'})}} />
+                    <div style={{ position:'absolute',right:-4,top:-4,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'ne-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'ne'})}} />
+                    <div style={{ position:'absolute',left:-4,top:-4,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'nw-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'nw'})}} />
                     {/* 4 edge handles */}
-                    <div style={{ position:'absolute',right:-4,top:'50%',marginTop:-3,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'e-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'e'})}} />
-                    <div style={{ position:'absolute',left:-4,top:'50%',marginTop:-3,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'w-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'w'})}} />
-                    <div style={{ position:'absolute',left:'50%',top:-4,marginLeft:-3,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'n-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'n'})}} />
-                    <div style={{ position:'absolute',left:'50%',bottom:-4,marginLeft:-3,width:7,height:7,background:'#ea2729',borderRadius:1,cursor:'s-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'s'})}} />
+                    <div style={{ position:'absolute',right:-4,top:'50%',marginTop:-3,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'e-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'e'})}} />
+                    <div style={{ position:'absolute',left:-4,top:'50%',marginTop:-3,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'w-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'w'})}} />
+                    <div style={{ position:'absolute',left:'50%',top:-4,marginLeft:-3,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'n-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'n'})}} />
+                    <div style={{ position:'absolute',left:'50%',bottom:-4,marginLeft:-3,width:7,height:7,background:'#E6007E',borderRadius:1,cursor:'s-resize' }} onMouseDown={e=>{e.stopPropagation();setResizing({id:c.id,dir:'s'})}} />
                   </>}
                 </div>
               ))}

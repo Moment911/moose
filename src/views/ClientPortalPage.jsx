@@ -11,9 +11,9 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -191,7 +191,7 @@ export default function ClientPortalPage() {
             : <div style={{ fontFamily:FH, fontSize:18, fontWeight:900, color:'#fff', letterSpacing:'-.03em' }}>{brandName}</div>
           }
           <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-            <div style={{ fontSize:13, color:'rgba(255,255,255,.5)', fontFamily:FB }}>{client?.name}</div>
+            <div style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{client?.name}</div>
             <button onClick={()=>setShowTicket(true)}
               style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:8, border:'none', background:brandColor, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
               <MessageSquare size={12}/> Get Help
@@ -412,7 +412,7 @@ export default function ClientPortalPage() {
                   <div style={{ fontSize:11, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8, fontFamily:FH }}>
                     {new Date(lastReport.month+'-02').toLocaleDateString('en-US',{month:'long',year:'numeric'})} Performance Report
                   </div>
-                  <div style={{ fontSize:15, color:'rgba(255,255,255,.85)', fontFamily:FB, lineHeight:1.8 }}>
+                  <div style={{ fontSize:15, color:'#999999', fontFamily:FB, lineHeight:1.8 }}>
                     {lastReport.ai_narrative?.executive_summary || lastReport.ai_narrative?.summary || 'Report generated'}
                   </div>
                 </div>

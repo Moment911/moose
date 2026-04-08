@@ -124,7 +124,7 @@ export default function LoginPage() {
       {/* ── Left panel ── */}
       <div className="login-left-panel" style={{
         flex: 1,
-        background: '#0a0a0a',
+        background: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -182,7 +182,7 @@ export default function LoginPage() {
                 }}>
                   <Check size={15} color={R} strokeWidth={3} />
                 </div>
-                <span style={{ fontSize: 15, color: 'rgba(255,255,255,.7)', fontFamily: FB }}>
+                <span style={{ fontSize: 15, color: '#999999', fontFamily: FB }}>
                   {b}
                 </span>
               </div>
@@ -194,7 +194,7 @@ export default function LoginPage() {
             marginTop: 64, paddingTop: 32,
             borderTop: '1px solid rgba(255,255,255,.08)',
           }}>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.3)', fontFamily: FB, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: '#999999', fontFamily: FB, lineHeight: 1.5 }}>
               Trusted by 500+ agencies worldwide. SOC 2 compliant. Your data is encrypted at rest and in transit.
             </p>
           </div>

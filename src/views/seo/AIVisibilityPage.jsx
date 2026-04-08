@@ -7,7 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED='#ea2729',TEAL='#5bc6d0',BLK='#0a0a0a',GREEN='#16a34a',AMBER='#f59e0b'
+const RED='#E6007E',TEAL='#00C2CB',BLK='#111111',GREEN='#16a34a',AMBER='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans',sans-serif",FB="'Raleway',sans-serif"
 const PURPLE='#7c3aed'
 
@@ -55,16 +55,16 @@ export default function AIVisibilityPage(){
   const IMPACT={high:{color:RED,bg:RED+'15'},medium:{color:AMBER,bg:AMBER+'15'},low:{color:GREEN,bg:GREEN+'15'}}
 
   return(
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9'}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{background:BLK,padding:'20px 32px',flexShrink:0}}>
+        <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <div>
               <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color:'#fff',margin:0,display:'flex',alignItems:'center',gap:10}}>
                 <Brain size={20} color={PURPLE}/> AI Visibility Tracker
               </h1>
-              <p style={{fontSize:13,color:'rgba(255,255,255,.4)',margin:'3px 0 0',fontFamily:FB}}>Does your client appear when customers ask AI assistants?</p>
+              <p style={{fontSize:13,color:'#999999',margin:'3px 0 0',fontFamily:FB}}>Does your client appear when customers ask AI assistants?</p>
             </div>
             <select value={clientId} onChange={e=>selectClient(e.target.value)}
               style={{padding:'9px 14px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14,fontFamily:FH,minWidth:200}}>
@@ -80,7 +80,7 @@ export default function AIVisibilityPage(){
               {label:'Services (comma-separated)',field:'services',placeholder:'lawn care, tree trimming'},
             ].map(item=>(
               <div key={item.field}>
-                <label style={{fontSize:11,fontWeight:700,color:'rgba(255,255,255,.4)',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5,fontFamily:FH}}>{item.label}</label>
+                <label style={{fontSize:11,fontWeight:700,color:'#999999',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5,fontFamily:FH}}>{item.label}</label>
                 <input value={form[item.field]} onChange={e=>setForm(f=>({...f,[item.field]:e.target.value}))}
                   placeholder={item.placeholder}
                   style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
@@ -119,7 +119,7 @@ export default function AIVisibilityPage(){
                     <Brain size={14} color={PURPLE}/>
                     <span style={{fontFamily:FH,fontSize:11,fontWeight:700,color:PURPLE,textTransform:'uppercase',letterSpacing:'.07em'}}>AI Assessment</span>
                   </div>
-                  <div style={{fontSize:14,color:'rgba(255,255,255,.85)',fontFamily:FB,lineHeight:1.7,marginBottom:10}}>{rpt?.summary}</div>
+                  <div style={{fontSize:14,color:'#999999',fontFamily:FB,lineHeight:1.7,marginBottom:10}}>{rpt?.summary}</div>
                   {rpt?.why_missing&&(
                     <div style={{padding:'8px 12px',background:'rgba(239,68,68,.15)',borderRadius:9,border:'1px solid rgba(239,68,68,.3)',fontSize:13,color:'#fca5a5',fontFamily:FB}}>
                       Why not appearing: {rpt.why_missing}

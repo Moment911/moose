@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-const R = '#ea2729', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b';
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b';
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif";
 const FB = "'Raleway','Helvetica Neue',sans-serif";
 
@@ -11,7 +11,7 @@ const STORAGE_KEY = 'koto_dark_mode';
 
 const LIGHT_VARS = {
   '--bg-primary': '#ffffff',
-  '--bg-secondary': '#f2f2f0',
+  '--bg-secondary': '#F9F9F9',
   '--bg-card': '#ffffff',
   '--text-primary': '#0a0a0a',
   '--text-secondary': '#6b7280',
@@ -22,7 +22,7 @@ const DARK_VARS = {
   '--bg-primary': '#0a0a0a',
   '--bg-secondary': '#1a1a1a',
   '--bg-card': '#111111',
-  '--text-primary': '#f2f2f0',
+  '--text-primary': '#F9F9F9',
   '--text-secondary': '#9ca3af',
   '--border': '#2a2a2a',
 };

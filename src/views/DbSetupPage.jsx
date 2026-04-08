@@ -5,9 +5,9 @@ import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
-const BLK  = '#0a0a0a'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
+const BLK = '#111111'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -107,7 +107,7 @@ export default function DbSetupPage() {
     : 'https://supabase.com/dashboard'
 
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ maxWidth:860, margin:'0 auto', padding:'32px 24px' }}>

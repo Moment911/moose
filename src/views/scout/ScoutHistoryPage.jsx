@@ -15,8 +15,8 @@ import { callClaude } from '../../lib/ai'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
 
 const TEMP_COLOR = { hot:'#ef4444', warm:'#f59e0b', lukewarm:TEAL, cold:'#6b7280' }
 const TEMP_BG    = { hot:'#fef2f2', warm:'#fffbeb', lukewarm:'#e8f9fa', cold:'#f9fafb' }
@@ -200,7 +200,7 @@ function CompareModal({ reports, onClose }) {
         maxHeight:'90vh',overflow:'auto',boxShadow:'0 32px 80px rgba(0,0,0,.3)'}}>
 
         {/* Header */}
-        <div style={{background:'#0a0a0a',borderRadius:'20px 20px 0 0',padding:'24px 28px'}}>
+        <div style={{background: '#ffffff',borderRadius:'20px 20px 0 0',padding:'24px 28px'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
               <GitCompare size={18} color={TEAL}/>
@@ -209,7 +209,7 @@ function CompareModal({ reports, onClose }) {
             <button onClick={onClose} style={{border:'none',background:'rgba(255,255,255,.1)',
               color:'#fff',borderRadius:8,padding:'4px 10px',cursor:'pointer',fontSize:13}}>✕</button>
           </div>
-          <div style={{fontSize:14,color:'rgba(255,255,255,.5)'}}>
+          <div style={{fontSize:14,color:'#999999'}}>
             {oldest.business_name} · {reports.length} reports · {daysBetween} days apart
           </div>
         </div>
@@ -341,12 +341,12 @@ function CompareModal({ reports, onClose }) {
               )}
 
               {/* Recommendation */}
-              <div style={{background:'#0a0a0a',borderRadius:12,padding:'16px 18px'}}>
+              <div style={{background: '#ffffff',borderRadius:12,padding:'16px 18px'}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                   <Sparkles size={14} color={TEAL}/>
                   <span style={{fontSize:13,fontWeight:800,color:TEAL}}>Strategic recommendation</span>
                 </div>
-                <p style={{fontSize:14,color:'rgba(255,255,255,.75)',lineHeight:1.7,margin:0}}>
+                <p style={{fontSize:14,color:'#999999',lineHeight:1.7,margin:0}}>
                   {comparison.recommendation}
                 </p>
               </div>
@@ -459,8 +459,8 @@ export default function ScoutHistoryPage() {
               <MobileRow key={s.id}
                 onClick={()=>navigate('/scout')}
                 borderBottom={i<arr.length-1}
-                left={<div style={{width:36,height:36,borderRadius:10,background:'#5bc6d0'+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5bc6d0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                left={<div style={{width:36,height:36,borderRadius:10,background:'#00C2CB'+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C2CB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 </div>}
                 title={s.query||'Search'}
                 subtitle={[s.result_count?`${s.result_count} results`:null, s.created_at?new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):null].filter(Boolean).join(' · ')}/>
@@ -473,19 +473,19 @@ export default function ScoutHistoryPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
+    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9'}}>
       <Sidebar/>
 
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
         {/* Header */}
-        <div style={{background:'#0a0a0a',padding:'18px 28px 0',flexShrink:0}}>
+        <div style={{background: '#ffffff',padding:'18px 28px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <div>
-              <h1 style={{fontSize:22,fontWeight:900,color:'#fff',margin:0,letterSpacing:-0.3}}>
+              <h1 style={{fontSize:22,fontWeight:900,color: '#111111', margin: 0, letterSpacing:-0.3}}>
                 Scout History
               </h1>
-              <p style={{fontSize:14,color:'rgba(255,255,255,.4)',margin:'3px 0 0'}}>
+              <p style={{fontSize:14,color:'#999999',margin:'3px 0 0'}}>
                 {searches.length} searches · {totalLeads.toLocaleString()} leads · {reports.length} reports saved
               </p>
             </div>
@@ -493,7 +493,7 @@ export default function ScoutHistoryPage() {
               <button onClick={load}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
                   border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-                  color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                  color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <RefreshCw size={13}/> Refresh
               </button>
               <button onClick={()=>navigate('/scout')}
@@ -515,7 +515,7 @@ export default function ScoutHistoryPage() {
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
                 <div style={{fontSize:20,fontWeight:900,color:'#fff',lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
+                <div style={{fontSize:13,color:'#999999',marginTop:3}}>{s.label}</div>
               </div>
             ))}
           </div>

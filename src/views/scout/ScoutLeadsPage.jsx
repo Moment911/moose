@@ -6,7 +6,7 @@ import ScoutLayout from './ScoutLayout'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 
-function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#5bc6d0' : s >= 30 ? '#eab308' : '#3b82f6' }
+function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#00C2CB' : s >= 30 ? '#eab308' : '#3b82f6' }
 
 export default function ScoutLeadsPage() {
   const navigate = useNavigate()
@@ -50,7 +50,7 @@ export default function ScoutLeadsPage() {
           {[
             { label: 'Total Leads', value: stats.total, color: '#0F172A' },
             { label: 'Hot Leads', value: stats.hot, color: '#ef4444' },
-            { label: 'Warm Leads', value: stats.warm, color: '#5bc6d0' },
+            { label: 'Warm Leads', value: stats.warm, color: '#00C2CB' },
             { label: 'Contacted', value: stats.contacted, color: '#22c55e' },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-2xl border border-slate-200 p-4" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
@@ -71,7 +71,7 @@ export default function ScoutLeadsPage() {
               <button key={t} onClick={() => setFilterTemp(t)} className={`text-sm px-3 py-1.5 rounded-lg capitalize font-medium ${filterTemp === t ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-700'}`}>{t}</button>
             ))}
           </div>
-          <button onClick={() => navigate('/scout')} className="btn-primary text-sm" style={{ background: '#5bc6d0' }}><Target size={12} /> New Search</button>
+          <button onClick={() => navigate('/scout')} className="btn-primary text-sm" style={{ background: '#00C2CB' }}><Target size={12} /> New Search</button>
         </div>
 
         {/* Table */}

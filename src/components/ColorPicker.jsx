@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Pipette } from 'lucide-react'
 import { hexToRgb, rgbToHex, rgbToCmyk, cmykToHex, hsvToRgb, rgbToHsv } from '../lib/colorUtils'
 
-const PRESETS = ['#ea2729', '#59c6d0', '#231f20', '#185FA5', '#3B6D11', '#7C3ABF', '#ffffff', '#f5f5f5', '#000000', '#f59e0b']
+const PRESETS = ['#E6007E', '#59c6d0', '#231f20', '#185FA5', '#3B6D11', '#7C3ABF', '#ffffff', '#f5f5f5', '#000000', '#f59e0b']
 
 export default function ColorPicker({ value = '#000000', onChange, label, mode = 'field', presets = PRESETS }) {
   const [open, setOpen] = useState(false)

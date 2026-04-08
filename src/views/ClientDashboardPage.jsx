@@ -14,11 +14,11 @@ import { emailTicketCreated } from '../lib/deskEmail'
 import { formatDistanceToNow, differenceInDays, format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
 
 const TYPE_ICONS = { website: Globe, mobile: Smartphone, brand: Palette, email: Mail, print: Printer, social: Film, presentation: BarChart2, other: Folder }
-function TypeIcon({ type, size = 20 }) { const I = TYPE_ICONS[type] || Folder; return <I size={size} strokeWidth={1.5} style={{color:'#ea2729'}}/> }
+function TypeIcon({ type, size = 20 }) { const I = TYPE_ICONS[type] || Folder; return <I size={size} strokeWidth={1.5} style={{color:'#E6007E'}}/> }
 
 const STATUS_CFG = {
   new:         { label:'New',         color:'#8b5cf6', bg:'#f5f3ff' },
@@ -252,7 +252,7 @@ export default function ClientDashboardPage() {
             </div>
             <div>
               <div style={{fontSize:20,fontWeight:900,color:'#fff',letterSpacing:-0.3}}>{greeting}</div>
-              <div style={{fontSize:14,color:'rgba(255,255,255,.45)',marginTop:1}}>Client Portal · Powered by Koto</div>
+              <div style={{fontSize:14,color:'#999999',marginTop:1}}>Client Portal · Powered by Koto</div>
             </div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:16}}>
@@ -264,7 +264,7 @@ export default function ClientDashboardPage() {
               </div>
             )}
             <button onClick={handleSignOut}
-              style={{fontSize:14,color:'rgba(255,255,255,.5)',background:'none',border:'none',
+              style={{fontSize:14,color:'#999999',background:'none',border:'none',
                 cursor:'pointer',display:'flex',alignItems:'center',gap:5}}>
               <LogOut size={13}/> Sign out
             </button>

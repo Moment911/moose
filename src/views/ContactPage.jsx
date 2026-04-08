@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Mail, Phone, MapPin, Send, Loader2, Check, ArrowRight, Menu, X, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
+const RED   = '#E6007E'
 const BLACK = '#0a0a0a'
 const WHITE = '#ffffff'
 const GRAY  = '#6b7280'

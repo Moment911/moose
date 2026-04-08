@@ -17,7 +17,7 @@ import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileRow, Mobi
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -129,14 +129,14 @@ export default function ProposalsPage() {
   /* ─── MOBILE ─── */
   const [mobileStatus, setMobileStatus] = useState('all')
   if (isMobile) {
-    const TYPE_COLORS = { proposal:'#ea2729', agreement:'#7c3aed', sow:'#16a34a', other:'#9a9a96' }
+    const TYPE_COLORS = { proposal:'#E6007E', agreement:'#7c3aed', sow:'#16a34a', other:'#9a9a96' }
     const mobileFiltered = mobileStatus==='all' ? proposals : proposals.filter(p=>p.status===mobileStatus)
     return (
       <MobilePage padded={false}>
         <MobilePageHeader title="Proposals"
           subtitle={`${proposals.length} total`}
           action={<button onClick={()=>navigate('/proposals/new')}
-            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            style={{width:38,height:38,borderRadius:11,background:'#E6007E',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
             <Plus size={20}/>
           </button>}/>
 
@@ -144,8 +144,8 @@ export default function ProposalsPage() {
           {['all','draft','sent','signed','declined'].map(s=>(
             <button key={s} onClick={()=>setMobileStatus(s)}
               style={{flexShrink:0,padding:'0 16px',height:42,border:'none',
-                borderBottom:`2.5px solid ${mobileStatus===s?'#ea2729':'transparent'}`,
-                background:'transparent',color:mobileStatus===s?'#ea2729':'#9a9a96',
+                borderBottom:`2.5px solid ${mobileStatus===s?'#E6007E':'transparent'}`,
+                background:'transparent',color:mobileStatus===s?'#E6007E':'#9a9a96',
                 fontSize:14,fontWeight:mobileStatus===s?700:500,cursor:'pointer',
                 fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",whiteSpace:'nowrap'}}>
               {s.charAt(0).toUpperCase()+s.slice(1)}
@@ -164,8 +164,8 @@ export default function ProposalsPage() {
             {mobileFiltered.map((p,i)=>{
               const color = TYPE_COLORS[p.type]||'#9a9a96'
               const sts = p.status
-              const stsBg = sts==='signed'?'#f0fdf4':sts==='sent'?'#f0fbfc':sts==='declined'?'#fef2f2':'#f2f2f0'
-              const stsColor = sts==='signed'?'#16a34a':sts==='sent'?'#0e7490':sts==='declined'?'#ea2729':'#9a9a96'
+              const stsBg = sts==='signed'?'#f0fdf4':sts==='sent'?'#f0fbfc':sts==='declined'?'#fef2f2':'#F9F9F9'
+              const stsColor = sts==='signed'?'#16a34a':sts==='sent'?'#0e7490':sts==='declined'?'#E6007E':'#9a9a96'
               return (
                 <MobileRow key={p.id}
                   onClick={()=>navigate(`/proposals/${p.id}`)}
@@ -186,7 +186,7 @@ export default function ProposalsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f2f2f0', overflow:'hidden' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#F9F9F9', overflow:'hidden' }}>
       <Sidebar/>
       <main style={{ flex:1, overflowY:'auto' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'28px 28px' }}>

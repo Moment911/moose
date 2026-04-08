@@ -54,7 +54,7 @@ export default function MarketingPage() {
           {/* Quick actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
             {[
-              { label: 'Create Campaign', desc: 'Send an email to your contacts', icon: Mail, color: '#ea2729', link: '/marketing/campaigns/new' },
+              { label: 'Create Campaign', desc: 'Send an email to your contacts', icon: Mail, color: '#E6007E', link: '/marketing/campaigns/new' },
               { label: 'Add Contacts', desc: 'Import or add contacts manually', icon: Users, color: '#3b82f6', link: '/marketing/contacts' },
               { label: 'Email Templates', desc: 'Pre-built templates to get started', icon: Layout, color: '#8b5cf6', link: '/marketing/templates' },
             ].map(a => { const I = a.icon; return (

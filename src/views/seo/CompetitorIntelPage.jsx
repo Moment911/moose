@@ -7,9 +7,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED    = '#ea2729'
-const TEAL   = '#5bc6d0'
-const BLK    = '#0a0a0a'
+const RED    = '#E6007E'
+const TEAL   = '#00C2CB'
+const BLK = '#111111'
 const GREEN  = '#16a34a'
 const AMBER  = '#f59e0b'
 const PURPLE = '#8b5cf6'
@@ -192,18 +192,18 @@ export default function CompetitorIntelPage() {
   ]
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f2f2f0' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: BLK, padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14 }}>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <BarChart2 size={20} color={TEAL}/> Competitor Intelligence
               </h1>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', margin: '3px 0 0', fontFamily: FB }}>
+              <p style={{ fontSize: 13, color: '#999999', margin: '3px 0 0', fontFamily: FB }}>
                 Real-time local competitor analysis · AI strategic recommendations
               </p>
             </div>
@@ -336,7 +336,7 @@ export default function CompetitorIntelPage() {
                       {intel.biggest_opportunity && (
                         <div style={{ padding: '12px 16px', background: `${TEAL}15`, borderRadius: 10, border: `1px solid ${TEAL}30` }}>
                           <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 4 }}>Biggest Opportunity</div>
-                          <div style={{ fontSize: 14, color: 'rgba(255,255,255,.8)', fontFamily: FB }}>{intel.biggest_opportunity}</div>
+                          <div style={{ fontSize: 14, color: '#999999', fontFamily: FB }}>{intel.biggest_opportunity}</div>
                         </div>
                       )}
                     </div>

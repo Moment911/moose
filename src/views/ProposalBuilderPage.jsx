@@ -18,8 +18,8 @@ import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileButton } fro
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 
 const PRICE_LABELS = { monthly:'/ mo', one_time:'one-time', hourly:'/ hr', custom:'custom' }
 
@@ -672,7 +672,7 @@ export default function ProposalBuilderPage() {
                     {proposal.type === 'agreement' ? 'Service Agreement' : proposal.type === 'sow' ? 'Statement of Work' : 'Proposal'}
                   </div>
                   <h1 style={{ fontSize:28, fontWeight:900, color:'#fff', marginBottom:10 }}>{proposal.title}</h1>
-                  {proposal.clients && <div style={{ fontSize:15, color:'rgba(255,255,255,.5)' }}>Prepared for {proposal.clients.name}</div>}
+                  {proposal.clients && <div style={{ fontSize:15, color:'#999999' }}>Prepared for {proposal.clients.name}</div>}
                   {proposal.valid_until && <div style={{ fontSize:15, color: '#999999', marginTop:6 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
                 </div>
 

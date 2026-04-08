@@ -4,7 +4,7 @@ import { Search, RefreshCw, AlertCircle, Info, AlertTriangle, Bug, Plus, X, Chec
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 
@@ -332,7 +332,7 @@ export default function DebugConsolePage(){
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
         {/* ══════════ HEADER ══════════ */}
-        <div style={{background:BLK,padding:'16px 28px',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'16px 28px',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div>
             <div style={{fontFamily:FH,fontSize:18,fontWeight:800,color:'#fff',letterSpacing:'-.02em',display:'flex',alignItems:'center',gap:8}}>
               <span style={{width:10,height:10,borderRadius:'50%',background:overallColor,display:'inline-block',boxShadow:`0 0 0 3px ${overallColor}30`}}/>
@@ -353,7 +353,7 @@ export default function DebugConsolePage(){
             <button onClick={()=>setAutoRefresh(p=>!p)} style={{padding:'7px 14px',borderRadius:9,border:`1px solid ${autoRefresh?GRN+'60':'rgba(255,255,255,.15)'}`,background:autoRefresh?GRN+'15':'transparent',color:autoRefresh?GRN:'rgba(255,255,255,.6)',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
               <Activity size={12}/> {autoRefresh?'Auto-refresh ON':'Auto-refresh OFF'}
             </button>
-            <a href="/status" target="_blank" style={{padding:'7px 14px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',color:'rgba(255,255,255,.6)',fontSize:12,fontWeight:600,fontFamily:FH,textDecoration:'none',display:'flex',alignItems:'center',gap:5}}>
+            <a href="/status" target="_blank" style={{padding:'7px 14px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',color:'#999999',fontSize:12,fontWeight:600,fontFamily:FH,textDecoration:'none',display:'flex',alignItems:'center',gap:5}}>
               <Globe size={12}/> Public Status
             </a>
             <button onClick={refreshHealth} disabled={checkingHealth} style={{padding:'7px 14px',borderRadius:9,border:'none',background:T,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5,opacity:checkingHealth?.7:1}}>

@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -101,10 +101,10 @@ export default function BillingAdminPage() {
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ background: BLK, padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-.03em' }}>Billing Admin</h1>
+              <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>Billing Admin</h1>
               <p style={{ fontSize: 13, color: '#999999', margin: '4px 0 0' }}>Platform revenue, agency billing, pricing</p>
             </div>
             <button onClick={loadData} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', color: '#fff', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -179,7 +179,7 @@ export default function BillingAdminPage() {
                           <div style={{ fontSize: 11, color: '#9a9a96' }}>{a.agencies?.owner_email || ''}</div>
                         </td>
                         <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: a.plan === 'agency' ? R + '15' : a.plan === 'growth' ? T + '15' : '#f2f2f0', color: a.plan === 'agency' ? R : a.plan === 'growth' ? T : '#6b7280', textTransform: 'uppercase' }}>{a.plan}</span>
+                          <span style={{ fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: a.plan === 'agency' ? R + '15' : a.plan === 'growth' ? T + '15' : '#F9F9F9', color: a.plan === 'agency' ? R : a.plan === 'growth' ? T : '#6b7280', textTransform: 'uppercase' }}>{a.plan}</span>
                         </td>
                         <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700 }}>${Number(a.plan_price || 0).toFixed(0)}/mo</td>
                         <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: Number(a.credit_balance || 0) < 20 ? R : BLK }}>${Number(a.credit_balance || 0).toFixed(2)}</td>
@@ -306,7 +306,7 @@ export default function BillingAdminPage() {
                           <div style={{ display: 'flex', gap: 6 }}>
                             <input value={editValue} onChange={e => setEditValue(e.target.value)} style={{ width: 80, padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13 }} />
                             <button onClick={() => savePrice(p.feature)} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 6, border: 'none', background: GRN + '15', color: GRN, cursor: 'pointer' }}>Save</button>
-                            <button onClick={() => setEditingPrice(null)} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#f2f2f0', color: '#6b7280', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={() => setEditingPrice(null)} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#F9F9F9', color: '#6b7280', cursor: 'pointer' }}>Cancel</button>
                           </div>
                         ) : (
                           <span style={{ fontFamily: FH, fontWeight: 700 }}>${Number(p.cost_per_unit).toFixed(4)}</span>

@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { callClaude } from '../../lib/ai'
 import toast from 'react-hot-toast'
 
-function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#5bc6d0' : s >= 30 ? '#eab308' : '#3b82f6' }
+function scoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#00C2CB' : s >= 30 ? '#eab308' : '#3b82f6' }
 function tempLabel(s) { return s >= 75 ? { emoji: '🔥', label: 'Hot', cls: 'text-red-500 bg-red-50' } : s >= 50 ? { emoji: '🟠', label: 'Warm', cls: 'text-brand-500 bg-red-50' } : s >= 30 ? { emoji: '🟡', label: 'Lukewarm', cls: 'text-yellow-600 bg-yellow-50' } : { emoji: '🔵', label: 'Cold', cls: 'text-blue-500 bg-blue-50' } }
 
 export default function CompanyProfilePage() {
@@ -171,7 +171,7 @@ export default function CompanyProfilePage() {
                       <span className="text-sm text-slate-600">{s.label}</span>
                       <span className="text-sm font-medium text-slate-800">{s.val}/{s.max}</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full"><div className="h-full rounded-full transition-all" style={{ width: `${s.val / s.max * 100}%`, background: s.val / s.max > 0.6 ? '#22c55e' : s.val / s.max > 0.3 ? '#5bc6d0' : '#ef4444' }} /></div>
+                    <div className="h-2 bg-slate-100 rounded-full"><div className="h-full rounded-full transition-all" style={{ width: `${s.val / s.max * 100}%`, background: s.val / s.max > 0.6 ? '#22c55e' : s.val / s.max > 0.3 ? '#00C2CB' : '#ef4444' }} /></div>
                     <p className="text-[13px] text-slate-400 mt-0.5">{s.desc}</p>
                   </div>
                 ))}

@@ -14,8 +14,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
 const BLACK = '#0a0a0a'
 
 const TABS = [
@@ -505,7 +505,7 @@ Return ONLY valid JSON (no markdown):
   /* ─── DESKTOP ─── */
 
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
 
       <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
@@ -561,15 +561,15 @@ Return ONLY valid JSON (no markdown):
                         {(selectedClient.name||'?')[0].toUpperCase()}
                       </div>
                       <div>
-                        <h1 style={{ fontSize:20, fontWeight:900, color:'#fff', margin:0, letterSpacing:-0.3 }}>{selectedClient.name}</h1>
-                        <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:1 }}>{selectedClient.industry||'Local business'}</div>
+                        <h1 style={{ fontSize:20, fontWeight:900, color: '#111111', margin: 0, letterSpacing:-0.3 }}>{selectedClient.name}</h1>
+                        <div style={{ fontSize:13, color:'#999999', marginTop:1 }}>{selectedClient.industry||'Local business'}</div>
                       </div>
                     </div>
                   </div>
 
                   <div style={{ display:'flex', gap:8, marginTop:4 }}>
                     <button onClick={()=>loadClientData(selectedClient.id)}
-                      style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'rgba(255,255,255,.7)', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                      style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#999999', fontSize:13, fontWeight:700, cursor:'pointer' }}>
                       <RefreshCw size={13}/> Refresh
                     </button>
                     <button onClick={generateAnalysis} disabled={generating}
@@ -591,7 +591,7 @@ Return ONLY valid JSON (no markdown):
                   ].map(s=>(
                     <div key={s.label} style={{ padding:'10px 0' }}>
                       <div style={{ fontSize:20, fontWeight:900, color:'#fff', lineHeight:1 }}>{s.value}</div>
-                      <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:3 }}>{s.label}</div>
+                      <div style={{ fontSize:13, color:'#999999', marginTop:3 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -639,18 +639,18 @@ Return ONLY valid JSON (no markdown):
                                   {analysis.overallScore}
                                 </div>
                               </div>
-                              <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:6, textAlign:'center' }}>SEO Score</div>
+                              <div style={{ fontSize:13, color:'#999999', marginTop:6, textAlign:'center' }}>SEO Score</div>
                             </div>
                             <div style={{ flex:1 }}>
                               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                                 <Sparkles size={15} color={RED}/>
-                                <span style={{ fontSize:14, fontWeight:800, color:'rgba(255,255,255,.5)', textTransform:'uppercase', letterSpacing:'.06em' }}>AI Analysis</span>
+                                <span style={{ fontSize:14, fontWeight:800, color:'#999999', textTransform:'uppercase', letterSpacing:'.06em' }}>AI Analysis</span>
                               </div>
-                              <p style={{ fontSize:15, color:'rgba(255,255,255,.85)', lineHeight:1.7, margin:'0 0 14px' }}>{analysis.executiveSummary}</p>
+                              <p style={{ fontSize:15, color:'#999999', lineHeight:1.7, margin:'0 0 14px' }}>{analysis.executiveSummary}</p>
                               {analysis.quickWins?.length > 0 && (
                                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                                   {analysis.quickWins.slice(0,4).map((w,i)=>(
-                                    <span key={i} style={{ fontSize:13, fontWeight:700, padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'rgba(255,255,255,.7)', border:'1px solid rgba(255,255,255,.12)' }}>
+                                    <span key={i} style={{ fontSize:13, fontWeight:700, padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'#999999', border:'1px solid rgba(255,255,255,.12)' }}>
                                       {w}
                                     </span>
                                   ))}
@@ -659,11 +659,11 @@ Return ONLY valid JSON (no markdown):
                             </div>
                             {analysis.opportunities?.length > 0 && (
                               <div style={{ width:220, flexShrink:0 }}>
-                                <div style={{ fontSize:13, fontWeight:800, color:'rgba(255,255,255,.3)', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Top opportunities</div>
+                                <div style={{ fontSize:13, fontWeight:800, color:'#999999', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Top opportunities</div>
                                 {analysis.opportunities.slice(0,3).map((op,i)=>(
                                   <div key={i} style={{ padding:'8px 12px', background:'rgba(255,255,255,.06)', borderRadius:10, marginBottom:6, borderLeft:`3px solid ${RED}` }}>
                                     <div style={{ fontSize:13, fontWeight:800, color:'#fff', marginBottom:2 }}>{op.title}</div>
-                                    <div style={{ fontSize:13, color:'rgba(255,255,255,.5)' }}>{op.impact} impact · {op.effort} effort</div>
+                                    <div style={{ fontSize:13, color:'#999999' }}>{op.impact} impact · {op.effort} effort</div>
                                   </div>
                                 ))}
                               </div>
@@ -1277,7 +1277,7 @@ Return ONLY valid JSON (no markdown):
                             Automatically find up to 10 nearby competitors, score them head-to-head, and get an AI strategic action plan.
                           </div>
                           <button onClick={()=>navigate('/seo/competitor-intel')}
-                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:'#ea2729', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
+                            style={{ padding:'12px 32px', borderRadius:11, border:'none', background:'#E6007E', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>
                             Open Competitor Intel →
                           </button>
                         </div>

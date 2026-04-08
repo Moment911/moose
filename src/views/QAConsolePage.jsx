@@ -13,7 +13,7 @@ import toast from 'react-hot-toast'
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -448,7 +448,7 @@ export default function QAConsolePage() {
 
         {/* Fix log */}
         {fixLog.length > 0 && (
-          <div style={{ background:BLK, borderRadius:10, padding:'12px 16px', marginBottom:20, maxHeight:160, overflow:'auto' }}>
+          <div style={{ background: '#F5F5F5', borderRadius:10, padding:'12px 16px', marginBottom:20, maxHeight:160, overflow:'auto' }}>
             {fixLog.map((line, i) => (
               <div key={i} style={{ fontSize:12, fontFamily:'monospace', color:line.startsWith('Done') ? GRN : line.includes('❌') ? '#f87171' : '#a3e635', lineHeight:1.6 }}>{line}</div>
             ))}
@@ -638,7 +638,7 @@ export default function QAConsolePage() {
                     <div style={{ fontSize: 13, fontFamily: FB, color: BLK, marginBottom: 4 }}>{err.message}</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: err.source === 'app' ? R + '12' : T + '12', color: err.source === 'app' ? R : T, textTransform: 'uppercase' }}>{err.source === 'app' ? 'APP' : 'QA TEST'}</span>
-                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#f2f2f0', color: '#6b7280', textTransform: 'uppercase' }}>{err.suite || 'runtime'}</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#F9F9F9', color: '#6b7280', textTransform: 'uppercase' }}>{err.suite || 'runtime'}</span>
                       <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: sevColor + '15', color: sevColor, textTransform: 'uppercase' }}>{err.severity}</span>
                       <span style={{ fontSize: 11, color: '#9a9a96' }}>{timeAgo(err.created_at)}</span>
                       {err.url && <span style={{ fontSize: 10, color: '#9a9a96', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.url}</span>}
@@ -690,7 +690,7 @@ export default function QAConsolePage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontFamily: FB, color: BLK, marginBottom: 4 }}>{rep.description}</div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#f2f2f0', color: '#6b7280', textTransform: 'uppercase' }}>{rep.repair_type}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#F9F9F9', color: '#6b7280', textTransform: 'uppercase' }}>{rep.repair_type}</span>
                     <ResultBadge status={rep.status} />
                     {rep.auto && <span style={{ fontSize: 10, fontWeight: 700, color: T }}>AUTO</span>}
                     <span style={{ fontSize: 11, color: '#9a9a96' }}>{timeAgo(rep.created_at)}</span>
@@ -739,7 +739,7 @@ export default function QAConsolePage() {
               style={{
                 padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
                 fontSize: 12, fontWeight: 700, fontFamily: FH,
-                background: commsFilter === f ? BLK : '#f2f2f0',
+                background: commsFilter === f ? BLK : '#F9F9F9',
                 color: commsFilter === f ? '#fff' : '#6b7280',
               }}>
               {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}

@@ -12,9 +12,9 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -324,12 +324,12 @@ export default function OnboardingDashboardPage() {
   const completionRate = clients.length ? Math.round(counts.complete / clients.length * 100) : 0
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* ── Header ────────────────────────────────────────────────────── */}
-        <div style={{ background:BLK, padding:'18px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
@@ -346,7 +346,7 @@ export default function OnboardingDashboardPage() {
                 <Plus size={14}/> Send New Link
               </button>
               <button onClick={load}
-                style={{ padding:'9px 10px', borderRadius:9, border:'1px solid rgba(255,255,255,.1)', background:'transparent', color:'rgba(255,255,255,.5)', cursor:'pointer' }}>
+                style={{ padding:'9px 10px', borderRadius:9, border:'1px solid rgba(255,255,255,.1)', background:'transparent', color:'#999999', cursor:'pointer' }}>
                 <RefreshCw size={13}/>
               </button>
             </div>

@@ -5,8 +5,8 @@ import { Check, CheckCircle, Loader2, FileText, Clock, Shield } from 'lucide-rea
 import { supabase } from '../lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 const PRICE_LABELS = { monthly:'/ mo', one_time:'one-time', hourly:'/ hr', custom:'' }
 
 export default function ProposalPublicPage() {
@@ -80,7 +80,7 @@ export default function ProposalPublicPage() {
   const totalOneTime = sections.filter(s=>s.price_type==='one_time').reduce((sum,s)=>sum+(s.price||0),0)
 
   return (
-    <div style={{ minHeight:'100vh', background:'#f2f2f0' }}>
+    <div style={{ minHeight:'100vh', background:'#F9F9F9' }}>
       <Toaster position="top-right"/>
       {/* Header */}
       <div style={{ background:'#18181b', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -95,8 +95,8 @@ export default function ProposalPublicPage() {
             {proposal.type==='agreement'?'Service Agreement':proposal.type==='sow'?'Statement of Work':'Proposal'}
           </div>
           <h1 style={{ fontSize:30, fontWeight:900, color:'#fff', marginBottom:8, letterSpacing:-0.5 }}>{proposal.title}</h1>
-          {proposal.clients?.name && <div style={{ fontSize:15, color:'rgba(255,255,255,.45)' }}>Prepared for {proposal.clients.name}</div>}
-          {proposal.valid_until && <div style={{ fontSize:15, color:'rgba(255,255,255,.3)', marginTop:4 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
+          {proposal.clients?.name && <div style={{ fontSize:15, color:'#999999' }}>Prepared for {proposal.clients.name}</div>}
+          {proposal.valid_until && <div style={{ fontSize:15, color:'#999999', marginTop:4 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
         </div>
 
         {/* Body */}

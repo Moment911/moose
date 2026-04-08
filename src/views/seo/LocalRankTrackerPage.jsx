@@ -14,9 +14,9 @@ import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader, MobileTabs } from '../../components/mobile/MobilePage'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
-const BLK  = '#0a0a0a'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
+const BLK = '#111111'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -376,7 +376,7 @@ export default function LocalRankTrackerPage() {
                       borderLeft:targetBiz&&r.name?.toLowerCase().includes(targetBiz.toLowerCase())?`3px solid ${RED}`:'3px solid transparent' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <div style={{ width:28, height:28, borderRadius:8, flexShrink:0,
-                          background:targetBiz&&r.name?.toLowerCase().includes(targetBiz.toLowerCase())?RED:'#f2f2f0',
+                          background:targetBiz&&r.name?.toLowerCase().includes(targetBiz.toLowerCase())?RED:'#F9F9F9',
                           display:'flex', alignItems:'center', justifyContent:'center',
                           fontFamily:FH, fontSize:13, fontWeight:800,
                           color:targetBiz&&r.name?.toLowerCase().includes(targetBiz.toLowerCase())?'#fff':'#6b7280' }}>
@@ -426,7 +426,7 @@ export default function LocalRankTrackerPage() {
                 {history.map((h,i)=>(
                   <MobileRow key={h.id} borderBottom={i<history.length-1}
                     onClick={()=>rescan(h)}
-                    left={<div style={{ width:36, height:36, borderRadius:9, background:h.target_rank?h.target_rank<=3?'#f0fdf4':h.target_rank<=10?'#f0fbfc':'#f2f2f0':'#fef2f2',
+                    left={<div style={{ width:36, height:36, borderRadius:9, background:h.target_rank?h.target_rank<=3?'#f0fdf4':h.target_rank<=10?'#f0fbfc':'#F9F9F9':'#fef2f2',
                       display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
                       fontFamily:FH, fontSize:15, fontWeight:900,
                       color:h.target_rank?h.target_rank<=3?'#16a34a':h.target_rank<=10?TEAL:'#9a9a96':RED }}>
@@ -445,18 +445,18 @@ export default function LocalRankTrackerPage() {
 
   // ── DESKTOP ──────────────────────────────────────────────────────────────────
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'0 32px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'0 32px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 0 0' }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:24, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>
+              <h1 style={{ fontFamily:FH, fontSize:24, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>
                 Local Rank Tracker
               </h1>
-              <p style={{ fontSize:14, color:'rgba(255,255,255,.4)', margin:'4px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:14, color:'#999999', margin:'4px 0 0', fontFamily:FB }}>
                 Track Google Maps rankings — real data, AI-powered insights
               </p>
             </div>

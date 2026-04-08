@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 
-const R   = '#E6007E',T='#5bc6d0',GRN='#16a34a',AMB='#f59e0b',BLK='#0a0a0a'
+const R   = '#E6007E',T='#00C2CB',GRN='#16a34a',AMB='#f59e0b',BLK='#111111'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 
@@ -61,13 +61,13 @@ export default function StatusPage(){
   return(
     <div style={{minHeight:'100vh',background:'#f8fafc',fontFamily:FB}}>
       {/* Header */}
-      <div style={{background:BLK,padding:'20px 0'}}>
+      <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 0'}}>
         <div style={{maxWidth:780,margin:'0 auto',padding:'0 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
             <div style={{fontFamily:FH,fontSize:22,fontWeight:900,color:'#fff',letterSpacing:'-.03em'}}>·koto.</div>
             <span style={{fontSize:13,color: '#999999',fontFamily:FB}}>System Status</span>
           </div>
-          {lastChecked&&<div style={{fontSize:11,color:'rgba(255,255,255,.3)',fontFamily:FB}}>Updated {lastChecked.toLocaleTimeString()}</div>}
+          {lastChecked&&<div style={{fontSize:11,color:'#999999',fontFamily:FB}}>Updated {lastChecked.toLocaleTimeString()}</div>}
         </div>
       </div>
 

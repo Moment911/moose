@@ -7,11 +7,11 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
+const RED   = '#E6007E'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
-const BLK   = '#0a0a0a'
-const TEAL  = '#5bc6d0'
+const BLK = '#111111'
+const TEAL  = '#00C2CB'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB    = "'Raleway','Helvetica Neue',sans-serif"
 

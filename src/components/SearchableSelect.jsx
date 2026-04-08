@@ -67,7 +67,7 @@ export default function SearchableSelect({
   const TEXT   = dark ? '#fff'    : '#111'
   const MUTED  = dark ? '#666'    : '#9ca3af'
   const HOVER  = dark ? '#252525' : '#f9fafb'
-  const ACCENT = '#ea2729'
+  const ACCENT = '#E6007E'
 
   return (
     <div ref={wrapRef} style={{ position:'relative', ...style }}>

@@ -14,8 +14,8 @@ import {
 } from 'lucide-react'
 
 const R   = '#E6007E'
-const TEAL = '#5bc6d0'
-const BLK  = '#0a0a0a'
+const TEAL = '#00C2CB'
+const BLK = '#111111'
 const FONT_HEAD = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FONT_BODY = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -130,7 +130,7 @@ function SyncLog({ logs }) {
 function CatPill({ label }) {
   return (
     <span style={{ fontSize:13, fontWeight:700, color:'#5a5a58',
-      background:'#f2f2f0', borderRadius:20, padding:'2px 9px',
+      background:'#F9F9F9', borderRadius:20, padding:'2px 9px',
       fontFamily:FONT_HEAD, letterSpacing:'.02em' }}>
       {label}
     </span>
@@ -229,7 +229,7 @@ export default function IntegrationsPage() {
   const isMobile = useMobile()
 
   if (loading) return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
         <Loader2 size={26} color={R} style={{ animation:'spin 1s linear infinite' }}/>
@@ -257,7 +257,7 @@ export default function IntegrationsPage() {
               badge={int?.status==='connected'
                 ? <span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20}}>✓</span>
                 : p.comingSoon
-                  ? <span style={{fontSize:10,fontWeight:700,color:'#9a9a96',background:'#f2f2f0',padding:'2px 8px',borderRadius:20}}>Soon</span>
+                  ? <span style={{fontSize:10,fontWeight:700,color:'#9a9a96',background:'#F9F9F9',padding:'2px 8px',borderRadius:20}}>Soon</span>
                   : null}/>
           )
         })}
@@ -266,12 +266,12 @@ export default function IntegrationsPage() {
   )
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0', fontFamily:FONT_BODY }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9', fontFamily:FONT_BODY }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'0 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'0 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 0 0' }}>
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
@@ -280,7 +280,7 @@ export default function IntegrationsPage() {
                   <Plug size={16} color="#fff"/>
                 </div>
                 <h1 style={{ fontFamily:FONT_HEAD, fontSize:22, fontWeight:800,
-                  color:'#fff', margin:0, letterSpacing:'-.03em' }}>
+                  color: '#111111', margin: 0, letterSpacing:'-.03em' }}>
                   Integrations
                 </h1>
               </div>
@@ -292,7 +292,7 @@ export default function IntegrationsPage() {
               padding:'8px 14px', border:'1px solid rgba(255,255,255,.1)' }}>
               <div style={{ fontSize:13, color: '#999999', fontFamily:FONT_HEAD,
                 fontWeight:600, marginBottom:3 }}>Webhook URL</div>
-              <code style={{ fontSize:13, color:'rgba(255,255,255,.7)',
+              <code style={{ fontSize:13, color:'#999999',
                 fontFamily:'monospace' }}>{appUrl}/api/webhooks/ghl</code>
             </div>
           </div>
@@ -307,7 +307,7 @@ export default function IntegrationsPage() {
           <div style={{ overflowY:'auto', padding:'24px 28px' }}>
 
             {/* GHL featured card */}
-            <div style={{ background:BLK, borderRadius:16, padding:'24px 26px',
+            <div style={{ background: '#F5F5F5', borderRadius:16, padding:'24px 26px',
               marginBottom:20, border:'1px solid rgba(255,255,255,.08)' }}>
               <div style={{ display:'flex', alignItems:'flex-start', gap:16 }}>
                 {/* Icon */}
@@ -329,7 +329,7 @@ export default function IntegrationsPage() {
                     {ghl && <StatusBadge status={ghl.status}/>}
                   </div>
 
-                  <p style={{ fontSize:14, color:'rgba(255,255,255,.5)', lineHeight:1.7,
+                  <p style={{ fontSize:14, color:'#999999', lineHeight:1.7,
                     marginBottom:16, fontFamily:FONT_BODY, maxWidth:560 }}>
                     Full bi-directional sync between Koto and GHL. Contacts, opportunities, conversations, appointments, and custom fields. Real-time webhooks for 50+ event types.
                   </p>
@@ -338,7 +338,7 @@ export default function IntegrationsPage() {
                   <div style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:18 }}>
                     {['Contacts sync', 'Opportunities', 'Webhooks (50+ events)', 'Custom fields', 'SMS/Email', 'Calendar'].map(f => (
                       <span key={f} style={{ display:'flex', alignItems:'center', gap:5,
-                        fontSize:13, fontWeight:600, color:'rgba(255,255,255,.6)',
+                        fontSize:13, fontWeight:600, color:'#999999',
                         background:'rgba(255,255,255,.07)', border:'1px solid rgba(255,255,255,.1)',
                         borderRadius:20, padding:'3px 11px', fontFamily:FONT_HEAD }}>
                         <Check size={11} color="#22c55e" strokeWidth={3}/> {f}
@@ -364,7 +364,7 @@ export default function IntegrationsPage() {
                         <button onClick={() => disconnect(ghl.id)}
                           style={{ padding:'9px 16px', borderRadius:10,
                             border:'1px solid rgba(255,255,255,.15)', background:'transparent',
-                            color:'rgba(255,255,255,.5)', fontSize:14, cursor:'pointer',
+                            color:'#999999', fontSize:14, cursor:'pointer',
                             fontFamily:FONT_HEAD }}>
                           Disconnect
                         </button>
@@ -382,7 +382,7 @@ export default function IntegrationsPage() {
                     <a href="https://marketplace.gohighlevel.com/docs/" target="_blank" rel="noreferrer"
                       style={{ display:'flex', alignItems:'center', gap:5, padding:'9px 14px',
                         borderRadius:10, border:'1px solid rgba(255,255,255,.15)',
-                        background:'transparent', color:'rgba(255,255,255,.5)',
+                        background:'transparent', color:'#999999',
                         fontSize:14, textDecoration:'none', fontFamily:FONT_HEAD }}>
                       <ExternalLink size={13}/> Docs
                     </a>
@@ -478,7 +478,7 @@ export default function IntegrationsPage() {
                             color:'#0a0a0a', letterSpacing:'-.01em' }}>{p.name}</span>
                           {p.comingSoon && (
                             <span style={{ fontSize:13, fontWeight:700, color:'#9a9a96',
-                              background:'#f2f2f0', borderRadius:20, padding:'1px 8px',
+                              background:'#F9F9F9', borderRadius:20, padding:'1px 8px',
                               fontFamily:FONT_HEAD }}>Soon</span>
                           )}
                           {int && <StatusBadge status={int.status}/>}

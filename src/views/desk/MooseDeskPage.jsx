@@ -14,8 +14,8 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, MobileEmpty, MobileButton, MobileTabs, MobilePageHeader, MobileStatStrip } from '../../components/mobile/MobilePage'
 
-const RED = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED = '#E6007E'
+const TEAL = '#00C2CB'
 const BLACK = '#0a0a0a'
 
 // SLA thresholds in hours per priority
@@ -79,7 +79,7 @@ function TicketCard({ ticket, onClick, agents }) {
             <span style={{fontSize:13,fontWeight:700,padding:'2px 8px',borderRadius:20,background:st.bg,color:st.color}}>{st.label}</span>
             <span style={{fontSize:13,color:'#374151'}}>{ticket.submitter_name}</span>
             {ticket.ai_category && (
-              <span style={{fontSize:13,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#f2f2f0',color:'#374151',textTransform:'capitalize'}}>
+              <span style={{fontSize:13,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#F9F9F9',color:'#374151',textTransform:'capitalize'}}>
                 {ticket.ai_category.replace(/_/g,' ')}
               </span>
             )}
@@ -100,7 +100,7 @@ function TicketCard({ ticket, onClick, agents }) {
               {agent.name[0].toUpperCase()}
             </div>
           ) : (
-            <div style={{width:32,height:32,borderRadius:'50%',background:'#f2f2f0',
+            <div style={{width:32,height:32,borderRadius:'50%',background:'#F9F9F9',
               display:'flex',alignItems:'center',justifyContent:'center'}}>
               <User size={14} color="#9ca3af"/>
             </div>
@@ -175,7 +175,7 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
       display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
       <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:560,
         maxHeight:'90vh',overflow:'auto',boxShadow:'0 32px 80px rgba(0,0,0,.25)'}}>
-        <div style={{background:'#0a0a0a',borderRadius:'20px 20px 0 0',padding:'22px 28px'}}>
+        <div style={{background: '#ffffff',borderRadius:'20px 20px 0 0',padding:'22px 28px'}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
               <div style={{width:36,height:36,borderRadius:10,background:RED,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -183,7 +183,7 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
               </div>
               <div>
                 <div style={{fontSize:17,fontWeight:900,color:'#fff'}}>Submit a Request</div>
-                <div style={{fontSize:13,color:'rgba(255,255,255,.45)'}}>AI will triage and route your ticket automatically</div>
+                <div style={{fontSize:13,color:'#999999'}}>AI will triage and route your ticket automatically</div>
               </div>
             </div>
             <button onClick={onClose} style={{border:'none',background:'rgba(255,255,255,.1)',color:'#fff',borderRadius:8,padding:'5px 10px',cursor:'pointer'}}>✕</button>
@@ -288,7 +288,7 @@ export default function KotoDeskPage() {
 
   const isMobile = useMobile()
 
-  const PRI = { urgent:{color:'#ea2729',label:'Urgent'}, high:{color:'#f59e0b',label:'High'}, normal:{color:'#9a9a96',label:'Normal'}, low:{color:'#d0d0cc',label:'Low'} }
+  const PRI = { urgent:{color:'#E6007E',label:'Urgent'}, high:{color:'#f59e0b',label:'High'}, normal:{color:'#9a9a96',label:'Normal'}, low:{color:'#d0d0cc',label:'Low'} }
 
   /* ─── MOBILE ─── */
   if (isMobile) {
@@ -308,7 +308,7 @@ export default function KotoDeskPage() {
       return true
     }).filter(t=>!filterQ||t.subject?.toLowerCase().includes(filterQ.toLowerCase()))
 
-    const priColor = p => ({urgent:'#ea2729',high:'#f59e0b',normal:'#9a9a96',low:'#d0d0cc'})[p]||'#9a9a96'
+    const priColor = p => ({urgent:'#E6007E',high:'#f59e0b',normal:'#9a9a96',low:'#d0d0cc'})[p]||'#9a9a96'
 
     return (
       <MobilePage padded={false}>
@@ -317,14 +317,14 @@ export default function KotoDeskPage() {
           title="KotoDesk"
           subtitle={`${stats.total||0} tickets · ${stats.open||0} open`}
           action={<button onClick={()=>setShowNew(true)}
-            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            style={{width:38,height:38,borderRadius:11,background:'#E6007E',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>}/>
 
         {/* Stats */}
         <MobileStatStrip stats={[
           {label:'Total',    value:stats.total||0},
-          {label:'New',      value:stats.new||0,      color:stats.new>0?'#ea2729':undefined},
+          {label:'New',      value:stats.new||0,      color:stats.new>0?'#E6007E':undefined},
           {label:'Open',     value:stats.open||0,     color:stats.open>0?'#f59e0b':undefined},
           {label:'Resolved', value:stats.resolved||0, color:'#16a34a'},
         ]}/>
@@ -337,14 +337,14 @@ export default function KotoDeskPage() {
 
         {/* New ticket form */}
         {showNew && (
-          <div style={{margin:'12px 16px',background:'#fff',borderRadius:14,border:'2px solid #ea2729',padding:'16px'}}>
+          <div style={{margin:'12px 16px',background:'#fff',borderRadius:14,border:'2px solid #E6007E',padding:'16px'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
               <span style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#0a0a0a'}}>New Ticket</span>
               <button onClick={()=>setShowNew(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#9a9a96'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
-              <input id="m-subj" placeholder="Subject *" style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}} onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
-              <textarea id="m-desc" placeholder="Description" rows={3} style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box',resize:'none'}} onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+              <input id="m-subj" placeholder="Subject *" style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}} onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+              <textarea id="m-desc" placeholder="Description" rows={3} style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box',resize:'none'}} onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
               <div style={{display:'flex',gap:8}}>
                 <button onClick={async()=>{
                   const subj=document.getElementById('m-subj')?.value
@@ -352,7 +352,7 @@ export default function KotoDeskPage() {
                   if(!subj){toast.error('Subject required');return}
                   const {data:ticket}=await supabase.from('desk_tickets').insert({agency_id:aid,subject:subj,description:desc||'',status:'new',priority:'normal',category:'general',ticket_number:'TK-'+Date.now().toString().slice(-6)}).select().single()
                   if(ticket){toast.success('Ticket created');setShowNew(false);load()}
-                }} style={{flex:1,padding:'12px',borderRadius:11,border:'none',background:'#ea2729',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Submit</button>
+                }} style={{flex:1,padding:'12px',borderRadius:11,border:'none',background:'#E6007E',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Submit</button>
                 <button onClick={()=>setShowNew(false)} style={{flex:1,padding:'12px',borderRadius:11,border:'1px solid #ececea',background:'transparent',color:'#0a0a0a',fontSize:15,fontWeight:600,cursor:'pointer'}}>Cancel</button>
               </div>
             </div>
@@ -373,7 +373,7 @@ export default function KotoDeskPage() {
                 left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:priColor(t.priority)}}/>}
                 title={t.subject}
                 subtitle={[t.status?.replace('_',' '), t.submitter_name, t.ai_category].filter(Boolean).join(' · ')}
-                badge={t.status==='new'?<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#ea2729',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>NEW</span>:null}/>
+                badge={t.status==='new'?<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#E6007E',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>NEW</span>:null}/>
             ))}
           </MobileCard>
         )}
@@ -392,10 +392,10 @@ export default function KotoDeskPage() {
   ]
 
   return (
-    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
+    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9',fontFamily:"var(--font-body)"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{background:'#0a0a0a',padding:'18px 28px 0',flexShrink:0}}>
+        <div style={{background: '#ffffff',padding:'18px 28px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <div>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
@@ -405,7 +405,7 @@ export default function KotoDeskPage() {
                 <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>KotoDesk</h1>
                 <span style={{fontSize:13,fontWeight:800,color:TEAL,background:TEAL+'20',padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>AI-Powered</span>
               </div>
-              <p style={{fontSize:14,color:'rgba(255,255,255,.4)',margin:0}}>
+              <p style={{fontSize:14,color:'#999999',margin:0}}>
                 {stats.total||0} tickets · {stats.open||0} open · {stats.unassigned||0} unassigned
               </p>
             </div>
@@ -413,13 +413,13 @@ export default function KotoDeskPage() {
               <button onClick={()=>navigate('/agency-settings?section=desk')}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
                   border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-                  color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                  color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <Settings size={13}/> Setup
               </button>
               <button onClick={()=>navigate('/desk/reports')}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
                   border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-                  color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                  color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <BarChart2 size={13}/> Analytics
               </button>
               <button onClick={()=>setShowNew(true)}
@@ -440,7 +440,7 @@ export default function KotoDeskPage() {
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
                 <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#fff',lineHeight:1}}>{s.value}</div>
-                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:3}}>{s.label}</div>
+                <div style={{fontSize:13,color:'#999999',marginTop:3}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -463,7 +463,7 @@ export default function KotoDeskPage() {
         </div>
         <div style={{background:'#fff',borderBottom:'1px solid #e5e7eb',padding:'12px 28px',
           flexShrink:0,display:'flex',gap:10,alignItems:'center'}}>
-          <div style={{display:'flex',alignItems:'center',gap:8,background:'#f2f2f0',
+          <div style={{display:'flex',alignItems:'center',gap:8,background:'#F9F9F9',
             borderRadius:10,padding:'8px 14px',flex:1,maxWidth:400}}>
             <Search size={14} color="#9ca3af"/>
             <input value={filterQ} onChange={e=>setFilterQ(e.target.value)}

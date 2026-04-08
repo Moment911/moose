@@ -6,8 +6,8 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
 const BLACK = '#0a0a0a'
 
 function StatCard({ label, value, sub, color=RED, icon: Icon }) {
@@ -103,7 +103,7 @@ export default function DeskAnalyticsPage() {
   const maxCat = topCats[0]?.[1] || 1
 
   return (
-    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
+    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9'}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
@@ -111,7 +111,7 @@ export default function DeskAnalyticsPage() {
           <button onClick={()=>navigate('/desk')}
             style={{display:'flex',alignItems:'center',gap:5,padding:'7px 12px',borderRadius:9,
               border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-              color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+              color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <ChevronLeft size={14}/> Back
           </button>
           <h1 style={{fontSize:20,fontWeight:900,color:'#fff',margin:0}}>KotoDesk Analytics</h1>

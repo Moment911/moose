@@ -13,7 +13,7 @@ import {
 import toast from 'react-hot-toast'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -828,10 +828,10 @@ export default function ClientDetailPage() {
         <div style={{ background: BLK, flexShrink: 0 }}>
           <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => navigate('/clients')}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontFamily: FH, padding: 0 }}>
+              style={{ background: 'none', border: 'none', color: '#999999', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontFamily: FH, padding: 0 }}>
               <ArrowLeft size={16} /> Clients
             </button>
-            <span style={{ color: 'rgba(255,255,255,.2)' }}>/</span>
+            <span style={{ color: '#999999' }}>/</span>
             <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: '#fff' }}>{client.name}</span>
             {client.industry && <span style={badge(T)}>{client.industry}</span>}
             <span style={badge(statusColor)}>{client.status || 'active'}</span>

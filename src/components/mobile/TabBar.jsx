@@ -2,7 +2,7 @@
 import { Home, Users, Star, Ticket, BarChart2, Search, Settings, FileText, Grid3X3, MessageSquare, CheckSquare } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-const RED = '#ea2729'
+const RED = '#E6007E'
 
 const TABS = [
   { icon: Home,        label: 'Home',    path: '/' },

@@ -11,9 +11,9 @@ import { useAuth } from '../hooks/useAuth'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "\'Proxima Nova\',\'Nunito Sans\',\'Helvetica Neue\',sans-serif"
@@ -388,7 +388,7 @@ export default function ClientProfilePage() {
   }
 
   if (loading) return (
-    <div style={{ display:'flex', height:'100vh', alignItems:'center', justifyContent:'center', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', alignItems:'center', justifyContent:'center', background:'#F9F9F9' }}>
       <Loader2 size={28} color={TEAL} style={{ animation:'spin 1s linear infinite' }}/>
     </div>
   )
@@ -397,12 +397,12 @@ export default function ClientProfilePage() {
   const onboardingUrl = primaryToken ? `${window.location.origin}/onboarding/${primaryToken.token}` : null
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'16px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'16px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:'#fff' }}>{client?.name || 'Client Profile'}</div>
@@ -439,7 +439,7 @@ export default function ClientProfilePage() {
                 {onboardingUrl.replace(/^https?:\/\//, '')}
               </span>
             ) : (
-              <span style={{ fontSize:11, color:'rgba(255,255,255,.25)', fontFamily:FB, fontStyle:'italic' }}>No link yet</span>
+              <span style={{ fontSize:11, color:'#999999', fontFamily:FB, fontStyle:'italic' }}>No link yet</span>
             )}
             {onboardingUrl && (
               <button onClick={() => { navigator.clipboard.writeText(onboardingUrl); toast.success('Link copied!') }}
@@ -448,12 +448,12 @@ export default function ClientProfilePage() {
               </button>
             )}
             <button onClick={sendNewLink}
-              style={{ display:'flex', alignItems:'center', gap:4, padding:'3px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,.15)', background:'transparent', color:'rgba(255,255,255,.6)', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+              style={{ display:'flex', alignItems:'center', gap:4, padding:'3px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,.15)', background:'transparent', color:'#999999', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
               <Send size={9}/> Send New Link
             </button>
             {tokens.length > 0 && (
               <button onClick={() => setShowTokens(s => !s)}
-                style={{ fontSize:11, color:'rgba(255,255,255,.3)', background:'none', border:'none', cursor:'pointer', fontFamily:FB }}>
+                style={{ fontSize:11, color:'#999999', background:'none', border:'none', cursor:'pointer', fontFamily:FB }}>
                 {tokens.length} link{tokens.length !== 1 ? 's' : ''} {showTokens ? '▲' : '▼'}
               </button>
             )}
@@ -469,14 +469,14 @@ export default function ClientProfilePage() {
                     <span style={{ fontSize:11, fontWeight:700, color: tok.is_locked ? '#6b7280' : 'rgba(255,255,255,.7)', fontFamily:FH, minWidth:80 }}>
                       {tok.label || 'Primary'}
                     </span>
-                    <span style={{ fontSize:10, fontFamily:'monospace', color:'rgba(255,255,255,.3)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    <span style={{ fontSize:10, fontFamily:'monospace', color:'#999999', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                       {url.replace(/^https?:\/\//,'')}
                     </span>
                     <span style={{ fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:20, background: tok.is_locked ? '#7f1d1d30' : GREEN+'20', color: tok.is_locked ? RED : GREEN }}>
                       {tok.is_locked ? '🔒 Locked' : '🟢 Active'}
                     </span>
                     <button onClick={() => { navigator.clipboard.writeText(url); toast.success('Copied!') }}
-                      style={{ padding:'3px 8px', borderRadius:6, border:'1px solid rgba(255,255,255,.1)', background:'transparent', color:'rgba(255,255,255,.5)', cursor:'pointer', fontSize:10 }}>
+                      style={{ padding:'3px 8px', borderRadius:6, border:'1px solid rgba(255,255,255,.1)', background:'transparent', color:'#999999', cursor:'pointer', fontSize:10 }}>
                       <Copy size={10}/>
                     </button>
                   </div>
@@ -487,7 +487,7 @@ export default function ClientProfilePage() {
         </div>
 
         {/* Search */}
-        <div style={{ padding:'14px 28px 0', background:'#f2f2f0' }}>
+        <div style={{ padding:'14px 28px 0', background:'#F9F9F9' }}>
           <div style={{ position:'relative', maxWidth:480 }}>
             <Search size={14} style={{ position:'absolute', left:11, top:'50%', transform:'translateY(-50%)', color:'#9ca3af' }}/>
             <input value={search} onChange={e => setSearch(e.target.value)}

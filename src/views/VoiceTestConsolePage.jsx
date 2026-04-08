@@ -10,7 +10,7 @@ import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 
-const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b', PURP = '#7c3aed'
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b', PURP = '#7c3aed'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -864,7 +864,7 @@ export default function VoiceTestConsolePage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Dark Header */}
-        <div style={{ background: BLK, padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 700, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Shield size={22} color={R} /> Voice Test Console

@@ -8,8 +8,8 @@ import { supabase } from '../lib/supabase'
 import { callClaude } from '../lib/ai'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 
 function Pill({ text, color=ACCENT }) {
   return <span style={{ display:'inline-flex', fontSize:14, fontWeight:700, padding:'4px 10px', borderRadius:20, background:color+'18', color, border:`1px solid ${color}28`, margin:'0 4px 5px 0' }}>{text}</span>

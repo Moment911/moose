@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 const PAGE_TYPES=['service','location','industry','faq','blog','landing']
@@ -196,7 +196,7 @@ export default function WordPressControlPage(){
           ):(
             <>
               {/* Header */}
-              <div style={{background:BLK,padding:'16px 24px 0',flexShrink:0}}>
+              <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'16px 24px 0',flexShrink:0}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
                   <div style={{display:'flex',alignItems:'center',gap:10}}>
                     <Dot on={selected.connected}/>
@@ -209,10 +209,10 @@ export default function WordPressControlPage(){
                     {[{label:'pages',value:selected.pages_count||0,color:T},{label:'generated',value:selected.pages_generated||0,color:R}].map(s=>(
                       <div key={s.label} style={{textAlign:'center',padding:'0 10px',borderLeft:'1px solid rgba(255,255,255,.08)'}}>
                         <div style={{fontFamily:FH,fontSize:17,fontWeight:900,color:s.color}}>{s.value}</div>
-                        <div style={{fontSize:9,color:'rgba(255,255,255,.25)',fontFamily:FB,textTransform:'uppercase',letterSpacing:'.05em'}}>{s.label}</div>
+                        <div style={{fontSize:9,color:'#999999',fontFamily:FB,textTransform:'uppercase',letterSpacing:'.05em'}}>{s.label}</div>
                       </div>
                     ))}
-                    <button onClick={()=>deleteSite(selected.id)} style={{padding:'7px 9px',borderRadius:8,border:'1px solid rgba(255,255,255,.1)',background:'transparent',color:'rgba(255,255,255,.25)',cursor:'pointer',marginLeft:4}}><Trash2 size={12}/></button>
+                    <button onClick={()=>deleteSite(selected.id)} style={{padding:'7px 9px',borderRadius:8,border:'1px solid rgba(255,255,255,.1)',background:'transparent',color:'#999999',cursor:'pointer',marginLeft:4}}><Trash2 size={12}/></button>
                   </div>
                 </div>
                 <div style={{display:'flex',gap:2}}>

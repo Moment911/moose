@@ -8,8 +8,8 @@ import {
 import { signOut } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
-const R  = '#ea2729'
-const T  = '#5bc6d0'
+const R   = '#E6007E'
+const T  = '#00C2CB'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -75,7 +75,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
       }}>
         {/* Dark header */}
         <div style={{
-          background: '#0a0a0a', flexShrink: 0,
+          background: '#ffffff', flexShrink: 0,
           paddingTop: 'env(safe-area-inset-top, 0px)',
         }}>
           <div style={{
@@ -120,7 +120,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
                     <button key={item.path} onClick={handleClick} style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                       gap: 6, padding: '14px 8px', borderRadius: 14, border: 'none',
-                      background: active ? R : '#f2f2f0',
+                      background: active ? R : '#F9F9F9',
                       cursor: 'pointer', minHeight: 80,
                       WebkitTapHighlightColor: 'transparent',
                       transition: 'all .2s ease', position: 'relative',

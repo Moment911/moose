@@ -10,9 +10,9 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const PURP  = '#7c3aed'
@@ -159,12 +159,12 @@ export default function MarketplacePage() {
   const planIncludes  = addons.filter(a => PLAN_ORDER[a.min_plan] <= PLAN_ORDER[plan]).map(a => a.key)
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'20px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
@@ -212,7 +212,7 @@ export default function MarketplacePage() {
                   if (!addon) return null
                   const Icon = ICON_MAP[addon.icon] || Sparkles
                   return (
-                    <div key={key} style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 10px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'rgba(255,255,255,.7)', fontSize:12, fontFamily:FB }}>
+                    <div key={key} style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 10px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'#999999', fontSize:12, fontFamily:FB }}>
                       <Icon size={11}/> {addon.name}
                     </div>
                   )

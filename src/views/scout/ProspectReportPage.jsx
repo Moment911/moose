@@ -41,8 +41,8 @@ import { useAuth } from '../../hooks/useAuth'
 import AIThinkingBox from '../../components/AIThinkingBox'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
 const BLACK = '#0a0a0a'
 
 // ── Animated score ring ───────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ function PipelineProgress({ steps }) {
         <div style={{fontSize:16,fontWeight:900,color:'#fff'}}>
           Building your intelligence report
         </div>
-        <div style={{marginLeft:'auto',fontSize:13,color:'rgba(255,255,255,.4)'}}>
+        <div style={{marginLeft:'auto',fontSize:13,color:'#999999'}}>
           {steps.filter(s=>s.done).length}/{steps.length} steps
         </div>
       </div>
@@ -135,7 +135,7 @@ function PipelineProgress({ steps }) {
                 ? <Check size={13} color="#fff"/>
                 : step.active
                   ? <Loader2 size={13} color="#fff" style={{animation:'spin 1s linear infinite'}}/>
-                  : <span style={{fontSize:13,fontWeight:800,color:'rgba(255,255,255,.4)'}}>{i+1}</span>
+                  : <span style={{fontSize:13,fontWeight:800,color:'#999999'}}>{i+1}</span>
               }
             </div>
             <div style={{flex:1}}>
@@ -145,10 +145,10 @@ function PipelineProgress({ steps }) {
                 {step.label}
               </div>
               {step.active && step.detail && (
-                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:2}}>{step.detail}</div>
+                <div style={{fontSize:13,color:'#999999',marginTop:2}}>{step.detail}</div>
               )}
               {step.done && step.result && (
-                <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:2}}>{step.result}</div>
+                <div style={{fontSize:13,color:'#999999',marginTop:2}}>{step.result}</div>
               )}
             </div>
             {step.done && (
@@ -443,7 +443,7 @@ export default function ProspectReportPage() {
               : <div style={{fontSize:18,fontWeight:900,color:'#fff'}}>{agName}</div>
             }
             <div style={{width:1,height:22,background:'rgba(255,255,255,.2)'}}/>
-            <div style={{fontSize:13,color:'rgba(255,255,255,.5)',fontWeight:600}}>Prospect Intelligence Report</div>
+            <div style={{fontSize:13,color:'#999999',fontWeight:600}}>Prospect Intelligence Report</div>
           </div>
 
           {/* Pipeline progress (shown while building) */}
@@ -470,12 +470,12 @@ export default function ProspectReportPage() {
 
               <div style={{display:'flex',flexWrap:'wrap',gap:14,marginBottom:24}}>
                 {lead.address && (
-                  <div style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'rgba(255,255,255,.5)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'#999999'}}>
                     <MapPin size={13}/> {lead.address}
                   </div>
                 )}
                 {lead.phone && (
-                  <div style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'rgba(255,255,255,.5)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'#999999'}}>
                     <Phone size={13}/> {lead.phone}
                   </div>
                 )}
@@ -516,7 +516,7 @@ export default function ProspectReportPage() {
                       <span style={{fontSize:26,fontWeight:900,color:'#f59e0b'}}>{lead.rating}</span>
                       <Stars rating={lead.rating}/>
                     </div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>
+                    <div style={{fontSize:13,color:'#999999'}}>
                       {(lead.review_count||0).toLocaleString()} Google reviews
                     </div>
                   </div>
@@ -524,13 +524,13 @@ export default function ProspectReportPage() {
                 {(lead.gaps||[]).length > 0 && (
                   <div style={{background:`${RED}15`,border:`1px solid ${RED}40`,borderRadius:14,padding:'14px 18px'}}>
                     <div style={{fontSize:26,fontWeight:900,color:RED}}>{lead.gaps.length}</div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Marketing gaps identified</div>
+                    <div style={{fontSize:13,color:'#999999'}}>Marketing gaps identified</div>
                   </div>
                 )}
                 {r?.opportunityScore && (
                   <div style={{background:'rgba(255,255,255,.07)',border:`1px solid ${TEAL}40`,borderRadius:14,padding:'14px 18px'}}>
                     <div style={{fontSize:26,fontWeight:900,color:TEAL}}>{r.opportunityScore}/100</div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Opportunity score</div>
+                    <div style={{fontSize:13,color:'#999999'}}>Opportunity score</div>
                   </div>
                 )}
                 {lead.revenue?.annualRevenueAtRisk > 0 && (
@@ -538,7 +538,7 @@ export default function ProspectReportPage() {
                     <div style={{fontSize:26,fontWeight:900,color:'#fff'}}>
                       ${Math.round(lead.revenue.annualRevenueAtRisk/1000)}K
                     </div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Revenue at risk/yr</div>
+                    <div style={{fontSize:13,color:'#999999'}}>Revenue at risk/yr</div>
                   </div>
                 )}
               </div>
@@ -553,7 +553,7 @@ export default function ProspectReportPage() {
                   <div style={{fontSize:36,fontWeight:900,color:'#fff',letterSpacing:-2}}>
                     {r?.opportunityScore||lead.score||50}
                   </div>
-                  <div style={{fontSize:13,color:'rgba(255,255,255,.4)',textTransform:'uppercase',letterSpacing:'.06em'}}>Score</div>
+                  <div style={{fontSize:13,color:'#999999',textTransform:'uppercase',letterSpacing:'.06em'}}>Score</div>
                 </div>
               </div>
               <div style={{fontSize:13,fontWeight:700,textAlign:'center',
@@ -568,17 +568,17 @@ export default function ProspectReportPage() {
           {/* Report meta */}
           <div style={{borderTop:'1px solid rgba(255,255,255,.08)',marginTop:48,paddingTop:24,
             display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <div style={{fontSize:13,color:'rgba(255,255,255,.3)'}}>
+            <div style={{fontSize:13,color:'#999999'}}>
               Prepared by {agName} · {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
             </div>
-            <div style={{display:'flex',gap:16,fontSize:13,color:'rgba(255,255,255,.35)'}}>
+            <div style={{display:'flex',gap:16,fontSize:13,color:'#999999'}}>
               {agEmail && <span>{agEmail}</span>}
               {agDomain && <span>www.{agDomain}</span>}
             </div>
           </div>
         </div>
 
-        <div style={{textAlign:'center',marginTop:40,color:'rgba(255,255,255,.2)'}}>
+        <div style={{textAlign:'center',marginTop:40,color:'#999999'}}>
           <ChevronDown size={22} style={{animation:'bounce 2s infinite'}}/>
         </div>
       </div>
@@ -592,7 +592,7 @@ export default function ProspectReportPage() {
               <h2 style={{fontSize:34,fontWeight:900,color:'#fff',letterSpacing:-1,marginBottom:18,lineHeight:1.15}}>
                 The opportunity hiding in plain sight
               </h2>
-              <p style={{fontSize:16,color:'rgba(255,255,255,.65)',lineHeight:1.8,marginBottom:24}}>
+              <p style={{fontSize:16,color:'#999999',lineHeight:1.8,marginBottom:24}}>
                 {r.executiveSummary}
               </p>
               {r.revenueAtRisk && (
@@ -603,7 +603,7 @@ export default function ProspectReportPage() {
                     Estimated revenue at risk annually
                   </div>
                   <div style={{fontSize:30,fontWeight:900,color:'#fff'}}>{r.revenueAtRisk}</div>
-                  <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:4}}>
+                  <div style={{fontSize:13,color:'#999999',marginTop:4}}>
                     being lost to better-positioned competitors
                   </div>
                 </div>
@@ -623,7 +623,7 @@ export default function ProspectReportPage() {
                     <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',
                       justifyContent:'center',fontSize:18,fontWeight:900,color:'#fff'}}>{m.value||0}</div>
                   </div>
-                  <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.5)'}}>{m.label}</div>
+                  <div style={{fontSize:13,fontWeight:700,color:'#999999'}}>{m.label}</div>
                 </div>
               ))}
             </div>
@@ -638,7 +638,7 @@ export default function ProspectReportPage() {
                   <div style={{width:22,height:22,borderRadius:'50%',background:RED,
                     display:'flex',alignItems:'center',justifyContent:'center',
                     fontSize:13,fontWeight:900,color:'#fff',flexShrink:0,marginTop:1}}>{i+1}</div>
-                  <span style={{fontSize:14,color:'rgba(255,255,255,.7)',lineHeight:1.55}}>{f}</span>
+                  <span style={{fontSize:14,color:'#999999',lineHeight:1.55}}>{f}</span>
                 </div>
               ))}
             </div>
@@ -839,7 +839,7 @@ export default function ProspectReportPage() {
           <h2 style={{fontSize:34,fontWeight:900,color:'#fff',letterSpacing:-1,marginBottom:8}}>
             How {agName} closes every gap
           </h2>
-          <p style={{fontSize:15,color:'rgba(255,255,255,.55)',marginBottom:36,lineHeight:1.7}}>
+          <p style={{fontSize:15,color:'#999999',marginBottom:36,lineHeight:1.7}}>
             A program designed specifically around {lead.name}'s real situation.
           </p>
 
@@ -864,9 +864,9 @@ export default function ProspectReportPage() {
                           color:w.impact==='High'?RED:TEAL,
                           background:w.impact==='High'?`${RED}20`:`${TEAL}20`,
                           padding:'1px 8px',borderRadius:20}}>{w.impact} impact</span>
-                        <span style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>{w.timeline}</span>
+                        <span style={{fontSize:13,color:'#999999'}}>{w.timeline}</span>
                       </div>
-                      <div style={{fontSize:13,color:'rgba(255,255,255,.5)',marginTop:5}}>{w.result}</div>
+                      <div style={{fontSize:13,color:'#999999',marginTop:5}}>{w.result}</div>
                     </div>
                   </div>
                 ))}
@@ -882,10 +882,10 @@ export default function ProspectReportPage() {
                   borderRadius:16,padding:'20px',position:'relative',overflow:'hidden'}}>
                   {i===0&&<div style={{position:'absolute',top:0,left:0,right:0,height:3,background:RED}}/>}
                   <div style={{fontSize:13,fontWeight:800,color:i===0?RED:TEAL,marginBottom:8}}>{s.service}</div>
-                  <div style={{fontSize:14,color:'rgba(255,255,255,.65)',lineHeight:1.6,marginBottom:12}}>{s.description}</div>
-                  <div style={{fontSize:13,color:'rgba(255,255,255,.4)',paddingTop:12,
+                  <div style={{fontSize:14,color:'#999999',lineHeight:1.6,marginBottom:12}}>{s.description}</div>
+                  <div style={{fontSize:13,color:'#999999',paddingTop:12,
                     borderTop:'1px solid rgba(255,255,255,.07)',marginBottom:12}}>
-                    Expected: <span style={{color:'rgba(255,255,255,.7)',fontWeight:600}}>{s.outcome}</span>
+                    Expected: <span style={{color:'#999999',fontWeight:600}}>{s.outcome}</span>
                   </div>
                   <div style={{fontSize:18,fontWeight:900,color:'#fff'}}>{s.price}</div>
                 </div>
@@ -984,7 +984,7 @@ export default function ProspectReportPage() {
             Every day without action is a day competitors get stronger.
           </h2>
           {r?.closingStatement && (
-            <p style={{fontSize:16,color:'rgba(255,255,255,.55)',lineHeight:1.8,marginBottom:36}}>
+            <p style={{fontSize:16,color:'#999999',lineHeight:1.8,marginBottom:36}}>
               {r.closingStatement}
             </p>
           )}
@@ -1018,11 +1018,11 @@ export default function ProspectReportPage() {
             <button onClick={()=>window.print()}
               style={{display:'inline-flex',alignItems:'center',gap:8,padding:'14px 24px',
                 borderRadius:14,border:'1px solid rgba(255,255,255,.2)',background:'transparent',
-                color:'rgba(255,255,255,.7)',fontSize:15,fontWeight:700,cursor:'pointer'}}>
+                color:'#999999',fontSize:15,fontWeight:700,cursor:'pointer'}}>
               <Printer size={15}/> Save as PDF
             </button>
           </div>
-          <div style={{marginTop:28,fontSize:13,color:'rgba(255,255,255,.2)'}}>
+          <div style={{marginTop:28,fontSize:13,color:'#999999'}}>
             Report by {agName} · Powered by Koto · Data: Google Places API + live website scan
           </div>
         </div>

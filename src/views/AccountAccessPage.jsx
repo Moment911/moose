@@ -11,8 +11,8 @@ import { ACCESS_SECTIONS, PRIORITY_CONFIG, STATUS_CONFIG, TYPE_CONFIG } from '..
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 const INP = { width:'100%', padding:'8px 11px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', boxSizing:'border-box', color:'#111' }
 
 function PwField({ value, onChange }) {

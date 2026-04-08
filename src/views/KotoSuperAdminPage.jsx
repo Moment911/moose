@@ -8,9 +8,9 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -225,7 +225,7 @@ export default function KotoSuperAdminPage() {
   const agencyMembers = (agId) => members.filter(m => m.agency_id === agId)
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0a', color:'#fff' }}>
+    <div style={{ minHeight:'100vh', background: '#ffffff', color:'#fff' }}>
 
       {/* Top bar */}
       <div style={{ background:'#111', borderBottom:'1px solid #222', padding:'16px 32px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -862,7 +862,7 @@ export default function KotoSuperAdminPage() {
                       <button onClick={async()=>{
                         setMpRequests(p=>p.filter(r=>r.id!==req.id))
                       }}
-                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #fecaca', background:'#fef2f2', color:'#ea2729', fontSize:12, cursor:'pointer' }}>
+                        style={{ padding:'6px 12px', borderRadius:8, border:'1px solid #fecaca', background:'#fef2f2', color:'#E6007E', fontSize:12, cursor:'pointer' }}>
                         Deny
                       </button>
                     </div>

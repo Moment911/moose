@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/client-intelligence'
@@ -181,7 +181,7 @@ export default function ClientIntelligencePage() {
           {completeness?.missing?.length > 0 && (
             <div style={{ display:'flex', gap:6, marginTop:14, flexWrap:'wrap' }}>
               {completeness.missing.map(m => (
-                <span key={m} style={{ padding:'2px 10px', borderRadius:99, fontSize:10, fontWeight:600, fontFamily:FB, background:'rgba(255,255,255,.08)', color:'rgba(255,255,255,.5)' }}>
+                <span key={m} style={{ padding:'2px 10px', borderRadius:99, fontSize:10, fontWeight:600, fontFamily:FB, background:'rgba(255,255,255,.08)', color:'#999999' }}>
                   Missing: {m}
                 </span>
               ))}

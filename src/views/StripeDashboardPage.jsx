@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -193,10 +193,10 @@ export default function StripeDashboardPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ background: BLK, padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-.03em' }}>Stripe Control Center</h1>
+              <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>Stripe Control Center</h1>
               <p style={{ fontSize: 13, color: '#999999', margin: '4px 0 0' }}>Products, subscriptions, coupons &amp; revenue</p>
             </div>
             <button onClick={syncStripe} disabled={syncing} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', color: '#fff', padding: '8px 16px', borderRadius: 8, cursor: syncing ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>

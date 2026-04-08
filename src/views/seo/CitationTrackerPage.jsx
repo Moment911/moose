@@ -7,9 +7,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED    = '#ea2729'
-const TEAL   = '#5bc6d0'
-const BLK    = '#0a0a0a'
+const RED    = '#E6007E'
+const TEAL   = '#00C2CB'
+const BLK = '#111111'
 const GREEN  = '#16a34a'
 const AMBER  = '#f59e0b'
 const PURPLE = '#8b5cf6'
@@ -177,18 +177,18 @@ export default function CitationTrackerPage() {
   const missingPrimary = dirs.filter(d => d.category==='primary' && !d.found)
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'20px 32px 0', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:14 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <MapPin size={20} color={RED}/> Citation Tracker
               </h1>
-              <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 20 directories · NAP consistency · AI action plan
               </p>
             </div>
@@ -208,7 +208,7 @@ export default function CitationTrackerPage() {
 
           {/* History bar */}
           {history.length > 0 && !result && (
-            <div style={{ paddingBottom:12, fontSize:12, color:'rgba(255,255,255,.4)', fontFamily:FB }}>
+            <div style={{ paddingBottom:12, fontSize:12, color:'#999999', fontFamily:FB }}>
               Last check: {history.filter(h=>h.found).length}/{history.length} found on {new Date(history[0]?.checked_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
             </div>
           )}
@@ -262,11 +262,11 @@ export default function CitationTrackerPage() {
                       <Sparkles size={14} color={TEAL}/>
                       <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Assessment</span>
                     </div>
-                    <div style={{ fontSize:14, color:'rgba(255,255,255,.85)', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.summary}</div>
+                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.summary}</div>
                     {result.ai.quick_win && (
                       <div style={{ background:`${RED}15`, borderRadius:9, padding:'9px 12px', border:`1px solid ${RED}30` }}>
                         <span style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:RED }}>Quick Win: </span>
-                        <span style={{ fontSize:13, color:'rgba(255,255,255,.8)', fontFamily:FB }}>{result.ai.quick_win}</span>
+                        <span style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{result.ai.quick_win}</span>
                       </div>
                     )}
                   </div>

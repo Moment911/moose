@@ -7,8 +7,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 
 const INP = {
   width: '100%', padding: '13px 16px', borderRadius: 10,
@@ -402,7 +402,7 @@ export default function AgencySignupPage() {
                     onChange={e=>{setCouponCode(e.target.value.toUpperCase());setCoupon(null);setCouponError('')}}
                     onKeyDown={e=>e.key==='Enter'&&validateCoupon()}
                     placeholder="KOTO20"
-                    style={{ flex:1, padding:'10px 14px', borderRadius:10, border:`1.5px solid ${coupon?'#16a34a':couponError?'#ea2729':'#e5e7eb'}`, fontSize:14, outline:'none', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'.1em' }}
+                    style={{ flex:1, padding:'10px 14px', borderRadius:10, border:`1.5px solid ${coupon?'#16a34a':couponError?'#E6007E':'#e5e7eb'}`, fontSize:14, outline:'none', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'.1em' }}
                   />
                   <button onClick={validateCoupon} disabled={!couponCode.trim()||checkingCoupon}
                     style={{ padding:'10px 18px', borderRadius:10, border:'none', background:'#111', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
@@ -421,7 +421,7 @@ export default function AgencySignupPage() {
                   </div>
                 )}
                 {couponError && (
-                  <div style={{ marginTop:6, fontSize:13, color:'#ea2729', fontWeight:600 }}>{couponError}</div>
+                  <div style={{ marginTop:6, fontSize:13, color:'#E6007E', fontWeight:600 }}>{couponError}</div>
                 )}
               </div>
 
@@ -433,9 +433,9 @@ export default function AgencySignupPage() {
                 {/* TOS consent */}
                 <p style={{ fontSize:12, color:'#9ca3af', textAlign:'center', margin:'0 0 8px', lineHeight:1.6 }}>
                   By clicking below you agree to Koto's{' '}
-                  <a href="/terms" target="_blank" style={{ color:'#ea2729', fontWeight:700 }}>Terms of Service</a>{' '}
+                  <a href="/terms" target="_blank" style={{ color:'#E6007E', fontWeight:700 }}>Terms of Service</a>{' '}
                   and{' '}
-                  <a href="/privacy" target="_blank" style={{ color:'#ea2729', fontWeight:700 }}>Privacy Policy</a>.
+                  <a href="/privacy" target="_blank" style={{ color:'#E6007E', fontWeight:700 }}>Privacy Policy</a>.
                   Your card will be charged after your 7-day free trial.
                   No refunds on monthly plans once charged.
                 </p>

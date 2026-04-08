@@ -8,7 +8,7 @@ import {
   DollarSign, Hash, Calendar, Check, AlertTriangle
 } from 'lucide-react'
 
-const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"

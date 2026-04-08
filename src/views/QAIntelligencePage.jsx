@@ -14,7 +14,7 @@ import { EXPERT_QA_SEEDS, INDUSTRY_COUNTS } from '../data/expertQASeeds'
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -720,7 +720,7 @@ export default function QAIntelligencePage() {
         {bulkMode && selectedIds.size > 0 && (
           <div style={{
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-            background: BLK, borderRadius: 14, padding: '12px 24px', display: 'flex',
+            background: '#F5F5F5', borderRadius: 14, padding: '12px 24px', display: 'flex',
             alignItems: 'center', gap: 16, zIndex: 9998, boxShadow: '0 8px 32px rgba(0,0,0,.3)',
           }}>
             <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: W }}>{selectedIds.size} selected</span>

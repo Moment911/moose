@@ -39,7 +39,7 @@ export default function ScoutReportsPage() {
         <div className="grid grid-cols-4 gap-4 mb-6">
           {[
             { label: 'Total Scouted', value: stats.scouted, icon: Search, color: '#0F172A' },
-            { label: 'Imported', value: stats.imported, icon: Users, color: '#5bc6d0' },
+            { label: 'Imported', value: stats.imported, icon: Users, color: '#00C2CB' },
             { label: 'Hot Leads', value: stats.hot, icon: Flame, color: '#ef4444' },
             { label: 'Contacted', value: stats.contacted, icon: Mail, color: '#22c55e' },
           ].map(s => { const I = s.icon; return (

@@ -11,8 +11,8 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
-const RED = '#ea2729'
-const TEAL  = '#5bc6d0'
+const RED = '#E6007E'
+const TEAL  = '#00C2CB'
 const BLACK = '#0a0a0a'
 
 const SENT_COLOR = {positive:'#16a34a',neutral:'#6b7280',negative:'#f59e0b',frustrated:RED}
@@ -52,7 +52,7 @@ function HBar({ label, value, max, color, suffix='' }) {
         </span>
         <span style={{fontSize:13,fontWeight:800,color}}>{value}{suffix}</span>
       </div>
-      <div style={{height:8,background:'#f2f2f0',borderRadius:4,overflow:'hidden'}}>
+      <div style={{height:8,background:'#F9F9F9',borderRadius:4,overflow:'hidden'}}>
         <div style={{height:'100%',width:max>0?(value/max*100)+'%':'0%',
           background:color,borderRadius:4,transition:'width 1s ease'}}/>
       </div>
@@ -184,7 +184,7 @@ export default function DeskReportsPage() {
   // By category
   const byCat = {}
   filtered.forEach(t=>{ const c=t.ai_category||t.category||'general'; byCat[c]=(byCat[c]||0)+1 })
-  const catColors = ['#ea2729','#5bc6d0','#7c3aed','#f59e0b','#16a34a','#3b82f6','#ec4899','#14b8a6']
+  const catColors = ['#E6007E','#00C2CB','#7c3aed','#f59e0b','#16a34a','#3b82f6','#ec4899','#14b8a6']
   const catData = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,8)
     .map(([k,v],i)=>({label:k,value:v,color:catColors[i%catColors.length]}))
 
@@ -259,8 +259,8 @@ export default function DeskReportsPage() {
           {[{key:'7d',label:'7 days'},{key:'30d',label:'30 days'},{key:'90d',label:'90 days'},{key:'all',label:'All time'}].map(r=>(
             <button key={r.key} onClick={()=>setRange(r.key)}
               style={{flexShrink:0,padding:'0 16px',height:42,border:'none',
-                borderBottom:`2.5px solid ${range===r.key?'#ea2729':'transparent'}`,
-                background:'transparent',color:range===r.key?'#ea2729':'#9a9a96',
+                borderBottom:`2.5px solid ${range===r.key?'#E6007E':'transparent'}`,
+                background:'transparent',color:range===r.key?'#E6007E':'#9a9a96',
                 fontSize:14,fontWeight:range===r.key?700:500,cursor:'pointer',
                 fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>
               {r.label}
@@ -285,8 +285,8 @@ export default function DeskReportsPage() {
               {Object.entries(t.reduce((acc,tk)=>{acc[tk.category||'general']=(acc[tk.category||'general']||0)+1;return acc},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([cat,cnt])=>(
                 <div key={cat} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
                   <div style={{fontSize:13,color:'#5a5a58',flex:1,fontFamily:"'Raleway',sans-serif",textTransform:'capitalize'}}>{cat}</div>
-                  <div style={{height:6,flex:2,background:'#f2f2f0',borderRadius:3,overflow:'hidden'}}>
-                    <div style={{height:'100%',width:`${Math.round(cnt/t.length*100)}%`,background:'#ea2729',borderRadius:3}}/>
+                  <div style={{height:6,flex:2,background:'#F9F9F9',borderRadius:3,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:`${Math.round(cnt/t.length*100)}%`,background:'#E6007E',borderRadius:3}}/>
                   </div>
                   <div style={{fontSize:13,fontWeight:700,color:'#0a0a0a',minWidth:24,textAlign:'right',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{cnt}</div>
                 </div>
@@ -322,17 +322,17 @@ export default function DeskReportsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0',fontFamily:"var(--font-body)"}}>
+    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9',fontFamily:"var(--font-body)"}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
         {/* Header */}
-        <div style={{background:'#0a0a0a',padding:'16px 28px',flexShrink:0,
+        <div style={{background: '#ffffff',padding:'16px 28px',flexShrink:0,
           display:'flex',alignItems:'center',gap:14}}>
           <button onClick={()=>navigate('/desk')}
             style={{display:'flex',alignItems:'center',gap:5,padding:'7px 12px',borderRadius:9,
               border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-              color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+              color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <ChevronLeft size={14}/> Back
           </button>
           <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0}}>Desk Reports</h1>
@@ -440,7 +440,7 @@ export default function DeskReportsPage() {
                           </span>
                         </td>
                         <td style={{padding:'13px 18px',width:160}}>
-                          <div style={{height:8,background:'#f2f2f0',borderRadius:4,overflow:'hidden'}}>
+                          <div style={{height:8,background:'#F9F9F9',borderRadius:4,overflow:'hidden'}}>
                             <div style={{height:'100%',width:row.pct+'%',
                               background:catColors[i%catColors.length],borderRadius:4}}/>
                           </div>

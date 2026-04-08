@@ -6,8 +6,8 @@ const URL   = 'hellokoto.com'
 const ADDR  = 'Boca Raton, Florida, United States'
 const EMAIL = 'privacy@hellokoto.com'
 const DATE  = 'April 5, 2026'
-const RED   = '#ea2729'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const BLK = '#111111'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB    = "'Raleway','Georgia',serif"
 

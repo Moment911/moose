@@ -9,7 +9,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/pixel'
@@ -332,7 +332,7 @@ export default function PixelTrackingPage() {
                     <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 4px' }}>Pixel Created!</h3>
                     <p style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Add this code to your website before the closing body tag:</p>
                   </div>
-                  <div style={{ background:BLK, borderRadius:10, padding:'14px 16px', marginBottom:16, position:'relative' }}>
+                  <div style={{ background: '#F5F5F5', borderRadius:10, padding:'14px 16px', marginBottom:16, position:'relative' }}>
                     <code style={{ fontSize:11, color:'#a3e635', fontFamily:'monospace', wordBreak:'break-all' }}>
                       {`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`}
                     </code>

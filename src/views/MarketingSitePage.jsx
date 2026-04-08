@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 /* ─── Design tokens ─────────────────────────────────────────── */
-const RED   = '#ea2729';
+const RED   = '#E6007E';
 const BLACK = '#0a0a0a';
 const WHITE = '#ffffff';
 const GRAY  = '#6b7280';
@@ -682,7 +682,7 @@ export default function MarketingSitePage() {
 
           {/* Sub */}
           <p style={{
-            fontSize: 18, fontStyle: 'italic', color: 'rgba(255,255,255,.6)',
+            fontSize: 18, fontStyle: 'italic', color: '#999999',
             fontFamily: FH, maxWidth: 520, lineHeight: 1.6,
           }}>
             <em>ko·to</em> — the intelligence layer for modern marketing agencies.
@@ -858,7 +858,7 @@ export default function MarketingSitePage() {
               {VOICE_STATS.map(s => (
                 <div key={s.label} style={{ borderBottom: '1px solid rgba(255,255,255,.07)', paddingBottom: 24 }}>
                   <div style={{ fontSize: 48, fontWeight: 900, fontFamily: FB, letterSpacing: '-.04em', color: RED, lineHeight: 1 }}>{s.num}</div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', marginTop: 6, lineHeight: 1.4 }}>{s.label}</div>
+                  <div style={{ fontSize: 13, color: '#999999', marginTop: 6, lineHeight: 1.4 }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -922,7 +922,7 @@ export default function MarketingSitePage() {
             {PHASES.map(p => (
               <div key={p.num} className="phase-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <span style={{ fontSize: 13, fontWeight: 900, color: 'rgba(255,255,255,.2)', fontFamily: FB, letterSpacing: '.04em' }}>{p.num}</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: '#999999', fontFamily: FB, letterSpacing: '.04em' }}>{p.num}</span>
                   {p.icon}
                 </div>
                 <h3 style={{ fontSize: 22, fontWeight: 900, fontFamily: FB, letterSpacing: '-.03em', color: WHITE, marginBottom: 12 }}>
@@ -1124,7 +1124,7 @@ export default function MarketingSitePage() {
                     width: 36, height: 36, borderRadius: 8,
                     background: '#F5F5F5', border: '1px solid rgba(255,255,255,.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: 'rgba(255,255,255,.5)',
+                    cursor: 'pointer', color: '#999999',
                     transition: 'all .2s',
                   }}
                     onMouseEnter={e => { e.currentTarget.style.background = RED; e.currentTarget.style.borderColor = RED; e.currentTarget.style.color = WHITE; }}
@@ -1139,13 +1139,13 @@ export default function MarketingSitePage() {
             {/* Link columns */}
             {FOOTER_COLUMNS.map(col => (
               <div key={col.title}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: '#999999', marginBottom: 16 }}>
                   {col.title}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {col.links.map(l => (
                     <a key={l} href="#" style={{
-                      fontSize: 13, color: 'rgba(255,255,255,.5)', textDecoration: 'none',
+                      fontSize: 13, color: '#999999', textDecoration: 'none',
                       transition: 'color .2s',
                     }}
                       onMouseEnter={e => e.currentTarget.style.color = WHITE}

@@ -30,7 +30,7 @@ function StepIcon({ name, size=14, color }) {
   return I ? <I size={size} color={color}/> : null
 }
 
-const ACCENT = '#ea2729'
+const ACCENT = '#E6007E'
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ADAPTIVE CONTEXT ENGINE
@@ -397,7 +397,7 @@ function classifyScope(growthScope, targetRadius, growthScopeValue) {
 }
 
 
-const TEAL = '#5bc6d0';
+const TEAL = '#00C2CB';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -1146,16 +1146,16 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
         <div style={{ flex:1, maxWidth:760, margin:'0 auto', padding:'64px 32px 80px', width:'100%' }}>
 
           {/* Agency welcome banner */}
-          <div style={{ background:'#0a0a0a', borderRadius:16, padding:'28px 32px', marginBottom:40, display:'flex', alignItems:'center', gap:20 }}>
-            <div style={{ width:52, height:52, borderRadius:14, background:'#ea2729', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22, fontWeight:900, color:'#fff' }}>
+          <div style={{ background: '#ffffff', borderRadius:16, padding:'28px 32px', marginBottom:40, display:'flex', alignItems:'center', gap:20 }}>
+            <div style={{ width:52, height:52, borderRadius:14, background:'#E6007E', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:22, fontWeight:900, color:'#fff' }}>
               {(tokenData?.clients?.name || 'K')[0].toUpperCase()}
             </div>
             <div>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,.5)', fontWeight:600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom:4 }}>Welcome to your personalized onboarding</div>
+              <div style={{ fontSize:13, color:'#999999', fontWeight:600, letterSpacing:'.04em', textTransform:'uppercase', marginBottom:4 }}>Welcome to your personalized onboarding</div>
               <div style={{ fontSize:22, fontWeight:800, color:'#fff', letterSpacing:'-.02em' }}>
                 {tokenData?.clients?.name || 'Your Business'}
               </div>
-              <div style={{ fontSize:14, color:'rgba(255,255,255,.45)', marginTop:4 }}>
+              <div style={{ fontSize:14, color:'#999999', marginTop:4 }}>
                 Prepared by Momenta Marketing · Powered by Koto
               </div>
             </div>
@@ -2044,7 +2044,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
               <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Link everything so we can audit your presence, check what's working, and manage your accounts.</p>
             </div>
             <div style={T.cardBody}>
-              <div style={{ background: '#f0fbfc', border: '1px solid #5bc6d030', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: '#374151' }}>
+              <div style={{ background: '#f0fbfc', border: '1px solid #00C2CB30', borderRadius: 12, padding: '12px 16px', marginBottom: 20, fontSize: 14, color: '#374151' }}>
                 💡 <strong>Leave anything blank</strong> that doesn't apply — we'd rather have more than miss one. You can always come back to this step.
               </div>
               {[
@@ -2142,7 +2142,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
                 <F label="Facebook Pixel ID" hint="15-16 digit number"><FocusInput value={form.fb_pixel} onChange={e => set('fb_pixel', e.target.value)} placeholder="123456789012345" /></F>
                 <F label="Google Ads Customer ID" hint="Format: XXX-XXX-XXXX"><FocusInput value={form.google_ads_id} onChange={e => set('google_ads_id', e.target.value)} placeholder="123-456-7890" /></F>
               </div>
-              <div style={{ marginTop: 24, padding: '16px 20px', background: '#f0fbfc', borderRadius: 12, border: '1px solid #5bc6d030' }}>
+              <div style={{ marginTop: 24, padding: '16px 20px', background: '#f0fbfc', borderRadius: 12, border: '1px solid #00C2CB30' }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#0e7490', marginBottom: 6 }}>📋 Next: Platform Access</div>
                 <div style={{ fontSize: 14, color: '#374151' }}>
                   The next step has step-by-step instructions for granting us access to Google Analytics, Google Ads, Facebook, and more. We've made it as simple as possible — you can come back to it anytime.

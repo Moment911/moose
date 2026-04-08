@@ -14,7 +14,7 @@ const STATUSES = [
   { key: 'in_progress', label: 'In Progress', color: '#f59e0b' },
   { key: 'more_info', label: 'More Info Needed', color: '#8b5cf6' },
   { key: 'in_review', label: 'In Review', color: '#06b6d4' },
-  { key: 'pending', label: 'Pending', color: '#5bc6d0' },
+  { key: 'pending', label: 'Pending', color: '#00C2CB' },
   { key: 'completed', label: 'Completed', color: '#22c55e' },
 ]
 
@@ -22,7 +22,7 @@ const PRIORITIES = [
   { key: 'none', label: 'None', color: '#d1d5db' },
   { key: 'low', label: 'Low', color: '#3b82f6' },
   { key: 'medium', label: 'Medium', color: '#f59e0b' },
-  { key: 'high', label: 'High', color: '#ea2729' },
+  { key: 'high', label: 'High', color: '#E6007E' },
   { key: 'urgent', label: 'Urgent', color: '#dc2626' },
 ]
 
@@ -73,7 +73,7 @@ export default function TaskDetailPage() {
   }
 
   function renderMentions(text) {
-    return text.replace(/@(\w+)/g, '<span style="color:#ea2729;font-weight:600">@$1</span>')
+    return text.replace(/@(\w+)/g, '<span style="color:#E6007E;font-weight:600">@$1</span>')
   }
 
   async function handleAddComment() {

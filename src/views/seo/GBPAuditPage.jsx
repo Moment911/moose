@@ -8,9 +8,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
-const BLK  = '#0a0a0a'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Helvetica Neue',sans-serif"
@@ -142,18 +142,18 @@ export default function GBPAuditPage() {
   const visibleFails = showAll ? result?.fails : result?.fails?.slice(0, 5)
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'20px 32px 0', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:16 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <MapPin size={20} color={RED}/> GBP Audit
               </h1>
-              <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 Score your Google Business Profile and outperform competitors
               </p>
             </div>
@@ -170,7 +170,7 @@ export default function GBPAuditPage() {
               {history.map((h,i)=>(
                 <div key={h.id} style={{ padding:'5px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)', display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
                   <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color: h.score>=80?'#4ade80':h.score>=60?'#fbbf24':'#f87171' }}>{h.score}</span>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,.4)', fontFamily:FB }}>{new Date(h.audited_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+                  <span style={{ fontSize:11, color:'#999999', fontFamily:FB }}>{new Date(h.audited_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
                 </div>
               ))}
             </div>
@@ -242,11 +242,11 @@ export default function GBPAuditPage() {
                       <Sparkles size={16} color={TEAL}/>
                       <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Assessment</span>
                     </div>
-                    <div style={{ fontSize:14, color:'rgba(255,255,255,.85)', fontFamily:FB, lineHeight:1.7 }}>{result.ai.overall_assessment}</div>
+                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7 }}>{result.ai.overall_assessment}</div>
                     {result.ai.biggest_opportunity && (
                       <div style={{ background:'rgba(234,39,41,.15)', borderRadius:10, padding:'10px 14px', border:`1px solid ${RED}30` }}>
                         <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:RED, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Biggest Opportunity</div>
-                        <div style={{ fontSize:13, color:'rgba(255,255,255,.8)', fontFamily:FB }}>{result.ai.biggest_opportunity}</div>
+                        <div style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{result.ai.biggest_opportunity}</div>
                       </div>
                     )}
                     {result.ai.quick_wins?.length > 0 && (

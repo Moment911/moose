@@ -15,9 +15,9 @@ import { useClient } from '../context/ClientContext'
 import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const PURP  = '#7c3aed'
@@ -304,12 +304,12 @@ export default function AgentPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f2f2f0' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F9F9F9' }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: BLK, padding: isMobile ? '12px 16px 0' : '18px 28px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: isMobile ? '12px 16px 0' : '18px 28px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -356,7 +356,7 @@ export default function AgentPage() {
               const active = activeTab === tab.key
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: active ? '#f2f2f0' : 'transparent', color: active ? BLK : 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer', fontFamily: FH, position: 'relative' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: active ? '#F9F9F9' : 'transparent', color: active ? BLK : 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer', fontFamily: FH, position: 'relative' }}>
                   <Icon size={12} /> {tab.label}
                   {tab.badge > 0 && (
                     <span style={{ background: RED, color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: 10, padding: '1px 5px', marginLeft: 2 }}>{tab.badge}</span>

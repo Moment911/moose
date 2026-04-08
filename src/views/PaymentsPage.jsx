@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { DollarSign, Plus, Search, Filter, Download, CreditCard, FileText, Clock, Check, X, ChevronRight, TrendingUp, AlertCircle } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 
 const MOCK_INVOICES = [
   { id:'INV-2026-001', client:'Acme Plumbing', amount:2500, status:'paid',    due:'2026-03-01', paid:'2026-03-01', description:'Monthly Retainer — March 2026' },
@@ -39,7 +39,7 @@ export default function PaymentsPage() {
   const totalOverdue = MOCK_INVOICES.filter(i=>i.status==='overdue').reduce((s,i)=>s+i.amount,0)
 
   return (
-    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'16px 24px', display:'flex', alignItems:'center', gap:14 }}>

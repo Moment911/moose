@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R = '#ea2729', T = '#5bc6d0', BLK = '#0a0a0a', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 
 const DTMF_KEYS = [['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']]
@@ -387,11 +387,11 @@ export default function DialPad() {
   // ── Minimized bar ──
   if (minimized && isInCall) {
     return (
-      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 7000, background: BLK, borderRadius: 16, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 12px 48px rgba(0,0,0,.3)', border: '1px solid rgba(255,255,255,.1)' }}>
+      <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 7000, background: '#F5F5F5', borderRadius: 16, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 12px 48px rgba(0,0,0,.3)', border: '1px solid rgba(255,255,255,.1)' }}>
         <div style={{ width: 10, height: 10, borderRadius: '50%', background: GRN, animation: 'koto-pulse 2s infinite' }} />
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: FH }}>{fmt(digits)}</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)' }}>{formatTime(elapsed)}</div>
+          <div style={{ fontSize: 11, color: '#999999' }}>{formatTime(elapsed)}</div>
         </div>
         <button onClick={() => setMinimized(false)} style={{ background: 'rgba(255,255,255,.1)', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>Expand</button>
         <button onClick={hangup} style={{ background: R, border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><PhoneOff size={16} color="#fff" /></button>
@@ -402,7 +402,7 @@ export default function DialPad() {
 
   // ── Full dial pad ──
   return (
-    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 7000, width: 320, background: BLK, borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,.5)', border: '1px solid rgba(255,255,255,.08)', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 7000, width: 320, background: '#F5F5F5', borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,.5)', border: '1px solid rgba(255,255,255,.08)', overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ padding: '16px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -416,8 +416,8 @@ export default function DialPad() {
           {!deviceReady && !initError && <Loader2 size={12} color="rgba(255,255,255,.3)" style={{ animation: 'spin 1s linear infinite' }} />}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {isInCall && <button onClick={() => setMinimized(true)} style={{ background: 'rgba(255,255,255,.08)', border: 'none', color: 'rgba(255,255,255,.5)', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: FH }}>Minimize</button>}
-          <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.4)', cursor: 'pointer', padding: 4 }}><X size={18} /></button>
+          {isInCall && <button onClick={() => setMinimized(true)} style={{ background: 'rgba(255,255,255,.08)', border: 'none', color: '#999999', padding: '4px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 10, fontWeight: 700, fontFamily: FH }}>Minimize</button>}
+          <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#999999', cursor: 'pointer', padding: 4 }}><X size={18} /></button>
         </div>
       </div>
 
@@ -425,14 +425,14 @@ export default function DialPad() {
       {initError && (
         <div style={{ margin: '0 20px 12px', padding: '10px 14px', borderRadius: 10, background: R + '20', border: `1px solid ${R}40` }}>
           <div style={{ fontSize: 11, color: R, fontWeight: 700, fontFamily: FH, marginBottom: 4 }}>Phone Not Ready</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', lineHeight: 1.4 }}>{initError}</div>
+          <div style={{ fontSize: 11, color: '#999999', lineHeight: 1.4 }}>{initError}</div>
           <button onClick={() => initProvider(activeProvider || 'telnyx')} style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#fff', background: R, border: 'none', padding: '5px 12px', borderRadius: 6, cursor: 'pointer', fontFamily: FH }}>Retry</button>
         </div>
       )}
 
       {/* Number selector */}
       <div style={{ padding: '0 20px 12px' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, fontFamily: FH }}>Caller ID</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#999999', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, fontFamily: FH }}>Caller ID</div>
         <button onClick={() => setShowPicker(!showPicker)} style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, fontFamily: FH, fontWeight: 600, textAlign: 'left' }}>
           <span>
             {selectedNumber ? fmt(selectedNumber.phone_number) : 'Select number...'}
@@ -443,13 +443,13 @@ export default function DialPad() {
         {showPicker && (
           <div style={{ marginTop: 4, borderRadius: 10, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.1)', maxHeight: 160, overflowY: 'auto' }}>
             {numbers.length === 0 ? (
-              <div style={{ padding: 16, textAlign: 'center', color: 'rgba(255,255,255,.3)', fontSize: 12 }}>No numbers available</div>
+              <div style={{ padding: 16, textAlign: 'center', color: '#999999', fontSize: 12 }}>No numbers available</div>
             ) : numbers.map(n => (
               <button key={n.id} onClick={() => { setSelectedNumber(n); setShowPicker(false) }}
                 style={{ width: '100%', padding: '10px 14px', border: 'none', cursor: 'pointer', background: selectedNumber?.id === n.id ? 'rgba(255,255,255,.1)' : 'transparent', color: '#fff', fontSize: 13, fontFamily: FH, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,.05)', textAlign: 'left' }}>
                 <div>
                   <div>{fmt(n.phone_number)}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)' }}>{n.friendly_name || n.purpose}</div>
+                  <div style={{ fontSize: 10, color: '#999999' }}>{n.friendly_name || n.purpose}</div>
                 </div>
                 <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: n.provider === 'telnyx' ? GRN + '20' : T + '20', color: n.provider === 'telnyx' ? GRN : T, textTransform: 'uppercase' }}>{n.provider}</span>
               </button>

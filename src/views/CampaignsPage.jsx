@@ -62,12 +62,12 @@ export default function CampaignsPage() {
     const fCampaigns = (campaigns||[])
       .filter(c=>mSts==='all'||c.status===mSts)
       .filter(c=>!mSearch||c.name?.toLowerCase().includes(mSearch.toLowerCase()))
-    const stsColor = s=>({active:'#16a34a',draft:'#9a9a96',sent:'#ea2729',paused:'#f59e0b'})[s]||'#9a9a96'
+    const stsColor = s=>({active:'#16a34a',draft:'#9a9a96',sent:'#E6007E',paused:'#f59e0b'})[s]||'#9a9a96'
     return (
       <MobilePage padded={false}>
         <MobilePageHeader title="Campaigns" subtitle={`${campaigns?.length||0} campaigns`}
           action={<button onClick={()=>navigate('/campaigns/builder')}
-            style={{width:38,height:38,borderRadius:11,background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
+            style={{width:38,height:38,borderRadius:11,background:'#E6007E',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',WebkitTapHighlightColor:'transparent'}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>}/>
         <MobileSearch value={mSearch} onChange={setMSearch} placeholder="Search campaigns…"/>

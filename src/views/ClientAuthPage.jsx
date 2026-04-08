@@ -27,7 +27,7 @@ export default function ClientAuthPage() {
       <Toaster position="top-right" />
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#ea2729' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#E6007E' }}>
             <Mail size={20} className="text-white" />
           </div>
           <div>

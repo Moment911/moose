@@ -11,9 +11,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useMobile } from '../../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const PURP  = '#7c3aed'
@@ -156,19 +156,19 @@ function LeadDetail({ lead, agencyId, onClose, onUpdate, onDelete }) {
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.4)', zIndex:9999, display:'flex', alignItems:'flex-start', justifyContent:'flex-end' }}>
       <div style={{ width:480, height:'100vh', background:'#fff', overflowY:'auto', display:'flex', flexDirection:'column', boxShadow:'-4px 0 40px rgba(0,0,0,.15)' }}>
         {/* Header */}
-        <div style={{ background:BLK, padding:'18px 20px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 20px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:10 }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#fff', marginBottom:3 }}>{lead.business_name}</div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', fontFamily:FB }}>{lead.industry} · {[lead.city,lead.state].filter(Boolean).join(', ')}</div>
+              <div style={{ fontSize:12, color:'#999999', fontFamily:FB }}>{lead.industry} · {[lead.city,lead.state].filter(Boolean).join(', ')}</div>
             </div>
-            <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,.4)', padding:4 }}><X size={16}/></button>
+            <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#999999', padding:4 }}><X size={16}/></button>
           </div>
           {/* Stage buttons */}
           <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
             {STAGES.filter(s=>!['won','lost'].includes(s.key)).map(s => (
               <button key={s.key} onClick={()=>moveStage(s.key)}
-                style={{ padding:'4px 10px', borderRadius:20, border:`1px solid ${lead.stage===s.key?s.color:'rgba(255,255,255,.15)'}`, background:lead.stage===s.key?s.color+'30':'transparent', color:lead.stage===s.key?s.color:'rgba(255,255,255,.4)', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                style={{ padding:'4px 10px', borderRadius:20, border:`1px solid ${lead.stage===s.key?s.color:'#999999'}`, background:lead.stage===s.key?s.color+'30':'transparent', color:lead.stage===s.key?s.color:'#999999', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                 {s.label}
               </button>
             ))}
@@ -376,18 +376,18 @@ export default function ScoutPipelinePage() {
   const allLeads = Object.values(byStage).flat()
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'18px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Target size={18} color={RED}/> Scout Pipeline
               </div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.35)', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 {stats.total||0} leads · ${(stats.pipeline_value||0).toLocaleString()} pipeline · {stats.won||0} won
               </div>
             </div>

@@ -12,8 +12,8 @@ import { supabase, getProspectReport, updateProspectReport, claimProspectReport 
 import { callClaude } from '../../lib/ai'
 import toast, { Toaster } from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
 const BLACK = '#0a0a0a'
 
 // ── Stars ─────────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ function EditableNum({ value, onChange, prefix='$', suffix='', label, hint }) {
   function commit() { onChange(Number(draft)||0); setEditing(false) }
   return (
     <div>
-      <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.4)',
+      <div style={{fontSize:13,fontWeight:700,color:'#999999',
         textTransform:'uppercase',letterSpacing:'.07em',marginBottom:4}}>{label}</div>
       {editing ? (
         <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -71,7 +71,7 @@ function EditableNum({ value, onChange, prefix='$', suffix='', label, hint }) {
           <Edit3 size={13} color='rgba(255,255,255,.3)'/>
         </div>
       )}
-      {hint && <div style={{fontSize:13,color:'rgba(255,255,255,.35)',marginTop:2}}>{hint}</div>}
+      {hint && <div style={{fontSize:13,color:'#999999',marginTop:2}}>{hint}</div>}
     </div>
   )
 }
@@ -164,7 +164,7 @@ function AuthGate({ report, agency, onClaimed }) {
           <h2 style={{fontSize:22,fontWeight:900,color:'#fff',margin:'0 0 6px',letterSpacing:-0.3}}>
             Your free intelligence report is ready
           </h2>
-          <p style={{fontSize:14,color:'rgba(255,255,255,.55)',margin:0}}>
+          <p style={{fontSize:14,color:'#999999',margin:0}}>
             Create a free account to access the full analysis for <strong style={{color:'#fff'}}>{report.business_name}</strong> — and customize the numbers to match your situation.
           </p>
         </div>
@@ -284,7 +284,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e=>onC(Number(e.target.value))}
         style={{width:'100%',accentColor:TEAL,cursor:'pointer'}}/>
-      <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'rgba(255,255,255,.3)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#999999'}}>
         <span>{prefix}{min.toLocaleString()}</span><span>{prefix}{max.toLocaleString()}</span>
       </div>
     </div>
@@ -298,7 +298,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
         <TrendingUp size={18} color={RED}/>
         <div>
           <div style={{fontSize:16,fontWeight:900,color:'#fff'}}>Revenue Impact Calculator</div>
-          <div style={{fontSize:13,color:'rgba(255,255,255,.5)'}}>Adjust the numbers to match your real situation</div>
+          <div style={{fontSize:13,color:'#999999'}}>Adjust the numbers to match your real situation</div>
         </div>
         <div style={{marginLeft:'auto',fontSize:13,fontWeight:800,color:TEAL,
           background:`${TEAL}20`,padding:'3px 10px',borderRadius:20,border:`1px solid ${TEAL}40`}}>
@@ -309,29 +309,29 @@ function RevenueCalculator({ report, customizations, onChange }) {
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0}}>
         {/* Inputs */}
         <div style={{padding:'24px',borderRight:'1px solid rgba(255,255,255,.06)'}}>
-          <div style={{fontSize:13,fontWeight:800,color:'rgba(255,255,255,.4)',
+          <div style={{fontSize:13,fontWeight:800,color:'#999999',
             textTransform:'uppercase',letterSpacing:'.08em',marginBottom:18}}>Your inputs</div>
           <div style={{display:'flex',flexDirection:'column',gap:20}}>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.7)',marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:'#999999',marginBottom:8}}>
                 Monthly ad budget
               </div>
               <Slider value={monthlyAdBudget} onChange={setMonthlyAdBudget} min={500} max={10000} step={250}/>
             </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.7)',marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:'#999999',marginBottom:8}}>
                 Average job / sale value
               </div>
               <Slider value={avgJobValue} onChange={setAvgJobValue} min={100} max={25000} step={50}/>
             </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.7)',marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:'#999999',marginBottom:8}}>
                 Current close rate: <span style={{color:TEAL}}>{closeRate}%</span>
               </div>
               <Slider value={closeRate} onChange={setCloseRate} min={5} max={80} step={5} prefix='' suffix='%'/>
             </div>
             <div>
-              <div style={{fontSize:13,fontWeight:700,color:'rgba(255,255,255,.7)',marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:'#999999',marginBottom:8}}>
                 Current monthly leads
               </div>
               <Slider value={currentLeads} onChange={setCurrentLeads} min={1} max={200} step={1} prefix=''/>
@@ -341,7 +341,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
 
         {/* Outputs */}
         <div style={{padding:'24px'}}>
-          <div style={{fontSize:13,fontWeight:800,color:'rgba(255,255,255,.4)',
+          <div style={{fontSize:13,fontWeight:800,color:'#999999',
             textTransform:'uppercase',letterSpacing:'.08em',marginBottom:18}}>Projected results</div>
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
             {[
@@ -355,7 +355,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
               <div key={m.label} style={{display:'flex',justifyContent:'space-between',
                 alignItems:'center',padding:'10px 14px',background:'rgba(255,255,255,.04)',
                 borderRadius:10}}>
-                <span style={{fontSize:13,color:'rgba(255,255,255,.6)'}}>{m.label}</span>
+                <span style={{fontSize:13,color:'#999999'}}>{m.label}</span>
                 <span style={{fontSize:16,fontWeight:900,color:m.color}}>{m.value}</span>
               </div>
             ))}
@@ -371,7 +371,7 @@ function RevenueCalculator({ report, customizations, onChange }) {
               <div style={{fontSize:22,fontWeight:900,color:'#fff'}}>
                 ${reviewGapImpact.toLocaleString()}
               </div>
-              <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginTop:2}}>
+              <div style={{fontSize:13,color:'#999999',marginTop:2}}>
                 being lost to better-positioned competitors
               </div>
             </div>
@@ -468,7 +468,7 @@ export default function PublicReportPage() {
       height:'100vh',background:BLACK,flexDirection:'column',gap:16}}>
       <div style={{width:48,height:48,borderRadius:'50%',border:`3px solid ${RED}`,
         borderTopColor:'transparent',animation:'spin 1s linear infinite'}}/>
-      <div style={{fontSize:16,fontWeight:700,color:'rgba(255,255,255,.5)'}}>
+      <div style={{fontSize:16,fontWeight:700,color:'#999999'}}>
         Loading your report…
       </div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -480,7 +480,7 @@ export default function PublicReportPage() {
       height:'100vh',background:BLACK,flexDirection:'column',gap:14}}>
       <AlertCircle size={40} color={RED}/>
       <div style={{fontSize:20,fontWeight:800,color:'#fff'}}>Report not found</div>
-      <div style={{fontSize:15,color:'rgba(255,255,255,.4)'}}>This link may have expired or been removed.</div>
+      <div style={{fontSize:15,color:'#999999'}}>This link may have expired or been removed.</div>
     </div>
   )
 
@@ -495,7 +495,7 @@ export default function PublicReportPage() {
   const TABS = ['overview','gaps','seo','revenue','solutions']
 
   return (
-    <div style={{fontFamily:'"DM Sans",system-ui,sans-serif',background:'#f2f2f0',minHeight:'100vh'}}>
+    <div style={{fontFamily:'"DM Sans",system-ui,sans-serif',background:'#F9F9F9',minHeight:'100vh'}}>
       <Toaster position="top-right"/>
 
       {/* Auth gate */}
@@ -516,13 +516,13 @@ export default function PublicReportPage() {
               <div style={{fontSize:15,fontWeight:900,color:'#fff'}}>{agName}</div>
             )}
             <div style={{width:1,height:16,background:'rgba(255,255,255,.15)'}}/>
-            <div style={{fontSize:13,color:'rgba(255,255,255,.45)',fontWeight:600}}>
+            <div style={{fontSize:13,color:'#999999',fontWeight:600}}>
               {report.business_name} · Intelligence Report
             </div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             {prospect && (
-              <div style={{fontSize:13,color:'rgba(255,255,255,.4)',marginRight:4}}>
+              <div style={{fontSize:13,color:'#999999',marginRight:4}}>
                 {prospect.name || prospect.email}
               </div>
             )}
@@ -573,12 +573,12 @@ export default function PublicReportPage() {
                 lineHeight:1.05,margin:'0 0 14px'}}>{report.business_name}</h1>
               <div style={{display:'flex',flexWrap:'wrap',gap:16,marginBottom:20}}>
                 {report.business_address && (
-                  <span style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'rgba(255,255,255,.5)'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'#999999'}}>
                     <MapPin size={13}/> {report.business_address}
                   </span>
                 )}
                 {report.business_phone && (
-                  <span style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'rgba(255,255,255,.5)'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:6,fontSize:14,color:'#999999'}}>
                     <Phone size={13}/> {report.business_phone}
                   </span>
                 )}
@@ -597,7 +597,7 @@ export default function PublicReportPage() {
                       <span style={{fontSize:24,fontWeight:900,color:'#f59e0b'}}>{report.google_rating}</span>
                       <Stars rating={report.google_rating}/>
                     </div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>
+                    <div style={{fontSize:13,color:'#999999'}}>
                       {(report.google_reviews||0).toLocaleString()} Google reviews
                     </div>
                   </div>
@@ -606,7 +606,7 @@ export default function PublicReportPage() {
                   <div style={{background:'rgba(255,255,255,.07)',borderRadius:12,padding:'12px 18px',
                     border:`1px solid ${agColor}40`}}>
                     <div style={{fontSize:24,fontWeight:900,color:agColor}}>{ai.opportunityScore}/100</div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Opportunity score</div>
+                    <div style={{fontSize:13,color:'#999999'}}>Opportunity score</div>
                   </div>
                 )}
                 {rv.annualRevenueAtRisk > 0 && (
@@ -615,7 +615,7 @@ export default function PublicReportPage() {
                     <div style={{fontSize:24,fontWeight:900,color:RED}}>
                       ${Math.round(rv.annualRevenueAtRisk/1000)}K
                     </div>
-                    <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>Revenue at risk/yr</div>
+                    <div style={{fontSize:13,color:'#999999'}}>Revenue at risk/yr</div>
                   </div>
                 )}
               </div>
@@ -630,14 +630,14 @@ export default function PublicReportPage() {
                   <div style={{fontSize:32,fontWeight:900,color:'#fff',lineHeight:1}}>
                     {ai.opportunityScore||50}
                   </div>
-                  <div style={{fontSize:13,color:'rgba(255,255,255,.4)'}}>/ 100</div>
+                  <div style={{fontSize:13,color:'#999999'}}>/ 100</div>
                 </div>
               </div>
               <div style={{fontSize:13,fontWeight:700,textAlign:'center',
                 color:(ai.opportunityScore||50)>=75?'#4ade80':(ai.opportunityScore||50)>=50?TEAL:'#fbbf24'}}>
                 {(ai.opportunityScore||50)>=75?'High opportunity':'Good opportunity'}
               </div>
-              <div style={{fontSize:13,color:'rgba(255,255,255,.3)',textAlign:'center'}}>
+              <div style={{fontSize:13,color:'#999999',textAlign:'center'}}>
                 {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
               </div>
             </div>
@@ -908,7 +908,7 @@ export default function PublicReportPage() {
             Every day without action is revenue left on the table.
           </h2>
           {ai.closingStatement && (
-            <p style={{fontSize:16,color:'rgba(255,255,255,.55)',lineHeight:1.8,
+            <p style={{fontSize:16,color:'#999999',lineHeight:1.8,
               maxWidth:600,margin:'0 auto 32px'}}>{ai.closingStatement}</p>
           )}
           <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
@@ -922,13 +922,13 @@ export default function PublicReportPage() {
               <a href={`https://${agDomain}`} target="_blank" rel="noreferrer"
                 style={{display:'inline-flex',alignItems:'center',gap:8,padding:'14px 24px',
                   borderRadius:14,border:'1px solid rgba(255,255,255,.2)',background:'transparent',
-                  color:'rgba(255,255,255,.7)',fontSize:15,fontWeight:700,textDecoration:'none'}}>
+                  color:'#999999',fontSize:15,fontWeight:700,textDecoration:'none'}}>
                 <Globe size={15}/> Visit {agName}
               </a>
             )}
           </div>
           <div style={{marginTop:28,display:'flex',justifyContent:'center',gap:24,
-            fontSize:13,color:'rgba(255,255,255,.3)'}}>
+            fontSize:13,color:'#999999'}}>
             {agEmail && <span>{agEmail}</span>}
             {agDomain && <span>www.{agDomain}</span>}
             <span>Powered by Koto</span>

@@ -5,10 +5,10 @@
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-const BG  = '#f2f2f0'
+const BG  = '#F9F9F9'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
-const R   = '#ea2729'
+const R   = '#E6007E'
 
 export { MobilePage }
 export default function MobilePage({ children, background = BG, padded = true }) {
@@ -31,7 +31,7 @@ export default function MobilePage({ children, background = BG, padded = true })
 export function MobilePageHeader({ title, subtitle, action }) {
   return (
     <div style={{
-      background: '#0a0a0a',
+      background: '#ffffff',
       padding: '16px 16px 14px',
       marginBottom: 0,
     }}>
@@ -42,7 +42,7 @@ export function MobilePageHeader({ title, subtitle, action }) {
         <div>
           <h1 style={{
             fontFamily: FH, fontSize: 22, fontWeight: 800,
-            color: '#fff', margin: 0, letterSpacing: '-.03em',
+            color: '#111111', margin: 0, letterSpacing: '-.03em',
           }}>{title}</h1>
           {subtitle && (
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', margin: '3px 0 0', fontFamily: FB }}>
@@ -112,7 +112,7 @@ export function MobileTabs({ tabs, active, onChange }) {
             {t.count != null && (
               <span style={{
                 fontSize: 11, fontWeight: 800,
-                background: isActive ? R + '20' : '#f2f2f0',
+                background: isActive ? R + '20' : '#F9F9F9',
                 color: isActive ? R : '#9a9a96',
                 padding: '1px 6px', borderRadius: 20,
                 fontFamily: FH,
@@ -197,7 +197,7 @@ export function MobileEmpty({ icon: Icon, title, body, action }) {
     }}>
       {Icon && (
         <div style={{ width: 56, height: 56, borderRadius: 16,
-          background: '#f2f2f0', border: '1px solid #ececea',
+          background: '#F9F9F9', border: '1px solid #ececea',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           marginBottom: 16 }}>
           <Icon size={24} color="#d0d0cc"/>
@@ -254,13 +254,13 @@ export function MobileActionBar({ children }) {
 
 // Primary mobile button
 export function MobileButton({ label, icon: Icon, onPress, secondary, disabled }) {
-  const R = '#ea2729'
+  const R   = '#E6007E'
   return (
     <button onClick={onPress} disabled={disabled}
       style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
         gap: 7, padding: '13px', borderRadius: 12, border: 'none',
-        background: secondary ? '#f2f2f0' : R,
+        background: secondary ? '#F9F9F9' : R,
         color: secondary ? '#0a0a0a' : '#fff',
         fontSize: 15, fontWeight: 700, cursor: disabled ? 'not-allowed' : 'pointer',
         fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",

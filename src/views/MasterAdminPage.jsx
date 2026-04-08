@@ -11,9 +11,9 @@ import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -173,15 +173,15 @@ export default function MasterAdminPage() {
   const overallCfg = STATUS_CFG[health?.status || 'ok']
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'18px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
+              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Shield size={18} color={RED}/> Master Admin
               </h1>
               <p style={{ fontSize:12, color: '#999999', margin:'2px 0 0', fontFamily:FB }}>
@@ -192,11 +192,11 @@ export default function MasterAdminPage() {
               {/* Auto-refresh toggle */}
               <div style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 12px', borderRadius:9, background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)' }}>
                 <div style={{ width:8, height:8, borderRadius:'50%', background: autoRefresh ? GREEN : '#6b7280', animation: autoRefresh ? 'pulse 2s infinite' : 'none' }}/>
-                <span style={{ fontSize:12, color:'rgba(255,255,255,.7)', fontFamily:FH, fontWeight:600 }}>
+                <span style={{ fontSize:12, color:'#999999', fontFamily:FH, fontWeight:600 }}>
                   {autoRefresh ? `Auto-refresh ${countdown}s` : 'Auto-refresh off'}
                 </span>
                 <select value={refreshSecs} onChange={e=>setRefreshSecs(+e.target.value)}
-                  style={{ background:'transparent', border:'none', color:'rgba(255,255,255,.5)', fontSize:11, cursor:'pointer', outline:'none' }}>
+                  style={{ background:'transparent', border:'none', color:'#999999', fontSize:11, cursor:'pointer', outline:'none' }}>
                   <option value={30} style={{color:BLK}}>30s</option>
                   <option value={60} style={{color:BLK}}>1m</option>
                   <option value={300} style={{color:BLK}}>5m</option>
@@ -226,7 +226,7 @@ export default function MasterAdminPage() {
             ].map(t => (
               <button key={t.id} onClick={()=>setTab(t.id)}
                 style={{ padding:'7px 16px', borderRadius:'8px 8px 0 0', border:'none', cursor:'pointer', fontFamily:FH, fontSize:13, fontWeight:700,
-                  background: tab===t.id ? '#f2f2f0' : 'transparent',
+                  background: tab===t.id ? '#F9F9F9' : 'transparent',
                   color: tab===t.id ? BLK : 'rgba(255,255,255,.5)' }}>
                 {t.label}
               </button>

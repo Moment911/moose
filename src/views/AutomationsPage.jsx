@@ -13,7 +13,7 @@ import toast from 'react-hot-toast'
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -120,12 +120,12 @@ export default function AutomationsPage() {
   const totalRuns    = automations.reduce((s, a) => s + (a.run_count || 0), 0)
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'20px 28px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 28px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
             <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
               <Zap size={18} color={AMBER}/> Automations

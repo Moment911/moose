@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -448,7 +448,7 @@ export default function VoiceCloserPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* ── Header ── */}
         <div style={{
-          background: BLK, padding: '16px 28px',
+          background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 28px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

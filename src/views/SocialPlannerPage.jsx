@@ -2,8 +2,8 @@
 import { useState } from 'react'
 import { Calendar, Plus, Image, Video, FileText, Instagram, Globe, Clock, Check, Edit2, Trash2, Eye, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 const PLATFORMS = [
   { id:'facebook',  label:'Facebook',  color:'#1877f2', icon:'📘' },
   { id:'instagram', label:'Instagram', color:'#e1306c', icon:'📸' },

@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, Download, Volume2 } from 'lucide-react'
 
-const R = '#ea2729'
-const T = '#5bc6d0'
+const R   = '#E6007E'
+const T = '#00C2CB'
 
 function formatTime(sec) {
   if (!sec || isNaN(sec)) return '00:00'

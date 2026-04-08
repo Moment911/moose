@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
 /* ── Design tokens ────────────────────────────────────────────── */
-const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 
@@ -108,7 +108,7 @@ const DEFAULT_MODULES = [
     {id:'process_b',label:'Variant 2 — Timeline Focused',content:`<h2>What to Expect When You Hire {business_name} in {city}</h2>\n<p>Hiring a {service} provider in {city} should be straightforward. Here is exactly what happens when you choose {business_name}:</p>\n<p><strong>Day 1 — Initial Contact:</strong> Reach out via phone ({phone}) or email ({email}). Our team gathers basic information about your {service} needs and schedules a convenient time for your free assessment.</p>\n<p><strong>Day 1-2 — Assessment & Quote:</strong> A {business_name} expert visits your property, evaluates the scope of work, and provides a transparent quote ({price_range} for most projects). No pressure, no obligation.</p>\n<p><strong>Scheduled Date — Service Day:</strong> Our certified team arrives on time, fully equipped, and ready to deliver outstanding {service}. We communicate throughout the process and leave your {city} property spotless.</p>\n<p><strong>After Completion — Follow-Up:</strong> We check in to ensure everything exceeds your expectations. Remember, our {guarantee} means your satisfaction is guaranteed.</p>`},
   ]},
   {id:'trust',label:'Trust & Social Proof',icon:Sparkles,description:'Reviews, testimonials, and credibility signals',variants:[
-    {id:'trust_a',label:'Variant 1 — Review Spotlight',content:`<h2>What {city} Clients Say About {business_name}</h2>\n<p>With {review_count} reviews and a {rating}-star average rating, {business_name} is one of the highest-rated {service} providers in {county} County.</p>\n<blockquote style="border-left:4px solid #ea2729;padding:12px 16px;margin:16px 0;background:#fafafa;border-radius:0 8px 8px 0;">\n<p style="font-style:italic;margin:0 0 8px 0;">"{testimonial}"</p>\n<p style="margin:0;font-weight:bold;">— {testimonial_author}</p>\n</blockquote>\n<p>Our clients in {city} consistently praise our professionalism, transparent pricing, and quality workmanship. We are proud to maintain our reputation as {city}'s most trusted {service} provider.</p>\n<p><strong>Our Credentials:</strong> {certifications} | Licensed ({license_number}) | Insured | {warranty}</p>`},
+    {id:'trust_a',label:'Variant 1 — Review Spotlight',content:`<h2>What {city} Clients Say About {business_name}</h2>\n<p>With {review_count} reviews and a {rating}-star average rating, {business_name} is one of the highest-rated {service} providers in {county} County.</p>\n<blockquote style="border-left:4px solid #E6007E;padding:12px 16px;margin:16px 0;background:#fafafa;border-radius:0 8px 8px 0;">\n<p style="font-style:italic;margin:0 0 8px 0;">"{testimonial}"</p>\n<p style="margin:0;font-weight:bold;">— {testimonial_author}</p>\n</blockquote>\n<p>Our clients in {city} consistently praise our professionalism, transparent pricing, and quality workmanship. We are proud to maintain our reputation as {city}'s most trusted {service} provider.</p>\n<p><strong>Our Credentials:</strong> {certifications} | Licensed ({license_number}) | Insured | {warranty}</p>`},
     {id:'trust_b',label:'Variant 2 — Numbers Story',content:`<h2>Trusted by {city} Since {founded}</h2>\n<p>{business_name} has been serving {city} and {county} County for over {year} years. In that time, we have built an unmatched track record:</p>\n<ul>\n<li><strong>{review_count}</strong> satisfied clients across {county} County</li>\n<li><strong>{rating}-star</strong> average rating on Google</li>\n<li><strong>{service_radius}</strong> service coverage area</li>\n<li><strong>{response_time}</strong> response time for {city} residents</li>\n<li><strong>{certifications}</strong> certified professionals</li>\n</ul>\n<p>"{testimonial}" — <strong>{testimonial_author}</strong></p>\n<p>{owner_name} founded {business_name} with a simple mission: deliver honest, high-quality {service} to {city} at fair prices. That mission has not changed.</p>`},
   ]},
   {id:'comparison',label:'Comparison / vs.',icon:Search,description:'Position against competitors or DIY alternatives',variants:[
@@ -734,7 +734,7 @@ export default function PageBuilderPage() {
 
         {/* ── Top header bar ─────────────────────────────────── */}
         <div style={{
-          background: BLK, padding: '14px 28px', flexShrink: 0,
+          background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '14px 28px', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           {/* Title */}
@@ -780,7 +780,7 @@ export default function PageBuilderPage() {
           {/* Header actions */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{
-              fontSize: 12, color: 'rgba(255,255,255,.5)', fontFamily: FH, fontWeight: 600,
+              fontSize: 12, color: '#999999', fontFamily: FH, fontWeight: 600,
               background: 'rgba(255,255,255,.08)', padding: '4px 12px', borderRadius: 20,
             }}>
               {totalWords} words

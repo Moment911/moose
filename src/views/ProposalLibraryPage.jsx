@@ -12,9 +12,9 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const PURP  = '#7c3aed'
@@ -314,12 +314,12 @@ export default function ProposalLibraryPage() {
   const favorites = modules.filter(m => m.is_favorite)
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f2f2f0' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: BLK, padding: '18px 28px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '18px 28px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
               <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -357,7 +357,7 @@ export default function ProposalLibraryPage() {
               const active = activeTab === tab.key
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: active ? '#f2f2f0' : 'transparent', color: active ? BLK : 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer', fontFamily: FH }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: active ? '#F9F9F9' : 'transparent', color: active ? BLK : 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer', fontFamily: FH }}>
                   <Icon size={12}/> {tab.label}
                   {tab.badge > 0 && <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 10, background: active ? RED : 'rgba(255,255,255,.2)', color: active ? '#fff' : 'rgba(255,255,255,.7)' }}>{tab.badge}</span>}
                 </button>

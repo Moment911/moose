@@ -4,7 +4,7 @@ import { Search, X, ChevronRight, Building2 } from 'lucide-react'
 import { searchNAICS, getNAICSByCode } from '../data/naicsCodes'
 
 // Design tokens matching the Koto design system
-const R   = '#ea2729'   // brand red
+const R   = '#E6007E'   // brand red
 const T   = '#111111'   // text black
 const BLK = '#000000'   // true black
 const GRY = '#9ca3af'   // gray muted

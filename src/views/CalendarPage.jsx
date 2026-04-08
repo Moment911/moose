@@ -15,7 +15,7 @@ const EVENT_TYPES = [
   { key: 'reminder', label: 'Reminder', color: '#f59e0b' },
 ]
 
-const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ea2729', '#8b5cf6', '#06b6d4', '#ec4899', '#231f20']
+const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#E6007E', '#8b5cf6', '#06b6d4', '#ec4899', '#231f20']
 
 export default function CalendarPage() {
   const { agencyId } = useAuth()
@@ -141,9 +141,9 @@ export default function CalendarPage() {
           <MobileCard style={{margin:'0 16px 12px'}}>
             {upcoming.map((e,i)=>(
               <MobileRow key={e.id} borderBottom={i<upcoming.length-1}
-                left={<div style={{width:40,height:40,borderRadius:10,background:'#ea2729'+'15',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#ea2729',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
-                  <div style={{fontSize:9,fontWeight:700,color:'#ea2729',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
+                left={<div style={{width:40,height:40,borderRadius:10,background:'#E6007E'+'15',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#E6007E',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
+                  <div style={{fontSize:9,fontWeight:700,color:'#E6007E',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
                 </div>}
                 title={e.title||e.name||'Event'}
                 subtitle={e.description||e.type||''}/>
@@ -155,7 +155,7 @@ export default function CalendarPage() {
           <MobileCard style={{margin:'0 16px 16px'}}>
             {past.map((e,i)=>(
               <MobileRow key={e.id} borderBottom={i<past.length-1}
-                left={<div style={{width:40,height:40,borderRadius:10,background:'#f2f2f0',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                left={<div style={{width:40,height:40,borderRadius:10,background:'#F9F9F9',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                   <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#9a9a96',lineHeight:1}}>{new Date(e.start_date||e.date).getDate()}</div>
                   <div style={{fontSize:9,fontWeight:700,color:'#9a9a96',textTransform:'uppercase'}}>{new Date(e.start_date||e.date).toLocaleString('en-US',{month:'short'})}</div>
                 </div>}

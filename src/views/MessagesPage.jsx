@@ -9,7 +9,7 @@ import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSearch } fro
 import { format, formatDistanceToNow, isToday, isYesterday, differenceInDays } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const TYPE_COLORS = { client: '#ea2729', internal: '#3b82f6', project: '#22c55e' }
+const TYPE_COLORS = { client: '#E6007E', internal: '#3b82f6', project: '#22c55e' }
 
 export default function MessagesPage() {
   const { agencyId } = useAuth()
@@ -128,8 +128,8 @@ export default function MessagesPage() {
     if (mView==='thread' && selectedConvo) {
       return (
         <MobilePage padded={false}>
-          <div style={{background:'#0a0a0a',padding:'14px 16px',display:'flex',alignItems:'center',gap:10}}>
-            <button onClick={()=>setMView('list')} style={{background:'none',border:'none',cursor:'pointer',color:'#ea2729',padding:'4px 0',display:'flex',alignItems:'center',gap:4,WebkitTapHighlightColor:'transparent'}}>
+          <div style={{background: '#ffffff',padding:'14px 16px',display:'flex',alignItems:'center',gap:10}}>
+            <button onClick={()=>setMView('list')} style={{background:'none',border:'none',cursor:'pointer',color:'#E6007E',padding:'4px 0',display:'flex',alignItems:'center',gap:4,WebkitTapHighlightColor:'transparent'}}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <div style={{flex:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:700,color:'#fff',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
@@ -139,7 +139,7 @@ export default function MessagesPage() {
           <div style={{flex:1,overflowY:'auto',padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
             {(messages||[]).map(m=>(
               <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:m.is_agent?'flex-end':'flex-start'}}>
-                <div style={{maxWidth:'82%',background:m.is_agent?'#ea2729':'#fff',borderRadius:m.is_agent?'14px 14px 4px 14px':'14px 14px 14px 4px',padding:'10px 13px',border:m.is_agent?'none':'1px solid #ececea'}}>
+                <div style={{maxWidth:'82%',background:m.is_agent?'#E6007E':'#fff',borderRadius:m.is_agent?'14px 14px 4px 14px':'14px 14px 14px 4px',padding:'10px 13px',border:m.is_agent?'none':'1px solid #ececea'}}>
                   <p style={{fontSize:15,color:m.is_agent?'#fff':'#0a0a0a',margin:0,lineHeight:1.55,fontFamily:"'Raleway',sans-serif"}}>{m.body||m.content}</p>
                 </div>
                 <span style={{fontSize:11,color:'#9a9a96',marginTop:3,paddingLeft:4}}>{new Date(m.created_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</span>
@@ -152,7 +152,7 @@ export default function MessagesPage() {
               onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage&&sendMessage()}}}
               style={{flex:1,padding:'11px 14px',borderRadius:24,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}}/>
             <button onClick={()=>sendMessage&&sendMessage()}
-              style={{width:44,height:44,borderRadius:'50%',background:'#ea2729',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0,WebkitTapHighlightColor:'transparent'}}>
+              style={{width:44,height:44,borderRadius:'50%',background:'#E6007E',border:'none',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0,WebkitTapHighlightColor:'transparent'}}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
@@ -175,13 +175,13 @@ export default function MessagesPage() {
               <MobileRow key={cv.id}
                 onClick={()=>{setSelectedConvo(cv);setMView('thread')}}
                 borderBottom={i<arr.length-1}
-                left={<div style={{width:42,height:42,borderRadius:'50%',background:'#ea2729'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#ea2729'}}>
+                left={<div style={{width:42,height:42,borderRadius:'50%',background:'#E6007E'+'20',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:16,fontWeight:800,color:'#E6007E'}}>
                   {(cv.client_name||cv.title||'?')[0].toUpperCase()}
                 </div>}
                 title={cv.title||cv.client_name||'Conversation'}
                 subtitle={cv.last_message||cv.preview||''}
                 badge={cv.unread_count>0
-                  ? <span style={{width:20,height:20,borderRadius:'50%',background:'#ea2729',color:'#fff',fontSize:11,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>{cv.unread_count}</span>
+                  ? <span style={{width:20,height:20,borderRadius:'50%',background:'#E6007E',color:'#fff',fontSize:11,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>{cv.unread_count}</span>
                   : null}/>
             ))}
           </MobileCard>

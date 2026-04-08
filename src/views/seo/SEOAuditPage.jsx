@@ -171,7 +171,7 @@ export default function SEOAuditPage() {
                 </div>
               ))}
             </div>
-            <button onClick={runAudit} disabled={loading || !url.trim()} className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #ea2729, #ea2729)', boxShadow: loading ? 'none' : '0 4px 14px rgba(232,85,26,0.3)' }}>
+            <button onClick={runAudit} disabled={loading || !url.trim()} className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #E6007E, #E6007E)', boxShadow: loading ? 'none' : '0 4px 14px rgba(232,85,26,0.3)' }}>
               {loading ? <><Loader2 size={16} className="animate-spin" /> {step}</> : <><Search size={16} /> Run Full SEO Audit <span className="text-sm opacity-70">Claude + GPT-4o</span></>}
             </button>
           </div>

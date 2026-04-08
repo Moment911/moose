@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -91,10 +91,10 @@ export default function VoiceLiveMonitorPage() {
       {!isMobile && <Sidebar />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ background: BLK, padding: '20px 32px', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-.03em' }}>Live Call Monitor</h1>
+              <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>Live Call Monitor</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: activeCalls.length > 0 ? GRN + '20' : 'rgba(255,255,255,.08)', padding: '4px 12px', borderRadius: 20, border: activeCalls.length > 0 ? `1px solid ${GRN}40` : '1px solid rgba(255,255,255,.1)' }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: activeCalls.length > 0 ? GRN : '#6b7280', animation: activeCalls.length > 0 ? 'pulse-live 2s infinite' : 'none' }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: activeCalls.length > 0 ? GRN : 'rgba(255,255,255,.4)', fontFamily: FH }}>
@@ -103,7 +103,7 @@ export default function VoiceLiveMonitorPage() {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {lastUpdate && <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)' }}>Updated {timeAgo(lastUpdate)}</span>}
+              {lastUpdate && <span style={{ fontSize: 11, color: '#999999' }}>Updated {timeAgo(lastUpdate)}</span>}
               <button onClick={fetchData} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,.15)', background: '#F5F5F5', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>
                 <RefreshCw size={12} /> Refresh
               </button>

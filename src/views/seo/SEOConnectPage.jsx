@@ -18,8 +18,8 @@ const SCOPES_BASIC = [
   'https://www.googleapis.com/auth/userinfo.profile',
 ].join(' ')
 
-const RED  = '#ea2729'
-const TEAL = '#5bc6d0'
+const RED  = '#E6007E'
+const TEAL = '#00C2CB'
 const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB   = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -279,7 +279,7 @@ export default function SEOConnectPage() {
   const hasAnyConnection = SERVICES.some(s => conn(s.key))
 
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, overflowY:'auto' }}>
         <div style={{ maxWidth:720, margin:'0 auto', padding:'32px 24px' }}>
@@ -319,14 +319,14 @@ export default function SEOConnectPage() {
 
           {/* ── Connect / Reconnect button — always at top ── */}
           {selectedClient && step !== 'pick-properties' && step !== 'complete' && (
-            <div style={{ background:'#0a0a0a', borderRadius:14, padding:'24px',
+            <div style={{ background: '#ffffff', borderRadius:14, padding:'24px',
               display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
               <div>
                 <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#fff',
                   marginBottom:4 }}>
                   {hasAnyConnection ? 'Update Google Connection' : 'Connect Google Account'}
                 </div>
-                <div style={{ fontSize:13, color:'rgba(255,255,255,.45)', fontFamily:FB }}>
+                <div style={{ fontSize:13, color:'#999999', fontFamily:FB }}>
                   {hasAnyConnection
                     ? 'Sign in again to change which Search Console site or GA4 property is linked'
                     : 'One sign-in connects Search Console + Analytics. You\'ll choose the exact accounts.'}

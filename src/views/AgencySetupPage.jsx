@@ -11,8 +11,8 @@ import {
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 
 // ── All connection steps ──────────────────────────────────────────────────────
 const SETUP_STEPS = [
@@ -342,7 +342,7 @@ export default function AgencySetupPage() {
   const currentTutStep = step.tutorial[tutStep]
 
   return (
-    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#f2f2f0' }}>
+    <div className="page-shell" style={{ display:'flex', minHeight:'100vh', background:'#F9F9F9' }}>
       <Sidebar/>
 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', height:'100vh' }}>

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { MessageSquare, ChevronDown, ChevronUp, Reply, Send, CheckCircle, Check, Paperclip, ListTodo, Image as ImageIcon } from 'lucide-react'
 import { format } from 'date-fns'
 
-const AVATAR_COLORS = ['#ea2729', '#59c6d0', '#185FA5', '#7C3ABF', '#3B6D11', '#f59e0b', '#0E7490', '#ec4899']
+const AVATAR_COLORS = ['#E6007E', '#59c6d0', '#185FA5', '#7C3ABF', '#3B6D11', '#f59e0b', '#0E7490', '#ec4899']
 
 function getInitials(name) { return (name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() }
 function getAvatarColor(name) { let hash = 0; for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash); return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] }

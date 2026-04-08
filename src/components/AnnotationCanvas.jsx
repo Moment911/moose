@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react'
 
-const COLORS = ['#ea2729', '#185FA5', '#3B6D11', '#A32D2D', '#7C3ABF', '#0E7490']
+const COLORS = ['#E6007E', '#185FA5', '#3B6D11', '#A32D2D', '#7C3ABF', '#0E7490']
 
 const TOOL_CURSOR = {
   select: 'default',

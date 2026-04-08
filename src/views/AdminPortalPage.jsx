@@ -14,8 +14,8 @@ import { useAuth } from '../hooks/useAuth'
 import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL   = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL   = '#00C2CB'
 
 export default function AdminPortalPage() {
   const navigate  = useNavigate()
@@ -138,7 +138,7 @@ export default function AdminPortalPage() {
             )
           })}
         </nav>
-        <div style={{ padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,.08)', fontSize:13, color:'rgba(255,255,255,.25)' }}>
+        <div style={{ padding:'14px 16px', borderTop:'1px solid rgba(255,255,255,.08)', fontSize:13, color:'#999999' }}>
           Koto · Admin
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function AdminPortalPage() {
                   ${stats.mrr.toLocaleString()}
                   <span style={{ fontSize:20, color: '#999999', fontWeight:500 }}>/mo</span>
                 </div>
-                <div style={{ fontSize:15, color:'rgba(255,255,255,.5)', marginTop:8 }}>
+                <div style={{ fontSize:15, color:'#999999', marginTop:8 }}>
                   {stats.activeAgencies} active agencies · {stats.trialAgencies} on trial
                 </div>
               </div>

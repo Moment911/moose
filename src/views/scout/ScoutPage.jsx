@@ -21,10 +21,10 @@ import { scoutWithPlaces, placeToLead, hasGoogleKey } from '../../lib/googlePlac
 import toast from 'react-hot-toast'
 import AIThinkingBox from '../../components/AIThinkingBox'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
-const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
+const BLK = '#111111'
+const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -249,7 +249,7 @@ function TechBadge({ label, present, small }) {
 function MissingBadge({ label }) {
   return (
     <span style={{ fontSize:11, fontWeight:700, padding:'2px 7px', borderRadius:20,
-      background:'#fef2f2', color:'#ea2729', border:'1px solid #fecaca',
+      background:'#fef2f2', color:'#E6007E', border:'1px solid #fecaca',
       display:'inline-flex', alignItems:'center', gap:3, whiteSpace:'nowrap' }}>
       <span style={{ fontSize:8 }}>✗</span> {label}
     </span>
@@ -468,7 +468,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
         {/* Pipeline analyzing indicator */}
         {!pipelineDone && lead._real_data && (
           <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#0e7490', marginBottom:8 }}>
-            <div style={{ width:6, height:6, borderRadius:'50%', background:'#5bc6d0', animation:'pulse 1s infinite' }}/>
+            <div style={{ width:6, height:6, borderRadius:'50%', background:'#00C2CB', animation:'pulse 1s infinite' }}/>
             Analyzing tech stack & calculating revenue opportunity…
           </div>
         )}
@@ -523,13 +523,13 @@ function MarketSummaryCard({ results, query, location }) {
         ].map(s=>(
           <div key={s.label} style={{ background:'rgba(255,255,255,.07)', borderRadius:12, padding:'12px', textAlign:'center' }}>
             <div style={{ fontSize:20, fontWeight:900, color:s.color }}>{s.value}</div>
-            <div style={{ fontSize:13, color:'rgba(255,255,255,.5)', marginTop:3, lineHeight:1.3 }}>{s.label}</div>
+            <div style={{ fontSize:13, color:'#999999', marginTop:3, lineHeight:1.3 }}>{s.label}</div>
             {s.note && <div style={{ fontSize:13, color:'#34d399', marginTop:2 }}>↑ {s.note}</div>}
           </div>
         ))}
       </div>
-      <div style={{ marginTop:14, fontSize:14, color:'rgba(255,255,255,.5)', lineHeight:1.6 }}>
-        <strong style={{ color:'rgba(255,255,255,.8)' }}>Key insight:</strong>{' '}
+      <div style={{ marginTop:14, fontSize:14, color:'#999999', lineHeight:1.6 }}>
+        <strong style={{ color:'#999999' }}>Key insight:</strong>{' '}
         {lowReviews>results.length*0.5 ? `${lowReviews} of ${results.length} businesses have under 50 reviews — massive review generation opportunity.`
           : lowRating>2 ? `${lowRating} businesses have below 4.0★ rating — reputation management services in high demand.`
           : withWebsite<results.length*0.7 ? `${results.length-withWebsite} businesses lack a website — web design and SEO opportunities.`
@@ -818,7 +818,7 @@ export default function ScoutPage() {
             <input value={query} onChange={e=>setQuery(e.target.value)}
               placeholder="Plumbers in Miami FL…"
               style={{width:'100%',padding:'11px 13px',borderRadius:10,border:'1px solid #ececea',fontSize:16,outline:'none',color:'#0a0a0a',boxSizing:'border-box'}}
-              onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}
+              onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#ececea'}
               onKeyDown={e=>{if(e.key==='Enter')handleSearch()}}/>
             <div style={{display:'flex',gap:8}}>
               <select value={mode} onChange={e=>setMode(e.target.value)}
@@ -827,7 +827,7 @@ export default function ScoutPage() {
                 <option value="ai_deep">AI Deep Scan</option>
               </select>
               <button onClick={handleSearch} disabled={!query.trim()||loading}
-                style={{padding:'11px 20px',borderRadius:10,border:'none',background:'#ea2729',color:'#fff',fontSize:15,fontWeight:700,cursor:loading||!query.trim()?'not-allowed':'pointer',opacity:loading||!query.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>
+                style={{padding:'11px 20px',borderRadius:10,border:'none',background:'#E6007E',color:'#fff',fontSize:15,fontWeight:700,cursor:loading||!query.trim()?'not-allowed':'pointer',opacity:loading||!query.trim()?0.6:1,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>
                 {loading?'…':'Search'}
               </button>
             </div>
@@ -858,7 +858,7 @@ export default function ScoutPage() {
             </div>
             {results.map((lead,i)=>{
               const score = lead.opportunity_score||lead.score||0
-              const scoreColor = score>=70?'#16a34a':score>=40?'#f59e0b':'#ea2729'
+              const scoreColor = score>=70?'#16a34a':score>=40?'#f59e0b':'#E6007E'
               return (
                 <div key={i} style={{background:'#fff',borderRadius:14,border:'1px solid #ececea',padding:'14px',borderLeft:`3px solid ${scoreColor}`}}>
                   <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:8}}>

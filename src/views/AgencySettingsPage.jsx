@@ -21,7 +21,7 @@ import toast from 'react-hot-toast'
 
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -139,7 +139,7 @@ function PillToggle({ label, active, onChange }) {
     <button onClick={()=>onChange(!active)}
       style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 12px',
         borderRadius:20, border:'none', cursor:'pointer', transition:'all .15s',
-        background:active?R:'#f2f2f0', color:active?'#fff':'#5a5a58',
+        background:active?R:'#F9F9F9', color:active?'#fff':'#5a5a58',
         fontSize:13, fontWeight:700, fontFamily:FH }}>
       {active ? <Check size={11}/> : <span style={{ width:11, height:11, borderRadius:'50%', background:'#d1d5db', display:'inline-block' }}/>}
       {label}
@@ -402,7 +402,7 @@ export default function AgencySettingsPage() {
                 style={{...INP,flex:1,fontFamily:'monospace'}}/>
             </div>
             <div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
-              {['#ea2729','#5bc6d0','#0a0a0a','#7c3aed','#2563eb','#16a34a','#d97706','#db2777'].map(col=>(
+              {['#E6007E','#00C2CB','#0a0a0a','#7c3aed','#2563eb','#16a34a','#d97706','#db2777'].map(col=>(
                 <button key={col} onClick={()=>setAgency(a=>({...a,brand_color:col}))}
                   style={{width:26,height:26,borderRadius:6,background:col,border:agency.brand_color===col?'3px solid #fff':agency.brand_color===col?'3px solid #333':'2px solid transparent',
                   boxShadow:agency.brand_color===col?'0 0 0 2px '+col:'none',cursor:'pointer',outline:'none'}}/>
@@ -473,13 +473,13 @@ export default function AgencySettingsPage() {
           <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:emailSettings.email_domain_verified?'#f0fdf4':'#f9fafb',borderRadius:10,border:'1px solid '+(emailSettings.email_domain_verified?'#bbf7d0':'#e5e7eb'),marginBottom:16}}>
             <div style={{width:10,height:10,borderRadius:'50%',background:emailSettings.email_domain_verified?'#16a34a':'#9ca3af'}}/>
             <span style={{fontSize:13,fontWeight:600,color:emailSettings.email_domain_verified?'#16a34a':'#6b7280'}}>{emailSettings.email_domain_verified?'Domain verified':emailSettings.sender_email?'Domain not verified':'Set sender email first'}</span>
-            {emailSettings.sender_email&&!emailSettings.email_domain_verified&&<button onClick={async()=>{setDomainVerifying(true);try{const r=await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify_email_domain',agency_id:aid})});const d=await r.json();d.domain_id?toast.success('Domain registered — add DNS records'):toast.error(d.error||'Failed')}catch{toast.error('Failed')}setDomainVerifying(false)}} disabled={domainVerifying} style={{marginLeft:'auto',padding:'6px 14px',borderRadius:8,border:'none',background:'#5bc6d015',color:'#5bc6d0',fontSize:12,fontWeight:700,cursor:'pointer'}}>{domainVerifying?'Verifying...':'Verify Domain'}</button>}
+            {emailSettings.sender_email&&!emailSettings.email_domain_verified&&<button onClick={async()=>{setDomainVerifying(true);try{const r=await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify_email_domain',agency_id:aid})});const d=await r.json();d.domain_id?toast.success('Domain registered — add DNS records'):toast.error(d.error||'Failed')}catch{toast.error('Failed')}setDomainVerifying(false)}} disabled={domainVerifying} style={{marginLeft:'auto',padding:'6px 14px',borderRadius:8,border:'none',background:'#00C2CB15',color:'#00C2CB',fontSize:12,fontWeight:700,cursor:'pointer'}}>{domainVerifying?'Verifying...':'Verify Domain'}</button>}
           </div>
           <div style={{display:'flex',gap:10}}>
             <button onClick={async()=>{setEmailSaving(true);try{await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_email_settings',agency_id:aid,...emailSettings})});toast.success('Saved')}catch{toast.error('Failed')}setEmailSaving(false)}} disabled={emailSaving} style={{padding:'10px 20px',borderRadius:10,border:'none',background:R,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
               {emailSaving?<Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/>:<Save size={14}/>} Save
             </button>
-            <button onClick={async()=>{setEmailTesting(true);try{const r=await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_test_email',agency_id:aid})});const d=await r.json();d.success?toast.success('Test email sent!'):toast.error(d.error||'Failed')}catch{toast.error('Failed')}setEmailTesting(false)}} disabled={emailTesting} style={{padding:'10px 20px',borderRadius:10,border:'1px solid #5bc6d0',background:'#5bc6d010',color:'#5bc6d0',fontSize:14,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+            <button onClick={async()=>{setEmailTesting(true);try{const r=await fetch('/api/agency',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_test_email',agency_id:aid})});const d=await r.json();d.success?toast.success('Test email sent!'):toast.error(d.error||'Failed')}catch{toast.error('Failed')}setEmailTesting(false)}} disabled={emailTesting} style={{padding:'10px 20px',borderRadius:10,border:'1px solid #00C2CB',background:'#00C2CB10',color:'#00C2CB',fontSize:14,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
               {emailTesting?<Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/>:<Send size={14}/>} Test Email
             </button>
           </div>
@@ -517,7 +517,7 @@ export default function AgencySettingsPage() {
               <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#0a0a0a', marginBottom:6 }}>
                 {CONNECTIONS.filter(c=>!!process.env[c.env]).length} of {CONNECTIONS.length} connections configured
               </div>
-              <div style={{ height:5, background:'#f2f2f0', borderRadius:3, overflow:'hidden', maxWidth:240 }}>
+              <div style={{ height:5, background:'#F9F9F9', borderRadius:3, overflow:'hidden', maxWidth:240 }}>
                 <div style={{ height:'100%', borderRadius:3, background:R, transition:'width .4s',
                   width:`${(CONNECTIONS.filter(c=>!!process.env[c.env]).length/CONNECTIONS.length)*100}%` }}/>
               </div>
@@ -613,7 +613,7 @@ export default function AgencySettingsPage() {
             const I = item.icon
             return (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 0', borderBottom:i<3?'1px solid #f2f2f0':'none' }}>
-                <div style={{ width:36, height:36, borderRadius:10, background:'#f2f2f0', border:'1px solid #ececea', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:'#F9F9F9', border:'1px solid #ececea', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <I size={15} color="#9a9a96"/>
                 </div>
                 <div style={{ flex:1 }}>
@@ -841,7 +841,7 @@ export default function AgencySettingsPage() {
                       <MobileRow key={s.key}
                         onClick={()=>setSection(s.key)}
                         borderBottom={i<items.length-1}
-                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#ea2729':'#f2f2f0',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#E6007E':'#F9F9F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                           <I size={16} color={section===s.key?'#fff':'#5a5a58'}/>
                         </div>}
                         title={s.label}/>
@@ -868,18 +868,18 @@ export default function AgencySettingsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0', fontFamily:FB }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9', fontFamily:FB }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'0 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'0 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:12, padding:'20px 0 16px' }}>
             <div style={{ width:32, height:32, borderRadius:9, background:R, display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Settings size={16} color="#fff"/>
             </div>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>Agency Settings</h1>
+              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>Agency Settings</h1>
               <p style={{ fontSize:14, color: '#999999', margin:0, fontFamily:FB }}>All platform settings in one place</p>
             </div>
           </div>

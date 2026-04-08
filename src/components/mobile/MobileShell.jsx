@@ -9,8 +9,8 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { signOut } from '../../lib/supabase'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -218,7 +218,7 @@ export default function MobileShell({ children }) {
 
         {/* ── Top bar ── */}
         <div style={{
-          background: '#0a0a0a', flexShrink: 0,
+          background: '#ffffff', flexShrink: 0,
           paddingTop: 'env(safe-area-inset-top,0px)',
           zIndex: 100, position: 'relative',
         }}>
@@ -272,7 +272,7 @@ export default function MobileShell({ children }) {
 
         {/* ── Bottom tab bar ── */}
         <div style={{
-          background: '#0a0a0a',
+          background: '#ffffff',
           flexShrink: 0, zIndex: 100,
           paddingBottom: 'env(safe-area-inset-bottom,0px)',
         }}>
@@ -322,7 +322,7 @@ export default function MobileShell({ children }) {
         }}>
           {/* Dark header strip */}
           <div style={{
-            background: '#0a0a0a', flexShrink: 0,
+            background: '#ffffff', flexShrink: 0,
             paddingTop: 'env(safe-area-inset-top,0px)',
           }}>
             <div style={{
@@ -367,7 +367,7 @@ export default function MobileShell({ children }) {
                       <button key={item.to} onClick={() => { navigate(item.to); setDrawerOpen(false) }} style={{
                         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                         gap: 6, padding: '14px 8px', borderRadius: 14, border: 'none',
-                        background: active ? R : '#f2f2f0',
+                        background: active ? R : '#F9F9F9',
                         cursor: 'pointer', minHeight: 80,
                         WebkitTapHighlightColor: 'transparent',
                         transition: 'all .2s ease',

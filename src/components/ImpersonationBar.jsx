@@ -99,14 +99,14 @@ export default function ImpersonationBar() {
 
   const base = { fontSize: 12, fontFamily: FH, fontWeight: 600 }
   const selectStyle = {
-    ...base, background: 'rgba(255,255,255,.12)', color: '#fff',
+    ...base, background: '#F5F5F5', color: '#111111',
     border: '1px solid rgba(255,255,255,.2)', borderRadius: 6,
     padding: '2px 8px', height: 26, cursor: 'pointer', outline: 'none',
     maxWidth: 200,
   }
   const btnStyle = {
     ...base, display: 'flex', alignItems: 'center', gap: 4,
-    background: 'rgba(255,255,255,.12)', color: '#fff',
+    background: '#F5F5F5', color: '#111111',
     border: '1px solid rgba(255,255,255,.2)', borderRadius: 6,
     padding: '2px 12px', height: 26, cursor: 'pointer', whiteSpace: 'nowrap',
   }
@@ -114,14 +114,14 @@ export default function ImpersonationBar() {
   // Determine state
   const viewingClient = isImpersonating && (impersonatedClient || isPreviewingClient)
   const viewingAgency = isImpersonating && !viewingClient
-  const barBg = viewingClient ? '#c2410c' : viewingAgency ? '#92400e' : '#7f1d1d'
+  const barBg = '#ffffff'
 
   return (
     <>
       <div style={{ height: BAR_HEIGHT, flexShrink: 0 }} />
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999,
-        height: BAR_HEIGHT, background: barBg, color: '#fff',
+        height: BAR_HEIGHT, background: barBg, color: '#111111', borderBottom: '1px solid rgba(0,0,0,0.08)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', ...base,
       }}>

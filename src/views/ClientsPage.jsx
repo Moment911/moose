@@ -21,7 +21,7 @@ import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, M
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
@@ -263,10 +263,10 @@ export default function ClientsPage() {
     return (
       <MobilePage padded={false}>
         {/* Header */}
-        <div style={{ background:'#0a0a0a', padding:'16px 16px 14px' }}>
+        <div style={{ background: '#ffffff', padding:'16px 16px 14px' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>
+              <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>
                 {isSuperAdmin && !isImpersonating ? 'All Clients' : 'Clients'}
               </h1>
               <p style={{ fontSize:13, color: '#999999', margin:'2px 0 0' }}>
@@ -274,7 +274,7 @@ export default function ClientsPage() {
               </p>
             </div>
             <button onClick={()=>{setEditingId(null);setForm({name:'',email:'',phone:'',website:'',industry:'',status:'active'});setShowAdd(true)}}
-              style={{ width:40, height:40, borderRadius:12, background:'#ea2729', border:'none', color:'#fff', fontSize:22, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', WebkitTapHighlightColor:'transparent' }}>
+              style={{ width:40, height:40, borderRadius:12, background:'#E6007E', border:'none', color:'#fff', fontSize:22, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', WebkitTapHighlightColor:'transparent' }}>
               <Plus size={20}/>
             </button>
           </div>
@@ -288,8 +288,8 @@ export default function ClientsPage() {
           {statuses.map(s=>(
             <button key={s} onClick={()=>setStatusFilter(s)}
               style={{ flexShrink:0, padding:'0 16px', height:42, border:'none',
-                borderBottom:`2.5px solid ${statusFilter===s?'#ea2729':'transparent'}`,
-                background:'transparent', color:statusFilter===s?'#ea2729':'#9a9a96',
+                borderBottom:`2.5px solid ${statusFilter===s?'#E6007E':'transparent'}`,
+                background:'transparent', color:statusFilter===s?'#E6007E':'#9a9a96',
                 fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer',
                 fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", whiteSpace:'nowrap' }}>
               {s.charAt(0).toUpperCase()+s.slice(1)}
@@ -299,7 +299,7 @@ export default function ClientsPage() {
 
         {/* Add/Edit form */}
         {showAdd && (
-          <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #ea2729', padding:'16px' }}>
+          <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #E6007E', padding:'16px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
               <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:16, fontWeight:800, color:'#0a0a0a' }}>
                 {editingId ? 'Edit Client' : 'New Client'}
@@ -313,7 +313,7 @@ export default function ClientsPage() {
                 <label style={{ fontSize:13, fontWeight:700, color:'#0a0a0a', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)} placeholder={f.placeholder}
                   style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #ececea', fontSize:16, outline:'none', color:'#0a0a0a', boxSizing:'border-box' }}
-                  onFocus={e=>e.target.style.borderColor='#ea2729'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+                  onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
               </div>
             ))}
             <div style={{ marginBottom:12 }}>
@@ -406,7 +406,7 @@ export default function ClientsPage() {
 
               {/* Google Places search — only on add, not edit */}
               {!editingId && (
-                <div style={{ marginBottom:18, padding:'14px 16px', background:'#f0fbfc', borderRadius:12, border:'1px solid #5bc6d040' }}>
+                <div style={{ marginBottom:18, padding:'14px 16px', background:'#f0fbfc', borderRadius:12, border:'1px solid #00C2CB40' }}>
                   <div style={{ fontSize:13, fontWeight:700, color:'#0e7490', marginBottom:8, display:'flex', alignItems:'center', gap:6 }}>
                     🔍 Search Google to auto-fill client details
                   </div>
@@ -501,7 +501,7 @@ export default function ClientsPage() {
                         <div style={{ display:'flex', gap:12, marginTop:4 }}>
                           {placesPreview.rating && <span style={{ fontSize:12, color:'#f59e0b' }}>★ {placesPreview.rating} ({placesPreview.review_count} reviews)</span>}
                           {placesPreview.phone && <span style={{ fontSize:12, color:'#6b7280' }}>📞 {placesPreview.phone}</span>}
-                          {placesPreview.website && <span style={{ fontSize:12, color:'#5bc6d0' }}>🌐 Website found</span>}
+                          {placesPreview.website && <span style={{ fontSize:12, color:'#00C2CB' }}>🌐 Website found</span>}
                         </div>
                       </div>
                       <span style={{ fontSize:11, color:'#16a34a', fontWeight:700, background:'#dcfce7', padding:'3px 8px', borderRadius:6 }}>✓ Auto-filled</span>

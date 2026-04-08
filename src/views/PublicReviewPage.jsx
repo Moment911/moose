@@ -95,7 +95,7 @@ export default function PublicReviewPage() {
   const [activeBubble, setActiveBubble] = useState(null)
   const [bubblePos, setBubblePos] = useState({ x: 0, y: 0 })
   const [tool, setTool] = useState('pin')
-  const [color, setColor] = useState('#ea2729')
+  const [color, setColor] = useState('#E6007E')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [authorName, setAuthorName] = useState(() => localStorage.getItem('mm_client_author') || '')
@@ -384,7 +384,7 @@ export default function PublicReviewPage() {
           {project?.brand_logo ? (
             <img src={project.brand_logo} alt="" className="h-6 object-contain" />
           ) : (
-            <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: project?.brand_color || '#ea2729' }}>
+            <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: project?.brand_color || '#E6007E' }}>
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M3 4h14M3 10h10M3 16h6" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </div>
           )}
@@ -434,13 +434,13 @@ export default function PublicReviewPage() {
       </div>
 
       {/* Tool hint bar — hide on mobile */}
-      <div className="text-white px-5 py-2 items-center gap-3 text-sm flex-shrink-0 hidden md:flex" style={{ background: project?.brand_color || '#ea2729' }}>
+      <div className="text-white px-5 py-2 items-center gap-3 text-sm flex-shrink-0 hidden md:flex" style={{ background: project?.brand_color || '#E6007E' }}>
         <span className="font-medium">How to leave feedback:</span>
         <span className="text-brand-100">1. Enter your name below &middot; 2. Click a tool and click on the design &middot; 3. Type your comment and hit Enter</span>
       </div>
 
       {roundsExhausted && (
-        <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: 'linear-gradient(135deg, #ea2729, #dc2626)' }}>
+        <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: 'linear-gradient(135deg, #E6007E, #dc2626)' }}>
           <span>All {maxRounds} revision round{maxRounds !== 1 ? 's' : ''} complete</span>
           <a href="https://www.hellokoto.com/contact" target="_blank" rel="noreferrer" className="bg-white text-brand-600 font-semibold text-sm px-4 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">Contact Us</a>
           <a href="https://www.hellokoto.com/pricing" target="_blank" rel="noreferrer" className="bg-white/20 text-white font-medium text-sm px-4 py-1.5 rounded-lg hover:bg-white/30 transition-colors">View Pricing</a>

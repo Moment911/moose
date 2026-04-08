@@ -13,9 +13,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -183,18 +183,18 @@ export default function OnPageAuditPage() {
   const scoreColor = result ? (result.score>=80?GREEN:result.score>=60?AMBER:RED) : RED
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'20px 32px 0', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:14 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <Globe size={20} color={TEAL}/> On-Page SEO Checker
               </h1>
-              <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 20+ technical checks · PageSpeed · AI recommendations
               </p>
             </div>
@@ -212,7 +212,7 @@ export default function OnPageAuditPage() {
                 <button key={h.id} onClick={()=>setUrl(h.url)}
                   style={{ padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)', display:'flex', alignItems:'center', gap:6, flexShrink:0, cursor:'pointer' }}>
                   <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:h.score>=80?'#4ade80':h.score>=60?'#fbbf24':'#f87171' }}>{h.score}</span>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,.5)', fontFamily:FB, maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{h.url.replace(/https?:\/\//,'')}</span>
+                  <span style={{ fontSize:11, color:'#999999', fontFamily:FB, maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{h.url.replace(/https?:\/\//,'')}</span>
                 </button>
               ))}
             </div>
@@ -282,11 +282,11 @@ export default function OnPageAuditPage() {
                       <Sparkles size={14} color={TEAL}/>
                       <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Assessment</span>
                     </div>
-                    <div style={{ fontSize:14, color:'rgba(255,255,255,.85)', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.executive_summary}</div>
+                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.executive_summary}</div>
                     {result.ai.biggest_issue && (
                       <div style={{ background:'rgba(234,39,41,.15)', borderRadius:9, padding:'8px 12px', border:`1px solid ${RED}30` }}>
                         <span style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:RED }}>Top Priority: </span>
-                        <span style={{ fontSize:13, color:'rgba(255,255,255,.8)', fontFamily:FB }}>{result.ai.biggest_issue}</span>
+                        <span style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{result.ai.biggest_issue}</span>
                       </div>
                     )}
                   </div>

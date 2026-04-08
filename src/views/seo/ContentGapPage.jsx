@@ -7,7 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED='#ea2729',TEAL='#5bc6d0',BLK='#0a0a0a',GREEN='#16a34a',AMBER='#f59e0b'
+const RED='#E6007E',TEAL='#00C2CB',BLK='#111111',GREEN='#16a34a',AMBER='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 
@@ -108,16 +108,16 @@ export default function ContentGapPage(){
   ]
 
   return(
-    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
+    <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9'}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{background:BLK,padding:'20px 32px 0',flexShrink:0}}>
+        <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:14}}>
             <div>
-              <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color:'#fff',margin:0,letterSpacing:'-.03em',display:'flex',alignItems:'center',gap:10}}>
+              <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color: '#111111', margin: 0, letterSpacing:'-.03em',display:'flex',alignItems:'center',gap:10}}>
                 <BookOpen size={20} color={TEAL}/> Content Gap & Topic Clusters
               </h1>
-              <p style={{fontSize:13,color:'rgba(255,255,255,.4)',margin:'3px 0 0',fontFamily:FB}}>AI content strategy from your real GSC data</p>
+              <p style={{fontSize:13,color:'#999999',margin:'3px 0 0',fontFamily:FB}}>AI content strategy from your real GSC data</p>
             </div>
             <div style={{display:'flex',gap:10}}>
               <select value={clientId} onChange={e=>setClientId(e.target.value)}
@@ -151,7 +151,7 @@ export default function ContentGapPage(){
                   <Sparkles size={16} color={TEAL} style={{flexShrink:0,marginTop:2}}/>
                   <div>
                     <div style={{fontFamily:FH,fontSize:11,fontWeight:700,color:TEAL,textTransform:'uppercase',letterSpacing:'.07em',marginBottom:5}}>Content Health Assessment</div>
-                    <div style={{fontSize:14,color:'rgba(255,255,255,.85)',fontFamily:FB,lineHeight:1.7}}>{s.content_health}</div>
+                    <div style={{fontSize:14,color:'#999999',fontFamily:FB,lineHeight:1.7}}>{s.content_health}</div>
                   </div>
                 </div>
               )}

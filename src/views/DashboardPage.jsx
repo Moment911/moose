@@ -22,7 +22,7 @@ import {
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
 const R   = '#E6007E'
 const T   = '#00C2CB'
-const BLK = '#0a0a0a'
+const BLK = '#111111'
 const GRY = '#F9F9F9'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -403,9 +403,9 @@ export default function DashboardPage() {
     return (
       <MobilePage padded={false}>
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div style={{ background: BLK, padding: '16px 16px 0' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 16px 0' }}>
           <div style={{
-            fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+            fontSize: 11, fontWeight: 700, color: '#999999',
             textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, fontFamily: FH,
           }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -535,9 +535,9 @@ export default function DashboardPage() {
   if (isMobile && isSuperAdmin) {
     return (
       <MobilePage padded={false}>
-        <div style={{ background: BLK, padding: '16px 16px 0' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 16px 0' }}>
           <div style={{
-            fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+            fontSize: 11, fontWeight: 700, color: '#999999',
             textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, fontFamily: FH,
           }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -656,18 +656,17 @@ export default function DashboardPage() {
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* ── Dark Header ───────────────────────────────────────────────── */}
-          <div style={{ background: BLK, padding: '20px 32px 18px', flexShrink: 0 }}>
+          <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 18px', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{
-                  fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+                  fontSize: 11, fontWeight: 700, color: '#999999',
                   textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
                 }}>
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </div>
                 <h1 style={{
-                  fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#fff',
-                  margin: 0, letterSpacing: '-.03em', lineHeight: 1,
+                  fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em', lineHeight: 1,
                 }}>
                   Platform Overview
                 </h1>
@@ -793,7 +792,7 @@ export default function DashboardPage() {
                       </div>
                       <span style={{
                         fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
-                        background: a.status === 'active' ? GRN + '15' : '#f2f2f0',
+                        background: a.status === 'active' ? GRN + '15' : '#F9F9F9',
                         color: a.status === 'active' ? GRN : '#6b7280',
                         textTransform: 'uppercase',
                       }}>
@@ -946,18 +945,17 @@ export default function DashboardPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* ── Dark Header ─────────────────────────────────────────────────── */}
-        <div style={{ background: BLK, padding: '20px 32px 18px', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{
-                fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+                fontSize: 11, fontWeight: 700, color: '#999999',
                 textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
               }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
               <h1 style={{
-                fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#fff',
-                margin: 0, letterSpacing: '-.03em', lineHeight: 1,
+                fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em', lineHeight: 1,
               }}>
                 {greeting}
               </h1>

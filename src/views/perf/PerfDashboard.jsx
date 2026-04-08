@@ -14,10 +14,10 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileStatStrip, MobileTabs, MobileCard, MobileSectionHeader, MobileRow, MobileEmpty } from '../../components/mobile/MobilePage'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
-const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
+const BLK = '#111111'
+const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -318,7 +318,7 @@ export default function PerfDashboard() {
             {label:'Spend',    value:'$'+Math.round(totSpend).toLocaleString()},
             {label:'Clicks',   value:totClicks.toLocaleString()},
             {label:'Conv',     value:totConv.toFixed(0)},
-            {label:'Avg ROAS', value:avgROAS.toFixed(1)+'x', color:avgROAS>=3?'#16a34a':avgROAS>=1.5?'#f59e0b':'#ea2729'},
+            {label:'Avg ROAS', value:avgROAS.toFixed(1)+'x', color:avgROAS>=3?'#16a34a':avgROAS>=1.5?'#f59e0b':'#E6007E'},
           ]}/>
 
           <MobileTabs tabs={MOBILE_TABS} active={mTab} onChange={setMTab}/>
@@ -350,7 +350,7 @@ export default function PerfDashboard() {
                   <MobileRow title={cam.name}
                     subtitle={`${cam.status||'—'} · Budget $${Math.round(cam.budget_amount||0)}/day`}
                     left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,background:cam.status==='ENABLED'?'#16a34a':'#9a9a96'}}/>}
-                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#ea2729',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
+                    badge={<span style={{fontSize:11,fontWeight:800,color:cam.roas>=3?'#16a34a':cam.roas>=1?'#f59e0b':'#E6007E',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{(cam.roas||0).toFixed(1)}x</span>}
                     borderBottom={false}/>
                 </MobileCard>
               ))}
@@ -362,12 +362,12 @@ export default function PerfDashboard() {
               {fRecs.length===0
                 ? <div style={{padding:'40px 0',textAlign:'center',color:'#9a9a96',fontSize:14}}>No pending recommendations</div>
                 : fRecs.map(r=>(
-                <MobileCard key={r.id} style={{padding:'14px',borderLeft:`3px solid ${r.priority==='high'?'#ea2729':r.priority==='medium'?'#f59e0b':'#9a9a96'}`}}>
+                <MobileCard key={r.id} style={{padding:'14px',borderLeft:`3px solid ${r.priority==='high'?'#E6007E':r.priority==='medium'?'#f59e0b':'#9a9a96'}`}}>
                   <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:4}}>{r.title}</div>
                   <p style={{fontSize:13,color:'#5a5a58',margin:'0 0 10px',lineHeight:1.5}}>{r.description}</p>
                   <div style={{display:'flex',gap:6}}>
                     <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f0fdf4',color:'#16a34a',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{r.est_impact}</span>
-                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#f2f2f0',color:'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{Math.round((r.confidence||0)*100)}% confidence</span>
+                    <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#F9F9F9',color:'#9a9a96',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>{Math.round((r.confidence||0)*100)}% confidence</span>
                   </div>
                 </MobileCard>
               ))}
@@ -380,7 +380,7 @@ export default function PerfDashboard() {
 
   /* ─── DESKTOP ─── */
  (
-    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#f2f2f0'}}>
+    <div className="page-shell" style={{display:'flex',height:'100vh',overflow:'hidden',background:'#F9F9F9'}}>
       <Sidebar/>
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
@@ -393,10 +393,10 @@ export default function PerfDashboard() {
                 <TrendingUp size={17} color="#fff"/>
               </div>
               <div>
-                <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color:'#fff',margin:0,letterSpacing:'-.03em'}}>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color: '#111111', margin: 0, letterSpacing:'-.03em'}}>
                   Performance Marketing
                 </h1>
-                <p style={{fontSize:13,color:'rgba(255,255,255,.4)',margin:0}}>
+                <p style={{fontSize:13,color:'#999999',margin:0}}>
                   Google Ads · Analytics · Search Console · GMB · AI Optimization
                 </p>
               </div>
@@ -422,7 +422,7 @@ export default function PerfDashboard() {
               <button onClick={()=>navigate('/integrations')}
                 style={{display:'flex',alignItems:'center',gap:5,padding:'7px 14px',borderRadius:9,
                   border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',
-                  color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                  color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <Settings size={13}/> Connect
               </button>
               <button onClick={async()=>{
@@ -434,7 +434,7 @@ export default function PerfDashboard() {
                 d.sent ? toast.success('Report sent to '+email,{id:'rpt'}) : toast.error(d.error||'Failed',{id:'rpt'})
               }} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 14px',borderRadius:9,
                 border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',
-                color:'rgba(255,255,255,.7)',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 Email Report
               </button>
               <button onClick={runSync} disabled={syncing}

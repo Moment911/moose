@@ -33,7 +33,7 @@ export default function BrandGuidelinesPage() {
   const [activeSection, setActiveSection] = useState('colors')
   const [copied, setCopied] = useState(null)
   const [showAddColor, setShowAddColor] = useState(false)
-  const [newColor, setNewColor] = useState('#ea2729')
+  const [newColor, setNewColor] = useState('#E6007E')
   const [newColorName, setNewColorName] = useState('')
   const [newColorCat, setNewColorCat] = useState('Primary')
   const [showAddFont, setShowAddFont] = useState(false)

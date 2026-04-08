@@ -1,7 +1,7 @@
 "use client"
 import { Menu, ChevronLeft, Zap } from 'lucide-react'
 
-const R = '#ea2729'
+const R   = '#E6007E'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 
 export default function MobileHeader({ title, onMenuPress, onBack, backLabel, rightAction, showLogo = false }) {

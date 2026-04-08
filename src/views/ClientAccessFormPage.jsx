@@ -6,8 +6,8 @@ import { supabase } from '../lib/supabase'
 import { ACCESS_SECTIONS, STATUS_CONFIG } from '../data/accountAccessTemplate'
 import toast from 'react-hot-toast'
 
-const ACCENT = '#ea2729'
-const TEAL = '#5bc6d0'
+const ACCENT = '#E6007E'
+const TEAL = '#00C2CB'
 const INP = { width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', background:'#fff', boxSizing:'border-box', color:'#111111' }
 
 const TYPE_GUIDE = {

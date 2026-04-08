@@ -8,9 +8,9 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED   = '#ea2729'
-const TEAL  = '#5bc6d0'
-const BLK   = '#0a0a0a'
+const RED   = '#E6007E'
+const TEAL  = '#00C2CB'
+const BLK = '#111111'
 const GREEN = '#16a34a'
 const AMBER = '#f59e0b'
 const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -129,18 +129,18 @@ export default function MonthlyReportPage() {
   const monthLabel = month ? new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f2f2f0' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background:BLK, padding:'20px 32px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <FileText size={20} color={RED}/> AI Monthly Report
               </h1>
-              <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 Generate a client-ready performance report in seconds
               </p>
             </div>
@@ -166,7 +166,7 @@ export default function MonthlyReportPage() {
             <div style={{ display:'flex', gap:8, overflowX:'auto' }}>
               {history.map(h => (
                 <button key={h.id} onClick={() => loadExisting(h)}
-                  style={{ padding:'5px 14px', borderRadius:20, border:'1px solid rgba(255,255,255,.12)', background:'rgba(255,255,255,.07)', color:'rgba(255,255,255,.6)', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap', flexShrink:0 }}>
+                  style={{ padding:'5px 14px', borderRadius:20, border:'1px solid rgba(255,255,255,.12)', background:'rgba(255,255,255,.07)', color:'#999999', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap', flexShrink:0 }}>
                   {new Date(h.month + '-02').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </button>
               ))}
@@ -187,7 +187,7 @@ export default function MonthlyReportPage() {
                       <span style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Generated · {monthLabel}</span>
                     </div>
                     <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', marginBottom:10, lineHeight:1.4 }}>{n.subject_line}</div>
-                    <div style={{ fontSize:15, color:'rgba(255,255,255,.75)', fontFamily:FB, lineHeight:1.8 }}>{n.executive_summary}</div>
+                    <div style={{ fontSize:15, color:'#999999', fontFamily:FB, lineHeight:1.8 }}>{n.executive_summary}</div>
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:8, flexShrink:0 }}>
                     <button onClick={copyReport}
