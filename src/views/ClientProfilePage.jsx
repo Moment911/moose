@@ -406,7 +406,7 @@ export default function ClientProfilePage() {
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:'#fff' }}>{client?.name || 'Client Profile'}</div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.4)', fontFamily:FB, marginTop:2 }}>
+              <div style={{ fontSize:12, color: '#999999', fontFamily:FB, marginTop:2 }}>
                 {profile?.industry || 'No industry'} · {client?.city || ''}{client?.state ? `, ${client.state}` : ''}
               </div>
             </div>
@@ -433,7 +433,7 @@ export default function ClientProfilePage() {
 
           {/* Onboarding link strip */}
           <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-            <span style={{ fontSize:11, color:'rgba(255,255,255,.4)', fontFamily:FB }}>Form link:</span>
+            <span style={{ fontSize:11, color: '#999999', fontFamily:FB }}>Form link:</span>
             {onboardingUrl ? (
               <span style={{ fontSize:11, fontFamily:'monospace', color:TEAL, background:'rgba(91,198,208,.1)', padding:'3px 9px', borderRadius:6 }}>
                 {onboardingUrl.replace(/^https?:\/\//, '')}

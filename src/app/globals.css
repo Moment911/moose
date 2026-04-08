@@ -15,19 +15,19 @@
 }
 
 :root {
-  --red:    #ea2729;
-  --red-dk: #c41e20;
-  --teal:   #5bc6d0;
-  --black:  #0a0a0a;
-  --off-black: #111318;
-  --bg:          #f2f2f0;
+  --red:    #E6007E;
+  --red-dk: #B5005B;
+  --teal:   #00C2CB;
+  --black:  #111111;
+  --off-black: #111111;
+  --bg:          #F9F9F9;
   --surface:     #ffffff;
-  --surface-2:   #f8f8f6;
-  --border:      #e4e4e0;
-  --border-dark: #d0d0cc;
-  --text-primary:   #0a0a0a;
-  --text-secondary: #5a5a58;
-  --text-muted:     #9a9a96;
+  --surface-2:   #F5F5F5;
+  --border:      rgba(0,0,0,0.08);
+  --border-dark: rgba(0,0,0,0.14);
+  --text-primary:   #111111;
+  --text-secondary: #555555;
+  --text-muted:     #999999;
 
   /* Proxima Nova Bold for headings — falls back to Nunito Sans (near-identical) */
   --font-display: 'Proxima Nova', 'Nunito Sans', 'Helvetica Neue', sans-serif;

@@ -627,7 +627,7 @@ export default function ProposalLibraryPage() {
                         { label: 'Pricing Style', value: voiceProfile.pricing_style },
                       ].map(item => item.value && (
                         <div key={item.label}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3, fontFamily: FH }}>{item.label}</div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#999999', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3, fontFamily: FH }}>{item.label}</div>
                           <div style={{ fontSize: 13, color: 'rgba(255,255,255,.85)', fontFamily: FB }}>{item.value}</div>
                         </div>
                       ))}

@@ -8,7 +8,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/industry-agent'
@@ -74,14 +74,14 @@ export default function IndustryAgentPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <div style={{ background: BLK, padding: '20px 32px', borderBottom: `3px solid ${R}` }}>
+        <div style={{ background: W, padding: '20px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg,${R},${T})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Globe size={20} color={W} />
             </div>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: W, margin: 0 }}>Industry Agent System</h1>
-              <p style={{ fontFamily: FB, fontSize: 12, color: 'rgba(255,255,255,.4)', margin: 0 }}>{industries.length} industries configured</p>
+              <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 500, color: BLK, margin: 0 }}>Industry Agent System</h1>
+              <p style={{ fontFamily: FB, fontSize: 12, color: '#999999', margin: 0 }}>{industries.length} industries configured</p>
             </div>
           </div>
         </div>

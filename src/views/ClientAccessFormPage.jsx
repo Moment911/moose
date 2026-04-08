@@ -161,7 +161,7 @@ export default function ClientAccessFormPage() {
           </div>
         </div>
         <div style={{ maxWidth:720, margin:'0 auto', paddingBottom:10 }}>
-          <div style={{ height:3, background:'rgba(255,255,255,.1)', borderRadius:2, overflow:'hidden' }}>
+          <div style={{ height:3, background:'#e5e7eb', borderRadius:2, overflow:'hidden' }}>
             <div style={{ height:'100%', width:`${pct}%`, background:pct===100?'#22c55e':ACCENT, borderRadius:2, transition:'width .5s' }}/>
           </div>
           <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:'#52525b', marginTop:4 }}>

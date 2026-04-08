@@ -1115,14 +1115,14 @@ export default function MarketingSitePage() {
             {/* Brand */}
             <div>
               <img src="/koto_logo.svg" alt="Koto" style={{ height: 28, marginBottom: 16 }} />
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,.4)', lineHeight: 1.7, maxWidth: 260 }}>
+              <p style={{ fontSize: 14, color: '#999999', lineHeight: 1.7, maxWidth: 260 }}>
                 The intelligence layer for modern marketing agencies. Built to scale, designed to win.
               </p>
               <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
                 {FOOTER_SOCIAL_ICONS.map((Icon, i) => (
                   <button key={i} style={{
                     width: 36, height: 36, borderRadius: 8,
-                    background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)',
+                    background: '#F5F5F5', border: '1px solid rgba(255,255,255,.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', color: 'rgba(255,255,255,.5)',
                     transition: 'all .2s',

@@ -20,10 +20,10 @@ import {
 } from '../components/mobile/MobilePage'
 
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const GRY = '#F9F9F9'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -420,7 +420,7 @@ export default function DashboardPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             margin: '0 0 16px',
           }}>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', margin: 0, fontFamily: FB }}>
+            <p style={{ fontSize: 13, color: '#999999', margin: 0, fontFamily: FB }}>
               {agencyStats.activeClients} clients &middot; {agencyStats.wpSites} WP sites
             </p>
             {refreshBadge}

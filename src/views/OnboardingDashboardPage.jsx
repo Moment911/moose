@@ -335,7 +335,7 @@ export default function OnboardingDashboardPage() {
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Users size={18} color={TEAL}/> Client Onboarding
               </div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.35)', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 Send links, track completion, view profiles — {completionRate}% complete
               </div>
             </div>

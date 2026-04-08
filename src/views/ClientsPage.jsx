@@ -19,10 +19,10 @@ import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, MobileEmpty, MobileButton, MobileTabs } from '../components/mobile/MobilePage'
 
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -269,7 +269,7 @@ export default function ClientsPage() {
               <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>
                 {isSuperAdmin && !isImpersonating ? 'All Clients' : 'Clients'}
               </h1>
-              <p style={{ fontSize:13, color:'rgba(255,255,255,.4)', margin:'2px 0 0' }}>
+              <p style={{ fontSize:13, color: '#999999', margin:'2px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>

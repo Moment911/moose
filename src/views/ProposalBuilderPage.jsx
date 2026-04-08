@@ -668,12 +668,12 @@ export default function ProposalBuilderPage() {
               <div style={{ maxWidth:780, margin:'0 auto', background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', overflow:'hidden' }}>
                 {/* Proposal header */}
                 <div style={{ background:'#18181b', padding:'40px 48px' }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,.4)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:12 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color: '#999999', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:12 }}>
                     {proposal.type === 'agreement' ? 'Service Agreement' : proposal.type === 'sow' ? 'Statement of Work' : 'Proposal'}
                   </div>
                   <h1 style={{ fontSize:28, fontWeight:900, color:'#fff', marginBottom:10 }}>{proposal.title}</h1>
                   {proposal.clients && <div style={{ fontSize:15, color:'rgba(255,255,255,.5)' }}>Prepared for {proposal.clients.name}</div>}
-                  {proposal.valid_until && <div style={{ fontSize:15, color:'rgba(255,255,255,.4)', marginTop:6 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
+                  {proposal.valid_until && <div style={{ fontSize:15, color: '#999999', marginTop:6 }}>Valid until {new Date(proposal.valid_until).toLocaleDateString()}</div>}
                 </div>
 
                 <div style={{ padding:'40px 48px' }}>

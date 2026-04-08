@@ -8,7 +8,7 @@ import {
   DollarSign, Hash, Calendar, Check, AlertTriangle
 } from 'lucide-react'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
@@ -524,9 +524,9 @@ export default function PhoneNumbersPage() {
       <Sidebar />
       <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
         {/* Header */}
-        <div style={{ background:BLK, padding:'16px 28px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ background:W, padding:'16px 28px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:`linear-gradient(135deg,${R},${T})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ width:36, height:36, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Phone size={18} color={W} />
             </div>
             <div>

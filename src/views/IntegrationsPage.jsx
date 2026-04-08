@@ -13,7 +13,7 @@ import {
   AlertTriangle, ArrowRight, BarChart2, Check, CheckCircle, ChevronRight, Circle, Clock, Code2, HardDrive, ExternalLink, Globe, Loader2, Plug, RefreshCw, Users, Webhook, Zap
 } from 'lucide-react'
 
-const R    = '#ea2729'
+const R   = '#E6007E'
 const TEAL = '#5bc6d0'
 const BLK  = '#0a0a0a'
 const FONT_HEAD = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -284,19 +284,19 @@ export default function IntegrationsPage() {
                   Integrations
                 </h1>
               </div>
-              <p style={{ fontSize:14, color:'rgba(255,255,255,.4)', margin:0, fontFamily:FONT_BODY }}>
+              <p style={{ fontSize:14, color: '#999999', margin:0, fontFamily:FONT_BODY }}>
                 Connect Koto to your CRM, automation tools, and custom systems
               </p>
             </div>
             <div style={{ background:'rgba(255,255,255,.07)', borderRadius:10,
               padding:'8px 14px', border:'1px solid rgba(255,255,255,.1)' }}>
-              <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', fontFamily:FONT_HEAD,
+              <div style={{ fontSize:13, color: '#999999', fontFamily:FONT_HEAD,
                 fontWeight:600, marginBottom:3 }}>Webhook URL</div>
               <code style={{ fontSize:13, color:'rgba(255,255,255,.7)',
                 fontFamily:'monospace' }}>{appUrl}/api/webhooks/ghl</code>
             </div>
           </div>
-          <div style={{ height:1, background:'rgba(255,255,255,.06)', marginTop:18 }}/>
+          <div style={{ height:1, background: '#F5F5F5', marginTop:18 }}/>
         </div>
 
         {/* Body */}
@@ -396,7 +396,7 @@ export default function IntegrationsPage() {
                         { label:'Last sync', value:ghl.last_sync_at ? new Date(ghl.last_sync_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : 'Never' },
                         { label:'Total synced', value:ghl.total_synced||0, green:true },
                       ].map(s => (
-                        <div key={s.label} style={{ fontSize:13, color:'rgba(255,255,255,.4)', fontFamily:FONT_BODY }}>
+                        <div key={s.label} style={{ fontSize:13, color: '#999999', fontFamily:FONT_BODY }}>
                           {s.label}: <strong style={{ color:s.green?'#22c55e':'rgba(255,255,255,.7)', fontFamily:FONT_HEAD }}>
                             {s.value}
                           </strong>

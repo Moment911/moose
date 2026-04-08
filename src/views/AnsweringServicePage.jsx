@@ -13,7 +13,7 @@ import {
   Zap, Copy, Download, Edit2, Trash2, Mail, MessageSquare, Target
 } from 'lucide-react'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b',PURP='#7c3aed'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b',PURP='#7c3aed'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 
@@ -71,7 +71,7 @@ export default function AnsweringServicePage() {
       <Sidebar />
       <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
         {/* Header */}
-        <div style={{ background:BLK, padding:'16px 28px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ background:W, padding:'16px 28px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <Phone size={22} color={R} />
             <span style={{ color:'#fff', fontSize:20, fontWeight:700, fontFamily:FH }}>Koto Answering</span>

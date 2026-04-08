@@ -11,10 +11,10 @@ import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const GRY = '#F9F9F9'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
 const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
@@ -945,13 +945,13 @@ export default function QAConsolePage() {
       {!isMobile && <Sidebar />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ background: BLK, padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', padding: '20px 32px 0', flexShrink: 0, borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-.03em' }}>
+              <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 500, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>
                 QA Console
               </h1>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', margin: '4px 0 0', fontFamily: FB }}>
+              <p style={{ fontSize: 13, color: '#999999', margin: '4px 0 0', fontFamily: FB }}>
                 Platform testing, error tracking, communications monitoring
               </p>
             </div>
@@ -960,9 +960,9 @@ export default function QAConsolePage() {
               <button onClick={() => setSelfHealMode(m => !m)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px',
-                  borderRadius: 8, border: selfHealMode ? `1px solid ${GRN}50` : '1px solid rgba(255,255,255,.15)',
-                  cursor: 'pointer', background: selfHealMode ? GRN + '18' : 'rgba(255,255,255,.06)',
-                  color: selfHealMode ? GRN : 'rgba(255,255,255,.5)', fontSize: 12, fontWeight: 700, fontFamily: FH,
+                  borderRadius: 8, border: selfHealMode ? `1px solid ${GRN}50` : '1px solid rgba(0,0,0,.14)',
+                  cursor: 'pointer', background: selfHealMode ? GRN + '18' : '#F5F5F5',
+                  color: selfHealMode ? GRN : '#555555', fontSize: 12, fontWeight: 700, fontFamily: FH,
                   transition: 'all .2s',
                 }}>
                 {selfHealMode && <span style={{ width: 8, height: 8, borderRadius: '50%', background: GRN, boxShadow: `0 0 8px ${GRN}`, animation: 'pulse 2s infinite' }} />}
@@ -974,8 +974,8 @@ export default function QAConsolePage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
                   borderRadius: 8, border: '1px solid rgba(255,255,255,.15)',
-                  cursor: deploying ? 'wait' : 'pointer', background: 'rgba(255,255,255,.06)',
-                  color: 'rgba(255,255,255,.6)', fontSize: 12, fontWeight: 700, fontFamily: FH,
+                  cursor: deploying ? 'wait' : 'pointer', background: '#F5F5F5',
+                  color: '#555555', fontSize: 12, fontWeight: 700, fontFamily: FH,
                   opacity: deploying ? 0.5 : 1,
                 }}>
                 {deploying ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={13} />}
@@ -1003,9 +1003,9 @@ export default function QAConsolePage() {
                     display: 'flex', alignItems: 'center', gap: 6,
                     padding: '10px 18px', border: 'none', cursor: 'pointer',
                     fontSize: 13, fontWeight: tab === i ? 700 : 500, fontFamily: FH,
-                    color: tab === i ? '#fff' : 'rgba(255,255,255,.4)',
+                    color: tab === i ? '#111111' : '#999999',
                     background: 'transparent',
-                    borderBottom: tab === i ? `2px solid ${R}` : '2px solid transparent',
+                    borderBottom: tab === i ? `2px solid #111111` : '2px solid transparent',
                     transition: 'all .15s',
                   }}>
                   <Icon size={14} />

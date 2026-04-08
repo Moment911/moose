@@ -9,7 +9,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/sequences'
@@ -117,19 +117,19 @@ export default function EmailSequencePage() {
     <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
-        <div style={{ background:BLK, padding:'24px 32px', borderBottom:`3px solid ${R}` }}>
+        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ width:40, height:40, borderRadius:10, background:`linear-gradient(135deg,${R},${T})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:40, height:40, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Mail size={20} color={W} />
               </div>
               <div>
-                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:W, margin:0 }}>Multi-Channel Sequences</h1>
-                <p style={{ fontFamily:FB, fontSize:12, color:'rgba(255,255,255,.4)', margin:0 }}>Call, voicemail, SMS, email. Response rates from 8% to 25%+</p>
+                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>Multi-Channel Sequences</h1>
+                <p style={{ fontFamily:FB, fontSize:12, color: '#999999', margin:0 }}>Call, voicemail, SMS, email. Response rates from 8% to 25%+</p>
               </div>
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={processQueue} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,.2)', background:'transparent', color:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
+              <button onClick={processQueue} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid rgba(0,0,0,0.14)', background:'transparent', color:'#555555', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
                 <RefreshCw size={14} /> Process Queue
               </button>
               <button onClick={() => setShowCreate(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:8, border:'none', background:R, color:W, fontSize:13, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>
@@ -143,8 +143,8 @@ export default function EmailSequencePage() {
               { label:'Enrolled', value:stats.total_enrolled||0, accent:AMB },
               { label:'Replied', value:stats.total_replied||0, accent:GRN },
             ].map(s => (
-              <div key={s.label} style={{ padding:'8px 16px', background:'rgba(255,255,255,.06)', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
-                <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,.35)', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
+              <div key={s.label} style={{ padding:'8px 16px', background: '#F5F5F5', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
+                <div style={{ fontSize:10, fontWeight:700, color:'#999999', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
                 <div style={{ fontSize:18, fontWeight:800, fontFamily:FH, color:W }}>{s.value}</div>
               </div>
             ))}
@@ -251,15 +251,15 @@ export default function EmailSequencePage() {
     <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
-        <div style={{ background:BLK, padding:'16px 32px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ background:W, padding:'16px 32px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <button onClick={() => { setEditingSeq(null); loadAll() }} style={{ background:'none', border:'none', color:W, cursor:'pointer', fontSize:14, fontFamily:FH }}>
               <ArrowRight size={16} style={{ transform:'rotate(180deg)', verticalAlign:'middle', marginRight:6 }} /> Back
             </button>
-            <h2 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:W, margin:0 }}>{editingSeq.sequence_name}</h2>
+            <h2 style={{ fontFamily:FH, fontSize:18, fontWeight: 500, color: BLK, margin:0 }}>{editingSeq.sequence_name}</h2>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            <button onClick={generateWithAI} disabled={generating} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,.2)', background:'transparent', color:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
+            <button onClick={generateWithAI} disabled={generating} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid rgba(0,0,0,0.14)', background:'transparent', color:'#555555', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
               {generating ? <Loader2 size={14} style={{ animation:'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
               Generate Steps with AI
             </button>

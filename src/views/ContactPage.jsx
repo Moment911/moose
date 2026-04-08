@@ -110,7 +110,7 @@ export default function ContactPage() {
           <h1 className="ct-hero-h1" style={{ fontFamily: FH, fontSize: 56, fontWeight: 800, color: WHITE, margin: '0 0 16px', letterSpacing: '-.04em', lineHeight: 1.05 }}>
             LET'S BUILD YOUR<br />AGENCY'S FUTURE
           </h1>
-          <p style={{ fontSize: 17, color: 'rgba(255,255,255,.4)', lineHeight: 1.7, maxWidth: 480, margin: '0 auto' }}>
+          <p style={{ fontSize: 17, color: '#999999', lineHeight: 1.7, maxWidth: 480, margin: '0 auto' }}>
             Ready to transform your agency with AI? Tell us about your goals and we'll show you exactly how Koto can help.
           </p>
         </div>

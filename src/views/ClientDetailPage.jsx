@@ -13,7 +13,7 @@ import {
 import toast from 'react-hot-toast'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const R = '#ea2729', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -842,12 +842,12 @@ export default function ClientDetailPage() {
             )}
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
               <button onClick={scanAll} disabled={socialScanning}
-                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,.2)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                 {socialScanning ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
                 Scan All
               </button>
               <button onClick={generateInsights} disabled={loadingInsights}
-                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,.2)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Brain size={12} /> AI Insights
               </button>
               <button onClick={() => setShowDeleteModal(true)}

@@ -26,7 +26,7 @@ import {
   Check,
 } from 'lucide-react';
 
-const R = '#ea2729',
+const R   = '#E6007E',
   T = '#5bc6d0',
   BLK = '#0a0a0a',
   GRY = '#f2f2f0',

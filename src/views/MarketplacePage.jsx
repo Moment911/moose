@@ -170,13 +170,13 @@ export default function MarketplacePage() {
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Sparkles size={18} color={AMBER}/> Koto Marketplace
               </div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.35)', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 {enabledCount} of {totalCount} features active · {plan.charAt(0).toUpperCase()+plan.slice(1)} plan
               </div>
             </div>
             {/* Plan badge */}
             <div style={{ textAlign:'right' }}>
-              <div style={{ fontSize:11, color:'rgba(255,255,255,.35)', fontFamily:FB, marginBottom:3 }}>Current Plan</div>
+              <div style={{ fontSize:11, color:'#999999', fontFamily:FB, marginBottom:3 }}>Current Plan</div>
               <div style={{ fontFamily:FH, fontSize:16, fontWeight:900, color: PLAN_COLOR[plan]||'#fff', textTransform:'capitalize' }}>
                 {plan}
               </div>

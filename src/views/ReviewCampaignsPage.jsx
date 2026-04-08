@@ -188,7 +188,7 @@ export default function ReviewCampaignsPage() {
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Star size={18} color={AMBER} fill={AMBER}/> Review Campaigns
               </div>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,.35)', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
                 Send review requests via email & SMS — track opens, clicks, and conversions
               </div>
             </div>

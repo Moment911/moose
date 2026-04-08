@@ -9,7 +9,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/pixel'
@@ -115,15 +115,15 @@ export default function PixelTrackingPage() {
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
         {/* Header */}
-        <div style={{ background:BLK, padding:'24px 32px', borderBottom:`3px solid ${R}` }}>
+        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ width:40, height:40, borderRadius:10, background:`linear-gradient(135deg,${R},${T})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:40, height:40, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Eye size={20} color={W} />
               </div>
               <div>
-                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:W, margin:0 }}>Visitor Intelligence</h1>
-                <p style={{ fontFamily:FB, fontSize:12, color:'rgba(255,255,255,.4)', margin:0 }}>
+                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>Visitor Intelligence</h1>
+                <p style={{ fontFamily:FB, fontSize:12, color: '#999999', margin:0 }}>
                   See who visits your websites in real time
                   {sessions.length > 0 && <span style={{ marginLeft:8, color:GRN }}><span style={{ display:'inline-block', width:6, height:6, borderRadius:'50%', background:GRN, marginRight:4, animation:'pulse 1.5s infinite' }} />{sessions.length} live now</span>}
                 </p>
@@ -142,8 +142,8 @@ export default function PixelTrackingPage() {
               { label:'Hot Visitors', value:stats.hot_visitors || 0, accent:R },
               { label:'Leads Created', value:stats.leads_created || 0, accent:GRN },
             ].map(s => (
-              <div key={s.label} style={{ padding:'8px 16px', background:'rgba(255,255,255,.06)', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
-                <div style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,.35)', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
+              <div key={s.label} style={{ padding:'8px 16px', background: '#F5F5F5', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
+                <div style={{ fontSize:10, fontWeight:700, color:'#999999', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
                 <div style={{ fontSize:18, fontWeight:800, fontFamily:FH, color:W }}>{s.value}</div>
               </div>
             ))}
@@ -336,7 +336,7 @@ export default function PixelTrackingPage() {
                     <code style={{ fontSize:11, color:'#a3e635', fontFamily:'monospace', wordBreak:'break-all' }}>
                       {`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`}
                     </code>
-                    <button onClick={() => copyCode(`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`)} style={{ position:'absolute', top:8, right:8, padding:'4px 8px', borderRadius:4, border:'none', background:'rgba(255,255,255,.1)', color:W, fontSize:10, fontFamily:FB, cursor:'pointer' }}>
+                    <button onClick={() => copyCode(`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`)} style={{ position:'absolute', top:8, right:8, padding:'4px 8px', borderRadius:4, border:'none', background:'#e5e7eb', color:W, fontSize:10, fontFamily:FB, cursor:'pointer' }}>
                       <Copy size={10} /> Copy
                     </button>
                   </div>

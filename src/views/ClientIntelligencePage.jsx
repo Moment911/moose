@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b'
 const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/client-intelligence'
@@ -143,23 +143,23 @@ export default function ClientIntelligencePage() {
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
         {/* Header */}
-        <div style={{ background:BLK, padding:'28px 36px', borderBottom:`3px solid ${R}` }}>
+        <div style={{ background: W, padding: '28px 36px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-              <div style={{ width:42, height:42, borderRadius:12, background:`linear-gradient(135deg,${R},${T})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:42, height:42, borderRadius:12, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Brain size={22} color={W} />
               </div>
               <div>
-                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:W, margin:0 }}>AI Calling Intelligence</h1>
-                <p style={{ fontFamily:FB, fontSize:13, color:'rgba(255,255,255,.4)', margin:0 }}>{clientName}</p>
+                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>AI Calling Intelligence</h1>
+                <p style={{ fontFamily:FB, fontSize:13, color: '#999999', margin:0 }}>{clientName}</p>
               </div>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               {/* Completeness */}
               <div style={{ textAlign:'right' }}>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,.4)', fontFamily:FB }}>Profile Complete</div>
+                <div style={{ fontSize:11, color: '#999999', fontFamily:FB }}>Profile Complete</div>
                 <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                  <div style={{ width:100, height:6, borderRadius:99, background:'rgba(255,255,255,.1)', overflow:'hidden' }}>
+                  <div style={{ width:100, height:6, borderRadius:99, background:'#e5e7eb', overflow:'hidden' }}>
                     <div style={{ width:`${score}%`, height:'100%', borderRadius:99, background:score>=60?GRN:score>=30?AMB:R, transition:'width .3s' }} />
                   </div>
                   <span style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:score>=60?GRN:score>=30?AMB:R }}>{score}%</span>
@@ -168,7 +168,7 @@ export default function ClientIntelligencePage() {
               <span style={{ padding:'4px 12px', borderRadius:99, fontSize:11, fontWeight:700, fontFamily:FB, background:aiReady?GRN+'20':AMB+'20', color:aiReady?GRN:AMB }}>
                 {aiReady ? 'AI Ready' : 'Needs Info'}
               </span>
-              <button onClick={runResearch} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border:'1px solid rgba(255,255,255,.2)', background:'transparent', color:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
+              <button onClick={runResearch} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid rgba(0,0,0,0.14)', background:'transparent', color:'#555555', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
                 <Globe size={14} /> Auto-Research
               </button>
               <button onClick={generateBrief} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border:'none', background:T, color:W, fontSize:12, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>

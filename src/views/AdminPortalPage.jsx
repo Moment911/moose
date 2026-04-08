@@ -118,14 +118,14 @@ export default function AdminPortalPage() {
       {/* Admin inner sidebar */}
       <div style={{ width:220, flexShrink:0, background:'#000', display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ padding:'20px 16px 16px', borderBottom:'1px solid rgba(255,255,255,.08)' }}>
-          <button onClick={() => navigate('/')} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'rgba(255,255,255,.4)', background:'none', border:'none', cursor:'pointer', marginBottom:14, padding:0 }}>
+          <button onClick={() => navigate('/')} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color: '#999999', background:'none', border:'none', cursor:'pointer', marginBottom:14, padding:0 }}>
             <ChevronLeft size={13}/> Back
           </button>
           <div style={{ fontSize:13, fontWeight:700, color:ACCENT, textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>
             Admin Portal
           </div>
           <div style={{ fontSize:18, fontWeight:900, color:'#fff' }}>{greeting}</div>
-          <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:2 }}>Platform overview</div>
+          <div style={{ fontSize:13, color: '#999999', marginTop:2 }}>Platform overview</div>
         </div>
         <nav style={{ flex:1, overflowY:'auto', padding:'10px 8px' }}>
           {NAV.map(n => {
@@ -161,12 +161,12 @@ export default function AdminPortalPage() {
             {/* MRR hero */}
             <div style={{ background:'#000', borderRadius:20, padding:'28px 32px', marginBottom:24, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div>
-                <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,.4)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8 }}>
+                <div style={{ fontSize:13, fontWeight:700, color: '#999999', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:8 }}>
                   Monthly Recurring Revenue
                 </div>
                 <div style={{ fontSize:48, fontWeight:900, color:'#fff', letterSpacing:-2, lineHeight:1 }}>
                   ${stats.mrr.toLocaleString()}
-                  <span style={{ fontSize:20, color:'rgba(255,255,255,.4)', fontWeight:500 }}>/mo</span>
+                  <span style={{ fontSize:20, color: '#999999', fontWeight:500 }}>/mo</span>
                 </div>
                 <div style={{ fontSize:15, color:'rgba(255,255,255,.5)', marginTop:8 }}>
                   {stats.activeAgencies} active agencies · {stats.trialAgencies} on trial
@@ -179,9 +179,9 @@ export default function AdminPortalPage() {
                   { label:'Trial agencies', value:stats.trialAgencies, color:'#f59e0b' },
                   { label:'Clients managed', value:stats.totalClients, color:ACCENT },
                 ].map(s=>(
-                  <div key={s.label} style={{ background:'rgba(255,255,255,.06)', borderRadius:12, padding:'14px 16px' }}>
+                  <div key={s.label} style={{ background: '#F5F5F5', borderRadius:12, padding:'14px 16px' }}>
                     <div style={{ fontSize:26, fontWeight:900, color:s.color }}>{s.value}</div>
-                    <div style={{ fontSize:13, color:'rgba(255,255,255,.4)', marginTop:2 }}>{s.label}</div>
+                    <div style={{ fontSize:13, color: '#999999', marginTop:2 }}>{s.label}</div>
                   </div>
                 ))}
               </div>

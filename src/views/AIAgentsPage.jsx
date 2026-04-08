@@ -310,7 +310,7 @@ function AutopilotBundle({ activeCount, onActivateAll }) {
             { label:'Hours saved per client', value:'40+/mo', color:'#22c55e' },
             { label:'Avg client retention lift', value:'+60%', color:'#8b5cf6' },
           ].map(s => (
-            <div key={s.label} style={{ background:'rgba(255,255,255,.06)', borderRadius:12, padding:'14px 16px', textAlign:'center' }}>
+            <div key={s.label} style={{ background: '#F5F5F5', borderRadius:12, padding:'14px 16px', textAlign:'center' }}>
               <div style={{ fontSize:20, fontWeight:900, color:s.color, textDecoration:s.strike?'line-through':'none' }}>{s.value}</div>
               <div style={{ fontSize:13, color:'#52525b', marginTop:4, lineHeight:1.3 }}>{s.label}</div>
             </div>

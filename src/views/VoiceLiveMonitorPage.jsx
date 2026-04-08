@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const R = '#ea2729', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
+const R   = '#E6007E', T = '#5bc6d0', BLK = '#0a0a0a', GRY = '#f2f2f0', GRN = '#16a34a', AMB = '#f59e0b'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 
@@ -104,7 +104,7 @@ export default function VoiceLiveMonitorPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {lastUpdate && <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)' }}>Updated {timeAgo(lastUpdate)}</span>}
-              <button onClick={fetchData} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,.15)', background: 'rgba(255,255,255,.06)', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>
+              <button onClick={fetchData} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,.15)', background: '#F5F5F5', color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH }}>
                 <RefreshCw size={12} /> Refresh
               </button>
             </div>

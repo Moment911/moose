@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
 const PAGE_TYPES=['service','location','industry','faq','blog','landing']
@@ -202,7 +202,7 @@ export default function WordPressControlPage(){
                     <Dot on={selected.connected}/>
                     <div>
                       <div style={{fontFamily:FH,fontSize:17,fontWeight:800,color:'#fff',letterSpacing:'-.02em'}}>{selected.site_name}</div>
-                      <a href={selected.site_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:'rgba(255,255,255,.35)',fontFamily:FB,display:'flex',alignItems:'center',gap:4,textDecoration:'none'}}>{selected.site_url} <ExternalLink size={9}/></a>
+                      <a href={selected.site_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:'#999999',fontFamily:FB,display:'flex',alignItems:'center',gap:4,textDecoration:'none'}}>{selected.site_url} <ExternalLink size={9}/></a>
                     </div>
                   </div>
                   <div style={{display:'flex',gap:8,alignItems:'center'}}>

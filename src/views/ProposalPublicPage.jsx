@@ -85,13 +85,13 @@ export default function ProposalPublicPage() {
       {/* Header */}
       <div style={{ background:'#18181b', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ fontSize:15, fontWeight:800, color:'#fff' }}>Koto</div>
-        <div style={{ fontSize:14, color:'rgba(255,255,255,.4)' }}>Secure proposal · Powered by Koto</div>
+        <div style={{ fontSize:14, color: '#999999' }}>Secure proposal · Powered by Koto</div>
       </div>
 
       <div style={{ maxWidth:780, margin:'0 auto', padding:'32px 20px 80px' }}>
         {/* Proposal header */}
         <div style={{ background:'#18181b', borderRadius:16, padding:'36px 40px', marginBottom:20 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,.35)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:'#999999', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:10 }}>
             {proposal.type==='agreement'?'Service Agreement':proposal.type==='sow'?'Statement of Work':'Proposal'}
           </div>
           <h1 style={{ fontSize:30, fontWeight:900, color:'#fff', marginBottom:8, letterSpacing:-0.5 }}>{proposal.title}</h1>

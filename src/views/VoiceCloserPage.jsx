@@ -10,10 +10,10 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -163,7 +163,7 @@ function AppointmentCard({ appt, lead, onAction, expanded, onToggle }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
             width: 40, height: 40, borderRadius: 10,
-            background: `linear-gradient(135deg,${R},${T})`,
+            background: '#E6007E',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
             <Phone size={18} color={W} />
@@ -454,7 +454,7 @@ export default function VoiceCloserPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: `linear-gradient(135deg,${R},${T})`,
+              background: '#E6007E',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <Target size={18} color={W} />

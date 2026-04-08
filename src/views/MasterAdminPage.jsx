@@ -184,7 +184,7 @@ export default function MasterAdminPage() {
               <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Shield size={18} color={RED}/> Master Admin
               </h1>
-              <p style={{ fontSize:12, color:'rgba(255,255,255,.4)', margin:'2px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:12, color: '#999999', margin:'2px 0 0', fontFamily:FB }}>
                 Full platform control — {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}
               </p>
             </div>

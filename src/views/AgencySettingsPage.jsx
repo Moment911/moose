@@ -19,10 +19,10 @@ import { useAuth } from '../hooks/useAuth'
 import { CATEGORIES } from '../lib/moosedesk'
 import toast from 'react-hot-toast'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -880,10 +880,10 @@ export default function AgencySettingsPage() {
             </div>
             <div>
               <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-.03em' }}>Agency Settings</h1>
-              <p style={{ fontSize:14, color:'rgba(255,255,255,.4)', margin:0, fontFamily:FB }}>All platform settings in one place</p>
+              <p style={{ fontSize:14, color: '#999999', margin:0, fontFamily:FB }}>All platform settings in one place</p>
             </div>
           </div>
-          <div style={{ height:1, background:'rgba(255,255,255,.06)' }}/>
+          <div style={{ height:1, background: '#F5F5F5' }}/>
         </div>
 
         {/* Body: left nav + content */}

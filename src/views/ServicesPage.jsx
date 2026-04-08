@@ -241,7 +241,7 @@ export default function ServicesPage() {
             <h2 style={{ fontFamily: FH, fontSize: 44, fontWeight: 800, color: WHITE, margin: '0 0 16px', letterSpacing: '-.03em', lineHeight: 1.1 }}>
               BUILD YOUR AGENCY'S FUTURE
             </h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,.4)', lineHeight: 1.7, marginBottom: 36 }}>
+            <p style={{ fontSize: 16, color: '#999999', lineHeight: 1.7, marginBottom: 36 }}>
               No contracts. No credit card required. Set up in 10 minutes.
             </p>
             <button onClick={() => navigate('/signup')} style={{

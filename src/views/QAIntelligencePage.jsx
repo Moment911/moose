@@ -12,10 +12,10 @@ import toast from 'react-hot-toast'
 import { generateQATemplateCSV, QA_TYPE_OPTIONS } from '../data/qaImportTemplate'
 import { EXPERT_QA_SEEDS, INDUSTRY_COUNTS } from '../data/expertQASeeds'
 
-const R   = '#ea2729'
-const T   = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const BLK = '#0a0a0a'
-const GRY = '#f2f2f0'
+const GRY = '#F9F9F9'
 const W   = '#ffffff'
 const GRN = '#16a34a'
 const AMB = '#f59e0b'
@@ -372,23 +372,23 @@ export default function QAIntelligencePage() {
       <div style={{ flex: 1, overflow: 'auto' }}>
 
         {/* ── Dark Header ──────────────────────────────────────── */}
-        <div style={{ background: BLK, padding: '36px 40px 28px', borderBottom: `3px solid ${R}` }}>
+        <div style={{ background: W, padding: '36px 40px 28px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: `linear-gradient(135deg,${R},${T})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Brain size={22} color={W} />
             </div>
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: W, margin: 0, letterSpacing: '-.03em' }}>Q&A Intelligence Engine</h1>
-              <p style={{ fontFamily: FB, fontSize: 13, color: 'rgba(255,255,255,.4)', margin: 0 }}>Every question asked. Every answer given. Every outcome tracked.</p>
+              <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 500, color: BLK, margin: 0, letterSpacing: '-.03em' }}>Q&A Intelligence Engine</h1>
+              <p style={{ fontFamily: FB, fontSize: 13, color: '#999999', margin: 0 }}>Every question asked. Every answer given. Every outcome tracked.</p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setShowImport(true); setImportStep(1) }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: GRN, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
                 <Upload size={14} /> Import Q&A
               </button>
-              <button onClick={exportAll} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,.2)', background: 'transparent', color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
+              <button onClick={exportAll} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', background: 'transparent', color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
                 <Download size={14} /> Export All
               </button>
-              <button onClick={downloadTemplate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,.2)', background: 'transparent', color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
+              <button onClick={downloadTemplate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', background: 'transparent', color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
                 <FileDown size={14} /> Template
               </button>
               <button onClick={seedExpertData} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
@@ -725,7 +725,7 @@ export default function QAIntelligencePage() {
           }}>
             <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: W }}>{selectedIds.size} selected</span>
             <select onChange={e => { if (e.target.value) bulkChangeType(e.target.value); e.target.value = '' }} style={{
-              padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,.2)', background: 'rgba(255,255,255,.1)', color: W, fontSize: 12, fontFamily: FB, cursor: 'pointer',
+              padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', background: 'rgba(255,255,255,.1)', color: W, fontSize: 12, fontFamily: FB, cursor: 'pointer',
             }}>
               <option value="">Change Type...</option>
               {QA_TYPE_OPTIONS.question_types.map(t => <option key={t} value={t}>{t}</option>)}
@@ -961,7 +961,7 @@ export default function QAIntelligencePage() {
 
 function MiniStat({ label, value, accent }) {
   return (
-    <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,.06)', borderRadius: 8, minWidth: 100 }}>
+    <div style={{ padding: '8px 16px', background: '#F5F5F5', borderRadius: 8, minWidth: 100 }}>
       <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.35)', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em' }}>{label}</div>
       <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: accent || W, marginTop: 2 }}>{value}</div>
     </div>

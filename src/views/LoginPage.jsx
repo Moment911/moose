@@ -5,8 +5,8 @@ import { signIn, supabase } from '../lib/supabase'
 import { Zap, Loader2, Check, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const R = '#ea2729'
-const T = '#5bc6d0'
+const R   = '#E6007E'
+const T   = '#00C2CB'
 const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB = "'Raleway','Helvetica Neue',sans-serif"
 

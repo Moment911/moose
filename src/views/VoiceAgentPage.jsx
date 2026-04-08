@@ -12,7 +12,7 @@ import {
   AlertTriangle, Copy, ExternalLink, Settings, Zap
 } from 'lucide-react'
 
-const R='#ea2729',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b',PURP='#7c3aed'
+const R   = '#E6007E',T='#5bc6d0',BLK='#0a0a0a',GRY='#f2f2f0',GRN='#16a34a',AMB='#f59e0b',PURP='#7c3aed'
 const W='#ffffff'
 const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB="'Raleway','Helvetica Neue',sans-serif"
@@ -1452,7 +1452,7 @@ export default function VoiceAgentPage() {
         {/* Generation log */}
         {genLog.length > 0 && (
           <div style={{ background:BLK, borderRadius:10, padding:'14px 16px', maxHeight:200, overflow:'auto' }}>
-            <div style={{ fontSize:11, fontWeight:700, fontFamily:FB, color:'rgba(255,255,255,.4)', marginBottom:8, textTransform:'uppercase', letterSpacing:'.08em' }}>Generation Log</div>
+            <div style={{ fontSize:11, fontWeight:700, fontFamily:FB, color: '#999999', marginBottom:8, textTransform:'uppercase', letterSpacing:'.08em' }}>Generation Log</div>
             {genLog.map((line, i) => (
               <div key={i} style={{ fontSize:12, fontFamily:'monospace', color:line.startsWith('Error') ? '#f87171' : '#a3e635', lineHeight:1.6 }}>
                 {line}
@@ -1500,9 +1500,9 @@ export default function VoiceAgentPage() {
       <Sidebar />
       <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
         {/* Header */}
-        <div style={{ background:BLK, padding:'16px 28px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ background:W, padding:'16px 28px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:`linear-gradient(135deg,${R},${T})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ width:36, height:36, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <PhoneCall size={18} color={W} />
             </div>
             <div>
