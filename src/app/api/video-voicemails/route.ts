@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
     const s = sb()
 
     if (action === 'list') {
-      const { data } = await s.from('koto_video_voicemails').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false }).limit(50)
+      let query = s.from('koto_video_voicemails').select('*')
+      if (agencyId) query = query.eq('agency_id', agencyId)
+      const { data } = await query.order('created_at', { ascending: false }).limit(50)
       return Response.json({ data: data || [] })
     }
 
@@ -76,11 +78,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (action === 'get_stats') {
+      const addFilter = (q: any) => agencyId ? q.eq('agency_id', agencyId) : q
       const [{ count: total }, { count: sent }, { count: opened }, { count: played }] = await Promise.all([
-        s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('agency_id', agencyId),
-        s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('agency_id', agencyId).eq('email_sent', true),
-        s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('agency_id', agencyId).eq('email_opened', true),
-        s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('agency_id', agencyId).eq('video_played', true),
+        addFilter(s.from('koto_video_voicemails').select('*', { count: 'exact', head: true })),
+        addFilter(s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('email_sent', true)),
+        addFilter(s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('email_opened', true)),
+        addFilter(s.from('koto_video_voicemails').select('*', { count: 'exact', head: true }).eq('video_played', true)),
       ])
       return Response.json({ total: total || 0, sent: sent || 0, opened: opened || 0, played: played || 0 })
     }
