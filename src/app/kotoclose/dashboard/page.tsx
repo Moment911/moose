@@ -29,12 +29,22 @@ export default function DashboardPage() {
     return ()=>clearInterval(iv)
   },[])
 
-  const s = stats || { live_calls:0,total_today:0,connect_rate:0,opted_ins:0,voicemails:0,callbacks:0,appointments:0,avg_duration:'0:00' }
+  const s = {
+    live_calls: stats?.live_calls ?? 0,
+    total_today: stats?.total_today ?? 0,
+    connect_rate: stats?.connect_rate ?? 0,
+    connected: stats?.connected ?? 0,
+    opted_ins: stats?.opted_ins ?? 0,
+    voicemails: stats?.voicemails ?? 0,
+    callbacks: stats?.callbacks ?? 0,
+    appointments: stats?.appointments ?? 0,
+    avg_duration: stats?.avg_duration ?? '0:00',
+  }
 
   const STATS = [
     { label:'Live Calls',value:s.live_calls,color:'#16a34a',delta:'Active now',dir:'neutral' },
     { label:'Calls Today',value:s.total_today,color:'#111',delta:'+12% vs yesterday',dir:'up' },
-    { label:'Connect Rate',value:s.connect_rate+'%',color:'#4A4EFF',delta:'+4pts vs avg',dir:'up' },
+    { label:'Connect Rate',value:`${s.connect_rate}%`,color:'#4A4EFF',delta:'+4pts vs avg',dir:'up' },
     { label:'Opt-ins Today',value:s.opted_ins,color:'#E6007E',delta:'+3 this hour',dir:'up' },
     { label:'Voicemails',value:s.voicemails,color:'#111',delta:'17% VM rate',dir:'neutral' },
     { label:'Callbacks Sched.',value:s.callbacks,color:'#7c3aed',delta:'9 today',dir:'neutral' },
@@ -129,10 +139,10 @@ export default function DashboardPage() {
           <div style={{ background:KC.white, borderRadius:14, border:`0.5px solid ${KC.borderMd}`, padding:16 }}>
             <div style={{ fontSize:13, fontWeight:600, color:KC.text, fontFamily:KC.fd, marginBottom:12 }}>Today&apos;s Outcome Funnel</div>
             {[
-              { label:'Dialed', value:s.total_today, color:'#111', pct:100 },
-              { label:'Connected', value:s.connected||0, color:'#4A4EFF', pct:s.total_today?Math.round((s.connected||0)/s.total_today*100):0 },
-              { label:'Opted In', value:s.opted_ins, color:'#E6007E', pct:s.total_today?Math.round(s.opted_ins/s.total_today*100):0 },
-              { label:'Appt Set', value:s.appointments, color:'#16a34a', pct:s.total_today?Math.round(s.appointments/s.total_today*100):0 },
+              { label:'Dialed', value:s.total_today, color:'#111', pct:s.total_today>0?100:0 },
+              { label:'Connected', value:s.connected, color:'#4A4EFF', pct:s.total_today>0?Math.round(s.connected/s.total_today*100):0 },
+              { label:'Opted In', value:s.opted_ins, color:'#E6007E', pct:s.total_today>0?Math.round(s.opted_ins/s.total_today*100):0 },
+              { label:'Appt Set', value:s.appointments, color:'#16a34a', pct:s.total_today>0?Math.round(s.appointments/s.total_today*100):0 },
             ].map(f=>(
               <div key={f.label} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                 <span style={{ minWidth:70, fontSize:11, color:KC.secondary }}>{f.label}</span>
