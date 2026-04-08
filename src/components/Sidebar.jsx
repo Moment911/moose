@@ -200,6 +200,7 @@ export default function Sidebar() {
             <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service"/>
             <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T}/>
             <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub/>
+            <NavLink to="/trades" icon={Zap} label="Trades Portal" sub/>
             <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R}/>
             <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R}/>
             <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub/>
