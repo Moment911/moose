@@ -806,7 +806,7 @@ Return ONLY the script text, no markdown or JSON.`
 
     // ── Live Routing ──────────────────────────────────────────────────────────
     if (action === 'get_live_routing') {
-      const { call_id } = body
+      const { call_id, known_competitors } = body
       if (!call_id) return NextResponse.json({ error: 'Missing call_id' }, { status: 400 })
 
       const { data: call } = await sb.from('koto_voice_calls').select('*').eq('id', call_id).single()
@@ -816,14 +816,13 @@ Return ONLY the script text, no markdown or JSON.`
         ? await sb.from('koto_voice_leads').select('*').eq('id', call.lead_id).single()
         : { data: null }
 
-      const { computeLiveRouting } = await import('../../../lib/liveConversationEngine')
+      const { getLiveRoutingPacket } = await import('../../../lib/liveConversationEngine')
 
       const transcript = call.transcript || ''
       const durationSec = call.duration_seconds || Math.floor((Date.now() - new Date(call.created_at).getTime()) / 1000)
-      const leadScore = lead?.lead_score || 0
-      const sentiment = call.sentiment || 'neutral'
+      const sicCode = lead?.sic_code || 'unknown'
 
-      const routing = computeLiveRouting(transcript, durationSec, leadScore, sentiment)
+      const routing = await getLiveRoutingPacket(call_id, transcript, sicCode, agency_id, durationSec, known_competitors || [])
 
       return NextResponse.json({ routing })
     }

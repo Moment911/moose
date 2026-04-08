@@ -224,56 +224,57 @@ function LiveCallCard({ call: c, onStop }) {
             </div>
           ) : routing ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Next Move */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: routing.next_move.action === 'transfer' ? R + '08' : routing.next_move.action === 'offer_appointment' ? GRN + '08' : '#f9fafb', border: `1px solid ${routing.next_move.action === 'transfer' ? R + '25' : routing.next_move.action === 'offer_appointment' ? GRN + '25' : '#e5e7eb'}` }}>
-                <div style={{ fontSize: 20 }}>
-                  {routing.next_move.action === 'transfer' ? '🔥' : routing.next_move.action === 'offer_appointment' ? '📅' : routing.next_move.action === 'wrap_up' ? '👋' : routing.next_move.action === 'send_info' ? '📧' : routing.next_move.action === 'escalate' ? '⚡' : '💬'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'uppercase', letterSpacing: '.02em' }}>
-                    Next Move: {routing.next_move.action.replace(/_/g, ' ')}
+              {/* Stage + Engagement */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: '#f3f4f6', color: '#6b7280', textTransform: 'uppercase', fontFamily: FH }}>{routing.conversation_stage}</span>
+                <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: routing.engagement_signal === 'hot' ? GRN + '15' : routing.engagement_signal === 'cooling' ? R + '15' : routing.engagement_signal === 'warm' ? AMB + '15' : '#f3f4f6', color: routing.engagement_signal === 'hot' ? GRN : routing.engagement_signal === 'cooling' ? R : routing.engagement_signal === 'warm' ? AMB : '#6b7280', textTransform: 'uppercase', fontFamily: FH }}>
+                  {routing.engagement_signal === 'hot' ? '🔥' : routing.engagement_signal === 'cooling' ? '❄️' : routing.engagement_signal === 'warm' ? '⚡' : '😐'} {routing.engagement_signal}
+                </span>
+              </div>
+
+              {/* Suggested Pivot */}
+              {routing.suggested_pivot && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 10, background: routing.engagement_signal === 'hot' ? GRN + '08' : routing.engagement_signal === 'cooling' ? R + '08' : '#f9fafb', border: `1px solid ${routing.engagement_signal === 'hot' ? GRN + '25' : routing.engagement_signal === 'cooling' ? R + '25' : '#e5e7eb'}` }}>
+                  <div style={{ fontSize: 18, flexShrink: 0 }}>🎯</div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'uppercase', letterSpacing: '.02em', marginBottom: 2 }}>Suggested Pivot</div>
+                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>{routing.suggested_pivot}</div>
                   </div>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{routing.next_move.reason}</div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: routing.next_move.confidence >= 80 ? GRN : routing.next_move.confidence >= 60 ? AMB : '#6b7280' }}>{routing.next_move.confidence}%</div>
-                  <div style={{ fontSize: 9, color: '#9a9a96', textTransform: 'uppercase' }}>confidence</div>
-                </div>
-              </div>
+              )}
 
-              {/* Momentum + Talk ratio */}
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>
-                  Momentum: <strong style={{ color: routing.momentum === 'rising' ? GRN : routing.momentum === 'falling' ? R : '#6b7280' }}>
-                    {routing.momentum === 'rising' ? '📈 Rising' : routing.momentum === 'falling' ? '📉 Falling' : '➡️ Steady'}
-                  </strong>
-                </div>
-                {routing.talk_ratio_warning && (
-                  <div style={{ fontSize: 11, fontWeight: 700, color: AMB, background: AMB + '15', padding: '2px 8px', borderRadius: 10 }}>⚠️ Agent talking too much</div>
-                )}
-              </div>
-
-              {/* Battle Cards */}
-              {routing.battle_cards?.length > 0 && (
+              {/* Next Questions */}
+              {routing.next_questions?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>⚔️ Competitor Battle Cards</div>
-                  {routing.battle_cards.map((bc, i) => (
-                    <div key={i} style={{ background: '#fff', border: '1px solid #ececea', borderRadius: 10, padding: '10px 14px', marginBottom: 6 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 4 }}>{bc.competitor}</div>
-                      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 4 }}>Weaknesses: {bc.weaknesses.join(' · ')}</div>
-                      <div style={{ fontSize: 11, color: GRN, fontWeight: 600, marginBottom: 4 }}>✓ {bc.our_advantage}</div>
-                      <div style={{ fontSize: 11, color: BLK, fontStyle: 'italic', background: '#f9fafb', padding: '6px 10px', borderRadius: 6 }}>💬 "{bc.suggested_rebuttal}"</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>💡 Ask Next</div>
+                  {routing.next_questions.map((q, i) => (
+                    <div key={i} style={{ padding: '8px 12px', marginBottom: 4, borderRadius: 8, background: '#f9fafb', border: '1px solid #ececea' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>"{q.question_text}"</span>
+                        <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 10, background: q.urgency === 'high' ? R + '15' : q.urgency === 'medium' ? AMB + '15' : '#f3f4f6', color: q.urgency === 'high' ? R : q.urgency === 'medium' ? AMB : '#6b7280', textTransform: 'uppercase' }}>{q.urgency}</span>
+                      </div>
+                      <div style={{ fontSize: 10, color: '#9a9a96' }}>{q.rationale}{q.appointment_rate > 0 ? ` · ${q.appointment_rate}% appt rate` : ''}{q.times_asked > 0 ? ` · asked ${q.times_asked}x` : ''}</div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Suggested Questions */}
-              {routing.suggested_questions?.length > 0 && (
+              {/* Battle Cards */}
+              {routing.battle_cards?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>💡 Suggested Questions</div>
-                  {routing.suggested_questions.map((q, i) => (
-                    <div key={i} style={{ fontSize: 12, color: '#374151', padding: '4px 0', borderBottom: '1px solid #f8f8f6' }}>"{q}"</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>⚔️ Competitor Detected</div>
+                  {routing.battle_cards.map((bc, i) => (
+                    <div key={i} style={{ background: '#fff', border: '1px solid #ececea', borderRadius: 10, padding: '10px 14px', marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize' }}>{bc.competitor}</span>
+                        <span style={{ fontSize: 10, color: '#9a9a96', fontStyle: 'italic' }}>"{bc.detected_in}"</span>
+                      </div>
+                      {bc.talking_points.map((tp, j) => (
+                        <div key={j} style={{ fontSize: 11, color: '#6b7280', padding: '2px 0' }}>• {tp}</div>
+                      ))}
+                      <div style={{ fontSize: 11, color: GRN, fontWeight: 600, marginTop: 4 }}>↪ {bc.pivot_question}</div>
+                      <div style={{ fontSize: 11, color: BLK, fontStyle: 'italic', background: '#f9fafb', padding: '6px 10px', borderRadius: 6, marginTop: 4 }}>🎯 Probe: "{bc.weakness_to_probe}"</div>
+                    </div>
                   ))}
                 </div>
               )}
