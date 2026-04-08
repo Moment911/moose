@@ -194,6 +194,20 @@ export async function POST(req: NextRequest) {
           const { score, signals } = calculateIntentScore(session, events || [])
           await s.from('koto_visitor_sessions').update({ intent_score: score, intent_signals: signals }).eq('session_id', sessionId)
 
+          // Fire-and-forget: upsert opportunity from visitor session
+          try {
+            const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/api\/.*/, '') || ''
+            fetch(`${origin}/api/opportunities`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json', cookie: req.headers.get('cookie') || '' },
+              body: JSON.stringify({
+                action: 'upsert_from_visitor', session_id: sessionId,
+                company_name: session.identified_company, contact_email: session.identified_email,
+                website: session.landing_page, intent_score: score, intent_signals: signals,
+                page_url: session.current_page, page_title: session.current_page_title,
+              }),
+            }).catch(() => {})
+          } catch {}
+
           // Alert if hot visitor
           if (score >= 70) {
             const { data: existing } = await s.from('koto_pixel_alerts')

@@ -132,6 +132,7 @@ import KotoProofPage from '../views/KotoProofPage'
 import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
+import OpportunitiesPage from '../views/OpportunitiesPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
 import EmailSequencePage from '../views/EmailSequencePage'
@@ -309,6 +310,7 @@ function AppRoutes() {
           <Route path="/voice/closer" element={<VoiceCloserPage />} />
           <Route path="/qa-intelligence" element={<QAIntelligencePage />} />
           <Route path="/industry-agents" element={<IndustryAgentPage />} />
+          <Route path="/opportunities" element={<OpportunitiesPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/integrations/ghl" element={<GHLIntegrationPage />} />
           <Route path="/sequences" element={<EmailSequencePage />} />
