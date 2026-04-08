@@ -206,6 +206,7 @@ export default function Sidebar() {
             <NavLink to="/phones" icon={Phone} label="Phone Numbers"/>
             <NavLink to="/marketplace" icon={Sparkles} label="Marketplace"/>
             <NavLink to="/integrations" icon={Plug} label="Integrations"/>
+            <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub/>
             <NavLink to="/billing" icon={CreditCard} label="Billing"/>
             <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
             <NavLink to="/help" icon={HelpCircle} label="Help Center"/>
