@@ -868,6 +868,160 @@ Write in plain prose, no bullet lists. Be direct and specific.`
       return Response.json({ ok: true })
     }
 
+    // ─── interview_message (Adam Segall conversational mode) ──
+    if (action === 'interview_message') {
+      const { engagement_id, message, conversation_history, current_section_id } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('*').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const sections = Array.isArray(eng.sections) ? eng.sections : []
+      const currentSection = sections.find((sec: any) => sec.id === current_section_id) || sections[0]
+      if (!currentSection) return Response.json({ error: 'No sections' }, { status: 400 })
+
+      // Build the remaining questions list for the current section
+      const remainingQuestions = (currentSection.fields || [])
+        .filter((f: any) => !(f.answer || '').trim())
+        .map((f: any) => `- ${f.id}: ${f.question}`)
+        .join('\n') || '(all covered in this section)'
+
+      // Captured answers across all sections (for context)
+      const capturedLines: string[] = []
+      for (const sec of sections) {
+        for (const f of sec.fields || []) {
+          if ((f.answer || '').trim()) capturedLines.push(`[${sec.id}] ${f.question}: ${f.answer}`)
+        }
+      }
+      const capturedAnswers = capturedLines.length ? capturedLines.join('\n') : '(none yet)'
+
+      // Engagement summary
+      const intelLines: string[] = []
+      for (const card of (eng.intel_cards || [])) {
+        intelLines.push(`- ${card.title}: ${card.body}`)
+      }
+      const engagementSummary =
+        `Client: ${eng.client_name}\n` +
+        `Industry: ${eng.client_industry || 'unknown'}\n` +
+        (intelLines.length ? `Pre-call intel:\n${intelLines.join('\n')}` : 'No pre-call intel yet.')
+
+      const system = `You are Adam Segall, a 25-year veteran in marketing, sales, and business operations. You are CEO of Momenta Marketing and have worked with hundreds of businesses across every industry. You are conducting a discovery call to deeply understand this client's business before building a marketing and operations strategy for them.
+
+Your personality: Direct but warm. Genuinely curious. You ask one question at a time and actually listen to the answer before moving to the next. You probe naturally when something interesting comes up — you don't robotically follow a script. You use plain language. You occasionally use humor when appropriate. You have pattern recognition from hundreds of businesses and you're not afraid to name what you're seeing.
+
+Your job in this conversation:
+1. Work through the discovery sections in order, but do it conversationally — not as a form
+2. Extract answers naturally from what the person says
+3. When you have enough on a topic, transition naturally to the next area
+4. Flag anything that sounds like a risk, gap, or major opportunity — say it directly
+5. At the end of each section, do a quick verbal summary of what you heard before moving on
+
+Current engagement context:
+${engagementSummary}
+
+Current section being covered: ${currentSection.title}${currentSection.subtitle ? ` — ${currentSection.subtitle}` : ''}
+
+Questions still to cover in this section:
+${remainingQuestions}
+
+What has been captured so far across all sections:
+${capturedAnswers}
+
+Return ONLY a JSON object in this exact shape (no prose, no markdown fence):
+{
+  "message": "your next message to the client — one question at a time, conversational",
+  "extracted_answers": [{"field_id": "01a", "answer": "extracted answer text"}],
+  "section_complete": false,
+  "suggested_next_section": null,
+  "flags": [{"type": "risk|opportunity|gap", "note": "short direct observation"}]
+}
+
+Only include extracted_answers for field_ids that appear in the current section's remaining questions above. Set section_complete=true only when you genuinely have enough on every remaining question. Set suggested_next_section to the next section id when you're ready to transition. Return an empty array for flags if nothing notable.`
+
+      const apiKey = process.env.ANTHROPIC_API_KEY || ''
+      if (!apiKey) {
+        return Response.json({
+          data: {
+            message: "I'm not hooked up to the AI backend right now — check that ANTHROPIC_API_KEY is set in the environment.",
+            extracted_answers: [],
+            section_complete: false,
+            suggested_next_section: null,
+            flags: [],
+          },
+        })
+      }
+
+      // Build the Claude messages array from conversation_history + the new user message
+      const history = Array.isArray(conversation_history) ? conversation_history : []
+      const claudeMessages: any[] = history
+        .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+        .map((m: any) => ({ role: m.role, content: m.content }))
+      if (message) claudeMessages.push({ role: 'user', content: message })
+      // If the very first call has no user message at all, prime with a kickoff instruction
+      if (claudeMessages.length === 0) {
+        claudeMessages.push({
+          role: 'user',
+          content: `[Open the conversation. Introduce yourself as Adam naturally and ask your first question based on ${eng.client_name} (${eng.client_industry || 'unknown industry'}). Keep it human.]`,
+        })
+      }
+
+      let parsed: any = {
+        message: '',
+        extracted_answers: [],
+        section_complete: false,
+        suggested_next_section: null,
+        flags: [],
+      }
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: CLAUDE_MODEL,
+            max_tokens: 1000,
+            system,
+            messages: claudeMessages,
+          }),
+          signal: AbortSignal.timeout(45000),
+        })
+        if (res.ok) {
+          const d = await res.json()
+          const txt = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n').trim()
+          const j = parseJson(txt)
+          if (j && typeof j === 'object') parsed = { ...parsed, ...j }
+          // If the model returned a string instead of object (still valid JSON), salvage it
+          if (!parsed.message && typeof txt === 'string' && txt.length > 0 && !j) {
+            parsed.message = txt
+          }
+        } else {
+          const errBody = await res.text().catch(() => '')
+          parsed.message = `(AI error ${res.status}) ${errBody.slice(0, 200)}`
+        }
+      } catch (e: any) {
+        parsed.message = `(AI request failed: ${e.message})`
+      }
+
+      // Persist any extracted answers into the engagement sections
+      if (Array.isArray(parsed.extracted_answers) && parsed.extracted_answers.length > 0) {
+        const updatedSections = sections.map((sec: any) => ({ ...sec, fields: [...(sec.fields || [])] }))
+        for (const ext of parsed.extracted_answers) {
+          if (!ext?.field_id || !ext?.answer) continue
+          for (const sec of updatedSections) {
+            const field = (sec.fields || []).find((f: any) => f.id === ext.field_id)
+            if (field) {
+              field.answer = ext.answer
+              field.source = 'ai_generated'
+              break
+            }
+          }
+        }
+        await s.from('koto_discovery_engagements').update({ sections: updatedSections }).eq('id', engagement_id)
+      }
+
+      return Response.json({ data: parsed })
+    }
+
     return Response.json({ error: 'Unknown action' }, { status: 400 })
   } catch (error: any) {
     console.error('discovery POST error:', error.message)

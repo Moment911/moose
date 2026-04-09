@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Brain, Plus, Search, Eye, EyeOff, Edit2, Check, X, Copy, Share2, Sparkles,
   Loader2, AlertTriangle, Info, ChevronDown, ChevronRight, ExternalLink, RefreshCw,
-  MessageSquare, Globe, Trash2, Send, Zap, FileText
+  MessageSquare, Globe, Trash2, Send, Zap, FileText, List, CheckCircle2, AlertOctagon, Lightbulb, TrendingDown
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
@@ -348,6 +348,7 @@ function DetailView({ aid, id, onBack }) {
   const [busyResearch, setBusyResearch] = useState(false)
   const [busyCompile, setBusyCompile] = useState(false)
   const [showShare, setShowShare] = useState(false)
+  const [mode, setMode] = useState('document') // 'document' | 'interview'
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -435,10 +436,26 @@ function DetailView({ aid, id, onBack }) {
         <div style={{ display: 'flex', gap: 8 }}>
           <HeaderBtn onClick={runResearch} disabled={busyResearch} color={C.teal} icon={busyResearch ? Loader2 : Sparkles} label={busyResearch ? 'Researching…' : 'Run AI Research'} spinning={busyResearch} />
           <HeaderBtn onClick={compile} disabled={busyCompile} color={C.teal} icon={busyCompile ? Loader2 : FileText} label={busyCompile ? 'Compiling…' : 'Compile'} spinning={busyCompile} />
+          <HeaderBtn
+            onClick={() => setMode(m => m === 'document' ? 'interview' : 'document')}
+            color={mode === 'interview' ? C.text : C.teal}
+            icon={mode === 'document' ? MessageSquare : List}
+            label={mode === 'document' ? 'Interview Mode' : 'Document Mode'}
+            outlined={mode === 'interview'}
+          />
           <HeaderBtn onClick={() => setShowShare(true)} color={C.text} icon={Share2} label="Share" outlined />
         </div>
       </div>
 
+      {mode === 'interview' ? (
+        <InterviewMode
+          eng={eng}
+          aid={aid}
+          onExit={() => { setMode('document'); load() }}
+          onEngUpdate={load}
+        />
+      ) : (
+      <>
       {/* 2-col layout: sticky nav + main */}
       <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, alignItems: 'flex-start' }}>
         <SectionNav
@@ -493,6 +510,9 @@ function DetailView({ aid, id, onBack }) {
           ))}
         </div>
       </div>
+
+      </>
+      )}
 
       {showShare && <ShareModal eng={eng} aid={aid} onClose={() => setShowShare(false)} />}
     </div>
@@ -1280,6 +1300,401 @@ function ShareModal({ eng, aid, onClose }) {
             background: C.teal, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
           }}>{saving ? 'Generating…' : 'Generate Link'}</button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Conversational Interview Mode (Adam Segall)
+// ─────────────────────────────────────────────────────────────
+function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
+  const sections = Array.isArray(eng.sections) ? eng.sections : []
+  const [currentSectionId, setCurrentSectionId] = useState(sections[0]?.id || '')
+  const [messages, setMessages] = useState([]) // {role, content}
+  const [input, setInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [capturedBySection, setCapturedBySection] = useState({}) // sectionId -> [{field_id, question, answer}]
+  const [flags, setFlags] = useState([]) // [{type, note}]
+  const [completedSections, setCompletedSections] = useState({}) // sectionId -> true
+  const [fadeKey, setFadeKey] = useState(0)
+  const scrollRef = useRef(null)
+  const openedRef = useRef(false)
+
+  // Seed captured answers from existing data
+  useEffect(() => {
+    const map = {}
+    for (const sec of sections) {
+      const captured = []
+      for (const f of sec.fields || []) {
+        if ((f.answer || '').trim()) captured.push({ field_id: f.id, question: f.question, answer: f.answer })
+      }
+      if (captured.length) map[sec.id] = captured
+    }
+    setCapturedBySection(map)
+    // eslint-disable-next-line
+  }, [])
+
+  // Auto-scroll chat
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+  }, [messages, sending])
+
+  // Open the conversation once
+  useEffect(() => {
+    if (openedRef.current) return
+    openedRef.current = true
+    sendMessage('', true)
+    // eslint-disable-next-line
+  }, [])
+
+  async function sendMessage(userText, isKickoff = false) {
+    setSending(true)
+
+    // Add user message to local state
+    const newHistory = isKickoff ? [...messages] : [...messages, { role: 'user', content: userText }]
+    if (!isKickoff) setMessages(newHistory)
+
+    const res = await fetch('/api/discovery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'interview_message',
+        engagement_id: eng.id,
+        message: isKickoff ? '' : userText,
+        conversation_history: isKickoff ? [] : newHistory.slice(0, -1), // history before the new user msg
+        current_section_id: currentSectionId,
+        agency_id: aid,
+      }),
+    }).then(r => r.json()).catch(() => null)
+
+    setSending(false)
+
+    const data = res?.data
+    if (!data) {
+      setMessages(m => [...m, { role: 'assistant', content: 'Sorry, I hit an error reaching the AI. Try again.' }])
+      return
+    }
+
+    // Append AI message
+    if (data.message) {
+      setMessages(m => [...m, { role: 'assistant', content: data.message }])
+    }
+
+    // Merge extracted answers into capturedBySection
+    if (Array.isArray(data.extracted_answers) && data.extracted_answers.length) {
+      setCapturedBySection(prev => {
+        const copy = { ...prev }
+        for (const ext of data.extracted_answers) {
+          if (!ext?.field_id || !ext?.answer) continue
+          // Find which section this field belongs to
+          for (const sec of sections) {
+            const field = (sec.fields || []).find(f => f.id === ext.field_id)
+            if (field) {
+              const list = [...(copy[sec.id] || [])]
+              const existingIdx = list.findIndex(x => x.field_id === ext.field_id)
+              const entry = { field_id: ext.field_id, question: field.question, answer: ext.answer }
+              if (existingIdx >= 0) list[existingIdx] = entry
+              else list.push(entry)
+              copy[sec.id] = list
+              break
+            }
+          }
+        }
+        return copy
+      })
+      setFadeKey(k => k + 1)
+    }
+
+    // Merge flags
+    if (Array.isArray(data.flags) && data.flags.length) {
+      setFlags(f => [...f, ...data.flags.map(x => ({ ...x, ts: Date.now() }))])
+    }
+
+    // Section completion + transition
+    if (data.section_complete) {
+      setCompletedSections(prev => ({ ...prev, [currentSectionId]: true }))
+      const nextId = data.suggested_next_section || (() => {
+        const idx = sections.findIndex(s => s.id === currentSectionId)
+        return sections[idx + 1]?.id || null
+      })()
+      if (nextId) setCurrentSectionId(nextId)
+    }
+  }
+
+  async function handleSend() {
+    const text = input.trim()
+    if (!text || sending) return
+    setInput('')
+    await sendMessage(text)
+  }
+
+  async function saveAndExit() {
+    toast.success('Interview saved')
+    onExit()
+  }
+
+  const currentSection = sections.find(s => s.id === currentSectionId) || sections[0]
+  const currentIdx = sections.findIndex(s => s.id === currentSectionId)
+  const totalQuestions = (currentSection?.fields || []).length
+  const answeredInCurrent = (capturedBySection[currentSectionId] || []).length
+
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: '320px 1fr', gap: 14,
+      height: 'calc(100vh - 160px)', minHeight: 600,
+    }}>
+      {/* ═══ LEFT PANEL ═══ */}
+      <div style={{
+        background: C.white, borderRadius: 12, border: `1px solid ${C.border}`,
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      }}>
+        {/* Current section header */}
+        <div style={{ padding: 14, borderBottom: `1px solid ${C.border}`, background: C.tealTint }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#0E7490', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+            Now Discussing
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginTop: 4 }}>
+            {currentSection?.title || 'Section'}
+          </div>
+          <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>
+            Section {currentIdx + 1} of {sections.length} · {answeredInCurrent}/{totalQuestions} captured
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+          {/* Section jump */}
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            Section Jump
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 14 }}>
+            {sections.map(sec => {
+              const isCurrent = sec.id === currentSectionId
+              const isDone = completedSections[sec.id]
+              return (
+                <div
+                  key={sec.id}
+                  onClick={() => setCurrentSectionId(sec.id)}
+                  style={{
+                    padding: '7px 9px', borderRadius: 6, cursor: 'pointer',
+                    background: isCurrent ? C.tealTint : 'transparent',
+                    display: 'flex', alignItems: 'center', gap: 7,
+                    fontSize: 12, fontWeight: isCurrent ? 700 : 500,
+                    color: isCurrent ? '#0E7490' : C.text,
+                  }}
+                >
+                  {isDone
+                    ? <CheckCircle2 size={12} color={C.green} style={{ flexShrink: 0 }} />
+                    : <div style={{ width: 12, height: 12, borderRadius: '50%', border: `1.5px solid ${isCurrent ? C.teal : C.borderMd}`, flexShrink: 0 }} />}
+                  <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sec.title}</div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Captured notes */}
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            Notes Captured
+          </div>
+          {Object.keys(capturedBySection).length === 0 && (
+            <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic', padding: '6px 2px' }}>
+              Nothing captured yet — Adam will start extracting as the conversation unfolds.
+            </div>
+          )}
+          {sections.map(sec => {
+            const items = capturedBySection[sec.id] || []
+            if (items.length === 0) return null
+            return (
+              <div key={sec.id} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+                  {sec.title}
+                </div>
+                {items.map((item, i) => (
+                  <div
+                    key={`${fadeKey}-${sec.id}-${i}`}
+                    style={{
+                      padding: '7px 9px', background: C.bg, borderRadius: 6, marginBottom: 4,
+                      animation: 'fadeIn 0.4s ease-out',
+                    }}
+                  >
+                    <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>{item.question}</div>
+                    <div style={{ fontSize: 12, color: C.text, lineHeight: 1.4 }}>{item.answer}</div>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+
+          {/* Live Flags */}
+          {flags.length > 0 && (
+            <>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 6, marginBottom: 8 }}>
+                Live Flags
+              </div>
+              {flags.map((f, i) => {
+                const palette = f.type === 'risk'
+                  ? { bg: '#FEE2E2', fg: '#991B1B', border: '#FCA5A5', icon: AlertOctagon, label: 'RISK' }
+                  : f.type === 'opportunity'
+                    ? { bg: C.greenTint, fg: '#14532D', border: '#86EFAC', icon: Lightbulb, label: 'OPPORTUNITY' }
+                    : { bg: C.amberTint, fg: '#92400E', border: '#FCD34D', icon: TrendingDown, label: 'GAP' }
+                const Icon = palette.icon
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      padding: '8px 10px', background: palette.bg, borderRadius: 7,
+                      border: `1px solid ${palette.border}`, marginBottom: 6,
+                      animation: 'fadeIn 0.4s ease-out',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                      <Icon size={11} color={palette.fg} />
+                      <div style={{ fontSize: 10, fontWeight: 800, color: palette.fg, letterSpacing: '.06em' }}>
+                        {palette.label}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 12, color: palette.fg, lineHeight: 1.4 }}>{f.note}</div>
+                  </div>
+                )
+              })}
+            </>
+          )}
+        </div>
+
+        {/* Save & Exit */}
+        <div style={{ padding: 12, borderTop: `1px solid ${C.border}` }}>
+          <button
+            onClick={saveAndExit}
+            style={{
+              width: '100%', background: C.text, color: '#fff', border: 'none', borderRadius: 8,
+              padding: '10px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}
+          >
+            Save & Exit Interview
+          </button>
+        </div>
+      </div>
+
+      {/* ═══ RIGHT PANEL — CHAT ═══ */}
+      <div style={{
+        background: C.white, borderRadius: 12, border: `1px solid ${C.border}`,
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      }}>
+        {/* Chat header */}
+        <div style={{
+          padding: '12px 18px', borderBottom: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', gap: 10, background: '#fafafa',
+        }}>
+          <div style={{
+            width: 30, height: 30, borderRadius: '50%', background: C.teal,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <Brain size={15} color="#fff" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Interview Mode</div>
+            <div style={{ fontSize: 11, color: C.muted }}>Adam Segall, Senior Strategist · Momenta Marketing</div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 18, background: '#fcfcfb' }}>
+          {messages.length === 0 && sending && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: C.muted, fontSize: 13 }}>
+              <Loader2 size={14} className="anim-spin" /> Adam is thinking…
+            </div>
+          )}
+
+          {messages.map((m, i) => (
+            <MessageBubble key={i} role={m.role} content={m.content} />
+          ))}
+
+          {sending && messages.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 8 }}>
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%', background: C.teal,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <Brain size={13} color="#fff" />
+              </div>
+              <div style={{
+                background: C.tealTint, borderRadius: 12, padding: '9px 13px',
+                color: C.muted, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <Loader2 size={12} className="anim-spin" /> thinking…
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input bar */}
+        <div style={{
+          padding: 14, borderTop: `1px solid ${C.border}`, background: C.white,
+          display: 'flex', gap: 8, alignItems: 'flex-end',
+        }}>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+            }}
+            placeholder="Type your reply…"
+            disabled={sending}
+            rows={1}
+            style={{
+              flex: 1, padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 10,
+              fontSize: 14, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5,
+              minHeight: 40, maxHeight: 120,
+            }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending || !input.trim()}
+            style={{
+              background: sending || !input.trim() ? C.borderMd : C.teal, color: '#fff', border: 'none',
+              borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700,
+              cursor: sending || !input.trim() ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}
+          >
+            <Send size={13} /> Send
+          </button>
+        </div>
+      </div>
+
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  )
+}
+
+function MessageBubble({ role, content }) {
+  const isUser = role === 'user'
+  return (
+    <div style={{
+      display: 'flex', gap: 8, marginBottom: 12,
+      flexDirection: isUser ? 'row-reverse' : 'row',
+      alignItems: 'flex-start',
+    }}>
+      {!isUser && (
+        <div style={{
+          width: 26, height: 26, borderRadius: '50%', background: C.teal,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <Brain size={13} color="#fff" />
+        </div>
+      )}
+      <div style={{
+        background: isUser ? C.text : C.tealTint,
+        color: isUser ? '#fff' : C.text,
+        borderRadius: 12,
+        padding: '10px 14px',
+        maxWidth: '75%',
+        fontSize: 14,
+        lineHeight: 1.5,
+        whiteSpace: 'pre-wrap',
+        border: isUser ? 'none' : `1px solid ${C.teal}30`,
+      }}>
+        {content}
       </div>
     </div>
   )
