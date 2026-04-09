@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   AlertOctagon, AlertTriangle, ArrowLeft, Brain, Check, CheckCircle2, ChevronRight,
-  Clock, Download, FileText, Loader2, Printer, Sparkles, Target, TrendingUp, Zap,
+  Clock, Download, FileSignature, FileText, Loader2, Printer, Sparkles, Target, TrendingUp, Zap,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -119,7 +119,7 @@ export default function DiscoveryAuditPage() {
 
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         {/* Header */}
-        <Header eng={eng} onBack={() => navigate(-1)} />
+        <Header eng={eng} onBack={() => navigate(-1)} navigate={navigate} />
 
         {/* Layout: sticky nav + main */}
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 20, marginTop: 18, alignItems: 'flex-start' }}>
@@ -175,10 +175,35 @@ export default function DiscoveryAuditPage() {
 // ─────────────────────────────────────────────────────────────
 // Header with circular health gauge
 // ─────────────────────────────────────────────────────────────
-function Header({ eng, onBack }) {
+function Header({ eng, onBack, navigate }) {
   const overall = eng.audit_data?.business_health_score?.overall ?? 0
   const color = overall >= 71 ? C.green : overall >= 41 ? C.amber : C.red
   const date = eng.audit_generated_at ? new Date(eng.audit_generated_at).toLocaleString() : '—'
+  const [busyProposal, setBusyProposal] = useState(false)
+
+  async function createProposal() {
+    setBusyProposal(true)
+    const loadingToast = toast.loading('Building proposal from audit…')
+    try {
+      const res = await fetch('/api/discovery/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create_proposal_from_audit', engagement_id: eng.id }),
+      }).then(r => r.json())
+      toast.dismiss(loadingToast)
+      if (res?.data?.proposal_id) {
+        toast.success('Proposal created')
+        navigate(`/proposals/${res.data.proposal_id}`)
+      } else {
+        toast.error(res?.error || 'Failed to create proposal')
+      }
+    } catch (e) {
+      toast.dismiss(loadingToast)
+      toast.error('Proposal request failed')
+    } finally {
+      setBusyProposal(false)
+    }
+  }
 
   return (
     <div style={{
@@ -216,16 +241,34 @@ function Header({ eng, onBack }) {
       {/* Circular gauge */}
       <CircularGauge value={overall} color={color} />
 
-      <button
-        onClick={() => window.print()}
-        style={{
-          background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
-          padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          color: C.text, display: 'flex', alignItems: 'center', gap: 6,
-        }}
-      >
-        <Printer size={13} /> Print / Export
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button
+          onClick={createProposal}
+          disabled={busyProposal}
+          style={{
+            background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
+            padding: '9px 16px', fontSize: 13, fontWeight: 700,
+            cursor: busyProposal ? 'wait' : 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+            opacity: busyProposal ? 0.7 : 1,
+          }}
+        >
+          {busyProposal
+            ? <Loader2 size={13} className="anim-spin" />
+            : <FileSignature size={13} />}
+          {busyProposal ? 'Building…' : 'Create Proposal'}
+        </button>
+        <button
+          onClick={() => window.print()}
+          style={{
+            background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
+            padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            color: C.text, display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <Printer size={13} /> Print / Export
+        </button>
+      </div>
     </div>
   )
 }

@@ -63,13 +63,132 @@ export async function POST(req: NextRequest) {
     const action = body.action || searchParams.get('action') || ''
     const s = sb()
 
-    if (action !== 'generate_audit') {
-      return Response.json({ error: 'Unknown action' }, { status: 400 })
-    }
-
     const agencyId = resolveAgencyId(req, searchParams, body) || '00000000-0000-0000-0000-000000000099'
     const engagementId = body.engagement_id || body.id
     if (!engagementId) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+    // ─── create_proposal_from_audit ──────────────────
+    if (action === 'create_proposal_from_audit') {
+      const { data: eng } = await s
+        .from('koto_discovery_engagements')
+        .select('id, client_name, client_id, audit_data')
+        .eq('id', engagementId)
+        .maybeSingle()
+
+      if (!eng) return Response.json({ error: 'Engagement not found' }, { status: 404 })
+      if (!eng.audit_data) return Response.json({ error: 'No audit data. Generate the audit first.' }, { status: 400 })
+
+      const a = eng.audit_data as any
+      const title = `Strategic Marketing & Operations Plan — ${eng.client_name}`
+
+      // Build intro + executive summary from audit
+      const intro = `This proposal outlines the strategic marketing and operations plan for ${eng.client_name}, developed from a comprehensive discovery session covering technology, lead generation, CRM, content, paid advertising, and operational workflows.`
+
+      // Build a formatted executive summary including investment + opportunities
+      const executiveSummaryParts: string[] = []
+      if (a.executive_summary) executiveSummaryParts.push(a.executive_summary)
+
+      if (Array.isArray(a.opportunities) && a.opportunities.length > 0) {
+        executiveSummaryParts.push('\n\n## Scope & Services\n')
+        for (const opp of a.opportunities.slice(0, 8)) {
+          executiveSummaryParts.push(`\n### ${opp.title}\n${opp.description || ''}`)
+          if (opp.estimated_impact) executiveSummaryParts.push(`\n**Expected impact:** ${opp.estimated_impact}`)
+          if (opp.revenue_potential) executiveSummaryParts.push(`\n**Revenue potential:** ${opp.revenue_potential}`)
+        }
+      }
+
+      if (Array.isArray(a.technology_audit) && a.technology_audit.length > 0) {
+        executiveSummaryParts.push('\n\n## Technology Recommendations\n')
+        for (const cat of a.technology_audit.slice(0, 6)) {
+          const replaces = (cat.recommendations || []).filter((r: any) => r.priority === 'replace').slice(0, 3)
+          const adds = (cat.recommendations || []).filter((r: any) => r.priority === 'add').slice(0, 3)
+          if (replaces.length || adds.length) {
+            executiveSummaryParts.push(`\n### ${cat.category}`)
+            if (replaces.length) {
+              executiveSummaryParts.push(`\n**Replace:** ${replaces.map((r: any) => r.tool).join(', ')}`)
+            }
+            if (adds.length) {
+              executiveSummaryParts.push(`\n**Add:** ${adds.map((r: any) => r.tool).join(', ')}`)
+            }
+          }
+        }
+      }
+
+      if (Array.isArray(a.ninety_day_roadmap) && a.ninety_day_roadmap.length > 0) {
+        executiveSummaryParts.push('\n\n## 90-Day Roadmap\n')
+        for (const wk of a.ninety_day_roadmap.slice(0, 6)) {
+          executiveSummaryParts.push(`\n**${wk.week_range || 'TBD'} — ${wk.focus || 'Focus TBD'}:** ${wk.success_metric || ''}`)
+        }
+      }
+
+      if (a.investment_summary) {
+        const inv = a.investment_summary
+        executiveSummaryParts.push('\n\n## Investment\n')
+        if (inv.recommended_monthly_retainer_range) {
+          executiveSummaryParts.push(`\n**Monthly retainer:** ${inv.recommended_monthly_retainer_range}`)
+        }
+        if (inv.one_time_setup_costs) {
+          executiveSummaryParts.push(`\n**One-time setup:** ${inv.one_time_setup_costs}`)
+        }
+        if (inv.roi_projection) {
+          executiveSummaryParts.push(`\n**Projected ROI:** ${inv.roi_projection}`)
+        }
+        if (inv.payback_period) {
+          executiveSummaryParts.push(`\n**Payback period:** ${inv.payback_period}`)
+        }
+      }
+
+      const executiveSummary = executiveSummaryParts.join('')
+
+      const now = new Date().toISOString()
+      const { data: newProposal, error: propErr } = await s
+        .from('proposals')
+        .insert({
+          agency_id: agencyId,
+          client_id: eng.client_id || null,
+          title,
+          status: 'draft',
+          type: 'proposal',
+          intro,
+          executive_summary: executiveSummary,
+          created_at: now,
+          updated_at: now,
+        })
+        .select()
+        .single()
+
+      if (propErr || !newProposal) {
+        return Response.json({
+          error: `Failed to create proposal: ${propErr?.message || 'unknown'}`,
+        }, { status: 500 })
+      }
+
+      // Create proposal_sections from opportunities (each opportunity = one service section)
+      if (Array.isArray(a.opportunities) && a.opportunities.length > 0) {
+        try {
+          const sectionRows = a.opportunities.slice(0, 10).map((opp: any, idx: number) => ({
+            proposal_id: newProposal.id,
+            sort_order: idx,
+            title: opp.title || `Opportunity ${idx + 1}`,
+            body: [
+              opp.description || '',
+              opp.estimated_impact ? `\n\nExpected Impact: ${opp.estimated_impact}` : '',
+              opp.revenue_potential ? `\n\nRevenue Potential: ${opp.revenue_potential}` : '',
+              Array.isArray(opp.implementation_steps) && opp.implementation_steps.length > 0
+                ? `\n\nImplementation:\n${opp.implementation_steps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n')}`
+                : '',
+            ].join(''),
+          }))
+          await s.from('proposal_sections').insert(sectionRows)
+        } catch { /* non-fatal */ }
+      }
+
+      return Response.json({ data: { proposal_id: newProposal.id } })
+    }
+
+    if (action !== 'generate_audit') {
+      return Response.json({ error: 'Unknown action' }, { status: 400 })
+    }
 
     // Load the full engagement + domains
     const [{ data: eng }, { data: domains }] = await Promise.all([
