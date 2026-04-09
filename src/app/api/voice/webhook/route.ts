@@ -69,6 +69,22 @@ export async function POST(req: NextRequest) {
           metadata: body,
           pre_call_intel: preCallIntel,
         }, { onConflict: 'retell_call_id' })
+
+        // KotoClose: upsert live call into kc_calls
+        const kcAgencyId = body.metadata?.agency_id || call.metadata?.agency_id || null
+        if (kcAgencyId) {
+          try {
+            await s.from('kc_calls').upsert({
+              retell_call_id: callId,
+              agency_id: kcAgencyId,
+              contact_name: call.metadata?.prospect_name || body.metadata?.prospect_name || 'Unknown',
+              company_name: call.metadata?.business_name || body.metadata?.business_name || '',
+              phone: call.to_number || call.from_number || '',
+              status: 'live',
+              created_at: new Date().toISOString(),
+            }, { onConflict: 'retell_call_id', ignoreDuplicates: false })
+          } catch { /* non-fatal */ }
+        }
       }
     }
 
@@ -88,6 +104,34 @@ export async function POST(req: NextRequest) {
           call_analysis: call.call_analysis || {},
           metadata: body,
         }).eq('retell_call_id', callId)
+
+        // KotoClose: update kc_calls with final outcome
+        {
+          const kcAgencyId = body.metadata?.agency_id || call.metadata?.agency_id || null
+          const sentiment = call.call_analysis?.user_sentiment
+          const sentimentScore = sentiment === 'Positive' ? 85 : sentiment === 'Negative' ? 25 : 55
+          const isVoicemail = call.disconnection_reason === 'voicemail_reached' || call.call_type === 'voicemail_detected'
+          try {
+            await s.from('kc_calls').upsert({
+              retell_call_id: callId,
+              agency_id: kcAgencyId || null,
+              contact_name: call.call_analysis?.custom_analysis_data?.contact_name ?? call.metadata?.prospect_name ?? body.metadata?.prospect_name ?? 'Unknown',
+              company_name: call.call_analysis?.custom_analysis_data?.company_name ?? call.metadata?.business_name ?? body.metadata?.business_name ?? '',
+              phone: call.to_number || call.from_number || '',
+              duration_seconds: duration,
+              status: isVoicemail ? 'voicemail' : !answered ? 'no_answer' : 'completed',
+              outcome: call.call_analysis?.call_summary ?? '',
+              opted_in: call.call_analysis?.custom_analysis_data?.opted_in ?? false,
+              appointment_set: call.call_analysis?.custom_analysis_data?.appointment_set ?? false,
+              sentiment_score: sentimentScore,
+              intelligence_score: sentimentScore,
+              stage_reached: call.call_analysis?.custom_analysis_data?.stage_reached ?? 'Unknown',
+              ghl_synced: false,
+              recording_url: call.recording_url ?? null,
+              transcript: call.transcript ?? null,
+            }, { onConflict: 'retell_call_id', ignoreDuplicates: false })
+          } catch { /* non-fatal */ }
+        }
 
         // Also update voice lead if exists
         await s.from('koto_voice_leads').update({
