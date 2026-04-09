@@ -1,9 +1,11 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Brain, Plus, Search, Eye, EyeOff, Edit2, Check, X, Copy, Share2, Sparkles,
   Loader2, AlertTriangle, Info, ChevronDown, ChevronRight, ExternalLink, RefreshCw,
-  MessageSquare, Globe, Trash2, Send, Zap, FileText, List, CheckCircle2, AlertOctagon, Lightbulb, TrendingDown
+  MessageSquare, Globe, Trash2, Send, Zap, FileText, List, CheckCircle2, AlertOctagon, Lightbulb, TrendingDown,
+  Database, PanelRightClose, PanelRightOpen
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
@@ -374,6 +376,9 @@ function DetailView({ aid, id, onBack }) {
   const [busyCompile, setBusyCompile] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [mode, setMode] = useState('document') // 'document' | 'interview'
+  const [showLivePanel, setShowLivePanel] = useState(false)
+  const [busyAudit, setBusyAudit] = useState(false)
+  const navigate = useNavigate()
 
   // Keystroke state lives in refs so typing does NOT re-render siblings.
   // docSummary is recomputed every 5s from the ref for AI-question context.
@@ -456,6 +461,29 @@ function DetailView({ aid, id, onBack }) {
     }
   }
 
+  async function generateAudit() {
+    setBusyAudit(true)
+    const loadingToast = toast.loading('Generating strategic audit — this takes about a minute…')
+    try {
+      const res = await fetch('/api/discovery/audit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate_audit', engagement_id: id, agency_id: aid }),
+      }).then(r => r.json())
+      toast.dismiss(loadingToast)
+      if (res?.data?.audit_data) {
+        toast.success('Audit generated')
+        navigate(`/discovery/audit/${id}`)
+      } else {
+        toast.error(res?.error || 'Audit failed')
+      }
+    } catch (e) {
+      toast.dismiss(loadingToast)
+      toast.error('Audit request failed')
+    } finally {
+      setBusyAudit(false)
+    }
+  }
+
   function updateSectionInState(sectionId, mutator) {
     setEng(prev => {
       if (!prev) return prev
@@ -495,9 +523,19 @@ function DetailView({ aid, id, onBack }) {
             <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>{eng.client_industry || 'No industry'}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <HeaderBtn onClick={runResearch} disabled={busyResearch} color={C.teal} icon={busyResearch ? Loader2 : Sparkles} label={busyResearch ? 'Researching…' : 'Run AI Research'} spinning={busyResearch} />
           <HeaderBtn onClick={compile} disabled={busyCompile} color={C.teal} icon={busyCompile ? Loader2 : FileText} label={busyCompile ? 'Compiling…' : 'Compile'} spinning={busyCompile} />
+          {(eng.status === 'compiled' || eng.status === 'shared') && (
+            <HeaderBtn
+              onClick={eng.audit_data ? () => navigate(`/discovery/audit/${id}`) : generateAudit}
+              disabled={busyAudit}
+              color="#E6007E"
+              icon={busyAudit ? Loader2 : Zap}
+              label={busyAudit ? 'Generating…' : (eng.audit_data ? 'View Audit' : 'Generate Audit')}
+              spinning={busyAudit}
+            />
+          )}
           <HeaderBtn
             onClick={() => setMode(m => m === 'document' ? 'interview' : 'document')}
             color={mode === 'interview' ? C.text : C.teal}
@@ -505,6 +543,15 @@ function DetailView({ aid, id, onBack }) {
             label={mode === 'document' ? 'Interview Mode' : 'Document Mode'}
             outlined={mode === 'interview'}
           />
+          {mode === 'document' && (
+            <HeaderBtn
+              onClick={() => setShowLivePanel(v => !v)}
+              color={C.text}
+              icon={showLivePanel ? PanelRightClose : Database}
+              label="Live Answers"
+              outlined
+            />
+          )}
           <HeaderBtn onClick={() => setShowShare(true)} color={C.text} icon={Share2} label="Share" outlined />
         </div>
       </div>
@@ -518,8 +565,15 @@ function DetailView({ aid, id, onBack }) {
         />
       ) : (
       <>
-      {/* 2-col layout: sticky nav + main */}
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, alignItems: 'flex-start' }}>
+      {/* Layout: sticky nav + main [+ optional live answers panel] */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: showLivePanel ? '200px 1fr 320px' : '200px 1fr',
+          gap: 16,
+          alignItems: 'flex-start',
+        }}
+      >
         <SectionNav
           sections={eng.sections || []}
           active={activeSection}
@@ -573,6 +627,17 @@ function DetailView({ aid, id, onBack }) {
             />
           ))}
         </div>
+
+        {showLivePanel && (
+          <LiveAnswersPanel
+            eng={eng}
+            engagementId={eng.id}
+            agencyId={aid}
+            answersRef={answersRef}
+            sectionsRef={sectionsRef}
+            onClose={() => setShowLivePanel(false)}
+          />
+        )}
       </div>
 
       </>
@@ -1814,6 +1879,382 @@ function MessageBubble({ role, content }) {
       }}>
         {content}
       </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Live Answers side panel (document mode)
+// ─────────────────────────────────────────────────────────────
+function LiveAnswersPanel({ eng, engagementId, agencyId, answersRef, sectionsRef, onClose }) {
+  const [tab, setTab] = useState('answers') // 'answers' | 'flags' | 'summary'
+  // Snapshot is refreshed every 2s from refs so the panel shows near-real-time
+  // answers without re-rendering the whole document on every keystroke.
+  const [snapshot, setSnapshot] = useState({ sections: [], answers: {} })
+  const [editingKey, setEditingKey] = useState(null) // `${sectionId}:${fieldId}`
+  const [editValue, setEditValue] = useState('')
+  const [animKey, setAnimKey] = useState(0)
+  const lastAnswersHashRef = useRef('')
+
+  useEffect(() => {
+    const compute = () => {
+      const answers = { ...(answersRef?.current || {}) }
+      const sections = sectionsRef?.current || []
+      // Detect changes via a lightweight hash so we can trigger fade-in animations
+      const hash = JSON.stringify(answers)
+      if (hash !== lastAnswersHashRef.current) {
+        lastAnswersHashRef.current = hash
+        setAnimKey(k => k + 1)
+      }
+      setSnapshot({ sections, answers })
+    }
+    compute()
+    const iv = setInterval(compute, 2000)
+    return () => clearInterval(iv)
+    // eslint-disable-next-line
+  }, [])
+
+  async function saveEdit(sectionId, fieldId) {
+    const key = `${sectionId}:${fieldId}`
+    await fetch('/api/discovery', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save_field',
+        id: engagementId, section_id: sectionId, field_id: fieldId,
+        answer: editValue, source: 'manually_promoted', agency_id: agencyId,
+      }),
+    }).catch(() => {})
+    if (answersRef?.current) answersRef.current[key] = editValue
+    setSnapshot(prev => ({ ...prev, answers: { ...prev.answers, [key]: editValue } }))
+    setEditingKey(null)
+    setEditValue('')
+    toast.success('Saved')
+  }
+
+  const flags = Array.isArray(eng?.interview_flags) ? eng.interview_flags : []
+
+  // Tally for Summary tab
+  const sectionStats = snapshot.sections.map(sec => {
+    const total = (sec.fields || []).length
+    const answered = (sec.fields || []).filter(f => {
+      const v = snapshot.answers[`${sec.id}:${f.id}`]
+      return v && String(v).trim().length > 0
+    }).length
+    return { id: sec.id, title: sec.title, total, answered }
+  })
+  const totalFields = sectionStats.reduce((a, s) => a + s.total, 0)
+  const totalAnswered = sectionStats.reduce((a, s) => a + s.answered, 0)
+
+  return (
+    <div style={{
+      position: 'sticky', top: 12, background: C.white, borderRadius: 12,
+      border: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column',
+      maxHeight: 'calc(100vh - 40px)', overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '12px 14px', borderBottom: `1px solid ${C.border}`,
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <Database size={14} color={C.teal} />
+        <div style={{ fontSize: 13, fontWeight: 800, color: C.text, flex: 1 }}>Live Answers</div>
+        <button
+          onClick={onClose}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: C.muted }}
+          title="Close panel"
+        >
+          <X size={14} />
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}` }}>
+        {['answers', 'flags', 'summary'].map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              flex: 1, padding: '10px 8px', background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em',
+              color: tab === t ? C.teal : C.muted,
+              borderBottom: tab === t ? `2px solid ${C.teal}` : '2px solid transparent',
+            }}
+          >
+            {t}
+            {t === 'flags' && flags.length > 0 && (
+              <span style={{
+                marginLeft: 5, fontSize: 9, fontWeight: 800, padding: '1px 6px',
+                borderRadius: 10, background: C.teal, color: '#fff',
+              }}>{flags.length}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Body */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+        {tab === 'answers' && (
+          <AnswersTab
+            sections={snapshot.sections}
+            answers={snapshot.answers}
+            engSections={eng?.sections || []}
+            editingKey={editingKey}
+            editValue={editValue}
+            setEditingKey={setEditingKey}
+            setEditValue={setEditValue}
+            saveEdit={saveEdit}
+            animKey={animKey}
+          />
+        )}
+        {tab === 'flags' && <FlagsTab flags={flags} />}
+        {tab === 'summary' && (
+          <SummaryTab
+            sectionStats={sectionStats}
+            totalFields={totalFields}
+            totalAnswered={totalAnswered}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AnswersTab({ sections, answers, engSections, editingKey, editValue, setEditingKey, setEditValue, saveEdit, animKey }) {
+  // Build a map of field metadata (question text, source) from the engSections prop
+  // (engSections may be slightly stale but that's fine for presenting labels)
+  const fieldMeta = {}
+  for (const sec of engSections) {
+    for (const f of sec.fields || []) {
+      fieldMeta[`${sec.id}:${f.id}`] = { question: f.question, source: f.source }
+    }
+  }
+
+  const grouped = sections.map(sec => {
+    const items = (sec.fields || [])
+      .map(f => {
+        const key = `${sec.id}:${f.id}`
+        return {
+          key,
+          sectionId: sec.id,
+          fieldId: f.id,
+          question: fieldMeta[key]?.question || f.question,
+          answer: answers[key] || '',
+          source: fieldMeta[key]?.source || f.source || 'preset',
+        }
+      })
+      .filter(x => x.answer.trim().length > 0)
+    return { id: sec.id, title: sec.title, items }
+  }).filter(g => g.items.length > 0)
+
+  if (grouped.length === 0) {
+    return <div style={{ fontSize: 12, color: C.muted, padding: 10, fontStyle: 'italic' }}>
+      No answers captured yet. Start typing in any section and they'll appear here.
+    </div>
+  }
+
+  return (
+    <div>
+      {grouped.map(g => (
+        <div key={g.id} style={{ marginBottom: 14 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
+            letterSpacing: '.06em', marginBottom: 6,
+          }}>
+            {g.title}
+          </div>
+          {g.items.map(item => {
+            const badge = item.source === 'client_provided'
+              ? { label: 'CLIENT', bg: '#EFF6FF', fg: '#3A7BD5' }
+              : item.source === 'ai_generated'
+                ? { label: 'AI', bg: '#F0FDF4', fg: '#16A34A' }
+                : item.source === 'manually_promoted'
+                  ? { label: 'MANUAL', bg: C.tealTint, fg: C.teal }
+                  : null
+            const isEditing = editingKey === item.key
+            return (
+              <div
+                key={`${animKey}-${item.key}`}
+                style={{
+                  padding: '8px 10px', background: '#fafafa', borderRadius: 8, marginBottom: 6,
+                  animation: 'fadeIn 0.4s ease-out',
+                }}
+              >
+                <div style={{ fontSize: 10, color: C.muted, marginBottom: 3, lineHeight: 1.3 }}>
+                  {item.question}
+                </div>
+                {isEditing ? (
+                  <div>
+                    <textarea
+                      value={editValue}
+                      onChange={e => setEditValue(e.target.value)}
+                      onKeyDown={e => e.stopPropagation()}
+                      rows={3}
+                      style={{
+                        width: '100%', padding: '6px 8px', fontSize: 12, border: `1px solid ${C.border}`,
+                        borderRadius: 5, outline: 'none', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box',
+                      }}
+                      autoFocus
+                    />
+                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                      <button
+                        onClick={() => saveEdit(item.sectionId, item.fieldId)}
+                        style={{ background: C.teal, color: '#fff', border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                      ><Check size={11} /></button>
+                      <button
+                        onClick={() => { setEditingKey(null); setEditValue('') }}
+                        style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 5, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}
+                      ><X size={11} color={C.muted} /></button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.text, lineHeight: 1.45 }}>
+                      {item.answer}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                      {badge && (
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
+                          background: badge.bg, color: badge.fg,
+                        }}>
+                          {badge.label}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => { setEditingKey(item.key); setEditValue(item.answer) }}
+                        style={{
+                          background: 'none', border: 'none', color: C.muted, fontSize: 10,
+                          cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 3,
+                        }}
+                      >
+                        <Edit2 size={10} /> edit
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function FlagsTab({ flags }) {
+  if (flags.length === 0) {
+    return <div style={{ fontSize: 12, color: C.muted, padding: 10, fontStyle: 'italic' }}>
+      No flags yet. Run Interview Mode to surface risks, gaps, and opportunities.
+    </div>
+  }
+  const groups = { risk: [], opportunity: [], gap: [] }
+  for (const f of flags) {
+    if (groups[f.type]) groups[f.type].push(f)
+    else groups.gap.push(f)
+  }
+  return (
+    <div>
+      {['risk', 'opportunity', 'gap'].map(type => {
+        if (groups[type].length === 0) return null
+        const palette = type === 'risk'
+          ? { bg: '#FEE2E2', fg: '#991B1B', border: '#FCA5A5', icon: AlertOctagon, label: 'RISK' }
+          : type === 'opportunity'
+            ? { bg: '#F0FDF4', fg: '#14532D', border: '#86EFAC', icon: Lightbulb, label: 'OPPORTUNITY' }
+            : { bg: '#FFFBEB', fg: '#92400E', border: '#FCD34D', icon: TrendingDown, label: 'GAP' }
+        const Icon = palette.icon
+        return (
+          <div key={type} style={{ marginBottom: 14 }}>
+            <div style={{
+              fontSize: 10, fontWeight: 800, color: palette.fg, textTransform: 'uppercase',
+              letterSpacing: '.06em', marginBottom: 6,
+            }}>
+              {palette.label} · {groups[type].length}
+            </div>
+            {groups[type].map((f, i) => (
+              <div key={i} style={{
+                padding: '8px 10px', background: palette.bg, borderRadius: 8,
+                border: `1px solid ${palette.border}`, marginBottom: 6,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                  <Icon size={10} color={palette.fg} />
+                  <div style={{ fontSize: 9, fontWeight: 700, color: palette.fg, letterSpacing: '.06em' }}>
+                    {f.section_title || 'General'}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: palette.fg, lineHeight: 1.4 }}>{f.note}</div>
+              </div>
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function SummaryTab({ sectionStats, totalFields, totalAnswered }) {
+  const pct = totalFields > 0 ? Math.round((totalAnswered / totalFields) * 100) : 0
+  const complete = sectionStats.filter(s => s.total > 0 && s.answered === s.total)
+  const inProgress = sectionStats.filter(s => s.answered > 0 && s.answered < s.total)
+  const untouched = sectionStats.filter(s => s.answered === 0 && s.total > 0)
+
+  return (
+    <div>
+      {/* Overall tally */}
+      <div style={{
+        background: C.tealTint, borderRadius: 10, padding: 14, border: `1px solid ${C.teal}40`, marginBottom: 14,
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+          Overall Progress
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)', marginTop: 4 }}>
+          {totalAnswered} / {totalFields}
+        </div>
+        <div style={{ fontSize: 11, color: C.muted, marginBottom: 6 }}>{pct}% of fields captured</div>
+        <div style={{ height: 6, background: '#fff', borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: C.teal, transition: 'width .3s' }} />
+        </div>
+      </div>
+
+      {/* Per-section progress bars */}
+      <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+        By Section
+      </div>
+      {sectionStats.map(s => {
+        const p = s.total > 0 ? Math.round((s.answered / s.total) * 100) : 0
+        const color = p === 100 ? C.green : p > 0 ? C.teal : '#d1d5db'
+        return (
+          <div key={s.id} style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
+              <span style={{ color: C.text, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 6 }}>
+                {s.title}
+              </span>
+              <span style={{ color: C.muted, fontWeight: 600 }}>{s.answered}/{s.total}</span>
+            </div>
+            <div style={{ height: 4, background: '#f3f4f6', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${p}%`, background: color, transition: 'width .3s' }} />
+            </div>
+          </div>
+        )
+      })}
+
+      {/* Breakdown */}
+      <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SummaryStat label="Complete" count={complete.length} color={C.green} />
+        <SummaryStat label="In Progress" count={inProgress.length} color={C.teal} />
+        <SummaryStat label="Untouched" count={untouched.length} color={C.muted} />
+      </div>
+    </div>
+  )
+}
+
+function SummaryStat({ label, count, color }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '7px 10px', background: '#fafafa', borderRadius: 6,
+    }}>
+      <span style={{ fontSize: 11, color: C.text, fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 800, color }}>{count}</span>
     </div>
   )
 }

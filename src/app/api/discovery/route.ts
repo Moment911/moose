@@ -906,8 +906,8 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
       const summary = await callClaude({
         system,
         user: prompt,
-        maxTokens: 1000,
-        timeoutMs: 20000,
+        maxTokens: 1500,
+        timeoutMs: 25000,
       })
 
       await s.from('koto_discovery_engagements').update({
@@ -1097,6 +1097,28 @@ Only include extracted_answers for field_ids that appear in the current section'
           }
         }
         await s.from('koto_discovery_engagements').update({ sections: updatedSections }).eq('id', engagement_id)
+      }
+
+      // Persist any new flags by appending to interview_flags
+      if (Array.isArray(parsed.flags) && parsed.flags.length > 0) {
+        try {
+          const existingFlags = Array.isArray(eng.interview_flags) ? eng.interview_flags : []
+          const ts = new Date().toISOString()
+          const newFlags = parsed.flags
+            .filter((f: any) => f && f.type && f.note)
+            .map((f: any) => ({
+              type: f.type,
+              note: f.note,
+              section_id: current_section_id || null,
+              section_title: currentSection.title || null,
+              captured_at: ts,
+            }))
+          if (newFlags.length > 0) {
+            await s.from('koto_discovery_engagements').update({
+              interview_flags: [...existingFlags, ...newFlags],
+            }).eq('id', engagement_id)
+          }
+        } catch { /* non-fatal */ }
       }
 
       return Response.json({ data: parsed })
