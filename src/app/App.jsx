@@ -140,6 +140,7 @@ import IntelligenceDashboardPage from '../views/IntelligenceDashboardPage'
 import VideoVoicemailPage from '../views/VideoVoicemailPage'
 import AvatarBrowserPage from '../views/AvatarBrowserPage'
 import TradesPortalPage from '../views/TradesPortalPage'
+import DiscoveryPage from '../views/DiscoveryPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -321,6 +322,7 @@ function AppRoutes() {
           <Route path="/video-voicemails" element={<VideoVoicemailPage />} />
           <Route path="/avatars" element={<AvatarBrowserPage />} />
           <Route path="/trades" element={<TradesPortalPage />} />
+          <Route path="/discovery" element={<DiscoveryPage />} />
           <Route path="/clients/:id/intelligence" element={<ClientIntelligencePage />} />
           <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />
