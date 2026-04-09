@@ -1,9 +1,43 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getKCAccess } from '@/lib/kotoclose-auth'
+import { resolveAgencyId } from '@/lib/apiAuth'
+import type { KCAccess } from '@/lib/kotoclose-auth'
 
 function sb() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
+}
+
+// Server-side access check — uses SERVICE_ROLE_KEY (matches existing app pattern)
+async function resolveKCAccess(req: NextRequest, searchParams: URLSearchParams): Promise<KCAccess> {
+  const s = sb()
+  const agencyId = resolveAgencyId(req, searchParams) || searchParams.get('agency_id')
+
+  // Check super admin header
+  const isSuper = req.headers.get('x-koto-admin') === 'true'
+  if (isSuper) {
+    return { canAccess: true, isSuperAdmin: true, agencyId: agencyId || null, userEmail: 'admin@hellokoto.com', features: { intelligence: true, rvm: true, ghl: true, brainBuilder: true, dncScrub: true }, limits: { maxDailyCalls: 999999, maxCampaigns: 999 }, planTier: 'agency' }
+  }
+
+  // Resolve agency — try param, header, or default
+  const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+
+  // Check kc_agency_access
+  const { data: access } = await s.from('kc_agency_access').select('*').eq('agency_id', aid).maybeSingle()
+  if (!access || !access.kotoclose_enabled) {
+    // Fallback: if no explicit access row but agency exists, grant default access
+    const { data: agency } = await s.from('agencies').select('id').eq('id', aid).maybeSingle()
+    if (agency) {
+      return { canAccess: true, isSuperAdmin: false, agencyId: aid, userEmail: null, features: { intelligence: true, rvm: true, ghl: true, brainBuilder: true, dncScrub: true }, limits: { maxDailyCalls: 500, maxCampaigns: 10 }, planTier: 'agency' }
+    }
+    return { canAccess: false, isSuperAdmin: false, agencyId: null, userEmail: null, features: { intelligence: false, rvm: false, ghl: false, brainBuilder: false, dncScrub: false }, limits: { maxDailyCalls: 0, maxCampaigns: 0 }, planTier: 'starter' }
+  }
+
+  return {
+    canAccess: true, isSuperAdmin: false, agencyId: aid, userEmail: null,
+    features: { intelligence: access.feature_intelligence ?? true, rvm: access.feature_rvm ?? true, ghl: access.feature_ghl ?? true, brainBuilder: access.feature_brain_builder ?? true, dncScrub: access.feature_dnc_scrub ?? true },
+    limits: { maxDailyCalls: access.max_daily_calls ?? 500, maxCampaigns: access.max_campaigns ?? 10 },
+    planTier: (access.plan_tier as KCAccess['planTier']) || 'agency',
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -13,11 +47,11 @@ export async function GET(req: NextRequest) {
     const s = sb()
 
     if (action === 'check_access') {
-      const access = await getKCAccess()
+      const access = await resolveKCAccess(req, searchParams)
       return Response.json(access)
     }
 
-    const access = await getKCAccess()
+    const access = await resolveKCAccess(req, searchParams)
     if (!access.canAccess) return Response.json({ error: 'Unauthorized' }, { status: 403 })
 
     const agencyFilter = access.isSuperAdmin ? null : access.agencyId
@@ -207,7 +241,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const action = body.action
     const s = sb()
-    const access = await getKCAccess()
+    const access = await resolveKCAccess(req, new URL(req.url).searchParams)
     if (!access.canAccess) return Response.json({ error: 'Unauthorized' }, { status: 403 })
 
     if (action === 'schedule_callback') {
