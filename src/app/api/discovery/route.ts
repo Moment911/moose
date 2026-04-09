@@ -188,7 +188,14 @@ function getDefaultSections() {
 // ─────────────────────────────────────────────────────────────
 // Claude helper
 // ─────────────────────────────────────────────────────────────
-async function callClaude(opts: { system?: string; user: string; maxTokens?: number; tools?: any[] }): Promise<string> {
+async function callClaude(opts: {
+  system?: string
+  user: string
+  maxTokens?: number
+  tools?: any[]
+  temperature?: number
+  timeoutMs?: number
+}): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY || ''
   if (!apiKey) return ''
   try {
@@ -199,11 +206,13 @@ async function callClaude(opts: { system?: string; user: string; maxTokens?: num
     }
     if (opts.system) body.system = opts.system
     if (opts.tools) body.tools = opts.tools
+    if (typeof opts.temperature === 'number') body.temperature = opts.temperature
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(45000),
+      // Fail fast: most calls get a short timeout; long-running research/scan callers pass their own.
+      signal: AbortSignal.timeout(opts.timeoutMs ?? 8000),
     })
     if (!res.ok) return ''
     const d = await res.json()
@@ -232,6 +241,154 @@ function randomToken(len = 24) {
   let out = ''
   for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)]
   return out
+}
+
+// ─────────────────────────────────────────────────────────────
+// Shared workers — used both by the live POST actions AND by the
+// background fire-and-forget calls from `create`.
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Run pre-call research against Claude + web search.
+ * On success: persists intel_cards, pre-fills section 01 fields, sets status=research_complete.
+ * On failure: still flips status back to research_complete so the UI doesn't spin forever.
+ */
+async function runResearchForEngagement(engagementId: string): Promise<void> {
+  const s = sb()
+  const { data: eng } = await s.from('koto_discovery_engagements').select('*').eq('id', engagementId).maybeSingle()
+  if (!eng) return
+
+  const { data: domainRows } = await s.from('koto_discovery_domains').select('url').eq('engagement_id', engagementId)
+  const domainList = (domainRows || []).map((d: any) => d.url).join(', ') || 'none provided'
+
+  const system = 'Be concise. Return only the JSON, no explanation, no preamble, no prose.'
+  const prompt = `Research ${eng.client_name} (industry: ${eng.client_industry || 'unknown'}; domains: ${domainList}) and return JSON only — no prose. Schema:
+{
+  "background": "string (2-3 sentences max)",
+  "entities": ["string"],
+  "revenue_streams": ["string"],
+  "social": [{"platform":"string","handle":"string","known_data":"string"}],
+  "observations": ["string (max 5 items)"]
+}
+Be brief.`
+
+  const raw = await callClaude({
+    system,
+    user: prompt,
+    maxTokens: 2000,
+    // Enable web_search so Claude can actually look up the business.
+    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+    // Research + search is slow. Give it more time than the fail-fast default.
+    timeoutMs: 45000,
+  })
+  const parsed = parseJson(raw) || {}
+
+  // Transform the compact schema into intel_cards + section 01 prefills.
+  const intel_cards: any[] = []
+  if (parsed.background) intel_cards.push({ title: 'Background', body: parsed.background, category: 'authority' })
+  if (Array.isArray(parsed.entities) && parsed.entities.length) {
+    intel_cards.push({ title: 'Business Entities', body: parsed.entities.join(', '), category: 'authority' })
+  }
+  if (Array.isArray(parsed.revenue_streams) && parsed.revenue_streams.length) {
+    intel_cards.push({ title: 'Revenue Streams', body: parsed.revenue_streams.join(' · '), category: 'revenue' })
+  }
+  if (Array.isArray(parsed.social) && parsed.social.length) {
+    for (const soc of parsed.social.slice(0, 4)) {
+      if (!soc?.platform) continue
+      intel_cards.push({
+        title: `${soc.platform}${soc.handle ? ` — ${soc.handle}` : ''}`,
+        body: soc.known_data || '',
+        category: 'digital',
+      })
+    }
+  }
+  if (Array.isArray(parsed.observations) && parsed.observations.length) {
+    for (const obs of parsed.observations.slice(0, 5)) {
+      intel_cards.push({ title: 'Observation', body: obs, category: 'risk' })
+    }
+  }
+
+  // Prefill section 01 fields from the same data.
+  const sections = Array.isArray(eng.sections) ? eng.sections : getDefaultSections()
+  const s01 = sections.find((sec: any) => sec.id === 'section_01')
+  if (s01) {
+    const fillMap: Record<string, string> = {
+      '01a': parsed.background || '',
+      '01b': Array.isArray(parsed.entities) ? parsed.entities.join(', ') : '',
+      '01c': Array.isArray(parsed.revenue_streams) ? parsed.revenue_streams.join(' • ') : '',
+      '01d': Array.isArray(parsed.observations) ? parsed.observations.join(' | ') : '',
+    }
+    for (const [fid, val] of Object.entries(fillMap)) {
+      if (!val) continue
+      const field = s01.fields.find((f: any) => f.id === fid)
+      if (field) {
+        field.answer = val
+        field.source = 'ai_generated'
+      }
+    }
+  }
+
+  await s.from('koto_discovery_engagements').update({
+    intel_cards,
+    sections,
+    status: 'research_complete',
+  }).eq('id', engagementId)
+}
+
+/**
+ * Scan a single domain: fetches HTML + headers, asks Claude to identify the tech stack,
+ * persists the result and flips scan_status to 'complete' or 'failed'.
+ */
+async function scanDomainById(domainId: string): Promise<void> {
+  const s = sb()
+  const { data: domain } = await s.from('koto_discovery_domains').select('*').eq('id', domainId).maybeSingle()
+  if (!domain) return
+
+  await s.from('koto_discovery_domains').update({ scan_status: 'scanning' }).eq('id', domainId)
+
+  let html = ''
+  const headers: Record<string, string> = {}
+  try {
+    const url = domain.url.startsWith('http') ? domain.url : `https://${domain.url}`
+    const res = await fetch(url, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(12000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoDiscovery/1.0)' },
+    })
+    html = (await res.text()).slice(0, 180_000)
+    res.headers.forEach((v, k) => { headers[k] = v })
+  } catch (e: any) {
+    await s.from('koto_discovery_domains').update({
+      scan_status: 'failed',
+      tech_stack: { error: e?.message || 'fetch failed' },
+      last_scanned_at: new Date().toISOString(),
+    }).eq('id', domainId)
+    return
+  }
+
+  const system = 'Return only JSON, be concise. No explanation, no preamble.'
+  const prompt = `Identify the tech stack for ${domain.url}. HTTP headers: ${JSON.stringify(headers).slice(0, 1500)}
+
+HTML (truncated): ${html.slice(0, 50_000)}
+
+Return JSON:
+{"categories":[{"name":"CMS|Analytics|Ads|Email|Chat|CRM|Hosting|CDN|Framework|Ecommerce|Forms|Payments|Video|Reviews|SMS|Scheduling|Tag Management|Fonts|Icons|Other","tools":[{"name":"string","confidence":"confirmed|suspected|confirm|not_detected","detection_method":"script_tag|meta_tag|dns_record|cookie|http_header|cdn_reference|inferred","notes":"short evidence"}]}]}
+
+Only include tech you actually detect. Mark uncertain as suspected.`
+
+  const raw = await callClaude({
+    system,
+    user: prompt,
+    maxTokens: 1500,
+    timeoutMs: 20000,
+  })
+  const parsed = parseJson(raw) || { categories: [] }
+
+  await s.from('koto_discovery_domains').update({
+    scan_status: 'complete',
+    tech_stack: parsed,
+    last_scanned_at: new Date().toISOString(),
+  }).eq('id', domainId)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -411,7 +568,7 @@ export async function POST(req: NextRequest) {
           client_id: client_id || null,
           client_name,
           client_industry: client_industry || null,
-          status: 'draft',
+          status: 'research_running', // kick off research immediately
           sections,
         })
         .select('*')
@@ -419,7 +576,8 @@ export async function POST(req: NextRequest) {
 
       if (error || !eng) return Response.json({ error: error?.message || 'Insert failed' }, { status: 500 })
 
-      // Insert domains
+      // Insert domains and fetch them back so we have the new ids for scanning
+      let insertedDomains: any[] = []
       if (Array.isArray(domains) && domains.length) {
         const domainRows = domains.map((d: any) => ({
           engagement_id: eng.id,
@@ -427,7 +585,20 @@ export async function POST(req: NextRequest) {
           url: typeof d === 'string' ? d : d.url,
           domain_type: typeof d === 'string' ? 'primary' : (d.domain_type || 'primary'),
         }))
-        await s.from('koto_discovery_domains').insert(domainRows)
+        const { data: inserted } = await s.from('koto_discovery_domains').insert(domainRows).select('id')
+        insertedDomains = inserted || []
+      }
+
+      // Fire-and-forget: pre-research + all domain scans in parallel.
+      // Do NOT await — the client polls /api/discovery?action=list for status transitions.
+      runResearchForEngagement(eng.id).catch((e) => {
+        console.error('background research failed:', e?.message)
+        // Even on failure, release the spinner so the UI doesn't hang forever.
+        sb().from('koto_discovery_engagements').update({ status: 'research_complete' }).eq('id', eng.id).then(() => {})
+      })
+      if (insertedDomains.length) {
+        Promise.all(insertedDomains.map((d) => scanDomainById(d.id)))
+          .catch((e) => console.error('background domain scans failed:', e?.message))
       }
 
       return Response.json({ data: eng })
@@ -438,61 +609,17 @@ export async function POST(req: NextRequest) {
       const { id } = body
       if (!id) return Response.json({ error: 'Missing id' }, { status: 400 })
 
-      const { data: eng } = await s.from('koto_discovery_engagements').select('*').eq('id', id).maybeSingle()
+      const { data: eng } = await s.from('koto_discovery_engagements').select('id').eq('id', id).maybeSingle()
       if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
 
       await s.from('koto_discovery_engagements').update({ status: 'research_running' }).eq('id', id)
 
-      const { data: domains } = await s.from('koto_discovery_domains').select('*').eq('engagement_id', id)
-      const domainList = (domains || []).map((d: any) => d.url).join(', ')
+      // Delegate to the shared worker so create + run_research share the same code path.
+      await runResearchForEngagement(id)
 
-      const prompt = `You are doing pre-call research on a prospective client for a marketing agency engagement.
-
-Client: ${eng.client_name}
-Industry: ${eng.client_industry || 'unknown'}
-Domains: ${domainList || 'none provided'}
-
-Produce a JSON object with:
-{
-  "intel_cards": [
-    { "title": "string", "body": "string", "category": "authority|revenue|risk|opportunity|team|digital" }
-  ],
-  "section_01": {
-    "01a": "background/authority summary (2-4 sentences)",
-    "01b": "business entities identified (comma list or short paragraph)",
-    "01c": "revenue streams identified (bullet list as one string with • separators)",
-    "01d": "key observations and risk flags (2-4 sentences)"
-  }
-}
-
-Aim for 4-8 intel cards. Be concrete and specific. Return ONLY valid JSON.`
-
-      const raw = await callClaude({ user: prompt, maxTokens: 3000 })
-      const parsed = parseJson(raw) || {}
-
-      const intel_cards = Array.isArray(parsed.intel_cards) ? parsed.intel_cards : []
-      const section01 = parsed.section_01 || {}
-
-      // Merge section_01 results into sections
-      const sections = Array.isArray(eng.sections) ? eng.sections : getDefaultSections()
-      const s01 = sections.find((sec: any) => sec.id === 'section_01')
-      if (s01) {
-        for (const fieldId of ['01a', '01b', '01c', '01d']) {
-          const field = s01.fields.find((f: any) => f.id === fieldId)
-          if (field && section01[fieldId]) {
-            field.answer = section01[fieldId]
-            field.source = 'ai_generated'
-          }
-        }
-      }
-
-      await s.from('koto_discovery_engagements').update({
-        intel_cards,
-        sections,
-        status: 'research_complete',
-      }).eq('id', id)
-
-      return Response.json({ data: { intel_cards, section_01: section01 } })
+      // Re-read the row so the caller gets the populated intel_cards/sections immediately.
+      const { data: updated } = await s.from('koto_discovery_engagements').select('intel_cards, sections').eq('id', id).maybeSingle()
+      return Response.json({ data: updated })
     }
 
     // ─── scan_domain ────────────────────────────────────
@@ -500,68 +627,11 @@ Aim for 4-8 intel cards. Be concrete and specific. Return ONLY valid JSON.`
       const { domain_id } = body
       if (!domain_id) return Response.json({ error: 'Missing domain_id' }, { status: 400 })
 
-      const { data: domain } = await s.from('koto_discovery_domains').select('*').eq('id', domain_id).maybeSingle()
-      if (!domain) return Response.json({ error: 'Not found' }, { status: 404 })
+      // Delegate to shared worker (same code path as background scans from create).
+      await scanDomainById(domain_id)
 
-      await s.from('koto_discovery_domains').update({ scan_status: 'scanning' }).eq('id', domain_id)
-
-      // Fetch page HTML
-      let html = ''
-      let headers: Record<string, string> = {}
-      try {
-        const url = domain.url.startsWith('http') ? domain.url : `https://${domain.url}`
-        const res = await fetch(url, {
-          redirect: 'follow',
-          signal: AbortSignal.timeout(15000),
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoDiscovery/1.0)' },
-        })
-        html = (await res.text()).slice(0, 180_000) // cap
-        res.headers.forEach((v, k) => { headers[k] = v })
-      } catch (e: any) {
-        await s.from('koto_discovery_domains').update({
-          scan_status: 'failed',
-          tech_stack: { error: e.message },
-          last_scanned_at: new Date().toISOString(),
-        }).eq('id', domain_id)
-        return Response.json({ error: 'Fetch failed', detail: e.message }, { status: 200 })
-      }
-
-      // Ask Claude to identify tech stack
-      const prompt = `Analyze this website's HTML and HTTP headers and identify the technology stack.
-
-URL: ${domain.url}
-HTTP Headers: ${JSON.stringify(headers).slice(0, 2000)}
-HTML (truncated): ${html.slice(0, 60_000)}
-
-Return JSON in this exact shape:
-{
-  "categories": [
-    {
-      "name": "CMS|Analytics|Ads|Email|Chat|CRM|Hosting|CDN|Framework|Ecommerce|Forms|Payments|Video|Reviews|SMS|Scheduling|Tag Management|Fonts|Icons|Other",
-      "tools": [
-        {
-          "name": "tool name",
-          "confidence": "confirmed|suspected|confirm|not_detected",
-          "detection_method": "script_tag|meta_tag|dns_record|cookie|http_header|cdn_reference|inferred",
-          "notes": "short evidence"
-        }
-      ]
-    }
-  ]
-}
-
-Include only technologies you actually detect. If unsure, mark as suspected. Return ONLY valid JSON.`
-
-      const raw = await callClaude({ user: prompt, maxTokens: 3000 })
-      const parsed = parseJson(raw) || { categories: [] }
-
-      await s.from('koto_discovery_domains').update({
-        scan_status: 'complete',
-        tech_stack: parsed,
-        last_scanned_at: new Date().toISOString(),
-      }).eq('id', domain_id)
-
-      return Response.json({ data: { tech_stack: parsed } })
+      const { data: updated } = await s.from('koto_discovery_domains').select('tech_stack, scan_status').eq('id', domain_id).maybeSingle()
+      return Response.json({ data: updated })
     }
 
     // ─── save_field ──────────────────────────────────────
@@ -605,24 +675,34 @@ Include only technologies you actually detect. If unsure, mark as suspected. Ret
 
     // ─── ai_questions (generate follow-ups) ──────────────
     if (action === 'ai_questions') {
-      const { question, answer, client_name, client_industry } = body
-      if (!answer || answer.length < 30) {
+      // Accept both the new spec field names and the legacy ones.
+      const question = body.field_question || body.question || ''
+      const answer = body.answer || ''
+      const section_name = body.section_name || ''
+      const doc_summary = body.doc_summary || ''
+      const client_name = body.client_name || ''
+      const client_industry = body.client_industry || ''
+
+      if (!answer || answer.length < 20) {
         return Response.json({ data: { questions: [] } })
       }
 
-      const prompt = `You are a senior discovery strategist. A client is answering this question:
-
+      const system = 'You generate discovery follow-up questions. Return only JSON, be concise. No explanation, no preamble.'
+      const prompt = `SECTION: ${section_name || 'unknown'}
 QUESTION: ${question}
-CURRENT ANSWER: ${answer}
-Client: ${client_name || 'unknown'}
-Industry: ${client_industry || 'unknown'}
+ANSWER: ${answer}
+CLIENT: ${client_name || 'unknown'} (${client_industry || 'unknown industry'})
+CONTEXT: ${doc_summary ? doc_summary.slice(0, 400) : '(no context yet)'}
 
-Generate 1-3 follow-up questions that would uncover critical missing context, surface risk, or sharpen the scope. Return JSON:
-{ "questions": ["question 1", "question 2", "question 3"] }
+Generate 1-3 short follow-ups (< 120 chars each) that uncover missing context, surface risk, or sharpen scope. JSON only: { "questions": ["...","..."] }`
 
-Return ONLY valid JSON. Keep each question short (< 120 chars).`
-
-      const raw = await callClaude({ user: prompt, maxTokens: 500 })
+      const raw = await callClaude({
+        system,
+        user: prompt,
+        maxTokens: 300,
+        temperature: 0,
+        timeoutMs: 8000,
+      })
       const parsed = parseJson(raw) || { questions: [] }
       const questions = Array.isArray(parsed.questions) ? parsed.questions.slice(0, 3) : []
       return Response.json({ data: { questions } })
@@ -812,23 +892,23 @@ Return ONLY valid JSON. Keep each question short (< 120 chars).`
         }
       }
 
-      const prompt = `You are a senior strategist compiling a discovery engagement into an executive summary.
+      const system = 'You are a senior strategist. Be direct, concise, and specific. Write plain prose.'
+      const prompt = `Compile a discovery engagement into an executive summary.
 
 Client: ${eng.client_name}
 Industry: ${eng.client_industry || 'unknown'}
 
-Discovery data:
-${digest.join('\n').slice(0, 60_000)}
+Data:
+${digest.join('\n').slice(0, 40_000)}
 
-Produce a 4-6 paragraph executive summary covering:
-1. Who the client is and where they stand today
-2. The critical problems and risks worth naming
-3. The top 3 opportunities with highest leverage
-4. Recommended engagement scope and first-90-day plan
+Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2) top risks, (3) top 3 opportunities, (4) recommended scope + first-90-day plan. No bullets.`
 
-Write in plain prose, no bullet lists. Be direct and specific.`
-
-      const summary = await callClaude({ user: prompt, maxTokens: 2500 })
+      const summary = await callClaude({
+        system,
+        user: prompt,
+        maxTokens: 1000,
+        timeoutMs: 20000,
+      })
 
       await s.from('koto_discovery_engagements').update({
         executive_summary: summary,
@@ -979,11 +1059,11 @@ Only include extracted_answers for field_ids that appear in the current section'
           headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: CLAUDE_MODEL,
-            max_tokens: 1000,
+            max_tokens: 800,
             system,
             messages: claudeMessages,
           }),
-          signal: AbortSignal.timeout(45000),
+          signal: AbortSignal.timeout(12000),
         })
         if (res.ok) {
           const d = await res.json()

@@ -58,6 +58,10 @@ export default function DiscoveryPage() {
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', padding: 20, fontFamily: 'var(--font-body)' }}>
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: translateY(0) } }
+      `}</style>
       {view === 'list' ? (
         <ListView
           aid={aid}
@@ -96,6 +100,15 @@ function ListView({ aid, onOpen }) {
   }, [aid])
 
   useEffect(() => { load() }, [load])
+
+  // Auto-poll every 8s while any engagement is in research_running state.
+  // Stops as soon as none remain.
+  useEffect(() => {
+    const anyRunning = engagements.some(e => e.status === 'research_running')
+    if (!anyRunning) return
+    const iv = setInterval(() => { load() }, 8000)
+    return () => clearInterval(iv)
+  }, [engagements, load])
 
   const filtered = engagements.filter(e => {
     if (!search.trim()) return true
@@ -198,6 +211,18 @@ function ListView({ aid, onOpen }) {
                     {e.client_industry || 'No industry'} · Updated {new Date(e.updated_at).toLocaleDateString()}
                   </div>
                 </div>
+                {e.status === 'research_running' && (
+                  <span
+                    style={{
+                      fontSize: 12, color: C.teal, fontWeight: 700,
+                      animation: 'pulse 1s infinite',
+                      display: 'flex', alignItems: 'center', gap: 5,
+                    }}
+                  >
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.teal, display: 'inline-block' }} />
+                    Researching…
+                  </span>
+                )}
                 <span style={{
                   fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
                   background: b.bg, color: b.fg, textTransform: 'uppercase', letterSpacing: '.04em',
@@ -350,6 +375,12 @@ function DetailView({ aid, id, onBack }) {
   const [showShare, setShowShare] = useState(false)
   const [mode, setMode] = useState('document') // 'document' | 'interview'
 
+  // Keystroke state lives in refs so typing does NOT re-render siblings.
+  // docSummary is recomputed every 5s from the ref for AI-question context.
+  const answersRef = useRef({}) // { "sectionId:fieldId": value }
+  const sectionsRef = useRef([]) // kept in sync with eng.sections for interval access
+  const [docSummary, setDocSummary] = useState('')
+
   const load = useCallback(async () => {
     setLoading(true)
     const res = await fetch(`/api/discovery?action=get&id=${id}&agency_id=${aid}`).then(r => r.json()).catch(() => null)
@@ -358,11 +389,42 @@ function DetailView({ aid, id, onBack }) {
       setDomains(res.domains || [])
       setComments(res.comments || [])
       if (!activeSection && res.data.sections?.[0]) setActiveSection(res.data.sections[0].id)
+
+      // Seed answersRef from the loaded data (only on initial load / explicit reload)
+      const map = {}
+      for (const sec of res.data.sections || []) {
+        for (const f of sec.fields || []) {
+          map[`${sec.id}:${f.id}`] = f.answer || ''
+        }
+      }
+      answersRef.current = map
+      sectionsRef.current = res.data.sections || []
     }
     setLoading(false)
   }, [id, aid, activeSection])
 
   useEffect(() => { load() }, [id]) // eslint-disable-line
+
+  // Keep sectionsRef fresh with structural changes (new fields, ai_questions, etc)
+  useEffect(() => {
+    if (eng?.sections) sectionsRef.current = eng.sections
+  }, [eng?.sections])
+
+  // Recompute docSummary every 5s from the ref (no per-keystroke work)
+  useEffect(() => {
+    const iv = setInterval(() => {
+      const parts = []
+      for (const sec of sectionsRef.current) {
+        for (const f of sec.fields || []) {
+          const v = answersRef.current[`${sec.id}:${f.id}`]
+          if (v && v.trim()) parts.push(`${f.question}: ${v.slice(0, 100)}`)
+        }
+      }
+      const summary = parts.slice(0, 20).join(' | ')
+      setDocSummary(prev => prev === summary ? prev : summary)
+    }, 5000)
+    return () => clearInterval(iv)
+  }, [])
 
   async function runResearch() {
     setBusyResearch(true)
@@ -486,6 +548,8 @@ function DetailView({ aid, id, onBack }) {
               engagementId={eng.id}
               clientName={eng.client_name}
               clientIndustry={eng.client_industry}
+              answersRef={answersRef}
+              docSummary={docSummary}
               domains={section.has_tech_stack ? domains : []}
               agencyId={aid}
               onUpdate={(mutator) => updateSectionInState(section.id, mutator)}
@@ -639,7 +703,7 @@ function ExecutiveSummaryPanel({ summary }) {
 // ─────────────────────────────────────────────────────────────
 // Section panel
 // ─────────────────────────────────────────────────────────────
-function SectionPanel({ section, engagementId, clientName, clientIndustry, domains, agencyId, onUpdate, onAddDomain, onRescan, reloadDomains }) {
+function SectionPanel({ section, engagementId, clientName, clientIndustry, answersRef, docSummary, domains, agencyId, onUpdate, onAddDomain, onRescan, reloadDomains }) {
   const [collapsed, setCollapsed] = useState(false)
   const fields = section.fields || []
   const answered = fields.filter(f => (f.answer || '').trim().length > 0).length
@@ -721,9 +785,12 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, domai
                 key={field.id}
                 field={field}
                 sectionId={section.id}
+                sectionName={section.title}
                 engagementId={engagementId}
                 clientName={clientName}
                 clientIndustry={clientIndustry}
+                answersRef={answersRef}
+                docSummary={docSummary}
                 agencyId={agencyId}
                 onFieldUpdate={(mut) => onUpdate(sec => ({
                   ...sec,
@@ -756,69 +823,115 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, domai
 // ─────────────────────────────────────────────────────────────
 // Field editor (with auto-save + AI question generation)
 // ─────────────────────────────────────────────────────────────
-function FieldEditor({ field, sectionId, engagementId, clientName, clientIndustry, agencyId, onFieldUpdate, onFieldsReplace }) {
+function FieldEditor({ field, sectionId, sectionName, engagementId, clientName, clientIndustry, answersRef, docSummary, agencyId, onFieldUpdate, onFieldsReplace }) {
+  // localAnswer is the SOLE source of truth for the textarea.
+  // It's seeded from field.answer on mount and only re-synced if the field id changes.
   const [answer, setAnswer] = useState(field.answer || '')
   const [question, setQuestion] = useState(field.question)
   const [editingQuestion, setEditingQuestion] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const saveDebounce = useRef(null)
   const aiDebounce = useRef(null)
+  const fieldIdRef = useRef(field.id)
 
-  useEffect(() => { setAnswer(field.answer || '') }, [field.answer])
-  useEffect(() => { setQuestion(field.question) }, [field.question])
-
-  // Auto-save answer (1s debounce)
+  // Only reset the local answer when a genuinely different field takes this slot.
+  // (When the parent merges AI questions or the polling refreshes, field.id stays the same
+  //  and we keep whatever the user has typed.)
   useEffect(() => {
+    if (fieldIdRef.current !== field.id) {
+      fieldIdRef.current = field.id
+      setAnswer(field.answer || '')
+      setQuestion(field.question)
+    }
+  }, [field.id, field.answer, field.question])
+
+  // Auto-save answer (1s debounce).
+  // CRITICAL: the timeout callback must NOT call any React state setter — that would
+  // re-render the parent tree on every keystroke and scramble cursor/scroll position.
+  // We persist to the API and update the ref; parent docSummary catches up via its own interval.
+  useEffect(() => {
+    // Skip save when the local value matches the initial field value (first paint, no edit).
     if (answer === (field.answer || '')) return
     clearTimeout(saveDebounce.current)
-    saveDebounce.current = setTimeout(async () => {
-      await fetch('/api/discovery', {
+    saveDebounce.current = setTimeout(() => {
+      // Update the parent-scoped answers ref synchronously (no re-render).
+      if (answersRef?.current) {
+        answersRef.current[`${sectionId}:${field.id}`] = answer
+      }
+      // Fire the save API call — do NOT await and do NOT touch React state.
+      fetch('/api/discovery', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'save_field',
           id: engagementId, section_id: sectionId, field_id: field.id,
           answer, agency_id: agencyId,
         }),
-      })
-      onFieldUpdate(f => ({ ...f, answer }))
+      }).catch(() => {})
     }, 1000)
     return () => clearTimeout(saveDebounce.current)
     // eslint-disable-next-line
   }, [answer])
 
-  // AI question generation (2s debounce after 30+ chars)
+  // AI question generation (1.5s debounce after 20+ chars).
   useEffect(() => {
     clearTimeout(aiDebounce.current)
-    if ((answer || '').length < 30) return
+    if ((answer || '').length < 20) return
     aiDebounce.current = setTimeout(async () => {
       setAiLoading(true)
-      const res = await fetch('/api/discovery', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'ai_questions',
-          question, answer, client_name: clientName, client_industry: clientIndustry, agency_id: agencyId,
-        }),
-      }).then(r => r.json()).catch(() => null)
-
-      if (res?.data?.questions?.length) {
-        await fetch('/api/discovery', {
+      try {
+        const res = await fetch('/api/discovery', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'save_ai_question',
-            id: engagementId, section_id: sectionId, field_id: field.id,
-            questions: res.data.questions, agency_id: agencyId,
+            action: 'ai_questions',
+            field_question: question,
+            answer,
+            section_name: sectionName,
+            doc_summary: docSummary || '',
+            client_name: clientName,
+            client_industry: clientIndustry,
+            agency_id: agencyId,
           }),
-        })
-        onFieldUpdate(f => ({
-          ...f,
-          ai_questions: res.data.questions.map((q) => ({
-            id: `aiq_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-            question: q, status: 'pending', answer: '',
-          })),
-        }))
+        }).then(r => r.json())
+
+        // eslint-disable-next-line no-console
+        console.log('AI questions response:', res)
+
+        const questions = Array.isArray(res?.data?.questions) ? res.data.questions : []
+        if (questions.length > 0) {
+          // Persist to backend (fire and forget).
+          fetch('/api/discovery', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'save_ai_question',
+              id: engagementId, section_id: sectionId, field_id: field.id,
+              questions, agency_id: agencyId,
+            }),
+          }).catch(() => {})
+
+          // Append new questions to field.ai_questions using the exact pattern from spec:
+          // never replace, always append; each question gets a unique id + pending status.
+          const now = Date.now()
+          onFieldUpdate(f => ({
+            ...f,
+            ai_questions: [
+              ...(f.ai_questions || []),
+              ...questions.map((q, i) => ({
+                id: `aiq_${now}_${i}`,
+                question: q,
+                status: 'pending',
+                answer: '',
+                generated_at: new Date().toISOString(),
+              })),
+            ],
+          }))
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log('AI questions error:', e?.message || e)
+      } finally {
+        setAiLoading(false)
       }
-      setAiLoading(false)
-    }, 2000)
+    }, 1500)
     return () => clearTimeout(aiDebounce.current)
     // eslint-disable-next-line
   }, [answer])
@@ -910,13 +1023,19 @@ function FieldEditor({ field, sectionId, engagementId, clientName, clientIndustr
           )}
           {field.hint && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{field.hint}</div>}
         </div>
-        {aiLoading && <Loader2 size={12} className="anim-spin" color={C.teal} />}
+        {aiLoading && (
+          <span
+            title="AI is generating follow-up questions"
+            style={{ width: 8, height: 8, borderRadius: '50%', background: C.teal, animation: 'pulse 1s infinite', display: 'inline-block', marginTop: 6 }}
+          />
+        )}
       </div>
 
       {/* Answer textarea */}
       <textarea
         value={answer}
         onChange={e => setAnswer(e.target.value)}
+        onKeyDown={e => { e.stopPropagation() }}
         placeholder="Type your answer…"
         style={{
           width: '100%', minHeight: 60, padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7,
@@ -1662,7 +1781,6 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
         </div>
       </div>
 
-      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   )
 }
