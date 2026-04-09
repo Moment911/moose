@@ -142,6 +142,8 @@ import AvatarBrowserPage from '../views/AvatarBrowserPage'
 import TradesPortalPage from '../views/TradesPortalPage'
 import DiscoveryPage from '../views/DiscoveryPage'
 import DiscoveryAuditPage from '../views/DiscoveryAuditPage'
+import DiscoveryClientFormPage from '../views/DiscoveryClientFormPage'
+import DiscoverySharedViewPage from '../views/DiscoverySharedViewPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -216,6 +218,8 @@ export default function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
           <Route path="/status" element={<StatusPage />} />
+          <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
+          <Route path="/discovery/view/:token" element={<DiscoverySharedViewPage />} />
 
           {/* ── All app routes (with shell + auth) ── */}
           <Route path="/*" element={

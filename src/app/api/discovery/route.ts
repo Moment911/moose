@@ -182,6 +182,25 @@ function getDefaultSections() {
         f('10j', 'Post-call assessment (internal notes, never shared with client)', '', { never_share: true }),
       ],
     },
+    {
+      id: 'section_11',
+      title: '11 — Paid Advertising',
+      subtitle: 'Channel Deep Dive',
+      visible: true,
+      fields: [
+        f('11a', 'Is paid advertising currently running on any platform?', 'Google Ads, Meta/Facebook, Instagram, TikTok, YouTube, LinkedIn, Pinterest, programmatic'),
+        f('11b', 'Which platforms are active and what is the monthly spend per platform?', 'Get specific numbers — vague answers here cost money later'),
+        f('11c', 'Who manages the paid advertising — internal, agency, or self-managed?'),
+        f('11d', 'What are the primary campaign objectives?', 'Lead gen, e-commerce sales, brand awareness, retargeting — and are these the right objectives?'),
+        f('11e', 'What does the current ROAS or cost per lead look like?', "Return on ad spend or cost per acquisition — if they don't know this, note it as a critical gap"),
+        f('11f', 'Is there a dedicated landing page for paid traffic or does it go to the homepage?', 'Homepage traffic from paid ads is almost always a conversion killer'),
+        f('11g', 'Is retargeting configured — website visitors, video viewers, customer lists?', 'Most businesses are leaving 30-50% of their ad budget on the table without retargeting'),
+        f('11h', 'What creative assets exist — video, photography, designed graphics?', 'Creative quality is now the primary performance variable in paid social'),
+        f('11i', 'Has any A/B testing been done on ads or landing pages?'),
+        f('11j', 'What is the biggest frustration with paid advertising so far?'),
+        f('11k', 'GHL OPPORTUNITY · Paid Traffic to Automated Follow-Up Pipeline', 'Ask: When someone submits a form from a paid ad, what happens in the next 5 minutes?', { is_opportunity: true }),
+      ],
+    },
   ]
 }
 
@@ -391,6 +410,85 @@ Only include tech you actually detect. Mark uncertain as suspected.`
   }).eq('id', domainId)
 }
 
+/**
+ * Send a first-view notification (email + system log) when a shared link is opened
+ * for the very first time. Called fire-and-forget from the `shared` GET handler.
+ */
+async function notifyFirstView(args: {
+  engagementId: string
+  agencyId: string
+  clientName: string
+  token: string
+  device: string
+}): Promise<void> {
+  const { engagementId, agencyId, clientName, token, device } = args
+  const s = sb()
+  const ts = new Date().toISOString()
+
+  // 1. Log to koto_system_logs
+  try {
+    await s.from('koto_system_logs').insert({
+      level: 'info',
+      service: 'discovery',
+      action: 'document_opened',
+      message: `${clientName} opened shared discovery document`,
+      metadata: { engagement_id: engagementId, token, device, agency_id: agencyId },
+    })
+  } catch { /* non-fatal */ }
+
+  // 2. Mark notified on the engagement to prevent duplicate emails on edge races
+  try {
+    await s.from('koto_discovery_engagements').update({ last_opened_notified_at: ts }).eq('id', engagementId)
+  } catch { /* non-fatal */ }
+
+  // 3. Email the agency via Resend (optional — skips silently if not configured)
+  try {
+    const { data: agency } = await s
+      .from('agencies')
+      .select('owner_email, contact_email, sender_email, name, agency_name')
+      .eq('id', agencyId)
+      .maybeSingle()
+
+    const to = (agency as any)?.owner_email
+      || (agency as any)?.contact_email
+      || (agency as any)?.sender_email
+    if (!to) return
+
+    const { sendEmail } = await import('@/lib/emailService')
+    const subject = `🔔 ${clientName} just opened your discovery document`
+    const when = new Date(ts).toLocaleString()
+    const html = `
+<!DOCTYPE html>
+<html><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin:0; padding:0; background:#F7F7F6;">
+  <div style="max-width:560px; margin:0 auto; padding:32px 20px;">
+    <div style="background:#fff; border-radius:12px; padding:32px; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+      <div style="font-size:12px; font-weight:800; color:#00C2CB; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px;">
+        Discovery document opened
+      </div>
+      <h1 style="font-size:22px; color:#111; margin:0 0 16px;">${clientName} is reading your proposal</h1>
+      <p style="font-size:14px; color:#374151; line-height:1.6; margin:0 0 14px;">
+        The discovery document you shared with <strong>${clientName}</strong> was just opened for the first time.
+      </p>
+      <table style="width:100%; font-size:13px; color:#4b5563; margin:18px 0;">
+        <tr><td style="padding:4px 0;"><strong>Opened at:</strong></td><td>${when}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Device:</strong></td><td>${device}</td></tr>
+        <tr><td style="padding:4px 0;"><strong>Share token:</strong></td><td style="font-family:monospace; font-size:11px;">${token.slice(0, 16)}…</td></tr>
+      </table>
+      <p style="font-size:13px; color:#6b7280; margin:14px 0 0;">
+        Good time to follow up.
+      </p>
+    </div>
+    <div style="text-align:center; font-size:11px; color:#9ca3af; margin-top:18px;">
+      Powered by Koto · hellokoto.com
+    </div>
+  </div>
+</body></html>`
+    await sendEmail(to, subject, html, agencyId)
+  } catch (e: any) {
+    console.error('first-view email failed:', e?.message)
+  }
+}
+
 // ─────────────────────────────────────────────────────────────
 // GET
 // ─────────────────────────────────────────────────────────────
@@ -425,14 +523,35 @@ export async function GET(req: NextRequest) {
         fields: (sec.fields || []).filter((f: any) => !f.never_share),
       }))
 
+      // Detect device from UA
+      const ua = req.headers.get('user-agent') || ''
+      const device = /Mobile|iPhone|Android/i.test(ua)
+        ? 'mobile'
+        : /iPad|Tablet/i.test(ua)
+          ? 'tablet'
+          : 'desktop'
+
       // Bump view count
+      const wasFirstView = (share.view_count || 0) === 0
+      const newEventId = `view_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
       const viewEvents = Array.isArray(share.view_events) ? share.view_events : []
-      viewEvents.push({ ts: new Date().toISOString(), ua: req.headers.get('user-agent') || '' })
+      viewEvents.push({ id: newEventId, ts: new Date().toISOString(), ua, device, sections_time: {} })
       await s.from('koto_discovery_share_tokens').update({
         view_count: (share.view_count || 0) + 1,
         last_viewed_at: new Date().toISOString(),
         view_events: viewEvents.slice(-50),
       }).eq('id', share.id)
+
+      // First-view notification — non-blocking
+      if (wasFirstView) {
+        notifyFirstView({
+          engagementId: eng.id,
+          agencyId: eng.agency_id,
+          clientName: eng.client_name,
+          token,
+          device,
+        }).catch((e) => console.error('first-view notify failed:', e?.message))
+      }
 
       return Response.json({
         data: {
@@ -442,6 +561,44 @@ export async function GET(req: NextRequest) {
           intel_cards: eng.intel_cards,
           sections,
           recipient_name: share.recipient_name,
+          view_event_id: newEventId,
+          agency_id: eng.agency_id,
+        },
+      })
+    }
+
+    // Public client onboarding form — no auth, token-based
+    if (action === 'client_form') {
+      const token = searchParams.get('token') || ''
+      if (!token) return Response.json({ error: 'Missing token' }, { status: 400 })
+
+      const { data: eng } = await s
+        .from('koto_discovery_engagements')
+        .select('id, client_name, client_industry, client_form_token, client_form_expires_at, client_form_submitted_at, client_answers, agency_id')
+        .eq('client_form_token', token)
+        .maybeSingle()
+
+      if (!eng) return Response.json({ error: 'Invalid link' }, { status: 404 })
+      if (eng.client_form_expires_at && new Date(eng.client_form_expires_at) < new Date()) {
+        return Response.json({ error: 'expired' }, { status: 410 })
+      }
+
+      // Look up agency name for the welcome message
+      let agencyName = 'your strategist'
+      try {
+        const { data: agency } = await s.from('agencies').select('name, agency_name').eq('id', eng.agency_id).maybeSingle()
+        agencyName = (agency as any)?.name || (agency as any)?.agency_name || 'your strategist'
+      } catch { /* non-fatal */ }
+
+      return Response.json({
+        data: {
+          engagement_id: eng.id,
+          client_name: eng.client_name,
+          client_industry: eng.client_industry,
+          agency_name: agencyName,
+          already_submitted: !!eng.client_form_submitted_at,
+          submitted_at: eng.client_form_submitted_at,
+          prior_answers: eng.client_answers || {},
         },
       })
     }
@@ -910,13 +1067,25 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
         timeoutMs: 25000,
       })
 
+      // Push the current state to version_history BEFORE overwriting
+      const existingHistory = Array.isArray(eng.version_history) ? eng.version_history : []
+      const nextVersionNumber = existingHistory.length + 1
+      const newHistoryEntry = {
+        version: nextVersionNumber,
+        compiled_at: new Date().toISOString(),
+        sections_snapshot: eng.sections || [],
+        executive_summary_snapshot: eng.executive_summary || null,
+      }
+      const trimmedHistory = [...existingHistory, newHistoryEntry].slice(-10)
+
       await s.from('koto_discovery_engagements').update({
         executive_summary: summary,
         compiled_at: new Date().toISOString(),
         status: 'compiled',
+        version_history: trimmedHistory,
       }).eq('id', id)
 
-      return Response.json({ data: { executive_summary: summary } })
+      return Response.json({ data: { executive_summary: summary, version: nextVersionNumber } })
     }
 
     // ─── send_client_form ───────────────────────────────
@@ -931,7 +1100,7 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
         client_form_expires_at: expires,
       }).eq('id', id)
 
-      return Response.json({ data: { token, form_url: `/discovery/client/${token}`, expires_at: expires } })
+      return Response.json({ data: { token, form_url: `/discovery/form/${token}`, expires_at: expires } })
     }
 
     // ─── update_status ──────────────────────────────────
@@ -1122,6 +1291,285 @@ Only include extracted_answers for field_ids that appear in the current section'
       }
 
       return Response.json({ data: parsed })
+    }
+
+    // ─── track_sections (public — section-level time tracking) ──
+    if (action === 'track_sections') {
+      const token = body.token || ''
+      const viewEventId = body.view_event_id || ''
+      const sectionsPayload = Array.isArray(body.sections) ? body.sections : []
+      if (!token) return Response.json({ error: 'Missing token' }, { status: 400 })
+
+      const { data: share } = await s.from('koto_discovery_share_tokens').select('*').eq('token', token).maybeSingle()
+      if (!share) return Response.json({ ok: true }) // silently accept
+
+      const events = Array.isArray(share.view_events) ? [...share.view_events] : []
+      let target = events.find((e: any) => e.id === viewEventId)
+      if (!target) target = events[events.length - 1]
+      if (target) {
+        target.sections_time = target.sections_time || {}
+        for (const s2 of sectionsPayload) {
+          if (!s2?.section_id) continue
+          const prev = Number(target.sections_time[s2.section_id] || 0)
+          target.sections_time[s2.section_id] = prev + Number(s2.time_spent_seconds || 0)
+        }
+        await s.from('koto_discovery_share_tokens').update({ view_events: events }).eq('id', share.id)
+      }
+      return Response.json({ ok: true })
+    }
+
+    // ─── import_transcript ─────────────────────────────
+    if (action === 'import_transcript') {
+      const { engagement_id, transcript, source } = body
+      if (!engagement_id || !transcript) return Response.json({ error: 'Missing engagement_id or transcript' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('*').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const sections = Array.isArray(eng.sections) ? eng.sections : getDefaultSections()
+
+      // Build a catalog of all fields with IDs + questions for the prompt
+      const fieldCatalog: string[] = []
+      for (const sec of sections) {
+        for (const f of sec.fields || []) {
+          if (f.never_share) continue
+          fieldCatalog.push(`${sec.id} / ${f.id}: ${f.question}`)
+        }
+      }
+
+      const system = `You are analyzing a call transcript from a client discovery session. Extract every piece of information that maps to the discovery document fields. Be thorough — pull out specific numbers, names, tools, percentages, timelines, and direct quotes where relevant.
+
+Return JSON only:
+{
+  "field_updates": [{
+    "section_id": "string",
+    "field_id": "string",
+    "answer": "string",
+    "confidence": "high|medium",
+    "quote": "exact quote from transcript supporting this answer, max 150 chars"
+  }],
+  "additional_intel": [{
+    "label": "string",
+    "content": "string"
+  }],
+  "flags": [{
+    "type": "risk|opportunity|gap",
+    "note": "string",
+    "evidence": "string"
+  }],
+  "summary": "2-3 sentence summary of the call"
+}`
+
+      const userPrompt = `CLIENT: ${eng.client_name}
+INDUSTRY: ${eng.client_industry || 'unknown'}
+SOURCE: ${source || 'unknown'}
+
+ALL FIELDS AVAILABLE IN THE DISCOVERY DOCUMENT (section_id / field_id: question):
+${fieldCatalog.join('\n').slice(0, 15_000)}
+
+TRANSCRIPT:
+${String(transcript).slice(0, 80_000)}
+
+Map the transcript onto the fields above. Return ONLY the JSON object, no preamble, no prose.`
+
+      const raw = await callClaude({
+        system,
+        user: userPrompt,
+        maxTokens: 6000,
+        temperature: 0,
+        timeoutMs: 60_000,
+      })
+      const parsed = parseJson(raw) || {}
+
+      const fieldUpdates = Array.isArray(parsed.field_updates) ? parsed.field_updates : []
+      const addlIntel = Array.isArray(parsed.additional_intel) ? parsed.additional_intel : []
+      const transcriptFlags = Array.isArray(parsed.flags) ? parsed.flags : []
+
+      // Apply field updates
+      const updatedSections = sections.map((sec: any) => ({ ...sec, fields: [...(sec.fields || [])] }))
+      let applied = 0
+      for (const u of fieldUpdates) {
+        if (!u?.section_id || !u?.field_id || !u?.answer) continue
+        const sec = updatedSections.find((x: any) => x.id === u.section_id)
+        if (!sec) continue
+        const field = sec.fields.find((f: any) => f.id === u.field_id)
+        if (!field) continue
+        field.answer = u.answer
+        field.source = 'transcript_imported'
+        field.transcript_quote = u.quote || ''
+        field.transcript_confidence = u.confidence || 'medium'
+        applied++
+      }
+
+      // Append any additional intel as intel cards
+      const existingIntel = Array.isArray(eng.intel_cards) ? eng.intel_cards : []
+      const newIntelCards = addlIntel
+        .filter((x: any) => x?.label && x?.content)
+        .map((x: any) => ({ title: x.label, body: x.content, category: 'transcript' }))
+
+      // Append transcript flags to interview_flags
+      const existingFlags = Array.isArray(eng.interview_flags) ? eng.interview_flags : []
+      const ts = new Date().toISOString()
+      const newFlagEntries = transcriptFlags
+        .filter((f: any) => f?.type && f?.note)
+        .map((f: any) => ({
+          type: f.type,
+          note: f.note,
+          evidence: f.evidence || '',
+          source: 'transcript_import',
+          captured_at: ts,
+        }))
+
+      await s.from('koto_discovery_engagements').update({
+        sections: updatedSections,
+        intel_cards: [...existingIntel, ...newIntelCards],
+        interview_flags: [...existingFlags, ...newFlagEntries],
+      }).eq('id', engagement_id)
+
+      return Response.json({
+        data: {
+          applied_count: applied,
+          field_updates: fieldUpdates,
+          additional_intel: addlIntel,
+          flags: transcriptFlags,
+          summary: parsed.summary || '',
+        },
+      })
+    }
+
+    // ─── duplicate (create a template copy) ─────────────
+    if (action === 'duplicate') {
+      const { source_id, new_client_name } = body
+      if (!source_id || !new_client_name) return Response.json({ error: 'Missing source_id or new_client_name' }, { status: 400 })
+
+      const { data: src } = await s.from('koto_discovery_engagements').select('*').eq('id', source_id).maybeSingle()
+      if (!src) return Response.json({ error: 'Source not found' }, { status: 404 })
+
+      // Deep-clone sections but clear every answer + AI question + transcript quote
+      const clonedSections = (src.sections || []).map((sec: any) => ({
+        ...sec,
+        fields: (sec.fields || []).map((f: any) => ({
+          ...f,
+          answer: '',
+          ai_questions: [],
+          source: 'preset',
+          question_is_edited: !!f.question_is_edited, // preserve customized questions
+          transcript_quote: undefined,
+          transcript_confidence: undefined,
+          benchmark_data: undefined,
+        })),
+      }))
+
+      const { data: newEng, error } = await s.from('koto_discovery_engagements').insert({
+        agency_id: agencyId,
+        client_name: new_client_name,
+        client_industry: src.client_industry,
+        status: 'draft',
+        sections: clonedSections,
+      }).select('*').maybeSingle()
+
+      if (error || !newEng) return Response.json({ error: error?.message || 'Duplicate failed' }, { status: 500 })
+
+      // Copy domains (URLs only, fresh scan status)
+      const { data: srcDomains } = await s.from('koto_discovery_domains').select('url, domain_type').eq('engagement_id', source_id)
+      if (Array.isArray(srcDomains) && srcDomains.length > 0) {
+        const rows = srcDomains.map((d: any) => ({
+          engagement_id: newEng.id,
+          agency_id: agencyId,
+          url: d.url,
+          domain_type: d.domain_type || 'secondary',
+          scan_status: 'pending',
+        }))
+        await s.from('koto_discovery_domains').insert(rows)
+      }
+
+      return Response.json({ data: newEng })
+    }
+
+    // ─── benchmark_field ────────────────────────────────
+    if (action === 'benchmark_field') {
+      const { field_id, section_id, answer, field_question, industry, engagement_id } = body
+      if (!field_id || !section_id || !answer || !engagement_id) {
+        return Response.json({ error: 'Missing params' }, { status: 400 })
+      }
+      // Only benchmark metrics (numbers or percentages)
+      if (!/\d+/.test(String(answer))) {
+        return Response.json({ data: null })
+      }
+
+      const system = `You are a marketing and business benchmarking expert. Given a specific metric from a client discovery session, compare it to industry benchmarks and return a brief assessment.
+
+Return JSON only: { "benchmark": "industry average or range", "assessment": "above|at|below", "insight": "one sentence, direct, specific to their industry", "action": "one specific recommendation if below average, null if above" }`
+
+      const userMsg = `Industry: ${industry || 'unknown'}
+Metric question: ${field_question || 'unknown'}
+Client's answer: ${answer}`
+
+      const raw = await callClaude({
+        system,
+        user: userMsg,
+        maxTokens: 300,
+        temperature: 0,
+        timeoutMs: 8000,
+      })
+      const parsed = parseJson(raw)
+      if (!parsed || !parsed.assessment) return Response.json({ data: null })
+
+      // Persist benchmark_data onto the field
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sections').eq('id', engagement_id).maybeSingle()
+      if (eng) {
+        const sections = Array.isArray(eng.sections) ? eng.sections : []
+        const sec = sections.find((x: any) => x.id === section_id)
+        const field = sec?.fields.find((f: any) => f.id === field_id)
+        if (field) {
+          field.benchmark_data = parsed
+          await s.from('koto_discovery_engagements').update({ sections }).eq('id', engagement_id)
+        }
+      }
+
+      return Response.json({ data: { benchmark_data: parsed } })
+    }
+
+    // ─── assign (team assignment) ───────────────────────
+    if (action === 'assign') {
+      const { id, user_id, display_name } = body
+      if (!id) return Response.json({ error: 'Missing id' }, { status: 400 })
+      await s.from('koto_discovery_engagements').update({
+        assigned_to_user_id: user_id || null,
+        assigned_to_name: display_name || null,
+      }).eq('id', id)
+      return Response.json({ ok: true })
+    }
+
+    // ─── restore_version (version history restore) ─────
+    if (action === 'restore_version') {
+      const { id, version } = body
+      if (!id || !version) return Response.json({ error: 'Missing params' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('version_history, sections, executive_summary').eq('id', id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const history = Array.isArray(eng.version_history) ? eng.version_history : []
+      const target = history.find((v: any) => v.version === version)
+      if (!target) return Response.json({ error: 'Version not found' }, { status: 404 })
+
+      // Archive current state as a new history entry before restoring
+      const newEntry = {
+        version: history.length + 1,
+        compiled_at: new Date().toISOString(),
+        sections_snapshot: eng.sections || [],
+        executive_summary_snapshot: eng.executive_summary || null,
+        note: `auto-archived before restoring v${version}`,
+      }
+      const trimmedHistory = [...history, newEntry].slice(-10)
+
+      await s.from('koto_discovery_engagements').update({
+        sections: target.sections_snapshot,
+        executive_summary: target.executive_summary_snapshot || null,
+        version_history: trimmedHistory,
+      }).eq('id', id)
+
+      return Response.json({ ok: true })
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })
