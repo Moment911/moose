@@ -17,7 +17,7 @@ const FB = "'Raleway','Helvetica Neue',sans-serif"
 
 const SOURCE_CONFIG = {
   web_visitor: { icon: Eye, label: 'Web Visitor', color: T, bg: T + '15' },
-  scout: { icon: Target, label: 'Scout', color: '#7c3aed', bg: '#7c3aed15' },
+  scout: { icon: Target, label: 'Scout', color: '#00C2CB', bg: '#00C2CB15' },
   voice_call: { icon: Phone, label: 'Voice Call', color: R, bg: R + '15' },
   inbound_call: { icon: PhoneIncoming, label: 'Inbound', color: GRN, bg: GRN + '15' },
   import: { icon: Upload, label: 'Import', color: AMB, bg: AMB + '15' },
@@ -27,7 +27,7 @@ const SOURCE_CONFIG = {
 const STAGE_CONFIG = {
   new: { label: 'New', color: T },
   engaged: { label: 'Engaged', color: AMB },
-  qualified: { label: 'Qualified', color: '#7c3aed' },
+  qualified: { label: 'Qualified', color: '#00C2CB' },
   proposal: { label: 'Proposal', color: R },
   won: { label: 'Won', color: GRN },
   lost: { label: 'Lost', color: '#6b7280' },
@@ -72,8 +72,8 @@ function StatCard({ label, value, icon: Icon, accent = T }) {
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK }}>{value}</div>
-          <div style={{ fontSize: 10, color: '#9a9a96', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 2 }}>{label}</div>
+          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: BLK }}>{value}</div>
+          <div style={{ fontSize: 12, color: '#9a9a96', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 2 }}>{label}</div>
         </div>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} color={accent} />
@@ -165,27 +165,27 @@ export default function OpportunitiesPage() {
         <ScoreRing score={opp.score || 0} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-            <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {opp.company_name || opp.contact_name || opp.contact_email || 'Unknown'}
             </span>
-            {opp.hot && <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R + '15', color: R }}>🔥 HOT</span>}
+            {opp.hot && <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R + '15', color: R }}>🔥 HOT</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: src.bg, color: src.color, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: src.bg, color: src.color, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
               <SrcIcon size={9} /> {src.label}
             </span>
-            <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: stg.color + '15', color: stg.color }}>{stg.label}</span>
-            <span style={{ fontSize: 10, color: '#9a9a96' }}>{timeAgo(opp.created_at)}</span>
+            <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: stg.color + '15', color: stg.color }}>{stg.label}</span>
+            <span style={{ fontSize: 12, color: '#9a9a96' }}>{timeAgo(opp.created_at)}</span>
           </div>
         </div>
         {!opp.ghl_pushed_at ? (
           <button onClick={e => { e.stopPropagation(); pushToGHL(opp.id) }} disabled={pushing[opp.id]} style={{
-            padding: '5px 10px', borderRadius: 6, border: 'none', background: BLK, color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: pushing[opp.id] ? 0.5 : 1,
+            padding: '5px 10px', borderRadius: 6, border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: pushing[opp.id] ? 0.5 : 1,
           }}>
             {pushing[opp.id] ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={10} />} GHL
           </button>
         ) : (
-          <span style={{ fontSize: 9, fontWeight: 700, color: GRN, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={10} /> In GHL</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: GRN, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={10} /> In GHL</span>
         )}
       </div>
     )
@@ -198,11 +198,11 @@ export default function OpportunitiesPage() {
         {/* Header */}
         <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.08)', padding: '18px 28px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>Opportunities</h1>
+            <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>Opportunities</h1>
             <div style={{ display: 'flex', gap: 4 }}>
               {['feed', 'board'].map(v => (
                 <button key={v} onClick={() => setView(v)} style={{
-                  padding: '5px 12px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, fontFamily: FH,
+                  padding: '5px 12px', borderRadius: 6, border: 'none', fontSize: 13, fontWeight: 700, fontFamily: FH,
                   background: view === v ? BLK : '#f3f4f6', color: view === v ? '#fff' : '#6b7280', cursor: 'pointer', textTransform: 'capitalize',
                 }}>{v}</button>
               ))}
@@ -216,7 +216,7 @@ export default function OpportunitiesPage() {
               <StatCard label="Hot" value={stats.hot} icon={TrendingUp} accent={R} />
               <StatCard label="Today" value={stats.today} icon={Calendar} accent={GRN} />
               <StatCard label="Web" value={stats.by_source?.web_visitor || 0} icon={Eye} accent={T} />
-              <StatCard label="Scout" value={stats.by_source?.scout || 0} icon={Target} accent="#7c3aed" />
+              <StatCard label="Scout" value={stats.by_source?.scout || 0} icon={Target} accent={T} />
               <StatCard label="Voice" value={stats.by_source?.voice_call || 0} icon={Phone} accent={R} />
               <StatCard label="In GHL" value={stats.in_ghl} icon={ArrowRight} accent={GRN} />
             </div>
@@ -225,14 +225,14 @@ export default function OpportunitiesPage() {
           {/* Source filters + search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => setSource(null)} style={{
-              padding: '5px 12px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 700, fontFamily: FH,
+              padding: '5px 12px', borderRadius: 20, border: 'none', fontSize: 13, fontWeight: 700, fontFamily: FH,
               background: !source ? BLK : '#f3f4f6', color: !source ? '#fff' : '#6b7280', cursor: 'pointer',
             }}>All</button>
             {Object.entries(SOURCE_CONFIG).map(([key, cfg]) => {
               const Icon = cfg.icon
               return (
                 <button key={key} onClick={() => setSource(source === key ? null : key)} style={{
-                  padding: '5px 12px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 700, fontFamily: FH,
+                  padding: '5px 12px', borderRadius: 20, border: 'none', fontSize: 13, fontWeight: 700, fontFamily: FH,
                   background: source === key ? cfg.color + '20' : '#f3f4f6', color: source === key ? cfg.color : '#6b7280', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 4,
                 }}>
@@ -242,7 +242,7 @@ export default function OpportunitiesPage() {
             })}
             <form onSubmit={handleSearch} style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
               <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..."
-                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, width: 180, outline: 'none' }} />
+                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, width: 180, outline: 'none' }} />
               <button type="submit" style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', cursor: 'pointer' }}>
                 <Search size={12} />
               </button>
@@ -260,7 +260,7 @@ export default function OpportunitiesPage() {
               </div>
             ) : view === 'feed' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {opps.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: '#9a9a96', fontSize: 13 }}>No opportunities yet.</div>}
+                {opps.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: '#9a9a96', fontSize: 15 }}>No opportunities yet.</div>}
                 {opps.map(o => <OppCard key={o.id} opp={o} />)}
               </div>
             ) : (
@@ -272,8 +272,8 @@ export default function OpportunitiesPage() {
                   return (
                     <div key={stage} style={{ minWidth: 240, width: 240, flexShrink: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 4px' }}>
-                        <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: stg.color, textTransform: 'uppercase', letterSpacing: '.06em' }}>{stg.label}</span>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: '#9a9a96' }}>{col.length}</span>
+                        <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: stg.color, textTransform: 'uppercase', letterSpacing: '.06em' }}>{stg.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#9a9a96' }}>{col.length}</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {col.map(o => <OppCard key={o.id} opp={o} />)}
@@ -289,7 +289,7 @@ export default function OpportunitiesPage() {
           {selected && (
             <div style={{ width: 380, borderLeft: '1px solid #ececea', background: '#fff', overflowY: 'auto', flexShrink: 0 }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>
                   {selected.company_name || selected.contact_name || 'Unknown'}
                 </span>
                 <button onClick={() => { setSelected(null); setDetail(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
@@ -302,16 +302,16 @@ export default function OpportunitiesPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <ScoreRing score={selected.score || 0} size={50} strokeWidth={5} />
                   <div>
-                    {selected.contact_email && <div style={{ fontSize: 12, color: '#6b7280' }}>{selected.contact_email}</div>}
-                    {selected.contact_phone && <div style={{ fontSize: 12, color: '#6b7280' }}>{selected.contact_phone}</div>}
-                    {selected.website && <div style={{ fontSize: 12, color: T }}>{selected.website}</div>}
+                    {selected.contact_email && <div style={{ fontSize: 14, color: '#6b7280' }}>{selected.contact_email}</div>}
+                    {selected.contact_phone && <div style={{ fontSize: 14, color: '#6b7280' }}>{selected.contact_phone}</div>}
+                    {selected.website && <div style={{ fontSize: 14, color: T }}>{selected.website}</div>}
                   </div>
                 </div>
                 {/* Stage selector */}
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {STAGES.map(s => (
                     <button key={s} onClick={() => updateStage(selected.id, s)} style={{
-                      padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 10, fontWeight: 700, fontFamily: FH,
+                      padding: '3px 8px', borderRadius: 6, border: 'none', fontSize: 12, fontWeight: 700, fontFamily: FH,
                       background: selected.stage === s ? STAGE_CONFIG[s].color + '20' : '#f3f4f6',
                       color: selected.stage === s ? STAGE_CONFIG[s].color : '#9a9a96', cursor: 'pointer',
                     }}>{STAGE_CONFIG[s].label}</button>
@@ -324,7 +324,7 @@ export default function OpportunitiesPage() {
                 {[{ key: 'timeline', label: 'Timeline', icon: Activity }, { key: 'pages', label: 'Pages', icon: Eye }, { key: 'intel', label: 'Intel', icon: Brain }].map(t => (
                   <button key={t.key} onClick={() => setDetailTab(t.key)} style={{
                     flex: 1, padding: '10px 0', border: 'none', borderBottom: detailTab === t.key ? `2px solid ${R}` : '2px solid transparent',
-                    background: 'none', fontSize: 11, fontWeight: 700, fontFamily: FH,
+                    background: 'none', fontSize: 13, fontWeight: 700, fontFamily: FH,
                     color: detailTab === t.key ? R : '#9a9a96', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                   }}>
@@ -336,29 +336,29 @@ export default function OpportunitiesPage() {
               {/* Tab content */}
               <div style={{ padding: '12px 20px' }}>
                 {!detail ? (
-                  <div style={{ textAlign: 'center', padding: 20, color: '#9a9a96', fontSize: 12 }}>
+                  <div style={{ textAlign: 'center', padding: 20, color: '#9a9a96', fontSize: 14 }}>
                     <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
                   </div>
                 ) : detailTab === 'timeline' ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {(detail.activities || []).length === 0 && <div style={{ fontSize: 12, color: '#9a9a96' }}>No activity yet.</div>}
+                    {(detail.activities || []).length === 0 && <div style={{ fontSize: 14, color: '#9a9a96' }}>No activity yet.</div>}
                     {(detail.activities || []).map(a => (
                       <div key={a.id} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '1px solid #f8f8f6' }}>
                         <div style={{ width: 6, height: 6, borderRadius: '50%', background: R, marginTop: 5, flexShrink: 0 }} />
                         <div>
-                          <div style={{ fontSize: 12, color: BLK }}>{a.description}</div>
-                          <div style={{ fontSize: 10, color: '#9a9a96' }}>{timeAgo(a.created_at)}</div>
+                          <div style={{ fontSize: 14, color: BLK }}>{a.description}</div>
+                          <div style={{ fontSize: 12, color: '#9a9a96' }}>{timeAgo(a.created_at)}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : detailTab === 'pages' ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {(detail.page_views || []).length === 0 && <div style={{ fontSize: 12, color: '#9a9a96' }}>No pages visited.</div>}
+                    {(detail.page_views || []).length === 0 && <div style={{ fontSize: 14, color: '#9a9a96' }}>No pages visited.</div>}
                     {(detail.page_views || []).map(pv => (
                       <div key={pv.id} style={{ padding: '8px 10px', background: '#f9fafb', borderRadius: 8, border: '1px solid #ececea' }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: BLK, marginBottom: 2 }}>{pv.page_title || pv.url}</div>
-                        <div style={{ display: 'flex', gap: 10, fontSize: 10, color: '#9a9a96' }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: BLK, marginBottom: 2 }}>{pv.page_title || pv.url}</div>
+                        <div style={{ display: 'flex', gap: 10, fontSize: 12, color: '#9a9a96' }}>
                           <span>{pv.duration_seconds ? `${pv.duration_seconds}s` : ''}</span>
                           <span>{timeAgo(pv.viewed_at)}</span>
                         </div>
@@ -369,17 +369,17 @@ export default function OpportunitiesPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {selected.intent_signals && selected.intent_signals.length > 0 && (
                       <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Intent Signals</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Intent Signals</div>
                         {selected.intent_signals.map((s, i) => (
-                          <div key={i} style={{ fontSize: 12, color: '#374151', padding: '3px 0' }}>• {typeof s === 'string' ? s : s.signal || JSON.stringify(s)}</div>
+                          <div key={i} style={{ fontSize: 14, color: '#374151', padding: '3px 0' }}>• {typeof s === 'string' ? s : s.signal || JSON.stringify(s)}</div>
                         ))}
                       </div>
                     )}
                     {selected.intel && Object.keys(selected.intel).length > 0 && (
                       <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Intelligence</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Intelligence</div>
                         {Object.entries(selected.intel).map(([k, v]) => (
-                          <div key={k} style={{ fontSize: 12, color: '#374151', padding: '3px 0' }}>
+                          <div key={k} style={{ fontSize: 14, color: '#374151', padding: '3px 0' }}>
                             <strong style={{ textTransform: 'capitalize' }}>{k.replace(/_/g, ' ')}:</strong> {String(v)}
                           </div>
                         ))}
@@ -387,16 +387,16 @@ export default function OpportunitiesPage() {
                     )}
                     {selected.tags?.length > 0 && (
                       <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Tags</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6, fontFamily: FH }}>Tags</div>
                         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                           {selected.tags.map((t, i) => (
-                            <span key={i} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#374151' }}>{t}</span>
+                            <span key={i} style={{ fontSize: 12, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#374151' }}>{t}</span>
                           ))}
                         </div>
                       </div>
                     )}
                     {!selected.intent_signals?.length && !Object.keys(selected.intel || {}).length && (
-                      <div style={{ fontSize: 12, color: '#9a9a96' }}>No intelligence data yet.</div>
+                      <div style={{ fontSize: 14, color: '#9a9a96' }}>No intelligence data yet.</div>
                     )}
                   </div>
                 )}

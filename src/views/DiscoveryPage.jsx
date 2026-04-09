@@ -21,9 +21,7 @@ const C = {
   greenTint: '#F0FDF4',
   amber: '#D97706',         // risk / warning
   amberTint: '#FFFBEB',
-  purple: '#6B46C1',        // AI questions / new badge
-  purpleTint: '#F5F3FF',
-  teal: '#00C2CB',
+  teal: '#00C2CB',          // accent / AI / NEW badge (Koto brand)
   tealTint: '#E6FCFD',
 }
 
@@ -41,7 +39,7 @@ function statusBadge(status) {
     research_complete: { label: 'Research Complete', bg: C.tealTint, fg: '#0E7490' },
     call_scheduled: { label: 'Call Scheduled', bg: '#FEF3C7', fg: '#B45309' },
     call_complete: { label: 'Call Complete', bg: '#FEF3C7', fg: '#B45309' },
-    compiled: { label: 'Compiled', bg: C.purpleTint, fg: C.purple },
+    compiled: { label: 'Compiled', bg: C.tealTint, fg: '#0E7490' },
     shared: { label: 'Shared', bg: C.greenTint, fg: C.green },
     archived: { label: 'Archived', bg: '#F3F4F6', fg: '#6B7280' },
   }
@@ -111,24 +109,24 @@ function ListView({ aid, onOpen }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Brain size={22} color={C.purple} />
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>
+            <Brain size={22} color={C.teal} />
+            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>
               Discovery Intelligence
             </h1>
             <span style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '.06em',
-              background: C.purple, color: '#fff', padding: '2px 7px', borderRadius: 10,
+              fontSize: 11, fontWeight: 800, letterSpacing: '.06em',
+              background: C.teal, color: '#fff', padding: '2px 7px', borderRadius: 10,
             }}>NEW</span>
           </div>
-          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+          <div style={{ fontSize: 15, color: C.muted, marginTop: 4 }}>
             AI pre-research + tech stack scanning + dynamic follow-ups for every engagement.
           </div>
         </div>
         <button
           onClick={() => setShowNew(true)}
           style={{
-            background: C.purple, color: '#fff', border: 'none', borderRadius: 8,
-            padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
+            padding: '9px 16px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}
         >
@@ -145,7 +143,7 @@ function ListView({ aid, onOpen }) {
           <StatTile label="Draft" value={stats.draft} color={C.muted} />
           <StatTile label="Running" value={stats.research_running} color={C.blue} />
           <StatTile label="Ready" value={stats.research_complete} color="#0E7490" />
-          <StatTile label="Compiled" value={stats.compiled} color={C.purple} />
+          <StatTile label="Compiled" value={stats.compiled} color={C.teal} />
           <StatTile label="Shared" value={stats.shared} color={C.green} />
         </div>
       )}
@@ -160,7 +158,7 @@ function ListView({ aid, onOpen }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by client name or industry"
-          style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, background: 'transparent' }}
+          style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, background: 'transparent' }}
         />
       </div>
 
@@ -173,10 +171,10 @@ function ListView({ aid, onOpen }) {
         ) : filtered.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center' }}>
             <Brain size={32} color={C.muted} style={{ opacity: 0.4 }} />
-            <div style={{ fontSize: 14, color: C.text, fontWeight: 600, marginTop: 10 }}>
+            <div style={{ fontSize: 16, color: C.text, fontWeight: 600, marginTop: 10 }}>
               {search ? 'No matches' : 'No engagements yet'}
             </div>
-            <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 4 }}>
               {search ? 'Try a different search.' : 'Create your first Discovery engagement to get started.'}
             </div>
           </div>
@@ -195,13 +193,13 @@ function ListView({ aid, onOpen }) {
                 onMouseLeave={ev => ev.currentTarget.style.background = 'transparent'}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{e.client_name}</div>
-                  <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>{e.client_name}</div>
+                  <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>
                     {e.client_industry || 'No industry'} · Updated {new Date(e.updated_at).toLocaleDateString()}
                   </div>
                 </div>
                 <span style={{
-                  fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
+                  fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
                   background: b.bg, color: b.fg, textTransform: 'uppercase', letterSpacing: '.04em',
                 }}>
                   {b.label}
@@ -221,8 +219,8 @@ function ListView({ aid, onOpen }) {
 function StatTile({ label, value, color }) {
   return (
     <div style={{ background: C.white, borderRadius: 10, border: `1px solid ${C.border}`, padding: '10px 12px' }}>
-      <div style={{ fontSize: 20, fontWeight: 800, color: color || C.text, fontFamily: 'var(--font-display)' }}>{value || 0}</div>
-      <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: color || C.text, fontFamily: 'var(--font-display)' }}>{value || 0}</div>
+      <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>{label}</div>
     </div>
   )
 }
@@ -270,8 +268,8 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
         style={{ background: C.white, borderRadius: 14, padding: 24, width: '100%', maxWidth: 480 }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Brain size={18} color={C.purple} />
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: C.text }}>New Discovery Engagement</h3>
+          <Brain size={18} color={C.teal} />
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.text }}>New Discovery Engagement</h3>
         </div>
 
         <Label>Client name</Label>
@@ -289,7 +287,7 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
               placeholder={i === 0 ? 'acmehvac.com (primary)' : 'funnel.acmehvac.com (secondary)'}
               style={{
                 flex: 1, padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7,
-                fontSize: 13, outline: 'none',
+                fontSize: 15, outline: 'none',
               }}
             />
             {domains.length > 1 && (
@@ -302,17 +300,17 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
         ))}
         <button
           onClick={() => setDomains(ds => [...ds, ''])}
-          style={{ fontSize: 11, color: C.purple, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, marginTop: 2 }}
+          style={{ fontSize: 13, color: C.teal, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: 0, marginTop: 2 }}
         >+ Add domain</button>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{
             background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 16px',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer', color: C.text,
+            fontSize: 15, fontWeight: 600, cursor: 'pointer', color: C.text,
           }}>Cancel</button>
           <button onClick={submit} disabled={saving} style={{
-            background: C.purple, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px',
-            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            background: C.teal, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px',
+            fontSize: 15, fontWeight: 700, cursor: 'pointer',
           }}>
             {saving ? 'Creating…' : 'Create Engagement'}
           </button>
@@ -324,7 +322,7 @@ function NewEngagementModal({ aid, onClose, onCreated }) {
 
 function Label({ children }) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+    <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
       {children}
     </div>
   )
@@ -333,7 +331,7 @@ function Input({ value, onChange, placeholder, type = 'text' }) {
   return (
     <input
       type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-      style={{ width: '100%', padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+      style={{ width: '100%', padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 15, outline: 'none', boxSizing: 'border-box' }}
     />
   )
 }
@@ -408,8 +406,8 @@ function DetailView({ aid, id, onBack }) {
   if (loading || !eng) {
     return (
       <div style={{ padding: 60, textAlign: 'center' }}>
-        <Loader2 size={24} className="anim-spin" color={C.purple} />
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 10 }}>Loading engagement…</div>
+        <Loader2 size={24} className="anim-spin" color={C.teal} />
+        <div style={{ fontSize: 15, color: C.muted, marginTop: 10 }}>Loading engagement…</div>
       </div>
     )
   }
@@ -421,22 +419,22 @@ function DetailView({ aid, id, onBack }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 7, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: C.text }}>
+          <button onClick={onBack} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 7, padding: '6px 12px', fontSize: 14, fontWeight: 600, cursor: 'pointer', color: C.text }}>
             ← Back
           </button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>{eng.client_name}</h2>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 12, background: badge.bg, color: badge.fg, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>{eng.client_name}</h2>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 12, background: badge.bg, color: badge.fg, textTransform: 'uppercase', letterSpacing: '.04em' }}>
                 {badge.label}
               </span>
             </div>
-            <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{eng.client_industry || 'No industry'}</div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>{eng.client_industry || 'No industry'}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <HeaderBtn onClick={runResearch} disabled={busyResearch} color={C.teal} icon={busyResearch ? Loader2 : Sparkles} label={busyResearch ? 'Researching…' : 'Run AI Research'} spinning={busyResearch} />
-          <HeaderBtn onClick={compile} disabled={busyCompile} color={C.purple} icon={busyCompile ? Loader2 : FileText} label={busyCompile ? 'Compiling…' : 'Compile'} spinning={busyCompile} />
+          <HeaderBtn onClick={compile} disabled={busyCompile} color={C.teal} icon={busyCompile ? Loader2 : FileText} label={busyCompile ? 'Compiling…' : 'Compile'} spinning={busyCompile} />
           <HeaderBtn onClick={() => setShowShare(true)} color={C.text} icon={Share2} label="Share" outlined />
         </div>
       </div>
@@ -509,7 +507,7 @@ function HeaderBtn({ onClick, disabled, color, icon: Icon, label, spinning, outl
       style={{
         background: outlined ? C.white : color, color: outlined ? C.text : '#fff',
         border: outlined ? `1px solid ${C.border}` : 'none',
-        borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: disabled ? 'wait' : 'pointer',
+        borderRadius: 8, padding: '8px 14px', fontSize: 14, fontWeight: 700, cursor: disabled ? 'wait' : 'pointer',
         display: 'flex', alignItems: 'center', gap: 6, opacity: disabled ? 0.7 : 1,
       }}
     >
@@ -527,7 +525,7 @@ function SectionNav({ sections, active, onSelect }) {
       position: 'sticky', top: 12, background: C.white, borderRadius: 12, border: `1px solid ${C.border}`,
       padding: 10, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
     }}>
-      <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', padding: '4px 8px 8px' }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', padding: '4px 8px 8px' }}>
         Sections
       </div>
       {sections.map(sec => {
@@ -544,24 +542,24 @@ function SectionNav({ sections, active, onSelect }) {
             onClick={() => onSelect(sec.id)}
             style={{
               padding: '8px 10px', borderRadius: 7, cursor: 'pointer', marginBottom: 2,
-              background: isActive ? C.purpleTint : 'transparent',
+              background: isActive ? C.tealTint : 'transparent',
             }}
             onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#fafafa' }}
             onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{
-                flex: 1, fontSize: 12, fontWeight: isActive ? 700 : 500,
+                flex: 1, fontSize: 14, fontWeight: isActive ? 700 : 500,
                 color: sec.visible === false ? C.muted : C.text,
               }}>
                 {sec.title}
               </div>
               {sec.visible === false && <EyeOff size={11} color={C.muted} />}
-              {hasPendingAIQ && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.purple, flexShrink: 0 }} />}
+              {hasPendingAIQ && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.teal, flexShrink: 0 }} />}
             </div>
-            <div style={{ fontSize: 9, color: C.muted, marginTop: 3 }}>{answered}/{total} answered</div>
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>{answered}/{total} answered</div>
             <div style={{ height: 3, background: '#f3f4f6', borderRadius: 2, marginTop: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.green : C.purple, transition: 'width .3s' }} />
+              <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.green : C.teal, transition: 'width .3s' }} />
             </div>
           </div>
         )
@@ -581,7 +579,7 @@ function IntelCardsPanel({ intelCards }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <Sparkles size={15} color={C.blue} />
-        <div style={{ fontSize: 13, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: '.04em' }}>
           Pre-Call Intel
         </div>
       </div>
@@ -590,11 +588,11 @@ function IntelCardsPanel({ intelCards }) {
           <div key={i} style={{
             background: C.white, borderRadius: 9, padding: 12, border: `1px solid ${C.border}`,
           }}>
-            <div style={{ fontSize: 9, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
               {card.category || 'intel'}
             </div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 4 }}>{card.title}</div>
-            <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>{card.body}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>{card.title}</div>
+            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.5 }}>{card.body}</div>
           </div>
         ))}
       </div>
@@ -605,15 +603,15 @@ function IntelCardsPanel({ intelCards }) {
 function ExecutiveSummaryPanel({ summary }) {
   return (
     <div style={{
-      background: C.purpleTint, borderRadius: 12, border: `1px solid ${C.purple}30`, padding: 18,
+      background: C.tealTint, borderRadius: 12, border: `1px solid ${C.teal}30`, padding: 18,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <FileText size={15} color={C.purple} />
-        <div style={{ fontSize: 13, fontWeight: 800, color: C.purple, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+        <FileText size={15} color={C.teal} />
+        <div style={{ fontSize: 15, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.04em' }}>
           Executive Summary
         </div>
       </div>
-      <div style={{ fontSize: 13, color: C.text, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{summary}</div>
+      <div style={{ fontSize: 15, color: C.text, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{summary}</div>
     </div>
   )
 }
@@ -653,12 +651,12 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, domai
       >
         {collapsed ? <ChevronRight size={15} color={C.muted} /> : <ChevronDown size={15} color={C.muted} />}
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{section.title}</div>
-          {section.subtitle && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{section.subtitle}</div>}
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{section.title}</div>
+          {section.subtitle && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{section.subtitle}</div>}
         </div>
-        <div style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>{answered}/{fields.length}</div>
+        <div style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>{answered}/{fields.length}</div>
         <div style={{ width: 80, height: 5, background: '#f3f4f6', borderRadius: 3, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.green : C.purple, transition: 'width .3s' }} />
+          <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.green : C.teal, transition: 'width .3s' }} />
         </div>
         <button
           onClick={e => { e.stopPropagation(); toggleVisibility() }}
@@ -678,7 +676,7 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, domai
               padding: '9px 12px', marginBottom: 14, display: 'flex', gap: 8, alignItems: 'flex-start',
             }}>
               <AlertTriangle size={13} color={C.amber} style={{ flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 11, color: '#92400E', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: '#92400E', lineHeight: 1.5 }}>
                 <strong>Risk area.</strong> This section surfaces compliance, data, or platform risks.
                 Probe deeply — do not accept surface-level answers.
               </div>
@@ -692,7 +690,7 @@ function SectionPanel({ section, engagementId, clientName, clientIndustry, domai
               padding: '9px 12px', marginBottom: 14, display: 'flex', gap: 8, alignItems: 'flex-start',
             }}>
               <Info size={13} color="#0E7490" style={{ flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 11, color: '#0E7490', lineHeight: 1.5 }}>{section.info_note}</div>
+              <div style={{ fontSize: 13, color: '#0E7490', lineHeight: 1.5 }}>{section.info_note}</div>
             </div>
           )}
 
@@ -842,7 +840,7 @@ function FieldEditor({ field, sectionId, engagementId, clientName, clientIndustr
     : field.source === 'ai_generated' || field.is_ai_populated
       ? { label: 'AI RESEARCH', bg: C.greenTint, fg: C.green }
       : field.source === 'manually_promoted'
-        ? { label: 'PROMOTED', bg: C.purpleTint, fg: C.purple }
+        ? { label: 'PROMOTED', bg: C.tealTint, fg: C.teal }
         : null
 
   const isOpportunity = field.is_opportunity
@@ -861,7 +859,7 @@ function FieldEditor({ field, sectionId, engagementId, clientName, clientIndustr
                 value={question}
                 onChange={e => setQuestion(e.target.value)}
                 autoFocus
-                style={{ flex: 1, padding: '5px 8px', border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 13 }}
+                style={{ flex: 1, padding: '5px 8px', border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 15 }}
               />
               <button onClick={saveQuestion} style={{ background: C.green, color: '#fff', border: 'none', borderRadius: 5, padding: '5px 8px', cursor: 'pointer' }}><Check size={12} /></button>
               <button onClick={() => { setQuestion(field.question); setEditingQuestion(false) }} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 5, padding: '5px 8px', cursor: 'pointer' }}><X size={12} color={C.muted} /></button>
@@ -869,30 +867,30 @@ function FieldEditor({ field, sectionId, engagementId, clientName, clientIndustr
           ) : (
             <div
               onDoubleClick={() => setEditingQuestion(true)}
-              style={{ fontSize: 13, fontWeight: 600, color: C.text, cursor: 'text' }}
+              style={{ fontSize: 15, fontWeight: 600, color: C.text, cursor: 'text' }}
               title="Double-click to edit"
             >
               {field.question}
               {field.question_is_edited && (
-                <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.amberTint, color: C.amber }}>
+                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.amberTint, color: C.amber }}>
                   EDITED
                 </span>
               )}
               {sourceBadge && (
-                <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: sourceBadge.bg, color: sourceBadge.fg }}>
+                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: sourceBadge.bg, color: sourceBadge.fg }}>
                   {sourceBadge.label}
                 </span>
               )}
               {isOpportunity && (
-                <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.greenTint, color: C.green }}>
+                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.greenTint, color: C.green }}>
                   OPPORTUNITY
                 </span>
               )}
             </div>
           )}
-          {field.hint && <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{field.hint}</div>}
+          {field.hint && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{field.hint}</div>}
         </div>
-        {aiLoading && <Loader2 size={12} className="anim-spin" color={C.purple} />}
+        {aiLoading && <Loader2 size={12} className="anim-spin" color={C.teal} />}
       </div>
 
       {/* Answer textarea */}
@@ -902,7 +900,7 @@ function FieldEditor({ field, sectionId, engagementId, clientName, clientIndustr
         placeholder="Type your answer…"
         style={{
           width: '100%', minHeight: 60, padding: '9px 11px', border: `1px solid ${C.border}`, borderRadius: 7,
-          fontSize: 13, outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, boxSizing: 'border-box',
+          fontSize: 15, outline: 'none', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, boxSizing: 'border-box',
           background: field.source === 'client_provided' ? C.blueTint : C.white,
         }}
       />
@@ -923,12 +921,12 @@ function AiQuestionBlock({ aiq, onAction }) {
   const [text, setText] = useState('')
   return (
     <div style={{
-      background: C.purpleTint, border: `1px solid ${C.purple}40`, borderRadius: 8,
+      background: C.tealTint, border: `1px solid ${C.teal}40`, borderRadius: 8,
       padding: 12, marginTop: 10,
     }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8 }}>
-        <Sparkles size={13} color={C.purple} style={{ flexShrink: 0, marginTop: 2 }} />
-        <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: C.purple, lineHeight: 1.5 }}>
+        <Sparkles size={13} color={C.teal} style={{ flexShrink: 0, marginTop: 2 }} />
+        <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: C.teal, lineHeight: 1.5 }}>
           {aiq.question}
         </div>
       </div>
@@ -937,22 +935,22 @@ function AiQuestionBlock({ aiq, onAction }) {
         onChange={e => setText(e.target.value)}
         placeholder="Optional follow-up answer…"
         style={{
-          width: '100%', minHeight: 44, padding: '7px 9px', border: `1px solid ${C.purple}30`, borderRadius: 6,
-          fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'vertical', background: C.white, boxSizing: 'border-box',
+          width: '100%', minHeight: 44, padding: '7px 9px', border: `1px solid ${C.teal}30`, borderRadius: 6,
+          fontSize: 14, outline: 'none', fontFamily: 'inherit', resize: 'vertical', background: C.white, boxSizing: 'border-box',
         }}
       />
       <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
         <button
           onClick={() => onAction('answer', text)}
-          style={{ background: C.purple, color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+          style={{ background: C.teal, color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
         >Answer</button>
         <button
           onClick={() => onAction('dismiss')}
-          style={{ background: C.white, border: `1px solid ${C.border}`, color: C.muted, borderRadius: 6, padding: '6px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+          style={{ background: C.white, border: `1px solid ${C.border}`, color: C.muted, borderRadius: 6, padding: '6px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
         >Dismiss</button>
         <button
           onClick={() => onAction('promoted', text)}
-          style={{ background: C.white, border: `1px solid ${C.purple}`, color: C.purple, borderRadius: 6, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+          style={{ background: C.white, border: `1px solid ${C.teal}`, color: C.teal, borderRadius: 6, padding: '6px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
         >Promote to Permanent</button>
       </div>
     </div>
@@ -967,7 +965,7 @@ function TechStackZone({ domains, engagementId, agencyId, onAddDomain, onRescan,
 
   return (
     <div>
-      <div style={{ fontSize: 12, fontWeight: 800, color: C.text, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '.04em' }}>
         Domains ({domains.length})
       </div>
 
@@ -977,16 +975,16 @@ function TechStackZone({ domains, engagementId, agencyId, onAddDomain, onRescan,
           value={newDomain}
           onChange={e => setNewDomain(e.target.value)}
           placeholder="new-subdomain.example.com"
-          style={{ flex: 1, padding: '8px 10px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 12, outline: 'none' }}
+          style={{ flex: 1, padding: '8px 10px', border: `1px solid ${C.border}`, borderRadius: 7, fontSize: 14, outline: 'none' }}
         />
         <button
           onClick={() => { if (newDomain.trim()) { onAddDomain(newDomain.trim()); setNewDomain('') } }}
-          style={{ background: C.blue, color: '#fff', border: 'none', borderRadius: 7, padding: '0 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+          style={{ background: C.blue, color: '#fff', border: 'none', borderRadius: 7, padding: '0 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
         >Add</button>
       </div>
 
       {domains.length === 0 && (
-        <div style={{ fontSize: 12, color: C.muted, padding: 16, textAlign: 'center', border: `1px dashed ${C.border}`, borderRadius: 8 }}>
+        <div style={{ fontSize: 14, color: C.muted, padding: 16, textAlign: 'center', border: `1px dashed ${C.border}`, borderRadius: 8 }}>
           No domains yet.
         </div>
       )}
@@ -1033,8 +1031,8 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
       <div style={{ padding: '10px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
         <Globe size={14} color={C.blue} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{domain.url}</div>
-          <div style={{ fontSize: 10, color: C.muted }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{domain.url}</div>
+          <div style={{ fontSize: 12, color: C.muted }}>
             {domain.domain_type} · {status === 'complete' ? `Scanned ${domain.last_scanned_at ? new Date(domain.last_scanned_at).toLocaleString() : ''}` : status}
           </div>
         </div>
@@ -1042,7 +1040,7 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
           onClick={onRescan}
           style={{
             background: C.white, border: `1px solid ${C.border}`, borderRadius: 6, padding: '6px 10px',
-            fontSize: 11, fontWeight: 600, cursor: 'pointer', color: C.text, display: 'flex', gap: 5, alignItems: 'center',
+            fontSize: 13, fontWeight: 600, cursor: 'pointer', color: C.text, display: 'flex', gap: 5, alignItems: 'center',
           }}
         >
           <RefreshCw size={11} /> Rescan
@@ -1050,13 +1048,13 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
       </div>
 
       {status === 'scanning' && (
-        <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: C.muted }}>
+        <div style={{ padding: 20, textAlign: 'center', fontSize: 14, color: C.muted }}>
           <Loader2 size={16} className="anim-spin" color={C.blue} /> <div style={{ marginTop: 6 }}>Scanning…</div>
         </div>
       )}
 
       {status === 'complete' && categories.length === 0 && (
-        <div style={{ padding: 14, fontSize: 12, color: C.muted, textAlign: 'center' }}>No technology detected.</div>
+        <div style={{ padding: 14, fontSize: 14, color: C.muted, textAlign: 'center' }}>No technology detected.</div>
       )}
 
       {categories.map(cat => {
@@ -1068,10 +1066,10 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
               style={{ padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: '#fafafa' }}
             >
               {collapsed ? <ChevronRight size={12} color={C.muted} /> : <ChevronDown size={12} color={C.muted} />}
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.text, textTransform: 'uppercase', letterSpacing: '.04em', flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.text, textTransform: 'uppercase', letterSpacing: '.04em', flex: 1 }}>
                 {cat.name}
               </div>
-              <div style={{ fontSize: 10, color: C.muted }}>{(cat.tools || []).length} tools</div>
+              <div style={{ fontSize: 12, color: C.muted }}>{(cat.tools || []).length} tools</div>
             </div>
             {!collapsed && (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -1090,12 +1088,12 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
                       <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
                         <td style={tdStyle}><strong>{t.name}</strong></td>
                         <td style={tdStyle}>
-                          <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 10, background: col.bg, color: col.fg, border: `1px solid ${col.border}` }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 7px', borderRadius: 10, background: col.bg, color: col.fg, border: `1px solid ${col.border}` }}>
                             {t.confidence}
                           </span>
                         </td>
                         <td style={{ ...tdStyle, color: C.muted }}>{t.detection_method}</td>
-                        <td style={{ ...tdStyle, color: C.muted, fontSize: 11 }}>{t.notes}</td>
+                        <td style={{ ...tdStyle, color: C.muted, fontSize: 13 }}>{t.notes}</td>
                       </tr>
                     )
                   })}
@@ -1111,15 +1109,15 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
                       value={newToolName}
                       onChange={e => setNewToolName(e.target.value)}
                       placeholder="Tool name"
-                      style={{ flex: 1, padding: '6px 9px', fontSize: 11, border: `1px solid ${C.border}`, borderRadius: 5 }}
+                      style={{ flex: 1, padding: '6px 9px', fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 5 }}
                     />
-                    <button onClick={() => addManually(cat.name)} style={{ background: C.blue, color: '#fff', border: 'none', borderRadius: 5, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Add</button>
-                    <button onClick={() => { setAddingCat(''); setNewToolName('') }} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 5, padding: '0 10px', fontSize: 11, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={() => addManually(cat.name)} style={{ background: C.blue, color: '#fff', border: 'none', borderRadius: 5, padding: '0 10px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Add</button>
+                    <button onClick={() => { setAddingCat(''); setNewToolName('') }} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 5, padding: '0 10px', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
                   </div>
                 ) : (
                   <button
                     onClick={() => setAddingCat(cat.name)}
-                    style={{ background: 'none', border: 'none', color: C.blue, fontSize: 11, fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                    style={{ background: 'none', border: 'none', color: C.blue, fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0 }}
                   >+ Add technology manually</button>
                 )}
               </div>
@@ -1131,8 +1129,8 @@ function TechStackPanel({ domain, onRescan, agencyId, onRefresh }) {
   )
 }
 
-const thStyle = { fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.muted, padding: '7px 12px', textAlign: 'left' }
-const tdStyle = { padding: '8px 12px', fontSize: 12, color: C.text }
+const thStyle = { fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.muted, padding: '7px 12px', textAlign: 'left' }
+const tdStyle = { padding: '8px 12px', fontSize: 14, color: C.text }
 
 function CrossDomainMatrix({ domains }) {
   // Build matrix of tool names across all domains
@@ -1150,11 +1148,11 @@ function CrossDomainMatrix({ domains }) {
 
   return (
     <div style={{ marginTop: 14, background: C.white, border: `1px solid ${C.border}`, borderRadius: 10, overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', borderBottom: `1px solid ${C.border}`, background: '#fafafa', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
+      <div style={{ padding: '10px 14px', borderBottom: `1px solid ${C.border}`, background: '#fafafa', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.04em', color: C.text }}>
         Cross-Domain Matrix
       </div>
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
             <tr style={{ background: '#fafafa' }}>
               <th style={thStyle}>Tool</th>
@@ -1240,8 +1238,8 @@ function ShareModal({ eng, aid, onClose }) {
         style={{ background: C.white, borderRadius: 14, padding: 24, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Share2 size={18} color={C.purple} />
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>Share Discovery</h3>
+          <Share2 size={18} color={C.teal} />
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>Share Discovery</h3>
         </div>
 
         <Label>Recipient name (optional)</Label>
@@ -1256,7 +1254,7 @@ function ShareModal({ eng, aid, onClose }) {
         <Label>Visible sections</Label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, background: C.bg, padding: 10, borderRadius: 8 }}>
           {(eng.sections || []).map(sec => (
-            <label key={sec.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, color: C.text }}>
+            <label key={sec.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, color: C.text }}>
               <input
                 type="checkbox"
                 checked={!!visible[sec.id]}
@@ -1269,17 +1267,17 @@ function ShareModal({ eng, aid, onClose }) {
 
         {link && (
           <div style={{ marginTop: 14, background: C.greenTint, border: `1px solid ${C.green}30`, borderRadius: 8, padding: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: C.green, textTransform: 'uppercase', letterSpacing: '.04em' }}>Link</div>
-            <div style={{ fontSize: 11, color: C.text, wordBreak: 'break-all', marginTop: 4, fontFamily: 'monospace' }}>{link}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.green, textTransform: 'uppercase', letterSpacing: '.04em' }}>Link</div>
+            <div style={{ fontSize: 13, color: C.text, wordBreak: 'break-all', marginTop: 4, fontFamily: 'monospace' }}>{link}</div>
           </div>
         )}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 20, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={{
-            background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            background: C.white, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 16px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
           }}>Close</button>
           <button onClick={generate} disabled={saving} style={{
-            background: C.purple, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            background: C.teal, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
           }}>{saving ? 'Generating…' : 'Generate Link'}</button>
         </div>
       </div>

@@ -28,7 +28,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
       borderRadius:8, textDecoration:'none',
       background: active ? 'rgba(234,39,41,.08)' : 'transparent',
       color: active ? R : '#374151',
-      fontSize: sub ? 12 : 13,
+      fontSize: sub ? 13 : 15,
       fontWeight: active ? 700 : 400,
       letterSpacing: active ? '-.01em' : 'normal',
       transition:'all .12s ease',
@@ -52,7 +52,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
 
 function Section({ label }) {
   return (
-    <div style={{padding:'18px 14px 4px',fontSize:13,fontWeight:800,
+    <div style={{padding:'18px 14px 4px',fontSize:14,fontWeight:800,
       color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.12em'}}>
       {label}
     </div>
@@ -150,7 +150,7 @@ export default function Sidebar() {
             {/* CLIENTS */}
             <Section label="Clients"/>
             <NavLink to="/clients" startsWith icon={Users} label="Clients"/>
-            <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor="#6B46C1"/>
+            <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T}/>
             <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
             <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks"/>
             <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk"/>
