@@ -154,11 +154,33 @@ export async function POST(req: NextRequest) {
         return true
       }).slice(0, 4)
 
+      // 2b. If the question seems to mention a specific client by name,
+      // pull that client's welcome_statement so the answer can ground in
+      // what they told us during onboarding.
+      let clientContextBlock = ''
+      try {
+        const s = sb()
+        const { data: welcomeClients } = await s
+          .from('clients')
+          .select('name, welcome_statement, industry')
+          .eq('agency_id', agencyId)
+          .not('welcome_statement', 'is', null)
+          .limit(50)
+        const lower = question.toLowerCase()
+        const matches = (welcomeClients || []).filter((c: any) =>
+          c.name && lower.includes(String(c.name).toLowerCase()),
+        ).slice(0, 3)
+        if (matches.length > 0) {
+          clientContextBlock = '\n\nMENTIONED CLIENT CONTEXT (from their onboarding — their own words):\n' +
+            matches.map((c: any) => `${c.name} (${c.industry || 'unknown industry'}): "${String(c.welcome_statement).replace(/\s+/g, ' ').trim()}"`).join('\n')
+        }
+      } catch { /* best-effort — never block the help answer */ }
+
       // 3. Build the system prompt
       const articleBlocks = contextArticles.map((a) => `## ${a.title}\nmodule: ${a.module}\n\n${a.content}`).join('\n\n---\n\n')
       const system = `You are the Koto Help Assistant. You only answer questions about Koto — a marketing agency operating system built at hellokoto.com. You have access to the following Koto documentation:
 
-${articleBlocks}
+${articleBlocks}${clientContextBlock}
 
 Rules:
 - Only answer questions about Koto features and how to use them
@@ -167,7 +189,8 @@ Rules:
 - Reference exact button names, locations, and menu items as they appear in the UI
 - Keep answers concise — 2-4 short paragraphs or a numbered list
 - If you're not sure, say so and direct them to hellokoto.com/help
-- Never make up features or claim Koto can do something it cannot`
+- Never make up features or claim Koto can do something it cannot
+- When the question references a client whose welcome statement is included above, weave their own words into your answer naturally`
 
       const userMessage = `${question}\n\nCurrent page: ${contextPage || '(unknown)'}`
 

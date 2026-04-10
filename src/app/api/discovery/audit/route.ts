@@ -326,7 +326,26 @@ Return valid JSON only with this exact structure:
 
 Be specific, evidence-based, and actionable. Ground every finding and recommendation in the discovery data provided. Do not hedge. Return ONLY the JSON object, no markdown fences, no preamble.`
 
-    const userPrompt = `CLIENT: ${eng.client_name}
+    // Pull the canonical welcome statement from the client record (if linked)
+    // and prepend it to the user prompt as the highest-signal context.
+    let welcomeStatement = ''
+    if (eng.client_id) {
+      try {
+        const { data: clientRecord } = await s
+          .from('clients')
+          .select('welcome_statement')
+          .eq('id', eng.client_id)
+          .maybeSingle()
+        if (clientRecord?.welcome_statement) {
+          welcomeStatement = String(clientRecord.welcome_statement).trim()
+        }
+      } catch { /* best-effort */ }
+    }
+    const welcomeBlock = welcomeStatement
+      ? `CLIENT IN THEIR OWN WORDS:\n"${welcomeStatement}"\n\n`
+      : ''
+
+    const userPrompt = `${welcomeBlock}CLIENT: ${eng.client_name}
 INDUSTRY: ${eng.client_industry || 'unknown'}
 EXECUTIVE SUMMARY (previously compiled):
 ${eng.executive_summary || '(not yet compiled)'}

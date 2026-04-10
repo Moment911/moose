@@ -195,8 +195,29 @@ export async function POST(req: NextRequest) {
         return Response.json({ data: { insights: [] } })
       }
 
+      // Pull the client's welcome_statement (if any) so insights are grounded
+      // in the client's own-words self-description from onboarding.
+      let welcomeBlock = ''
+      const clientId = body.client_id || report?.client_id || report?.client?.id
+      if (clientId) {
+        try {
+          const sb = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+          )
+          const { data: clientRecord } = await sb
+            .from('clients')
+            .select('welcome_statement')
+            .eq('id', clientId)
+            .maybeSingle()
+          if (clientRecord?.welcome_statement) {
+            welcomeBlock = `The client described themselves as: "${String(clientRecord.welcome_statement).trim()}"\n\n`
+          }
+        } catch { /* best-effort */ }
+      }
+
       const system = 'You are a senior marketing analyst. Based on client performance data, provide 3-5 specific actionable insights. Return JSON only: { "insights": [{"type": "positive|warning|opportunity", "text": "string"}] } — no preamble, no markdown fence.'
-      const userMsg = `Client performance data:\n${JSON.stringify(report, null, 2)}\n\nReturn the JSON now.`
+      const userMsg = `${welcomeBlock}Client performance data:\n${JSON.stringify(report, null, 2)}\n\nReturn the JSON now.`
 
       try {
         const res = await fetch('https://api.anthropic.com/v1/messages', {

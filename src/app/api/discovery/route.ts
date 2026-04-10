@@ -35,6 +35,7 @@ function getDefaultSections() {
       subtitle: 'Intelligence Summary',
       visible: true,
       fields: [
+        f('01_welcome', 'In their own words — client self-description', 'Auto-populated from onboarding welcome statement', { source: 'client_provided', is_ai_populated: false, never_share: false }),
         f('01a', 'Background / authority summary', 'Populated from AI research', { is_ai_populated: true }),
         f('01b', 'Business entities identified', 'Populated from AI research', { is_ai_populated: true }),
         f('01c', 'Revenue streams identified', 'Populated from AI research', { is_ai_populated: true }),
@@ -511,8 +512,28 @@ async function runResearchForEngagement(engagementId: string): Promise<void> {
   const { data: domainRows } = await s.from('koto_discovery_domains').select('url').eq('engagement_id', engagementId)
   const domainList = (domainRows || []).map((d: any) => d.url).join(', ') || 'none provided'
 
+  // Load the client's own-words self-description (if any) so research is
+  // anchored on what the client actually told us instead of cold web data.
+  let welcomeStatement = ''
+  if (eng.client_id) {
+    try {
+      const { data: clientRecord } = await s
+        .from('clients')
+        .select('welcome_statement')
+        .eq('id', eng.client_id)
+        .maybeSingle()
+      if (clientRecord?.welcome_statement) {
+        welcomeStatement = String(clientRecord.welcome_statement).trim()
+      }
+    } catch { /* best-effort */ }
+  }
+
+  const welcomePrefix = welcomeStatement
+    ? `\n\nIMPORTANT — Client's own description of their business:\n"${welcomeStatement}"\n\nUse this as primary context. Research should validate and expand on what the client has shared.\n`
+    : ''
+
   const system = 'Be concise. Return only the JSON, no explanation, no preamble, no prose.'
-  const prompt = `Research ${eng.client_name} (industry: ${eng.client_industry || 'unknown'}; domains: ${domainList}) and return JSON only — no prose. Schema:
+  const prompt = `Research ${eng.client_name} (industry: ${eng.client_industry || 'unknown'}; domains: ${domainList}) and return JSON only — no prose.${welcomePrefix} Schema:
 {
   "background": "string (2-3 sentences max)",
   "entities": ["string"],
@@ -534,7 +555,11 @@ Be brief.`
   const parsed = parseJson(raw) || {}
 
   // Transform the compact schema into intel_cards + section 01 prefills.
+  // Welcome statement always leads if present — it's the highest-signal context.
   const intel_cards: any[] = []
+  if (welcomeStatement) {
+    intel_cards.push({ title: 'In Their Own Words', body: welcomeStatement, category: 'context' })
+  }
   if (parsed.background) intel_cards.push({ title: 'Background', body: parsed.background, category: 'authority' })
   if (Array.isArray(parsed.entities) && parsed.entities.length) {
     intel_cards.push({ title: 'Business Entities', body: parsed.entities.join(', '), category: 'authority' })
@@ -574,6 +599,14 @@ Be brief.`
       if (field) {
         field.answer = val
         field.source = 'ai_generated'
+      }
+    }
+    // Always (re)populate the welcome field from the canonical client record.
+    if (welcomeStatement) {
+      const welcomeField = s01.fields.find((f: any) => f.id === '01_welcome')
+      if (welcomeField && !welcomeField.answer) {
+        welcomeField.answer = welcomeStatement
+        welcomeField.source = 'client_provided'
       }
     }
   }
@@ -1254,7 +1287,36 @@ export async function POST(req: NextRequest) {
       const { client_name, client_id, client_industry, domains } = body
       if (!client_name) return Response.json({ error: 'Missing client_name' }, { status: 400 })
 
-      const sections = applyIndustryOverrides(getDefaultSections(), client_industry)
+      let sections = applyIndustryOverrides(getDefaultSections(), client_industry)
+
+      // If the client has a welcome_statement on file from onboarding, pre-fill
+      // section_01 / 01_welcome with it. This is the highest-signal context we
+      // ever get from a client and feeds into every downstream AI step.
+      let preloadedWelcome: string | null = null
+      if (client_id) {
+        try {
+          const { data: clientRecord } = await s
+            .from('clients')
+            .select('welcome_statement')
+            .eq('id', client_id)
+            .maybeSingle()
+          if (clientRecord?.welcome_statement && String(clientRecord.welcome_statement).trim()) {
+            preloadedWelcome = String(clientRecord.welcome_statement).trim()
+          }
+        } catch { /* best-effort */ }
+      }
+      if (preloadedWelcome) {
+        sections = sections.map((sec: any) => {
+          if (sec.id !== 'section_01') return sec
+          return {
+            ...sec,
+            fields: sec.fields.map((f: any) => {
+              if (f.id !== '01_welcome') return f
+              return { ...f, answer: preloadedWelcome, source: 'client_provided' }
+            }),
+          }
+        })
+      }
 
       const { data: eng, error } = await s
         .from('koto_discovery_engagements')
@@ -1265,6 +1327,11 @@ export async function POST(req: NextRequest) {
           client_industry: client_industry || null,
           status: 'research_running', // kick off research immediately
           sections,
+          // Seed intel_cards with the welcome statement so it surfaces in the
+          // sidebar immediately, before research finishes.
+          intel_cards: preloadedWelcome
+            ? [{ title: 'In Their Own Words', body: preloadedWelcome, category: 'context' }]
+            : [],
         })
         .select('*')
         .maybeSingle()
@@ -1756,10 +1823,32 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
       for (const card of (eng.intel_cards || [])) {
         intelLines.push(`- ${card.title}: ${card.body}`)
       }
+
+      // Pull the canonical welcome_statement from the client record so Adam
+      // can reference what the client already told us in onboarding.
+      let welcomeStatement = ''
+      if (eng.client_id) {
+        try {
+          const { data: clientRecord } = await s
+            .from('clients')
+            .select('welcome_statement')
+            .eq('id', eng.client_id)
+            .maybeSingle()
+          if (clientRecord?.welcome_statement) {
+            welcomeStatement = String(clientRecord.welcome_statement).trim()
+          }
+        } catch { /* best-effort */ }
+      }
+
+      const welcomeBlock = welcomeStatement
+        ? `\n\nThe client has already shared this in their own words: "${welcomeStatement}"\n\nUse this as your foundation. You already know this — reference it naturally in conversation, don't ask them to repeat it.\n`
+        : ''
+
       const engagementSummary =
         `Client: ${eng.client_name}\n` +
         `Industry: ${eng.client_industry || 'unknown'}\n` +
-        (intelLines.length ? `Pre-call intel:\n${intelLines.join('\n')}` : 'No pre-call intel yet.')
+        (intelLines.length ? `Pre-call intel:\n${intelLines.join('\n')}` : 'No pre-call intel yet.') +
+        welcomeBlock
 
       const system = `You are Adam Segall, a 25-year veteran in marketing, sales, and business operations. You are CEO of Momenta Marketing and have worked with hundreds of businesses across every industry. You are conducting a discovery call to deeply understand this client's business before building a marketing and operations strategy for them.
 

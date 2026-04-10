@@ -23,7 +23,7 @@ export async function fetchDiscoveryBrief(
 
     const { data: matches } = await sb
       .from('koto_discovery_engagements')
-      .select('id, client_name, client_industry, intel_cards, sections, readiness_score, readiness_label')
+      .select('id, client_id, client_name, client_industry, intel_cards, sections, readiness_score, readiness_label')
       .eq('agency_id', agencyId)
       .ilike('client_name', `%${businessName.trim()}%`)
       .in('status', ['research_complete', 'call_scheduled', 'call_complete', 'compiled', 'shared'])
@@ -32,6 +32,22 @@ export async function fetchDiscoveryBrief(
 
     const eng: any = Array.isArray(matches) && matches.length > 0 ? matches[0] : null
     if (!eng) return null
+
+    // Pull the linked client's welcome_statement so the voice agent opens
+    // every call already knowing how the client describes themselves.
+    let welcomeStatement = ''
+    if (eng.client_id) {
+      try {
+        const { data: clientRecord } = await sb
+          .from('clients')
+          .select('welcome_statement')
+          .eq('id', eng.client_id)
+          .maybeSingle()
+        if (clientRecord?.welcome_statement) {
+          welcomeStatement = String(clientRecord.welcome_statement).trim()
+        }
+      } catch { /* best-effort */ }
+    }
 
     // Confirmed tech stack
     let techStack = 'unknown'
@@ -77,6 +93,7 @@ export async function fetchDiscoveryBrief(
       '=== DISCOVERY INTELLIGENCE FOR THIS PROSPECT ===',
       `Business: ${eng.client_name} | Industry: ${eng.client_industry || 'unknown'} | Readiness: ${readinessLine}`,
       '',
+      welcomeStatement ? `CLIENT BACKGROUND (their own words): "${welcomeStatement}"` : '',
       bgCard ? `BACKGROUND: ${bgCard}` : 'BACKGROUND: (not available)',
       revCard ? `REVENUE: ${revCard}` : 'REVENUE: (not captured)',
       `KNOWN TECH STACK: ${techStack}`,

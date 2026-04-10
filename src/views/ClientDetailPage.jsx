@@ -376,6 +376,8 @@ export default function ClientDetailPage() {
       // Promoted elsewhere — don't show raw form versions
       'first_name', 'last_name', 'title', 'country',
       'firstName', 'lastName',
+      // Welcome statement renders as a dedicated hero card — don't show twice
+      'welcome_statement', 'welcomeStatement',
     ])
 
     // Format any value for display — handles arrays of objects (competitors!),
@@ -806,8 +808,38 @@ export default function ClientDetailPage() {
       client?.onboarding_status === 'in_progress' ||
       !!client?.onboarding_answers
     )
+    // Welcome statement may live on the dedicated column OR — for older
+    // autosaves that landed before the FIELD_MAP was extended — inside
+    // onboarding_answers.welcome_statement. Read both, prefer the column.
+    const welcomeStatement =
+      (client?.welcome_statement && String(client.welcome_statement).trim()) ||
+      (client?.onboarding_answers?.welcome_statement && String(client.onboarding_answers.welcome_statement).trim()) ||
+      ''
+
     return (
       <div ref={el => { sectionRefs.current.onboarding = el }}>
+        {/* Welcome statement hero — the most important context field.
+            Used by every Koto AI system as primary context. */}
+        {welcomeStatement && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fffe, #fff)',
+            border: `2px solid ${T}40`,
+            borderRadius: 14,
+            padding: '20px 24px',
+            marginBottom: 20,
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10, fontFamily: FH }}>
+              ✦ In Their Own Words
+            </div>
+            <div style={{ fontSize: 15, color: '#111', lineHeight: 1.8, fontStyle: 'italic', fontFamily: FB, whiteSpace: 'pre-wrap' }}>
+              "{welcomeStatement}"
+            </div>
+            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 10, fontFamily: FB }}>
+              Submitted during onboarding · Used by all AI systems as primary context
+            </div>
+          </div>
+        )}
+
         {/* Onboarding link management card */}
         <div style={card}>
           <div style={sectionTitle}><FileText size={16} color={R} /> Onboarding Link</div>

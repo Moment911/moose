@@ -796,6 +796,7 @@ export default function OnboardingPage() {
   // ── Form state ──
   const [form, setForm] = useState({
     // You
+    welcome_statement: '',
     first_name: '', last_name: '', title: '', email: '', phone: '', phone2: '',
     contact_consent: [],  // ['sms','email','calls']
     // Key Contacts
@@ -1501,6 +1502,48 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 20px 80px' }} ref={topRef}>
 
         <Banner stepIdx={step} firstName={firstName} VC={VC} />
+
+        {/* ── WELCOME STATEMENT — always rendered above step 1 so it's the
+             very first thing every client sees. Autosaves through the
+             existing form state watcher, same as every other field. ── */}
+        {step === 1 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fffe, #e6fcfd)',
+            border: `2px solid ${ACCENT}40`,
+            borderRadius: 16,
+            padding: '28px 32px',
+            marginBottom: 32,
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#111', marginBottom: 8, fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif" }}>
+              Welcome! Tell us about your business in your own words.
+            </div>
+            <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.7, marginBottom: 20 }}>
+              Before we get into the details, we'd love to hear from you directly. Tell us what you do, who you serve, and anything else you think is important for us to know. Don't worry about covering everything here — we'll dive into the specifics and ask more detailed questions as we go. This just helps us understand your world before we do.
+            </div>
+            <textarea
+              value={form.welcome_statement || ''}
+              onChange={(e) => set('welcome_statement', e.target.value)}
+              placeholder={"For example: We're a family-owned HVAC company serving homeowners in South Florida for 15 years. Our biggest challenge is getting more 5-star reviews and filling our slow season in summer. We tried Google Ads before but didn't see results. Our best clients come from referrals and we want to replicate that at scale... Just share what feels most important — we'll ask all the right follow-up questions from here."}
+              rows={6}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: 10,
+                border: `1.5px solid ${ACCENT}60`,
+                fontSize: 14,
+                fontFamily: "'Raleway','Helvetica Neue',sans-serif",
+                lineHeight: 1.7,
+                resize: 'vertical',
+                boxSizing: 'border-box',
+                background: '#fff',
+                outline: 'none',
+              }}
+            />
+            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 8 }}>
+              There are no wrong answers — the more detail the better. This is private and only shared with your agency team.
+            </div>
+          </div>
+        )}
 
         {/* ── STEP 1: About You ── */}
         {step === 1 && (

@@ -87,6 +87,16 @@ async function loadAgencyContext(agencyId: string) {
       ).then(({ data }) => (data || []).reduce((a: number, r: any) => a + (r.review_count || 0), 0)),
       0,
     ),
+    settled(
+      Promise.resolve(
+        s.from('clients')
+          .select('name, welcome_statement, industry, primary_service')
+          .eq('agency_id', agencyId)
+          .not('welcome_statement', 'is', null)
+          .limit(10),
+      ).then(({ data }) => data || []),
+      [] as any[],
+    ),
   ])
 
   const pick = <T,>(i: number, fb: T): T => {
@@ -101,6 +111,7 @@ async function loadAgencyContext(agencyId: string) {
   const hotOppsCount    = pick<number>(5, 0)
   const unreadNotifs    = pick<number>(6, 0)
   const totalReviews    = pick<number>(7, 0)
+  const welcomeClients  = pick<any[]>(8, [])
 
   return {
     clientsCount,
@@ -111,6 +122,7 @@ async function loadAgencyContext(agencyId: string) {
     hotOppsCount,
     unreadNotifs,
     totalReviews,
+    welcomeClients,
   }
 }
 
@@ -120,6 +132,16 @@ function buildSystemPrompt(ctx: Awaited<ReturnType<typeof loadAgencyContext>>): 
         `  - ${e.client_name} (${e.status}${e.readiness_label ? `, ${e.readiness_label} ${e.readiness_score || ''}` : ''})`
       ).join('\n')
     : '  (none)'
+
+  // Welcome statements collected during onboarding — the richest first-person
+  // context we have on each client. Inject them so the CMO can speak about
+  // each client like someone who actually knows them.
+  const welcomeBlock = (ctx.welcomeClients || []).length > 0
+    ? '\n\nCLIENT CONTEXT (from their onboarding — their own words):\n' +
+      ctx.welcomeClients
+        .map((c: any) => `${c.name} (${c.industry || c.primary_service || 'unknown industry'}): "${String(c.welcome_statement || '').replace(/\s+/g, ' ').trim()}"`)
+        .join('\n')
+    : ''
 
   return `You are the AI CMO for this marketing agency. You have real-time access to their platform data and act as a senior strategic advisor. You know their clients, their pipeline, their voice call performance, and their discovery engagements.
 
@@ -131,9 +153,9 @@ Current agency snapshot:
 - Unread alerts: ${ctx.unreadNotifs}
 - Total Google reviews across clients: ${ctx.totalReviews}
 - Active discovery engagements:
-${discoveryList}
+${discoveryList}${welcomeBlock}
 
-Your personality: Direct, strategic, no fluff. You give specific recommendations based on actual data. You ask good follow-up questions. You can help with: reviewing performance, prioritizing tasks, drafting communications, analyzing trends, building strategies, and answering any business question. You always ground your answers in the actual agency data you have access to.
+Your personality: Direct, strategic, no fluff. You give specific recommendations based on actual data. You ask good follow-up questions. You can help with: reviewing performance, prioritizing tasks, drafting communications, analyzing trends, building strategies, and answering any business question. You always ground your answers in the actual agency data you have access to. When a client has shared a welcome statement, reference it naturally — you already know what they told you.
 
 If asked about a specific client or engagement you don't have details on, say so and ask for more context. Never make up data.
 

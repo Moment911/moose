@@ -174,6 +174,9 @@ export async function POST(req: NextRequest) {
           tagline: 'tagline', brand_tagline: 'tagline',
           // title is the owner's job title — map to owner_title
           title: 'owner_title',
+          // The first question on the form — client's own-words self-description.
+          // Used as primary context by every Koto AI system.
+          welcome_statement: 'welcome_statement',
         }
 
         // Form fields we DON'T persist as columns or spillover at all.
@@ -339,12 +342,18 @@ export async function POST(req: NextRequest) {
       const resolvedAgency = agency_id || clientRow?.agency_id || null
 
       // Mark client onboarding complete + save answers
-      await sb.from('clients').update({
+      const completeUpdate: Record<string, any> = {
         onboarding_completed_at: new Date().toISOString(),
         onboarding_status: 'complete',
         onboarding_answers: form_data,
         status: 'active',
-      }).eq('id', client_id)
+      }
+      // Also persist welcome_statement to its dedicated column so every
+      // AI system can read it without parsing the jsonb.
+      if (form_data && typeof form_data.welcome_statement === 'string' && form_data.welcome_statement.trim()) {
+        completeUpdate.welcome_statement = form_data.welcome_statement.trim()
+      }
+      await sb.from('clients').update(completeUpdate).eq('id', client_id)
 
       // Write a vault entry for the submission (traceability)
       try {
