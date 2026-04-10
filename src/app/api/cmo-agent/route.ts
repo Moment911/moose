@@ -13,9 +13,10 @@ function sb() {
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
 const DEFAULT_AGENCY = '00000000-0000-0000-0000-000000000099'
 
-function settled<T>(p: Promise<T>, fallback: T): Promise<T> {
-  // Wrap any promise so Promise.allSettled consumers see a resolved value even on failure
-  return p.then((v) => v ?? fallback).catch(() => fallback)
+function settled<T>(p: PromiseLike<T> | Promise<T>, fallback: T): Promise<T> {
+  // Wrap any promise (or PromiseLike — e.g. a Supabase query builder) so that
+  // Promise.allSettled consumers always see a resolved value even on failure.
+  return Promise.resolve(p).then((v) => (v ?? fallback) as T).catch(() => fallback)
 }
 
 async function loadAgencyContext(agencyId: string) {
@@ -24,56 +25,66 @@ async function loadAgencyContext(agencyId: string) {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
   const weekAgo = new Date(now.getTime() - 7 * 86400000).toISOString()
 
-  // Promise.allSettled — individual query failures degrade gracefully into zero/empty fallbacks
+  // Promise.allSettled — individual query failures degrade gracefully into zero/empty fallbacks.
+  // Every Supabase chain is wrapped in Promise.resolve(...) so .then() returns a real Promise<T>,
+  // not a PostgrestBuilder PromiseLike<T>. This is what TypeScript needs to accept the argument.
   const results = await Promise.allSettled([
     settled(
-      s.from('clients').select('id', { count: 'exact', head: true }).eq('agency_id', agencyId)
-        .then(({ count }) => count || 0),
+      Promise.resolve(
+        s.from('clients').select('id', { count: 'exact', head: true }).eq('agency_id', agencyId),
+      ).then(({ count }) => count || 0),
       0,
     ),
     settled(
-      s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
-        .eq('agency_id', agencyId).gte('created_at', startOfToday)
-        .then(({ count }) => count || 0),
+      Promise.resolve(
+        s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
+          .eq('agency_id', agencyId).gte('created_at', startOfToday),
+      ).then(({ count }) => count || 0),
       0,
     ),
     settled(
-      s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
-        .eq('agency_id', agencyId).gte('created_at', weekAgo)
-        .then(({ count }) => count || 0),
+      Promise.resolve(
+        s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
+          .eq('agency_id', agencyId).gte('created_at', weekAgo),
+      ).then(({ count }) => count || 0),
       0,
     ),
     settled(
-      s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
-        .eq('agency_id', agencyId).eq('appointment_set', true).gte('created_at', weekAgo)
-        .then(({ count }) => count || 0),
+      Promise.resolve(
+        s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
+          .eq('agency_id', agencyId).eq('appointment_set', true).gte('created_at', weekAgo),
+      ).then(({ count }) => count || 0),
       0,
     ),
     settled(
-      s.from('koto_discovery_engagements')
-        .select('id, client_name, status, readiness_score, readiness_label, updated_at')
-        .eq('agency_id', agencyId)
-        .neq('status', 'archived')
-        .order('updated_at', { ascending: false })
-        .limit(5)
-        .then(({ data }) => data || []),
+      Promise.resolve(
+        s.from('koto_discovery_engagements')
+          .select('id, client_name, status, readiness_score, readiness_label, updated_at')
+          .eq('agency_id', agencyId)
+          .neq('status', 'archived')
+          .order('updated_at', { ascending: false })
+          .limit(5),
+      ).then(({ data }) => data || []),
       [] as any[],
     ),
     settled(
-      s.from('koto_opportunities').select('id', { count: 'exact', head: true })
-        .eq('agency_id', agencyId).gte('intent_score', 70).neq('stage', 'won')
-        .then(({ count }) => count || 0),
+      Promise.resolve(
+        s.from('koto_opportunities').select('id', { count: 'exact', head: true })
+          .eq('agency_id', agencyId).gte('intent_score', 70).neq('stage', 'won'),
+      ).then(({ count }) => count || 0),
       0,
     ),
     settled(
-      s.from('koto_notifications').select('id', { count: 'exact', head: true })
-        .eq('agency_id', agencyId).eq('is_read', false)
-        .then(({ count }) => count || 0),
+      Promise.resolve(
+        s.from('koto_notifications').select('id', { count: 'exact', head: true })
+          .eq('agency_id', agencyId).eq('is_read', false),
+      ).then(({ count }) => count || 0),
       0,
     ),
     settled(
-      s.from('clients').select('review_count').eq('agency_id', agencyId)
-        .then(({ data }) => (data || []).reduce((a: number, r: any) => a + (r.review_count || 0), 0)),
+      Promise.resolve(
+        s.from('clients').select('review_count').eq('agency_id', agencyId),
+      ).then(({ data }) => (data || []).reduce((a: number, r: any) => a + (r.review_count || 0), 0)),
       0,
     ),
   ])

@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
       // First-view notification (fire and forget)
       if (wasFirstView && proposal.agency_id) {
         createNotification(
+          s,
           proposal.agency_id,
           'proposal_viewed',
           '📄 Proposal opened',
