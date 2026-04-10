@@ -305,7 +305,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * can keep its existing destructure.
  */
 export const getOnboardingToken = async (token) => {
-  if (!token) return { data: null, error: null }
+  // eslint-disable-next-line no-console
+  console.log('[Onboarding] Resolving token:', token, '| is_uuid:', UUID_RE.test(token || ''))
+  if (!token) {
+    // eslint-disable-next-line no-console
+    console.log('[Onboarding] No token provided — returning null')
+    return { data: null, error: null }
+  }
 
   // 1. Exact token match
   const byToken = await supabase
@@ -313,6 +319,12 @@ export const getOnboardingToken = async (token) => {
     .select('*, clients(*)')
     .eq('token', token)
     .maybeSingle()
+  // eslint-disable-next-line no-console
+  console.log(
+    '[Onboarding] Strategy 1 (onboarding_tokens.token):',
+    byToken?.data ? 'HIT' : 'miss',
+    '| error:', byToken?.error?.message || 'none',
+  )
   if (byToken.data) return byToken
 
   // 2. If it's a UUID, try onboarding_tokens.client_id
@@ -324,6 +336,12 @@ export const getOnboardingToken = async (token) => {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Onboarding] Strategy 2 (onboarding_tokens.client_id):',
+      byClientId?.data ? 'HIT' : 'miss',
+      '| error:', byClientId?.error?.message || 'none',
+    )
     if (byClientId.data) return byClientId
 
     // 3. Fall back to clients table directly — synthesize a token record
@@ -332,8 +350,14 @@ export const getOnboardingToken = async (token) => {
       .select('*')
       .eq('id', token)
       .maybeSingle()
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Onboarding] Strategy 3 (clients.id synthetic):',
+      byClient?.data ? `HIT client=${byClient.data.name || byClient.data.id}` : 'miss',
+      '| error:', byClient?.error?.message || 'none',
+    )
     if (byClient.data) {
-      return {
+      const synthetic = {
         data: {
           id: null,
           client_id: byClient.data.id,
@@ -346,6 +370,9 @@ export const getOnboardingToken = async (token) => {
         },
         error: null,
       }
+      // eslint-disable-next-line no-console
+      console.log('[Onboarding] Final result: strategy-3 synthetic for client_id', byClient.data.id)
+      return synthetic
     }
   }
 
@@ -355,8 +382,14 @@ export const getOnboardingToken = async (token) => {
     .select('*')
     .eq('onboarding_token', token)
     .maybeSingle()
+  // eslint-disable-next-line no-console
+  console.log(
+    '[Onboarding] Strategy 4 (clients.onboarding_token):',
+    byClientToken?.data ? 'HIT' : 'miss',
+    '| error:', byClientToken?.error?.message || 'none',
+  )
   if (byClientToken.data) {
-    return {
+    const synthetic = {
       data: {
         id: null,
         client_id: byClientToken.data.id,
@@ -369,8 +402,13 @@ export const getOnboardingToken = async (token) => {
       },
       error: null,
     }
+    // eslint-disable-next-line no-console
+    console.log('[Onboarding] Final result: strategy-4 synthetic for client_id', byClientToken.data.id)
+    return synthetic
   }
 
+  // eslint-disable-next-line no-console
+  console.log('[Onboarding] Final result: ALL STRATEGIES MISSED — returning null')
   return { data: null, error: null }
 }
 

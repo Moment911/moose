@@ -854,11 +854,46 @@ export default function OnboardingPage() {
   const firstName = form.first_name?.trim()?.split(' ')[0] || '';
 
   useEffect(() => {
-    if (!token) { setStatus('invalid'); return; }
+    // eslint-disable-next-line no-console
+    console.log('[OnboardingPage] load effect fired — token param:', token);
+    if (!token) {
+      // eslint-disable-next-line no-console
+      console.log('[OnboardingPage] No token in URL — rendering invalid');
+      setStatus('invalid');
+      return;
+    }
     getOnboardingToken(token).then(({ data, error }) => {
-      if (error || !data) { setStatus('invalid'); return; }
-      if (data.used_at) { setStatus('used'); return; }
-      if (data.expires_at && new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
+      // eslint-disable-next-line no-console
+      console.log(
+        '[OnboardingPage] resolver returned — data:',
+        data ? JSON.stringify({
+          client_id: data.client_id,
+          agency_id: data.agency_id,
+          expires_at: data.expires_at,
+          used_at: data.used_at,
+          has_clients: !!data.clients,
+          client_name: data.clients?.name,
+        }) : 'null',
+        '| error:', error?.message || 'none',
+      );
+      if (error || !data) {
+        // eslint-disable-next-line no-console
+        console.log('[OnboardingPage] rendering invalid — reason: error or null data');
+        setStatus('invalid');
+        return;
+      }
+      if (data.used_at) {
+        // eslint-disable-next-line no-console
+        console.log('[OnboardingPage] rendering used — used_at:', data.used_at);
+        setStatus('used');
+        return;
+      }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        // eslint-disable-next-line no-console
+        console.log('[OnboardingPage] rendering expired — expires_at:', data.expires_at);
+        setStatus('expired');
+        return;
+      }
       setTokenData(data);
       // Pre-fill from client record
       const c = data.clients || {};
@@ -873,8 +908,12 @@ export default function OnboardingPage() {
         primary_city: p.address?.city || c.city || '',
         primary_state: p.address?.state || c.state || '',
       }));
+      // eslint-disable-next-line no-console
+      console.log('[OnboardingPage] rendering ready — client:', c.name || '(no name)');
       setStatus('ready');
-    }).catch(() => {
+    }).catch((e) => {
+      // eslint-disable-next-line no-console
+      console.log('[OnboardingPage] resolver threw — rendering invalid. error:', e?.message || e);
       setStatus('invalid');
     });
   }, [token]);
