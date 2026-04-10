@@ -349,17 +349,80 @@ export default function ClientDetailPage() {
       { key: 'notes',               label: 'Notes'             },
     ]
 
+    // Internal form fields that should NOT leak into the display.
+    // These are either metadata, nested object containers, form state
+    // flags, or fields that belong in their proper `clients` column
+    // (and we'll derive the display value from displayClient below).
+    const EXCLUDED_KEYS = [
+      'contacts_billing', 'contacts_emergency', 'contacts_marketing', 'contacts_technical',
+      'persona_approved', 'persona_loading', 'persona_notes', 'persona_result',
+      'brand_accent_color', 'brand_primary_color', 'brand_secondary_color',
+      'legal_address_same', 'billing_same_as_legal',
+      'form_step', 'current_step', 'step', 'completed', 'submitted', 'token',
+      'agency_id', 'client_id', 'user_id', 'id', 'created_at', 'updated_at',
+      // Promoted elsewhere — don't show raw form versions
+      'first_name', 'last_name', 'title', 'country',
+    ]
+
+    // Format any value for display — handles arrays of objects (competitors!),
+    // bare objects, booleans, null/undefined, and primitives. No more
+    // "[object Object]" strings.
+    const formatValue = (value) => {
+      if (value === null || value === undefined) return ''
+      if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+      if (Array.isArray(value)) {
+        return value
+          .map((item) => {
+            if (item && typeof item === 'object') {
+              return item.name || item.email || item.url || item.label || item.value || item.title || ''
+            }
+            return String(item ?? '')
+          })
+          .filter(Boolean)
+          .join(', ')
+      }
+      if (typeof value === 'object') {
+        const meaningful = ['name', 'email', 'phone', 'url', 'label', 'value', 'title']
+        for (const k of meaningful) {
+          if (value[k]) return String(value[k])
+        }
+        return Object.entries(value)
+          .filter(([k, v]) => v && !k.startsWith('_'))
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(', ')
+      }
+      return String(value)
+    }
+
     const rawAnswers = client?.onboarding_answers || {}
+
+    // Derive a display-only client that backfills owner_name / owner_title
+    // from the raw form fields when the proper columns are empty. This
+    // handles older autosaves that landed before the FIELD_MAP existed.
+    const displayClient = { ...(client || {}) }
+    if (!displayClient.owner_name) {
+      const first = rawAnswers?.first_name || ''
+      const last = rawAnswers?.last_name || ''
+      const combined = `${first} ${last}`.trim()
+      if (combined) displayClient.owner_name = combined
+    }
+    if (!displayClient.owner_title) {
+      displayClient.owner_title = rawAnswers?.title || ''
+    }
+
     const filledFields = ONBOARDING_DISPLAY_FIELDS.filter((f) => {
-      const v = client?.[f.key]
+      const v = displayClient?.[f.key]
       if (v === null || v === undefined || v === '') return false
       if (Array.isArray(v) && v.length === 0) return false
       return true
     })
     const extraAnswers = Object.entries(rawAnswers).filter(([k, v]) => {
       if (k.startsWith('_')) return false
+      if (EXCLUDED_KEYS.includes(k)) return false
       if (v === null || v === undefined || v === '') return false
+      if (v === false || v === 'false') return false
       if (Array.isArray(v) && v.length === 0) return false
+      if (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) return false
       return true
     })
 
@@ -434,14 +497,8 @@ export default function ClientDetailPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
           {filledFields.map(({ key, label }) => {
-            const v = client?.[key]
-            const display = typeof v === 'string'
-              ? v
-              : Array.isArray(v)
-                ? v.join(', ')
-                : v && typeof v === 'object'
-                  ? JSON.stringify(v)
-                  : String(v ?? '')
+            const display = formatValue(displayClient?.[key])
+            if (!display) return null
             return (
               <div key={key} style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
                 <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
@@ -454,13 +511,8 @@ export default function ClientDetailPage() {
             )
           })}
           {extraAnswers.map(([k, v]) => {
-            const display = typeof v === 'string'
-              ? v
-              : Array.isArray(v)
-                ? v.join(', ')
-                : v && typeof v === 'object'
-                  ? JSON.stringify(v)
-                  : String(v ?? '')
+            const display = formatValue(v)
+            if (!display) return null
             const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
             return (
               <div key={k} style={{ padding: '10px 14px', borderRadius: 10, background: '#f0fffe', border: `1px solid ${T}30` }}>

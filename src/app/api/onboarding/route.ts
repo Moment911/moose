@@ -145,7 +145,8 @@ export async function POST(req: NextRequest) {
 
       try {
         // Form-field name → clients column name. Anything not in this map
-        // falls through to the onboarding_answers jsonb spillover.
+        // (and not in the special-handling list below) falls through to the
+        // onboarding_answers jsonb spillover.
         const FIELD_MAP: Record<string, string> = {
           business_name: 'name', name: 'name',
           email: 'email', phone: 'phone',
@@ -171,7 +172,14 @@ export async function POST(req: NextRequest) {
           year_founded: 'year_founded',
           service_area: 'service_area',
           tagline: 'tagline', brand_tagline: 'tagline',
+          // title is the owner's job title — map to owner_title
+          title: 'owner_title',
         }
+
+        // Form fields we DON'T persist as columns or spillover at all.
+        // first_name + last_name get combined into owner_name below.
+        // country is too noisy on its own — skip until we add a real column.
+        const SKIP_KEYS = new Set(['first_name', 'last_name', 'country'])
 
         const updateData: Record<string, any> = {}
         const unmappedFields: Record<string, any> = {}
@@ -179,12 +187,22 @@ export async function POST(req: NextRequest) {
         for (const [formKey, value] of Object.entries(form_data)) {
           if (value === null || value === undefined || value === '') continue
           if (Array.isArray(value) && value.length === 0) continue
+          if (SKIP_KEYS.has(formKey)) continue
           const dbColumn = FIELD_MAP[formKey]
           if (dbColumn) {
             updateData[dbColumn] = value
           } else {
             unmappedFields[formKey] = value
           }
+        }
+
+        // Combine first_name + last_name → owner_name (only if either is present
+        // and the form didn't already supply an explicit owner_name).
+        const firstName = (form_data.first_name && String(form_data.first_name).trim()) || ''
+        const lastName  = (form_data.last_name  && String(form_data.last_name).trim())  || ''
+        if ((firstName || lastName) && !updateData.owner_name) {
+          const combined = `${firstName} ${lastName}`.trim()
+          if (combined) updateData.owner_name = combined
         }
 
         updateData.onboarding_status = 'in_progress'
