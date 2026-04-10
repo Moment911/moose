@@ -143,6 +143,43 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const action = body.action || searchParams.get('action') || ''
     const s = sb()
+
+    // ── track_view_duration ──────────────────────────────
+    // Public beacon endpoint (no auth). Appends a duration_ms to the most
+    // recent view_event so we can see how long the recipient spent reading.
+    if (action === 'track_view_duration') {
+      const token = body.token || ''
+      const durationMs = Number(body.duration_ms) || 0
+      if (!token || !durationMs) return Response.json({ ok: true })
+
+      // Lookup — prefer share_token, fall back to public_token
+      let proposal: any = null
+      {
+        const { data } = await s.from('proposals')
+          .select('id, view_events')
+          .eq('share_token', token)
+          .maybeSingle()
+        if (data) proposal = data
+      }
+      if (!proposal) {
+        const { data } = await s.from('proposals')
+          .select('id, view_events')
+          .eq('public_token', token)
+          .maybeSingle()
+        if (data) proposal = data
+      }
+      if (!proposal) return Response.json({ ok: true })
+
+      const events = Array.isArray(proposal.view_events) ? [...proposal.view_events] : []
+      if (events.length > 0) {
+        const last = { ...events[events.length - 1] }
+        last.duration_ms = Math.max(last.duration_ms || 0, durationMs)
+        events[events.length - 1] = last
+        await s.from('proposals').update({ view_events: events }).eq('id', proposal.id)
+      }
+      return Response.json({ ok: true })
+    }
+
     const agencyId = resolveAgencyId(req, searchParams, body) || DEFAULT_AGENCY
 
     // ── share_proposal ───────────────────────────────────

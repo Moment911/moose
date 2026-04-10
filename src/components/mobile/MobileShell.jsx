@@ -54,13 +54,14 @@ const DRAWER_SECTIONS = [
     { to: '/help',             icon: HelpCircle, label: 'Help Center' },
   ]},
   { title: 'Agency', items: [
-    { to: '/vault',           icon: Database,    label: 'Data Vault'     },
-    { to: '/agency-settings', icon: Settings,    label: 'Settings'       },
-    { to: '/billing',         icon: DollarSign,  label: 'Billing'        },
-    { to: '/integrations',    icon: Plug,        label: 'Integrations'   },
-    { to: '/test-data',       icon: FlaskConical, label: 'Test Data'     },
-    { to: '/debug',           icon: Bug,         label: 'Debug Console'  },
-    { to: '/master-admin',    icon: Shield,      label: 'Master Admin'   },
+    { to: '/vault',               icon: Database,     label: 'Data Vault'         },
+    { to: '/discovery/analytics', icon: BarChart2,    label: 'Discovery Analytics'},
+    { to: '/agency-settings',     icon: Settings,     label: 'Settings'           },
+    { to: '/billing',             icon: DollarSign,   label: 'Billing'            },
+    { to: '/integrations',        icon: Plug,         label: 'Integrations'       },
+    { to: '/test-data',           icon: FlaskConical, label: 'Test Data'          },
+    { to: '/debug',               icon: Bug,          label: 'Debug Console'      },
+    { to: '/master-admin',        icon: Shield,       label: 'Master Admin'       },
   ]},
 ]
 
@@ -219,6 +220,9 @@ export default function MobileShell({ children }) {
         [style*="gridTemplateColumns:'repeat(4"] { grid-template-columns: 1fr 1fr !important; }
         [style*="gridTemplateColumns:'repeat(3"] { grid-template-columns: 1fr 1fr !important; }
         input, textarea, select { font-size: 16px !important; }
+        /* iOS minimum tap target (only applies when mobile shell is active) */
+        button { min-height: 44px; }
+        a { min-height: 44px; }
         * { max-width: 100vw; box-sizing: border-box; }
         table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         @keyframes kotoFade { from { opacity:0 } to { opacity:1 } }

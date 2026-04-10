@@ -495,7 +495,7 @@ export default function VoiceLiveMonitorPage() {
                   <thead>
                     <tr style={{ borderBottom: '2px solid #f2f2f0' }}>
                       {(isMobile
-                        ? ['', 'Contact', 'Duration', 'Outcome', '']
+                        ? ['', 'Contact', 'Duration', '']
                         : ['', 'Type', 'Agent', 'Contact', 'Phone', 'Duration', 'Outcome', 'Sentiment', 'Time', '']
                       ).map((h, i) => (
                         <th key={`${h}-${i}`} style={{ padding: '8px 12px', textAlign: 'left', fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
@@ -523,9 +523,11 @@ export default function VoiceLiveMonitorPage() {
                             <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 14 }}>{fmtPhone(c.phone)}</td>
                           )}
                           <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600 }}>{fmtDur(c.duration)}</td>
-                          <td style={{ padding: '10px 12px' }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: oc + '15', color: oc, textTransform: 'uppercase' }}>{c.outcome}</span>
-                          </td>
+                          {!isMobile && (
+                            <td style={{ padding: '10px 12px' }}>
+                              <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: oc + '15', color: oc, textTransform: 'uppercase' }}>{c.outcome}</span>
+                            </td>
+                          )}
                           {!isMobile && (
                             <td style={{ padding: '10px 12px', fontSize: 18 }}>{SENTIMENT_EMOJI[c.sentiment] || '😐'}</td>
                           )}

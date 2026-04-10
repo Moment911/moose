@@ -1,3 +1,4 @@
+/* No new tables needed — CMO agent reads from existing tables only. Conversations are not persisted. */
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '@/lib/apiAuth'
@@ -12,8 +13,9 @@ function sb() {
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
 const DEFAULT_AGENCY = '00000000-0000-0000-0000-000000000099'
 
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
-  try { return await fn() } catch { return fallback }
+function settled<T>(p: Promise<T>, fallback: T): Promise<T> {
+  // Wrap any promise so Promise.allSettled consumers see a resolved value even on failure
+  return p.then((v) => v ?? fallback).catch(() => fallback)
 }
 
 async function loadAgencyContext(agencyId: string) {
@@ -22,58 +24,72 @@ async function loadAgencyContext(agencyId: string) {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
   const weekAgo = new Date(now.getTime() - 7 * 86400000).toISOString()
 
-  const [
-    clientsCount,
-    voiceCallsToday,
-    voiceCallsWeek,
-    appointmentsWeek,
-    discoveryRecent,
-    hotOppsCount,
-    unreadNotifs,
-    totalReviews,
-  ] = await Promise.all([
-    safe(async () => {
-      const { count } = await s.from('clients').select('id', { count: 'exact', head: true }).eq('agency_id', agencyId)
-      return count || 0
-    }, 0),
-    safe(async () => {
-      const { count } = await s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
+  // Promise.allSettled — individual query failures degrade gracefully into zero/empty fallbacks
+  const results = await Promise.allSettled([
+    settled(
+      s.from('clients').select('id', { count: 'exact', head: true }).eq('agency_id', agencyId)
+        .then(({ count }) => count || 0),
+      0,
+    ),
+    settled(
+      s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
         .eq('agency_id', agencyId).gte('created_at', startOfToday)
-      return count || 0
-    }, 0),
-    safe(async () => {
-      const { count } = await s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
+        .then(({ count }) => count || 0),
+      0,
+    ),
+    settled(
+      s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
         .eq('agency_id', agencyId).gte('created_at', weekAgo)
-      return count || 0
-    }, 0),
-    safe(async () => {
-      const { count } = await s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
+        .then(({ count }) => count || 0),
+      0,
+    ),
+    settled(
+      s.from('koto_voice_calls').select('id', { count: 'exact', head: true })
         .eq('agency_id', agencyId).eq('appointment_set', true).gte('created_at', weekAgo)
-      return count || 0
-    }, 0),
-    safe(async () => {
-      const { data } = await s.from('koto_discovery_engagements')
+        .then(({ count }) => count || 0),
+      0,
+    ),
+    settled(
+      s.from('koto_discovery_engagements')
         .select('id, client_name, status, readiness_score, readiness_label, updated_at')
         .eq('agency_id', agencyId)
+        .neq('status', 'archived')
         .order('updated_at', { ascending: false })
-        .limit(3)
-      return data || []
-    }, [] as any[]),
-    safe(async () => {
-      const { count } = await s.from('koto_opportunities').select('id', { count: 'exact', head: true })
-        .eq('agency_id', agencyId).gte('intent_score', 70)
-      return count || 0
-    }, 0),
-    safe(async () => {
-      const { count } = await s.from('koto_notifications').select('id', { count: 'exact', head: true })
+        .limit(5)
+        .then(({ data }) => data || []),
+      [] as any[],
+    ),
+    settled(
+      s.from('koto_opportunities').select('id', { count: 'exact', head: true })
+        .eq('agency_id', agencyId).gte('intent_score', 70).neq('stage', 'won')
+        .then(({ count }) => count || 0),
+      0,
+    ),
+    settled(
+      s.from('koto_notifications').select('id', { count: 'exact', head: true })
         .eq('agency_id', agencyId).eq('is_read', false)
-      return count || 0
-    }, 0),
-    safe(async () => {
-      const { data } = await s.from('clients').select('review_count').eq('agency_id', agencyId)
-      return (data || []).reduce((a: number, r: any) => a + (r.review_count || 0), 0)
-    }, 0),
+        .then(({ count }) => count || 0),
+      0,
+    ),
+    settled(
+      s.from('clients').select('review_count').eq('agency_id', agencyId)
+        .then(({ data }) => (data || []).reduce((a: number, r: any) => a + (r.review_count || 0), 0)),
+      0,
+    ),
   ])
+
+  const pick = <T,>(i: number, fb: T): T => {
+    const r = results[i]
+    return r.status === 'fulfilled' ? (r.value as T) : fb
+  }
+  const clientsCount    = pick<number>(0, 0)
+  const voiceCallsToday = pick<number>(1, 0)
+  const voiceCallsWeek  = pick<number>(2, 0)
+  const appointmentsWeek = pick<number>(3, 0)
+  const discoveryRecent = pick<any[]>(4, [])
+  const hotOppsCount    = pick<number>(5, 0)
+  const unreadNotifs    = pick<number>(6, 0)
+  const totalReviews    = pick<number>(7, 0)
 
   return {
     clientsCount,
@@ -131,24 +147,23 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Unknown action' }, { status: 400 })
     }
 
-    const message = typeof body.message === 'string' ? body.message : ''
+    const rawMessage = typeof body.message === 'string' ? body.message : ''
+    // __init__ is a sentinel the client sends on first page load — translate it
+    // into a concrete prompt so Claude always has something grounded to respond to.
+    const message = rawMessage === '__init__'
+      ? "Give me a morning briefing — what's the current state of the agency and what should I focus on today?"
+      : rawMessage
     const history = Array.isArray(body.conversation_history) ? body.conversation_history : []
 
     const ctx = await loadAgencyContext(agencyId)
     const system = buildSystemPrompt(ctx)
 
-    // Build the Claude messages array
+    // Build the Claude messages array — filter out __init__ echoes from any history
     const claudeMessages: any[] = history
-      .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content !== '__init__')
       .map((m: any) => ({ role: m.role, content: m.content }))
 
-    if (message === '__init__') {
-      // First load — prime with an instruction for a contextual greeting
-      claudeMessages.push({
-        role: 'user',
-        content: `[Open the conversation with a short, direct greeting that references the current agency snapshot above. Mention 1-2 things that stand out from the data. Ask the user what they want to work on. Keep it under 4 sentences.]`,
-      })
-    } else if (message) {
+    if (message) {
       claudeMessages.push({ role: 'user', content: message })
     }
 
@@ -182,7 +197,7 @@ export async function POST(req: NextRequest) {
           system,
           messages: claudeMessages,
         }),
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(25000),
       })
       if (res.ok) {
         const d = await res.json()

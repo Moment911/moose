@@ -351,7 +351,7 @@ export default function OpportunitiesPage() {
         )}
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
           {/* Main list / board */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 28px' }}>
             {loading ? (
@@ -387,7 +387,10 @@ export default function OpportunitiesPage() {
 
           {/* Detail panel */}
           {selected && (
-            <div style={{ width: 380, borderLeft: '1px solid #ececea', background: '#fff', overflowY: 'auto', flexShrink: 0 }}>
+            <div style={isMobile
+              ? { position: 'fixed', inset: 0, background: '#fff', overflowY: 'auto', zIndex: 200, paddingBottom: 80 }
+              : { width: 380, borderLeft: '1px solid #ececea', background: '#fff', overflowY: 'auto', flexShrink: 0 }
+            }>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>
                   {selected.company_name || selected.contact_name || 'Unknown'}

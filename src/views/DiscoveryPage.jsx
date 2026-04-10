@@ -924,6 +924,7 @@ function DetailView({ aid, id, isMobile, onBack }) {
               outlined
             />
           )}
+          {/* (Mobile live answers are opened via floating button below) */}
           <HeaderBtn onClick={() => setShowShare(true)} color={C.text} icon={Share2} label="Share" outlined />
         </div>
       </div>
@@ -1054,6 +1055,55 @@ function DetailView({ aid, id, isMobile, onBack }) {
           />
         )}
       </div>
+
+      {/* Mobile: floating button + bottom sheet for Live Answers */}
+      {isMobile && (
+        <>
+          <button
+            onClick={() => setShowLivePanel(v => !v)}
+            aria-label="Toggle Live Answers"
+            style={{
+              position: 'fixed', right: 16, bottom: 72,
+              width: 52, height: 52, borderRadius: '50%',
+              background: C.teal, color: '#fff', border: 'none',
+              boxShadow: '0 8px 20px rgba(0,194,203,0.4)',
+              cursor: 'pointer', zIndex: 90,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            {showLivePanel ? <X size={22} /> : <Database size={22} />}
+          </button>
+          {showLivePanel && (
+            <>
+              <div
+                onClick={() => setShowLivePanel(false)}
+                style={{
+                  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)',
+                  zIndex: 95,
+                }}
+              />
+              <div
+                style={{
+                  position: 'fixed', left: 0, right: 0, bottom: 56,
+                  height: '60vh', background: '#fff',
+                  borderRadius: '16px 16px 0 0', overflowY: 'auto',
+                  zIndex: 96, boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
+                  padding: 12,
+                }}
+              >
+                <LiveAnswersPanel
+                  eng={eng}
+                  engagementId={eng.id}
+                  agencyId={aid}
+                  answersRef={answersRef}
+                  sectionsRef={sectionsRef}
+                  onClose={() => setShowLivePanel(false)}
+                />
+              </div>
+            </>
+          )}
+        </>
+      )}
 
       </>
       )}

@@ -193,7 +193,7 @@ export default function Sidebar() {
             {/* INTELLIGENCE */}
             <Section label="Intelligence"/>
             <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" badge="AI" badgeColor={R}/>
-            <NavLink to="/agent" icon={Brain} label="CMO Agent" badge="AI"/>
+            <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R}/>
             <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R}/>
             <NavLink to="/scout" startsWith icon={Target} label="Scout" badge="NEW" badgeColor={T}/>
             <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub/>

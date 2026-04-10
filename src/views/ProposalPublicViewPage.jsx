@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Loader2, AlertTriangle, CheckCircle2, FileText } from 'lucide-react'
 
@@ -27,13 +27,17 @@ export default function ProposalPublicViewPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [data, setData] = useState(null)
+  const loadedAtRef = useRef(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/proposals?action=public_view&token=${token}`).then(r => r.json())
       if (res?.error) setError(res.error)
-      else setData(res?.data || null)
+      else {
+        setData(res?.data || null)
+        loadedAtRef.current = Date.now()
+      }
     } catch {
       setError('Failed to load')
     } finally {
@@ -42,6 +46,28 @@ export default function ProposalPublicViewPage() {
   }, [token])
 
   useEffect(() => { load() }, [load])
+
+  // Track time spent — ping the API on unload with navigator.sendBeacon
+  useEffect(() => {
+    const onUnload = () => {
+      if (!loadedAtRef.current) return
+      const durationMs = Date.now() - loadedAtRef.current
+      try {
+        const blob = new Blob(
+          [JSON.stringify({ action: 'track_view_duration', token, duration_ms: durationMs })],
+          { type: 'application/json' },
+        )
+        navigator.sendBeacon?.('/api/proposals', blob)
+      } catch { /* best-effort */ }
+    }
+    window.addEventListener('pagehide', onUnload)
+    window.addEventListener('beforeunload', onUnload)
+    return () => {
+      window.removeEventListener('pagehide', onUnload)
+      window.removeEventListener('beforeunload', onUnload)
+      onUnload()
+    }
+  }, [token])
 
   if (loading) {
     return (

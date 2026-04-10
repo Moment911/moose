@@ -13,11 +13,11 @@ const FB   = "'Raleway','Helvetica Neue',sans-serif"
 const KOTO_AGENCY_ID = '00000000-0000-0000-0000-000000000099'
 
 const STARTER_CHIPS = [
+  "How are my clients performing this week?",
   "What should I focus on today?",
-  "How is our voice call performance this week?",
-  "Which discovery engagements need attention?",
-  "Draft a follow-up email for a hot prospect",
-  "Give me a quick agency health check",
+  "Which prospects are hottest right now?",
+  "What's my appointment rate this month?",
+  "Draft a follow-up for my last discovery call",
 ]
 
 export default function AgentPage() {
