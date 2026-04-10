@@ -483,10 +483,12 @@ export async function POST(req: NextRequest) {
       const agencyName = agency.brand_name || agency.name || 'Your Agency'
       const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding/voice`
 
-      // Agent-level prompt is a fallback — the per-call prompt is
-      // built dynamically via the webhook response on call_started.
-      // The fallback still enforces PIN verification as step 1.
-      const fallbackPrompt = `You are an onboarding specialist for ${agencyName}. A caller has dialed this line to complete their onboarding.
+      // Template prompt — {{agency_name}} and {{client_name}} are
+      // substituted at call time via the inbound_dynamic_variables
+      // webhook (see the call_inbound handler below). One Retell
+      // agent serves every agency; the greeting is personalized
+      // per dialed number.
+      const templatePrompt = `You are an onboarding specialist for {{agency_name}}. A caller has dialed this line to complete onboarding for {{client_name}}.
 
 STEP 1 — PIN VERIFICATION (MANDATORY):
 Greet the caller and immediately ask: "Before we get started, can you read me the 4-digit PIN from your onboarding page?"
@@ -494,18 +496,23 @@ Call the verify_pin tool with the 4-digit PIN they give you.
 If verify_pin returns valid=false, politely ask them to try again. After 3 failed attempts, end the call.
 
 STEP 2 — QUESTIONS:
-Once the PIN is verified, ask the onboarding questions the server provided in the dynamic prompt. Rotate acknowledgments ("Perfect, thank you" / "Great, got it" / "Love that" / "Makes sense"). Be conversational. Use save_answer to record each answer and save_flag when the caller skips.
+Once the PIN is verified, ask the onboarding questions. Rotate acknowledgments ("Perfect, thank you" / "Great, got it" / "Love that" / "Makes sense"). Be conversational. Use save_answer to record each answer and save_flag when the caller skips.
 
 NEVER ask for passwords, payment info, or credentials.`
 
       const retellConfig: any = {
-        agent_name: `${agencyName} Onboarding Assistant`,
+        agent_name: `Koto Onboarding Assistant`,
         voice_id: voice_id || '11labs-Marissa',
         response_engine: { type: 'retell-llm', llm_id: null },
         language: 'en-US',
-        general_prompt: fallbackPrompt,
-        begin_message: `Hi! This is ${agencyName} calling for your onboarding. Before we get started, could you read me the 4-digit PIN from your onboarding page?`,
+        general_prompt: templatePrompt,
+        begin_message: `Hi! This is {{agency_name}} calling for your {{client_name}} onboarding. Before we get started, could you read me the 4-digit PIN from your onboarding page?`,
+        // Post-call notification events (call_started/call_ended)
         webhook_url: webhookUrl,
+        // Pre-call synchronous hook — Retell POSTs here with
+        // { call_inbound: { from_number, to_number, agent_id } }
+        // and expects dynamic_variables back within ~3s.
+        inbound_dynamic_variables_webhook_url: webhookUrl,
         enable_backchannel: true,
         backchannel_frequency: 0.7,
         interruption_sensitivity: 0.75,
@@ -592,8 +599,89 @@ NEVER ask for passwords, payment info, or credentials.`
     }
 
     // ─────────────────────────────────────────────────────────
-    // Retell webhook events — no `action` field means Retell is
-    // hitting the webhook URL directly.
+    // Inbound webhook — synchronous pre-call hook from Retell.
+    //
+    // Wired up via `inbound_dynamic_variables_webhook_url` in
+    // create_onboarding_agent. Retell POSTs here BEFORE the call
+    // connects with { call_inbound: { from_number, to_number,
+    // agent_id } } and expects us to return dynamic variables
+    // within ~3s. Those variables are substituted into the
+    // agent's begin_message and general_prompt templates so the
+    // greeting can include the correct agency name per dialed
+    // number — no static dashboard config, one agent serves every
+    // agency.
+    //
+    // This is a different mechanism from the notification webhook
+    // events below (call_started / call_ended). Those fire AFTER
+    // the call connects and their response is ignored by Retell.
+    // ─────────────────────────────────────────────────────────
+    if (body.call_inbound) {
+      const inboundFromNumber: string = body.call_inbound.from_number || ''
+      const inboundToNumber: string = body.call_inbound.to_number || ''
+
+      const inboundResolved = await resolveCallContext({
+        sb,
+        toNumber: inboundToNumber,
+      })
+
+      // Look up agency + client labels for the template substitution
+      let agencyDisplayName = 'our onboarding team'
+      let clientDisplayName = 'your business'
+      let firstNameDisplay = 'there'
+      let missingCount = 0
+
+      if (inboundResolved.agency_id && inboundResolved.client_id) {
+        // Use select('*') for the client row so Supabase's
+        // generated types don't widen to GenericStringError on the
+        // dynamic column list — we need every onboarding column
+        // anyway to compute missing fields.
+        const [agencyRes, clientRes] = await Promise.all([
+          sb.from('agencies').select('name, brand_name').eq('id', inboundResolved.agency_id).maybeSingle(),
+          sb.from('clients').select('*').eq('id', inboundResolved.client_id).maybeSingle(),
+        ])
+        const agency = agencyRes.data as any
+        const client = clientRes.data as any
+
+        if (agency) {
+          agencyDisplayName = agency.brand_name || agency.name || agencyDisplayName
+        }
+        if (client) {
+          clientDisplayName = client.name || clientDisplayName
+          if (client.owner_name) {
+            firstNameDisplay = String(client.owner_name).split(/\s+/)[0] || firstNameDisplay
+          }
+          const { missing } = computeMissingFields(client)
+          missingCount = missing.length
+        }
+      }
+
+      // Retell expects the response in { call_inbound: {...} } shape.
+      // dynamic_variables values MUST be strings — Retell string-coerces
+      // them before template substitution.
+      return NextResponse.json({
+        call_inbound: {
+          dynamic_variables: {
+            agency_name: agencyDisplayName,
+            client_name: clientDisplayName,
+            first_name: firstNameDisplay,
+            missing_count: String(missingCount),
+            resolved_source: inboundResolved.source,
+          },
+          metadata: {
+            agency_id: inboundResolved.agency_id || '',
+            client_id: inboundResolved.client_id || '',
+            dialed_number: inboundToNumber,
+          },
+        },
+      })
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Retell notification webhook events — no `action` field and
+    // no `call_inbound` means Retell is firing a post-connect
+    // event (call_started, call_ended, function_call). The
+    // response from these is NOT used to modify the call — they
+    // are notifications only.
     // ─────────────────────────────────────────────────────────
     const event = body.event || body.type || ''
     const call = body.call || body.data || {}
@@ -613,15 +701,18 @@ NEVER ask for passwords, payment info, or credentials.`
     const agencyId: string = resolved.agency_id || ''
 
     // ── call_started / call_created ──
+    // Notification event — fires AFTER the call has connected and
+    // the prompt has already been rendered with the dynamic
+    // variables from the call_inbound webhook above. The response
+    // body is discarded by Retell, so we only use this path for
+    // DB writes + bell notifications.
     if ((event === 'call_started' || event === 'call_created') && callId) {
       if (!clientId || !agencyId) {
-        return NextResponse.json({
-          received: true,
-          orphan: true,
-          reason: 'number_not_in_pool',
-          general_prompt: "I'm sorry — this number isn't currently assigned to an onboarding session. Please check your onboarding email or page for the correct number and PIN, then call back.",
-          begin_message: "Hi! I'm sorry, this number isn't linked to an active onboarding session right now. Please check your onboarding page for the correct number, then call back. Thanks!",
-        })
+        // Nothing to do — if call_inbound above couldn't resolve
+        // the number, the caller already heard the fallback
+        // greeting from the agent's static template. Return 200
+        // so Retell doesn't retry.
+        return NextResponse.json({ received: true, orphan: true, reason: 'number_not_in_pool' })
       }
 
       const built = await buildOnboardingSystemPrompt({ sb, clientId, agencyId })
@@ -660,11 +751,7 @@ NEVER ask for passwords, payment info, or credentials.`
         { client_id: clientId, call_id: callId, caller_phone: callerPhone, resolved_via: resolved.source },
       )
 
-      return NextResponse.json({
-        received: true,
-        general_prompt: built.prompt,
-        begin_message: built.beginMessage,
-      })
+      return NextResponse.json({ received: true })
     }
 
     // ── function_call / tool invocation ──
