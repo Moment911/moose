@@ -314,6 +314,87 @@ export default function ClientDetailPage() {
     )
   }
 
+  function renderOnboardingResponsesSection() {
+    const rawAnswers = client?.onboarding_answers
+    const hasRaw = rawAnswers && typeof rawAnswers === 'object' && Object.keys(rawAnswers).length > 0
+    const visibleAnswers = hasRaw
+      ? Object.entries(rawAnswers).filter(([k, v]) => {
+          if (k.startsWith('_')) return false
+          if (v === null || v === undefined || v === '') return false
+          if (Array.isArray(v) && v.length === 0) return false
+          return true
+        })
+      : []
+    const isComplete = !!(client?.onboarding_completed_at || client?.onboarding_status === 'complete')
+    const isInProgress = !isComplete && (client?.onboarding_status === 'in_progress' || (hasRaw && visibleAnswers.length > 0))
+    const lastAutosave = rawAnswers?._last_autosave || null
+
+    // Only render the section when there's onboarding activity
+    if (!isInProgress && !isComplete && visibleAnswers.length === 0) return null
+
+    return (
+      <div style={{ ...card, marginBottom: 16, border: `2px solid ${isComplete ? GRN : T}20`, background: isComplete ? '#f0fdf4' : '#f0fbfc' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
+              📋 Onboarding Responses
+            </div>
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={badge(isComplete ? GRN : T)}>
+                {isComplete ? 'Complete ✓' : 'In Progress'}
+              </span>
+              <span>{visibleAnswers.length} {visibleAnswers.length === 1 ? 'answer' : 'answers'}</span>
+              {lastAutosave && (
+                <span>· Last saved {timeAgo(lastAutosave)}</span>
+              )}
+            </div>
+          </div>
+          {isInProgress && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse 1.2s ease-in-out infinite' }} />
+              Client is completing the form — answers updating live
+            </div>
+          )}
+        </div>
+
+        {visibleAnswers.length === 0 ? (
+          <div style={{ padding: '20px 16px', borderRadius: 10, background: '#fff', border: '1px dashed #e5e7eb', textAlign: 'center', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
+            Waiting for client to start filling in the form…
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10, maxHeight: 520, overflowY: 'auto', padding: 4 }}>
+            {visibleAnswers.map(([key, val]) => {
+              const display = typeof val === 'string'
+                ? val
+                : Array.isArray(val)
+                  ? val.join(', ')
+                  : val && typeof val === 'object'
+                    ? JSON.stringify(val)
+                    : String(val ?? '')
+              const prettyKey = key
+                .replace(/[_-]/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase())
+              return (
+                <div key={key} style={{
+                  padding: '10px 14px', borderRadius: 10,
+                  background: '#fff', border: '1px solid #e5e7eb',
+                }}>
+                  <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                    {prettyKey}
+                  </div>
+                  <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
+                    {display}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
+      </div>
+    )
+  }
+
   function renderOverviewSection() {
     const hs = healthScore || 0
     const hsColor = getHealthColor(hs)
@@ -1003,6 +1084,7 @@ export default function ClientDetailPage() {
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
           <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+            {renderOnboardingResponsesSection()}
             {renderOverviewSection()}
             <div style={{ height: 32 }} />
             {renderInfoSection()}
