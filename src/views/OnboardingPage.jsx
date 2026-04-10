@@ -1432,7 +1432,7 @@ export default function OnboardingPage() {
         lifestyle: form.customer_lifestyle,
         avg_transaction: form.avg_transaction,
         ltv: form.client_ltv,
-        competitors: form.competitors.filter(c => c.name),
+        competitors: (Array.isArray(form.competitors) ? form.competitors : []).filter(c => c && c.name),
         why_choose: form.why_choose_you,
         uvp: form.unique_value_prop,
         brand_tone: form.brand_tone,
@@ -1488,7 +1488,7 @@ export default function OnboardingPage() {
         contact: { first_name: form.first_name, last_name: form.last_name, title: form.title, email: form.email, phone: form.phone },
         products_services: { description: form.products_services, top_services: form.top_services, pricing_model: form.service_pricing_model, avg_transaction: form.avg_transaction, avg_project: form.avg_project_value, visits_per_year: form.avg_visits_per_year, ltv: form.client_ltv, seasonal_notes: form.seasonal_notes },
         customers: { types: form.customer_types, ideal_desc: form.ideal_customer_desc, age: form.customer_age, gender: form.customer_gender, income: form.customer_income, pain_points: form.customer_pain_points, goals: form.customer_goals, lifestyle: form.customer_lifestyle },
-        competitors: { list: form.competitors.filter(c => c.name), why_choose: form.why_choose_you, uvp: form.unique_value_prop },
+        competitors: { list: (Array.isArray(form.competitors) ? form.competitors : []).filter(c => c && c.name), why_choose: form.why_choose_you, uvp: form.unique_value_prop },
         geography: { primary_city: form.primary_city, primary_state: form.primary_state, target_cities: form.target_cities, radius: form.target_radius, notes: form.service_area_notes },
         brand: { logo_url: form.logo_url, logo_dark_url: form.logo_dark_url, assets_url: form.brand_assets_url, primary_color: form.brand_primary_color, accent_color: form.brand_accent_color, fonts: form.brand_fonts, tagline: form.brand_tagline, tone: form.brand_tone, dos: form.brand_dos, donts: form.brand_donts },
         social: { facebook: form.facebook_url, instagram: form.instagram_url, linkedin: form.linkedin_url, twitter: form.twitter_url, youtube: form.youtube_url, tiktok: form.tiktok_url, google_biz: form.google_biz_url, yelp: form.yelp_url, fb_followers: form.fb_followers, ig_followers: form.ig_followers, google_rating: form.google_rating, google_reviews: form.google_reviews },
@@ -2677,11 +2677,11 @@ export default function OnboardingPage() {
                 <strong>From our PPC team:</strong> We'll actually audit your top competitors' ad copy, keywords, and landing pages. The more info you give us here, the faster we can find the gaps to exploit.
               </InfoBox>
 
-              {form.competitors.map((comp, i) => (
+              {(Array.isArray(form.competitors) ? form.competitors : []).map((comp, i) => (
                 <div key={i} style={{ background: '#f9fafb', borderRadius: 16, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                     <div style={{ fontSize: 15, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em' }}>Competitor {i + 1}</div>
-                    {form.competitors.length > 1 && <button type='button' onClick={() => set('competitors', form.competitors.filter((_,j)=>j!==i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 12 }}>✕ Remove</button>}
+                    {(Array.isArray(form.competitors) ? form.competitors : []).length > 1 && <button type='button' onClick={() => set('competitors', (Array.isArray(form.competitors) ? form.competitors : []).filter((_,j)=>j!==i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 12 }}>✕ Remove</button>}
                   </div>
                   <div style={{ ...T.grid2, gap: 14 }}>
                     <F label="Business Name">
@@ -2701,12 +2701,12 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               ))}
-              <button type='button' onClick={() => set('competitors', [...form.competitors, { name: '', url: '', strengths: '', weaknesses: '' }])}
+              <button type='button' onClick={() => set('competitors', [...(Array.isArray(form.competitors) ? form.competitors : []), { name: '', url: '', strengths: '', weaknesses: '' }])}
                 style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: `2px dashed ${ACCENT}40`, background: `${ACCENT}06`, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 20 }}>
                 + Add Another Competitor
               </button>
 
-              <button type="button" onClick={() => set('competitors', [...form.competitors, { name: '', url: '', strengths: '', weaknesses: '' }])}
+              <button type="button" onClick={() => set('competitors', [...(Array.isArray(form.competitors) ? form.competitors : []), { name: '', url: '', strengths: '', weaknesses: '' }])}
                 style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, marginBottom: 8, padding: '10px 18px', borderRadius: 10, border: '2px dashed #e5e7eb', background: '#fafafa', color: '#6b7280', fontSize: 15, fontWeight: 600, cursor: 'pointer', width: '100%', justifyContent: 'center' }}>
                 + Add Another Competitor
               </button>
@@ -2777,7 +2777,7 @@ export default function OnboardingPage() {
                 <F label="Target cities, towns, and neighborhoods" hint="These become your local SEO pages and ad geo-targets">
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
                     <AIAssist prompt={`${CTX}. ${isLocal ? 'List 12-15 specific cities, towns, and neighborhoods within service radius of '+form.primary_city+', '+form.primary_state+'. Include surrounding suburbs and high-value areas.' : isNational ? 'Suggest the top 10 US metro markets to prioritize for national expansion for this type of business, ranked by opportunity.' : 'List the most valuable cities and regions in '+form.primary_state+' for this '+vertical+' business to target.'} Consider their stated growth scope: ${form.growth_scope || 'local'}. One per line.`}
-                      onResult={v => { const cities = v.split(',').map(c => c.trim()).filter(Boolean); set('target_cities', [...new Set([...form.target_cities, ...cities])]) }}
+                      onResult={v => { const cities = v.split(',').map(c => c.trim()).filter(Boolean); const existing = Array.isArray(form.target_cities) ? form.target_cities : []; set('target_cities', [...new Set([...existing, ...cities])]) }}
                       label="AI Suggest" />
                   </div>
                   <TagInput value={form.target_cities} onChange={v => set('target_cities', v)} placeholder="e.g. Coral Gables, Brickell — press Enter" />
