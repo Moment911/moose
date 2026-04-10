@@ -6,6 +6,8 @@ import {
   Clock, Download, FileSignature, FileText, Loader2, Printer, Sparkles, Target, TrendingUp, Zap,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Sidebar from '../components/Sidebar'
+import { useMobile } from '../hooks/useMobile'
 
 const C = {
   bg: '#F7F7F6',
@@ -46,6 +48,7 @@ const NAV_SECTIONS = [
 export default function DiscoveryAuditPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const isMobile = useMobile()
   const [loading, setLoading] = useState(true)
   const [eng, setEng] = useState(null)
   const [activeSection, setActiveSection] = useState('exec')
@@ -83,30 +86,36 @@ export default function DiscoveryAuditPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: 60, textAlign: 'center', fontFamily: 'var(--font-body)' }}>
-        <Loader2 size={30} className="anim-spin" color={C.teal} />
-        <div style={{ marginTop: 10, color: C.muted }}>Loading audit…</div>
+      <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg }}>
+        {!isMobile && <Sidebar />}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 60, textAlign: 'center', fontFamily: 'var(--font-body)' }}>
+          <Loader2 size={30} className="anim-spin" color={C.teal} />
+          <div style={{ marginTop: 10, color: C.muted }}>Loading audit…</div>
+        </div>
       </div>
     )
   }
 
   if (!eng || !eng.audit_data) {
     return (
-      <div style={{ padding: 60, textAlign: 'center', fontFamily: 'var(--font-body)' }}>
-        <AlertTriangle size={30} color={C.amber} />
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginTop: 10 }}>
-          No audit available yet
+      <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg }}>
+        {!isMobile && <Sidebar />}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 60, textAlign: 'center', fontFamily: 'var(--font-body)' }}>
+          <AlertTriangle size={30} color={C.amber} />
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginTop: 10 }}>
+            No audit available yet
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+            Go back to the discovery engagement and click "Generate Audit" to create one.
+          </div>
+          <button
+            onClick={() => navigate('/discovery')}
+            style={{
+              marginTop: 16, background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
+              padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}
+          >Back to Discovery</button>
         </div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
-          Go back to the discovery engagement and click "Generate Audit" to create one.
-        </div>
-        <button
-          onClick={() => navigate('/discovery')}
-          style={{
-            marginTop: 16, background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
-            padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          }}
-        >Back to Discovery</button>
       </div>
     )
   }
@@ -114,10 +123,12 @@ export default function DiscoveryAuditPage() {
   const a = eng.audit_data
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', padding: '20px 24px', fontFamily: 'var(--font-body)' }}>
-      <style>{`@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }`}</style>
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg }}>
+      {!isMobile && <Sidebar />}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', fontFamily: 'var(--font-body)' }}>
+        <style>{`@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }`}</style>
 
-      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         {/* Header */}
         <Header eng={eng} onBack={() => navigate(-1)} navigate={navigate} />
 
@@ -167,6 +178,7 @@ export default function DiscoveryAuditPage() {
             </SectionWrap>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

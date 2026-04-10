@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
+import Sidebar from '../components/Sidebar'
 
 const C = {
   bg: '#F7F7F6',
@@ -57,28 +59,32 @@ function statusBadge(status) {
 export default function DiscoveryPage() {
   const { agencyId } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+  const isMobile = useMobile()
 
   const [view, setView] = useState('list') // 'list' | 'detail'
   const [selectedId, setSelectedId] = useState(null)
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', padding: 20, fontFamily: 'var(--font-body)' }}>
-      <style>{`
-        @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: translateY(0) } }
-      `}</style>
-      {view === 'list' ? (
-        <ListView
-          aid={aid}
-          onOpen={(id) => { setSelectedId(id); setView('detail') }}
-        />
-      ) : (
-        <DetailView
-          aid={aid}
-          id={selectedId}
-          onBack={() => { setView('list'); setSelectedId(null) }}
-        />
-      )}
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg }}>
+      {!isMobile && <Sidebar />}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 20, fontFamily: 'var(--font-body)' }}>
+        <style>{`
+          @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: translateY(0) } }
+        `}</style>
+        {view === 'list' ? (
+          <ListView
+            aid={aid}
+            onOpen={(id) => { setSelectedId(id); setView('detail') }}
+          />
+        ) : (
+          <DetailView
+            aid={aid}
+            id={selectedId}
+            onBack={() => { setView('list'); setSelectedId(null) }}
+          />
+        )}
+      </div>
     </div>
   )
 }

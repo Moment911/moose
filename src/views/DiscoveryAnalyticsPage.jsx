@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
+import { useMobile } from '../hooks/useMobile'
+import Sidebar from '../components/Sidebar'
 
 const C = {
   bg: '#F7F7F6',
@@ -51,6 +53,7 @@ export default function DiscoveryAnalyticsPage() {
   const { agencyId } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
   const navigate = useNavigate()
+  const isMobile = useMobile()
 
   const [range, setRange] = useState('30')
   const [data, setData] = useState(null)
@@ -71,7 +74,9 @@ export default function DiscoveryAnalyticsPage() {
   useEffect(() => { load() }, [load])
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', padding: '20px 24px', fontFamily: 'var(--font-body)' }}>
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg }}>
+      {!isMobile && <Sidebar />}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', fontFamily: 'var(--font-body)' }}>
       <div style={{ maxWidth: 1300, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -323,6 +328,7 @@ export default function DiscoveryAnalyticsPage() {
             />
           </>
         )}
+      </div>
       </div>
     </div>
   )
