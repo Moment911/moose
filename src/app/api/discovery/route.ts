@@ -436,6 +436,63 @@ function randomToken(len = 24) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Agency webhooks — fire registered webhooks for discovery events
+// Fully fire-and-forget. Never throws.
+// ─────────────────────────────────────────────────────────────
+async function fireDiscoveryWebhooks(
+  client: any,
+  agencyId: string,
+  event: string,
+  payload: object,
+): Promise<void> {
+  if (!agencyId || !event) return
+  try {
+    const { data: webhooks } = await client
+      .from('koto_agency_webhooks')
+      .select('id, url, secret, name')
+      .eq('agency_id', agencyId)
+      .eq('is_active', true)
+      .contains('events', [event])
+
+    if (!webhooks || webhooks.length === 0) return
+
+    const body = JSON.stringify({ event, timestamp: new Date().toISOString(), ...payload })
+
+    await Promise.allSettled(webhooks.map((wh: any) =>
+      fetch(wh.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(wh.secret ? { 'X-Koto-Signature': wh.secret } : {}),
+        },
+        body,
+        signal: AbortSignal.timeout(5000),
+      }).then(async (r) => {
+        try {
+          await client.from('koto_system_logs').insert({
+            level: r.ok ? 'info' : 'warn',
+            service: 'webhook',
+            action: event,
+            message: `Webhook fired to ${wh.url} — ${r.status}`,
+            metadata: { webhook_name: wh.name, webhook_id: wh.id, status: r.status, event, agency_id: agencyId },
+          })
+        } catch { /* non-fatal */ }
+      }).catch(async (err) => {
+        try {
+          await client.from('koto_system_logs').insert({
+            level: 'warn',
+            service: 'webhook',
+            action: event,
+            message: `Webhook to ${wh.url} failed: ${err?.message || 'unknown'}`,
+            metadata: { webhook_name: wh.name, webhook_id: wh.id, event, agency_id: agencyId },
+          })
+        } catch { /* non-fatal */ }
+      })
+    ))
+  } catch { /* swallow */ }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Shared workers — used both by the live POST actions AND by the
 // background fire-and-forget calls from `create`.
 // ─────────────────────────────────────────────────────────────
@@ -738,6 +795,15 @@ export async function GET(req: NextRequest) {
         }).catch((e) => console.error('first-view notify failed:', e?.message))
       }
 
+      // Webhook: discovery.opened — fire on every view
+      fireDiscoveryWebhooks(s, eng.agency_id, 'discovery.opened', {
+        engagement_id: eng.id,
+        client_name: eng.client_name,
+        device,
+        timestamp: new Date().toISOString(),
+        is_first_view: wasFirstView,
+      }).catch(() => {})
+
       return Response.json({
         data: {
           client_name: eng.client_name,
@@ -838,6 +904,274 @@ export async function GET(req: NextRequest) {
           archived: counts.archived || 0,
         },
       })
+    }
+
+    // ─── get_discovery_brief (Retell pre-call injection) ──
+    if (action === 'get_discovery_brief') {
+      const businessName = (searchParams.get('business_name') || '').trim()
+      if (!businessName) return Response.json({ found: false, brief: null, engagement_id: null })
+
+      // Case-insensitive match against client_name on engagements with
+      // meaningful content (post-research or later)
+      const { data: matches } = await s
+        .from('koto_discovery_engagements')
+        .select('id, client_name, client_industry, intel_cards, sections, readiness_score, readiness_label, agency_id')
+        .eq('agency_id', agencyId)
+        .ilike('client_name', `%${businessName}%`)
+        .in('status', ['research_complete', 'call_scheduled', 'call_complete', 'compiled', 'shared'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
+
+      const eng: any = Array.isArray(matches) && matches.length > 0 ? matches[0] : null
+      if (!eng) return Response.json({ found: false, brief: null, engagement_id: null })
+
+      // Pull confirmed tech stack across this engagement's domains
+      let techStack = ''
+      try {
+        const { data: domains } = await s
+          .from('koto_discovery_domains')
+          .select('tech_stack')
+          .eq('engagement_id', eng.id)
+        const confirmed: string[] = []
+        for (const d of domains || []) {
+          for (const cat of d.tech_stack?.categories || []) {
+            for (const t of cat.tools || []) {
+              if (t.confidence === 'confirmed') confirmed.push(t.name)
+            }
+          }
+        }
+        techStack = [...new Set(confirmed)].slice(0, 12).join(', ') || 'unknown'
+      } catch { /* non-fatal */ }
+
+      // Helpers to pull field answers by id
+      function findField(sectionId: string, fieldId: string): string {
+        const sec = (eng.sections || []).find((s: any) => s.id === sectionId)
+        return sec?.fields?.find((f: any) => f.id === fieldId)?.answer || ''
+      }
+
+      // Intel card lookups
+      const intel = Array.isArray(eng.intel_cards) ? eng.intel_cards : []
+      const bgCard = intel.find((c: any) => /background/i.test(c.title))?.body || ''
+      const revCard = intel.find((c: any) => /revenue/i.test(c.title))?.body || ''
+      const observations = intel
+        .filter((c: any) => /observ/i.test(c.title))
+        .map((c: any) => `- ${c.body}`)
+        .join('\n')
+
+      const goals = findField('section_10', '10a') || findField('section_10', 'f10a')
+      const budget = findField('section_10', '10f') || findField('section_10', 'f10f')
+      const pain = findField('section_10', '10b') || findField('section_10', 'f10b')
+
+      const readinessLine = eng.readiness_score != null
+        ? `${eng.readiness_label || 'Unknown'} (${eng.readiness_score}/100)`
+        : 'not calculated'
+
+      const brief = [
+        '=== DISCOVERY INTELLIGENCE FOR THIS PROSPECT ===',
+        `Business: ${eng.client_name} | Industry: ${eng.client_industry || 'unknown'} | Readiness: ${readinessLine}`,
+        '',
+        bgCard ? `BACKGROUND: ${bgCard}` : 'BACKGROUND: (not available)',
+        revCard ? `REVENUE: ${revCard}` : 'REVENUE: (not captured)',
+        `KNOWN TECH STACK: ${techStack}`,
+        goals ? `THEIR GOALS: ${goals}` : 'THEIR GOALS: (not captured)',
+        budget ? `THEIR BUDGET: ${budget}` : 'THEIR BUDGET: (not captured)',
+        pain ? `THEIR PAIN: ${pain}` : 'THEIR PAIN: (not captured)',
+        observations ? `KEY OBSERVATIONS:\n${observations}` : '',
+        '==============================================',
+      ].filter(Boolean).join('\n')
+
+      return Response.json({ found: true, brief, engagement_id: eng.id })
+    }
+
+    // ─── analytics ──────────────────────────────────────
+    if (action === 'analytics') {
+      const range = searchParams.get('range') || '30'
+      const now = new Date()
+      let since: Date | null = null
+      if (range === '30') since = new Date(now.getTime() - 30 * 86400000)
+      else if (range === '90') since = new Date(now.getTime() - 90 * 86400000)
+      // 'all' leaves since null
+
+      let q = s.from('koto_discovery_engagements')
+        .select('id, client_name, client_industry, status, sections, readiness_score, readiness_label, source_meta, assigned_to_name, created_at, updated_at, compiled_at, audit_data, agency_id')
+        .eq('agency_id', agencyId)
+      if (since) q = q.gte('created_at', since.toISOString())
+      const { data: engagements } = await q
+      const rows = engagements || []
+
+      const byStatus: Record<string, number> = {
+        draft: 0, research_running: 0, research_complete: 0,
+        call_scheduled: 0, call_complete: 0, compiled: 0, shared: 0, archived: 0,
+      }
+      for (const r of rows) byStatus[r.status] = (byStatus[r.status] || 0) + 1
+
+      // Per-engagement completion (% of non-never_share fields answered)
+      function completion(r: any): number {
+        let total = 0, filled = 0
+        for (const sec of r.sections || []) {
+          for (const f of sec.fields || []) {
+            if (f.never_share) continue
+            total++
+            if ((f.answer || '').trim()) filled++
+          }
+        }
+        return total > 0 ? (filled / total) * 100 : 0
+      }
+      const avg_completion_rate = rows.length > 0
+        ? rows.reduce((a, r) => a + completion(r), 0) / rows.length
+        : 0
+
+      // Time-to-compile (days) for compiled rows
+      const compiledRows = rows.filter(r => r.compiled_at)
+      const avg_time_to_compile_days = compiledRows.length > 0
+        ? compiledRows.reduce((a, r) => {
+            const ms = new Date(r.compiled_at).getTime() - new Date(r.created_at).getTime()
+            return a + Math.max(0, ms / 86400000)
+          }, 0) / compiledRows.length
+        : 0
+
+      // Conversion rate = compiled / total
+      const conversion_rate = rows.length > 0
+        ? (rows.filter(r => r.status === 'compiled' || r.status === 'shared').length / rows.length) * 100
+        : 0
+
+      // By industry
+      const industryAgg: Record<string, { count: number; rSum: number; rCount: number }> = {}
+      for (const r of rows) {
+        const ind = r.client_industry || 'Uncategorized'
+        if (!industryAgg[ind]) industryAgg[ind] = { count: 0, rSum: 0, rCount: 0 }
+        industryAgg[ind].count++
+        if (r.readiness_score != null) {
+          industryAgg[ind].rSum += r.readiness_score
+          industryAgg[ind].rCount++
+        }
+      }
+      const by_industry = Object.entries(industryAgg)
+        .map(([industry, v]) => ({
+          industry,
+          count: v.count,
+          avg_readiness: v.rCount > 0 ? Math.round(v.rSum / v.rCount) : null,
+        }))
+        .sort((a, b) => b.count - a.count)
+
+      // By source (from source_meta.source)
+      const sourceAgg: Record<string, number> = {}
+      for (const r of rows) {
+        const src = r.source_meta?.source || 'manual'
+        sourceAgg[src] = (sourceAgg[src] || 0) + 1
+      }
+      const by_source = Object.entries(sourceAgg)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count)
+
+      // Section completion rates
+      const sectionAgg: Record<string, { title: string; totalPct: number; n: number }> = {}
+      for (const r of rows) {
+        for (const sec of r.sections || []) {
+          if (!sectionAgg[sec.id]) sectionAgg[sec.id] = { title: sec.title, totalPct: 0, n: 0 }
+          const fields = (sec.fields || []).filter((f: any) => !f.never_share)
+          if (fields.length === 0) continue
+          const answered = fields.filter((f: any) => (f.answer || '').trim()).length
+          sectionAgg[sec.id].totalPct += (answered / fields.length) * 100
+          sectionAgg[sec.id].n += 1
+        }
+      }
+      const section_completion_rates = Object.entries(sectionAgg)
+        .map(([section_id, v]) => ({
+          section_id,
+          title: v.title,
+          avg_answered_pct: v.n > 0 ? Math.round(v.totalPct / v.n) : 0,
+        }))
+        .sort((a, b) => a.avg_answered_pct - b.avg_answered_pct)
+
+      const most_skipped_sections = [...section_completion_rates]
+        .slice(0, 5)
+        .map((s2) => ({ title: s2.title, skip_rate: 100 - s2.avg_answered_pct }))
+
+      // Readiness stats
+      const readinessRows = rows.filter(r => r.readiness_score != null)
+      const avg_readiness_score = readinessRows.length > 0
+        ? Math.round(readinessRows.reduce((a, r) => a + r.readiness_score, 0) / readinessRows.length)
+        : 0
+      const readiness_distribution = { high: 0, good: 0, moderate: 0, low: 0 }
+      for (const r of readinessRows) {
+        const score = r.readiness_score
+        if (score >= 80) readiness_distribution.high++
+        else if (score >= 60) readiness_distribution.good++
+        else if (score >= 40) readiness_distribution.moderate++
+        else readiness_distribution.low++
+      }
+
+      // Top assignees
+      const assigneeAgg: Record<string, { count: number; rSum: number; rCount: number }> = {}
+      for (const r of rows) {
+        if (!r.assigned_to_name) continue
+        const n = r.assigned_to_name
+        if (!assigneeAgg[n]) assigneeAgg[n] = { count: 0, rSum: 0, rCount: 0 }
+        assigneeAgg[n].count++
+        if (r.readiness_score != null) {
+          assigneeAgg[n].rSum += r.readiness_score
+          assigneeAgg[n].rCount++
+        }
+      }
+      const top_assigned = Object.entries(assigneeAgg)
+        .map(([name, v]) => ({
+          name,
+          count: v.count,
+          avg_readiness: v.rCount > 0 ? Math.round(v.rSum / v.rCount) : null,
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
+
+      // Monthly trend — last 6 months
+      const monthly_trend: Array<{ month: string; created: number; compiled: number }> = []
+      const monthLabel = (d: Date) => d.toLocaleString('en-US', { month: 'short', year: '2-digit' })
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const next = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
+        const createdCount = rows.filter(r => {
+          const c = new Date(r.created_at)
+          return c >= d && c < next
+        }).length
+        const compiledCount = rows.filter(r => {
+          if (!r.compiled_at) return false
+          const c = new Date(r.compiled_at)
+          return c >= d && c < next
+        }).length
+        monthly_trend.push({ month: monthLabel(d), created: createdCount, compiled: compiledCount })
+      }
+
+      const total_audits_generated = rows.filter(r => r.audit_data).length
+      const total_shared = byStatus.shared || 0
+
+      return Response.json({
+        data: {
+          total_engagements: rows.length,
+          by_status: byStatus,
+          avg_completion_rate: Math.round(avg_completion_rate),
+          avg_time_to_compile_days: Math.round(avg_time_to_compile_days * 10) / 10,
+          conversion_rate: Math.round(conversion_rate),
+          by_industry,
+          by_source,
+          section_completion_rates,
+          most_skipped_sections,
+          avg_readiness_score,
+          readiness_distribution,
+          top_assigned,
+          monthly_trend,
+          total_audits_generated,
+          total_shared,
+        },
+      })
+    }
+
+    // ─── get_webhooks ───────────────────────────────────
+    if (action === 'get_webhooks') {
+      const { data } = await s.from('koto_agency_webhooks')
+        .select('*')
+        .eq('agency_id', agencyId)
+        .order('created_at', { ascending: false })
+      return Response.json({ data: data || [] })
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })
@@ -1200,7 +1534,25 @@ Generate 1-3 short follow-ups (< 120 chars each) that uncover missing context, s
       // Mark engagement as shared
       await s.from('koto_discovery_engagements').update({ status: 'shared' }).eq('id', engagement_id)
 
-      return Response.json({ data, share_url: `/discovery/shared/${token}` })
+      const shareUrl = `/discovery/view/${token}`
+
+      // Webhook: discovery.shared
+      try {
+        const { data: shareEng } = await s.from('koto_discovery_engagements')
+          .select('client_name')
+          .eq('id', engagement_id)
+          .maybeSingle()
+        fireDiscoveryWebhooks(s, agencyId, 'discovery.shared', {
+          engagement_id,
+          client_name: shareEng?.client_name || null,
+          recipient_email: recipient_email || null,
+          recipient_name: recipient_name || null,
+          share_url: shareUrl,
+          token,
+        }).catch(() => {})
+      } catch { /* non-fatal */ }
+
+      return Response.json({ data, share_url: shareUrl })
     }
 
     // ─── add_comment ────────────────────────────────────
@@ -1301,6 +1653,15 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
           intel_cards: eng.intel_cards || [],
           client_name: eng.client_name,
         },
+      }).catch(() => {})
+
+      // Webhook: discovery.compiled
+      fireDiscoveryWebhooks(s, agencyId, 'discovery.compiled', {
+        engagement_id: id,
+        client_name: eng.client_name,
+        client_industry: eng.client_industry,
+        version: nextVersionNumber,
+        compiled_at: new Date().toISOString(),
       }).catch(() => {})
 
       return Response.json({ data: { executive_summary: summary, version: nextVersionNumber } })
@@ -2356,6 +2717,180 @@ ${currentAnswers.join('\n').slice(0, 5000)}`
       }
 
       return Response.json({ data: { engagement_id: eng.id } })
+    }
+
+    // ─── save_webhook ──────────────────────────────────
+    if (action === 'save_webhook') {
+      const { id, name, url, events, secret } = body
+      if (!name || !url) return Response.json({ error: 'Missing name or url' }, { status: 400 })
+      const row: any = {
+        agency_id: agencyId,
+        name,
+        url,
+        events: Array.isArray(events) ? events : [],
+        secret: secret || null,
+        is_active: true,
+      }
+      if (id) row.id = id
+      const { data, error } = await s.from('koto_agency_webhooks')
+        .upsert(row, { onConflict: 'id' })
+        .select('*')
+        .maybeSingle()
+      if (error) return Response.json({ error: error.message }, { status: 500 })
+      return Response.json({ data })
+    }
+
+    // ─── delete_webhook ────────────────────────────────
+    if (action === 'delete_webhook') {
+      const { id } = body
+      if (!id) return Response.json({ error: 'Missing id' }, { status: 400 })
+      await s.from('koto_agency_webhooks').delete().eq('id', id).eq('agency_id', agencyId)
+      return Response.json({ ok: true })
+    }
+
+    // ─── toggle_webhook ────────────────────────────────
+    if (action === 'toggle_webhook') {
+      const { id } = body
+      if (!id) return Response.json({ error: 'Missing id' }, { status: 400 })
+      const { data: current } = await s.from('koto_agency_webhooks')
+        .select('is_active')
+        .eq('id', id)
+        .eq('agency_id', agencyId)
+        .maybeSingle()
+      if (!current) return Response.json({ error: 'Not found' }, { status: 404 })
+      await s.from('koto_agency_webhooks').update({ is_active: !current.is_active }).eq('id', id)
+      return Response.json({ ok: true, is_active: !current.is_active })
+    }
+
+    // ─── push_to_onboarding ────────────────────────────
+    if (action === 'push_to_onboarding') {
+      const { engagement_id, client_id } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements')
+        .select('*')
+        .eq('id', engagement_id)
+        .maybeSingle()
+      if (!eng) return Response.json({ error: 'Engagement not found' }, { status: 404 })
+
+      const { data: domains } = await s.from('koto_discovery_domains')
+        .select('url')
+        .eq('engagement_id', engagement_id)
+        .order('created_at')
+      const primaryWebsite = (domains && domains[0]?.url) || null
+
+      // Helper to read a field answer by section/field id (tolerates both
+      // legacy section ids and the canonical section_NN format)
+      function getAnswer(sectionIds: string[], fieldIds: string[]): string {
+        for (const secId of sectionIds) {
+          const sec = (eng.sections || []).find((s: any) => s.id === secId)
+          if (!sec) continue
+          for (const fid of fieldIds) {
+            const f = sec.fields?.find((x: any) => x.id === fid)
+            if (f && (f.answer || '').trim()) return f.answer
+          }
+        }
+        return ''
+      }
+
+      // Pull a representative intel card body matching a keyword
+      function getIntel(keyword: RegExp): string {
+        const cards = Array.isArray(eng.intel_cards) ? eng.intel_cards : []
+        const match = cards.find((c: any) => keyword.test(c.title || ''))
+        return match?.body || ''
+      }
+
+      const mappings = {
+        client_name: eng.client_name || '',
+        client_industry: eng.client_industry || '',
+        website: primaryWebsite || '',
+        business_goals: getAnswer(['section_10', 's10'], ['10a', 'f10a']),
+        biggest_pain: getAnswer(['section_10', 's10'], ['10b', 'f10b']),
+        budget_range: getAnswer(['section_10', 's10'], ['10f', 'f10f']),
+        team_size: getAnswer(['section_04', 's04'], ['04c', 'f04c']),
+        communication_prefs: getAnswer(['section_10', 's10'], ['10g', 'f10g']),
+        current_tools: getAnswer(['section_06', 's06'], ['06b', 'f06b']),
+        target_audience: getAnswer(['section_05', 's05'], ['05a', 'f05a']),
+        revenue_sources: getAnswer(['section_04', 's04'], ['04a', 'f04a']),
+        lead_sources: getAnswer(['section_05', 's05'], ['05b', 'f05b']),
+        crm_platform: getAnswer(['section_06', 's06'], ['06a', 'f06a']),
+        email_platform: getAnswer(['section_08', 's08'], ['08a', 'f08a']),
+        social_platforms: getAnswer(['section_03', 's03'], ['03b', 'f03b']),
+        google_reviews: getIntel(/google|reviews|reputation/i),
+      }
+
+      // Count populated fields
+      const fieldsPushed = Object.values(mappings).filter(v => v && String(v).trim()).length
+
+      // Try client_profiles first (the canonical onboarding storage in this repo)
+      let tableUsed = ''
+      if (client_id) {
+        try {
+          const profileRow: any = {
+            client_id,
+            business_name: mappings.client_name,
+            business_type: mappings.client_industry,
+            website: mappings.website || null,
+            top_business_goals: mappings.business_goals || null,
+            biggest_challenge: mappings.biggest_pain || null,
+            budget_range: mappings.budget_range || null,
+            team_size: mappings.team_size || null,
+            communication_preferences: mappings.communication_prefs || null,
+            current_tools: mappings.current_tools || null,
+            ideal_client: mappings.target_audience || null,
+            revenue_sources: mappings.revenue_sources || null,
+            lead_sources: mappings.lead_sources || null,
+            crm_platform: mappings.crm_platform || null,
+            email_platform: mappings.email_platform || null,
+            active_social_platforms: mappings.social_platforms || null,
+            google_reviews_summary: mappings.google_reviews || null,
+            pushed_from_discovery: true,
+            updated_at: new Date().toISOString(),
+          }
+          const { error: pErr } = await s.from('client_profiles')
+            .upsert(profileRow, { onConflict: 'client_id' })
+          if (!pErr) tableUsed = 'client_profiles'
+        } catch { /* fall through */ }
+      }
+
+      // Fallback: write to clients table directly
+      if (!tableUsed && client_id) {
+        try {
+          const clientRow: any = {
+            id: client_id,
+            name: mappings.client_name,
+            industry: mappings.client_industry,
+            website: mappings.website || undefined,
+            updated_at: new Date().toISOString(),
+          }
+          const { error: cErr } = await s.from('clients')
+            .upsert(clientRow, { onConflict: 'id' })
+          if (!cErr) tableUsed = 'clients'
+        } catch { /* fall through */ }
+      }
+
+      // Always also write into the vault for traceability
+      vaultWrite({
+        agencyId,
+        clientId: client_id || null,
+        recordType: 'onboarding',
+        source: 'discovery_push',
+        sourceId: engagement_id,
+        title: `Onboarding push — ${mappings.client_name}`,
+        summary: `Pushed ${fieldsPushed} fields from discovery to ${tableUsed || 'vault only'}`,
+        data: mappings,
+      }).catch(() => {})
+
+      // Mark engagement
+      await s.from('koto_discovery_engagements').update({
+        pushed_to_onboarding_at: new Date().toISOString(),
+      }).eq('id', engagement_id)
+
+      return Response.json({
+        ok: true,
+        fields_pushed: fieldsPushed,
+        table_used: tableUsed || 'vault',
+      })
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })

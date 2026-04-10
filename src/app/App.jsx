@@ -144,6 +144,7 @@ import DiscoveryPage from '../views/DiscoveryPage'
 import DiscoveryAuditPage from '../views/DiscoveryAuditPage'
 import DiscoveryClientFormPage from '../views/DiscoveryClientFormPage'
 import DiscoverySharedViewPage from '../views/DiscoverySharedViewPage'
+import DiscoveryAnalyticsPage from '../views/DiscoveryAnalyticsPage'
 import TestDataPage from '../views/TestDataPage'
 import DataVaultPage from '../views/DataVaultPage'
 
@@ -330,6 +331,7 @@ function AppRoutes() {
           <Route path="/avatars" element={<AvatarBrowserPage />} />
           <Route path="/trades" element={<TradesPortalPage />} />
           <Route path="/discovery" element={<DiscoveryPage />} />
+          <Route path="/discovery/analytics" element={<DiscoveryAnalyticsPage />} />
           <Route path="/discovery/audit/:id" element={<DiscoveryAuditPage />} />
           <Route path="/test-data" element={<TestDataPage />} />
           <Route path="/vault" element={<DataVaultPage />} />

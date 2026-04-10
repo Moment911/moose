@@ -395,6 +395,46 @@ Produce the full strategic audit JSON now.`
       audit_generated_at: now,
     }).eq('id', engagementId)
 
+    // Webhook: discovery.audit_generated — fire and forget
+    try {
+      const { data: webhooks } = await s
+        .from('koto_agency_webhooks')
+        .select('id, url, secret, name')
+        .eq('agency_id', agencyId)
+        .eq('is_active', true)
+        .contains('events', ['discovery.audit_generated'])
+      if (webhooks && webhooks.length > 0) {
+        const body = JSON.stringify({
+          event: 'discovery.audit_generated',
+          timestamp: now,
+          engagement_id: engagementId,
+          client_name: eng.client_name,
+          health_score: audit?.business_health_score?.overall ?? null,
+        })
+        await Promise.allSettled(webhooks.map((wh: any) =>
+          fetch(wh.url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(wh.secret ? { 'X-Koto-Signature': wh.secret } : {}),
+            },
+            body,
+            signal: AbortSignal.timeout(5000),
+          }).then(async (r) => {
+            try {
+              await s.from('koto_system_logs').insert({
+                level: r.ok ? 'info' : 'warn',
+                service: 'webhook',
+                action: 'discovery.audit_generated',
+                message: `Webhook fired to ${wh.url} — ${r.status}`,
+                metadata: { webhook_name: wh.name, webhook_id: wh.id, status: r.status, agency_id: agencyId },
+              })
+            } catch { /* non-fatal */ }
+          }).catch(() => {})
+        ))
+      }
+    } catch { /* non-fatal */ }
+
     return Response.json({ data: { audit_data: audit, audit_generated_at: now } })
   } catch (error: any) {
     console.error('discovery/audit POST error:', error.message)

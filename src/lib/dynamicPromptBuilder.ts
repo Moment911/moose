@@ -3,6 +3,95 @@
 // using pre-call intelligence + agency/agent configuration.
 
 import type { PreCallIntel } from './preCallIntelligence'
+import { createClient } from '@supabase/supabase-js'
+
+// ── Discovery brief lookup ───────────────────────────────────────────────────
+// Server-side helper that fetches a discovery intelligence brief for a
+// matching engagement so it can be injected into Retell prompts/dynamic vars
+// at call start time. Returns null silently on any error so it never blocks
+// a call.
+export async function fetchDiscoveryBrief(
+  agencyId: string,
+  businessName: string,
+): Promise<{ brief: string; engagement_id: string } | null> {
+  if (!agencyId || !businessName?.trim()) return null
+  try {
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    )
+
+    const { data: matches } = await sb
+      .from('koto_discovery_engagements')
+      .select('id, client_name, client_industry, intel_cards, sections, readiness_score, readiness_label')
+      .eq('agency_id', agencyId)
+      .ilike('client_name', `%${businessName.trim()}%`)
+      .in('status', ['research_complete', 'call_scheduled', 'call_complete', 'compiled', 'shared'])
+      .order('updated_at', { ascending: false })
+      .limit(1)
+
+    const eng: any = Array.isArray(matches) && matches.length > 0 ? matches[0] : null
+    if (!eng) return null
+
+    // Confirmed tech stack
+    let techStack = 'unknown'
+    try {
+      const { data: domains } = await sb
+        .from('koto_discovery_domains')
+        .select('tech_stack')
+        .eq('engagement_id', eng.id)
+      const confirmed: string[] = []
+      for (const d of domains || []) {
+        for (const cat of d.tech_stack?.categories || []) {
+          for (const t of cat.tools || []) {
+            if (t.confidence === 'confirmed') confirmed.push(t.name)
+          }
+        }
+      }
+      const uniq = [...new Set(confirmed)].slice(0, 12)
+      if (uniq.length) techStack = uniq.join(', ')
+    } catch { /* non-fatal */ }
+
+    function findField(sectionId: string, fieldId: string): string {
+      const sec = (eng.sections || []).find((s: any) => s.id === sectionId)
+      return sec?.fields?.find((f: any) => f.id === fieldId)?.answer || ''
+    }
+
+    const intel = Array.isArray(eng.intel_cards) ? eng.intel_cards : []
+    const bgCard = intel.find((c: any) => /background/i.test(c.title))?.body || ''
+    const revCard = intel.find((c: any) => /revenue/i.test(c.title))?.body || ''
+    const observations = intel
+      .filter((c: any) => /observ/i.test(c.title))
+      .map((c: any) => `- ${c.body}`)
+      .join('\n')
+
+    const goals = findField('section_10', '10a')
+    const budget = findField('section_10', '10f')
+    const pain = findField('section_10', '10b')
+
+    const readinessLine = eng.readiness_score != null
+      ? `${eng.readiness_label || 'Unknown'} (${eng.readiness_score}/100)`
+      : 'not calculated'
+
+    const brief = [
+      '=== DISCOVERY INTELLIGENCE FOR THIS PROSPECT ===',
+      `Business: ${eng.client_name} | Industry: ${eng.client_industry || 'unknown'} | Readiness: ${readinessLine}`,
+      '',
+      bgCard ? `BACKGROUND: ${bgCard}` : 'BACKGROUND: (not available)',
+      revCard ? `REVENUE: ${revCard}` : 'REVENUE: (not captured)',
+      `KNOWN TECH STACK: ${techStack}`,
+      goals ? `THEIR GOALS: ${goals}` : 'THEIR GOALS: (not captured)',
+      budget ? `THEIR BUDGET: ${budget}` : 'THEIR BUDGET: (not captured)',
+      pain ? `THEIR PAIN: ${pain}` : 'THEIR PAIN: (not captured)',
+      observations ? `KEY OBSERVATIONS:\n${observations}` : '',
+      '==============================================',
+    ].filter(Boolean).join('\n')
+
+    return { brief, engagement_id: eng.id }
+  } catch {
+    return null
+  }
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

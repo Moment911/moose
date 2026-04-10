@@ -20,8 +20,106 @@ const C = {
   amberSoft: '#FFFBEB',
 }
 
-const BUDGET_OPTIONS = ['Under $1k', '$1-3k', '$3-5k', '$5-10k', '$10k+']
-const COMM_OPTIONS = ['Email', 'Phone', 'Slack', 'Text']
+// Internal stable keys — never displayed. The localized labels live in T below.
+const BUDGET_KEYS = ['under_1k', '1_3k', '3_5k', '5_10k', '10k_plus']
+const COMM_KEYS = ['email', 'phone', 'sms', 'slack', 'video']
+
+const T = {
+  en: {
+    welcome_title: 'Tell us about your business',
+    welcome_body: "Before your discovery call, we'd love to learn a bit about your business. This takes about 10 minutes.",
+    welcome_with_agency: (agency) => `Before your discovery call with ${agency}, we'd love to learn a bit about your business. This takes about 10 minutes.`,
+    company_name: 'Company Name',
+    company_placeholder: 'Acme Corp',
+    website_url: 'All Website URLs',
+    website_placeholder: 'mainsite.com',
+    website_secondary_placeholder: 'additional-site.com',
+    add_website: '+ Add another website',
+    industry: 'Industry',
+    industry_placeholder: 'HVAC / Dental / Real Estate / etc.',
+    team_size: 'Team Size',
+    team_size_placeholder: 'e.g. 12 employees',
+    goals_card_title: 'Top 3 Business Goals',
+    goal_1_label: 'Goal 1',
+    goal_2_label: 'Goal 2',
+    goal_3_label: 'Goal 3',
+    goal_1_placeholder: "What's your #1 priority?",
+    goal_2_placeholder: 'Next most important...',
+    goal_3_placeholder: 'And the third...',
+    challenge: 'Biggest Challenge Right Now',
+    challenge_placeholder: "What's keeping you up at night?",
+    current_tools: 'Current Tools / Platforms in Use',
+    current_tools_placeholder: 'CRM, email, website builder, scheduling, etc. Just list what you use.',
+    budget: 'Monthly Marketing Budget',
+    budget_options: { under_1k: 'Under $1k', '1_3k': '$1-3k', '3_5k': '$3-5k', '5_10k': '$5-10k', '10k_plus': '$10k+' },
+    comm_prefs: 'Preferred Communication',
+    comm_options: { email: 'Email', phone: 'Phone', sms: 'Text/SMS', slack: 'Slack', video: 'Video call' },
+    anything_else: 'Anything Else We Should Know',
+    anything_placeholder: 'Open floor — anything you think we should know before the call.',
+    submit: 'Submit',
+    submitting: 'Submitting...',
+    submitted_title: 'Thank you!',
+    submitted_body: "We've received your information and we're looking forward to our call.",
+    submitted_extra: 'You can close this tab.',
+    expired_title: 'This link has expired',
+    expired_body: 'Please contact your strategist for a new link.',
+    invalid_title: 'Link not found',
+    invalid_body: 'This discovery form link is invalid. Please contact your strategist for a new one.',
+    saving: 'Saving…',
+    saved: 'Auto-saved',
+    discovery_prep: 'Discovery Prep',
+    welcome_h1: 'Before your discovery call',
+    lang_en: 'EN',
+    lang_es: 'ES',
+  },
+  es: {
+    welcome_title: 'Cuéntenos sobre su negocio',
+    welcome_body: 'Antes de su llamada de descubrimiento, nos gustaría conocer un poco más sobre su negocio. Esto toma aproximadamente 10 minutos.',
+    welcome_with_agency: (agency) => `Antes de su llamada de descubrimiento con ${agency}, nos gustaría conocer un poco más sobre su negocio. Esto toma aproximadamente 10 minutos.`,
+    company_name: 'Nombre de la Empresa',
+    company_placeholder: 'Empresa Acme',
+    website_url: 'URLs del Sitio Web',
+    website_placeholder: 'sitioprincipal.com',
+    website_secondary_placeholder: 'sitio-adicional.com',
+    add_website: '+ Agregar otro sitio web',
+    industry: 'Industria',
+    industry_placeholder: 'HVAC / Dental / Bienes raíces / etc.',
+    team_size: 'Tamaño del Equipo',
+    team_size_placeholder: 'ej. 12 empleados',
+    goals_card_title: 'Las 3 Principales Metas de Negocio',
+    goal_1_label: 'Meta 1',
+    goal_2_label: 'Meta 2',
+    goal_3_label: 'Meta 3',
+    goal_1_placeholder: '¿Cuál es su prioridad #1?',
+    goal_2_placeholder: 'La siguiente más importante...',
+    goal_3_placeholder: 'Y la tercera...',
+    challenge: 'El Mayor Desafío Ahora Mismo',
+    challenge_placeholder: '¿Qué es lo que más le preocupa?',
+    current_tools: 'Herramientas y Plataformas Actuales',
+    current_tools_placeholder: 'CRM, email, constructor de sitios, programación, etc. Liste lo que usa actualmente.',
+    budget: 'Presupuesto Mensual de Marketing',
+    budget_options: { under_1k: 'Menos de $1,000', '1_3k': '$1,000 – $3,000', '3_5k': '$3,000 – $5,000', '5_10k': '$5,000 – $10,000', '10k_plus': '$10,000+' },
+    comm_prefs: 'Comunicación Preferida',
+    comm_options: { email: 'Correo electrónico', phone: 'Teléfono', sms: 'Mensaje de texto/SMS', slack: 'Slack', video: 'Videollamada' },
+    anything_else: '¿Hay Algo Más Que Debamos Saber?',
+    anything_placeholder: 'Espacio abierto — cualquier cosa que crea que debamos saber antes de la llamada.',
+    submit: 'Enviar',
+    submitting: 'Enviando...',
+    submitted_title: '¡Gracias!',
+    submitted_body: 'Hemos recibido su información y esperamos con ansias nuestra llamada.',
+    submitted_extra: 'Puede cerrar esta pestaña.',
+    expired_title: 'Este enlace ha expirado',
+    expired_body: 'Comuníquese con su estratega para obtener un nuevo enlace.',
+    invalid_title: 'Enlace no encontrado',
+    invalid_body: 'Este enlace del formulario de descubrimiento no es válido. Comuníquese con su estratega.',
+    saving: 'Guardando…',
+    saved: 'Guardado automáticamente',
+    discovery_prep: 'Preparación de Descubrimiento',
+    welcome_h1: 'Antes de su llamada de descubrimiento',
+    lang_en: 'EN',
+    lang_es: 'ES',
+  },
+}
 
 export default function DiscoveryClientFormPage() {
   const { token } = useParams()
@@ -44,8 +142,22 @@ export default function DiscoveryClientFormPage() {
   })
   const [saving, setSaving] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [lang, setLang] = useState('en')
   const saveTimer = useRef(null)
   const mountedRef = useRef(false)
+
+  // Language preference: rehydrate from localStorage on mount, persist on change
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('koto_form_lang')
+      if (stored === 'en' || stored === 'es') setLang(stored)
+    } catch { /* SSR / privacy mode */ }
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem('koto_form_lang', lang) } catch { /* ignore */ }
+  }, [lang])
+
+  const t = T[lang] || T.en
 
   // Load the engagement context
   useEffect(() => {
@@ -189,7 +301,6 @@ export default function DiscoveryClientFormPage() {
       <FullPage>
         <div style={{ textAlign: 'center', padding: 60 }}>
           <Loader2 size={28} className="anim-spin" color={C.teal} />
-          <div style={{ marginTop: 12, color: C.muted, fontSize: 14 }}>Loading…</div>
         </div>
       </FullPage>
     )
@@ -197,13 +308,11 @@ export default function DiscoveryClientFormPage() {
 
   if (error === 'expired') {
     return (
-      <FullPage>
+      <FullPage lang={lang} setLang={setLang} t={t}>
         <div style={{ textAlign: 'center', padding: 50, maxWidth: 480, margin: '0 auto' }}>
           <AlertTriangle size={32} color={C.amber} />
-          <h1 style={{ fontSize: 22, color: C.text, margin: '12px 0 8px' }}>This link has expired</h1>
-          <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.6 }}>
-            Please contact your strategist for a new link.
-          </p>
+          <h1 style={{ fontSize: 22, color: C.text, margin: '12px 0 8px' }}>{t.expired_title}</h1>
+          <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.6 }}>{t.expired_body}</p>
         </div>
       </FullPage>
     )
@@ -211,13 +320,11 @@ export default function DiscoveryClientFormPage() {
 
   if (error === 'invalid' || !info) {
     return (
-      <FullPage>
+      <FullPage lang={lang} setLang={setLang} t={t}>
         <div style={{ textAlign: 'center', padding: 50, maxWidth: 480, margin: '0 auto' }}>
           <AlertTriangle size={32} color={C.amber} />
-          <h1 style={{ fontSize: 22, color: C.text, margin: '12px 0 8px' }}>Link not found</h1>
-          <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.6 }}>
-            This discovery form link is invalid. Please contact your strategist for a new one.
-          </p>
+          <h1 style={{ fontSize: 22, color: C.text, margin: '12px 0 8px' }}>{t.invalid_title}</h1>
+          <p style={{ color: C.muted, fontSize: 15, lineHeight: 1.6 }}>{t.invalid_body}</p>
         </div>
       </FullPage>
     )
@@ -225,17 +332,17 @@ export default function DiscoveryClientFormPage() {
 
   if (submitted) {
     return (
-      <FullPage>
+      <FullPage lang={lang} setLang={setLang} t={t}>
         <div style={{ textAlign: 'center', padding: 50, maxWidth: 520, margin: '0 auto' }}>
           <CheckCircle2 size={40} color={C.green} />
           <h1 style={{ fontSize: 24, color: C.text, margin: '16px 0 12px', fontFamily: 'var(--font-display)', fontWeight: 800 }}>
-            Thank you!
+            {t.submitted_title}
           </h1>
           <p style={{ color: C.mutedDark, fontSize: 16, lineHeight: 1.65, marginBottom: 10 }}>
-            We've received your information and we're looking forward to our call.
+            {t.submitted_body}
           </p>
           <p style={{ color: C.muted, fontSize: 14, lineHeight: 1.5 }}>
-            You can close this tab.
+            {t.submitted_extra}
           </p>
         </div>
       </FullPage>
@@ -243,22 +350,22 @@ export default function DiscoveryClientFormPage() {
   }
 
   return (
-    <FullPage>
+    <FullPage lang={lang} setLang={setLang} t={t}>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 20px 80px' }}>
         {/* Welcome header */}
         <div style={{ marginBottom: 28 }}>
           <div style={{
             fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6,
           }}>
-            Discovery Prep
+            {t.discovery_prep}
           </div>
           <h1 style={{
             fontSize: 28, fontWeight: 800, color: C.text, margin: 0, fontFamily: 'var(--font-display)', lineHeight: 1.2,
           }}>
-            Before your discovery call
+            {t.welcome_h1}
           </h1>
           <p style={{ fontSize: 16, color: C.mutedDark, lineHeight: 1.6, marginTop: 10 }}>
-            Before your discovery call with <strong>{info.agency_name}</strong>, we'd love to learn a bit about your business. This takes about 10 minutes.
+            {t.welcome_with_agency(info.agency_name)}
           </p>
         </div>
 
@@ -267,20 +374,20 @@ export default function DiscoveryClientFormPage() {
           position: 'sticky', top: 0, background: C.bg, padding: '8px 0', fontSize: 12,
           color: C.muted, textAlign: 'right', zIndex: 5,
         }}>
-          {saving ? <span>Saving…</span> : <span>Auto-saved</span>}
+          {saving ? <span>{t.saving}</span> : <span>{t.saved}</span>}
         </div>
 
         <Card>
-          <Label>Company name</Label>
-          <Input value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} placeholder="Acme Corp" />
+          <Label>{t.company_name}</Label>
+          <Input value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))} placeholder={t.company_placeholder} />
 
-          <Label>All website URLs</Label>
+          <Label>{t.website_url}</Label>
           {form.websites.map((w, i) => (
             <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
               <input
                 value={w}
                 onChange={e => setWebsite(i, e.target.value)}
-                placeholder={i === 0 ? 'mainsite.com' : 'additional-site.com'}
+                placeholder={i === 0 ? t.website_placeholder : t.website_secondary_placeholder}
                 style={inputStyle}
               />
               {form.websites.length > 1 && (
@@ -295,53 +402,54 @@ export default function DiscoveryClientFormPage() {
             onClick={() => setForm(f => ({ ...f, websites: [...f.websites, ''] }))}
             style={{ ...linkBtnStyle }}
           >
-            <Plus size={12} /> Add another website
+            <Plus size={12} /> {t.add_website}
           </button>
 
-          <Label>Industry</Label>
-          <Input value={form.industry} onChange={v => setForm(f => ({ ...f, industry: v }))} placeholder="HVAC / Dental / Real Estate / etc." />
+          <Label>{t.industry}</Label>
+          <Input value={form.industry} onChange={v => setForm(f => ({ ...f, industry: v }))} placeholder={t.industry_placeholder} />
 
-          <Label>Team size</Label>
-          <Input value={form.team_size} onChange={v => setForm(f => ({ ...f, team_size: v }))} placeholder="e.g. 12 employees" />
+          <Label>{t.team_size}</Label>
+          <Input value={form.team_size} onChange={v => setForm(f => ({ ...f, team_size: v }))} placeholder={t.team_size_placeholder} />
         </Card>
 
         <Card>
-          <CardTitle>Top 3 business goals</CardTitle>
-          <Label>Goal 1</Label>
-          <Input value={form.goal_1} onChange={v => setForm(f => ({ ...f, goal_1: v }))} placeholder="What's your #1 priority?" />
-          <Label>Goal 2</Label>
-          <Input value={form.goal_2} onChange={v => setForm(f => ({ ...f, goal_2: v }))} placeholder="Next most important..." />
-          <Label>Goal 3</Label>
-          <Input value={form.goal_3} onChange={v => setForm(f => ({ ...f, goal_3: v }))} placeholder="And the third..." />
+          <CardTitle>{t.goals_card_title}</CardTitle>
+          <Label>{t.goal_1_label}</Label>
+          <Input value={form.goal_1} onChange={v => setForm(f => ({ ...f, goal_1: v }))} placeholder={t.goal_1_placeholder} />
+          <Label>{t.goal_2_label}</Label>
+          <Input value={form.goal_2} onChange={v => setForm(f => ({ ...f, goal_2: v }))} placeholder={t.goal_2_placeholder} />
+          <Label>{t.goal_3_label}</Label>
+          <Input value={form.goal_3} onChange={v => setForm(f => ({ ...f, goal_3: v }))} placeholder={t.goal_3_placeholder} />
         </Card>
 
         <Card>
-          <Label>Biggest challenge right now</Label>
+          <Label>{t.challenge}</Label>
           <Textarea
             value={form.biggest_challenge}
             onChange={v => setForm(f => ({ ...f, biggest_challenge: v }))}
-            placeholder="What's keeping you up at night?"
+            placeholder={t.challenge_placeholder}
           />
         </Card>
 
         <Card>
-          <Label>Current tools / platforms in use</Label>
+          <Label>{t.current_tools}</Label>
           <Textarea
             value={form.current_tools}
             onChange={v => setForm(f => ({ ...f, current_tools: v }))}
-            placeholder="CRM, email, website builder, scheduling, etc. Just list what you use."
+            placeholder={t.current_tools_placeholder}
           />
         </Card>
 
         <Card>
-          <Label>Monthly marketing budget range</Label>
+          <Label>{t.budget}</Label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {BUDGET_OPTIONS.map(opt => {
-              const active = form.monthly_budget === opt
+            {BUDGET_KEYS.map(key => {
+              const label = t.budget_options[key]
+              const active = form.monthly_budget === key
               return (
                 <button
-                  key={opt}
-                  onClick={() => setForm(f => ({ ...f, monthly_budget: opt }))}
+                  key={key}
+                  onClick={() => setForm(f => ({ ...f, monthly_budget: key }))}
                   style={{
                     padding: '10px 16px', borderRadius: 10,
                     background: active ? C.teal : C.white,
@@ -349,21 +457,22 @@ export default function DiscoveryClientFormPage() {
                     border: active ? 'none' : `1px solid ${C.border}`,
                     fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   }}
-                >{opt}</button>
+                >{label}</button>
               )
             })}
           </div>
         </Card>
 
         <Card>
-          <Label>Preferred communication</Label>
+          <Label>{t.comm_prefs}</Label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {COMM_OPTIONS.map(opt => {
-              const active = (form.comm_prefs || []).includes(opt)
+            {COMM_KEYS.map(key => {
+              const label = t.comm_options[key]
+              const active = (form.comm_prefs || []).includes(key)
               return (
                 <button
-                  key={opt}
-                  onClick={() => toggleComm(opt)}
+                  key={key}
+                  onClick={() => toggleComm(key)}
                   style={{
                     padding: '10px 16px', borderRadius: 10,
                     background: active ? C.teal : C.white,
@@ -374,7 +483,7 @@ export default function DiscoveryClientFormPage() {
                   }}
                 >
                   {active && <Check size={13} />}
-                  {opt}
+                  {label}
                 </button>
               )
             })}
@@ -382,11 +491,11 @@ export default function DiscoveryClientFormPage() {
         </Card>
 
         <Card>
-          <Label>Anything else we should know</Label>
+          <Label>{t.anything_else}</Label>
           <Textarea
             value={form.anything_else}
             onChange={v => setForm(f => ({ ...f, anything_else: v }))}
-            placeholder="Open floor — anything you think we should know before the call."
+            placeholder={t.anything_placeholder}
             minHeight={110}
           />
         </Card>
@@ -398,7 +507,7 @@ export default function DiscoveryClientFormPage() {
             padding: '16px 20px', fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 12,
           }}
         >
-          Submit
+          {t.submit}
         </button>
       </div>
     </FullPage>
@@ -408,7 +517,7 @@ export default function DiscoveryClientFormPage() {
 // ─────────────────────────────────────────────────────────────
 // Layout + shared primitives
 // ─────────────────────────────────────────────────────────────
-function FullPage({ children }) {
+function FullPage({ children, lang, setLang, t }) {
   return (
     <div style={{
       minHeight: '100vh', background: C.bg, fontFamily: 'var(--font-body)',
@@ -416,6 +525,32 @@ function FullPage({ children }) {
       <div style={{ padding: '18px 20px', borderBottom: `1px solid ${C.border}`, background: C.white }}>
         <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center' }}>
           <img src="/koto_logo.svg" alt="Koto" style={{ height: 26, width: 'auto' }} />
+          {setLang && (
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 4, padding: 3, background: C.bg, borderRadius: 999 }}>
+              {['en', 'es'].map((code) => {
+                const active = lang === code
+                return (
+                  <button
+                    key={code}
+                    onClick={() => setLang(code)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 999,
+                      background: active ? C.teal : 'transparent',
+                      color: active ? '#fff' : C.muted,
+                      border: 'none',
+                      fontSize: 12,
+                      fontWeight: 800,
+                      letterSpacing: '.05em',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {t ? t['lang_' + code] : code.toUpperCase()}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
       {children}

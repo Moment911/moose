@@ -152,6 +152,7 @@ export default function Sidebar() {
             <Section label="Clients"/>
             <NavLink to="/clients" startsWith icon={Users} label="Clients"/>
             <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T}/>
+            <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub/>
             <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
             <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks"/>
             <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk"/>

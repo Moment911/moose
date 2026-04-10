@@ -92,6 +92,9 @@ export async function POST(req: NextRequest) {
               script_objections, script_closing, business_context } = body
 
       // Build the system prompt for Retell
+      // The {{discovery_brief}} placeholder is substituted at call start time
+      // by the voice webhook handler when a matching discovery engagement
+      // exists for the prospect. If there is no brief it expands to empty.
       const systemPrompt = `You are ${name}, an AI voice agent for a marketing agency.
 
 PERSONALITY: ${personality || 'Professional, friendly, confident'}
@@ -99,6 +102,8 @@ GOAL: ${goal || 'Schedule a consultation appointment'}
 
 BUSINESS CONTEXT:
 ${business_context || 'You are calling local businesses to offer marketing services.'}
+
+{{discovery_brief}}
 
 CALL SCRIPT:
 Opening: ${script_intro || 'Hi, this is ' + name + '. I\'m reaching out because...'}

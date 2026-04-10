@@ -7,7 +7,8 @@ import {
   MessageSquare, Globe, Trash2, Send, Zap, FileText, List, CheckCircle2, AlertOctagon, Lightbulb, TrendingDown,
   Database, PanelRightClose, PanelRightOpen,
   MoreVertical, Clock, UserPlus, Archive, User, TrendingUp,
-  ClipboardList, Mail, Printer, CalendarDays, StickyNote, Award, AlertCircle
+  ClipboardList, Mail, Printer, CalendarDays, StickyNote, Award, AlertCircle,
+  ArrowRight
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
@@ -583,6 +584,7 @@ function DetailView({ aid, id, onBack }) {
   const [mode, setMode] = useState('document') // 'document' | 'interview' | 'profile' | 'sessions'
   const [showLivePanel, setShowLivePanel] = useState(false)
   const [busyAudit, setBusyAudit] = useState(false)
+  const [busyOnboarding, setBusyOnboarding] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showAssign, setShowAssign] = useState(false)
@@ -694,6 +696,35 @@ function DetailView({ aid, id, onBack }) {
       toast.error('Audit request failed')
     } finally {
       setBusyAudit(false)
+    }
+  }
+
+  async function pushToOnboarding() {
+    setBusyOnboarding(true)
+    const loadingToast = toast.loading('Syncing to onboarding…')
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'push_to_onboarding',
+          engagement_id: id,
+          client_id: eng.client_id,
+          agency_id: aid,
+        }),
+      }).then(r => r.json())
+      toast.dismiss(loadingToast)
+      if (res?.ok) {
+        toast.success(`${res.fields_pushed} fields synced to onboarding ✓`)
+        // Update local state so the button immediately reflects "synced"
+        setEng(prev => prev ? { ...prev, pushed_to_onboarding_at: new Date().toISOString() } : prev)
+      } else {
+        toast.error(res?.error || 'Sync failed')
+      }
+    } catch {
+      toast.dismiss(loadingToast)
+      toast.error('Sync request failed')
+    } finally {
+      setBusyOnboarding(false)
     }
   }
 
@@ -813,6 +844,17 @@ function DetailView({ aid, id, onBack }) {
               icon={busyAudit ? Loader2 : Zap}
               label={busyAudit ? 'Generating…' : (eng.audit_data ? 'View Audit' : 'Generate Audit')}
               spinning={busyAudit}
+            />
+          )}
+          {(eng.status === 'compiled' || eng.status === 'call_complete') && eng.client_id && (
+            <HeaderBtn
+              onClick={eng.pushed_to_onboarding_at ? undefined : pushToOnboarding}
+              disabled={busyOnboarding || !!eng.pushed_to_onboarding_at}
+              color={C.text}
+              icon={busyOnboarding ? Loader2 : (eng.pushed_to_onboarding_at ? Check : ArrowRight)}
+              label={busyOnboarding ? 'Syncing…' : (eng.pushed_to_onboarding_at ? '✓ Synced' : '→ Onboarding')}
+              spinning={busyOnboarding}
+              outlined
             />
           )}
           <HeaderBtn

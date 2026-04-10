@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { enrichCallerData } from '@/lib/preCallIntelligence'
-import { buildRetellDynamicVars } from '@/lib/dynamicPromptBuilder'
+import { buildRetellDynamicVars, fetchDiscoveryBrief } from '@/lib/dynamicPromptBuilder'
 import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
 import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
 import { createVideoVoicemail } from '@/lib/heygenVideoEngine'
@@ -45,6 +45,33 @@ export async function POST(req: NextRequest) {
           if (callerPhone) {
             preCallIntel = await enrichCallerData(callerPhone)
             const dynamicVars = buildRetellDynamicVars(preCallIntel)
+
+            // Pull discovery brief if a matching engagement exists for this prospect
+            try {
+              const businessName = call.metadata?.business_name
+                || body.metadata?.business_name
+                || (preCallIntel as any)?.lead?.prospect_company
+                || ''
+              const discoveryAgencyId = body.metadata?.agency_id
+                || call.metadata?.agency_id
+                || (preCallIntel as any)?.lead?.agency_id
+                || ''
+              if (businessName && discoveryAgencyId) {
+                const briefResult = await fetchDiscoveryBrief(discoveryAgencyId, businessName)
+                if (briefResult) {
+                  ;(dynamicVars as any).discovery_brief = briefResult.brief
+                  await s.from('koto_system_logs').insert({
+                    level: 'info',
+                    service: 'discovery',
+                    action: 'retell_brief_injected',
+                    message: `Discovery brief injected for ${businessName}`,
+                    metadata: { call_id: callId, engagement_id: briefResult.engagement_id, agency_id: discoveryAgencyId },
+                  })
+                }
+              }
+            } catch (e: any) {
+              console.error('Discovery brief lookup failed (non-fatal):', e?.message)
+            }
 
             // Push dynamic variables to Retell for this call
             const retellKey = process.env.RETELL_API_KEY
