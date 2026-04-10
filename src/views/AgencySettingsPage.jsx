@@ -189,6 +189,9 @@ export default function AgencySettingsPage() {
   // Onboarding / proposals
   const [onboardingTitle, setOnboardingTitle] = useState('Tell us about your business')
   const [onboardingIntro, setOnboardingIntro] = useState('')
+  const [onboardingPhone, setOnboardingPhone] = useState('')
+  const [onboardingAgentId, setOnboardingAgentId] = useState('')
+  const [creatingOnboardingAgent, setCreatingOnboardingAgent] = useState(false)
   const [modules, setModules] = useState([])
   const [loadingData, setLoadingData] = useState(true)
 
@@ -215,6 +218,8 @@ export default function AgencySettingsPage() {
         const meta = ag.metadata || {}
         setOnboardingTitle(meta.onboarding_title || 'Tell us about your business')
         setOnboardingIntro(meta.onboarding_intro || '')
+        setOnboardingPhone(ag.onboarding_phone_number || '')
+        setOnboardingAgentId(ag.onboarding_agent_id || '')
         setEmailSettings({ sender_name:ag.sender_name||'', sender_email:ag.sender_email||'', reply_to_email:ag.reply_to_email||'', support_email:ag.support_email||'', billing_email:ag.billing_email||'', noreply_email:ag.noreply_email||'', email_signature:ag.email_signature||'', email_domain_verified:ag.email_domain_verified||false })
       }
       setMembers(mem||[])
@@ -252,9 +257,37 @@ export default function AgencySettingsPage() {
     setSaving(true)
     const {data:ag} = await supabase.from('agencies').select('metadata').eq('id', aid).single()
     const meta = ag?.metadata || {}
-    await supabase.from('agencies').update({ metadata:{...meta, onboarding_title:onboardingTitle, onboarding_intro:onboardingIntro} }).eq('id', aid)
-    toast.success('Onboarding template saved')
+    // Save both the template copy AND the onboarding phone number on the same
+    // click so the user doesn't have to hunt for a separate save button.
+    await supabase.from('agencies').update({
+      metadata: { ...meta, onboarding_title: onboardingTitle, onboarding_intro: onboardingIntro },
+      onboarding_phone_number: onboardingPhone.trim() || null,
+    }).eq('id', aid)
+    toast.success('Onboarding settings saved')
     setSaving(false)
+  }
+
+  async function createOnboardingAgent() {
+    if (!aid) return
+    setCreatingOnboardingAgent(true)
+    try {
+      const res = await fetch('/api/onboarding/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create_onboarding_agent', agency_id: aid }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || json.error) {
+        toast.error(json.error || 'Failed to create agent')
+      } else {
+        setOnboardingAgentId(json.agent_id || '')
+        toast.success('Onboarding Retell agent created — now assign a phone number to it in Retell')
+      }
+    } catch (e) {
+      toast.error('Failed to create agent')
+    } finally {
+      setCreatingOnboardingAgent(false)
+    }
   }
 
   async function addAgent() {
@@ -646,6 +679,70 @@ export default function AgencySettingsPage() {
             <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, lineHeight:1.65 }}>
               Business name · Industry · Website · Phone · Service area · Key goals · Monthly budget · Who's the decision maker
             </div>
+          </div>
+
+          {/* ── Voice Onboarding sub-section ── */}
+          <div style={{
+            marginTop: 16,
+            padding: '16px 18px',
+            background: '#f0fffe',
+            borderRadius: 12,
+            border: '1.5px solid #00C2CB40',
+          }}>
+            <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#0a0a0a', marginBottom: 4 }}>
+              📞 Voice Onboarding
+            </div>
+            <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 14 }}>
+              Let clients complete their onboarding by phone. A Retell AI agent asks every question, saves answers in real time, and hands off to your team when the call ends. One phone number per agency.
+            </div>
+
+            <Field label="Onboarding phone number" hint="The Retell-backed number clients call to start a voice onboarding session. Must be assigned to your onboarding agent in Retell.">
+              <input
+                value={onboardingPhone}
+                onChange={(e) => setOnboardingPhone(e.target.value)}
+                placeholder="+1 (555) 555-0199"
+                style={INP}
+              />
+            </Field>
+
+            {onboardingAgentId ? (
+              <div style={{
+                marginTop: 10,
+                padding: '10px 12px',
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: 8,
+                fontSize: 12,
+                color: '#166534',
+                fontFamily: 'ui-monospace,monospace',
+              }}>
+                ✓ Retell agent linked — <code>{onboardingAgentId}</code>
+              </div>
+            ) : (
+              <div style={{ marginTop: 10 }}>
+                <button
+                  onClick={createOnboardingAgent}
+                  disabled={creatingOnboardingAgent}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: 9,
+                    border: 'none',
+                    background: '#00C2CB',
+                    color: '#fff',
+                    fontSize: 13,
+                    fontWeight: 800,
+                    cursor: creatingOnboardingAgent ? 'default' : 'pointer',
+                    fontFamily: FH,
+                    opacity: creatingOnboardingAgent ? 0.7 : 1,
+                  }}
+                >
+                  {creatingOnboardingAgent ? 'Creating…' : '+ Create Retell Onboarding Agent'}
+                </button>
+                <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, lineHeight: 1.5 }}>
+                  This creates a dedicated agent in Retell with the <code>save_answer</code> tool wired up. After creating, assign your chosen phone number to the agent inside the Retell dashboard.
+                </div>
+              </div>
+            )}
           </div>
         </SectionCard>
       )

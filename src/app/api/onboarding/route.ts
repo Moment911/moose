@@ -12,6 +12,18 @@ function getSupabase() {
 }
 function getResend() { return new Resend(process.env.RESEND_API_KEY || '') }
 
+// Minimal HTML escaping for email template interpolation. The emails we
+// send include client/agency names pulled from the database — always
+// escape before slotting them into markup.
+function escapeHtml(s: any): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 // ─────────────────────────────────────────────────────────────
 // Form-data → clients column mapper
 //
@@ -600,6 +612,130 @@ export async function POST(req: NextRequest) {
       }).catch(() => {}) // don't await — run in background
 
       return NextResponse.json({ ok: true, agent_configured: !existing })
+    }
+
+    // ── Send missing-fields email ────────────────────────────────────────────
+    // Manually triggered from ClientDetailPage after a voice onboarding call
+    // ends incomplete. Sends a list of the specific questions still needing
+    // answers to any email address — commonly forwarded to a teammate who can
+    // fill in what the caller couldn't. Never sent automatically.
+    if (action === 'send_missing_fields_email') {
+      const toEmail: string = (body.to_email || '').trim()
+      const toName: string = (body.to_name || '').trim()
+      if (!client_id || !toEmail) {
+        return NextResponse.json({ error: 'client_id and to_email required' }, { status: 400 })
+      }
+
+      const { data: client } = await sb
+        .from('clients')
+        .select('*')
+        .eq('id', client_id)
+        .maybeSingle()
+
+      if (!client) {
+        return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+      }
+
+      // Keep this list in sync with ONBOARDING_QUESTIONS in
+      // src/app/api/onboarding/voice/route.ts — both paths should agree
+      // on what counts as "missing".
+      const QUESTION_LIST: Array<{ field: string; question: string; priority: 1 | 2 | 3 }> = [
+        { field: 'welcome_statement', question: "Tell us about your business in your own words — what you do, who you serve, and what's most important for us to know.", priority: 1 },
+        { field: 'owner_name',        question: "What's your full name and your role at the company?", priority: 1 },
+        { field: 'phone',             question: "What's the best phone number to reach you directly?", priority: 1 },
+        { field: 'website',           question: "What's your website URL?", priority: 1 },
+        { field: 'industry',          question: "How would you describe your industry or type of business?", priority: 1 },
+        { field: 'city',              question: "What city and state are you located in?", priority: 1 },
+        { field: 'num_employees',     question: "How many people work for you right now?", priority: 2 },
+        { field: 'year_founded',      question: "What year was the business founded?", priority: 2 },
+        { field: 'primary_service',   question: "What's your primary service or product?", priority: 1 },
+        { field: 'secondary_services',question: "What other services or products do you offer?", priority: 2 },
+        { field: 'target_customer',   question: "Describe your ideal customer. Who do you love working with?", priority: 1 },
+        { field: 'avg_deal_size',     question: "What's the average value of a typical job or transaction?", priority: 2 },
+        { field: 'marketing_budget',  question: "How much do you currently spend on marketing each month?", priority: 2 },
+        { field: 'marketing_channels',question: "What marketing channels are you using right now?", priority: 2 },
+        { field: 'crm_used',          question: "What CRM or software do you use to manage leads and customers?", priority: 2 },
+        { field: 'competitor_1',      question: "Who's your biggest competitor?", priority: 3 },
+        { field: 'unique_selling_prop',question:"Why should someone choose you over your competitors?", priority: 2 },
+        { field: 'referral_sources',  question: "Where do most of your best customers come from?", priority: 2 },
+        { field: 'notes',             question: "What are your top goals for the next 12 months?", priority: 1 },
+      ]
+
+      const answers = (client.onboarding_answers && typeof client.onboarding_answers === 'object') ? client.onboarding_answers : {}
+      const missing = QUESTION_LIST.filter((q) => {
+        const col = (client as any)[q.field]
+        const jsonb = (answers as any)[q.field]
+        const hasCol = col !== null && col !== undefined && col !== ''
+        const hasJsonb = jsonb !== null && jsonb !== undefined && jsonb !== ''
+        return !hasCol && !hasJsonb
+      }).sort((a, b) => a.priority - b.priority)
+
+      if (missing.length === 0) {
+        return NextResponse.json({ ok: true, sent: false, reason: 'No missing fields — nothing to email' })
+      }
+
+      const aid = agency_id || client.agency_id
+      const { data: agency } = aid
+        ? await sb.from('agencies').select('name, brand_name, onboarding_phone_number').eq('id', aid).maybeSingle()
+        : { data: null as any }
+
+      const agencyName = agency?.brand_name || agency?.name || 'Your Agency'
+      const clientName = client.name || 'your business'
+      const firstName = (toName || '').split(' ')[0] || 'there'
+      const onboardingUrl = `${APP_URL}/onboard/${client_id}`
+      const phoneLine = agency?.onboarding_phone_number
+        ? `<div style="font-size:13px;color:#374151;margin-top:6px">or call us at <strong>${agency.onboarding_phone_number}</strong> and our AI will walk you through it by phone.</div>`
+        : ''
+
+      const missingHtml = missing
+        .map((q) => `<li style="margin-bottom:8px;color:#374151;line-height:1.5">${escapeHtml(q.question)}</li>`)
+        .join('')
+
+      const emailHtml = `
+        <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+          <div style="background:linear-gradient(135deg,#00C2CB,#0099A8);padding:28px;border-radius:14px;margin-bottom:24px;color:#fff">
+            <h1 style="margin:0 0 10px;font-size:22px">We still need a few details for ${escapeHtml(clientName)}</h1>
+            <p style="margin:0;opacity:0.9;font-size:14px;line-height:1.5">Hi ${escapeHtml(firstName)}, ${escapeHtml(agencyName)} is setting up the account for ${escapeHtml(clientName)} and we're missing a few answers. You can either fill out the quick form or call in.</p>
+          </div>
+
+          <div style="background:#f9f9f9;border-radius:10px;padding:18px 20px;margin-bottom:20px">
+            <div style="font-weight:800;margin-bottom:10px;font-size:14px;color:#111">Here's what we still need:</div>
+            <ul style="margin:0;padding-left:18px;font-size:13px">
+              ${missingHtml}
+            </ul>
+          </div>
+
+          <div style="text-align:center;margin-bottom:20px">
+            <a href="${onboardingUrl}" style="display:inline-block;padding:13px 28px;background:#00C2CB;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">
+              Complete My Section →
+            </a>
+            ${phoneLine}
+          </div>
+
+          <div style="font-size:12px;color:#6b7280;text-align:center">
+            This should only take 5-10 minutes. Your answers save automatically.
+          </div>
+        </div>
+      `
+
+      try {
+        const resend = getResend()
+        await resend.emails.send({
+          from: 'onboarding@hellokoto.com',
+          to: toEmail,
+          subject: `We still need a few details for ${clientName}`,
+          html: emailHtml,
+        })
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message || 'Failed to send email' }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        ok: true,
+        sent: true,
+        sent_to: toEmail,
+        missing_count: missing.length,
+      })
     }
 
     // ── Send access guide email ──────────────────────────────────────────────

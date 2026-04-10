@@ -102,6 +102,18 @@ export default function ClientDetailPage() {
   const [accessGuideEmail, setAccessGuideEmail] = useState('')
   const [sendingAccessGuide, setSendingAccessGuide] = useState(false)
   const [accessGuideSent, setAccessGuideSent] = useState(false)
+
+  // ── Voice onboarding state ──────────────────────────────────────
+  const [voiceRecipients, setVoiceRecipients] = useState([])   // koto_onboarding_recipients rows (all)
+  const [activeVoiceCall, setActiveVoiceCall] = useState(null) // recipient row if a call is active right now
+  const [liveFieldCount, setLiveFieldCount] = useState(0)
+  const [flashingFields, setFlashingFields] = useState(() => new Set())
+  const [showMissingEmailModal, setShowMissingEmailModal] = useState(false)
+  const [missingEmailTo, setMissingEmailTo] = useState('')
+  const [missingEmailToName, setMissingEmailToName] = useState('')
+  const [sendingMissingEmail, setSendingMissingEmail] = useState(false)
+  const [missingEmailSent, setMissingEmailSent] = useState(false)
+  const prevClientRef = useRef(null)
   const [aiInsights, setAiInsights] = useState(null)
   const [loadingInsights, setLoadingInsights] = useState(false)
   const [activityLogs, setActivityLogs] = useState([])
@@ -111,19 +123,18 @@ export default function ClientDetailPage() {
     if (clientId) loadAllData()
   }, [clientId])
 
-  // Live refresh onboarding answers while the client is actively filling the form.
-  // Polls the clients row every 30s when status === 'in_progress' so the agency
-  // user sees autosaved answers appear without a manual reload.
+  // Live refresh onboarding answers while the client is actively filling
+  // the form. Polls the clients row every 30s when the form is in progress,
+  // OR every 3s while a voice onboarding call is live — fast enough that
+  // fields appear to populate in real time as Retell calls save_answer.
   useEffect(() => {
     if (!clientId) return
-    const inProgress = client?.onboarding_status === 'in_progress'
+    const formInProgress = client?.onboarding_status === 'in_progress'
       && !(client?.onboarding_completed_at)
-    if (!inProgress) return
+    if (!formInProgress && !activeVoiceCall) return
+    const pollMs = activeVoiceCall ? 3000 : 30000
     const id = setInterval(async () => {
       try {
-        // NOTE: clients table has no updated_at column — do not select it.
-        // Re-fetching `*` so any column the autosave wrote (owner_*, primary_service,
-        // etc.) shows up live without listing every field by hand.
         const { data } = await supabase
           .from('clients')
           .select('*')
@@ -133,9 +144,91 @@ export default function ClientDetailPage() {
           setClient((prev) => prev ? { ...prev, ...data } : prev)
         }
       } catch { /* ignore */ }
-    }, 30000)
+    }, pollMs)
     return () => clearInterval(id)
-  }, [clientId, client?.onboarding_status, client?.onboarding_completed_at])
+  }, [clientId, client?.onboarding_status, client?.onboarding_completed_at, activeVoiceCall])
+
+  // Load + poll voice onboarding recipients so we can show call history
+  // and detect when a call goes live. Only polls frequently once we know
+  // a live call is happening — otherwise a slower 15s heartbeat is fine.
+  async function loadVoiceRecipients() {
+    if (!clientId) return
+    try {
+      const { data } = await supabase
+        .from('koto_onboarding_recipients')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('last_active_at', { ascending: false })
+      const rows = data || []
+      setVoiceRecipients(rows)
+      // A call is "active" if it started in the last 3 minutes and hasn't
+      // been marked complete/abandoned yet. This matches the Retell webhook
+      // flipping status to 'complete' on call_ended.
+      const recent = rows.find((r) => {
+        if (r.source !== 'voice') return false
+        if (r.status !== 'in_progress') return false
+        const last = new Date(r.last_active_at || 0).getTime()
+        return Date.now() - last < 180000
+      })
+      setActiveVoiceCall(recent || null)
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => {
+    if (!clientId) return
+    loadVoiceRecipients()
+    const pollMs = activeVoiceCall ? 5000 : 15000
+    const id = setInterval(loadVoiceRecipients, pollMs)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, activeVoiceCall?.id])
+
+  // Diff client state against the previous snapshot so we can flash any
+  // field that just got populated — voice, manual typing, or autosave.
+  // The flash lasts 3 seconds.
+  useEffect(() => {
+    if (!client) return
+    const prev = prevClientRef.current
+    if (!prev) {
+      prevClientRef.current = client
+      return
+    }
+    const VOICE_FIELDS = [
+      'welcome_statement', 'owner_name', 'owner_title', 'owner_phone', 'owner_email',
+      'phone', 'website', 'industry', 'city', 'state', 'num_employees', 'year_founded',
+      'primary_service', 'secondary_services', 'service_area', 'target_customer',
+      'avg_deal_size', 'marketing_budget', 'marketing_channels', 'crm_used',
+      'hosting_provider', 'competitor_1', 'competitor_2', 'competitor_3',
+      'unique_selling_prop', 'brand_voice', 'tagline', 'review_platforms',
+      'referral_sources', 'notes',
+    ]
+    const newlyFilled = []
+    for (const key of VOICE_FIELDS) {
+      const before = prev[key]
+      const after = client[key]
+      const wasEmpty = !before || before === ''
+      const nowFilled = after && after !== ''
+      if (wasEmpty && nowFilled) newlyFilled.push(key)
+    }
+    if (newlyFilled.length > 0) {
+      setFlashingFields((prevSet) => {
+        const next = new Set(prevSet)
+        for (const k of newlyFilled) next.add(k)
+        return next
+      })
+      setTimeout(() => {
+        setFlashingFields((prevSet) => {
+          const next = new Set(prevSet)
+          for (const k of newlyFilled) next.delete(k)
+          return next
+        })
+      }, 3000)
+    }
+    // Update the running count of populated voice-capturable fields
+    const filled = VOICE_FIELDS.filter((k) => client[k] && client[k] !== '').length
+    setLiveFieldCount(filled)
+    prevClientRef.current = client
+  }, [client])
 
   const saveField = useCallback(async (field, value) => {
     setSaving(true)
@@ -272,6 +365,45 @@ export default function ClientDetailPage() {
     setAccessGuideEmail(client?.email || '')
     setAccessGuideSent(false)
     setShowAccessGuideModal(true)
+  }
+
+  function openMissingEmailModal() {
+    setMissingEmailTo(client?.owner_email || client?.email || '')
+    setMissingEmailToName(client?.owner_name || '')
+    setMissingEmailSent(false)
+    setShowMissingEmailModal(true)
+  }
+
+  async function sendMissingFieldsEmail() {
+    if (!missingEmailTo.trim()) { toast.error('Enter an email address'); return }
+    setSendingMissingEmail(true)
+    try {
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_missing_fields_email',
+          client_id: clientId,
+          agency_id: client?.agency_id,
+          to_email: missingEmailTo.trim(),
+          to_name: missingEmailToName.trim(),
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || json.error) {
+        toast.error(json.error || 'Failed to send')
+      } else if (json.sent === false) {
+        toast(json.reason || 'Nothing to send', { icon: 'ℹ️' })
+      } else {
+        setMissingEmailSent(true)
+        toast.success(`Email sent to ${missingEmailTo.trim()}`)
+        setTimeout(() => setShowMissingEmailModal(false), 1500)
+      }
+    } catch (e) {
+      toast.error('Failed to send')
+    } finally {
+      setSendingMissingEmail(false)
+    }
   }
 
   async function sendAccessGuide() {
@@ -642,8 +774,13 @@ export default function ClientDetailPage() {
             {filledFields.map(({ key, label }) => {
               const display = formatValue(displayClient?.[key])
               if (!display || display.includes('[object')) return null
+              const isFlashing = flashingFields.has(key)
               return (
-                <div key={key} style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
+                <div
+                  key={key}
+                  className={isFlashing ? 'client-field-flash' : undefined}
+                  style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}
+                >
                   <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
                     {label}
                   </div>
@@ -874,6 +1011,58 @@ export default function ClientDetailPage() {
 
     return (
       <div ref={el => { sectionRefs.current.onboarding = el }}>
+        {/* Animations for live voice call — field flash + red banner pulse */}
+        <style>{`
+          @keyframes clientFieldFlash {
+            0%   { background: #d1fae5; border-color: #16a34a; transform: scale(1.01); }
+            60%  { background: #f0fdf4; border-color: #86efac; transform: scale(1.005); }
+            100% { background: #fafafa; border-color: #e5e7eb; transform: scale(1); }
+          }
+          .client-field-flash {
+            animation: clientFieldFlash 3s ease-out forwards;
+          }
+          @keyframes liveBannerPing {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.4; transform: scale(1.6); }
+          }
+        `}</style>
+
+        {/* ── LIVE VOICE CALL banner ── */}
+        {activeVoiceCall && (
+          <div style={{
+            background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+            color: '#fff',
+            borderRadius: 12,
+            padding: '14px 20px',
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            boxShadow: '0 10px 30px rgba(220,38,38,0.25)',
+          }}>
+            <span style={{
+              width: 10, height: 10, borderRadius: '50%',
+              background: '#fff', display: 'inline-block',
+              animation: 'liveBannerPing 1s ease-in-out infinite',
+              flexShrink: 0,
+            }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, fontFamily: FH }}>
+                📞 Voice Onboarding Call in Progress
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2, fontFamily: FB }}>
+                {(activeVoiceCall.name || 'Someone')} is on the phone right now — fields populate as they answer
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 22, fontWeight: 900, fontFamily: FH }}>{liveFieldCount}</div>
+              <div style={{ fontSize: 10, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                Fields Filled
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Welcome statement hero — the most important context field.
             Used by every Koto AI system as primary context. */}
         {welcomeStatement && (
@@ -933,6 +1122,14 @@ export default function ClientDetailPage() {
             </div>
           )}
         </div>
+
+        {/* ── Voice Onboarding card ── */}
+        <VoiceOnboardingCard
+          agencyId={client?.agency_id}
+          client={client}
+          voiceRecipients={voiceRecipients}
+          onEmailMissing={openMissingEmailModal}
+        />
 
         {/* Submitted confirmation card — only when complete */}
         {isComplete && (
@@ -1532,6 +1729,221 @@ export default function ClientDetailPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Send missing fields email modal */}
+      {showMissingEmailModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowMissingEmailModal(false) }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 520, width: '100%', fontFamily: FB }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', marginBottom: 6, fontFamily: FH }}>
+              📧 Email missing fields to someone
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 18, lineHeight: 1.5 }}>
+              We'll email a short list of the questions still needing answers, with a link to the onboarding form{client?.agency_id ? '' : ''}.
+            </div>
+
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Recipient name (optional)</div>
+            <input
+              type="text"
+              value={missingEmailToName}
+              onChange={(e) => setMissingEmailToName(e.target.value)}
+              placeholder="e.g. Sarah Johnson"
+              style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none', marginBottom: 14, fontFamily: FB, boxSizing: 'border-box' }}
+            />
+
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Send to *</div>
+            <input
+              type="email"
+              value={missingEmailTo}
+              onChange={(e) => setMissingEmailTo(e.target.value)}
+              placeholder="teammate@example.com"
+              autoFocus
+              style={{ width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none', marginBottom: 14, fontFamily: FB, boxSizing: 'border-box' }}
+            />
+
+            {missingEmailSent && (
+              <div style={{ background: '#f0fdf4', border: `1px solid ${GRN}30`, borderRadius: 8, padding: '10px 14px', marginBottom: 12, color: GRN, fontSize: 13, fontWeight: 600 }}>
+                ✓ Email sent!
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={sendMissingFieldsEmail}
+                disabled={sendingMissingEmail || !missingEmailTo.trim()}
+                style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 14, fontWeight: 700, cursor: sendingMissingEmail ? 'default' : 'pointer', fontFamily: FH, opacity: sendingMissingEmail ? 0.7 : 1 }}>
+                {sendingMissingEmail ? 'Sending…' : 'Send Email'}
+              </button>
+              <button
+                onClick={() => setShowMissingEmailModal(false)}
+                style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 14, cursor: 'pointer', fontFamily: FH }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// VoiceOnboardingCard
+//
+// Renders two things stacked:
+//   1. The agency's assigned onboarding phone number (or a hint to set
+//      one up if not configured). Clients call this number and the
+//      Retell voice agent walks them through the questions.
+//   2. The list of prior voice calls recorded in
+//      koto_onboarding_recipients, with a per-call field count + an
+//      "Email missing fields" button so the agency can hand off to a
+//      teammate when a call ends incomplete.
+// ─────────────────────────────────────────────────────────────
+function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing }) {
+  const [onboardingPhone, setOnboardingPhone] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      if (!agencyId) { setLoading(false); return }
+      const { data } = await supabase
+        .from('agencies')
+        .select('onboarding_phone_number')
+        .eq('id', agencyId)
+        .maybeSingle()
+      if (cancelled) return
+      setOnboardingPhone(data?.onboarding_phone_number || null)
+      setLoading(false)
+    }
+    load()
+    return () => { cancelled = true }
+  }, [agencyId])
+
+  const voiceCalls = (voiceRecipients || []).filter((r) => r.source === 'voice')
+
+  const T = '#00C2CB'
+  const GRN = '#16a34a'
+
+  return (
+    <div style={{
+      background: '#f0fffe',
+      border: '1.5px solid #00C2CB40',
+      borderRadius: 12,
+      padding: '16px 20px',
+      marginBottom: 16,
+    }}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4, fontFamily: "'Proxima Nova',sans-serif" }}>
+        📞 Voice Onboarding
+      </div>
+      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>
+        Your client can call this number to complete their onboarding by voice — no typing required.
+        The AI will ask all the questions and save answers automatically.
+      </div>
+
+      {loading ? (
+        <div style={{ fontSize: 12, color: '#9a9a96' }}>Loading…</div>
+      ) : onboardingPhone ? (
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: T, marginBottom: 8, fontFamily: 'var(--font-display)' }}>
+            {onboardingPhone}
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(onboardingPhone)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }}
+              style={{ padding: '7px 14px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              {copied ? '✓ Copied' : 'Copy Number'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          padding: '12px 14px',
+          background: '#fffbeb',
+          border: '1px solid #fde68a',
+          borderRadius: 8,
+          fontSize: 12,
+          color: '#92400e',
+        }}>
+          ⚠️ No onboarding phone number set up yet. Configure it in <strong>Agency Settings → Onboarding</strong>.
+        </div>
+      )}
+
+      {voiceCalls.length > 0 && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #00C2CB30' }}>
+          <div style={{
+            fontSize: 11, fontWeight: 800, color: '#374151',
+            textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10,
+          }}>
+            Voice Call History ({voiceCalls.length})
+          </div>
+          {voiceCalls.slice(0, 10).map((call) => {
+            const fieldCount = call.fields_captured ? Object.keys(call.fields_captured).length : 0
+            return (
+              <div key={call.id} style={{
+                background: '#fff',
+                border: '1px solid #e5e7eb',
+                borderRadius: 10,
+                padding: '12px 16px',
+                marginBottom: 8,
+                display: 'flex',
+                gap: 12,
+                alignItems: 'center',
+              }}>
+                <div style={{ fontSize: 20, flexShrink: 0 }}>📞</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: '#111' }}>
+                    {call.name || 'Unknown caller'}
+                    {call.role_label ? <span style={{ fontWeight: 400, color: '#9a9a96' }}> · {call.role_label}</span> : null}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>
+                    {fieldCount} field{fieldCount === 1 ? '' : 's'} captured
+                    {call.last_active_at ? ' · ' + timeAgo(call.last_active_at) : ''}
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: 10, fontWeight: 800,
+                  padding: '3px 8px', borderRadius: 10,
+                  background: call.status === 'complete' ? '#f0fdf4' : '#fffbeb',
+                  color: call.status === 'complete' ? GRN : '#f59e0b',
+                  textTransform: 'uppercase',
+                  letterSpacing: '.05em',
+                }}>
+                  {call.status === 'complete' ? '✓ Complete' : call.status === 'abandoned' ? 'Partial' : 'In Progress'}
+                </div>
+              </div>
+            )
+          })}
+          <div style={{ marginTop: 10 }}>
+            <button
+              onClick={onEmailMissing}
+              style={{
+                padding: '8px 14px',
+                background: '#fff',
+                color: T,
+                border: `1px solid ${T}40`,
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: "'Proxima Nova',sans-serif",
+              }}>
+              📧 Email missing fields to someone
+            </button>
+          </div>
+        </div>
+      )}
+
+      {voiceCalls.length === 0 && onboardingPhone && (
+        <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 12 }}>
+          Multiple team members can call this number. Each caller is identified and their answers are tracked separately.
         </div>
       )}
     </div>
