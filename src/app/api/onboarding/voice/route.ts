@@ -361,6 +361,16 @@ If verify_pin returns reason='session_expired' or 'already_complete', read the m
 Do NOT ask any onboarding questions until verify_pin has returned valid=true.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER PIN IS VERIFIED — MANDATORY TRANSITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+As soon as verify_pin returns valid=true, say this line EXACTLY before asking any questions:
+
+"Perfect. Before we dive in, just a heads up — everything you tell me will appear live in your onboarding document. If you have the link open, you can watch your answers populate in real time as we go. Now let's get started."
+
+Then immediately ask the first question from the QUESTIONS TO ASK list below. Do not skip this transition line even if the caller sounds rushed — it takes 8 seconds and sets the whole tone.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BUSINESS CONTEXT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -444,9 +454,12 @@ save_flag(field: string, reason: 'skipped'|'needs_followup'|'colleague_will_answ
 
 NEVER ask for passwords, payment info, credit cards, SSNs, or sensitive credentials. If the caller offers them, politely redirect to business questions.`
 
-  const beginMessage = pinVerified && callerName
-    ? `Hi ${callerName.split(' ')[0]}! Welcome back. This is ${agencyName} calling about ${clientName}. We already have some information on file — I just need a few more details and we'll be all set.`
-    : `Hi! This is ${agencyName} calling for your ${clientName} onboarding. Before we get started, could you read me the 4-digit PIN from your onboarding page?`
+  // New verbose intro — explains the live-doc sync + directs the
+  // caller to the onboarding link before the PIN prompt. Same text
+  // for every call variant; the post-PIN transition line (injected
+  // into the system prompt above) handles the "welcome back"
+  // personalization after verify_pin returns valid=true.
+  const beginMessage = `Hi! Welcome to ${agencyName}'s onboarding. My name is Alex and I'll be collecting some information about your business today — this usually takes about 10 to 15 minutes. Here's how it works: I'll ask you a series of questions, and as you answer, your responses will automatically appear in your onboarding document in real time. You can follow along at any time by visiting the link that was sent to you — you'll actually see the answers populate as we talk. If you don't know the answer to something, just say 'skip it' and we'll move on — someone else on your team can fill that in later by calling this same number or visiting the link. Ready to get started? Go ahead and tell me your 4-digit PIN and we'll begin.`
 
   return {
     prompt,
@@ -703,6 +716,79 @@ export async function POST(req: NextRequest) {
         agent_id: retellAgent.agent_id,
         agent_name: retellConfig.agent_name,
       })
+    }
+
+    // ── Action: update_existing_agent ────────────────────────
+    // PATCHes a live Retell agent to match the current code's
+    // begin_message and general_prompt templates. Use this when
+    // the code's intro text has drifted from what's in the Retell
+    // dashboard — instead of deleting + recreating the agent,
+    // just PATCH the two fields that matter.
+    //
+    // Resolves the agent id from (in order):
+    //   1. body.agent_id          — explicit override
+    //   2. process.env.RETELL_ONBOARDING_AGENT_ID
+    //   3. agencies.onboarding_agent_id (if agency_id in body)
+    if (action === 'update_existing_agent') {
+      const { agency_id } = body
+      let targetAgentId: string | null =
+        body.agent_id ||
+        process.env.RETELL_ONBOARDING_AGENT_ID ||
+        null
+
+      if (!targetAgentId && agency_id) {
+        const { data: agency } = await sb
+          .from('agencies')
+          .select('onboarding_agent_id')
+          .eq('id', agency_id)
+          .maybeSingle()
+        targetAgentId = agency?.onboarding_agent_id || null
+      }
+
+      if (!targetAgentId) {
+        return NextResponse.json({
+          error: 'No agent id — pass agent_id, set RETELL_ONBOARDING_AGENT_ID env var, or pass agency_id with a configured onboarding_agent_id',
+        }, { status: 400 })
+      }
+
+      // The new verbose intro — {{agency_name}} is substituted by
+      // Retell at call time via the dynamic variables returned
+      // from the inbound webhook. Keep this in sync with the
+      // beginMessage interpolation inside buildOnboardingSystemPrompt.
+      const NEW_BEGIN_MESSAGE = `Hi! Welcome to {{agency_name}}'s onboarding. My name is Alex and I'll be collecting some information about your business today — this usually takes about 10 to 15 minutes. Here's how it works: I'll ask you a series of questions, and as you answer, your responses will automatically appear in your onboarding document in real time. You can follow along at any time by visiting the link that was sent to you — you'll actually see the answers populate as we talk. If you don't know the answer to something, just say 'skip it' and we'll move on — someone else on your team can fill that in later by calling this same number or visiting the link. Ready to get started? Go ahead and tell me your 4-digit PIN and we'll begin.`
+
+      try {
+        const res = await fetch(`${RETELL_BASE}/update-agent/${targetAgentId}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${RETELL_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            begin_message: NEW_BEGIN_MESSAGE,
+            general_prompt: `{{system_prompt}}`,
+          }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          return NextResponse.json({
+            ok: false,
+            error: data?.error_message || data?.message || `Retell ${res.status}`,
+            retell_response: data,
+          }, { status: 500 })
+        }
+        return NextResponse.json({
+          ok: true,
+          agent_id: targetAgentId,
+          updated: {
+            begin_message: true,
+            general_prompt: true,
+          },
+          retell_response: data,
+        })
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message || 'Retell PATCH failed' }, { status: 500 })
+      }
     }
 
     // ── Action: get_agent_prompt ─────────────────────────────
