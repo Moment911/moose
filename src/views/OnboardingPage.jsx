@@ -805,6 +805,81 @@ export default function OnboardingPage() {
   const [adaptiveQuestions, setAdaptiveQuestions] = useState([]);
   const classifyTimerRef = useRef(null);
 
+  // ── Smart suggestions (SIC pills, auto-populate, prompt pills) ──
+  // aiSuggestedFields tracks which fields were auto-populated by the
+  // suggest endpoint so we can render a "✨ AI-suggested — edit freely"
+  // badge that disappears the moment the client edits the field.
+  const [aiSuggestedFields, setAiSuggestedFields] = useState(() => new Set());
+  const [sicSuggestions, setSicSuggestions] = useState([]);
+  const [painPointSuggestions, setPainPointSuggestions] = useState([]);
+  const [whatHasntWorkedSuggestions, setWhatHasntWorkedSuggestions] = useState([]);
+  const [revenueEstimates, setRevenueEstimates] = useState(null);
+  const [scopeConfirmed, setScopeConfirmed] = useState(false);
+  const suggestionTriggeredRef = useRef(new Set());
+
+  // Shared suggestion fetcher. `field` maps to a prompt in the suggest route.
+  // Accepts extra context that overrides the default form snapshot.
+  async function getSuggestion(field, extraContext = {}) {
+    try {
+      const res = await fetch('/api/onboarding/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          field,
+          welcome_statement: form.welcome_statement,
+          business_name: form.business_name || '',
+          industry: form.industry,
+          city: form.city || form.primary_city,
+          state: form.state || form.primary_state,
+          classification,
+          already_filled: {
+            primary_service: form.primary_service,
+            target_customer: form.ideal_customer_desc,
+            avg_transaction: form.avg_transaction,
+          },
+          ...extraContext,
+        }),
+      });
+      const data = await res.json();
+      return data?.suggestions ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Mark a field as AI-suggested (shows the badge + clears on edit)
+  function markAiSuggested(key) {
+    setAiSuggestedFields((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }
+  function clearAiSuggested(key) {
+    setAiSuggestedFields((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }
+  // Set a field and mark it AI-suggested in one call. Only writes when the
+  // field is currently empty so we never overwrite the client's own answer.
+  // Uses setRaw so the badge-clearing branch in `set` doesn't fire.
+  function setIfEmpty(key, value) {
+    const cur = form[key];
+    const isEmpty =
+      cur === null ||
+      cur === undefined ||
+      cur === '' ||
+      (Array.isArray(cur) && cur.length === 0);
+    if (!isEmpty) return false;
+    setRaw(key, value);
+    markAiSuggested(key);
+    return true;
+  }
+
   // Compute which required fields are empty
   function getMissingFields() {
     const missing = []
@@ -920,7 +995,21 @@ export default function OnboardingPage() {
     target_keywords: [],
   });
 
-  function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
+  function set(k, v) {
+    setForm(f => ({ ...f, [k]: v }));
+    // If the field was previously AI-suggested and the user is now editing
+    // it, drop the suggestion badge so it feels like their answer.
+    // Called from the user's onChange handlers.
+    setAiSuggestedFields((prev) => {
+      if (!prev.has(k)) return prev;
+      const next = new Set(prev);
+      next.delete(k);
+      return next;
+    });
+  }
+  // Internal write that does NOT touch the AI-suggested set. Used by the
+  // auto-populate effects so writing a suggested value also marks it.
+  function setRaw(k, v) { setForm(f => ({ ...f, [k]: v })); }
   function setComp(i, k, v) {
     const c = [...form.competitors];
     c[i] = { ...c[i], [k]: v };
@@ -1087,6 +1176,142 @@ export default function OnboardingPage() {
     return () => clearTimeout(classifyTimerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.welcome_statement, form.industry, form.primary_service, status]);
+
+  // ── Smart suggestion auto-populate triggers ──
+  // Each action runs at most once per field (tracked via suggestionTriggeredRef)
+  // and only populates when the field is currently empty. If the API fails
+  // the form keeps working — suggestions are pure enhancement.
+  useEffect(() => {
+    if (status !== 'ready') return;
+    const ws = (form.welcome_statement || '').trim();
+    if (ws.length < 50) return;
+    const triggered = suggestionTriggeredRef.current;
+
+    // FIX 1: SIC suggestions — fires once welcome is long enough, even if
+    // industry is already set (we still surface the pills as confirmation).
+    if (!triggered.has('sic') && sicSuggestions.length === 0) {
+      triggered.add('sic');
+      getSuggestion('sic_suggestion').then((res) => {
+        if (Array.isArray(res)) setSicSuggestions(res);
+      });
+    }
+
+    // FIX 2: Business description auto-populate
+    if (!triggered.has('business_description') && !form.business_description) {
+      triggered.add('business_description');
+      getSuggestion('business_description').then((res) => {
+        if (typeof res === 'string' && res.trim()) setIfEmpty('business_description', res.trim());
+      });
+    }
+
+    // FIX 5: Ideal customer auto-populate (requires classification)
+    if (classification && !triggered.has('ideal_customer') && !form.ideal_customer_desc) {
+      triggered.add('ideal_customer');
+      getSuggestion('ideal_customer').then((res) => {
+        if (typeof res === 'string' && res.trim()) setIfEmpty('ideal_customer_desc', res.trim());
+      });
+    }
+
+    // FIX 8: Seasonal patterns auto-populate (requires industry)
+    if (form.industry && !triggered.has('seasonal_patterns') && !form.seasonal_notes) {
+      triggered.add('seasonal_patterns');
+      getSuggestion('seasonal_patterns').then((res) => {
+        if (typeof res === 'string' && res.trim()) setIfEmpty('seasonal_notes', res.trim());
+      });
+    }
+
+    // FIX 6: Pain point suggestion pills (requires industry)
+    if (form.industry && !triggered.has('pain_points') && painPointSuggestions.length === 0) {
+      triggered.add('pain_points');
+      getSuggestion('pain_points').then((res) => {
+        if (Array.isArray(res)) setPainPointSuggestions(res)
+      });
+    }
+
+    // FIX 9: Brand voice pre-select (requires classification)
+    if (classification && !triggered.has('brand_voice') && (!form.brand_tone || form.brand_tone.length === 0)) {
+      triggered.add('brand_voice');
+      getSuggestion('brand_voice_suggestions').then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setRaw('brand_tone', res.slice(0, 5));
+          markAiSuggested('brand_tone');
+        }
+      });
+    }
+
+    // FIX 10: Target cities auto-populate (requires city + state)
+    if (form.primary_city && form.primary_state && !triggered.has('target_cities') && (!form.target_cities || form.target_cities.length === 0)) {
+      triggered.add('target_cities');
+      getSuggestion('target_cities').then((res) => {
+        if (typeof res === 'string' && res.trim()) {
+          const cities = res.split(',').map((c) => c.trim()).filter(Boolean);
+          if (cities.length > 0) {
+            setRaw('target_cities', cities);
+            markAiSuggested('target_cities');
+          }
+        }
+      });
+    }
+
+    // FIX 4: Top services auto-populate (requires industry)
+    if (form.industry && !triggered.has('top_services') && (!form.top_services || form.top_services.length === 0)) {
+      triggered.add('top_services');
+      getSuggestion('top_services').then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setRaw('top_services', res.slice(0, 5));
+          markAiSuggested('top_services');
+        }
+      });
+    }
+
+    // FIX 12: "What hasn't worked" prompt pills (requires industry)
+    if (form.industry && !triggered.has('what_hasnt_worked') && whatHasntWorkedSuggestions.length === 0) {
+      triggered.add('what_hasnt_worked');
+      getSuggestion('what_hasnt_worked').then((res) => {
+        if (Array.isArray(res)) setWhatHasntWorkedSuggestions(res);
+      });
+    }
+
+    // FIX 11: Revenue estimates card (requires industry + city)
+    if (form.industry && form.primary_city && !triggered.has('revenue_estimates') && !revenueEstimates) {
+      triggered.add('revenue_estimates');
+      getSuggestion('revenue_estimates').then((res) => {
+        if (res && typeof res === 'object' && !Array.isArray(res)) setRevenueEstimates(res);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    status,
+    form.welcome_statement,
+    form.industry,
+    form.primary_city,
+    form.primary_state,
+    form.business_description,
+    form.ideal_customer_desc,
+    form.seasonal_notes,
+    classification,
+  ]);
+
+  // FIX 14: Auto-detect geographic scope from classification and pre-seed
+  // growth_scope when the client hasn't explicitly chosen one. Shows a
+  // confirmation banner so they can correct it.
+  useEffect(() => {
+    if (!classification || scopeConfirmed) return;
+    const scope = classification.geographic_scope;
+    if (!scope) return;
+    if (!form.growth_scope || form.growth_scope === '') {
+      const mapped =
+        scope === 'local' ? 'local' :
+        scope === 'regional' ? 'regional' :
+        scope === 'national' ? 'national' :
+        scope === 'international' ? 'international' : '';
+      if (mapped) {
+        setRaw('growth_scope', mapped);
+        markAiSuggested('growth_scope');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classification, scopeConfirmed]);
 
   // Debounced watcher — fires 2s after the last form change
   useEffect(() => {
@@ -1663,6 +1888,49 @@ export default function OnboardingPage() {
           </div>
         )}
 
+        {/* FIX 14: Geographic scope confirmation banner */}
+        {step === 1 && classification && !scopeConfirmed && aiSuggestedFields.has('growth_scope') && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+            padding: '12px 16px', borderRadius: 10,
+            background: '#fffbeb', border: '1px solid #fde68a',
+            marginBottom: 20, fontSize: 13, color: '#92400e',
+          }}>
+            <span style={{ fontSize: 18 }}>📍</span>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              We detected you serve{' '}
+              <strong>
+                {classification.geographic_scope === 'local' ? 'local' :
+                 classification.geographic_scope === 'regional' ? 'regional' :
+                 classification.geographic_scope === 'national' ? 'national' : 'international'}
+              </strong>{' '}
+              customers — is this right?
+            </div>
+            <button
+              type="button"
+              onClick={() => { setScopeConfirmed(true); clearAiSuggested('growth_scope'); }}
+              style={{
+                padding: '6px 14px', borderRadius: 8, border: 'none',
+                background: '#10b981', color: '#fff',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              Yes, correct
+            </button>
+            <button
+              type="button"
+              onClick={() => { set('growth_scope', ''); setScopeConfirmed(true); clearAiSuggested('growth_scope'); }}
+              style={{
+                padding: '6px 14px', borderRadius: 8, border: '1px solid #fde68a',
+                background: '#fff', color: '#92400e',
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              Change
+            </button>
+          </div>
+        )}
+
         {step === 1 && classifying && !classification && (
           <div style={{
             fontSize: 12, color: ACCENT, marginBottom: 16,
@@ -1964,6 +2232,14 @@ export default function OnboardingPage() {
                 <F label="EIN / Federal Tax ID" hint="Your 9-digit Employer Identification Number — XX-XXXXXXX format. Confidential, used for A2P registration and vendor forms.">
                   <FocusInput value={form.ein} onChange={e => set('ein', e.target.value)}
                     placeholder="12-3456789" />
+                  {/* FIX 13: plain-language help for finding the EIN */}
+                  <div style={{
+                    marginTop: 10, padding: '10px 12px', borderRadius: 10,
+                    background: '#fffbeb', border: '1px solid #fde68a',
+                    fontSize: 12, color: '#92400e', lineHeight: 1.6,
+                  }}>
+                    <strong>📋 Where to find your EIN:</strong> IRS confirmation letter (CP 575), last year's tax return (Form 1120 / 1065 / Schedule C), your business bank account documents, or call the IRS at 1-800-829-4933.
+                  </div>
                 </F>
                 <F label="State of Incorporation / Registration" hint="The US state where your business is legally registered (may differ from where you operate)">
                   <FocusSelect value={form.state_incorporated} onChange={e => set('state_incorporated', e.target.value)}
@@ -1971,6 +2247,43 @@ export default function OnboardingPage() {
                     options={['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming','Washington D.C.']} />
                 </F>
                 <F label="Industry" required hint="Search by industry or SIC code">
+                  {/* FIX 1: Claude-suggested SIC pills based on the welcome statement */}
+                  {sicSuggestions.length > 0 && (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                        ✨ Suggested for your business
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {sicSuggestions.slice(0, 5).map((s) => {
+                          const isActive = form.industry === s.label
+                          return (
+                            <button
+                              key={s.code}
+                              type="button"
+                              onClick={() => set('industry', s.label)}
+                              title={s.reason || ''}
+                              style={{
+                                padding: '6px 14px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+                                background: isActive ? ACCENT : '#f0fffe',
+                                color: isActive ? '#fff' : ACCENT,
+                                border: `1px solid ${ACCENT}40`,
+                                fontWeight: isActive ? 700 : 600,
+                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                              }}
+                            >
+                              {s.label}
+                              {typeof s.confidence === 'number' && (
+                                <span style={{ fontSize: 10, opacity: 0.7 }}>{s.confidence}%</span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6 }}>
+                        Don't see yours? Search the full SIC code list below.
+                      </div>
+                    </div>
+                  )}
                   <SearchableSelect
                     value={form.industry}
                     onChange={(val) => { set('industry', val); }}
