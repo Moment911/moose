@@ -149,6 +149,7 @@ import DiscoverySharedViewPage from '../views/DiscoverySharedViewPage'
 import DiscoveryAnalyticsPage from '../views/DiscoveryAnalyticsPage'
 import TestDataPage from '../views/TestDataPage'
 import OnboardingSimulatorPage from '../views/OnboardingSimulatorPage'
+import AccessGuidePage from '../views/AccessGuidePage'
 import DataVaultPage from '../views/DataVaultPage'
 import EmailTrackingPage from '../views/EmailTrackingPage'
 import EmailTrackingGmailHelperPage from '../views/EmailTrackingGmailHelperPage'
@@ -233,6 +234,7 @@ export default function App() {
           <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
           <Route path="/discovery/view/:token" element={<DiscoverySharedViewPage />} />
           <Route path="/integrations/gmail/callback" element={<GmailCallbackPage />} />
+          <Route path="/access-guide" element={<AccessGuidePage />} />
 
           {/* ── All app routes (with shell + auth) ── */}
           <Route path="/*" element={

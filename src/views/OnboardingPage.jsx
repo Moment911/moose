@@ -805,6 +805,37 @@ export default function OnboardingPage() {
   const [adaptiveQuestions, setAdaptiveQuestions] = useState([]);
   const classifyTimerRef = useRef(null);
 
+  // ── Platform access AI lookup ──
+  // Inline widget inside the Website & Tech Stack step that hands off to
+  // /api/access-guide for any platform the client mentions. Mirrors the
+  // standalone /access-guide page's AI assistant.
+  const [platformQuery, setPlatformQuery] = useState('');
+  const [platformResult, setPlatformResult] = useState(null);
+  const [platformLoading, setPlatformLoading] = useState(false);
+  const [platformCopied, setPlatformCopied] = useState(false);
+
+  async function handlePlatformQuery() {
+    const q = platformQuery.trim();
+    if (!q || platformLoading) return;
+    setPlatformLoading(true);
+    try {
+      const res = await fetch('/api/access-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_instructions', query: q }),
+      });
+      const data = await res.json();
+      setPlatformResult(data);
+    } catch {
+      setPlatformResult({
+        platform: 'Unknown',
+        instructions: 'Something went wrong — please try again or contact your agency.',
+        invite_email: null,
+      });
+    }
+    setPlatformLoading(false);
+  }
+
   // ── Smart suggestions (SIC pills, auto-populate, prompt pills) ──
   // aiSuggestedFields tracks which fields were auto-populated by the
   // suggest endpoint so we can render a "✨ AI-suggested — edit freely"
@@ -2842,11 +2873,104 @@ export default function OnboardingPage() {
               <p style={{ fontSize: 16, color: '#374151', margin: 0, lineHeight: 1.6 }}>Understanding your tech stack lets us set up proper tracking, avoid duplicate work, and move fast.</p>
             </div>
             <div style={T.cardBody}>
-              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '14px 18px', display: 'flex', gap: 12, marginBottom: 24 }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '14px 18px', display: 'flex', gap: 12, marginBottom: 16 }}>
                 <Lock size={16} color="#16a34a" style={{ flexShrink: 0, marginTop: 2 }} />
                 <div style={{ fontSize: 15, color: '#166534', lineHeight: 1.65 }}>
                   <strong>Your credentials are encrypted and stored securely.</strong> Only your agency team can access them — they're never shared with third parties or stored in plain text.
                 </div>
+              </div>
+
+              {/* ── AI platform lookup — tells the client exact steps for any platform ── */}
+              <div style={{
+                background: '#f0fffe', border: `1.5px solid ${ACCENT}40`,
+                borderRadius: 12, padding: '16px 20px', marginBottom: 24,
+              }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 4 }}>
+                  🤖 Not sure what platforms you have or how to grant access?
+                </div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                  Tell us what you're using and we'll look up the exact steps for you.
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <input
+                    value={platformQuery}
+                    onChange={(e) => setPlatformQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handlePlatformQuery()}
+                    placeholder='e.g. "I use Wix" or "I have Mailchimp" or "My ads run through Microsoft"'
+                    style={{
+                      flex: '1 1 220px', padding: '10px 14px', borderRadius: 8,
+                      border: `1px solid ${ACCENT}40`, fontSize: 13, outline: 'none',
+                    }}
+                  />
+                  <button
+                    onClick={handlePlatformQuery}
+                    disabled={platformLoading || !platformQuery.trim()}
+                    style={{
+                      padding: '10px 18px', background: ACCENT, color: '#fff',
+                      border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
+                      cursor: platformLoading || !platformQuery.trim() ? 'not-allowed' : 'pointer',
+                      opacity: platformLoading || !platformQuery.trim() ? 0.6 : 1,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {platformLoading ? 'Looking up…' : 'Look up →'}
+                  </button>
+                </div>
+                {platformResult && (
+                  <div style={{
+                    marginTop: 14, padding: '14px 18px', background: '#fff',
+                    borderRadius: 10, border: '1px solid #e5e7eb',
+                  }}>
+                    <div style={{ fontWeight: 700, color: ACCENT, marginBottom: 8 }}>
+                      {platformResult.platform}
+                      {platformResult.access_level && (
+                        <span style={{ color: '#6b7280', fontWeight: 600, fontSize: 12, marginLeft: 8 }}>
+                          · {platformResult.access_level}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                      {platformResult.instructions}
+                    </div>
+                    {platformResult.invite_email && (
+                      <div style={{
+                        marginTop: 12, padding: '8px 12px', background: '#f0fffe',
+                        borderRadius: 6, fontSize: 12,
+                      }}>
+                        📧 Invite this email: <strong style={{ color: ACCENT }}>{platformResult.invite_email}</strong>
+                      </div>
+                    )}
+                    <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(platformResult.instructions)
+                          setPlatformCopied(true)
+                          setTimeout(() => setPlatformCopied(false), 2000)
+                        }}
+                        style={{
+                          padding: '6px 14px', background: '#f0fffe', color: ACCENT,
+                          border: `1px solid ${ACCENT}40`, borderRadius: 6,
+                          fontSize: 12, cursor: 'pointer', fontWeight: 600,
+                        }}
+                      >
+                        {platformCopied ? '✓ Copied!' : '📋 Copy these instructions'}
+                      </button>
+                      <a
+                        href="/access-guide"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          padding: '6px 14px', background: 'transparent', color: '#6b7280',
+                          border: '1px solid #e5e7eb', borderRadius: 6, textDecoration: 'none',
+                          fontSize: 12, fontWeight: 600,
+                        }}
+                      >
+                        Browse all platforms →
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
               <div style={{ ...T.grid2, marginBottom: 20 }}>
                 <F label="Web Hosting Provider">

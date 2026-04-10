@@ -479,6 +479,83 @@ export async function POST(req: NextRequest) {
         }
       } catch { /* swallow */ }
 
+      // Post-submit "here's your access setup guide" email — fire and forget.
+      // Covers the gap between form submission and actual platform access grants.
+      try {
+        if (clientRow?.email) {
+          const { data: agency } = await sb
+            .from('agencies')
+            .select('brand_name, name, brand_color, brand_logo_url, support_email')
+            .eq('id', resolvedAgency || agency_id)
+            .maybeSingle()
+          const agencyName = agency?.brand_name || agency?.name || 'Momenta Marketing'
+          const brandColor = agency?.brand_color || '#00C2CB'
+          const accessEmail = agency?.support_email || 'access@momentamarketing.com'
+          const accessGuideUrl = `${APP_URL}/access-guide?agency_name=${encodeURIComponent(agencyName)}&agency_email=${encodeURIComponent(accessEmail)}`
+          const firstName = String(clientName).split(' ')[0] || 'there'
+
+          const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+  <tr><td style="background:linear-gradient(135deg,${brandColor},#0099a8);padding:32px;color:#fff;">
+    <div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85;margin-bottom:8px;">${agencyName}</div>
+    <h1 style="font-size:26px;font-weight:900;margin:0 0 8px;">Thanks, ${firstName}! 🎉</h1>
+    <p style="margin:0;font-size:15px;opacity:.92;line-height:1.6;">Your onboarding form is in. Now let's get us access to your platforms so we can hit the ground running.</p>
+  </td></tr>
+
+  <tr><td style="padding:28px 32px 8px;">
+    <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7;">
+      We've built a complete access setup guide that shows you exactly how to grant us access to every marketing platform. It includes an AI assistant — just type in whatever platform you use and it'll give you the exact step-by-step instructions.
+    </p>
+  </td></tr>
+
+  <tr><td style="padding:0 32px 24px;text-align:center;">
+    <a href="${accessGuideUrl}" style="display:inline-block;padding:14px 32px;border-radius:12px;background:${brandColor};color:#fff;text-decoration:none;font-weight:800;font-size:15px;">
+      📋 View Your Access Setup Guide →
+    </a>
+  </td></tr>
+
+  <tr><td style="padding:0 32px 24px;">
+    <div style="background:#f0fffe;border:1px solid ${brandColor}30;border-radius:10px;padding:16px 20px;">
+      <div style="font-weight:700;font-size:14px;color:#111;margin-bottom:4px;">📧 Invite this email to your platforms</div>
+      <div style="font-size:18px;color:${brandColor};font-weight:800;">${accessEmail}</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:6px;">
+        We never need your passwords. Every platform has a way to add team members — the guide walks you through each one.
+      </div>
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:0 32px 28px;">
+    <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.7;">
+      Questions? Just reply to this email — we'll help you through whichever platform is tripping you up. No question is too small.
+    </p>
+  </td></tr>
+
+  <tr><td style="background:#f9fafb;padding:18px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+    <p style="margin:0;font-size:11px;color:#9ca3af;">
+      Sent by ${agencyName} · Powered by <a href="https://hellokoto.com" style="color:#9ca3af;text-decoration:none;font-weight:700;">Koto</a>
+    </p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`
+
+          const fromAddress = agency?.support_email
+            ? `${agencyName} <${agency.support_email}>`
+            : `${agencyName} <onboarding@hellokoto.com>`
+
+          await getResend().emails.send({
+            from: fromAddress,
+            to: clientRow.email,
+            subject: `Next step: grant ${agencyName} access to your platforms`,
+            html,
+          })
+        }
+      } catch { /* non-fatal — notification already fired */ }
+
       // Auto-create agent config from onboarding answers
       const { data: existing } = await sb.from('agent_configs')
         .select('id').eq('client_id', client_id).single()

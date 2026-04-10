@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  Activity, BarChart2, BookOpen, Brain, CheckCircle, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -235,6 +235,7 @@ export default function Sidebar() {
             <NavLink to="/billing" icon={CreditCard} label="Billing"/>
             <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
             <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI"/>
+            <NavLink to="/access-guide" icon={Key} label="Access Guide"/>
 
           </>)}
         </div>
