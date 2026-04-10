@@ -239,6 +239,14 @@ Alternative — Add us as a user:
     emoji: '🐦',
     access_level: 'Delegate access',
   },
+  {
+    id: 'snapchat',
+    category: 'social',
+    label: 'Snapchat Ads Manager',
+    emoji: '👻',
+    access_level: 'Admin (Organization member)',
+    summary: 'Invite from Business Manager → Members.',
+  },
 
   // ── WEBSITE & HOSTING ──────────────────────────────────
   {
@@ -329,6 +337,37 @@ Alternative — Staff account:
     emoji: '☁️',
     access_level: 'Administrator',
   },
+  {
+    id: 'wp_engine',
+    category: 'website',
+    label: 'WP Engine',
+    emoji: '🔧',
+    access_level: 'User (Full, Partial, or Billing)',
+    summary: 'Invite via User Portal → Users. Grant "Full" access for dev work.',
+  },
+  {
+    id: 'siteground',
+    category: 'website',
+    label: 'SiteGround',
+    emoji: '🟢',
+    access_level: 'Collaborator',
+    summary: 'Use the Collaborators tool — no need to share your login.',
+  },
+  {
+    id: 'bluehost',
+    category: 'website',
+    label: 'Bluehost',
+    emoji: '🔵',
+    access_level: 'Delegate Access',
+  },
+  {
+    id: 'namecheap',
+    category: 'website',
+    label: 'Namecheap',
+    emoji: '🏷️',
+    access_level: 'Account-level invitee',
+    summary: 'Domain and DNS access — grant via Profile → Delegated Access.',
+  },
 
   // ── ADVERTISING ───────────────────────────────────────
   {
@@ -366,6 +405,14 @@ Alternative — Staff account:
     label: 'Pinterest Ads',
     emoji: '📌',
     access_level: 'Admin',
+  },
+  {
+    id: 'amazon_ads',
+    category: 'advertising',
+    label: 'Amazon Advertising',
+    emoji: '📦',
+    access_level: 'Admin',
+    summary: 'Invite from Amazon Ads console → Account settings → User management.',
   },
 
   // ── EMAIL & CRM ───────────────────────────────────────
@@ -444,6 +491,27 @@ The user receives an email to set their password.`,
     label: 'ActiveCampaign',
     emoji: '🟦',
     access_level: 'Admin',
+  },
+  {
+    id: 'convertkit',
+    category: 'email_crm',
+    label: 'ConvertKit / Kit',
+    emoji: '✏️',
+    access_level: 'Team member (Admin)',
+  },
+  {
+    id: 'zoho',
+    category: 'email_crm',
+    label: 'Zoho CRM',
+    emoji: '🟧',
+    access_level: 'Standard or Admin user',
+  },
+  {
+    id: 'pipedrive',
+    category: 'email_crm',
+    label: 'Pipedrive',
+    emoji: '🟩',
+    access_level: 'Regular or Admin user',
   },
 
   // ── E-COMMERCE ────────────────────────────────────────
@@ -526,6 +594,14 @@ The user receives an email to set their password.`,
     label: 'Podium',
     emoji: '💬',
     access_level: 'Team Member',
+  },
+  {
+    id: 'apple_business',
+    category: 'other',
+    label: 'Apple Business Connect',
+    emoji: '🍎',
+    access_level: 'Manager',
+    summary: 'Used for Apple Maps listings. Invite via businessconnect.apple.com → Team.',
   },
   {
     id: 'yext',
