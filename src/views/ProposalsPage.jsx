@@ -5,7 +5,7 @@ import {
   FileText, Plus, Search, Filter, Send, CheckCircle,
   Clock, Eye, XCircle, ArrowRight, MoreHorizontal,
   Copy, Trash2, Edit, TrendingUp, DollarSign,
-  AlertCircle, ChevronDown, Shield, Layers
+  AlertCircle, ChevronDown, Shield, Layers, Share2, X
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
@@ -57,8 +57,37 @@ export default function ProposalsPage() {
   const [search, setSearch]       = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [menuOpen, setMenuOpen]   = useState(null)
+  const [sharingId, setSharingId] = useState(null)
+  const [historyProposal, setHistoryProposal] = useState(null)
 
   useEffect(() => { load() }, [agencyId])
+
+  async function sharePropAction(p) {
+    setSharingId(p.id)
+    setMenuOpen(null)
+    try {
+      const res = await fetch('/api/proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'share_proposal',
+          proposal_id: p.id,
+          agency_id: agencyId,
+        }),
+      }).then(r => r.json())
+      if (res?.data?.share_url) {
+        await navigator.clipboard.writeText(res.data.share_url)
+        toast.success('Share link copied to clipboard')
+        load()
+      } else {
+        toast.error(res?.error || 'Share failed')
+      }
+    } catch {
+      toast.error('Share request failed')
+    } finally {
+      setSharingId(null)
+    }
+  }
 
   async function load() {
     if (!agencyId) return
@@ -293,6 +322,28 @@ export default function ProposalsPage() {
                     </div>
                   </div>
 
+                  {/* View tracking indicator */}
+                  {(p.view_count || 0) > 0 && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setHistoryProposal(p) }}
+                      title="View open history"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '5px 10px', borderRadius: 10,
+                        background: '#E6FCFD', border: `1px solid ${T}40`, color: '#0E7490',
+                        fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                      }}
+                    >
+                      <Eye size={11} />
+                      Viewed {p.view_count}×
+                      {p.last_viewed_at && (
+                        <span style={{ opacity: 0.7, fontWeight: 500 }}>
+                          · {timeAgoShort(p.last_viewed_at)}
+                        </span>
+                      )}
+                    </button>
+                  )}
+
                   {/* Value */}
                   <div style={{ textAlign:'right', flexShrink:0 }}>
                     <div style={{ fontSize:15, fontWeight:800, color:'#111' }}>{fmt(p.total_value)}</div>
@@ -317,10 +368,20 @@ export default function ProposalsPage() {
                             <FileText size={13}/> Convert to Agreement
                           </button>
                         )}
+                        <button onClick={()=>sharePropAction(p)} disabled={sharingId===p.id}
+                          style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color: T, fontWeight:700 }}>
+                          <Share2 size={13}/> {sharingId===p.id ? 'Sharing…' : 'Share (with tracking)'}
+                        </button>
                         <button onClick={()=>{ navigator.clipboard.writeText(`${window.location.origin}/p/${p.public_token}`); toast.success('Link copied!'); setMenuOpen(null) }}
                           style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
-                          <Copy size={13}/> Copy Client Link
+                          <Copy size={13}/> Copy Legacy Link
                         </button>
+                        {(p.view_count || 0) > 0 && (
+                          <button onClick={()=>{ setHistoryProposal(p); setMenuOpen(null) }}
+                            style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
+                            <Eye size={13}/> View History
+                          </button>
+                        )}
                         <button onClick={()=>duplicate(p)}
                           style={{ width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 14px', border:'none', background:'none', cursor:'pointer', fontSize:15, color:'#374151' }}>
                           <Copy size={13}/> Duplicate
@@ -341,6 +402,117 @@ export default function ProposalsPage() {
           )}
         </div>
       </main>
+
+      {historyProposal && (
+        <ViewHistoryDrawer
+          proposal={historyProposal}
+          onClose={() => setHistoryProposal(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function timeAgoShort(iso) {
+  if (!iso) return ''
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`
+  return `${Math.floor(diff / 86400)}d ago`
+}
+
+function ViewHistoryDrawer({ proposal, onClose }) {
+  const events = Array.isArray(proposal.view_events) ? [...proposal.view_events].reverse() : []
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000,
+        display: 'flex', justifyContent: 'flex-end',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', width: 420, maxWidth: '100vw', height: '100vh',
+          overflowY: 'auto', display: 'flex', flexDirection: 'column',
+        }}
+      >
+        <div style={{
+          padding: '18px 22px', borderBottom: '1px solid #e5e7eb',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <Eye size={17} color={T} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+              View History
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>
+              {proposal.title || 'Untitled'}
+            </div>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: '#6b7280',
+          }}>
+            <X size={15} />
+          </button>
+        </div>
+
+        <div style={{ padding: 18 }}>
+          <div style={{
+            background: '#F7F7F6', borderRadius: 10, padding: 14, marginBottom: 16,
+            display: 'flex', alignItems: 'center', gap: 12,
+          }}>
+            <div style={{
+              fontSize: 28, fontWeight: 800, color: '#111', fontFamily: 'var(--font-display)', lineHeight: 1,
+            }}>
+              {proposal.view_count || 0}
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                Total views
+              </div>
+              {proposal.last_viewed_at && (
+                <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>
+                  Last seen {new Date(proposal.last_viewed_at).toLocaleString()}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {events.length === 0 ? (
+            <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', padding: 30, fontStyle: 'italic' }}>
+              No view events recorded yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {events.map((ev, i) => (
+                <div key={ev.id || i} style={{
+                  padding: '10px 12px', background: '#fafafa', borderRadius: 8, border: '1px solid #e5e7eb',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  <div style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: i === 0 ? T : '#d1d5db', flexShrink: 0,
+                  }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>
+                      {ev.ts ? new Date(ev.ts).toLocaleString() : 'Unknown time'}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                      {ev.device || 'unknown'}
+                      {ev.ua && ev.ua.length > 0 && (
+                        <> · <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{ev.ua.slice(0, 40)}…</span></>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

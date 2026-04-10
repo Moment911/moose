@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  BarChart2, Brain, ChevronRight, Clock, FileSignature, Globe, HelpCircle, Inbox,
-  LayoutGrid, LogOut, Menu, Plug, Settings, Sparkles, Star, Target,
+  BarChart2, Brain, ChevronRight, Clock, Database, FileSignature, FlaskConical, Globe, HelpCircle, Inbox,
+  LayoutGrid, LogOut, Menu, Phone, Plug, Settings, Sparkles, Star, Target,
   TrendingUp, Users, X, Zap, Bug, Activity, DollarSign, Shield
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -15,11 +15,11 @@ const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
 const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
 const TABS = [
-  { to: '/',        icon: LayoutGrid, label: 'Home'    },
-  { to: '/clients', icon: Users,      label: 'Clients' },
-  { to: '/reviews', icon: Star,       label: 'Reviews' },
-  { to: '/seo',     icon: BarChart2,  label: 'SEO'     },
-  { to: '/scout',   icon: Target,     label: 'Scout'   },
+  { to: '/',              icon: LayoutGrid, label: 'Home'     },
+  { to: '/discovery',     icon: Brain,      label: 'Discovery' },
+  { to: '/opportunities', icon: Zap,        label: 'Pipeline' },
+  { to: '/voice',         icon: Phone,      label: 'Voice'    },
+  { to: '/clients',       icon: Users,      label: 'Clients'  },
 ]
 
 const DRAWER_SECTIONS = [
@@ -38,23 +38,29 @@ const DRAWER_SECTIONS = [
     { to: '/seo/monthly-report', icon: FileSignature, label: 'Monthly Report' },
   ]},
   { title: 'Intelligence', items: [
-    { to: '/scout',          icon: Target,     label: 'Scout',       badge: 'AI' },
-    { to: '/scout/history',  icon: Clock,      label: 'Scout History'  },
+    { to: '/discovery',      icon: Brain,      label: 'Discovery',  badge: 'AI' },
+    { to: '/opportunities',  icon: Zap,        label: 'Pipeline'                },
+    { to: '/scout',          icon: Target,     label: 'Scout',      badge: 'AI' },
+    { to: '/scout/history',  icon: Clock,      label: 'Scout History'           },
     { to: '/perf',           icon: TrendingUp, label: 'Performance', badge: 'AI' },
-    { to: '/voice',          icon: Globe,      label: 'Voice Agent', badge: 'AI' },
+    { to: '/voice',          icon: Phone,      label: 'Voice Agent', badge: 'AI' },
+    { to: '/voice/live',     icon: Phone,      label: 'Live Calls'              },
     { to: '/agent',          icon: Brain,      label: 'AI CMO',      badge: 'AI' },
+    { to: '/vault',          icon: Database,   label: 'Data Vault'              },
   ]},
   { title: 'Support', items: [
-    { to: '/desk',            icon: Inbox,  label: 'KotoDesk'       },
+    { to: '/desk',            icon: Inbox,      label: 'KotoDesk'      },
     { to: '/desk/knowledge',  icon: Brain,      label: 'Knowledge Base' },
     { to: '/help',             icon: HelpCircle, label: 'Help Center' },
   ]},
   { title: 'Agency', items: [
-    { to: '/agency-settings', icon: Settings,   label: 'Settings'      },
-    { to: '/billing',         icon: DollarSign,  label: 'Billing'       },
-    { to: '/integrations',    icon: Plug,        label: 'Integrations'  },
-    { to: '/debug',           icon: Bug,         label: 'Debug Console' },
-    { to: '/master-admin',    icon: Shield,      label: 'Master Admin'  },
+    { to: '/vault',           icon: Database,    label: 'Data Vault'     },
+    { to: '/agency-settings', icon: Settings,    label: 'Settings'       },
+    { to: '/billing',         icon: DollarSign,  label: 'Billing'        },
+    { to: '/integrations',    icon: Plug,        label: 'Integrations'   },
+    { to: '/test-data',       icon: FlaskConical, label: 'Test Data'     },
+    { to: '/debug',           icon: Bug,         label: 'Debug Console'  },
+    { to: '/master-admin',    icon: Shield,      label: 'Master Admin'   },
   ]},
 ]
 
@@ -62,6 +68,7 @@ const NO_SHELL = [
   '/login', '/welcome', '/signup', '/onboard', '/onboarding',
   '/review/', '/r/', '/p/', '/client-portal', '/client-auth',
   '/access/', '/privacy', '/esign', '/terms', '/status',
+  '/proposals/view/', '/discovery/form/', '/discovery/view/',
 ]
 
 function useIsMobile() {
@@ -148,6 +155,11 @@ export default function MobileShell({ children }) {
     if (path.startsWith('/perf'))            return 'Performance'
     if (path.startsWith('/debug'))           return 'Debug Console'
     if (path.startsWith('/billing'))         return 'Billing'
+    if (path.startsWith('/reviews'))         return 'Reviews'
+    if (path.startsWith('/scout'))           return 'Scout'
+    if (path.startsWith('/seo'))             return 'SEO'
+    if (path.startsWith('/vault'))           return 'Data Vault'
+    if (path.startsWith('/test-data'))       return 'Test Data'
     return 'Koto'
   })()
 

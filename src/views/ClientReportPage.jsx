@@ -216,7 +216,9 @@ export default function ClientReportPage() {
             <>
               {/* Snapshot row */}
               <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 16,
+                display: 'grid',
+                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+                gap: 12, marginBottom: 16,
               }}>
                 <SnapStat label="Voice Calls" value={report.voice.total} icon={Phone} color={C.teal} />
                 <SnapStat label="Appointments" value={report.voice.appointments} icon={CheckCircle} color={C.green} />
@@ -234,7 +236,9 @@ export default function ClientReportPage() {
               {hasVoice && (
                 <Panel title="Voice Performance" icon={Phone}>
                   <div style={{
-                    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 18,
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                    gap: 12, marginBottom: 18,
                   }}>
                     <MiniStat label="Total" value={report.voice.total} />
                     <MiniStat label="Answered" value={report.voice.answered} sub={`${pct(report.voice.answered, report.voice.total)}%`} />
@@ -254,7 +258,9 @@ export default function ClientReportPage() {
               {hasInbound && (
                 <Panel title="Inbound Calls" icon={PhoneIncoming}>
                   <div style={{
-                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 14,
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                    gap: 12, marginBottom: 14,
                   }}>
                     <MiniStat label="Total Inbound" value={report.inbound.total} />
                     <MiniStat label="Avg Duration" value={fmtMin(report.inbound.avg_duration_seconds)} />
@@ -274,7 +280,11 @@ export default function ClientReportPage() {
               {/* Website Intelligence */}
               {hasWebsite && (
                 <Panel title="Website Intelligence" icon={Eye}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                    gap: 12,
+                  }}>
                     <MiniStat label="Total Visits" value={report.website.total_visits} />
                     <MiniStat label="Identified" value={report.website.identified_companies} sub={`${pct(report.website.identified_companies, report.website.total_visits)}%`} />
                     <MiniStat label="Hot Visitors" value={report.website.hot_visitors} sub="score 70+" />

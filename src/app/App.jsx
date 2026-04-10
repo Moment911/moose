@@ -123,6 +123,7 @@ import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
 import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
+import ProposalPublicViewPage from '../views/ProposalPublicViewPage'
 import QAConsolePage from '../views/QAConsolePage'
 import ServicesPage from '../views/ServicesPage'
 import ContactPage from '../views/ContactPage'
@@ -216,6 +217,7 @@ export default function App() {
           <Route path="/review/:token" element={<PublicReviewPage />} />
           <Route path="/r/:token" element={<PublicReportPage />} />
           <Route path="/p/:token" element={<ProposalPublicPage />} />
+          <Route path="/proposals/view/:token" element={<ProposalPublicViewPage />} />
           <Route path="/portal/:token" element={<ClientPortalPage />} />
           <Route path="/access/:token" element={<ClientAccessFormPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />

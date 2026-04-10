@@ -494,8 +494,11 @@ export default function VoiceLiveMonitorPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15 }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid #f2f2f0' }}>
-                      {['', 'Type', 'Agent', 'Contact', 'Phone', 'Duration', 'Outcome', 'Sentiment', 'Time', ''].map(h => (
-                        <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
+                      {(isMobile
+                        ? ['', 'Contact', 'Duration', 'Outcome', '']
+                        : ['', 'Type', 'Agent', 'Contact', 'Phone', 'Duration', 'Outcome', 'Sentiment', 'Time', '']
+                      ).map((h, i) => (
+                        <th key={`${h}-${i}`} style={{ padding: '8px 12px', textAlign: 'left', fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -507,18 +510,28 @@ export default function VoiceLiveMonitorPage() {
                           <td style={{ padding: '10px 12px' }}>
                             {c.direction === 'inbound' ? <ArrowDown size={14} color={GRN} /> : <ArrowUp size={14} color={R} />}
                           </td>
-                          <td style={{ padding: '10px 12px' }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: c.direction === 'inbound' ? GRN + '12' : R + '12', color: c.direction === 'inbound' ? GRN : R, textTransform: 'uppercase' }}>{c.type}</span>
-                          </td>
-                          <td style={{ padding: '10px 12px', color: '#6b7280' }}>{c.agent || '—'}</td>
+                          {!isMobile && (
+                            <td style={{ padding: '10px 12px' }}>
+                              <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: c.direction === 'inbound' ? GRN + '12' : R + '12', color: c.direction === 'inbound' ? GRN : R, textTransform: 'uppercase' }}>{c.type}</span>
+                            </td>
+                          )}
+                          {!isMobile && (
+                            <td style={{ padding: '10px 12px', color: '#6b7280' }}>{c.agent || '—'}</td>
+                          )}
                           <td style={{ padding: '10px 12px', fontWeight: 600, color: BLK }}>{c.contact || '—'}</td>
-                          <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 14 }}>{fmtPhone(c.phone)}</td>
+                          {!isMobile && (
+                            <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 14 }}>{fmtPhone(c.phone)}</td>
+                          )}
                           <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600 }}>{fmtDur(c.duration)}</td>
                           <td style={{ padding: '10px 12px' }}>
                             <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: oc + '15', color: oc, textTransform: 'uppercase' }}>{c.outcome}</span>
                           </td>
-                          <td style={{ padding: '10px 12px', fontSize: 18 }}>{SENTIMENT_EMOJI[c.sentiment] || '😐'}</td>
-                          <td style={{ padding: '10px 12px', fontSize: 13, color: '#9a9a96' }}>{timeAgo(c.created_at)}</td>
+                          {!isMobile && (
+                            <td style={{ padding: '10px 12px', fontSize: 18 }}>{SENTIMENT_EMOJI[c.sentiment] || '😐'}</td>
+                          )}
+                          {!isMobile && (
+                            <td style={{ padding: '10px 12px', fontSize: 13, color: '#9a9a96' }}>{timeAgo(c.created_at)}</td>
+                          )}
                           <td style={{ padding: '10px 12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               {c.recording_url && (
@@ -530,13 +543,14 @@ export default function VoiceLiveMonitorPage() {
                                 onClick={() => deleteCall(c.id)}
                                 title="Delete call"
                                 style={{
-                                  background: 'none', border: 'none', padding: 4, cursor: 'pointer',
-                                  color: '#9ca3af', display: 'flex', alignItems: 'center',
+                                  background: 'none', border: 'none', padding: isMobile ? 10 : 4, cursor: 'pointer',
+                                  color: '#9ca3af', display: 'flex', alignItems: 'center', minWidth: isMobile ? 44 : 'auto', minHeight: isMobile ? 44 : 'auto',
+                                  justifyContent: 'center',
                                 }}
                                 onMouseEnter={ev => ev.currentTarget.style.color = '#dc2626'}
                                 onMouseLeave={ev => ev.currentTarget.style.color = '#9ca3af'}
                               >
-                                <Trash2 size={12} />
+                                <Trash2 size={isMobile ? 14 : 12} />
                               </button>
                             </div>
                           </td>

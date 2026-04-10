@@ -81,6 +81,7 @@ export default function DiscoveryPage() {
           <DetailView
             aid={aid}
             id={selectedId}
+            isMobile={isMobile}
             onBack={() => { setView('list'); setSelectedId(null) }}
           />
         )}
@@ -578,7 +579,7 @@ function Input({ value, onChange, placeholder, type = 'text' }) {
 // ─────────────────────────────────────────────────────────────
 // Detail view
 // ─────────────────────────────────────────────────────────────
-function DetailView({ aid, id, onBack }) {
+function DetailView({ aid, id, isMobile, onBack }) {
   const [eng, setEng] = useState(null)
   const [domains, setDomains] = useState([])
   const [comments, setComments] = useState([])
@@ -914,7 +915,7 @@ function DetailView({ aid, id, onBack }) {
             label="History"
             outlined
           />
-          {mode === 'document' && (
+          {mode === 'document' && !isMobile && (
             <HeaderBtn
               onClick={() => setShowLivePanel(v => !v)}
               color={C.text}
@@ -940,15 +941,53 @@ function DetailView({ aid, id, onBack }) {
         <SessionsView eng={eng} aid={aid} onChange={load} />
       ) : (
       <>
+      {/* Mobile: horizontal scrollable section pill row */}
+      {isMobile && (eng.sections || []).length > 0 && (
+        <div style={{
+          display: 'flex', gap: 6, overflowX: 'auto', overflowY: 'hidden',
+          padding: '8px 0', marginBottom: 12,
+          scrollbarWidth: 'none', msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+        }}>
+          {(eng.sections || []).map(sec => {
+            const isActive = activeSection === sec.id
+            return (
+              <button
+                key={sec.id}
+                onClick={() => {
+                  setActiveSection(sec.id)
+                  document.getElementById(`sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+                style={{
+                  flexShrink: 0,
+                  padding: '10px 14px',
+                  borderRadius: 20,
+                  background: isActive ? C.text : C.white,
+                  color: isActive ? '#fff' : C.mutedDark,
+                  border: isActive ? 'none' : `1px solid ${C.border}`,
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  whiteSpace: 'nowrap', minHeight: 40,
+                }}
+              >
+                {sec.title}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {/* Layout: sticky nav + main [+ optional live answers panel] */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: showLivePanel ? '200px 1fr 320px' : '200px 1fr',
+          gridTemplateColumns: isMobile
+            ? '1fr'
+            : (showLivePanel ? '200px 1fr 320px' : '200px 1fr'),
           gap: 16,
           alignItems: 'flex-start',
         }}
       >
+        {!isMobile && (
         <SectionNav
           sections={eng.sections || []}
           active={activeSection}
@@ -957,6 +996,7 @@ function DetailView({ aid, id, onBack }) {
             document.getElementById(`sec-${sid}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           }}
         />
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Intel cards */}
@@ -1003,7 +1043,7 @@ function DetailView({ aid, id, onBack }) {
           ))}
         </div>
 
-        {showLivePanel && (
+        {showLivePanel && !isMobile && (
           <LiveAnswersPanel
             eng={eng}
             engagementId={eng.id}
