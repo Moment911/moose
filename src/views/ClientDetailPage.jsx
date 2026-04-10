@@ -55,14 +55,15 @@ const badge = (color) => ({ fontSize: 10, fontWeight: 800, padding: '2px 8px', b
 const inp = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, fontFamily: FB, outline: 'none', boxSizing: 'border-box' }
 
 const SECTIONS = [
-  { key: 'overview', label: 'Overview', icon: BarChart2 },
-  { key: 'info', label: 'Business Info', icon: Building },
-  { key: 'online', label: 'Online Presence', icon: Globe },
-  { key: 'seo', label: 'SEO & Content', icon: FileText },
-  { key: 'reviews', label: 'Reviews', icon: Star },
-  { key: 'calls', label: 'Calls', icon: Phone },
-  { key: 'activity', label: 'Activity', icon: Activity },
-  { key: 'intelligence', label: 'Intelligence', icon: Brain },
+  { key: 'overview',     label: 'Overview',        icon: BarChart2 },
+  { key: 'info',         label: 'Business Info',   icon: Building  },
+  { key: 'onboarding',   label: 'Onboarding',      icon: FileText  },
+  { key: 'online',       label: 'Online Presence', icon: Globe     },
+  { key: 'seo',          label: 'SEO & Content',   icon: FileText  },
+  { key: 'reviews',      label: 'Reviews',         icon: Star      },
+  { key: 'calls',        label: 'Calls',           icon: Phone     },
+  { key: 'activity',     label: 'Activity',        icon: Activity  },
+  { key: 'intelligence', label: 'Intelligence',    icon: Brain     },
 ]
 
 const INDUSTRIES = [
@@ -726,229 +727,238 @@ export default function ClientDetailPage() {
   }
 
   function renderInfoSection() {
+    const twoCol = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }
     return (
       <div ref={el => { sectionRefs.current.info = el }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div style={card}>
-            <div style={sectionTitle}><Building size={16} color={R} /> Business Details</div>
-            {renderEditableField('name', 'Business Name', client.name)}
-            {renderEditableField('industry', 'Industry', client.industry, 'select', INDUSTRIES)}
-            {renderEditableField('website', 'Website', client.website, 'url')}
-            {renderEditableField('naics_code', 'NAICS Code', client.naics_code)}
-            {renderEditableField('sic_code', 'SIC Code', client.sic_code)}
-            {renderEditableField('primary_service', 'Primary Service', client.primary_service)}
-            {renderEditableField('target_customer', 'Target Customer', client.target_customer)}
-            {renderEditableField('unique_selling_prop', 'Unique Selling Prop', client.unique_selling_prop)}
-          </div>
-          <div>
-            <div style={card}>
-              <div style={sectionTitle}><Phone size={16} color={R} /> Contact Info</div>
-              {renderEditableField('phone', 'Phone', client.phone, 'tel')}
-              {renderEditableField('email', 'Email', client.email, 'email')}
-              {renderEditableField('address', 'Address', client.address)}
-              {renderEditableField('city', 'City', client.city)}
-              {renderEditableField('state', 'State', client.state)}
-              {renderEditableField('zip', 'ZIP Code', client.zip)}
-            </div>
-            <div style={card}>
-              <div style={sectionTitle}><Users size={16} color={R} /> Owner Info</div>
-              {renderEditableField('owner_name', 'Owner Name', client.owner_name)}
-              {renderEditableField('owner_phone', 'Owner Phone', client.owner_phone, 'tel')}
-              {renderEditableField('owner_email', 'Owner Email', client.owner_email, 'email')}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div style={card}>
-            <div style={sectionTitle}><Search size={16} color={R} /> Competitors</div>
-            {renderEditableField('competitor_1', 'Competitor 1', client.competitor_1)}
-            {renderEditableField('competitor_2', 'Competitor 2', client.competitor_2)}
-            {renderEditableField('competitor_3', 'Competitor 3', client.competitor_3)}
-          </div>
-          <div style={card}>
-            <div style={sectionTitle}><FileText size={16} color={R} /> Notes</div>
-            {renderEditableField('notes', 'Internal Notes', client.notes, 'textarea')}
-          </div>
-        </div>
-
-        {/* Onboarding section */}
+        {/* BUSINESS BASICS */}
         <div style={card}>
-          <div style={sectionTitle}><ChevronRight size={16} color={R} /> Onboarding</div>
-          {(() => {
-            const isComplete = !!(client.onboarding_completed_at || client.onboarding_status === 'complete')
-            const isInProgress = !isComplete && (client.onboarding_status === 'in_progress' || !!client.onboarding_answers)
-            const rawAnswers = client.onboarding_answers
-            const hasRaw = rawAnswers && typeof rawAnswers === 'object' && Object.keys(rawAnswers).length > 0
-
-            // Filter internal tracking keys (prefixed with _) out of the display.
-            const displayAnswers = hasRaw
-              ? Object.entries(rawAnswers).filter(([k]) => !k.startsWith('_'))
-              : []
-            const filledCount = displayAnswers.filter(([, v]) => {
-              if (v === null || v === undefined || v === '') return false
-              if (Array.isArray(v) && v.length === 0) return false
-              return true
-            }).length
-            const totalCount = displayAnswers.length
-            const lastAutosave = rawAnswers?._last_autosave || null
-            const autosaveCount = rawAnswers?._autosave_count || 0
-
-            return (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-                  <span style={fieldLabel}>Status</span>
-                  <span style={badge(isComplete ? GRN : isInProgress ? T : AMB)}>
-                    {isComplete ? 'Onboarding Complete ✓' : isInProgress ? 'In Progress' : 'Pending'}
-                  </span>
-                  {isInProgress && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: T, fontSize: 12, fontFamily: FB }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, animation: 'onboarding-pulse 1.2s infinite' }} />
-                      Client is filling out the form right now — answers updating live
-                    </div>
-                  )}
-                  {client.onboarding_sent_at && !isComplete && !isInProgress && (
-                    <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>
-                      Link sent {new Date(client.onboarding_sent_at).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={fieldLabel}>Onboarding Link</label>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input readOnly value={onboardingLink} style={{ ...inp, flex: 1, color: '#6b7280', fontSize: 12 }} />
-                    <button
-                      onClick={copyOnboardingLink}
-                      style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: copySuccess ? GRN : T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
-                    >
-                      {copySuccess ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
-                    </button>
-                    <button
-                      onClick={() => window.open(onboardingLink, '_blank', 'noopener')}
-                      style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, flexShrink: 0 }}
-                    >
-                      Preview
-                    </button>
-                  </div>
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
-                    No account required · Auto-saves every 2 seconds · Link never expires
-                  </div>
-                </div>
-
-                {hasRaw && totalCount > 0 && (
-                  <div style={{ marginTop: 14, padding: 16, borderRadius: 10, background: GRY }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      {isComplete ? <Check size={12} color={GRN} /> : <Clock size={12} color={T} />}
-                      {isComplete ? 'SUBMITTED ANSWERS' : 'LIVE ANSWERS'}
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>
-                        · {filledCount} of {totalCount} answered
-                      </span>
-                      {lastAutosave && !isComplete && (
-                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
-                          · Last saved {timeAgo(lastAutosave)}
-                        </span>
-                      )}
-                      {isComplete && client.onboarding_completed_at && (
-                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
-                          · {new Date(client.onboarding_completed_at).toLocaleString()}
-                        </span>
-                      )}
-                      {autosaveCount > 0 && !isComplete && (
-                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
-                          · {autosaveCount} autosaves
-                        </span>
-                      )}
-                    </div>
-                    {/* Progress bar */}
-                    <div style={{ height: 4, borderRadius: 2, background: '#e5e7eb', overflow: 'hidden', marginBottom: 12, marginTop: 8 }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0}%`,
-                        background: isComplete ? GRN : T,
-                        borderRadius: 2,
-                        transition: 'width .4s',
-                      }} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
-                      {displayAnswers.map(([key, val]) => {
-                        const display = typeof val === 'string'
-                          ? val
-                          : Array.isArray(val)
-                            ? val.join(', ')
-                            : val && typeof val === 'object'
-                              ? JSON.stringify(val)
-                              : String(val ?? '')
-                        if (!display) return null
-                        const prettyKey = key
-                          .replace(/_/g, ' ')
-                          .replace(/\b\w/g, (c) => c.toUpperCase())
-                        return (
-                          <div key={key} style={{ fontSize: 12, fontFamily: FB, padding: '6px 0', borderBottom: '1px dashed #e5e7eb' }}>
-                            <div style={{ color: '#6b7280', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 3 }}>
-                              {prettyKey}
-                            </div>
-                            <div style={{ color: BLK, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                              {display}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-              </>
-            )
-          })()}
-          <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
+          <div style={sectionTitle}><Building size={16} color={R} /> Business Basics</div>
+          <div style={twoCol}>
+            {renderEditableField('name',               'Business Name',      client.name)}
+            {renderEditableField('industry',           'Industry',           client.industry, 'select', INDUSTRIES)}
+            {renderEditableField('year_founded',       'Year Founded',       client.year_founded)}
+            {renderEditableField('num_employees',      'Team Size',          client.num_employees)}
+            {renderEditableField('primary_service',    'Primary Service',    client.primary_service)}
+            {renderEditableField('secondary_services', 'Secondary Services', client.secondary_services, 'textarea')}
+            {renderEditableField('service_area',       'Service Area',       client.service_area)}
+            {renderEditableField('avg_deal_size',      'Avg Deal Size',      client.avg_deal_size)}
+            {renderEditableField('target_customer',    'Target Customer',    client.target_customer, 'textarea')}
+          </div>
         </div>
+
+        {/* OWNER / CONTACT */}
+        <div style={card}>
+          <div style={sectionTitle}><Users size={16} color={R} /> Owner / Contact</div>
+          <div style={twoCol}>
+            {renderEditableField('owner_name',  'Owner Name',  client.owner_name)}
+            {renderEditableField('owner_title', 'Owner Title', client.owner_title)}
+            {renderEditableField('owner_email', 'Owner Email', client.owner_email, 'email')}
+            {renderEditableField('owner_phone', 'Owner Phone', client.owner_phone, 'tel')}
+            {renderEditableField('email',       'Business Email', client.email, 'email')}
+            {renderEditableField('phone',       'Business Phone', client.phone, 'tel')}
+          </div>
+        </div>
+
+        {/* LOCATION */}
+        <div style={card}>
+          <div style={sectionTitle}><Search size={16} color={R} /> Location</div>
+          <div style={twoCol}>
+            {renderEditableField('address', 'Address', client.address)}
+            {renderEditableField('city',    'City',    client.city)}
+            {renderEditableField('state',   'State',   client.state)}
+            {renderEditableField('zip',     'Zip',     client.zip)}
+          </div>
+        </div>
+
+        {/* COMPETITIVE */}
+        <div style={card}>
+          <div style={sectionTitle}><TrendingUp size={16} color={R} /> Competitive</div>
+          <div style={twoCol}>
+            {renderEditableField('competitor_1',        'Competitor 1',        client.competitor_1)}
+            {renderEditableField('competitor_2',        'Competitor 2',        client.competitor_2)}
+            {renderEditableField('competitor_3',        'Competitor 3',        client.competitor_3)}
+            {renderEditableField('unique_selling_prop', 'Unique Selling Prop', client.unique_selling_prop, 'textarea')}
+          </div>
+        </div>
+
+        {/* BRAND */}
+        <div style={card}>
+          <div style={sectionTitle}><Zap size={16} color={R} /> Brand</div>
+          <div style={twoCol}>
+            {renderEditableField('brand_voice', 'Brand Voice', client.brand_voice, 'textarea')}
+            {renderEditableField('tagline',     'Tagline',     client.tagline)}
+          </div>
+        </div>
+
+        {/* NOTES */}
+        <div style={card}>
+          <div style={sectionTitle}><FileText size={16} color={R} /> Internal Notes</div>
+          {renderEditableField('notes', 'Notes', client.notes, 'textarea')}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Onboarding tab — link management, banner, responses ────────────────────
+  function renderOnboardingSection() {
+    const isComplete = !!(client?.onboarding_completed_at || client?.onboarding_status === 'complete')
+    const isInProgress = !isComplete && (
+      client?.onboarding_status === 'in_progress' ||
+      !!client?.onboarding_answers
+    )
+    return (
+      <div ref={el => { sectionRefs.current.onboarding = el }}>
+        {/* Onboarding link management card */}
+        <div style={card}>
+          <div style={sectionTitle}><FileText size={16} color={R} /> Onboarding Link</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+            <input
+              readOnly
+              value={onboardingLink}
+              style={{ ...inp, flex: 1, minWidth: 220, color: '#6b7280', fontSize: 12 }}
+            />
+            <button
+              onClick={copyOnboardingLink}
+              style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: copySuccess ? GRN : T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+            >
+              {copySuccess ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
+            </button>
+            <button
+              onClick={() => window.open(onboardingLink, '_blank', 'noopener')}
+              style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, flexShrink: 0 }}
+            >
+              Preview
+            </button>
+          </div>
+          <div style={{ fontSize: 11, color: '#9ca3af' }}>
+            No account required · Auto-saves every 2 seconds · Link never expires
+          </div>
+          {client?.onboarding_sent_at && (
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 8, fontFamily: FB }}>
+              Link first sent {new Date(client.onboarding_sent_at).toLocaleString()}
+            </div>
+          )}
+        </div>
+
+        {/* Submitted confirmation card — only when complete */}
+        {isComplete && (
+          <div style={{ ...card, border: `2px solid ${GRN}30`, background: '#f0fdf4' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <Check size={16} color={GRN} />
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                Form Submitted
+              </div>
+            </div>
+            {client?.onboarding_completed_at && (
+              <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
+                Submitted {new Date(client.onboarding_completed_at).toLocaleString()}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Banner + responses grid — reuses the existing render helper which
+            already handles the IN PROGRESS banner, pulsing styling, answer
+            cards, and junk-filter safety nets. */}
+        {renderOnboardingResponsesSection()}
+
+        {/* Empty state when nothing has happened yet (link not sent + no status) */}
+        {!isInProgress && !isComplete && !client?.onboarding_answers && (
+          <div style={{ ...card, background: '#fafafa' }}>
+            <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, textAlign: 'center', padding: '12px 0' }}>
+              No onboarding activity yet. Share the link above to get started.
+            </div>
+          </div>
+        )}
       </div>
     )
   }
 
   function renderOnlineSection() {
     const platforms = [
-      { key: 'website', label: 'Website', icon: Globe, url: client.website, dataKey: 'website_data' },
-      { key: 'google', label: 'Google', icon: Search, url: client.google_profile_url, dataKey: 'google_data' },
-      { key: 'facebook', label: 'Facebook', icon: Users, url: client.facebook_url, dataKey: 'facebook_data' },
-      { key: 'instagram', label: 'Instagram', icon: Activity, url: client.instagram_url, dataKey: 'instagram_data' },
-      { key: 'linkedin', label: 'LinkedIn', icon: Building, url: client.linkedin_url, dataKey: 'linkedin_data' },
+      { key: 'website',             label: 'Website',         icon: Globe,    field: 'website'             },
+      { key: 'google_business_url', label: 'Google Business', icon: Search,   field: 'google_business_url' },
+      { key: 'facebook_url',        label: 'Facebook',        icon: Users,    field: 'facebook_url'        },
+      { key: 'instagram_url',       label: 'Instagram',       icon: Activity, field: 'instagram_url'       },
+      { key: 'linkedin_url',        label: 'LinkedIn',        icon: Building, field: 'linkedin_url'        },
+      { key: 'tiktok_url',          label: 'TikTok',          icon: Activity, field: 'tiktok_url'          },
+      { key: 'youtube_url',         label: 'YouTube',         icon: Activity, field: 'youtube_url'         },
     ]
+
+    const rating = parseFloat(client.google_rating) || 0
+    const reviewCount = client.google_review_count || client.review_count || 0
+
     return (
       <div ref={el => { sectionRefs.current.online = el }}>
+        {/* Google stats — rating + review count */}
         <div style={card}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={sectionTitle}><Globe size={16} color={R} /> Online Presence</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={sectionTitle}><Star size={16} color={R} /> Google Presence</div>
             <button onClick={scanAll} disabled={socialScanning}
               style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
               {socialScanning ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
               {socialScanning ? 'Scanning...' : 'Scan All'}
             </button>
           </div>
-          {platforms.map(p => {
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
+            <div>
+              <label style={fieldLabel}>Google Rating</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: BLK }}>
+                  {rating ? rating.toFixed(1) : '—'}
+                </div>
+                <div style={{ display: 'flex', gap: 2 }}>{renderStars(rating)}</div>
+              </div>
+              <div style={{ marginTop: 6 }}>
+                {renderEditableField('google_rating', 'Rating (0-5)', client.google_rating)}
+              </div>
+            </div>
+            <div>
+              <label style={fieldLabel}>Review Count</label>
+              <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: BLK }}>
+                {reviewCount || '—'}
+              </div>
+              <div style={{ marginTop: 6 }}>
+                {renderEditableField('google_review_count', 'Count', client.google_review_count)}
+              </div>
+            </div>
+          </div>
+          {renderEditableField('review_platforms', 'Review Platforms', client.review_platforms, 'textarea')}
+        </div>
+
+        {/* Social URLs */}
+        <div style={card}>
+          <div style={sectionTitle}><Globe size={16} color={R} /> Websites &amp; Social</div>
+          {platforms.map((p) => {
             const Ic = p.icon
-            const data = client[p.dataKey]
+            const url = client[p.field]
+            const hasUrl = !!url && String(url).trim() !== ''
             return (
-              <div key={p.key} style={{ padding: '14px 0', borderBottom: '1px solid #f3f4f6' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <Ic size={16} color={T} />
-                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{p.label}</span>
-                  {p.url && (
-                    <a href={p.url.startsWith('http') ? p.url : `https://${p.url}`} target="_blank" rel="noreferrer"
-                      style={{ marginLeft: 'auto', fontSize: 12, color: T, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontFamily: FH }}>
+              <div key={p.key} style={{ padding: '12px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <Ic size={15} color={T} />
+                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK, flex: 1 }}>
+                    {p.label}
+                  </span>
+                  {hasUrl && (
+                    <a
+                      href={String(url).startsWith('http') ? url : `https://${url}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: 12, color: T, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontFamily: FH }}
+                    >
                       <ExternalLink size={12} /> Visit
                     </a>
                   )}
-                  <button onClick={() => scanSocial(p.label)} disabled={socialScanning}
-                    style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${T}`, background: T + '10', color: T, fontSize: 11, cursor: 'pointer', fontFamily: FH, marginLeft: p.url ? 0 : 'auto' }}>
+                  <button
+                    onClick={() => scanSocial(p.label)}
+                    disabled={socialScanning}
+                    style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${T}`, background: T + '10', color: T, fontSize: 11, cursor: 'pointer', fontFamily: FH }}
+                  >
                     Scan
                   </button>
                 </div>
-                {renderEditableField(p.dataKey === 'website_data' ? 'website' : p.key + '_url', `${p.label} URL`, p.url, 'url')}
-                {data && (
-                  <div style={{ background: GRY, borderRadius: 8, padding: 10, marginTop: 4 }}>
-                    <div style={{ fontSize: 12, fontFamily: FB, color: '#6b7280' }}>{JSON.stringify(data).slice(0, 200)}...</div>
-                  </div>
-                )}
+                {renderEditableField(p.field, `${p.label} URL`, url, 'url')}
               </div>
             )
           })}
@@ -1305,10 +1315,11 @@ export default function ClientDetailPage() {
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
           <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-            {renderOnboardingResponsesSection()}
             {renderOverviewSection()}
             <div style={{ height: 32 }} />
             {renderInfoSection()}
+            <div style={{ height: 32 }} />
+            {renderOnboardingSection()}
             <div style={{ height: 32 }} />
             {renderOnlineSection()}
             <div style={{ height: 32 }} />
