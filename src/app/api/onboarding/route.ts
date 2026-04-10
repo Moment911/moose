@@ -131,10 +131,14 @@ export async function POST(req: NextRequest) {
     const sb = getSupabase()
 
     // ── Autosave (debounced, fire-and-forget from the onboarding form) ──────
-    // Merges incoming form_data into clients.onboarding_answers without
-    // overwriting existing values with blanks. Also writes a vault entry per
-    // save so nothing is ever lost. Always returns 200 — the client form
-    // never surfaces an error from autosave.
+    // Maps known form fields to real `clients` columns (so they show up in
+    // the existing client UI without any extra wiring) and stores anything
+    // unmapped in `clients.onboarding_answers` jsonb. Always returns 200 —
+    // the client form never surfaces an error from autosave.
+    //
+    // IMPORTANT: the `clients` table has NO updated_at column. Including it
+    // in any update payload causes Supabase to reject the entire row update
+    // silently (every prior autosave attempt was a no-op for this reason).
     if (action === 'autosave') {
       const form_data = (body.form_data && typeof body.form_data === 'object') ? body.form_data : null
       const saved_at = typeof body.saved_at === 'string' ? body.saved_at : new Date().toISOString()
@@ -144,6 +148,52 @@ export async function POST(req: NextRequest) {
       }
 
       try {
+        // Form-field name → clients column name. Anything not in this map
+        // falls through to the onboarding_answers jsonb spillover.
+        const FIELD_MAP: Record<string, string> = {
+          business_name: 'name', name: 'name',
+          email: 'email', phone: 'phone',
+          website: 'website', industry: 'industry',
+          city: 'city', state: 'state', zip: 'zip', address: 'address',
+          owner_name: 'owner_name', owner_title: 'owner_title',
+          owner_phone: 'owner_phone', owner_email: 'owner_email',
+          num_employees: 'num_employees',
+          primary_service: 'primary_service', secondary_services: 'secondary_services',
+          target_customer: 'target_customer',
+          avg_deal_size: 'avg_deal_size',
+          marketing_channels: 'marketing_channels', marketing_budget: 'marketing_budget',
+          competitor_1: 'competitor_1', competitor_2: 'competitor_2', competitor_3: 'competitor_3',
+          unique_selling_prop: 'unique_selling_prop',
+          brand_voice: 'brand_voice',
+          review_platforms: 'review_platforms',
+          crm_used: 'crm_used',
+          referral_sources: 'referral_sources',
+          notes: 'notes',
+          facebook_url: 'facebook_url', instagram_url: 'instagram_url',
+          linkedin_url: 'linkedin_url', tiktok_url: 'tiktok_url',
+          youtube_url: 'youtube_url', google_business_url: 'google_business_url',
+          year_founded: 'year_founded',
+          service_area: 'service_area',
+          tagline: 'tagline', brand_tagline: 'tagline',
+        }
+
+        const updateData: Record<string, any> = {}
+        const unmappedFields: Record<string, any> = {}
+
+        for (const [formKey, value] of Object.entries(form_data)) {
+          if (value === null || value === undefined || value === '') continue
+          if (Array.isArray(value) && value.length === 0) continue
+          const dbColumn = FIELD_MAP[formKey]
+          if (dbColumn) {
+            updateData[dbColumn] = value
+          } else {
+            unmappedFields[formKey] = value
+          }
+        }
+
+        updateData.onboarding_status = 'in_progress'
+
+        // Load existing onboarding_answers so we can merge spillover fields
         const { data: existing } = await sb
           .from('clients')
           .select('onboarding_answers, agency_id')
@@ -155,54 +205,45 @@ export async function POST(req: NextRequest) {
             ? existing.onboarding_answers
             : {}
 
-        const merged: Record<string, any> = { ...existingAnswers }
-        for (const [key, value] of Object.entries(form_data)) {
-          // Only overwrite with non-empty values; preserve existing answers otherwise
-          const isEmpty =
-            value === null ||
-            value === undefined ||
-            value === '' ||
-            (Array.isArray(value) && value.length === 0)
-          if (!isEmpty) {
-            merged[key] = value
-          } else if (!(key in existingAnswers)) {
-            merged[key] = value
-          }
+        updateData.onboarding_answers = {
+          ...existingAnswers,
+          ...unmappedFields,
+          _last_autosave: saved_at,
+          _autosave_count: (Number(existingAnswers._autosave_count) || 0) + 1,
         }
 
-        merged._last_autosave = saved_at
-        merged._autosave_count = (Number(existingAnswers._autosave_count) || 0) + 1
+        // NOTE: do NOT include updated_at — clients table has no such column.
+        const { error } = await sb.from('clients').update(updateData).eq('id', client_id)
 
-        await sb
-          .from('clients')
-          .update({
-            onboarding_answers: merged,
-            onboarding_status: 'in_progress',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', client_id)
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.error('[Onboarding autosave error]', error.message, 'data:', JSON.stringify(updateData).slice(0, 200))
+          return NextResponse.json({ ok: true, error: error.message })
+        }
 
-        // Vault history — each autosave is a row. Never blocks the response.
-        try {
-          await sb.from('koto_data_vault').insert({
-            agency_id: agency_id || existing?.agency_id || null,
-            client_id,
-            record_type: 'onboarding',
-            source: 'client_provided',
-            title: `Onboarding autosave — ${Object.keys(form_data).length} fields`,
-            summary: `Auto-saved at ${new Date(saved_at).toLocaleTimeString()}`,
-            payload: form_data,
-            source_meta: {
-              is_autosave: true,
-              saved_at,
-              field_count: Object.keys(form_data).length,
-            },
-          })
-        } catch { /* vault table may not exist in some installs */ }
+        // Vault history — fire-and-forget, never blocks the response.
+        sb.from('koto_data_vault').insert({
+          agency_id: agency_id || existing?.agency_id || null,
+          client_id,
+          record_type: 'onboarding',
+          source: 'client_provided',
+          title: `Onboarding autosave — ${Object.keys(updateData).length} fields`,
+          summary: Object.entries(form_data)
+            .slice(0, 5)
+            .map(([k, v]) => `${k}: ${String(v).slice(0, 40)}`)
+            .join(' · '),
+          payload: form_data,
+          source_meta: {
+            is_autosave: true,
+            saved_at,
+            field_count: Object.keys(form_data).length,
+          },
+        }).then(() => {}, () => {})
 
-        return NextResponse.json({ ok: true, saved_fields: Object.keys(merged).length })
-      } catch {
-        // Always return ok — autosave failures must never surface to the client form
+        return NextResponse.json({ ok: true, saved_fields: Object.keys(updateData).length })
+      } catch (e: any) {
+        // eslint-disable-next-line no-console
+        console.error('[Onboarding autosave failed]', e?.message || e)
         return NextResponse.json({ ok: true })
       }
     }

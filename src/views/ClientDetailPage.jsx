@@ -116,9 +116,12 @@ export default function ClientDetailPage() {
     if (!inProgress) return
     const id = setInterval(async () => {
       try {
+        // NOTE: clients table has no updated_at column — do not select it.
+        // Re-fetching `*` so any column the autosave wrote (owner_*, primary_service,
+        // etc.) shows up live without listing every field by hand.
         const { data } = await supabase
           .from('clients')
-          .select('onboarding_answers, onboarding_status, onboarding_completed_at, updated_at')
+          .select('*')
           .eq('id', clientId)
           .maybeSingle()
         if (data) {
@@ -132,7 +135,8 @@ export default function ClientDetailPage() {
   const saveField = useCallback(async (field, value) => {
     setSaving(true)
     try {
-      await supabase.from('clients').update({ [field]: value, updated_at: new Date().toISOString() }).eq('id', clientId)
+      // NOTE: clients table has no updated_at column — do not include it.
+      await supabase.from('clients').update({ [field]: value }).eq('id', clientId)
       setClient(prev => prev ? { ...prev, [field]: value } : prev)
       setEditingField(null)
       toast.success('Saved')
@@ -315,26 +319,85 @@ export default function ClientDetailPage() {
   }
 
   function renderOnboardingResponsesSection() {
-    const rawAnswers = client?.onboarding_answers
-    const hasRaw = rawAnswers && typeof rawAnswers === 'object' && Object.keys(rawAnswers).length > 0
-    const visibleAnswers = hasRaw
-      ? Object.entries(rawAnswers).filter(([k, v]) => {
-          if (k.startsWith('_')) return false
-          if (v === null || v === undefined || v === '') return false
-          if (Array.isArray(v) && v.length === 0) return false
-          return true
-        })
-      : []
-    const isComplete = !!(client?.onboarding_completed_at || client?.onboarding_status === 'complete')
-    const isInProgress = !isComplete && (client?.onboarding_status === 'in_progress' || (hasRaw && visibleAnswers.length > 0))
-    const lastAutosave = rawAnswers?._last_autosave || null
+    // Known onboarding form fields that map to real `clients` columns.
+    // The autosave handler maps these on the way in so they appear here without
+    // any extra wiring. Anything unmapped lives in client.onboarding_answers.
+    const ONBOARDING_DISPLAY_FIELDS = [
+      { key: 'owner_name',          label: 'Owner Name'        },
+      { key: 'owner_title',         label: 'Owner Title'       },
+      { key: 'owner_phone',         label: 'Owner Phone'       },
+      { key: 'owner_email',         label: 'Owner Email'       },
+      { key: 'website',             label: 'Website'           },
+      { key: 'industry',            label: 'Industry'          },
+      { key: 'num_employees',       label: 'Team Size'         },
+      { key: 'primary_service',     label: 'Primary Service'   },
+      { key: 'secondary_services',  label: 'Secondary Services'},
+      { key: 'target_customer',     label: 'Target Customer'   },
+      { key: 'marketing_budget',    label: 'Marketing Budget'  },
+      { key: 'marketing_channels',  label: 'Marketing Channels'},
+      { key: 'crm_used',            label: 'CRM Used'          },
+      { key: 'competitor_1',        label: 'Competitor 1'      },
+      { key: 'competitor_2',        label: 'Competitor 2'      },
+      { key: 'competitor_3',        label: 'Competitor 3'      },
+      { key: 'unique_selling_prop', label: 'USP'               },
+      { key: 'brand_voice',         label: 'Brand Voice'       },
+      { key: 'year_founded',        label: 'Year Founded'      },
+      { key: 'service_area',        label: 'Service Area'      },
+      { key: 'referral_sources',    label: 'Referral Sources'  },
+      { key: 'notes',               label: 'Notes'             },
+    ]
 
-    // Only render the section when there's onboarding activity
-    if (!isInProgress && !isComplete && visibleAnswers.length === 0) return null
+    const rawAnswers = client?.onboarding_answers || {}
+    const filledFields = ONBOARDING_DISPLAY_FIELDS.filter((f) => {
+      const v = client?.[f.key]
+      if (v === null || v === undefined || v === '') return false
+      if (Array.isArray(v) && v.length === 0) return false
+      return true
+    })
+    const extraAnswers = Object.entries(rawAnswers).filter(([k, v]) => {
+      if (k.startsWith('_')) return false
+      if (v === null || v === undefined || v === '') return false
+      if (Array.isArray(v) && v.length === 0) return false
+      return true
+    })
+
+    const isComplete = !!(client?.onboarding_completed_at || client?.onboarding_status === 'complete')
+    const isInProgress = !isComplete && (
+      client?.onboarding_status === 'in_progress' ||
+      filledFields.length > 0 ||
+      extraAnswers.length > 0
+    )
+    const totalAnswered = filledFields.length + extraAnswers.length
+    const lastSave = rawAnswers?._last_autosave
+    const autosaveCount = rawAnswers?._autosave_count || 0
+
+    // Empty state when nothing has been saved AND nothing is happening
+    if (totalAnswered === 0 && !isInProgress && !isComplete) return null
+
+    // In-progress with zero answers — show "waiting for client" placeholder
+    if (totalAnswered === 0) {
+      return (
+        <div style={{ ...card, marginBottom: 16, border: `2px solid ${T}30`, background: '#f0fbfc' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
+              📋 Onboarding Responses
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse 1.2s ease-in-out infinite' }} />
+              Client is completing the form — answers updating live
+            </div>
+          </div>
+          <div style={{ marginTop: 10, fontSize: 12, color: '#9a9a96', fontStyle: 'italic' }}>
+            Waiting for client to start filling in the form…
+          </div>
+          <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
+        </div>
+      )
+    }
 
     return (
       <div style={{ ...card, marginBottom: 16, border: `2px solid ${isComplete ? GRN : T}20`, background: isComplete ? '#f0fdf4' : '#f0fbfc' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
           <div>
             <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
               📋 Onboarding Responses
@@ -343,10 +406,9 @@ export default function ClientDetailPage() {
               <span style={badge(isComplete ? GRN : T)}>
                 {isComplete ? 'Complete ✓' : 'In Progress'}
               </span>
-              <span>{visibleAnswers.length} {visibleAnswers.length === 1 ? 'answer' : 'answers'}</span>
-              {lastAutosave && (
-                <span>· Last saved {timeAgo(lastAutosave)}</span>
-              )}
+              <span>{totalAnswered} fields</span>
+              {lastSave && <span>· Saved {timeAgo(lastSave)}</span>}
+              {autosaveCount > 0 && <span>· {autosaveCount}x autosaves</span>}
             </div>
           </div>
           {isInProgress && (
@@ -357,39 +419,59 @@ export default function ClientDetailPage() {
           )}
         </div>
 
-        {visibleAnswers.length === 0 ? (
-          <div style={{ padding: '20px 16px', borderRadius: 10, background: '#fff', border: '1px dashed #e5e7eb', textAlign: 'center', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
-            Waiting for client to start filling in the form…
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10, maxHeight: 520, overflowY: 'auto', padding: 4 }}>
-            {visibleAnswers.map(([key, val]) => {
-              const display = typeof val === 'string'
-                ? val
-                : Array.isArray(val)
-                  ? val.join(', ')
-                  : val && typeof val === 'object'
-                    ? JSON.stringify(val)
-                    : String(val ?? '')
-              const prettyKey = key
-                .replace(/[_-]/g, ' ')
-                .replace(/\b\w/g, (c) => c.toUpperCase())
-              return (
-                <div key={key} style={{
-                  padding: '10px 14px', borderRadius: 10,
-                  background: '#fff', border: '1px solid #e5e7eb',
-                }}>
-                  <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
-                    {prettyKey}
-                  </div>
-                  <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
-                    {display}
-                  </div>
+        {/* Progress bar — out of ~22 known display fields */}
+        <div style={{ height: 4, background: '#f0f0f0', borderRadius: 99, marginBottom: 14, overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(100, (totalAnswered / 22) * 100)}%`,
+            background: isComplete ? GRN : T,
+            borderRadius: 99,
+            transition: 'width .5s',
+          }} />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
+          {filledFields.map(({ key, label }) => {
+            const v = client?.[key]
+            const display = typeof v === 'string'
+              ? v
+              : Array.isArray(v)
+                ? v.join(', ')
+                : v && typeof v === 'object'
+                  ? JSON.stringify(v)
+                  : String(v ?? '')
+            return (
+              <div key={key} style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
+                <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                  {label}
                 </div>
-              )
-            })}
-          </div>
-        )}
+                <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
+                  {display}
+                </div>
+              </div>
+            )
+          })}
+          {extraAnswers.map(([k, v]) => {
+            const display = typeof v === 'string'
+              ? v
+              : Array.isArray(v)
+                ? v.join(', ')
+                : v && typeof v === 'object'
+                  ? JSON.stringify(v)
+                  : String(v ?? '')
+            const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+            return (
+              <div key={k} style={{ padding: '10px 14px', borderRadius: 10, background: '#f0fffe', border: `1px solid ${T}30` }}>
+                <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                  {prettyKey}
+                </div>
+                <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
+                  {display}
+                </div>
+              </div>
+            )
+          })}
+        </div>
         <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
       </div>
     )
