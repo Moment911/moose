@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { identifyVisitor } from '@/lib/reverseIPLookup'
 import { calculateIntentScore } from '@/lib/visitorIntentScorer'
 import { fireToAllPlatforms } from '@/lib/pixelEventFiring'
+import { createNotification } from '@/lib/notifications'
 
 function sb() {
   return createClient(
@@ -222,6 +223,15 @@ export async function POST(req: NextRequest) {
                 company_name: session.identified_company,
                 intent_score: score,
               })
+
+              // Notification — only on the first hot detection per session
+              createNotification(
+                s, pixel.agency_id, 'hot_visitor',
+                '🔥 Hot visitor detected',
+                `${session.identified_company || 'Unknown company'} on your site — score ${score}`,
+                '/pixels', '🔥',
+                { session_id: sessionId, score, company: session.identified_company },
+              ).catch(() => {})
             }
           }
 

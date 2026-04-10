@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '@/lib/apiAuth'
+import { createNotification } from '@/lib/notifications'
 
 function sb() {
   return createClient(
@@ -793,6 +794,14 @@ export async function GET(req: NextRequest) {
           token,
           device,
         }).catch((e) => console.error('first-view notify failed:', e?.message))
+
+        createNotification(
+          s, eng.agency_id, 'discovery_opened',
+          '👁 Discovery document opened',
+          `${eng.client_name || 'Someone'} just opened your shared document`,
+          '/discovery', '👁',
+          { engagement_id: eng.id, device },
+        ).catch(() => {})
       }
 
       // Webhook: discovery.opened — fire on every view
@@ -1224,6 +1233,16 @@ export async function POST(req: NextRequest) {
         sections,
         status: eng.status === 'draft' ? 'research_complete' : eng.status,
       }).eq('id', eng.id)
+
+      // Notification — use the engagement's own agency_id since the
+      // form is submitted from a public page without a resolved agency header
+      createNotification(
+        s, eng.agency_id, 'client_form_submitted',
+        '📝 Client form received',
+        `${eng.client_name || 'A client'} completed their discovery form`,
+        '/discovery', '📝',
+        { engagement_id: eng.id },
+      ).catch(() => {})
 
       return Response.json({ ok: true })
     }
@@ -1663,6 +1682,15 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
         version: nextVersionNumber,
         compiled_at: new Date().toISOString(),
       }).catch(() => {})
+
+      // Notification
+      createNotification(
+        s, agencyId, 'discovery_compiled',
+        '📋 Discovery compiled',
+        `${eng.client_name} discovery is ready to review`,
+        '/discovery', '📋',
+        { engagement_id: id },
+      ).catch(() => {})
 
       return Response.json({ data: { executive_summary: summary, version: nextVersionNumber } })
     }

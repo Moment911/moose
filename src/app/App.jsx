@@ -79,6 +79,7 @@ import SEOPluginPage from '../views/seo/SEOPluginPage'
 import SEOConnectPage from '../views/seo/SEOConnectPage'
 import SettingsPage from '../views/SettingsPage'
 import ClientDetailPage from '../views/ClientDetailPage'
+import ClientReportPage from '../views/ClientReportPage'
 import ClientDocumentsPage from '../views/ClientDocumentsPage'
 import OnboardingPage from '../views/OnboardingPage'
 import MarketingSitePage from '../views/MarketingSitePage'
@@ -259,6 +260,7 @@ function AppRoutes() {
           <Route path="/setup" element={<AgencySettingsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/clients/:clientId" element={<ClientDetailPage />} />
+          <Route path="/clients/:clientId/report" element={<ClientReportPage />} />
           <Route path="/clients/:clientId/documents" element={<ClientDocumentsPage />} />
           <Route path="/clients/:clientId/permissions" element={<ClientPermissionsPage />} />
           <Route path="/clients/:clientId/access" element={<AccountAccessPage />} />

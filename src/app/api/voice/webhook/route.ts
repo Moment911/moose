@@ -5,6 +5,7 @@ import { buildRetellDynamicVars, fetchDiscoveryBrief } from '@/lib/dynamicPrompt
 import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
 import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
 import { createVideoVoicemail } from '@/lib/heygenVideoEngine'
+import { createNotification } from '@/lib/notifications'
 
 function sb() {
   return createClient(
@@ -167,6 +168,31 @@ export async function POST(req: NextRequest) {
           recording_url: call.recording_url || '',
           transcript: call.transcript || '',
         }).eq('retell_call_id', callId)
+
+        // Notifications — fire after the core state updates
+        {
+          const notifAgencyId = body.metadata?.agency_id || call.metadata?.agency_id || null
+          const appointmentSet = call.call_analysis?.custom_analysis_data?.appointment_set === true
+            || call.call_analysis?.call_successful === true
+          if (notifAgencyId && appointmentSet) {
+            createNotification(
+              s, notifAgencyId, 'appointment_set',
+              '🎯 Appointment set!',
+              'New appointment booked from voice call',
+              '/voice', '🎯',
+              { call_id: callId },
+            ).catch(() => {})
+          }
+          if (notifAgencyId && duration > 60 && answered) {
+            createNotification(
+              s, notifAgencyId, 'call_completed',
+              '📞 Call completed',
+              `${Math.round(duration / 60)}min call completed`,
+              '/voice/live', '📞',
+              { call_id: callId, duration_seconds: duration },
+            ).catch(() => {})
+          }
+        }
 
         // Bill the call + parse Q&A intelligence
         if (duration > 0) {

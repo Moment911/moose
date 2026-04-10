@@ -57,9 +57,10 @@ function PlatformBadge({ platform }) {
 }
 
 // ── Review card ───────────────────────────────────────────────────────────────
-function ReviewCard({ review, profile, onApprove, onReject, onGenerateResponse, onPostResponse, onFeature }) {
+function ReviewCard({ review, profile, savedResponse, agencyId, clientId, onApprove, onReject, onGenerateResponse, onPostResponse, onFeature }) {
   const [expanded, setExpanded] = useState(false)
-  const [response, setResponse] = useState(review.response_text || '')
+  const [response, setResponse] = useState(savedResponse?.response_text || review.response_text || '')
+  const [tone, setTone] = useState(savedResponse?.tone || 'professional')
   const [generating, setGenerating] = useState(false)
   const [posting, setPosting] = useState(false)
   const cfg = PLATFORM_CONFIG[review.platform] || PLATFORM_CONFIG.google
@@ -67,33 +68,49 @@ function ReviewCard({ review, profile, onApprove, onReject, onGenerateResponse, 
   async function generateResponse() {
     setGenerating(true)
     try {
-      const brandTone = profile?.brand?.tone || 'professional and friendly'
       const businessName = profile?.business_name || 'our business'
-      const dos   = profile?.brand?.dos   || ''
-      const donts = profile?.brand?.donts || ''
+      const industry = profile?.business_type || profile?.industry || ''
 
-      const prompt = `You are responding to a ${review.star_rating}-star ${review.platform} review for ${businessName}.
+      const res = await fetch('/api/reviews/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_response',
+          review_text: review.review_text || '',
+          rating: review.star_rating || 5,
+          reviewer_name: review.reviewer_name || '',
+          business_name: businessName,
+          industry,
+          tone,
+          agency_id: agencyId,
+        }),
+      }).then(r => r.json())
 
-BRAND VOICE: ${brandTone}
-DO: ${dos}
-DON'T: ${donts}
+      if (res?.data?.response_text) {
+        const text = res.data.response_text.trim()
+        setResponse(text)
+        onGenerateResponse(review.id, text)
 
-REVIEWER: ${review.reviewer_name}
-REVIEW: "${review.review_text}"
-
-Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-focused'} response.
-- Keep it under 150 words
-- Sound human, not corporate
-- ${review.star_rating >= 4 ? 'Thank them and highlight the specific thing they praised' : 'Acknowledge the issue, apologize sincerely, invite them to contact you directly to resolve it'}
-- End with a forward-looking statement
-- Do NOT use exclamation marks excessively
-- Sign off with the owner/manager's first name if known, otherwise just the business name
-- Response only, no preamble`
-
-      const result = await callClaude('You write authentic, brand-voice-matched review responses for local businesses.', prompt, 400)
-      setResponse(result.trim())
-      onGenerateResponse(review.id, result.trim())
-    } catch(e) {
+        // Save to koto_review_responses for persistence + history
+        fetch('/api/reviews/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_response',
+            agency_id: agencyId,
+            client_id: clientId || null,
+            review_id: review.id,
+            review_text: review.review_text || '',
+            reviewer_name: review.reviewer_name || '',
+            rating: review.star_rating || null,
+            response_text: text,
+            tone,
+          }),
+        }).catch(() => {})
+      } else {
+        toast.error(res?.error || 'Response generation failed')
+      }
+    } catch (e) {
       toast.error('Response generation failed')
     }
     setGenerating(false)
@@ -158,23 +175,62 @@ Write a ${review.star_rating >= 4 ? 'warm, grateful' : 'empathetic, solution-foc
       {/* Response panel */}
       {expanded && (
         <div style={{ padding:'14px 20px 18px', borderTop:'1px solid #f3f4f6', background:GRY }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10, flexWrap:'wrap' }}>
             <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>Response</span>
-            <button onClick={generateResponse} disabled={generating}
-              style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
-              {generating ? <Loader2 size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Sparkles size={11}/>}
-              {generating ? 'Writing…' : response ? 'Regenerate' : 'AI Write Response'}
-            </button>
+            {savedResponse && (
+              <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background:'#f3f4f6', color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em' }}>
+                Previously generated
+              </span>
+            )}
             {review.response_posted_at && <span style={{ fontSize:13, color:'#16a34a', fontWeight:700 }}>✓ Posted {format(new Date(review.response_posted_at), 'MMM d')}</span>}
           </div>
+
+          {/* Tone selector */}
+          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:10 }}>
+            <span style={{ fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginRight:6 }}>Tone</span>
+            {[
+              { k:'professional', l:'Professional' },
+              { k:'friendly', l:'Friendly' },
+              { k:'empathetic', l:'Empathetic' },
+            ].map(t => {
+              const active = tone === t.k
+              return (
+                <button
+                  key={t.k}
+                  onClick={()=>setTone(t.k)}
+                  style={{
+                    padding:'5px 12px', borderRadius:999, fontSize:12, fontWeight:700, cursor:'pointer',
+                    background: active ? ACCENT : '#fff',
+                    color: active ? '#fff' : '#374151',
+                    border: active ? `1px solid ${ACCENT}` : '1px solid #e5e7eb',
+                  }}
+                >{t.l}</button>
+              )
+            })}
+            <button onClick={generateResponse} disabled={generating}
+              style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:8, border:`1.5px solid ${ACCENT}`, background:'#f0fbfc', color:ACCENT, fontSize:14, fontWeight:700, cursor:'pointer', opacity:generating?.7:1 }}>
+              {generating ? <Loader2 size={11} style={{ animation:'spin 1s linear infinite' }}/> : <Sparkles size={11}/>}
+              {generating ? 'Writing…' : response ? 'Regenerate' : 'Generate'}
+            </button>
+          </div>
+
           <textarea value={response} onChange={e=>setResponse(e.target.value)} rows={4}
-            placeholder="Write a response, or click AI Write Response to generate one in your brand voice…"
-            style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', lineHeight:1.65, color:'#111', background:'#fff', fontFamily:'inherit', boxSizing:'border-box' }}/>
-          <div style={{ display:'flex', gap:8, marginTop:8, justifyContent:'flex-end' }}>
-            <span style={{ fontSize:13, color:'#4b5563', marginRight:'auto', alignSelf:'center' }}>{response.length}/150 chars recommended</span>
-            <button onClick={()=>{ navigator.clipboard.writeText(response); toast.success('Copied — paste in '+cfg.label) }}
-              style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5 }}>
-              <Copy size={11}/> Copy
+            placeholder="Pick a tone and click Generate, or write your own response…"
+            style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', lineHeight:1.65, color:'#111', background:'#fff', fontFamily:'inherit', boxSizing:'border-box', minHeight:80 }}/>
+          <div style={{ display:'flex', gap:8, marginTop:8, justifyContent:'flex-end', alignItems:'center' }}>
+            <span style={{ fontSize:12, color:'#9ca3af', marginRight:'auto' }}>{response.length} / 4096</span>
+            <button onClick={generateResponse} disabled={generating || !response}
+              style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5, opacity: generating ? 0.6 : 1 }}>
+              <RefreshCw size={11}/> Regenerate
+            </button>
+            <button onClick={()=>{
+                navigator.clipboard.writeText(response)
+                toast.success('Copied! Paste into ' + (review.platform === 'google' ? 'Google Maps' : cfg.label))
+                setExpanded(false)
+              }}
+              disabled={!response}
+              style={{ padding:'7px 16px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', opacity: response ? 1 : 0.5, display:'flex', alignItems:'center', gap:5 }}>
+              <Copy size={11}/> Copy &amp; Close
             </button>
             {review.platform === 'google' && (
               <button onClick={postResponse} disabled={posting || !response}
@@ -426,6 +482,28 @@ export default function ReviewsPage() {
   useEffect(() => {
     if (selectedClient) loadClientData(selectedClient)
   }, [selectedClient?.id])
+
+  // Saved AI review responses (from koto_review_responses) — used to pre-fill
+  // the inline response panel if a response has already been generated.
+  const [savedResponses, setSavedResponses] = useState({})
+  useEffect(() => {
+    async function loadSaved() {
+      if (!agencyId || !selectedClient?.id) return
+      try {
+        const res = await fetch(`/api/reviews/respond?action=get_responses&agency_id=${agencyId}&client_id=${selectedClient.id}`)
+          .then(r => r.json())
+        const list = Array.isArray(res?.data) ? res.data : []
+        // Keep only the newest response per review_id
+        const byReview = {}
+        for (const r of list) {
+          if (!r.review_id) continue
+          if (!byReview[r.review_id]) byReview[r.review_id] = r
+        }
+        setSavedResponses(byReview)
+      } catch { /* silent */ }
+    }
+    loadSaved()
+  }, [agencyId, selectedClient?.id, reviews.length])
 
   async function syncGoogleReviews(client) {
     if (!client) return
@@ -999,6 +1077,9 @@ export default function ReviewsPage() {
                   </div>
                 ) : filtered.map(review=>(
                   <ReviewCard key={review.id} review={review} profile={clientProfile}
+                    savedResponse={savedResponses[review.id]}
+                    agencyId={agencyId}
+                    clientId={selectedClient?.id}
                     onApprove={handleApprove} onReject={handleReject}
                     onGenerateResponse={handleGenerateResponse} onPostResponse={handlePostResponse}
                     onFeature={handleFeature}/>
