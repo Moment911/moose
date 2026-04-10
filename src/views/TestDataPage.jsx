@@ -2,7 +2,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   FlaskConical, Database, Trash2, AlertTriangle, RefreshCw, Loader2, Check, X, Zap,
+  Brain, ExternalLink, ArrowRight,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 
@@ -35,6 +37,7 @@ const MODULES = [
 export default function TestDataPage() {
   const { agencyId, isSuperAdmin } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+  const navigate = useNavigate()
 
   const [selected, setSelected] = useState(() => Object.fromEntries(MODULES.map(m => [m.id, true])))
   const [counts, setCounts] = useState(null)
@@ -44,6 +47,73 @@ export default function TestDataPage() {
   const [confirmText, setConfirmText] = useState('')
   const [confirmingFactory, setConfirmingFactory] = useState(false)
   const [factoryText, setFactoryText] = useState('')
+
+  // ── Discovery Simulator state ──────────────────────────────────────
+  const [discoProfiles, setDiscoProfiles] = useState([])
+  const [discoRunning, setDiscoRunning] = useState(false)
+  const [discoRunningProfile, setDiscoRunningProfile] = useState(null)
+  const [discoResult, setDiscoResult] = useState(null)
+  const [discoDeleting, setDiscoDeleting] = useState(false)
+
+  useEffect(() => {
+    // Load profiles once on mount
+    fetch('/api/discovery/simulate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'profiles', agency_id: aid }),
+    })
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d?.profiles)) setDiscoProfiles(d.profiles) })
+      .catch(() => { /* non-fatal */ })
+  }, [aid])
+
+  async function runDiscoverySimulation(profileId) {
+    setDiscoRunning(true)
+    setDiscoRunningProfile(profileId)
+    setDiscoResult(null)
+    try {
+      const res = await fetch('/api/discovery/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'run', agency_id: aid, profile_id: profileId }),
+      }).then((r) => r.json())
+      if (res?.ok) {
+        setDiscoResult(res)
+        toast.success(`${res.client_name}: ${res.field_count} fields populated`)
+      } else {
+        toast.error(res?.error || 'Simulation failed')
+      }
+    } catch (e) {
+      toast.error(e?.message || 'Simulation failed')
+    } finally {
+      setDiscoRunning(false)
+      setDiscoRunningProfile(null)
+    }
+  }
+
+  async function deleteDiscoverySimulation() {
+    if (!discoResult) return
+    if (!confirm('Delete this test engagement and its test client?')) return
+    setDiscoDeleting(true)
+    try {
+      await fetch('/api/discovery/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete',
+          agency_id: aid,
+          engagement_id: discoResult.engagement_id,
+          client_id: discoResult.client_id,
+        }),
+      })
+      toast.success('Test engagement deleted')
+      setDiscoResult(null)
+    } catch (e) {
+      toast.error(e?.message || 'Delete failed')
+    } finally {
+      setDiscoDeleting(false)
+    }
+  }
 
   const loadCounts = useCallback(async () => {
     setLoading(true)
@@ -225,6 +295,169 @@ export default function TestDataPage() {
               📚 Seed Help Content
             </button>
           </div>
+        </div>
+
+        {/* ── Discovery Simulator ── */}
+        <div style={card}>
+          <div style={cardHeader}>
+            <Brain size={16} color={C.teal} />
+            <span>Discovery Simulator</span>
+            <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: C.tealSoft, color: C.teal, letterSpacing: '.06em' }}>
+              AI
+            </span>
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>
+            Pick a profile — we'll create a test client, spin up a discovery engagement, and generate realistic answers for all 12 sections via Claude. Lets you test the discovery document end-to-end without manual data entry.
+          </div>
+
+          {!discoResult && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: 10,
+              marginBottom: 12,
+            }}>
+              {discoProfiles.map((p) => {
+                const isRunning = discoRunning && discoRunningProfile === p.id
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => runDiscoverySimulation(p.id)}
+                    disabled={discoRunning}
+                    style={{
+                      textAlign: 'left',
+                      padding: '14px 16px',
+                      borderRadius: 10,
+                      border: `1px solid ${isRunning ? C.teal : C.border}`,
+                      background: isRunning ? C.tealSoft : '#fafafa',
+                      cursor: discoRunning ? 'default' : 'pointer',
+                      opacity: discoRunning && !isRunning ? 0.4 : 1,
+                      transition: 'all .15s',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontSize: 20 }}>{p.emoji}</span>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: C.text, flex: 1 }}>{p.label}</div>
+                      {isRunning && <Loader2 size={14} className="anim-spin" color={C.teal} />}
+                    </div>
+                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 6, lineHeight: 1.4 }}>
+                      {p.description}
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: '#eef2ff', color: '#4338ca', fontWeight: 700 }}>
+                        {String(p.business_model || '').toUpperCase()}
+                      </span>
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: '#fef3c7', color: '#92400e', fontWeight: 700 }}>
+                        {p.geographic_scope}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {discoRunning && (
+            <div style={{ padding: '14px 16px', background: C.tealSoft, border: `1px solid ${C.teal}40`, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Loader2 size={16} className="anim-spin" color={C.teal} />
+              <div style={{ fontSize: 13, color: C.text }}>
+                Generating discovery answers via Claude Sonnet… this can take 30-60 seconds.
+              </div>
+            </div>
+          )}
+
+          {discoResult && (
+            <div style={{
+              background: '#fff',
+              border: `2px solid ${C.teal}40`,
+              borderRadius: 12,
+              padding: 20,
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 900, color: C.text, marginBottom: 4 }}>
+                {discoResult.client_name}
+              </div>
+              <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>
+                Profile: {discoResult.profile_label} · Client ID: {discoResult.client_id}
+              </div>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: 10,
+                marginBottom: 18,
+                paddingBottom: 16,
+                borderBottom: `1px solid ${C.border}`,
+              }}>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: C.teal }}>{discoResult.field_count}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Fields Populated</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>{discoResult.sections_populated}/12</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Sections</div>
+                </div>
+                {discoResult.readiness_score != null && (
+                  <div>
+                    <div style={{ fontSize: 24, fontWeight: 800, color: discoResult.readiness_score >= 60 ? '#16a34a' : C.amber }}>
+                      {discoResult.readiness_score}
+                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      Readiness {discoResult.readiness_label ? `· ${discoResult.readiness_label}` : ''}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => navigate(`/discovery?id=${discoResult.engagement_id}`)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '12px 20px', borderRadius: 10, border: 'none',
+                    background: C.text, color: '#fff',
+                    fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                  }}
+                >
+                  Open Discovery Document <ArrowRight size={14} />
+                </button>
+                <button
+                  onClick={() => window.open(`/discovery/audit/${discoResult.engagement_id}`, '_blank', 'noopener')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '12px 20px', borderRadius: 10, border: `2px solid ${C.teal}`,
+                    background: '#fff', color: C.teal,
+                    fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                  }}
+                >
+                  <ExternalLink size={14} /> Generate Audit
+                </button>
+                <button
+                  onClick={() => setDiscoResult(null)}
+                  style={{
+                    padding: '12px 18px', borderRadius: 10, border: `1px solid ${C.border}`,
+                    background: '#fff', color: C.mutedDark,
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  }}
+                >
+                  Run Another
+                </button>
+                <button
+                  onClick={deleteDiscoverySimulation}
+                  disabled={discoDeleting}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '12px 18px', borderRadius: 10, border: `1px solid ${C.red}40`,
+                    background: '#fff', color: C.red,
+                    fontSize: 13, fontWeight: 700,
+                    cursor: discoDeleting ? 'not-allowed' : 'pointer', opacity: discoDeleting ? 0.6 : 1,
+                  }}
+                >
+                  <Trash2 size={13} /> Delete Test Engagement
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Current Test Data ── */}

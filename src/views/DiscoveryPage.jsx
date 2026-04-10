@@ -8,7 +8,7 @@ import {
   Database, PanelRightClose, PanelRightOpen,
   MoreVertical, Clock, UserPlus, Archive, User, TrendingUp,
   ClipboardList, Mail, Printer, CalendarDays, StickyNote, Award, AlertCircle,
-  ArrowRight
+  ArrowRight, FlaskConical, ShieldAlert
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
@@ -58,12 +58,25 @@ function statusBadge(status) {
 // Main page (list ↔ detail switcher)
 // ─────────────────────────────────────────────────────────────
 export default function DiscoveryPage() {
-  const { agencyId } = useAuth()
+  const { agencyId, isSuperAdmin } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
   const isMobile = useMobile()
 
   const [view, setView] = useState('list') // 'list' | 'detail'
   const [selectedId, setSelectedId] = useState(null)
+
+  // Deep-link: ?id=<engagement_id> opens that engagement directly.
+  // Used by the discovery simulator and other internal "open engagement" links.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const urlId = params.get('id')
+    if (urlId && urlId !== selectedId) {
+      setSelectedId(urlId)
+      setView('detail')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg }}>
@@ -83,6 +96,7 @@ export default function DiscoveryPage() {
             aid={aid}
             id={selectedId}
             isMobile={isMobile}
+            isSuperAdmin={isSuperAdmin}
             onBack={() => { setView('list'); setSelectedId(null) }}
           />
         )}
@@ -580,7 +594,7 @@ function Input({ value, onChange, placeholder, type = 'text' }) {
 // ─────────────────────────────────────────────────────────────
 // Detail view
 // ─────────────────────────────────────────────────────────────
-function DetailView({ aid, id, isMobile, onBack }) {
+function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
   const [eng, setEng] = useState(null)
   const [domains, setDomains] = useState([])
   const [comments, setComments] = useState([])
@@ -601,6 +615,21 @@ function DetailView({ aid, id, isMobile, onBack }) {
   const [showFollowup, setShowFollowup] = useState(false)
   const [readiness, setReadiness] = useState(null) // { score, label, breakdown }
   const [showReadiness, setShowReadiness] = useState(false)
+
+  // ── AI Coach panel state ──────────────────────────────────────
+  const [coachOpen, setCoachOpen] = useState(false)
+  const [coachTab, setCoachTab] = useState('Section Coach') // 'Section Coach' | 'Full Analysis'
+  const [coachSection, setCoachSection] = useState(null)
+  const [coachLoading, setCoachLoading] = useState(false)
+  const [coachData, setCoachData] = useState(null) // section coaching result
+  const [coachInput, setCoachInput] = useState('')
+  const [coachChatLoading, setCoachChatLoading] = useState(false)
+  const [crossData, setCrossData] = useState(null)
+  const [crossLoading, setCrossLoading] = useState(false)
+
+  // ── Discovery simulator state (super-admin only) ──────────────
+  const [simRunning, setSimRunning] = useState(false)
+
   const navigate = useNavigate()
 
   // Keystroke state lives in refs so typing does NOT re-render siblings.
@@ -666,6 +695,151 @@ function DetailView({ aid, id, isMobile, onBack }) {
       load()
     } else {
       toast.error(res?.error || 'Research failed')
+    }
+  }
+
+  // ── AI Coach handlers ─────────────────────────────────────────────
+  async function loadSectionCoaching(sectionId, question) {
+    if (!sectionId || !id) return
+    const isChat = !!question
+    if (isChat) {
+      setCoachChatLoading(true)
+    } else {
+      setCoachLoading(true)
+    }
+    try {
+      const res = await fetch('/api/discovery/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'get_section_coaching',
+          engagement_id: id,
+          agency_id: aid,
+          section_id: sectionId,
+          question: question || undefined,
+        }),
+      }).then((r) => r.json())
+      if (res?.error && !res?.smart_questions) {
+        if (isChat) toast.error(res.error)
+      } else {
+        setCoachData(res)
+      }
+    } catch (e) {
+      if (isChat) toast.error('Coach unavailable')
+    } finally {
+      setCoachLoading(false)
+      setCoachChatLoading(false)
+    }
+  }
+
+  async function handleCoachChat() {
+    const q = coachInput.trim()
+    if (!q || !coachSection) return
+    setCoachInput('')
+    await loadSectionCoaching(coachSection, q)
+  }
+
+  async function loadCrossAnalysis() {
+    if (!id) return
+    setCrossLoading(true)
+    try {
+      const res = await fetch('/api/discovery/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'cross_section_analysis',
+          engagement_id: id,
+          agency_id: aid,
+        }),
+      }).then((r) => r.json())
+      setCrossData(res)
+    } catch (e) {
+      toast.error('Analysis unavailable')
+    } finally {
+      setCrossLoading(false)
+    }
+  }
+
+  function openCoachForSection(sectionId) {
+    setCoachOpen(true)
+    setCoachTab('Section Coach')
+    setCoachSection(sectionId)
+    loadSectionCoaching(sectionId)
+  }
+
+  // When the coach panel is first opened (or switches to a section), load
+  // coaching for whatever section is currently active.
+  useEffect(() => {
+    if (!coachOpen) return
+    const target = coachSection || activeSection || (eng?.sections?.[0]?.id)
+    if (target && target !== coachSection) {
+      setCoachSection(target)
+    }
+    if (target && !coachData) {
+      loadSectionCoaching(target)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachOpen, activeSection])
+
+  // IntersectionObserver: track which section is in view while the coach
+  // panel is open, and auto-reload coaching when the user scrolls to a new
+  // section. Disconnects when the panel closes to save CPU.
+  useEffect(() => {
+    if (!coachOpen || isMobile) return
+    const nodes = document.querySelectorAll('[data-section-id]')
+    if (nodes.length === 0) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the topmost visible entry so we don't flicker between two
+        // sections that are both partially in view.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+        if (visible) {
+          const sid = visible.target.getAttribute('data-section-id')
+          if (sid && sid !== coachSection) {
+            setCoachSection(sid)
+            setCoachData(null)
+            loadSectionCoaching(sid)
+          }
+        }
+      },
+      { threshold: 0.3, rootMargin: '-80px 0px -40% 0px' }
+    )
+    nodes.forEach((n) => observer.observe(n))
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachOpen, isMobile, eng?.sections?.length])
+
+  // ── Discovery simulator (super-admin only) ────────────────────────
+  async function runDiscoverySimulation() {
+    // Ask which profile to use. The simple prompt is deliberate — this is a
+    // super-admin tool; the full profile picker lives in /test-data.
+    const profileId = window.prompt(
+      'Profile id (local_hvac, b2b_saas, medical_practice, national_franchise, law_firm, ecommerce, consulting_firm, dental_practice, chaotic_startup, over_agencied, franchise_location, enterprise_migration):',
+      'local_hvac'
+    )
+    if (!profileId) return
+    setSimRunning(true)
+    const loadingToast = toast.loading('Generating discovery simulation…')
+    try {
+      const res = await fetch('/api/discovery/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'run', agency_id: aid, profile_id: profileId }),
+      }).then((r) => r.json())
+      toast.dismiss(loadingToast)
+      if (res?.ok) {
+        toast.success(`Simulated: ${res.client_name} (${res.field_count} fields)`)
+        window.location.href = `/discovery?id=${res.engagement_id}`
+      } else {
+        toast.error(res?.error || 'Simulation failed')
+      }
+    } catch (e) {
+      toast.dismiss(loadingToast)
+      toast.error('Simulation failed')
+    } finally {
+      setSimRunning(false)
     }
   }
 
@@ -936,6 +1110,24 @@ function DetailView({ aid, id, isMobile, onBack }) {
             />
           )}
           {/* (Mobile live answers are opened via floating button below) */}
+          <HeaderBtn
+            onClick={() => setCoachOpen((v) => !v)}
+            color={coachOpen ? C.teal : C.text}
+            icon={Brain}
+            label="AI Coach"
+            outlined={!coachOpen}
+          />
+          {isSuperAdmin && (
+            <HeaderBtn
+              onClick={runDiscoverySimulation}
+              disabled={simRunning}
+              color="#D97706"
+              icon={simRunning ? Loader2 : FlaskConical}
+              label={simRunning ? 'Simulating…' : 'Simulate'}
+              spinning={simRunning}
+              outlined
+            />
+          )}
           <HeaderBtn onClick={() => setShowShare(true)} color={C.text} icon={Share2} label="Share" outlined />
         </div>
       </div>
@@ -997,6 +1189,9 @@ function DetailView({ aid, id, isMobile, onBack }) {
             : (showLivePanel ? '200px 1fr 320px' : '200px 1fr'),
           gap: 16,
           alignItems: 'flex-start',
+          // Make room for the floating AI coach panel on the right
+          marginRight: coachOpen && !isMobile ? 396 : 0,
+          transition: 'margin-right .3s ease',
         }}
       >
         {!isMobile && (
@@ -1023,35 +1218,56 @@ function DetailView({ aid, id, isMobile, onBack }) {
 
           {/* Sections */}
           {(eng.sections || []).map(section => (
-            <SectionPanel
-              key={section.id}
-              section={section}
-              engagementId={eng.id}
-              clientName={eng.client_name}
-              clientIndustry={eng.client_industry}
-              answersRef={answersRef}
-              docSummary={docSummary}
-              domains={section.has_tech_stack ? domains : []}
-              agencyId={aid}
-              onUpdate={(mutator) => updateSectionInState(section.id, mutator)}
-              onAddDomain={async (url) => {
-                const res = await fetch('/api/discovery', {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'add_domain', engagement_id: eng.id, url, agency_id: aid }),
-                }).then(r => r.json())
-                if (res?.data) { toast.success('Domain added'); load() }
-              }}
-              onRescan={async (domainId) => {
-                toast.loading('Scanning…', { id: 'scan' })
-                await fetch('/api/discovery', {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'scan_domain', domain_id: domainId, agency_id: aid }),
-                }).then(r => r.json())
-                toast.success('Scan complete', { id: 'scan' })
-                load()
-              }}
-              reloadDomains={load}
-            />
+            <div key={section.id} data-section-id={section.id} style={{ position: 'relative' }}>
+              {/* Small "Coach this section" button — only renders when the
+                  coach panel is open so it isn't visual noise otherwise */}
+              {coachOpen && !isMobile && (
+                <button
+                  onClick={() => openCoachForSection(section.id)}
+                  title="Coach this section"
+                  style={{
+                    position: 'absolute', top: 12, right: 12, zIndex: 2,
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '5px 11px', borderRadius: 16,
+                    border: `1px solid ${coachSection === section.id ? C.teal : C.border}`,
+                    background: coachSection === section.id ? C.tealSoft : '#fff',
+                    color: coachSection === section.id ? C.teal : C.mutedDark,
+                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <Brain size={11} /> Coach
+                </button>
+              )}
+              <SectionPanel
+                section={section}
+                engagementId={eng.id}
+                clientName={eng.client_name}
+                clientIndustry={eng.client_industry}
+                answersRef={answersRef}
+                docSummary={docSummary}
+                domains={section.has_tech_stack ? domains : []}
+                agencyId={aid}
+                onUpdate={(mutator) => updateSectionInState(section.id, mutator)}
+                onAddDomain={async (url) => {
+                  const res = await fetch('/api/discovery', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'add_domain', engagement_id: eng.id, url, agency_id: aid }),
+                  }).then(r => r.json())
+                  if (res?.data) { toast.success('Domain added'); load() }
+                }}
+                onRescan={async (domainId) => {
+                  toast.loading('Scanning…', { id: 'scan' })
+                  await fetch('/api/discovery', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'scan_domain', domain_id: domainId, agency_id: aid }),
+                  }).then(r => r.json())
+                  toast.success('Scan complete', { id: 'scan' })
+                  load()
+                }}
+                reloadDomains={load}
+              />
+            </div>
           ))}
         </div>
 
@@ -1117,6 +1333,28 @@ function DetailView({ aid, id, isMobile, onBack }) {
       )}
 
       </>
+      )}
+
+      {/* AI Coach side panel — fixed right rail, 380px wide */}
+      {coachOpen && !isMobile && (
+        <CoachPanel
+          eng={eng}
+          sections={eng?.sections || []}
+          coachTab={coachTab}
+          setCoachTab={setCoachTab}
+          coachSection={coachSection}
+          setCoachSection={(sid) => { setCoachSection(sid); setCoachData(null); loadSectionCoaching(sid) }}
+          coachLoading={coachLoading}
+          coachData={coachData}
+          coachInput={coachInput}
+          setCoachInput={setCoachInput}
+          coachChatLoading={coachChatLoading}
+          onChat={handleCoachChat}
+          crossData={crossData}
+          crossLoading={crossLoading}
+          loadCrossAnalysis={loadCrossAnalysis}
+          onClose={() => setCoachOpen(false)}
+        />
       )}
 
       {showShare && <ShareModal eng={eng} aid={aid} onClose={() => setShowShare(false)} />}
@@ -2456,6 +2694,486 @@ function MessageBubble({ role, content }) {
       }}>
         {content}
       </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// AI Coach side panel
+//
+// Fixed 380px rail on the right side of the discovery document. Two tabs:
+//   1. Section Coach — real-time smart questions, red flags, opportunities
+//      for the section currently in view (tracked via IntersectionObserver
+//      in the parent). Includes a chat input for ad-hoc questions.
+//   2. Full Analysis — cross-section contradictions, top opportunities,
+//      critical gaps, readiness assessment, proposal focus.
+// ─────────────────────────────────────────────────────────────
+function CoachPanel({
+  eng, sections, coachTab, setCoachTab,
+  coachSection, setCoachSection,
+  coachLoading, coachData,
+  coachInput, setCoachInput, coachChatLoading, onChat,
+  crossData, crossLoading, loadCrossAnalysis,
+  onClose,
+}) {
+  const section = sections.find((s) => s.id === coachSection) || null
+
+  // Auto-load the full analysis the first time the user switches to that tab.
+  useEffect(() => {
+    if (coachTab === 'Full Analysis' && !crossData && !crossLoading) {
+      loadCrossAnalysis()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachTab])
+
+  return (
+    <div
+      style={{
+        position: 'fixed', right: 0, top: 0, bottom: 0, width: 380,
+        background: '#fff', borderLeft: `1px solid ${C.border}`,
+        boxShadow: '-4px 0 20px rgba(0,0,0,0.08)',
+        zIndex: 100, display: 'flex', flexDirection: 'column',
+        fontFamily: 'var(--font-body)',
+      }}
+    >
+      {/* Header */}
+      <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 8, background: C.tealSoft,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Brain size={18} color={C.teal} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: 14, color: C.text, fontFamily: 'var(--font-display)' }}>Discovery AI Coach</div>
+          <div style={{ fontSize: 11, color: C.muted }}>Real-time guidance as you work</div>
+        </div>
+        <button
+          onClick={onClose}
+          aria-label="Close coach"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, padding: 4 }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}` }}>
+        {['Section Coach', 'Full Analysis'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setCoachTab(tab)}
+            style={{
+              flex: 1, padding: '11px 10px', fontSize: 13,
+              fontWeight: coachTab === tab ? 700 : 500,
+              color: coachTab === tab ? C.teal : C.muted,
+              background: 'none', border: 'none',
+              borderBottom: coachTab === tab ? `2px solid ${C.teal}` : '2px solid transparent',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Content — scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {coachTab === 'Section Coach' ? (
+          <SectionCoachContent
+            section={section}
+            sections={sections}
+            setCoachSection={setCoachSection}
+            coachLoading={coachLoading}
+            coachData={coachData}
+          />
+        ) : (
+          <CrossSectionContent
+            crossData={crossData}
+            crossLoading={crossLoading}
+            loadCrossAnalysis={loadCrossAnalysis}
+            sections={sections}
+          />
+        )}
+      </div>
+
+      {/* Chat input (Section Coach only) */}
+      {coachTab === 'Section Coach' && (
+        <div style={{ padding: '12px 16px', borderTop: `1px solid ${C.border}` }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={coachInput}
+              onChange={(e) => setCoachInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onChat() } }}
+              placeholder="Ask the coach anything…"
+              disabled={coachChatLoading || !section}
+              style={{
+                flex: 1, padding: '9px 12px', borderRadius: 8,
+                border: `1px solid ${C.border}`, fontSize: 13,
+                outline: 'none', fontFamily: 'inherit',
+              }}
+            />
+            <button
+              onClick={onChat}
+              disabled={coachChatLoading || !coachInput.trim() || !section}
+              style={{
+                padding: '9px 14px', background: C.teal, color: '#fff',
+                border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
+                cursor: coachChatLoading || !coachInput.trim() ? 'default' : 'pointer',
+                opacity: coachChatLoading || !coachInput.trim() || !section ? 0.5 : 1,
+              }}
+            >
+              {coachChatLoading ? <Loader2 size={14} className="anim-spin" /> : '→'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SectionCoachContent({ section, sections, setCoachSection, coachLoading, coachData }) {
+  if (!section) {
+    return (
+      <div style={{ padding: '14px 6px', color: C.muted, fontSize: 13 }}>
+        Scroll to a section in the document or pick one below to start coaching.
+        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {sections.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setCoachSection(s.id)}
+              style={{
+                textAlign: 'left', padding: '9px 12px', borderRadius: 8,
+                border: `1px solid ${C.border}`, background: '#fafafa',
+                fontSize: 12, color: C.text, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              {s.title}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const completion = coachData?.completion
+  const completionPct = completion && completion.total > 0
+    ? Math.round((completion.answered / completion.total) * 100)
+    : 0
+  const completionColor = completionPct < 30 ? '#dc2626' : completionPct < 70 ? '#D97706' : '#16a34a'
+
+  return (
+    <div>
+      {/* Section header + progress */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
+          You're in
+        </div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 3 }}>
+          {section.title}
+        </div>
+        {section.subtitle && (
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 8 }}>{section.subtitle}</div>
+        )}
+        {completion && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.muted, marginBottom: 4 }}>
+              <span>Completion</span>
+              <span style={{ fontWeight: 700, color: completionColor }}>{completion.answered} / {completion.total}</span>
+            </div>
+            <div style={{ height: 5, background: '#f3f4f6', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${completionPct}%`, background: completionColor, transition: 'width .3s' }} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {coachLoading && !coachData && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{
+              height: 48, background: '#f3f4f6', borderRadius: 8,
+              animation: 'pulse 1.4s ease-in-out infinite',
+            }} />
+          ))}
+          <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 4 }}>
+            🧠 Analyzing section…
+          </div>
+        </div>
+      )}
+
+      {coachData && (
+        <>
+          {coachData.coaching_note && (
+            <div style={{
+              background: C.tealSoft, border: `1px solid ${C.teal}30`,
+              borderRadius: 10, padding: '10px 13px', marginBottom: 14,
+              fontSize: 13, color: C.text, lineHeight: 1.5,
+            }}>
+              💡 {coachData.coaching_note}
+            </div>
+          )}
+
+          {/* Chat response (if user asked a question) */}
+          {coachData.chat_response && (
+            <div style={{
+              background: '#eff6ff', border: '1px solid #bfdbfe',
+              borderRadius: 10, padding: '12px 14px', marginBottom: 14,
+              fontSize: 13, color: '#1e40af', lineHeight: 1.6, whiteSpace: 'pre-wrap',
+            }}>
+              {coachData.chat_response}
+            </div>
+          )}
+
+          {/* Smart questions */}
+          {coachData.smart_questions?.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                Questions to ask right now
+              </div>
+              {coachData.smart_questions.map((q, i) => (
+                <div key={i} style={{
+                  padding: '9px 12px', background: '#fff',
+                  border: `1px solid ${C.border}`, borderRadius: 8,
+                  fontSize: 12, color: C.text, lineHeight: 1.5, marginBottom: 6,
+                }}>
+                  <span style={{ color: C.teal, fontWeight: 700 }}>• </span>{q}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Red flags */}
+          {coachData.red_flags?.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                ⚠️ Watch for
+              </div>
+              {coachData.red_flags.map((f, i) => {
+                const severity = f.severity || 'medium'
+                const color = severity === 'high' ? '#dc2626' : severity === 'low' ? '#D97706' : '#ea580c'
+                const bg = severity === 'high' ? '#fef2f2' : severity === 'low' ? '#fffbeb' : '#fff7ed'
+                return (
+                  <div key={i} style={{
+                    padding: '9px 12px', background: bg,
+                    border: `1px solid ${color}30`, borderRadius: 8,
+                    fontSize: 12, color: '#7c2d12', lineHeight: 1.5, marginBottom: 6,
+                  }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 800, color, textTransform: 'uppercase',
+                      letterSpacing: '.05em', marginRight: 6,
+                    }}>
+                      {severity}
+                    </span>
+                    {f.flag}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Opportunities */}
+          {coachData.opportunities?.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                💡 Opportunities
+              </div>
+              {coachData.opportunities.map((o, i) => (
+                <div key={i} style={{
+                  padding: '9px 12px', background: C.tealSoft,
+                  border: `1px solid ${C.teal}30`, borderRadius: 8,
+                  fontSize: 12, color: '#0f766e', lineHeight: 1.5, marginBottom: 6,
+                }}>
+                  <span style={{
+                    fontSize: 9, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
+                    letterSpacing: '.05em', marginRight: 6,
+                  }}>
+                    {o.type || 'win'}
+                  </span>
+                  {o.opportunity}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(coachData.smart_questions?.length === 0 && coachData.red_flags?.length === 0 && coachData.opportunities?.length === 0 && !coachData.coaching_note) && (
+            <div style={{ fontSize: 12, color: C.muted, textAlign: 'center', padding: 20 }}>
+              No coaching insights for this section yet.
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, sections }) {
+  if (crossLoading && !crossData) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{
+            height: 64, background: '#f3f4f6', borderRadius: 8,
+            animation: 'pulse 1.4s ease-in-out infinite',
+          }} />
+        ))}
+        <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 4 }}>
+          🧠 Analyzing the full document… this takes about 30 seconds.
+        </div>
+      </div>
+    )
+  }
+
+  if (!crossData) {
+    return (
+      <div style={{ textAlign: 'center', padding: 20, color: C.muted, fontSize: 13 }}>
+        No analysis yet.
+        <div style={{ marginTop: 12 }}>
+          <button
+            onClick={loadCrossAnalysis}
+            style={{
+              padding: '9px 18px', background: C.teal, color: '#fff',
+              border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Run Analysis
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button
+          onClick={loadCrossAnalysis}
+          disabled={crossLoading}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '6px 12px', borderRadius: 6,
+            border: `1px solid ${C.border}`, background: '#fff',
+            fontSize: 11, color: C.mutedDark, cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          <RefreshCw size={11} className={crossLoading ? 'anim-spin' : ''} /> {crossLoading ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
+
+      {/* Readiness assessment */}
+      {crossData.readiness_assessment && (
+        <div style={{
+          background: '#f9fafb', border: `1px solid ${C.border}`,
+          borderRadius: 10, padding: '12px 14px', marginBottom: 16,
+          fontSize: 12, color: C.text, lineHeight: 1.6,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+            Readiness Assessment
+          </div>
+          {crossData.readiness_assessment}
+        </div>
+      )}
+
+      {/* Contradictions */}
+      {crossData.contradictions?.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            ⚠️ Contradictions
+          </div>
+          {crossData.contradictions.map((c, i) => (
+            <div key={i} style={{
+              padding: '10px 12px', background: '#fef2f2',
+              border: '1px solid #fecaca', borderRadius: 8,
+              fontSize: 12, color: '#7c2d12', lineHeight: 1.5, marginBottom: 6,
+            }}>
+              <div style={{ display: 'flex', gap: 4, marginBottom: 4, flexWrap: 'wrap' }}>
+                {(c.sections || []).map((sid) => (
+                  <span key={sid} style={{
+                    fontSize: 9, fontWeight: 800, background: '#fff', color: '#dc2626',
+                    padding: '1px 5px', borderRadius: 4,
+                  }}>
+                    {sid}
+                  </span>
+                ))}
+              </div>
+              {c.description}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Top opportunities */}
+      {crossData.top_opportunities?.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            💡 Top Opportunities
+          </div>
+          {crossData.top_opportunities.map((o, i) => (
+            <div key={i} style={{
+              padding: '11px 13px', background: C.tealSoft,
+              border: `1px solid ${C.teal}30`, borderRadius: 8,
+              marginBottom: 8,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 4 }}>
+                {i + 1}. {o.title}
+              </div>
+              <div style={{ fontSize: 12, color: '#0f766e', lineHeight: 1.5, marginBottom: 6 }}>
+                {o.why}
+              </div>
+              {o.which_sections?.length > 0 && (
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {o.which_sections.map((sid) => (
+                    <span key={sid} style={{
+                      fontSize: 9, fontWeight: 700, background: '#fff', color: C.teal,
+                      padding: '1px 5px', borderRadius: 4,
+                    }}>
+                      {sid}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Critical gaps */}
+      {crossData.critical_gaps?.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            🔍 Critical Gaps
+          </div>
+          {crossData.critical_gaps.map((g, i) => (
+            <div key={i} style={{
+              padding: '9px 12px', background: '#fffbeb',
+              border: '1px solid #fde68a', borderRadius: 8,
+              fontSize: 12, color: '#78350f', lineHeight: 1.5, marginBottom: 6,
+            }}>
+              {g}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Proposal focus */}
+      {crossData.proposal_focus?.length > 0 && (
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+            🎯 Proposal Focus
+          </div>
+          {crossData.proposal_focus.map((p, i) => (
+            <div key={i} style={{
+              padding: '10px 13px', background: '#eff6ff',
+              border: '1px solid #bfdbfe', borderRadius: 8,
+              fontSize: 12, color: '#1e40af', lineHeight: 1.5, marginBottom: 6,
+            }}>
+              <span style={{ fontWeight: 800 }}>{i + 1}. </span>{p}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
