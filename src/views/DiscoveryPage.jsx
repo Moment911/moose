@@ -8,11 +8,12 @@ import {
   Database, PanelRightClose, PanelRightOpen,
   MoreVertical, Clock, UserPlus, Archive, User, TrendingUp,
   ClipboardList, Mail, Printer, CalendarDays, StickyNote, Award, AlertCircle,
-  ArrowRight, FlaskConical, ShieldAlert
+  ArrowRight, FlaskConical, ShieldAlert, Mic, MicOff, Radio, Square,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
+import { useLiveTranscription } from '../hooks/useLiveTranscription'
 import Sidebar from '../components/Sidebar'
 import HelpTooltip from '../components/HelpTooltip'
 
@@ -52,6 +53,21 @@ function statusBadge(status) {
     archived: { label: 'Archived', bg: '#F3F4F6', fg: '#6B7280' },
   }
   return map[status] || map.draft
+}
+
+// ─────────────────────────────────────────────────────────────
+// Live session bridge
+//
+// Module-level object that lets FieldEditor (which is deliberately
+// isolated from parent re-renders so typing is smooth) communicate
+// with the Live Session controller in DetailView without props.
+// DiscoveryPage mutates this when the session starts/stops, and
+// FieldEditor's save effect reads it to decide whether to mark a
+// field as manually edited.
+// ─────────────────────────────────────────────────────────────
+const liveSessionBridge = {
+  active: false,
+  onManualEdit: null, // (sectionId, fieldId, answer) => void
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -632,6 +648,34 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
   const [dismissedNA, setDismissedNA] = useState(() => new Set())
   const [busyAutofill, setBusyAutofill] = useState(false)
 
+  // ── Live Session state ───────────────────────────────────────
+  const [liveSessionActive, setLiveSessionActive] = useState(false)
+  const [showLiveSetup, setShowLiveSetup] = useState(false)
+  const [showLiveSummary, setShowLiveSummary] = useState(false)
+  const [showLiveTranscript, setShowLiveTranscript] = useState(false)
+  const [liveSessionStart, setLiveSessionStart] = useState(null)
+  const [liveSessionDuration, setLiveSessionDuration] = useState(0)
+  const [fieldsPopulatedThisSession, setFieldsPopulatedThisSession] = useState(0)
+  const [lastProcessedAt, setLastProcessedAt] = useState(null)
+  const [processingFlash, setProcessingFlash] = useState(false)
+  const [flashingFields, setFlashingFields] = useState(() => new Set())
+  const [liveCoachHint, setLiveCoachHint] = useState(null)
+  const [liveCoachHintSource, setLiveCoachHintSource] = useState(null)
+  const [manuallyEditedFields, setManuallyEditedFields] = useState(() => new Set())
+
+  // Refs: not tied to re-renders, used inside async callbacks
+  const processingRef = useRef(false)
+  const populatedFieldIdsRef = useRef(new Set()) // voice-captured this session
+  const currentVisibleSectionRef = useRef(null)
+  const hintTimerRef = useRef(null)
+  const fieldSourceRef = useRef({}) // fieldId -> 'voice' | 'manual'
+  const sessionPopulatedRef = useRef([]) // full log of what was captured (for summary modal)
+  const engRef = useRef(null) // live pointer to eng for async callbacks
+
+  // Keep engRef in sync so async callbacks always read the latest sections
+  useEffect(() => { engRef.current = eng }, [eng])
+  useEffect(() => { currentVisibleSectionRef.current = coachSection || activeSection }, [coachSection, activeSection])
+
   // ── Discovery simulator state (super-admin only) ──────────────
   const [simRunning, setSimRunning] = useState(false)
 
@@ -937,6 +981,309 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coachOpen, isMobile, eng?.sections?.length])
 
+  // ── Live Session — helpers ───────────────────────────────────
+
+  // Trigger-word list keeps us from spending Claude calls on "yeah"/"right"/
+  // "okay" responses. Kept in sync with the server-side list.
+  const TRIGGER_WORDS = [
+    'use', 'using', 'platform', 'crm', 'software', 'system', 'tool',
+    'spend', 'budget', 'month', 'year', 'revenue', 'employees', 'team',
+    'google', 'facebook', 'meta', 'email', 'text', 'sms', 'ads', 'advertising',
+    'website', 'leads', 'customers', 'clients', 'referral', 'reviews',
+    'open rate', 'click', 'conversion', 'funnel', 'pipeline', 'follow up',
+    'competitor', 'different', 'better', 'worse', 'problem', 'challenge', 'goal',
+    'want', 'need', 'trying', 'worked', "didn't work", 'failed', 'success',
+  ]
+
+  function shouldProcessSentence(sentence) {
+    if (!sentence) return false
+    const words = sentence.trim().split(/\s+/).length
+    if (words >= 10) return true
+    const lower = sentence.toLowerCase()
+    return TRIGGER_WORDS.some((w) => lower.includes(w))
+  }
+
+  // TWO-WAY DATA FLOW: the filled-field set pulls from THREE sources so
+  // Claude never tries to re-extract something that's already there:
+  //   1. eng.sections[].fields[].answer   — DB-synced state (voice saves)
+  //   2. answersRef.current               — user-typed content (keystroke-fresh)
+  //   3. populatedFieldIdsRef.current     — voice-captured this session
+  function getFilledFieldIds() {
+    const filled = new Set()
+    const currentEng = engRef.current
+    if (currentEng?.sections) {
+      for (const sec of currentEng.sections) {
+        for (const f of (sec.fields || [])) {
+          if (typeof f.answer === 'string' && f.answer.trim().length > 3) {
+            filled.add(f.id)
+          }
+        }
+      }
+    }
+    // Typed answers that may not have been flushed to engagement state yet
+    const ar = answersRef.current || {}
+    for (const key of Object.keys(ar)) {
+      const val = ar[key]
+      if (typeof val === 'string' && val.trim().length > 3) {
+        const parts = key.split(':')
+        if (parts.length === 2) filled.add(parts[1])
+      }
+    }
+    for (const id of populatedFieldIdsRef.current) filled.add(id)
+    return filled
+  }
+
+  // Short summary passed to live_coach_hint so the coach never asks about
+  // things that are already captured. Top 10 substantive fields.
+  function getFilledFieldsSummary() {
+    const filled = []
+    const currentEng = engRef.current
+    if (currentEng?.sections) {
+      for (const sec of currentEng.sections) {
+        for (const f of (sec.fields || [])) {
+          if (typeof f.answer === 'string' && f.answer.trim().length > 3) {
+            filled.push(`${f.id}: ${f.answer.slice(0, 60)}`)
+          }
+          if (filled.length >= 10) break
+        }
+        if (filled.length >= 10) break
+      }
+    }
+    return filled.slice(0, 10).join('\n')
+  }
+
+  function flashField(fieldId) {
+    setFlashingFields((prev) => {
+      const next = new Set(prev)
+      next.add(fieldId)
+      return next
+    })
+    setTimeout(() => {
+      setFlashingFields((prev) => {
+        const next = new Set(prev)
+        next.delete(fieldId)
+        return next
+      })
+    }, 2500)
+  }
+
+  // Optimistic local update so the new answer shows up in the UI
+  // without waiting for a full load() round-trip.
+  function updateFieldLocally(sectionId, fieldId, answer) {
+    answersRef.current[`${sectionId}:${fieldId}`] = answer
+    setEng((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        sections: (prev.sections || []).map((sec) => {
+          if (sec.id !== sectionId) return sec
+          return {
+            ...sec,
+            fields: (sec.fields || []).map((f) =>
+              f.id === fieldId ? { ...f, answer, source: 'live_voice' } : f
+            ),
+          }
+        }),
+      }
+    })
+  }
+
+  // Core event loop: runs on every final transcript sentence from the
+  // Web Speech API. Fires extraction + coaching hint in parallel so the
+  // total round-trip stays in the 3-5 second range.
+  async function processTranscriptChunk(newSentence, fullTranscript) {
+    if (!liveSessionActive) return
+    if (!id) return
+    if (processingRef.current) return
+    if (!shouldProcessSentence(newSentence)) return
+
+    processingRef.current = true
+    setProcessingFlash(true)
+    setTimeout(() => setProcessingFlash(false), 800)
+
+    try {
+      const alreadyPopulated = Array.from(getFilledFieldIds())
+      const filledContext = getFilledFieldsSummary()
+      const currentSectionId = currentVisibleSectionRef.current
+
+      const [extractRes, hintRes] = await Promise.allSettled([
+        fetch('/api/discovery/live', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'extract_fields',
+            engagement_id: id,
+            agency_id: aid,
+            transcript_chunk: newSentence,
+            full_transcript: (fullTranscript || '').slice(-2000),
+            already_populated: alreadyPopulated,
+            current_section_id: currentSectionId,
+          }),
+        }).then((r) => r.json()),
+        newSentence.length > 20
+          ? fetch('/api/discovery/live', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'live_coach_hint',
+                engagement_id: id,
+                agency_id: aid,
+                transcript_chunk: newSentence,
+                current_section_id: currentSectionId,
+                filled_context: filledContext,
+              }),
+            }).then((r) => r.json())
+          : Promise.resolve(null),
+      ])
+
+      // ── Handle extractions ──
+      if (extractRes.status === 'fulfilled' && Array.isArray(extractRes.value?.extractions)) {
+        for (const ext of extractRes.value.extractions) {
+          if (!ext || !ext.section_id || !ext.field_id || !ext.answer) continue
+          if (populatedFieldIdsRef.current.has(ext.field_id)) continue
+
+          // Skip if the field was just typed manually — two-way guard
+          if (manuallyEditedFields.has(ext.field_id)) continue
+
+          // Save via normal save_field action so vault/audit pipelines still run
+          fetch('/api/discovery', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'save_field',
+              id,
+              section_id: ext.section_id,
+              field_id: ext.field_id,
+              answer: ext.answer,
+              source: 'live_voice',
+              agency_id: aid,
+            }),
+          }).catch(() => {})
+
+          updateFieldLocally(ext.section_id, ext.field_id, ext.answer)
+          populatedFieldIdsRef.current.add(ext.field_id)
+          fieldSourceRef.current[ext.field_id] = 'voice'
+          sessionPopulatedRef.current.push({
+            section_id: ext.section_id,
+            field_id: ext.field_id,
+            answer: ext.answer,
+            confidence: ext.confidence,
+            at: Date.now(),
+          })
+          setFieldsPopulatedThisSession((n) => n + 1)
+          flashField(ext.field_id)
+          toast.success(`📝 ${ext.section_id} · ${ext.field_id}`, {
+            duration: 2200,
+            style: { fontSize: 12 },
+          })
+        }
+      }
+
+      // ── Handle coaching hint ──
+      if (hintRes && hintRes.status === 'fulfilled' && hintRes.value?.hint) {
+        setLiveCoachHint(hintRes.value.hint)
+        setLiveCoachHintSource(hintRes.value.triggered_by || newSentence.slice(0, 50))
+        if (hintTimerRef.current) clearTimeout(hintTimerRef.current)
+        hintTimerRef.current = setTimeout(() => {
+          setLiveCoachHint(null)
+          setLiveCoachHintSource(null)
+        }, 12000)
+      }
+
+      setLastProcessedAt(Date.now())
+    } catch (e) {
+      // Silent fail — never interrupt the live session
+    } finally {
+      processingRef.current = false
+    }
+  }
+
+  // Initialize the transcription hook with the event-driven callback.
+  // Passing processTranscriptChunk directly would capture a stale closure
+  // on every re-render, so the hook internally keeps the callback in a ref
+  // that the parent can refresh safely.
+  const {
+    isListening: micListening,
+    segments: micSegments,
+    fullTranscript: micFullTranscript,
+    supported: micSupported,
+    error: micError,
+    startListening,
+    stopListening,
+    clearTranscript,
+  } = useLiveTranscription((sentence, fullTranscript) => {
+    processTranscriptChunk(sentence, fullTranscript)
+  })
+
+  async function startLiveSession() {
+    if (!micSupported) {
+      toast.error('Speech recognition not supported in this browser — try Chrome or Edge')
+      return
+    }
+    clearTranscript()
+    populatedFieldIdsRef.current = new Set()
+    sessionPopulatedRef.current = []
+    fieldSourceRef.current = {}
+    setManuallyEditedFields(new Set())
+    setFieldsPopulatedThisSession(0)
+    setLiveCoachHint(null)
+    setLiveCoachHintSource(null)
+    setLiveSessionStart(Date.now())
+    setLiveSessionActive(true)
+    setShowLiveSetup(false)
+    liveSessionBridge.active = true
+    liveSessionBridge.onManualEdit = (sectionId, fieldId) => {
+      populatedFieldIdsRef.current.add(fieldId)
+      fieldSourceRef.current[fieldId] = 'manual'
+      setManuallyEditedFields((prev) => {
+        const next = new Set(prev)
+        next.add(fieldId)
+        return next
+      })
+      // Clear the manual badge after 3s
+      setTimeout(() => {
+        setManuallyEditedFields((prev) => {
+          const next = new Set(prev)
+          next.delete(fieldId)
+          return next
+        })
+      }, 3000)
+    }
+    startListening()
+    toast.success('🎙️ Live session started')
+  }
+
+  function stopLiveSession() {
+    stopListening()
+    setLiveSessionActive(false)
+    liveSessionBridge.active = false
+    liveSessionBridge.onManualEdit = null
+    if (hintTimerRef.current) {
+      clearTimeout(hintTimerRef.current)
+      hintTimerRef.current = null
+    }
+    setLiveCoachHint(null)
+    setShowLiveSummary(true)
+  }
+
+  // Duration ticker — updates once per second while the session is active
+  useEffect(() => {
+    if (!liveSessionActive || !liveSessionStart) return
+    const tick = () => setLiveSessionDuration(Math.floor((Date.now() - liveSessionStart) / 1000))
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [liveSessionActive, liveSessionStart])
+
+  function formatDuration(totalSeconds) {
+    if (!totalSeconds || totalSeconds < 0) return '0:00'
+    const h = Math.floor(totalSeconds / 3600)
+    const m = Math.floor((totalSeconds % 3600) / 60)
+    const s = totalSeconds % 60
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    return `${m}:${String(s).padStart(2, '0')}`
+  }
+
   // ── Discovery simulator (super-admin only) ────────────────────────
   async function runDiscoverySimulation() {
     // Ask which profile to use. The simple prompt is deliberate — this is a
@@ -1104,6 +1451,146 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
 
   return (
     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+      {/* Live session CSS animations */}
+      <style>{`
+        @keyframes fieldFlash {
+          0%   { background: #dcfce7; box-shadow: 0 0 0 3px #86efac; }
+          60%  { background: #f0fdf4; box-shadow: 0 0 0 2px #bbf7d0; }
+          100% { background: transparent; box-shadow: 0 0 0 0 transparent; }
+        }
+        .discovery-field-flash textarea,
+        .discovery-field-flash input {
+          animation: fieldFlash 2.4s ease-out;
+        }
+        @keyframes livePulseDot {
+          0%, 100% { transform: scale(1); opacity: 1 }
+          50%      { transform: scale(1.4); opacity: .6 }
+        }
+        .live-pulse-dot {
+          display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+          background: #fff; animation: livePulseDot 1.1s ease-in-out infinite;
+        }
+        @keyframes liveBarPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5) }
+          50%      { box-shadow: 0 0 0 6px rgba(220,38,38,0) }
+        }
+        .live-session-bar {
+          animation: liveBarPulse 2s ease-in-out infinite;
+        }
+      `}</style>
+
+      {/* ── Sticky Live Session bar ── */}
+      {liveSessionActive && (
+        <div
+          className="live-session-bar"
+          style={{
+            position: 'sticky', top: 0, zIndex: 50,
+            background: 'linear-gradient(90deg, #dc2626, #b91c1c)',
+            color: '#fff', borderRadius: 12,
+            padding: '10px 16px', marginBottom: 12,
+            display: 'flex', flexDirection: 'column', gap: 8,
+            fontFamily: 'var(--font-body)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="live-pulse-dot" />
+              <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                {processingFlash ? '⚡ Processing' : (micListening ? '👂 Listening' : 'Paused')}
+              </span>
+            </div>
+            <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
+            <div style={{ fontSize: 13, fontWeight: 700 }}>
+              {formatDuration(liveSessionDuration)}
+            </div>
+            <div style={{ fontSize: 12, opacity: 0.9 }}>
+              <span style={{ fontWeight: 800, fontSize: 13 }}>{fieldsPopulatedThisSession}</span> field{fieldsPopulatedThisSession === 1 ? '' : 's'} captured
+            </div>
+            {lastProcessedAt && (
+              <div style={{ fontSize: 11, opacity: 0.75 }}>
+                last processed {Math.max(1, Math.round((Date.now() - lastProcessedAt) / 1000))}s ago
+              </div>
+            )}
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setShowLiveTranscript((v) => !v)}
+                style={{
+                  padding: '6px 12px', borderRadius: 6,
+                  border: '1px solid rgba(255,255,255,0.4)',
+                  background: 'rgba(255,255,255,0.12)', color: '#fff',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                {showLiveTranscript ? 'Hide transcript' : 'Show transcript'}
+              </button>
+              <button
+                onClick={stopLiveSession}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '6px 14px', borderRadius: 6,
+                  border: 'none', background: '#fff', color: '#dc2626',
+                  fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                <Square size={12} /> Stop Session
+              </button>
+            </div>
+          </div>
+
+          {micError && (
+            <div style={{
+              padding: '8px 12px', background: 'rgba(0,0,0,0.25)', borderRadius: 6,
+              fontSize: 12, color: '#fecaca',
+            }}>
+              ⚠️ {micError}
+            </div>
+          )}
+
+          {liveCoachHint && (
+            <div
+              onClick={() => {
+                setLiveCoachHint(null)
+                setLiveCoachHintSource(null)
+                if (hintTimerRef.current) clearTimeout(hintTimerRef.current)
+              }}
+              style={{
+                padding: '10px 14px',
+                background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: 8,
+                fontSize: 13, lineHeight: 1.5, color: '#fff',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+              title="Click to dismiss"
+            >
+              <div style={{ fontSize: 10, fontWeight: 800, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
+                💬 Live Hint
+                {liveCoachHintSource && <span style={{ marginLeft: 8, fontWeight: 500, opacity: 0.7 }}>· "{liveCoachHintSource}"</span>}
+              </div>
+              <div style={{ fontWeight: 600 }}>{liveCoachHint}</div>
+            </div>
+          )}
+
+          {showLiveTranscript && (
+            <div style={{
+              maxHeight: 180, overflowY: 'auto',
+              padding: '10px 14px',
+              background: 'rgba(0,0,0,0.25)', borderRadius: 8,
+              fontSize: 12, color: '#fecaca', lineHeight: 1.6,
+              fontFamily: 'ui-monospace,monospace',
+            }}>
+              {micSegments.length === 0 ? (
+                <div style={{ opacity: 0.6 }}>Waiting for speech…</div>
+              ) : (
+                micSegments.slice(-20).map((seg) => (
+                  <div key={seg.id} style={{ marginBottom: 4 }}>{seg.text}</div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1236,6 +1723,18 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
             />
           )}
           {/* (Mobile live answers are opened via floating button below) */}
+          {micSupported && (
+            <HeaderBtn
+              onClick={() => {
+                if (liveSessionActive) stopLiveSession()
+                else setShowLiveSetup(true)
+              }}
+              color={liveSessionActive ? '#dc2626' : C.text}
+              icon={liveSessionActive ? Square : Mic}
+              label={liveSessionActive ? 'Stop Session' : 'Live Session'}
+              outlined={!liveSessionActive}
+            />
+          )}
           <HeaderBtn
             onClick={() => setCoachOpen((v) => !v)}
             color={coachOpen ? C.teal : C.text}
@@ -1353,8 +1852,17 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
               !dismissedNA.has(section.id) &&
               section.visible !== false
             )
+            // If any of this section's fields are currently flashing from a
+            // voice extraction, apply the flash CSS class to the wrapper so
+            // the nested textarea/input animates without touching FieldEditor.
+            const anyFieldFlashing = (section.fields || []).some((f) => flashingFields.has(f.id))
             return (
-            <div key={section.id} data-section-id={section.id} style={{ position: 'relative' }}>
+            <div
+              key={section.id}
+              data-section-id={section.id}
+              className={anyFieldFlashing ? 'discovery-field-flash' : undefined}
+              style={{ position: 'relative' }}
+            >
               {/* Small "Coach this section" button — only renders when the
                   coach panel is open so it isn't visual noise otherwise */}
               {coachOpen && !isMobile && (
@@ -1536,8 +2044,182 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
           loadCrossAnalysis={loadCrossAnalysis}
           onAutoFill={handleAutoFill}
           busyAutofill={busyAutofill}
+          liveCoachHint={liveCoachHint}
+          liveCoachHintSource={liveCoachHintSource}
+          onDismissLiveHint={() => { setLiveCoachHint(null); setLiveCoachHintSource(null); if (hintTimerRef.current) clearTimeout(hintTimerRef.current) }}
           onClose={() => setCoachOpen(false)}
         />
+      )}
+
+      {/* Live Session setup modal */}
+      {showLiveSetup && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLiveSetup(false) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200, padding: 20,
+          }}
+        >
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: 28,
+            maxWidth: 520, width: '100%',
+            fontFamily: 'var(--font-body)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, background: '#fef2f2',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Mic size={18} color="#dc2626" />
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: C.text, fontFamily: 'var(--font-display)' }}>
+                Start Live Session
+              </div>
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 18, lineHeight: 1.6 }}>
+              Your browser will listen to the call and extract answers in real time. Every final sentence runs through Claude Haiku. Typical round-trip is 3-5 seconds per sentence.
+            </div>
+
+            <div style={{
+              background: '#f9fafb', border: `1px solid ${C.border}`,
+              borderRadius: 10, padding: '12px 14px', marginBottom: 14,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                Before you start
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: C.text, lineHeight: 1.7 }}>
+                <li>Allow microphone access when the browser asks</li>
+                <li>Works best in Chrome or Edge — Safari is partial, Firefox not supported</li>
+                <li>Fields you type manually are respected — the AI won't overwrite them</li>
+                <li>Stop the session any time to see a summary of what was captured</li>
+              </ul>
+            </div>
+
+            {!micSupported && (
+              <div style={{
+                background: '#fef2f2', border: '1px solid #fecaca',
+                borderRadius: 8, padding: '10px 14px', marginBottom: 14,
+                fontSize: 13, color: '#991b1b',
+              }}>
+                ⚠️ Speech recognition is not available in this browser. Try Chrome or Edge.
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={startLiveSession}
+                disabled={!micSupported}
+                style={{
+                  flex: 1, padding: '13px 18px', borderRadius: 10, border: 'none',
+                  background: micSupported ? '#dc2626' : '#e5e7eb',
+                  color: micSupported ? '#fff' : '#9ca3af',
+                  fontSize: 14, fontWeight: 800,
+                  cursor: micSupported ? 'pointer' : 'not-allowed',
+                  fontFamily: 'var(--font-display)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                <Mic size={15} /> Start Listening
+              </button>
+              <button
+                onClick={() => setShowLiveSetup(false)}
+                style={{
+                  flex: 1, padding: '13px 18px', borderRadius: 10,
+                  border: `1px solid ${C.border}`, background: '#fff', color: C.mutedDark,
+                  fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Session summary modal */}
+      {showLiveSummary && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLiveSummary(false) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 200, padding: 20,
+          }}
+        >
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: 28,
+            maxWidth: 600, width: '100%', maxHeight: '85vh', overflow: 'auto',
+            fontFamily: 'var(--font-body)',
+          }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: C.text, marginBottom: 6, fontFamily: 'var(--font-display)' }}>
+              Session complete
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 18 }}>
+              {formatDuration(liveSessionDuration)} · {fieldsPopulatedThisSession} field{fieldsPopulatedThisSession === 1 ? '' : 's'} captured
+            </div>
+
+            {sessionPopulatedRef.current.length > 0 ? (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                  Captured from speech
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {sessionPopulatedRef.current.map((item, i) => (
+                    <div key={i} style={{
+                      padding: '10px 12px', background: '#f0fdf4',
+                      border: '1px solid #bbf7d0', borderRadius: 8,
+                    }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: '#15803d', marginBottom: 4, letterSpacing: '.05em', textTransform: 'uppercase' }}>
+                        {item.section_id} · {item.field_id}
+                        {item.confidence ? <span style={{ marginLeft: 6, opacity: 0.7 }}>{item.confidence}%</span> : null}
+                      </div>
+                      <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.5 }}>
+                        {item.answer}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                padding: '20px 16px', background: '#fafafa', borderRadius: 10,
+                textAlign: 'center', color: C.muted, fontSize: 13, marginBottom: 16,
+              }}>
+                No fields were captured from speech this session.
+              </div>
+            )}
+
+            {micSegments.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                  Full transcript ({micSegments.length} segments)
+                </div>
+                <div style={{
+                  maxHeight: 180, overflow: 'auto',
+                  padding: '10px 14px', background: '#fafafa',
+                  border: `1px solid ${C.border}`, borderRadius: 8,
+                  fontSize: 12, color: C.mutedDark, lineHeight: 1.6,
+                }}>
+                  {micSegments.map((seg) => (
+                    <div key={seg.id} style={{ marginBottom: 3 }}>{seg.text}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowLiveSummary(false)}
+              style={{
+                width: '100%', padding: '12px 18px', borderRadius: 10, border: 'none',
+                background: C.text, color: '#fff',
+                fontSize: 14, fontWeight: 800, cursor: 'pointer', fontFamily: 'var(--font-display)',
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
       )}
 
       {showShare && <ShareModal eng={eng} aid={aid} onClose={() => setShowShare(false)} />}
@@ -1956,13 +2638,23 @@ function FieldEditor({ field, sectionId, sectionName, engagementId, clientName, 
       if (answersRef?.current) {
         answersRef.current[`${sectionId}:${field.id}`] = answer
       }
+      // If a live session is active, tell the bridge so the extractor
+      // immediately excludes this field from voice extraction and the
+      // UI flashes a "Manually entered" badge.
+      if (liveSessionBridge.active && liveSessionBridge.onManualEdit) {
+        try {
+          liveSessionBridge.onManualEdit(sectionId, field.id, answer)
+        } catch { /* ignore */ }
+      }
       // Fire the save API call — do NOT await and do NOT touch React state.
       fetch('/api/discovery', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'save_field',
           id: engagementId, section_id: sectionId, field_id: field.id,
-          answer, agency_id: agencyId,
+          answer,
+          source: liveSessionBridge.active ? 'live_manual' : undefined,
+          agency_id: agencyId,
         }),
       }).catch(() => {})
     }, 1000)
@@ -2965,6 +3657,7 @@ function CoachPanel({
   coachInput, setCoachInput, coachChatLoading, onChat,
   crossData, crossLoading, loadCrossAnalysis,
   onAutoFill, busyAutofill,
+  liveCoachHint, liveCoachHintSource, onDismissLiveHint,
   onClose,
 }) {
   const section = sections.find((s) => s.id === coachSection) || null
@@ -3030,6 +3723,34 @@ function CoachPanel({
 
       {/* Content — scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {/* Live Hint card — only renders when a live session pushes a hint.
+            Dismissible; auto-clears after 12s via the parent timer. */}
+        {liveCoachHint && (
+          <div
+            onClick={onDismissLiveHint}
+            style={{
+              background: '#fef2f2',
+              border: '2px solid #fca5a5',
+              borderRadius: 10,
+              padding: '12px 14px',
+              marginBottom: 14,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+            title="Click to dismiss"
+          >
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+              💬 Live Hint
+              {liveCoachHintSource && (
+                <span style={{ marginLeft: 6, fontWeight: 500, color: '#991b1b' }}>· "{liveCoachHintSource}"</span>
+              )}
+            </div>
+            <div style={{ fontSize: 13, color: '#7f1d1d', lineHeight: 1.5, fontWeight: 600 }}>
+              {liveCoachHint}
+            </div>
+          </div>
+        )}
+
         {coachTab === 'Section Coach' ? (
           <SectionCoachContent
             section={section}
