@@ -1105,21 +1105,167 @@ export default function OnboardingPage() {
         return;
       }
       setTokenData(data);
-      // Pre-fill from client record
+      // ─── Full DB → form hydration ───────────────────────────────
+      // Pulls every dedicated client column back to its form key AND
+      // any spillover that lives in clients.onboarding_answers jsonb.
+      // Without this, the simulator and resume flows both left the
+      // form empty even though the data was safely in the DB.
+      //
+      // COLUMN_TO_FORM is the inverse of the server-side FIELD_MAP in
+      // src/app/api/onboarding/route.ts. Keep them in sync when you
+      // add new columns.
+      const COLUMN_TO_FORM = {
+        // Business basics
+        name: 'business_name',
+        email: 'email',
+        phone: 'phone',
+        website: 'website',
+        industry: 'industry',
+        city: 'city',
+        state: 'state',
+        zip: 'zip',
+        address: 'address',
+        // Owner / primary contact
+        owner_name: 'owner_name',
+        owner_title: 'title', // form field is `title`
+        owner_phone: 'owner_phone',
+        owner_email: 'owner_email',
+        // Business details
+        num_employees: 'num_employees',
+        year_founded: 'year_founded',
+        service_area: 'service_area',
+        primary_service: 'primary_service',
+        secondary_services: 'secondary_services',
+        target_customer: 'target_customer',
+        avg_deal_size: 'avg_deal_size',
+        // Marketing
+        marketing_channels: 'current_ad_platforms', // string → array on restore
+        marketing_budget: 'monthly_ad_budget',
+        // Brand
+        brand_voice: 'brand_voice',
+        tagline: 'tagline',
+        logo_url: 'logo_url',
+        unique_selling_prop: 'unique_selling_prop',
+        // Platforms
+        crm_used: 'crm_used',
+        hosting_provider: 'hosting_provider',
+        // Social URLs
+        facebook_url: 'facebook_url',
+        instagram_url: 'instagram_url',
+        linkedin_url: 'linkedin_url',
+        tiktok_url: 'tiktok_url',
+        youtube_url: 'youtube_url',
+        google_business_url: 'google_biz_url',
+        // Reviews
+        review_rating: 'google_rating',
+        review_count: 'google_reviews',
+        review_platforms: 'review_platforms',
+        referral_sources: 'referral_sources',
+        // Freeform + welcome
+        notes: 'notes',
+        welcome_statement: 'welcome_statement',
+      };
+
+      // Form fields that are arrays in state but stored as comma-joined
+      // strings in their dedicated columns — split them on restore.
+      const CSV_ARRAY_FIELDS = new Set([
+        'current_ad_platforms',
+        'marketing_channels',
+        'secondary_services',
+        'review_platforms',
+        'referral_sources',
+        'brand_voice',
+        'target_cities',
+      ]);
+
       const c = data.clients || {};
       const p = data.profile || {};
-      setForm(f => ({
-        ...f,
-        business_name: c.name || p.business_name || '',
-        email: c.email || '',
-        phone: c.phone || '',
-        website: c.website || '',
-        industry: c.industry || p.industry || '',
-        primary_city: p.address?.city || c.city || '',
-        primary_state: p.address?.state || c.state || '',
-      }));
+      const savedAnswers = (c && typeof c === 'object' && c.onboarding_answers && typeof c.onboarding_answers === 'object')
+        ? c.onboarding_answers
+        : {};
+
+      const preFill = {};
+
+      // 1) Dedicated columns → form fields (canonical path)
+      for (const [dbCol, formKey] of Object.entries(COLUMN_TO_FORM)) {
+        const val = c[dbCol];
+        if (val === null || val === undefined || val === '') continue;
+        if (Array.isArray(val) && val.length === 0) continue;
+        preFill[formKey] = val;
+      }
+
+      // 2) Competitors are stored as 3 flat text columns (competitor_1/2/3)
+      //    but rendered in the form as an array of {name,url,strengths,weaknesses}.
+      const competitorNames = [c.competitor_1, c.competitor_2, c.competitor_3];
+      if (competitorNames.some((n) => n && String(n).trim())) {
+        preFill.competitors = competitorNames.map((name) => ({
+          name: name ? String(name) : '',
+          url: '',
+          strengths: '',
+          weaknesses: '',
+        }));
+      }
+
+      // 3) onboarding_answers jsonb fills in anything that didn't map to
+      //    a column — this is where autosave spills form fields without a
+      //    FIELD_MAP entry (brand_primary_color, customer_age, etc.)
+      for (const [key, val] of Object.entries(savedAnswers)) {
+        if (!key || key.startsWith('_')) continue;
+        if (val === null || val === undefined || val === '') continue;
+        if (Array.isArray(val) && val.length === 0) continue;
+        // Never let spillover clobber a value we already restored from a
+        // dedicated column — the column is the source of truth.
+        if (preFill[key] !== undefined) continue;
+        preFill[key] = val;
+      }
+
+      // 4) Legacy profile pre-fill (pre-existing clients used a `profile`
+      //    object on the token record). Kept for backwards compat.
+      if (!preFill.business_name && p.business_name) preFill.business_name = p.business_name;
+      if (!preFill.industry && p.industry) preFill.industry = p.industry;
+      if (!preFill.primary_city && p?.address?.city) preFill.primary_city = p.address.city;
+      if (!preFill.primary_state && p?.address?.state) preFill.primary_state = p.address.state;
+      if (!preFill.primary_city && c.city) preFill.primary_city = c.city;
+      if (!preFill.primary_state && c.state) preFill.primary_state = c.state;
+
+      // 5) Split owner_name into first_name + last_name if the form doesn't
+      //    already have either. Only populate the parts that are missing.
+      if (preFill.owner_name && typeof preFill.owner_name === 'string') {
+        const parts = preFill.owner_name.trim().split(/\s+/);
+        if (parts.length > 0 && !preFill.first_name) preFill.first_name = parts[0] || '';
+        if (parts.length > 1 && !preFill.last_name) preFill.last_name = parts.slice(1).join(' ');
+      }
+
+      // 6) Apply the pre-fill. Array-typed form fields get reconstituted
+      //    from comma-joined strings; everything else passes through.
+      const restoredKeyCount = Object.keys(preFill).length;
+      if (restoredKeyCount > 0) {
+        setForm((prev) => {
+          const next = { ...prev };
+          for (const [key, val] of Object.entries(preFill)) {
+            if (CSV_ARRAY_FIELDS.has(key) && typeof val === 'string') {
+              next[key] = val.split(',').map((s) => s.trim()).filter(Boolean);
+            } else if (CSV_ARRAY_FIELDS.has(key) && Array.isArray(val)) {
+              next[key] = val;
+            } else {
+              next[key] = val;
+            }
+          }
+          return next;
+        });
+      }
+
+      // Stash on tokenData so the localStorage effect below can see how
+      // many fields we restored and decide whether to merge local state.
+      tokenData && (tokenData.__restoredCount = restoredKeyCount);
+      data.__restoredCount = restoredKeyCount;
+
       // eslint-disable-next-line no-console
-      console.log('[OnboardingPage] rendering ready — client:', c.name || '(no name)');
+      console.log(
+        '[OnboardingPage] rendering ready — client:', c.name || '(no name)',
+        '| restored from DB:', restoredKeyCount, 'fields',
+        '| savedAnswers keys:', Object.keys(savedAnswers).length,
+      );
       setStatus('ready');
     }).catch((e) => {
       // eslint-disable-next-line no-console
@@ -1143,9 +1289,22 @@ export default function OnboardingPage() {
   }, [form, step, status, token, tokenData?.client_id]);
 
   useEffect(() => {
+    // Only restore from localStorage if the DB had nothing. The database
+    // is always the source of truth — a stale localStorage backup must
+    // never overwrite fresh data we just loaded from the server.
+    if (status !== 'ready') return;
+    const restoredFromDb = (tokenData && tokenData.__restoredCount) || 0;
+    if (restoredFromDb > 0) return;
     const saved = localStorage.getItem(`onboarding-${token}`);
-    if (saved) { try { const p = JSON.parse(saved); if (p.form) setForm(f => ({ ...f, ...p.form })); if (p.step) setStep(p.step); } catch {} }
-  }, [token]);
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        if (p.form) setForm(f => ({ ...f, ...p.form }));
+        if (p.step) setStep(p.step);
+      } catch { /* ignore */ }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, status]);
 
   // ─── Server autosave — debounced 2s on every change, 5s heartbeat, flush on hide ───
   const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
