@@ -126,8 +126,86 @@ function buildOnboardingEmail(opts: {
 
 export async function POST(req: NextRequest) {
   try {
-    const { action, client_id, agency_id } = await req.json()
+    const body: any = await req.json().catch(() => ({}))
+    const { action, client_id, agency_id } = body
     const sb = getSupabase()
+
+    // ── Autosave (debounced, fire-and-forget from the onboarding form) ──────
+    // Merges incoming form_data into clients.onboarding_answers without
+    // overwriting existing values with blanks. Also writes a vault entry per
+    // save so nothing is ever lost. Always returns 200 — the client form
+    // never surfaces an error from autosave.
+    if (action === 'autosave') {
+      const form_data = (body.form_data && typeof body.form_data === 'object') ? body.form_data : null
+      const saved_at = typeof body.saved_at === 'string' ? body.saved_at : new Date().toISOString()
+
+      if (!client_id || !form_data) {
+        return NextResponse.json({ ok: true })
+      }
+
+      try {
+        const { data: existing } = await sb
+          .from('clients')
+          .select('onboarding_answers, agency_id')
+          .eq('id', client_id)
+          .maybeSingle()
+
+        const existingAnswers: Record<string, any> =
+          (existing?.onboarding_answers && typeof existing.onboarding_answers === 'object')
+            ? existing.onboarding_answers
+            : {}
+
+        const merged: Record<string, any> = { ...existingAnswers }
+        for (const [key, value] of Object.entries(form_data)) {
+          // Only overwrite with non-empty values; preserve existing answers otherwise
+          const isEmpty =
+            value === null ||
+            value === undefined ||
+            value === '' ||
+            (Array.isArray(value) && value.length === 0)
+          if (!isEmpty) {
+            merged[key] = value
+          } else if (!(key in existingAnswers)) {
+            merged[key] = value
+          }
+        }
+
+        merged._last_autosave = saved_at
+        merged._autosave_count = (Number(existingAnswers._autosave_count) || 0) + 1
+
+        await sb
+          .from('clients')
+          .update({
+            onboarding_answers: merged,
+            onboarding_status: 'in_progress',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', client_id)
+
+        // Vault history — each autosave is a row. Never blocks the response.
+        try {
+          await sb.from('koto_data_vault').insert({
+            agency_id: agency_id || existing?.agency_id || null,
+            client_id,
+            record_type: 'onboarding',
+            source: 'client_provided',
+            title: `Onboarding autosave — ${Object.keys(form_data).length} fields`,
+            summary: `Auto-saved at ${new Date(saved_at).toLocaleTimeString()}`,
+            payload: form_data,
+            source_meta: {
+              is_autosave: true,
+              saved_at,
+              field_count: Object.keys(form_data).length,
+            },
+          })
+        } catch { /* vault table may not exist in some installs */ }
+
+        return NextResponse.json({ ok: true, saved_fields: Object.keys(merged).length })
+      } catch {
+        // Always return ok — autosave failures must never surface to the client form
+        return NextResponse.json({ ok: true })
+      }
+    }
 
     // ── Send onboarding link to client ──────────────────────────────────────
     if (action === 'send_link') {
@@ -195,13 +273,7 @@ export async function POST(req: NextRequest) {
 
     // ── Called when onboarding form is submitted ─────────────────────────────
     if (action === 'complete') {
-      // Re-read the body — it was consumed once at the top of POST — so the
-      // form_data lives inside the original parsed body variable.
-      // (Using the destructure on line 129 already pulled { action, client_id,
-      // agency_id }. The OnboardingPage sends form_data in the SAME payload,
-      // so we re-parse from the original request body via req.clone().)
-      const body = await req.clone().json().catch(() => ({} as any))
-      const form_data = body.form_data || {}
+      const form_data = (body && body.form_data) || {}
 
       // Look up client name for the notification body
       const { data: clientRow } = await sb.from('clients')

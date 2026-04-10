@@ -106,6 +106,29 @@ export default function ClientDetailPage() {
     if (clientId) loadAllData()
   }, [clientId])
 
+  // Live refresh onboarding answers while the client is actively filling the form.
+  // Polls the clients row every 30s when status === 'in_progress' so the agency
+  // user sees autosaved answers appear without a manual reload.
+  useEffect(() => {
+    if (!clientId) return
+    const inProgress = client?.onboarding_status === 'in_progress'
+      && !(client?.onboarding_completed_at)
+    if (!inProgress) return
+    const id = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from('clients')
+          .select('onboarding_answers, onboarding_status, onboarding_completed_at, updated_at')
+          .eq('id', clientId)
+          .maybeSingle()
+        if (data) {
+          setClient((prev) => prev ? { ...prev, ...data } : prev)
+        }
+      } catch { /* ignore */ }
+    }, 30000)
+    return () => clearInterval(id)
+  }, [clientId, client?.onboarding_status, client?.onboarding_completed_at])
+
   const saveField = useCallback(async (field, value) => {
     setSaving(true)
     try {
@@ -452,16 +475,37 @@ export default function ClientDetailPage() {
           <div style={sectionTitle}><ChevronRight size={16} color={R} /> Onboarding</div>
           {(() => {
             const isComplete = !!(client.onboarding_completed_at || client.onboarding_status === 'complete')
-            const answers = client.onboarding_answers
-            const hasAnswers = answers && typeof answers === 'object' && Object.keys(answers).length > 0
+            const isInProgress = !isComplete && (client.onboarding_status === 'in_progress' || !!client.onboarding_answers)
+            const rawAnswers = client.onboarding_answers
+            const hasRaw = rawAnswers && typeof rawAnswers === 'object' && Object.keys(rawAnswers).length > 0
+
+            // Filter internal tracking keys (prefixed with _) out of the display.
+            const displayAnswers = hasRaw
+              ? Object.entries(rawAnswers).filter(([k]) => !k.startsWith('_'))
+              : []
+            const filledCount = displayAnswers.filter(([, v]) => {
+              if (v === null || v === undefined || v === '') return false
+              if (Array.isArray(v) && v.length === 0) return false
+              return true
+            }).length
+            const totalCount = displayAnswers.length
+            const lastAutosave = rawAnswers?._last_autosave || null
+            const autosaveCount = rawAnswers?._autosave_count || 0
+
             return (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
                   <span style={fieldLabel}>Status</span>
-                  <span style={badge(isComplete ? GRN : AMB)}>
-                    {isComplete ? 'Onboarding Complete ✓' : 'Pending'}
+                  <span style={badge(isComplete ? GRN : isInProgress ? T : AMB)}>
+                    {isComplete ? 'Onboarding Complete ✓' : isInProgress ? 'In Progress' : 'Pending'}
                   </span>
-                  {client.onboarding_sent_at && !isComplete && (
+                  {isInProgress && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: T, fontSize: 12, fontFamily: FB }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, animation: 'onboarding-pulse 1.2s infinite' }} />
+                      Client is filling out the form right now — answers updating live
+                    </div>
+                  )}
+                  {client.onboarding_sent_at && !isComplete && !isInProgress && (
                     <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>
                       Link sent {new Date(client.onboarding_sent_at).toLocaleDateString()}
                     </span>
@@ -485,22 +529,46 @@ export default function ClientDetailPage() {
                     </button>
                   </div>
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
-                    No account required · Auto-saves · Link never expires
+                    No account required · Auto-saves every 2 seconds · Link never expires
                   </div>
                 </div>
 
-                {hasAnswers && (
+                {hasRaw && totalCount > 0 && (
                   <div style={{ marginTop: 14, padding: 16, borderRadius: 10, background: GRY }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Check size={12} color={GRN} /> SUBMITTED ANSWERS
-                      {client.onboarding_completed_at && (
-                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, marginLeft: 6 }}>
-                          {new Date(client.onboarding_completed_at).toLocaleString()}
+                    <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      {isComplete ? <Check size={12} color={GRN} /> : <Clock size={12} color={T} />}
+                      {isComplete ? 'SUBMITTED ANSWERS' : 'LIVE ANSWERS'}
+                      <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>
+                        · {filledCount} of {totalCount} answered
+                      </span>
+                      {lastAutosave && !isComplete && (
+                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
+                          · Last saved {timeAgo(lastAutosave)}
+                        </span>
+                      )}
+                      {isComplete && client.onboarding_completed_at && (
+                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
+                          · {new Date(client.onboarding_completed_at).toLocaleString()}
+                        </span>
+                      )}
+                      {autosaveCount > 0 && !isComplete && (
+                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>
+                          · {autosaveCount} autosaves
                         </span>
                       )}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {Object.entries(answers).slice(0, 20).map(([key, val]) => {
+                    {/* Progress bar */}
+                    <div style={{ height: 4, borderRadius: 2, background: '#e5e7eb', overflow: 'hidden', marginBottom: 12, marginTop: 8 }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0}%`,
+                        background: isComplete ? GRN : T,
+                        borderRadius: 2,
+                        transition: 'width .4s',
+                      }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
+                      {displayAnswers.map(([key, val]) => {
                         const display = typeof val === 'string'
                           ? val
                           : Array.isArray(val)
@@ -509,12 +577,17 @@ export default function ClientDetailPage() {
                               ? JSON.stringify(val)
                               : String(val ?? '')
                         if (!display) return null
+                        const prettyKey = key
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, (c) => c.toUpperCase())
                         return (
-                          <div key={key} style={{ fontSize: 12, fontFamily: FB }}>
-                            <span style={{ color: '#6b7280', fontWeight: 700, textTransform: 'capitalize' }}>
-                              {key.replace(/_/g, ' ')}:
-                            </span>{' '}
-                            <span style={{ color: BLK }}>{display}</span>
+                          <div key={key} style={{ fontSize: 12, fontFamily: FB, padding: '6px 0', borderBottom: '1px dashed #e5e7eb' }}>
+                            <div style={{ color: '#6b7280', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 3 }}>
+                              {prettyKey}
+                            </div>
+                            <div style={{ color: BLK, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                              {display}
+                            </div>
                           </div>
                         )
                       })}
@@ -524,6 +597,7 @@ export default function ClientDetailPage() {
               </>
             )
           })()}
+          <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
         </div>
       </div>
     )

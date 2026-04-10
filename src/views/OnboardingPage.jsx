@@ -428,6 +428,30 @@ function F({ label, hint, children, required, span2 }) {
   );
 }
 
+// Fixed-position autosave badge — bottom-right, hidden when idle.
+function SaveStatusBadge({ status }) {
+  if (status === 'idle') return null;
+  const palette =
+    status === 'saved'  ? { bg: '#f0fffe', fg: '#00C2CB', border: '#00C2CB30', label: '✓ Saved' } :
+    status === 'saving' ? { bg: '#f9f9f9', fg: '#6b7280', border: '#e5e7eb',  label: '● Saving…' } :
+                          { bg: '#fef2f2', fg: '#dc2626', border: '#fca5a5',  label: '⚠ Not saved' };
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        position: 'fixed', bottom: 20, right: 20, zIndex: 100,
+        fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
+        background: palette.bg, color: palette.fg,
+        border: `1px solid ${palette.border}`,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+        fontFamily: "'Proxima Nova','Nunito Sans',sans-serif",
+      }}
+    >
+      {palette.label}
+    </div>
+  );
+}
+
 function FocusInput({ value, onChange, placeholder, type = 'text', large, ...rest }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -932,16 +956,86 @@ export default function OnboardingPage() {
 
   useEffect(() => { topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [step]);
 
-  // Auto-save to localStorage
+  // Auto-save to localStorage (instant, never fails) — survives tab close / crash
   useEffect(() => {
     if (status !== 'ready') return;
-    localStorage.setItem(`onboarding-${token}`, JSON.stringify({ form, step }));
-  }, [form, step, status, token]);
+    try {
+      localStorage.setItem(`onboarding-${token}`, JSON.stringify({ form, step, saved_at: new Date().toISOString() }));
+      // Also write a client-id-keyed backup so the agency can restore from either key
+      if (tokenData?.client_id) {
+        localStorage.setItem(`koto_onboarding_${tokenData.client_id}`, JSON.stringify({ data: form, saved_at: new Date().toISOString() }));
+      }
+    } catch {}
+  }, [form, step, status, token, tokenData?.client_id]);
 
   useEffect(() => {
     const saved = localStorage.getItem(`onboarding-${token}`);
     if (saved) { try { const p = JSON.parse(saved); if (p.form) setForm(f => ({ ...f, ...p.form })); if (p.step) setStep(p.step); } catch {} }
   }, [token]);
+
+  // ─── Server autosave — debounced 2s on every change, 5s heartbeat, flush on hide ───
+  const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+  const autoSaveTimerRef = useRef(null);
+  const lastSentRef = useRef('');
+
+  async function performAutoSave(formSnapshot) {
+    if (!tokenData?.client_id) return;
+    // Skip if the serialized payload is identical to the last one sent (dedupe)
+    let serialized = '';
+    try { serialized = JSON.stringify(formSnapshot); } catch { return; }
+    if (serialized === lastSentRef.current) return;
+    lastSentRef.current = serialized;
+
+    setSaveStatus('saving');
+    try {
+      await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'autosave',
+          client_id: tokenData.client_id,
+          agency_id: tokenData.agency_id || null,
+          form_data: formSnapshot,
+          saved_at: new Date().toISOString(),
+        }),
+      });
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus((s) => (s === 'saved' ? 'idle' : s)), 2000);
+    } catch {
+      setSaveStatus('error');
+    }
+  }
+
+  // Debounced watcher — fires 2s after the last form change
+  useEffect(() => {
+    if (status !== 'ready') return;
+    if (!tokenData?.client_id) return;
+    clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => performAutoSave(form), 2000);
+    return () => clearTimeout(autoSaveTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, status, tokenData?.client_id]);
+
+  // 5-second heartbeat — guarantees a save even if the debounce never settles
+  useEffect(() => {
+    if (status !== 'ready' || !tokenData?.client_id) return;
+    const id = setInterval(() => performAutoSave(form), 5000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, tokenData?.client_id, form]);
+
+  // Flush on tab hide / browser close
+  useEffect(() => {
+    if (status !== 'ready' || !tokenData?.client_id) return;
+    const onVis = () => { if (document.visibilityState === 'hidden') performAutoSave(form); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pagehide', onVis);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pagehide', onVis);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, tokenData?.client_id, form]);
 
   function setSug(k, v) { setAiSugs(s => ({ ...s, [k]: v })); }
   function clearSug(k) { setAiSugs(s => { const n = { ...s }; delete n[k]; return n; }); }
@@ -1187,6 +1281,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
   // ── WELCOME ──────────────────────────────────────────────────────────────────
   if (step === 0) return (
     <>
+      <SaveStatusBadge status={saveStatus} />
       <div style={{ minHeight:'100vh', background:'#fff', display:'flex', flexDirection:'column' }}>
 
         {/* Top bar */}
@@ -1402,6 +1497,7 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       <Header />
       <Toaster position="top-center" />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <SaveStatusBadge status={saveStatus} />
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 20px 80px' }} ref={topRef}>
 
         <Banner stepIdx={step} firstName={firstName} VC={VC} />
