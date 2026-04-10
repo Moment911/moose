@@ -545,8 +545,16 @@ function TagInput({ value, onChange, placeholder, color = ACCENT }) {
 }
 
 // AI Assist button + suggestion box
+// AI is a silent enhancement: if the browser has no NEXT_PUBLIC_ANTHROPIC_API_KEY
+// (or the call fails for any other reason), we hide the button entirely instead
+// of throwing an error at the client. The form must always work without AI.
+const AI_ENABLED = typeof process !== 'undefined' && !!process.env?.NEXT_PUBLIC_ANTHROPIC_API_KEY
+
 function AIAssist({ prompt, onResult, label = 'AI Suggest', small }) {
   const [loading, setLoading] = useState(false);
+  // When the AI key isn't configured, render nothing. The form remains fully
+  // usable — the client just fills in answers manually.
+  if (!AI_ENABLED) return null;
   async function run() {
     setLoading(true);
     try {
@@ -555,7 +563,11 @@ function AIAssist({ prompt, onResult, label = 'AI Suggest', small }) {
         prompt, 900
       );
       onResult(r.trim());
-    } catch { toast.error('AI assist failed — please fill in manually'); }
+    } catch (e) {
+      // Silent failure — never show an error toast. The form keeps working.
+      // eslint-disable-next-line no-console
+      console.debug('[AIAssist] skipped — AI call failed:', e?.message || e);
+    }
     setLoading(false);
   }
   return (
@@ -1000,8 +1012,10 @@ Return ONLY valid JSON (no markdown) with EXACTLY these keys:
       setPersonaResult(personas[0]);  // show first by default
       set('all_personas', JSON.stringify(personas));
     } catch (e) {
-      console.error(e);
-      toast.error('Persona generation failed — check your internet connection and try again');
+      // Silent failure — persona is an optional enhancement. The form still
+      // submits without it. Log only, no user-facing error toast.
+      // eslint-disable-next-line no-console
+      console.debug('[Persona] skipped — generation failed:', e?.message || e);
     }
     setPersonaLoading(false);
   }
