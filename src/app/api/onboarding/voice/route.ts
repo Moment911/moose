@@ -908,23 +908,76 @@ export async function POST(req: NextRequest) {
     }
 
     // ── function_call / tool invocation ──
-    if ((event === 'function_call' || event === 'tool_call' || body.type === 'function_call')) {
-      const fnName = body.name || body.function?.name || call.name
-      const rawArgs = body.arguments || body.function?.arguments || call.arguments || {}
-      const args = typeof rawArgs === 'string' ? safeJson(rawArgs) : rawArgs
+    //
+    // Retell's real payload shape for tool calls (confirmed from
+    // live Vercel logs) is:
+    //
+    //   { "call": { "call_id", "from_number", "to_number" },
+    //     "name": "verify_pin",
+    //     "args": { "pin": "5377", "phone_number": "..." } }
+    //
+    // Notably there is NO "event" field and the arguments live
+    // under `args` (not `arguments`). We detect a function call by
+    // the presence of `body.name` on a non-action, non-call_inbound,
+    // non-notification-event request.
+    const fnName: string = body.name || body.fn_name || body.function?.name || call.name || ''
+    const rawArgs: any = body.args ?? body.arguments ?? body.function?.arguments ?? call.arguments ?? {}
+    const fnArgs: any = typeof rawArgs === 'string' ? safeJson(rawArgs) : (rawArgs || {})
+
+    const isFunctionCall =
+      !!fnName &&
+      (event === 'function_call' ||
+        event === 'tool_call' ||
+        body.type === 'function_call' ||
+        (!event && !body.call_inbound))
+
+    if (isFunctionCall) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[function_call] fnName:', fnName,
+        'toNumber:', dialedNumber,
+        'callId:', callId,
+        'fnArgs:', JSON.stringify(fnArgs).slice(0, 500),
+      )
 
       // ── verify_pin ──
+      // Uses the TO number (what was dialed) for the pool lookup —
+      // never trust any phone_number Retell passes in args.
       if (fnName === 'verify_pin') {
-        const enteredPin = String(args?.pin || '').trim()
-        const result = await verifyPin({ sb, dialedNumber, enteredPin, callId, callerPhone, rawBody: body })
+        const enteredPin = String(fnArgs.pin ?? fnArgs.pin_code ?? '').trim()
+        // eslint-disable-next-line no-console
+        console.log('[verify_pin] parsed — pin:', enteredPin, 'toNumber:', dialedNumber, 'fnArgs:', JSON.stringify(fnArgs))
+        const result = await verifyPin({
+          sb,
+          dialedNumber,
+          enteredPin,
+          callId,
+          callerPhone,
+          rawBody: body,
+        })
         return NextResponse.json(result)
       }
 
       // ── save_answer ──
-      if (fnName === 'save_answer' && clientId && agencyId && args?.field) {
-        const field = String(args.field).trim()
-        const answer = String(args.answer ?? '').trim()
-        const confidence = typeof args.confidence === 'number' ? args.confidence : 75
+      // clientId / agencyId came from resolveCallContext which runs
+      // at the top of the webhook event section — it reads
+      // body.call.to_number (same source we use for verify_pin) and
+      // looks the number up in koto_onboarding_phone_pool. If that
+      // resolution failed, log loudly instead of silently bailing.
+      if (fnName === 'save_answer') {
+        if (!clientId || !agencyId) {
+          // eslint-disable-next-line no-console
+          console.log('[save_answer] dropped — resolveCallContext failed. toNumber:', dialedNumber, 'resolved:', JSON.stringify(resolved))
+          return NextResponse.json({ success: false, error: 'Could not resolve client from dialed number' })
+        }
+        if (!fnArgs.field) {
+          // eslint-disable-next-line no-console
+          console.log('[save_answer] dropped — missing field in args:', JSON.stringify(fnArgs))
+          return NextResponse.json({ success: false, error: 'Missing field argument' })
+        }
+        const field = String(fnArgs.field).trim()
+        const answer = String(fnArgs.answer ?? '').trim()
+        const confidence = typeof fnArgs.confidence === 'number' ? fnArgs.confidence : 85
 
         try {
           await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding`, {
@@ -967,9 +1020,17 @@ export async function POST(req: NextRequest) {
       }
 
       // ── save_flag ──
-      if (fnName === 'save_flag' && clientId && args?.field) {
-        const field = String(args.field).trim()
-        const reason = String(args.reason || 'needs_followup').trim()
+      if (fnName === 'save_flag') {
+        if (!clientId) {
+          // eslint-disable-next-line no-console
+          console.log('[save_flag] dropped — resolveCallContext failed. toNumber:', dialedNumber, 'resolved:', JSON.stringify(resolved))
+          return NextResponse.json({ success: false, error: 'Could not resolve client from dialed number' })
+        }
+        if (!fnArgs.field) {
+          return NextResponse.json({ success: false, error: 'Missing field argument' })
+        }
+        const field = String(fnArgs.field).trim()
+        const reason = String(fnArgs.reason || 'needs_followup').trim()
 
         const { data: recipient } = await sb
           .from('koto_onboarding_recipients')
