@@ -157,6 +157,104 @@ async function deleteNumber(phoneNumberId: string): Promise<boolean> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Retell import + agent assignment
+//
+// Once a Telnyx number is ordered and assigned to the Telnyx
+// Voice API connection, we need to tell Retell about it so calls
+// to the number actually route to our agent. Two-step:
+//
+//   1. POST /create-phone-number-from-carrier-number with
+//      { carrier: 'telnyx', phone_number, telnyx_account_connection_id }
+//      — imports the number into Retell's address book.
+//   2. PATCH /update-phone-number/{phone_number} with
+//      { inbound_agent_id } — binds the onboarding agent to the
+//      number so inbound calls hit its webhook.
+//
+// Without both steps, Retell has no idea the number exists and
+// calls to it will fail silently (or Telnyx will play an error).
+// ─────────────────────────────────────────────────────────────
+const RETELL_API_BASE = 'https://api.retellai.com'
+
+function retellHeaders(): Record<string, string> {
+  return {
+    Authorization: `Bearer ${process.env.RETELL_API_KEY || ''}`,
+    'Content-Type': 'application/json',
+  }
+}
+
+async function retellImportCarrierNumber(args: {
+  phoneNumber: string
+  connectionId: string
+}): Promise<{ ok: boolean; error: string | null; retellPhoneNumberId: string | null }> {
+  if (!process.env.RETELL_API_KEY) {
+    return { ok: false, error: 'RETELL_API_KEY not configured', retellPhoneNumberId: null }
+  }
+  try {
+    const res = await fetch(`${RETELL_API_BASE}/create-phone-number-from-carrier-number`, {
+      method: 'POST',
+      headers: retellHeaders(),
+      body: JSON.stringify({
+        carrier: 'telnyx',
+        phone_number: args.phoneNumber,
+        telnyx_account_connection_id: args.connectionId,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: data?.error_message || data?.message || `Retell import failed (${res.status})`,
+        retellPhoneNumberId: null,
+      }
+    }
+    // Retell returns the imported number record; the phone_number
+    // itself is the key used by PATCH/DELETE endpoints.
+    return { ok: true, error: null, retellPhoneNumberId: data?.phone_number || args.phoneNumber }
+  } catch (e: any) {
+    return { ok: false, error: e?.message || 'Retell import request failed', retellPhoneNumberId: null }
+  }
+}
+
+async function retellAssignAgent(args: {
+  phoneNumber: string
+  inboundAgentId: string
+}): Promise<{ ok: boolean; error: string | null }> {
+  if (!process.env.RETELL_API_KEY) {
+    return { ok: false, error: 'RETELL_API_KEY not configured' }
+  }
+  try {
+    const res = await fetch(`${RETELL_API_BASE}/update-phone-number/${encodeURIComponent(args.phoneNumber)}`, {
+      method: 'PATCH',
+      headers: retellHeaders(),
+      body: JSON.stringify({ inbound_agent_id: args.inboundAgentId }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return {
+        ok: false,
+        error: data?.error_message || data?.message || `Retell agent assignment failed (${res.status})`,
+      }
+    }
+    return { ok: true, error: null }
+  } catch (e: any) {
+    return { ok: false, error: e?.message || 'Retell agent assignment request failed' }
+  }
+}
+
+async function retellDeletePhoneNumber(phoneNumber: string): Promise<boolean> {
+  if (!process.env.RETELL_API_KEY) return false
+  try {
+    const res = await fetch(`${RETELL_API_BASE}/delete-phone-number/${encodeURIComponent(phoneNumber)}`, {
+      method: 'DELETE',
+      headers: retellHeaders(),
+    })
+    return res.ok || res.status === 404
+  } catch {
+    return false
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
 // GET handler — status + search
 // ─────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -299,16 +397,58 @@ export async function POST(req: NextRequest) {
         }, { status: 500 })
       }
 
-      // 4. Assign to the onboarding connection so inbound calls hit
-      // our voice webhook. Not fatal if this fails — the agency can
-      // fix it from the Telnyx dashboard.
+      // 4. Assign to the Telnyx voice connection so Telnyx routes
+      // the call into the Retell BYOC trunk. Not fatal if it fails —
+      // the agency can fix it from the Telnyx dashboard.
       const connectionOk = await assignConnection(phoneNumberId)
 
-      // 5. Generate PIN + save everything
+      // 5. Import the number into Retell via the BYOC path. This is
+      // the step that tells Retell the number exists. Without it,
+      // Retell will 404 on any inbound call to the number.
+      const connectionId = getConnectionId()
+      const retellImport = await retellImportCarrierNumber({
+        phoneNumber: selectedNumber,
+        connectionId,
+      })
+      if (!retellImport.ok) {
+        // Retell import failed — roll back the Telnyx order so we
+        // don't leave an orphan number on the account.
+        await deleteNumber(phoneNumberId).catch(() => {})
+        return NextResponse.json({
+          error: `Retell import failed: ${retellImport.error}. Telnyx order was rolled back.`,
+        }, { status: 500 })
+      }
+
+      // 6. Look up the agency's onboarding agent and assign it to
+      // the imported number so inbound calls actually route to our
+      // webhook. If no onboarding agent exists yet, the provision
+      // still succeeds but we return a warning so the agency knows
+      // to click "Create Retell Onboarding Agent" in Agency Settings
+      // and retry.
+      const { data: agency } = await s
+        .from('agencies')
+        .select('onboarding_agent_id, brand_name, name')
+        .eq('id', agency_id)
+        .maybeSingle()
+
+      const inboundAgentId = agency?.onboarding_agent_id || null
+      let agentAssignOk = false
+      let agentAssignError: string | null = null
+      if (inboundAgentId) {
+        const assignRes = await retellAssignAgent({
+          phoneNumber: selectedNumber,
+          inboundAgentId,
+        })
+        agentAssignOk = assignRes.ok
+        agentAssignError = assignRes.error
+      } else {
+        agentAssignError = 'No onboarding agent configured for this agency — create one in Agency Settings → Onboarding → Voice Onboarding, then release and re-provision this number.'
+      }
+
+      // 7. Generate PIN + save everything
       const pin = generatePin()
       const displayNumber = formatDisplayNumber(selectedNumber)
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      const connectionId = getConnectionId()
 
       const { error: poolError } = await s.from('koto_onboarding_phone_pool').insert({
         phone_number: selectedNumber,
@@ -326,8 +466,9 @@ export async function POST(req: NextRequest) {
       })
 
       if (poolError) {
-        // Pool write failed — try to roll back the Telnyx order so we
-        // don't leave an orphan number on the account.
+        // Pool write failed — roll back both Retell and Telnyx so we
+        // don't leave orphans on either side.
+        await retellDeletePhoneNumber(selectedNumber).catch(() => {})
         await deleteNumber(phoneNumberId).catch(() => {})
         return NextResponse.json({ error: 'Failed to save pool entry: ' + poolError.message }, { status: 500 })
       }
@@ -352,6 +493,10 @@ export async function POST(req: NextRequest) {
         telnyx_order_id: orderId,
         connection_id: connectionId,
         connection_assigned: connectionOk,
+        retell_imported: retellImport.ok,
+        retell_agent_id: inboundAgentId,
+        agent_assigned: agentAssignOk,
+        agent_assign_error: agentAssignError,
         expires_at: expiresAt,
       })
     }
@@ -378,6 +523,11 @@ export async function POST(req: NextRequest) {
         .eq('assigned_to_client_id', client_id)
         .eq('status', 'assigned')
         .maybeSingle()
+
+      // Tear down in reverse order: Retell first (so it stops
+      // trying to route calls to a number we're about to kill),
+      // then Telnyx (billing stops).
+      const retellReleased = await retellDeletePhoneNumber(client.onboarding_phone)
 
       let telnyxReleased = false
       if (pool?.telnyx_phone_id && getApiKey()) {
@@ -410,6 +560,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         ok: true,
         released: client.onboarding_phone,
+        retell_deleted: retellReleased,
         telnyx_deleted: telnyxReleased,
       })
     }
