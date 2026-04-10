@@ -110,6 +110,38 @@ export default function TestDataPage() {
     }
   }
 
+  async function importExistingToRetell() {
+    const phone = voiceTestProvision?.phone_number
+    if (!phone) { toast.error('Provision a number first (or load one onto voiceTestProvision)'); return }
+    if (!voiceTestClientId) { toast.error('Paste a client ID first'); return }
+    setVoiceTestLoading(true)
+    vlog(`Importing ${phone} into Retell…`, 'info')
+    try {
+      const res = await fetch('/api/onboarding/telnyx-provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'import_existing',
+          phone_number: phone,
+          agency_id: aid,
+          client_id: voiceTestClientId,
+        }),
+      })
+      const data = await res.json()
+      if (data?.error && !data?.retell_imported) {
+        vlog(`Retell import failed: ${data.error}`, 'error')
+      } else {
+        vlog(`✓ Imported to Retell${data.agent_assigned ? ' + agent assigned' : ''}`, 'success')
+        if (!data.agent_assigned && data.error) vlog(`Agent assignment warning: ${data.error}`, 'error')
+      }
+      setVoiceTestResult(data)
+    } catch (e) {
+      vlog(`Import failed: ${e.message}`, 'error')
+    } finally {
+      setVoiceTestLoading(false)
+    }
+  }
+
   async function quickSetupVoiceTest() {
     if (!voiceTestClientId) { toast.error('Paste a client ID first'); return }
     setVoiceTestProvisioning(true)
@@ -621,6 +653,36 @@ export default function TestDataPage() {
                   <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>PIN</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#7c3aed', letterSpacing: '.2em' }}>{voiceTestProvision.pin}</div>
                 </div>
+                <button
+                  onClick={importExistingToRetell}
+                  disabled={voiceTestLoading || !voiceTestProvision?.phone_number}
+                  style={{
+                    marginLeft: 'auto', padding: '8px 14px',
+                    background: '#111', color: '#fff', border: 'none',
+                    borderRadius: 8, fontSize: 12, fontWeight: 700,
+                    cursor: (voiceTestLoading || !voiceTestProvision?.phone_number) ? 'not-allowed' : 'pointer',
+                    opacity: (voiceTestLoading || !voiceTestProvision?.phone_number) ? 0.5 : 1,
+                    whiteSpace: 'nowrap',
+                  }}
+                  title="Registers this number with Retell via create-phone-number-from-carrier-number + binds the onboarding agent. Use when the number was provisioned before the Retell import path was added."
+                >
+                  🔁 Import Existing Number to Retell
+                </button>
+              </div>
+            )}
+
+            {!voiceTestProvision && (
+              <div style={{ marginTop: 10, padding: '10px 14px', background: '#fff', borderRadius: 8, border: `1px dashed ${C.border}`, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <input
+                  placeholder="Or paste an existing +1... number to import"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.target.value.trim()) {
+                      setVoiceTestProvision({ phone_number: e.target.value.trim(), display_number: e.target.value.trim(), pin: null })
+                    }
+                  }}
+                  style={{ flex: 1, minWidth: 220, padding: '6px 10px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
+                <div style={{ fontSize: 10, color: C.muted }}>Press Enter to load, then use the Import button</div>
               </div>
             )}
           </div>

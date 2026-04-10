@@ -331,6 +331,70 @@ export async function POST(req: NextRequest) {
 
     const s = sb()
 
+    // ── import_existing ────────────────────────────────────────
+    // For a Telnyx number that was already ordered (either via the
+    // `provision` action before the Retell import path existed, or
+    // manually from the Telnyx dashboard), register it with Retell
+    // and bind the agency's onboarding agent. Skips ordering.
+    //
+    // Falls back to process.env.RETELL_ONBOARDING_AGENT_ID if the
+    // agency row doesn't have one set — lets the agency import a
+    // number during initial setup before they've wired the per-
+    // agency agent.
+    if (action === 'import_existing') {
+      const { phone_number } = body
+      if (!phone_number || !agency_id) {
+        return NextResponse.json({ error: 'phone_number and agency_id required' }, { status: 400 })
+      }
+
+      const connectionId = getConnectionId()
+
+      // Step A — import the number into Retell
+      const retellImport = await retellImportCarrierNumber({
+        phoneNumber: phone_number,
+        connectionId,
+      })
+      if (!retellImport.ok) {
+        return NextResponse.json({
+          ok: false,
+          retell_imported: false,
+          agent_assigned: false,
+          error: retellImport.error,
+        }, { status: 500 })
+      }
+
+      // Step B — bind the onboarding agent to the number. Prefer
+      // the per-agency agent id; fall back to the env var if set.
+      const { data: agency } = await s
+        .from('agencies')
+        .select('onboarding_agent_id')
+        .eq('id', agency_id)
+        .maybeSingle()
+
+      const inboundAgentId = agency?.onboarding_agent_id || process.env.RETELL_ONBOARDING_AGENT_ID || null
+      if (!inboundAgentId) {
+        return NextResponse.json({
+          ok: true,
+          retell_imported: true,
+          agent_assigned: false,
+          error: 'No onboarding agent configured. Create one in Agency Settings → Onboarding → Voice Onboarding, then retry.',
+        })
+      }
+
+      const assignRes = await retellAssignAgent({
+        phoneNumber: phone_number,
+        inboundAgentId,
+      })
+
+      return NextResponse.json({
+        ok: true,
+        retell_imported: true,
+        agent_assigned: assignRes.ok,
+        agent_id: inboundAgentId,
+        error: assignRes.ok ? null : assignRes.error,
+      })
+    }
+
     // ── provision ───────────────────────────────────────────────
     if (action === 'provision') {
       if (!client_id || !agency_id) {
