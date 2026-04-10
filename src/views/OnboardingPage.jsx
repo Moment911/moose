@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase, getOnboardingToken, upsertClientProfile, markTokenUsed } from '../lib/supabase';
-import { callClaude } from '../lib/ai';
 import { SIC_CODES, SIC_DIVISIONS } from '../lib/sicCodes';
 import SearchableSelect from '../components/SearchableSelect';
 import AIThinkingBox from '../components/AIThinkingBox'
@@ -569,41 +568,73 @@ function TagInput({ value, onChange, placeholder, color = ACCENT }) {
 }
 
 // AI Assist button + suggestion box
-// AI is a silent enhancement: if the browser has no NEXT_PUBLIC_ANTHROPIC_API_KEY
-// (or the call fails for any other reason), we hide the button entirely instead
-// of throwing an error at the client. The form must always work without AI.
-const AI_ENABLED = typeof process !== 'undefined' && !!process.env?.NEXT_PUBLIC_ANTHROPIC_API_KEY
+//
+// AI is always enabled now — it proxies through the server-side
+// /api/onboarding/assist route which uses ANTHROPIC_API_KEY. No browser
+// key required, no gate.
+//
+// AIAssist lives at module scope (outside the main component), so to give
+// it access to the live form state without updating every call site, the
+// main component writes the current welcome_statement + business_context +
+// industry into `onboardingAIContextRef.current` on every render. When a
+// user clicks an AI Suggest button, we read the latest snapshot from this
+// ref and POST it to the proxy alongside the pre-built prompt.
+const AI_ENABLED = true
+const onboardingAIContextRef = { current: { welcomeStatement: '', businessContext: '', industry: '' } }
 
 function AIAssist({ prompt, onResult, label = 'AI Suggest', small }) {
-  const [loading, setLoading] = useState(false);
-  // When the AI key isn't configured, render nothing. The form remains fully
-  // usable — the client just fills in answers manually.
-  if (!AI_ENABLED) return null;
+  const [loading, setLoading] = useState(false)
+  const [applied, setApplied] = useState(false)
+  if (!AI_ENABLED) return null
+
   async function run() {
-    setLoading(true);
+    setLoading(true)
     try {
-      const r = await callClaude(
-        'You are a senior marketing strategist with 20+ years in PPC, SEO, and AEO helping a business complete their agency onboarding. Be specific, practical, and insightful. No preamble.',
-        prompt, 900
-      );
-      onResult(r.trim());
+      const ctx = onboardingAIContextRef.current || {}
+      const res = await fetch('/api/onboarding/assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          welcome_statement: ctx.welcomeStatement || '',
+          business_context:  ctx.businessContext || '',
+          industry:          ctx.industry || '',
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      const suggestion = typeof data?.suggestion === 'string' ? data.suggestion.trim() : ''
+      if (suggestion) {
+        onResult(suggestion)
+        setApplied(true)
+        setTimeout(() => setApplied(false), 1800)
+      }
     } catch (e) {
       // Silent failure — never show an error toast. The form keeps working.
       // eslint-disable-next-line no-console
-      console.debug('[AIAssist] skipped — AI call failed:', e?.message || e);
+      console.debug('[AIAssist] skipped — AI call failed:', e?.message || e)
     }
-    setLoading(false);
+    setLoading(false)
   }
+
+  const buttonText = loading ? 'Working…' : applied ? 'Applied ✓' : label
+  const buttonBg   = applied ? '#ecfdf5' : loading ? '#f9fafb' : '#f0fbfc'
+  const buttonBorder = applied ? '#10b98160' : ACCENT
+  const buttonColor  = applied ? '#10b981' : ACCENT
+
   return (
     <div style={{ display:'inline-flex', flexDirection:'column', gap:6, alignItems:'flex-start' }}>
       <button type="button" onClick={run} disabled={loading}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: small ? '6px 12px' : '9px 18px', borderRadius: 10, border: `2px solid ${ACCENT}`, background: loading?'#f9fafb':'#f0fbfc', color: ACCENT, fontSize: small ? 12 : 14, fontWeight: 700, cursor: loading?'default':'pointer', opacity: loading ? .7 : 1, whiteSpace: 'nowrap' }}>
-        {loading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
-        {loading ? 'Working…' : label}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: small ? '6px 12px' : '9px 18px', borderRadius: 10, border: `2px solid ${buttonBorder}`, background: buttonBg, color: buttonColor, fontSize: small ? 12 : 14, fontWeight: 700, cursor: loading?'default':'pointer', opacity: loading ? .7 : 1, whiteSpace: 'nowrap', transition: 'all .15s' }}>
+        {loading
+          ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+          : applied
+            ? <CheckCircle size={14} />
+            : <Sparkles size={14} />}
+        {buttonText}
       </button>
       {loading && <AIThinkingBox active={loading} task='onboarding' inline/>}
     </div>
-  );
+  )
 }
 
 function SugBox({ text, onAccept, onDismiss, onEdit }) {
@@ -1017,6 +1048,27 @@ export default function OnboardingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, status, tokenData?.client_id]);
 
+  // Keep the AI proxy context ref in sync with the latest form state.
+  // AIAssist reads this at click time so every suggestion is informed by
+  // what the client has already typed (especially the welcome_statement).
+  useEffect(() => {
+    const businessContext = [
+      form.business_name ? `Business name: ${form.business_name}` : '',
+      form.industry ? `Industry: ${form.industry}` : '',
+      (form.primary_city || form.primary_state)
+        ? `Location: ${[form.primary_city, form.primary_state].filter(Boolean).join(', ')}`
+        : '',
+      form.primary_service ? `Primary service: ${form.primary_service}` : '',
+      form.num_employees ? `Team size: ${form.num_employees}` : '',
+      form.target_customer ? `Target customer: ${form.target_customer}` : '',
+    ].filter(Boolean).join('\n')
+    onboardingAIContextRef.current = {
+      welcomeStatement: form.welcome_statement || '',
+      businessContext,
+      industry: form.industry || tokenData?.clients?.industry || '',
+    }
+  }, [form, tokenData?.clients?.industry])
+
   // 5-second heartbeat — guarantees a save even if the debounce never settles
   useEffect(() => {
     if (status !== 'ready' || !tokenData?.client_id) return;
@@ -1065,34 +1117,16 @@ export default function OnboardingPage() {
         uvp: form.unique_value_prop,
         brand_tone: form.brand_tone,
       };
-      const result = await callClaude(
-        'You are a senior marketing strategist with 20 years in PPC, SEO, and AEO. Generate a vivid, specific, actionable client persona. Be detailed and confident. Return ONLY valid JSON.',
-        `Generate a comprehensive marketing persona for this business: ${JSON.stringify(ctx, null, 2)}
+      // Route through the server-side proxy so ANTHROPIC_API_KEY stays server-only.
+      const res = await fetch('/api/onboarding/persona', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ctx, welcome_statement: form.welcome_statement || '' }),
+      });
+      const json = await res.json().catch(() => ({}));
+      const result = typeof json?.text === 'string' ? json.text : '';
+      if (!result) throw new Error('Empty persona response');
 
-Return ONLY valid JSON (no markdown) with EXACTLY these keys:
-{
-  "persona_name": "Memorable name like 'Stressed-Out Sarah' or 'Renovation Randy'",
-  "tagline": "One punchy sentence describing them",
-  "age_range": "e.g. 35-54",
-  "gender": "e.g. 60% female, 40% male",
-  "income": "e.g. $75K-$150K household",
-  "education": "e.g. College-educated homeowners",
-  "location_type": "e.g. Suburban homeowners, Miami-Dade / Broward",
-  "psychographic_summary": "3-4 sentences about their mindset, values, lifestyle",
-  "triggers": ["What specific event triggers them to search for this service (3-5 items)"],
-  "fears": ["Their biggest fears/objections when hiring (3-4 items)"],
-  "decision_factors": ["What makes them choose one provider over another (4-5 items)"],
-  "online_behavior": "Where they spend time online and how they search",
-  "google_keywords": ["10 high-intent keywords they type into Google"],
-  "facebook_interests": ["8-10 Facebook targeting interests"],
-  "ad_headline_angles": ["5 different ad headline approaches that would stop them scrolling"],
-  "pain_point_hooks": ["3-4 pain-point-led ad hooks (start with the pain)"],
-  "trust_signals": ["5 things that build instant trust with this persona"],
-  "best_channels": ["Top 3-4 marketing channels ranked by priority for this persona"],
-  "content_themes": ["5 content topics that would engage this persona"],
-  "do_not": ["3-4 things that would immediately turn this persona off"]
-}`, 2500
-      );
       const cleaned = result.replace(/```json|```/g, '').trim();
       // Handle both array (5 personas) and single object (legacy)
       const isArray = cleaned.trimStart().startsWith('[')
