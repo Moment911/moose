@@ -1,8 +1,8 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   FlaskConical, Database, Trash2, AlertTriangle, RefreshCw, Loader2, Check, X, Zap,
-  Brain, ExternalLink, ArrowRight,
+  Brain, ExternalLink, ArrowRight, Mic, Phone, Eye,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -54,6 +54,92 @@ export default function TestDataPage() {
   const [discoRunningProfile, setDiscoRunningProfile] = useState(null)
   const [discoResult, setDiscoResult] = useState(null)
   const [discoDeleting, setDiscoDeleting] = useState(false)
+
+  // ── Voice Onboarding Test state ────────────────────────────────────
+  const [voiceTestLog, setVoiceTestLog] = useState([])
+  const [voiceTestLoading, setVoiceTestLoading] = useState(false)
+  const [voiceTestCallId, setVoiceTestCallId] = useState(null)
+  const [voiceTestClientId, setVoiceTestClientId] = useState('')
+  const [voiceTestField, setVoiceTestField] = useState('welcome_statement')
+  const [voiceTestAnswer, setVoiceTestAnswer] = useState('')
+  const [voiceTestPin, setVoiceTestPin] = useState('')
+  const [voiceTestSpeed, setVoiceTestSpeed] = useState('normal')
+  const [voiceTestResult, setVoiceTestResult] = useState(null)
+  const [voiceTestProvisioning, setVoiceTestProvisioning] = useState(false)
+  const [voiceTestProvision, setVoiceTestProvision] = useState(null)
+  const voiceLogRef = useRef(null)
+
+  function vlog(msg, type = 'info') {
+    const icons = { info: '●', success: '✓', error: '✗', data: '→' }
+    const line = `${icons[type] || '●'} [${new Date().toLocaleTimeString()}] ${msg}`
+    setVoiceTestLog((prev) => [line, ...prev].slice(0, 100))
+    setTimeout(() => voiceLogRef.current?.scrollTo(0, 0), 50)
+  }
+
+  async function fireVoiceTest(action, extra = {}) {
+    setVoiceTestLoading(true)
+    try {
+      const res = await fetch('/api/onboarding/voice/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          client_id: voiceTestClientId,
+          agency_id: aid,
+          call_id: voiceTestCallId,
+          ...extra,
+        }),
+      })
+      const data = await res.json()
+      setVoiceTestResult(data)
+
+      if (data?.error) {
+        vlog(`ERROR: ${data.error}`, 'error')
+      } else {
+        vlog(`${action} → ${data?.message || JSON.stringify(data).slice(0, 100)}`, 'success')
+        if (data?.call_id) setVoiceTestCallId(data.call_id)
+        if (data?.completion_pct !== undefined) vlog(`Completion: ${data.completion_pct}%`, 'data')
+        if (data?.missing_fields?.length) vlog(`Missing: ${data.missing_fields.join(', ')}`, 'data')
+        if (data?.stored_pin) vlog(`Stored PIN: ${data.stored_pin} | Entered: ${data.entered_pin}`, 'data')
+      }
+      return data
+    } catch (e) {
+      vlog(`FETCH ERROR: ${e.message}`, 'error')
+    } finally {
+      setVoiceTestLoading(false)
+    }
+  }
+
+  async function quickSetupVoiceTest() {
+    if (!voiceTestClientId) { toast.error('Paste a client ID first'); return }
+    setVoiceTestProvisioning(true)
+    vlog('Provisioning Telnyx number + PIN…', 'info')
+    try {
+      const res = await fetch('/api/onboarding/telnyx-provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'provision', client_id: voiceTestClientId, agency_id: aid }),
+      })
+      const data = await res.json()
+      if (data?.error) {
+        // If Telnyx isn't configured, fall back to a mock so the
+        // agency can still test the PIN-verify flow end to end.
+        vlog(`Telnyx unavailable: ${data.error}`, 'error')
+        if (data.error.includes('TELNYX_API_KEY')) {
+          vlog('Falling back to mock PIN 1357 — set it directly on the client row via SQL for full testing', 'info')
+          setVoiceTestProvision({ phone_number: 'mock', display_number: 'MOCK (Telnyx not configured)', pin: '1357' })
+        }
+      } else {
+        vlog(`✓ Provisioned ${data.display_number} · PIN ${data.pin}`, 'success')
+        setVoiceTestProvision(data)
+        setVoiceTestPin(data.pin || '')
+      }
+    } catch (e) {
+      vlog(`Provision failed: ${e.message}`, 'error')
+    } finally {
+      setVoiceTestProvisioning(false)
+    }
+  }
 
   useEffect(() => {
     // Load profiles once on mount
@@ -456,6 +542,282 @@ export default function TestDataPage() {
                   <Trash2 size={13} /> Delete Test Engagement
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Voice Onboarding Test Simulator ── */}
+        <div style={card}>
+          <div style={cardHeader}>
+            <Mic size={16} color="#7c3aed" />
+            <span>Voice Onboarding Test Simulator</span>
+            <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: '#ede9fe', color: '#6d28d9', letterSpacing: '.06em' }}>
+              DEV
+            </span>
+            <a
+              href={voiceTestClientId ? `/clients/${voiceTestClientId}` : '#'}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => { if (!voiceTestClientId) e.preventDefault() }}
+              style={{
+                marginLeft: 'auto', padding: '6px 14px',
+                background: voiceTestClientId ? '#f0fffe' : '#f9f9f9',
+                color: voiceTestClientId ? C.teal : '#9ca3af',
+                border: `1px solid ${voiceTestClientId ? C.teal + '40' : C.border}`,
+                borderRadius: 8, fontSize: 12, fontWeight: 700,
+                textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5,
+              }}
+            >
+              <Eye size={12} /> Watch Client Page Live →
+            </a>
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>
+            Fires fake webhook events through the real voice onboarding pipeline — autosave + recipients + notifications all run. Open the client detail page in another tab to watch fields populate live.
+          </div>
+
+          {/* Client ID input */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: C.mutedDark, display: 'block', marginBottom: 4 }}>Client ID to test</label>
+            <input
+              value={voiceTestClientId}
+              onChange={(e) => setVoiceTestClientId(e.target.value)}
+              placeholder="Paste a client UUID e.g. 3a93a9dc-e138-4f8c-b2cd-c2fff219e9b6"
+              style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 13, boxSizing: 'border-box', fontFamily: 'inherit' }}
+            />
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>
+              Active call ID:{' '}
+              <code style={{ background: '#f9f9f9', padding: '1px 6px', borderRadius: 4 }}>{voiceTestCallId || 'none'}</code>
+            </div>
+          </div>
+
+          {/* Quick setup */}
+          <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>⚡ Quick Setup for Testing</div>
+              <button
+                onClick={quickSetupVoiceTest}
+                disabled={voiceTestProvisioning || !voiceTestClientId}
+                style={{
+                  marginLeft: 'auto', padding: '6px 14px',
+                  background: '#7c3aed', color: '#fff', border: 'none',
+                  borderRadius: 6, fontSize: 12, fontWeight: 700,
+                  cursor: (voiceTestProvisioning || !voiceTestClientId) ? 'not-allowed' : 'pointer',
+                  opacity: (voiceTestProvisioning || !voiceTestClientId) ? 0.5 : 1,
+                }}
+              >
+                {voiceTestProvisioning ? 'Provisioning…' : 'Provision Number + PIN'}
+              </button>
+            </div>
+            <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+              Calls /api/onboarding/telnyx-provision to assign a real Telnyx number + 4-digit PIN to the selected client. Falls back to mock values if TELNYX_API_KEY is not set.
+            </div>
+            {voiceTestProvision && (
+              <div style={{ marginTop: 10, padding: '10px 14px', background: '#fff', borderRadius: 8, border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Phone</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{voiceTestProvision.display_number || voiceTestProvision.phone_number}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>PIN</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: '#7c3aed', letterSpacing: '.2em' }}>{voiceTestProvision.pin}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Step-by-step controls */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 16 }}>
+            {/* Step 1 */}
+            <div style={{ background: '#f9f9f9', borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.mutedDark, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '.05em' }}>
+                Step 1 — Start Call
+              </div>
+              <button
+                onClick={() => fireVoiceTest('simulate_call_started', { caller_name: 'Test Caller' })}
+                disabled={voiceTestLoading || !voiceTestClientId}
+                style={{
+                  width: '100%', padding: '8px',
+                  background: '#374151', color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  opacity: (!voiceTestClientId || voiceTestLoading) ? 0.5 : 1,
+                }}
+              >
+                📞 Simulate Call Started
+              </button>
+            </div>
+
+            {/* Step 2 */}
+            <div style={{ background: '#f9f9f9', borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.mutedDark, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '.05em' }}>
+                Step 2 — Send Answer
+              </div>
+              <select
+                value={voiceTestField}
+                onChange={(e) => setVoiceTestField(e.target.value)}
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, marginBottom: 6, background: '#fff' }}
+              >
+                {[
+                  'welcome_statement', 'owner_name', 'primary_service', 'target_customer',
+                  'marketing_budget', 'crm_used', 'competitor_1', 'unique_selling_prop',
+                  'notes', 'city', 'num_employees', 'year_founded',
+                ].map((f) => (<option key={f} value={f}>{f}</option>))}
+              </select>
+              <input
+                value={voiceTestAnswer}
+                onChange={(e) => setVoiceTestAnswer(e.target.value)}
+                placeholder="Leave blank for auto-generated"
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, marginBottom: 6, boxSizing: 'border-box' }}
+              />
+              <button
+                onClick={() => fireVoiceTest('simulate_answer', { field: voiceTestField, answer: voiceTestAnswer || undefined })}
+                disabled={voiceTestLoading || !voiceTestClientId || !voiceTestCallId}
+                style={{
+                  width: '100%', padding: '8px',
+                  background: C.teal, color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  opacity: (!voiceTestClientId || !voiceTestCallId || voiceTestLoading) ? 0.5 : 1,
+                }}
+              >
+                💾 Save This Answer
+              </button>
+            </div>
+
+            {/* PIN Test */}
+            <div style={{ background: '#f9f9f9', borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.mutedDark, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '.05em' }}>
+                PIN Verify Test
+              </div>
+              <input
+                value={voiceTestPin}
+                onChange={(e) => setVoiceTestPin(e.target.value)}
+                placeholder="4-digit"
+                maxLength={4}
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 18, fontWeight: 900, letterSpacing: '.2em', marginBottom: 6, boxSizing: 'border-box', textAlign: 'center' }}
+              />
+              <button
+                onClick={() => fireVoiceTest('simulate_pin_verify', { pin: voiceTestPin })}
+                disabled={voiceTestLoading || !voiceTestClientId || voiceTestPin.length !== 4}
+                style={{
+                  width: '100%', padding: '8px',
+                  background: '#7c3aed', color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  opacity: (voiceTestPin.length !== 4 || !voiceTestClientId || voiceTestLoading) ? 0.5 : 1,
+                }}
+              >
+                🔐 Test PIN Verify
+              </button>
+            </div>
+
+            {/* Step 3 */}
+            <div style={{ background: '#f9f9f9', borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.mutedDark, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '.05em' }}>
+                Step 3 — End Call
+              </div>
+              <button
+                onClick={() => fireVoiceTest('simulate_call_ended', { fields_captured: 7 })}
+                disabled={voiceTestLoading || !voiceTestClientId || !voiceTestCallId}
+                style={{
+                  width: '100%', padding: '8px',
+                  background: '#dc2626', color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  opacity: (!voiceTestClientId || !voiceTestCallId || voiceTestLoading) ? 0.5 : 1,
+                }}
+              >
+                📴 Simulate Call Ended
+              </button>
+            </div>
+          </div>
+
+          {/* Full auto session */}
+          <div style={{ background: '#f0fffe', border: `1px solid ${C.teal}30`, borderRadius: 10, padding: 14, marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 8 }}>
+              🤖 Run Full Auto Session
+            </div>
+            <div style={{ fontSize: 12, color: C.mutedDark, marginBottom: 10 }}>
+              Fires: call_started → 7 field answers → call_ended. Watch the client page in another tab to see fields populate live.
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <select
+                value={voiceTestSpeed}
+                onChange={(e) => setVoiceTestSpeed(e.target.value)}
+                style={{ padding: '6px 10px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, background: '#fff' }}
+              >
+                <option value="fast">Fast (200ms between steps)</option>
+                <option value="normal">Normal (600ms between steps)</option>
+                <option value="slow">Slow (1.5s between steps)</option>
+              </select>
+              <button
+                onClick={async () => {
+                  vlog('Starting full auto session…', 'info')
+                  const result = await fireVoiceTest('simulate_full_session', { speed: voiceTestSpeed })
+                  if (result?.events) {
+                    result.events.forEach((e) => vlog(`${e.label}: ${JSON.stringify(e.result || {}).slice(0, 80)}`, e.result?.error ? 'error' : 'success'))
+                  }
+                }}
+                disabled={voiceTestLoading || !voiceTestClientId}
+                style={{
+                  padding: '8px 20px',
+                  background: '#111', color: '#fff', border: 'none',
+                  borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  opacity: (!voiceTestClientId || voiceTestLoading) ? 0.5 : 1, whiteSpace: 'nowrap',
+                }}
+              >
+                {voiceTestLoading ? '⏳ Running…' : '▶ Run Full Session'}
+              </button>
+            </div>
+          </div>
+
+          {/* Event log */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.mutedDark }}>Event Log</div>
+              <button
+                onClick={() => setVoiceTestLog([])}
+                style={{ fontSize: 11, color: C.muted, background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Clear
+              </button>
+            </div>
+            <div
+              ref={voiceLogRef}
+              style={{
+                background: '#0d1117', borderRadius: 10,
+                padding: '12px 16px',
+                fontFamily: 'ui-monospace,monospace', fontSize: 12,
+                color: '#c9d1d9', maxHeight: 280, overflowY: 'auto', lineHeight: 1.6,
+              }}
+            >
+              {voiceTestLog.length === 0 ? (
+                <span style={{ color: '#484f58' }}>// Events will appear here as you run tests…</span>
+              ) : (
+                voiceTestLog.map((line, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      color: line.startsWith('✓') ? '#00ff88'
+                        : line.startsWith('✗') ? '#ff4444'
+                        : line.startsWith('→') ? C.teal
+                        : '#c9d1d9',
+                      marginBottom: 2,
+                    }}
+                  >
+                    {line}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {voiceTestResult && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.mutedDark, marginBottom: 4 }}>Last Response</div>
+              <pre style={{
+                background: '#f9f9f9', borderRadius: 8,
+                padding: '10px 14px', fontSize: 11, color: C.mutedDark,
+                overflow: 'auto', maxHeight: 200, margin: 0,
+              }}>
+                {JSON.stringify(voiceTestResult, null, 2)}
+              </pre>
             </div>
           )}
         </div>
