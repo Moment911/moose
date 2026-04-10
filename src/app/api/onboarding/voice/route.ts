@@ -412,6 +412,108 @@ NEVER ask for passwords, payment info, credit cards, SSNs, or sensitive credenti
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// buildInboundDynamicVariables
+//
+// Single source of truth for the dynamic variables returned by
+// every webhook path (call_inbound pre-call hook AND call_started
+// notification). Given a dialed number, resolves agency + client
+// via the pool, builds the full system prompt + begin_message,
+// and returns a string-only object Retell can substitute into
+// {{placeholders}}.
+//
+// Keys returned:
+//   system_prompt     — entire agent prompt (what the LLM sees)
+//   begin_message     — exact opening line the agent speaks first
+//   agency_name       — for any {{agency_name}} references
+//   client_name       — for any {{client_name}} references
+//   first_name        — owner first name if known, else "there"
+//   already_answered  — newline-joined "field: value" lines
+//   questions_to_ask  — newline-joined "1. Question [field: xyz]"
+//   missing_count     — string count for "how much is left"
+//   resolved_source   — metadata debug flag
+// ─────────────────────────────────────────────────────────────
+async function buildInboundDynamicVariables(args: {
+  sb: any
+  toNumber: string
+}): Promise<{
+  variables: Record<string, string>
+  agency_id: string | null
+  client_id: string | null
+}> {
+  const { sb, toNumber } = args
+
+  const resolved = await resolveCallContext({ sb, toNumber })
+
+  let agencyDisplayName = 'our onboarding team'
+  let clientDisplayName = 'your business'
+  let firstNameDisplay = 'there'
+  let missingCount = 0
+  let systemPromptText = ''
+  let beginMessageText = `Hi! Before we get started, could you read me the 4-digit PIN from your onboarding page?`
+  let alreadyAnsweredText = ''
+  let questionsToAskText = ''
+
+  if (resolved.agency_id && resolved.client_id) {
+    const [agencyRes, clientRes] = await Promise.all([
+      sb.from('agencies').select('name, brand_name').eq('id', resolved.agency_id).maybeSingle(),
+      sb.from('clients').select('*').eq('id', resolved.client_id).maybeSingle(),
+    ])
+    const agency = agencyRes.data as any
+    const client = clientRes.data as any
+
+    if (agency) {
+      agencyDisplayName = agency.brand_name || agency.name || agencyDisplayName
+    }
+    if (client) {
+      clientDisplayName = client.name || clientDisplayName
+      if (client.owner_name) {
+        firstNameDisplay = String(client.owner_name).split(/\s+/)[0] || firstNameDisplay
+      }
+      const { missing, answered } = computeMissingFields(client)
+      missingCount = missing.length
+
+      alreadyAnsweredText = answered.length
+        ? answered.map((a) => `- ${a.field}: ${String(a.value).slice(0, 120)}`).join('\n')
+        : 'Nothing answered yet — start from the beginning.'
+
+      const topMissing = missing.slice(0, 8)
+      questionsToAskText = topMissing.length
+        ? topMissing.map((q, i) => `${i + 1}. ${q.question} [field: ${q.field}]`).join('\n')
+        : 'All priority questions are already answered — just confirm anything that sounds outdated and wrap up.'
+
+      // Build the full system prompt via the existing builder so
+      // both the notification webhook and the pre-call webhook
+      // return the exact same prompt string.
+      const built = await buildOnboardingSystemPrompt({
+        sb,
+        clientId: resolved.client_id,
+        agencyId: resolved.agency_id,
+      })
+      systemPromptText = built.prompt
+      beginMessageText = built.beginMessage
+    }
+  }
+
+  const variables: Record<string, string> = {
+    system_prompt: systemPromptText || `You are an onboarding specialist for ${agencyDisplayName}. Ask the caller for their 4-digit PIN and call the verify_pin tool. If verification fails, politely end the call.`,
+    begin_message: beginMessageText,
+    agency_name: agencyDisplayName,
+    client_name: clientDisplayName,
+    first_name: firstNameDisplay,
+    already_answered: alreadyAnsweredText,
+    questions_to_ask: questionsToAskText,
+    missing_count: String(missingCount),
+    resolved_source: resolved.source,
+  }
+
+  return {
+    variables,
+    agency_id: resolved.agency_id,
+    client_id: resolved.client_id,
+  }
+}
+
 // Tool definitions for Retell.
 const VERIFY_PIN_TOOL = {
   type: 'function',
@@ -468,6 +570,27 @@ export async function POST(req: NextRequest) {
     const { action } = body || {}
     const sb = getSupabase()
 
+    // ── Debug logging ────────────────────────────────────────
+    // Logs every non-action POST so we can see exactly what
+    // shape Retell is sending. Visible in Vercel function logs.
+    // Skips action-style calls (create_onboarding_agent etc)
+    // since those aren't webhooks and would be noise.
+    if (!action) {
+      try {
+        const logSnapshot = {
+          event: body.event || body.event_type || null,
+          call_inbound_present: !!body.call_inbound,
+          call_id: body.call_id || body.call?.call_id || body.call?.id || null,
+          from_number: body.from_number || body.call?.from_number || body.call_inbound?.from_number || null,
+          to_number: body.to_number || body.call?.to_number || body.call_inbound?.to_number || null,
+          fn_name: body.name || body.function?.name || body.call?.name || null,
+          top_level_keys: Object.keys(body),
+        }
+        // eslint-disable-next-line no-console
+        console.log('[onboarding/voice webhook] received:', JSON.stringify(logSnapshot))
+      } catch { /* never fail a webhook over logging */ }
+    }
+
     // ── Action: create_onboarding_agent ──────────────────────
     if (action === 'create_onboarding_agent') {
       const { agency_id, voice_id } = body
@@ -483,22 +606,13 @@ export async function POST(req: NextRequest) {
       const agencyName = agency.brand_name || agency.name || 'Your Agency'
       const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding/voice`
 
-      // Template prompt — {{agency_name}} and {{client_name}} are
-      // substituted at call time via the inbound_dynamic_variables
-      // webhook (see the call_inbound handler below). One Retell
-      // agent serves every agency; the greeting is personalized
-      // per dialed number.
-      const templatePrompt = `You are an onboarding specialist for {{agency_name}}. A caller has dialed this line to complete onboarding for {{client_name}}.
-
-STEP 1 — PIN VERIFICATION (MANDATORY):
-Greet the caller and immediately ask: "Before we get started, can you read me the 4-digit PIN from your onboarding page?"
-Call the verify_pin tool with the 4-digit PIN they give you.
-If verify_pin returns valid=false, politely ask them to try again. After 3 failed attempts, end the call.
-
-STEP 2 — QUESTIONS:
-Once the PIN is verified, ask the onboarding questions. Rotate acknowledgments ("Perfect, thank you" / "Great, got it" / "Love that" / "Makes sense"). Be conversational. Use save_answer to record each answer and save_flag when the caller skips.
-
-NEVER ask for passwords, payment info, or credentials.`
+      // Minimal Retell-side template. The entire system prompt
+      // is injected as a single {{system_prompt}} variable at call
+      // time (via dynamic_variables on call_inbound / call_started).
+      // Same for the opening line via {{begin_message}}. This keeps
+      // the Retell dashboard config trivial — one agent serves
+      // every agency and every client.
+      const templatePrompt = `{{system_prompt}}`
 
       const retellConfig: any = {
         agent_name: `Koto Onboarding Assistant`,
@@ -506,7 +620,7 @@ NEVER ask for passwords, payment info, or credentials.`
         response_engine: { type: 'retell-llm', llm_id: null },
         language: 'en-US',
         general_prompt: templatePrompt,
-        begin_message: `Hi! This is {{agency_name}} calling for your {{client_name}} onboarding. Before we get started, could you read me the 4-digit PIN from your onboarding page?`,
+        begin_message: `{{begin_message}}`,
         // Post-call notification events (call_started/call_ended)
         webhook_url: webhookUrl,
         // Pre-call synchronous hook — Retell POSTs here with
@@ -619,60 +733,28 @@ NEVER ask for passwords, payment info, or credentials.`
       const inboundFromNumber: string = body.call_inbound.from_number || ''
       const inboundToNumber: string = body.call_inbound.to_number || ''
 
-      const inboundResolved = await resolveCallContext({
+      const dynVars = await buildInboundDynamicVariables({
         sb,
         toNumber: inboundToNumber,
       })
 
-      // Look up agency + client labels for the template substitution
-      let agencyDisplayName = 'our onboarding team'
-      let clientDisplayName = 'your business'
-      let firstNameDisplay = 'there'
-      let missingCount = 0
-
-      if (inboundResolved.agency_id && inboundResolved.client_id) {
-        // Use select('*') for the client row so Supabase's
-        // generated types don't widen to GenericStringError on the
-        // dynamic column list — we need every onboarding column
-        // anyway to compute missing fields.
-        const [agencyRes, clientRes] = await Promise.all([
-          sb.from('agencies').select('name, brand_name').eq('id', inboundResolved.agency_id).maybeSingle(),
-          sb.from('clients').select('*').eq('id', inboundResolved.client_id).maybeSingle(),
-        ])
-        const agency = agencyRes.data as any
-        const client = clientRes.data as any
-
-        if (agency) {
-          agencyDisplayName = agency.brand_name || agency.name || agencyDisplayName
-        }
-        if (client) {
-          clientDisplayName = client.name || clientDisplayName
-          if (client.owner_name) {
-            firstNameDisplay = String(client.owner_name).split(/\s+/)[0] || firstNameDisplay
-          }
-          const { missing } = computeMissingFields(client)
-          missingCount = missing.length
-        }
-      }
-
       // Retell expects the response in { call_inbound: {...} } shape.
-      // dynamic_variables values MUST be strings — Retell string-coerces
-      // them before template substitution.
+      // All dynamic_variables values MUST be strings — Retell
+      // string-coerces them before template substitution.
       return NextResponse.json({
         call_inbound: {
-          dynamic_variables: {
-            agency_name: agencyDisplayName,
-            client_name: clientDisplayName,
-            first_name: firstNameDisplay,
-            missing_count: String(missingCount),
-            resolved_source: inboundResolved.source,
-          },
+          dynamic_variables: dynVars.variables,
           metadata: {
-            agency_id: inboundResolved.agency_id || '',
-            client_id: inboundResolved.client_id || '',
+            agency_id: dynVars.agency_id || '',
+            client_id: dynVars.client_id || '',
             dialed_number: inboundToNumber,
           },
         },
+        // Also echoed at the top level for belt-and-suspenders. Retell
+        // sometimes honors either shape depending on the integration
+        // path; harmless if one is ignored.
+        llm_dynamic_variables: dynVars.variables,
+        dynamic_variables: dynVars.variables,
       })
     }
 
@@ -715,7 +797,14 @@ NEVER ask for passwords, payment info, or credentials.`
         return NextResponse.json({ received: true, orphan: true, reason: 'number_not_in_pool' })
       }
 
-      const built = await buildOnboardingSystemPrompt({ sb, clientId, agencyId })
+      // Build dynamic variables for this call — mirror the exact
+      // same shape the call_inbound handler returns so whichever
+      // webhook Retell actually honors ends up with the full
+      // per-client system prompt. Safe to call twice per call.
+      const dynVars = await buildInboundDynamicVariables({
+        sb,
+        toNumber: dialedNumber,
+      })
 
       // Create an "invited" recipient row immediately — keyed by
       // call_id so subsequent function_call events can find it
@@ -745,13 +834,28 @@ NEVER ask for passwords, payment info, or credentials.`
         agencyId,
         'onboarding_call_started',
         '📞 Onboarding call started',
-        `Call from ${callerPhone || 'unknown'} — ${built.missingCount} questions remaining for ${await clientDisplayName(sb, clientId)}`,
+        `Call from ${callerPhone || 'unknown'} — ${dynVars.variables.missing_count} questions remaining for ${await clientDisplayName(sb, clientId)}`,
         `/clients/${clientId}`,
         '📞',
         { client_id: clientId, call_id: callId, caller_phone: callerPhone, resolved_via: resolved.source },
       )
 
-      return NextResponse.json({ received: true })
+      // Return the dynamic variables in every shape Retell might
+      // honor. If call_started notifications are discarded (my
+      // previous theory) this is harmless. If they're honored,
+      // the agent gets the full per-client prompt injected here.
+      return NextResponse.json({
+        received: true,
+        llm_dynamic_variables: dynVars.variables,
+        dynamic_variables: dynVars.variables,
+        call_inbound: {
+          dynamic_variables: dynVars.variables,
+          metadata: {
+            agency_id: agencyId,
+            client_id: clientId,
+          },
+        },
+      })
     }
 
     // ── function_call / tool invocation ──
