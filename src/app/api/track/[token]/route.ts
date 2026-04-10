@@ -1,12 +1,10 @@
 /*
- * IPINFO_TOKEN: 8acf85a0baa7d5
+ * IPINFO_TOKEN: set this in Vercel environment variables — never commit the actual token
  * Using IPInfo Lite endpoint: https://api.ipinfo.io/lite/{ip}
- * Add IPINFO_TOKEN=8acf85a0baa7d5 to Vercel environment variables
- * Free tier: 50,000 requests/month
+ * Free tier: 50,000 requests/month at ipinfo.io
  *
- * REMIND THE USER: Set IPINFO_TOKEN in Vercel env vars (Production + Preview)
- * before the next deploy — without it, enrichment silently falls back to
- * ipapi.co's org field and company_domain will be null.
+ * Without IPINFO_TOKEN set, enrichment silently falls back to ipapi.co's
+ * org field and company_domain will be null.
  *
  * Lite endpoint response shape (no company object — just org):
  *   { ip, hostname, city, region, country, org: "AS15169 Google LLC",
