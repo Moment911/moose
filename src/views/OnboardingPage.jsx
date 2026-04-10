@@ -1308,6 +1308,91 @@ export default function OnboardingPage() {
 
   // ─── Server autosave — debounced 2s on every change, 5s heartbeat, flush on hide ───
   const [saveStatus, setSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+
+  // ── Voice onboarding live sync ───────────────────────────────
+  // Poll for an active voice call on this client every 5s. When
+  // one is detected, switch to a faster 4s client-row poll to
+  // mirror Retell's save_answer writes back into the form state,
+  // flash the newly-filled fields, and auto-scroll to the most
+  // recently populated one.
+  const [activeVoiceCall, setActiveVoiceCall] = useState(false)
+  const [voiceCallerName, setVoiceCallerName] = useState(null)
+  const [voiceFieldsFlashing, setVoiceFieldsFlashing] = useState(() => new Set())
+  const [showPhoneModal, setShowPhoneModal] = useState(false)
+  const [voicePanelOpen, setVoicePanelOpen] = useState(true)
+  const [showMobileVoiceSheet, setShowMobileVoiceSheet] = useState(false)
+  const prevFormKeysRef = useRef(new Set())
+
+  useEffect(() => {
+    if (!tokenData?.client_id) return
+    let cancelled = false
+    const tick = async () => {
+      try {
+        const res = await fetch(`/api/onboarding?action=get_voice_status&client_id=${tokenData.client_id}`)
+        const data = await res.json()
+        if (cancelled) return
+        setActiveVoiceCall(!!data?.active_call)
+        setVoiceCallerName(data?.caller_name || null)
+      } catch { /* ignore */ }
+    }
+    tick()
+    const iv = setInterval(tick, 5000)
+    return () => { cancelled = true; clearInterval(iv) }
+  }, [tokenData?.client_id])
+
+  useEffect(() => {
+    if (!activeVoiceCall || !tokenData?.client_id) return
+    const iv = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/onboarding?action=get_current_answers&client_id=${tokenData.client_id}`)
+        const data = await res.json()
+        if (!data?.answers) return
+
+        // Diff — detect newly populated fields against the last
+        // snapshot. Anything that went from empty/undefined to a
+        // real value gets flashed.
+        const prevKeys = prevFormKeysRef.current
+        const newlyFilled = []
+        for (const [key, val] of Object.entries(data.answers)) {
+          const hadBefore = prevKeys.has(key)
+          const hasNow = val !== null && val !== undefined && val !== ''
+          if (hasNow && !hadBefore) newlyFilled.push(key)
+        }
+
+        if (newlyFilled.length > 0) {
+          setForm((f) => ({ ...f, ...data.answers }))
+          setVoiceFieldsFlashing((prev) => {
+            const next = new Set(prev)
+            for (const k of newlyFilled) next.add(k)
+            return next
+          })
+          setTimeout(() => {
+            setVoiceFieldsFlashing((prev) => {
+              const next = new Set(prev)
+              for (const k of newlyFilled) next.delete(k)
+              return next
+            })
+          }, 4000)
+
+          // Scroll to the last newly-filled field so the client
+          // sees their answer appear without hunting for it.
+          const lastField = newlyFilled[newlyFilled.length - 1]
+          const el = document.querySelector(`[data-field="${lastField}"]`)
+          if (el && typeof el.scrollIntoView === 'function') {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }
+
+        // Refresh the known-keys snapshot
+        const nextKeys = new Set()
+        for (const [k, v] of Object.entries(data.answers)) {
+          if (v !== null && v !== undefined && v !== '') nextKeys.add(k)
+        }
+        prevFormKeysRef.current = nextKeys
+      } catch { /* ignore */ }
+    }, 4000)
+    return () => clearInterval(iv)
+  }, [activeVoiceCall, tokenData?.client_id])
   const autoSaveTimerRef = useRef(null);
   const lastSentRef = useRef('');
 
@@ -2006,13 +2091,151 @@ export default function OnboardingPage() {
 
 
   // ── WIZARD STEPS ─────────────────────────────────────────────────────────────
+
+  // Smart status banner — compute completion state from the
+  // required-field set. Used by the 4-state banner below.
+  const REQUIRED_FIELD_MAP = {
+    welcome_statement: 'In Your Own Words',
+    first_name: 'First Name',
+    email: 'Email',
+    phone: 'Phone',
+    website: 'Website',
+    industry: 'Industry',
+    primary_city: 'City',
+    primary_service: 'Primary Service',
+    ideal_customer_desc: 'Ideal Customer',
+    notes: 'Goals',
+  }
+  const REQUIRED_KEYS = Object.keys(REQUIRED_FIELD_MAP)
+  const filledRequired = REQUIRED_KEYS.filter((k) => {
+    const v = form[k]
+    return typeof v === 'string' && v.trim().length > 2
+  })
+  const missingRequired = REQUIRED_KEYS.filter((k) => !filledRequired.includes(k))
+    .map((k) => ({ field: k, label: REQUIRED_FIELD_MAP[k] }))
+  const completionPct = REQUIRED_KEYS.length > 0
+    ? Math.round((filledRequired.length / REQUIRED_KEYS.length) * 100)
+    : 0
+  const isFirstVisit = filledRequired.length === 0
+  const isComplete = tokenData?.clients?.onboarding_status === 'complete'
+  const onboardingPhoneDisplay = tokenData?.clients?.onboarding_phone_display
+    || tokenData?.clients?.onboarding_phone
+    || null
+  const onboardingPin = tokenData?.clients?.onboarding_pin || null
+  const firstNameDisplay = form.first_name || firstName || null
+
   return (
     <>
       <Header />
       <Toaster position="top-center" />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes voicePing{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.6)}}
+        @keyframes voiceFieldFlash{0%{background:#d1fae5;border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2)}60%{background:#ecfdf5}100%{background:transparent;box-shadow:none}}
+        .voice-field-flash *:not(label),.voice-field-flash{animation:voiceFieldFlash 4s ease-out forwards}
+      `}</style>
       <SaveStatusBadge status={saveStatus} />
-      <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 20px 80px' }} ref={topRef}>
+
+      {/* ── STATE C — Active voice call banner (fixed top) ── */}
+      {activeVoiceCall && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
+          background: '#dc2626', color: '#fff',
+          padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12,
+          boxShadow: '0 6px 20px rgba(220,38,38,0.25)',
+        }}>
+          <span style={{
+            width: 10, height: 10, borderRadius: '50%', background: '#fff',
+            display: 'inline-block', animation: 'voicePing 1s ease-in-out infinite',
+            flexShrink: 0,
+          }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <strong style={{ fontSize: 14 }}>Voice onboarding call in progress</strong>
+            <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>
+              {voiceCallerName ? `${voiceCallerName} is on the phone — ` : ''}
+              answers are being captured automatically as you speak. Keep this page open.
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ maxWidth: 820, margin: '0 auto', padding: activeVoiceCall ? '72px 20px 80px' : '28px 20px 80px' }} ref={topRef}>
+
+        {/* ── STATE A / B / D — Smart status banner ── */}
+        {!isComplete && isFirstVisit && (
+          <div style={{
+            background: 'linear-gradient(135deg, #00C2CB, #0099A8)',
+            color: '#fff', borderRadius: 16, padding: '28px 32px', marginBottom: 28,
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
+              Welcome to your onboarding 👋
+            </div>
+            <div style={{ fontSize: 15, lineHeight: 1.8, opacity: 0.95, marginBottom: 20 }}>
+              This is your personal onboarding document — it stays here as long as you need it.
+              Fill it out at your own pace, in any order. <strong>Your answers save automatically</strong>
+              &nbsp;every few seconds so you never lose anything.
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: '14px 18px', fontSize: 14, lineHeight: 1.7 }}>
+              💡 <strong>Don't know an answer?</strong> Skip it — someone else on your team can fill it in later by visiting this same link.<br />
+              📞 <strong>Prefer to talk?</strong> {onboardingPhoneDisplay && onboardingPin
+                ? <>Call <strong>{onboardingPhoneDisplay}</strong> · PIN: <strong style={{ letterSpacing: '.1em' }}>{onboardingPin}</strong></>
+                : 'Ask your agency for the voice onboarding number.'}
+            </div>
+          </div>
+        )}
+
+        {!isComplete && !isFirstVisit && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fffe, #e6fcfd)',
+            border: `2px solid ${ACCENT}40`, borderRadius: 16,
+            padding: '24px 28px', marginBottom: 28,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 18, fontWeight: 900, color: '#111', marginBottom: 4 }}>
+                  Welcome back{firstNameDisplay ? `, ${firstNameDisplay}` : ''}! 👋
+                </div>
+                <div style={{ fontSize: 14, color: '#374151' }}>
+                  You're {completionPct}% done. Pick up right where you left off — everything you've entered is saved.
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                <div style={{ fontSize: 36, fontWeight: 900, color: ACCENT }}>{completionPct}%</div>
+                <div style={{ fontSize: 11, color: '#9a9a96' }}>complete</div>
+              </div>
+            </div>
+            <div style={{ height: 6, background: '#e5e7eb', borderRadius: 99, marginBottom: 16, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${completionPct}%`, background: ACCENT, borderRadius: 99, transition: 'width 1s' }} />
+            </div>
+            {missingRequired.length > 0 && (
+              <div style={{ fontSize: 13, color: '#374151' }}>
+                <strong>Still needed:</strong> {missingRequired.slice(0, 4).map((f) => f.label).join(', ')}
+                {missingRequired.length > 4 && ` and ${missingRequired.length - 4} more`}
+              </div>
+            )}
+            {onboardingPhoneDisplay && onboardingPin && (
+              <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(0,194,203,0.08)', borderRadius: 8, fontSize: 13, color: '#374151' }}>
+                📞 Rather talk through the rest? Call <strong>{onboardingPhoneDisplay}</strong> · PIN: <strong style={{ color: ACCENT, letterSpacing: '.1em' }}>{onboardingPin}</strong>
+                — the AI will ask exactly what's missing and fill it in for you.
+              </div>
+            )}
+          </div>
+        )}
+
+        {isComplete && (
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+            border: '2px solid #86efac', borderRadius: 16,
+            padding: '24px 28px', marginBottom: 28,
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#15803d', marginBottom: 8 }}>🎉 You're all set!</div>
+            <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>
+              Your onboarding is complete. The team will review everything and be in touch soon.
+              You can still edit any answer below at any time — just click on it.
+            </div>
+          </div>
+        )}
 
         <Banner stepIdx={step} firstName={firstName} VC={VC} />
 
@@ -3816,6 +4039,221 @@ export default function OnboardingPage() {
           hellokoto.com
         </a>
       </div>
+
+      {/* ── Voice Commands side panel (desktop) ── */}
+      {onboardingPhoneDisplay && onboardingPin && (
+        <VoiceCommandPanel
+          open={voicePanelOpen}
+          setOpen={setVoicePanelOpen}
+          onMobileTap={() => setShowMobileVoiceSheet(true)}
+        />
+      )}
+
+      {/* ── Mobile voice commands bottom sheet ── */}
+      {showMobileVoiceSheet && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowMobileVoiceSheet(false) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            zIndex: 300, display: 'flex', alignItems: 'flex-end',
+          }}
+        >
+          <div style={{
+            width: '100%', background: '#1a1a2e', color: '#fff',
+            borderRadius: '16px 16px 0 0', padding: 20, maxHeight: '80vh', overflowY: 'auto',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 22 }}>🎙️</span>
+              <div style={{ fontWeight: 800, fontSize: 16, flex: 1 }}>Voice Commands</div>
+              <button onClick={() => setShowMobileVoiceSheet(false)}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 22, cursor: 'pointer' }}>×</button>
+            </div>
+            {VOICE_COMMANDS.map((cmd, i) => (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <div style={{ background: 'rgba(0,194,203,0.15)', border: '1px solid rgba(0,194,203,0.3)', borderRadius: 8, padding: '8px 12px', marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#00C2CB' }}>"{cmd.say}"</div>
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', paddingLeft: 4 }}>{cmd.does}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Sticky bottom persistent link bar ── */}
+      <div style={{
+        position: 'sticky', bottom: 0,
+        background: '#fff', borderTop: '1px solid #e5e7eb',
+        padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12, zIndex: 50,
+      }}>
+        <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: '#6b7280' }}>
+          🔗 This link is yours forever — bookmark it or share with a teammate
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {typeof window !== 'undefined' ? window.location.href : ''}
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              navigator.clipboard.writeText(window.location.href)
+              toast.success('Link copied!')
+            }
+          }}
+          style={{
+            padding: '6px 14px', background: '#f0fffe', color: ACCENT,
+            border: `1px solid ${ACCENT}40`, borderRadius: 8,
+            fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+          }}>
+          Copy Link
+        </button>
+        {onboardingPhoneDisplay && onboardingPin && (
+          <button
+            onClick={() => setShowPhoneModal(true)}
+            style={{
+              padding: '6px 14px', background: '#1a1a2e', color: '#fff',
+              border: 'none', borderRadius: 8,
+              fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+            }}>
+            📞 Call to continue
+          </button>
+        )}
+      </div>
+
+      {/* ── Phone call modal ── */}
+      {showPhoneModal && onboardingPhoneDisplay && onboardingPin && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPhoneModal(false) }}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 400, padding: 20,
+          }}
+        >
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: 32,
+            maxWidth: 480, width: '100%', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 8 }}>Continue by phone 📞</div>
+            <div style={{ fontSize: 14, color: '#374151', marginBottom: 24, lineHeight: 1.6 }}>
+              Our AI will pick up right where you left off — it already knows what's been answered and will only ask what's missing.
+            </div>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 20 }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: '#9a9a96', marginBottom: 4 }}>CALL THIS NUMBER</div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#111' }}>{onboardingPhoneDisplay}</div>
+              </div>
+              <div style={{ width: 1, background: '#e5e7eb' }} />
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: '#9a9a96', marginBottom: 4 }}>YOUR PIN</div>
+                <div style={{ fontSize: 30, fontWeight: 900, color: ACCENT, letterSpacing: '.3em' }}>{onboardingPin}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 12, color: '#9a9a96', lineHeight: 1.7, marginBottom: 20 }}>
+              Anyone on your team can call using this same PIN.<br />
+              Keep this page open — your answers will appear here as you speak.
+            </div>
+            <button
+              onClick={() => setShowPhoneModal(false)}
+              style={{
+                padding: '10px 24px', background: '#111', color: '#fff',
+                border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 800, cursor: 'pointer',
+              }}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Voice Commands — copy list shared by the desktop side panel
+// and the mobile bottom sheet.
+// ─────────────────────────────────────────────────────────────
+const VOICE_COMMANDS = [
+  { say: "Skip this question", does: "Moves to the next question — come back later" },
+  { say: "I don't know", does: "Marks it for a colleague to answer — skips ahead" },
+  { say: "Let me correct that", does: "Re-asks the last question so you can fix your answer" },
+  { say: "Go back", does: "Returns to the previous question" },
+  { say: "What have we covered so far?", does: "AI summarizes what's been captured this call" },
+  { say: "Someone else will answer this", does: "Flags the field for a teammate and moves on" },
+  { say: "Read back my answers", does: "AI reads back everything captured so far" },
+  { say: "I'm done for now", does: "Wraps up the call — saves everything, keeps the link active" },
+  { say: "How much is left?", does: "AI tells you how many questions remain" },
+  { say: "Start over on this answer", does: "Clears the current field and re-asks" },
+]
+
+function VoiceCommandPanel({ open, setOpen, onMobileTap }) {
+  // Collapse the desktop rail automatically on narrow screens and
+  // show a small floating pill that opens the mobile bottom sheet.
+  if (typeof window !== 'undefined' && window.innerWidth < 900) {
+    return (
+      <div style={{ position: 'fixed', bottom: 80, right: 16, zIndex: 100 }}>
+        <button
+          onClick={onMobileTap}
+          style={{
+            background: '#1a1a2e', color: '#fff', border: 'none',
+            borderRadius: 24, padding: '10px 18px',
+            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            fontFamily: 'inherit',
+          }}>
+          🎙️ Voice Commands
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', right: 16, top: '50%', transform: 'translateY(-50%)',
+      width: open ? 300 : 48, zIndex: 100,
+      transition: 'width .3s ease',
+      background: '#1a1a2e', borderRadius: 14,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+      overflow: 'hidden', fontFamily: 'inherit',
+    }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: '100%', padding: '12px',
+          background: 'none', border: 'none', color: '#fff',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+        }}>
+        <span style={{ fontSize: 18 }}>🎙️</span>
+        {open && <span>Voice Commands</span>}
+        {open && <span style={{ marginLeft: 'auto', opacity: 0.5 }}>→</span>}
+      </button>
+      {open && (
+        <div style={{ padding: '0 16px 16px', maxHeight: '70vh', overflowY: 'auto' }}>
+          <div style={{
+            fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 12,
+            textTransform: 'uppercase', letterSpacing: '.08em',
+          }}>
+            Say these while on the call:
+          </div>
+          {VOICE_COMMANDS.map((cmd, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <div style={{
+                background: 'rgba(0,194,203,0.15)',
+                border: '1px solid rgba(0,194,203,0.3)',
+                borderRadius: 8, padding: '8px 12px', marginBottom: 4,
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#00C2CB' }}>"{cmd.say}"</div>
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', paddingLeft: 4 }}>{cmd.does}</div>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 16, paddingTop: 16 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
+              These commands work while on the voice onboarding call. The page updates automatically as you speak.
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

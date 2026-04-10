@@ -272,6 +272,140 @@ function buildOnboardingEmail(opts: {
 </body></html>`
 }
 
+// Inverse of FIELD_MAP — maps dedicated client columns back to
+// their canonical form field key. Used by get_current_answers so
+// the OnboardingPage can hydrate form state from the DB without
+// knowing the server-side column naming.
+const COLUMN_TO_FORM_KEY: Record<string, string> = {
+  name: 'business_name',
+  email: 'email',
+  phone: 'phone',
+  website: 'website',
+  industry: 'industry',
+  city: 'city',
+  state: 'state',
+  zip: 'zip',
+  address: 'address',
+  owner_name: 'owner_name',
+  owner_title: 'title',
+  owner_phone: 'owner_phone',
+  owner_email: 'owner_email',
+  num_employees: 'num_employees',
+  year_founded: 'year_founded',
+  service_area: 'service_area',
+  primary_service: 'primary_service',
+  secondary_services: 'secondary_services',
+  target_customer: 'target_customer',
+  avg_deal_size: 'avg_deal_size',
+  marketing_channels: 'current_ad_platforms',
+  marketing_budget: 'monthly_ad_budget',
+  brand_voice: 'brand_voice',
+  tagline: 'tagline',
+  logo_url: 'logo_url',
+  unique_selling_prop: 'unique_selling_prop',
+  crm_used: 'crm_used',
+  hosting_provider: 'hosting_provider',
+  facebook_url: 'facebook_url',
+  instagram_url: 'instagram_url',
+  linkedin_url: 'linkedin_url',
+  tiktok_url: 'tiktok_url',
+  youtube_url: 'youtube_url',
+  google_business_url: 'google_biz_url',
+  review_rating: 'google_rating',
+  review_count: 'google_reviews',
+  review_platforms: 'review_platforms',
+  referral_sources: 'referral_sources',
+  notes: 'notes',
+  welcome_statement: 'welcome_statement',
+}
+
+// ─────────────────────────────────────────────────────────────
+// GET handler — used by the public OnboardingPage to poll for
+// live voice call state and current answers during a voice call.
+// Both actions are safe to poll every few seconds and return
+// fast read-only responses.
+// ─────────────────────────────────────────────────────────────
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url)
+  const action = url.searchParams.get('action') || ''
+  const clientId = url.searchParams.get('client_id') || ''
+  if (!action || !clientId) {
+    return NextResponse.json({ error: 'action and client_id required' }, { status: 400 })
+  }
+  const sb = getSupabase()
+
+  // ── get_voice_status ──
+  // Checks koto_onboarding_recipients for any active voice call.
+  // Active = source='voice' AND status='in_progress' AND the
+  // recipient row's last_active_at is within the last 3 minutes.
+  if (action === 'get_voice_status') {
+    const cutoff = new Date(Date.now() - 180000).toISOString()
+    const { data } = await sb
+      .from('koto_onboarding_recipients')
+      .select('id, name, phone, call_id, last_active_at, fields_completed')
+      .eq('client_id', clientId)
+      .eq('source', 'voice')
+      .eq('status', 'in_progress')
+      .gte('last_active_at', cutoff)
+      .order('last_active_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    return NextResponse.json({
+      active_call: !!data,
+      caller_name: data?.name || null,
+      call_id: data?.call_id || null,
+      fields_captured_this_call: data?.fields_completed || 0,
+      last_active_at: data?.last_active_at || null,
+    })
+  }
+
+  // ── get_current_answers ──
+  // Returns every populated field mapped back to its canonical
+  // form key. Combines dedicated client columns (via
+  // COLUMN_TO_FORM_KEY) with anything in onboarding_answers jsonb.
+  // Also expands competitor_1/2/3 into a competitors array so the
+  // form rebuilds the right shape.
+  if (action === 'get_current_answers') {
+    const { data: client } = await sb
+      .from('clients')
+      .select('*')
+      .eq('id', clientId)
+      .maybeSingle()
+    if (!client) return NextResponse.json({ answers: {} })
+
+    const answers: Record<string, any> = {}
+    for (const [col, formKey] of Object.entries(COLUMN_TO_FORM_KEY)) {
+      const v = (client as any)[col]
+      if (v !== null && v !== undefined && v !== '') {
+        answers[formKey] = v
+      }
+    }
+
+    // Competitors: flat columns → array shape
+    if (client.competitor_1 || client.competitor_2 || client.competitor_3) {
+      answers.competitors = [
+        { name: client.competitor_1 || '', url: '', strengths: '', weaknesses: '' },
+        { name: client.competitor_2 || '', url: '', strengths: '', weaknesses: '' },
+        { name: client.competitor_3 || '', url: '', strengths: '', weaknesses: '' },
+      ]
+    }
+
+    // Jsonb spillover fills in the rest (owner_name split, etc)
+    const jsonbAnswers = (client.onboarding_answers && typeof client.onboarding_answers === 'object') ? client.onboarding_answers : {}
+    for (const [k, v] of Object.entries(jsonbAnswers)) {
+      if (!k || k.startsWith('_')) continue
+      if (v === null || v === undefined || v === '') continue
+      if (answers[k] !== undefined) continue
+      answers[k] = v
+    }
+
+    return NextResponse.json({ answers, onboarding_status: client.onboarding_status || null })
+  }
+
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: any = await req.json().catch(() => ({}))
