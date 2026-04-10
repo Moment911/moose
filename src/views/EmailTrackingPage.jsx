@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
+import HelpTooltip from '../components/HelpTooltip'
 import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 
@@ -210,18 +211,23 @@ export default function EmailTrackingPage() {
                 <Mail size={14} /> Connect Gmail
               </button>
             )}
-            <button
-              onClick={() => setShowTrackModal(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '10px 16px', borderRadius: 10,
-                background: C.text, color: '#fff', border: 'none',
-                fontFamily: FH, fontWeight: 700, fontSize: 14,
-                cursor: 'pointer',
-              }}
+            <HelpTooltip
+              content="Each recipient gets a unique invisible 1×1 pixel. When they open the email, Koto logs the open, device, client, and location — and detects forwards from IP changes."
+              articleSlug="email-tracking-setup"
             >
-              <Plus size={14} /> Track New Email
-            </button>
+              <button
+                onClick={() => setShowTrackModal(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '10px 16px', borderRadius: 10,
+                  background: C.text, color: '#fff', border: 'none',
+                  fontFamily: FH, fontWeight: 700, fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                <Plus size={14} /> Track New Email
+              </button>
+            </HelpTooltip>
           </div>
         </div>
 

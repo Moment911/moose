@@ -195,14 +195,36 @@ export default function TestDataPage() {
               )
             })}
           </div>
-          <button
-            onClick={generateSelected}
-            disabled={generating}
-            style={primaryBtn(generating)}
-          >
-            {generating ? <Loader2 size={14} className="anim-spin" /> : <Zap size={14} />}
-            {generating ? 'Generating…' : 'Generate Selected'}
-          </button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={generateSelected}
+              disabled={generating}
+              style={primaryBtn(generating)}
+            >
+              {generating ? <Loader2 size={14} className="anim-spin" /> : <Zap size={14} />}
+              {generating ? 'Generating…' : 'Generate Selected'}
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const r = await fetch('/api/help/seed', { method: 'POST' }).then((r) => r.json())
+                  if (r?.ok) toast.success(`Seeded ${r.upserted} help articles`)
+                  else toast.error(r?.error || 'Seed failed')
+                } catch (e) {
+                  toast.error(e?.message || 'Seed failed')
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '10px 18px', borderRadius: 10,
+                background: '#fff', border: `1px solid ${C.border}`,
+                fontFamily: "'Proxima Nova',sans-serif", fontWeight: 700, fontSize: 14,
+                color: C.mutedDark, cursor: 'pointer',
+              }}
+            >
+              📚 Seed Help Content
+            </button>
+          </div>
         </div>
 
         {/* ── Current Test Data ── */}

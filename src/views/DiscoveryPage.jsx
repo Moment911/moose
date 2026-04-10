@@ -14,6 +14,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import Sidebar from '../components/Sidebar'
+import HelpTooltip from '../components/HelpTooltip'
 
 const C = {
   bg: '#F7F7F6',
@@ -841,8 +842,18 @@ function DetailView({ aid, id, isMobile, onBack }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <HeaderBtn onClick={runResearch} disabled={busyResearch} color={C.teal} icon={busyResearch ? Loader2 : Sparkles} label={busyResearch ? 'Researching…' : 'Run AI Research'} spinning={busyResearch} />
-          <HeaderBtn onClick={compile} disabled={busyCompile} color={C.teal} icon={busyCompile ? Loader2 : FileText} label={busyCompile ? 'Compiling…' : 'Compile'} spinning={busyCompile} />
+          <HelpTooltip
+            content="Searches the web for background, revenue streams, social presence, and risk flags for this prospect. Takes 30-60 seconds."
+            articleSlug="discovery-research"
+          >
+            <HeaderBtn onClick={runResearch} disabled={busyResearch} color={C.teal} icon={busyResearch ? Loader2 : Sparkles} label={busyResearch ? 'Researching…' : 'Run AI Research'} spinning={busyResearch} />
+          </HelpTooltip>
+          <HelpTooltip
+            content="Generates the executive summary, calculates readiness score, creates a version history snapshot, and fires webhooks."
+            articleSlug="discovery-compile"
+          >
+            <HeaderBtn onClick={compile} disabled={busyCompile} color={C.teal} icon={busyCompile ? Loader2 : FileText} label={busyCompile ? 'Compiling…' : 'Compile'} spinning={busyCompile} />
+          </HelpTooltip>
           {(eng.status === 'compiled' || eng.status === 'shared') && (
             <HeaderBtn
               onClick={eng.audit_data ? () => navigate(`/discovery/audit/${id}`) : generateAudit}

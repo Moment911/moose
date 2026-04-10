@@ -233,7 +233,7 @@ export default function Sidebar() {
             <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub/>
             <NavLink to="/billing" icon={CreditCard} label="Billing"/>
             <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
-            <NavLink to="/help" icon={HelpCircle} label="Help Center"/>
+            <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI"/>
 
           </>)}
         </div>

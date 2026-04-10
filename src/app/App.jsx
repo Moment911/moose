@@ -152,6 +152,8 @@ import DataVaultPage from '../views/DataVaultPage'
 import EmailTrackingPage from '../views/EmailTrackingPage'
 import EmailTrackingGmailHelperPage from '../views/EmailTrackingGmailHelperPage'
 import GmailCallbackPage from '../views/GmailCallbackPage'
+import HelpPage from '../views/HelpPage'
+import HelpAssistant from '../components/HelpAssistant'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -238,6 +240,7 @@ export default function App() {
             <AgencyControlPanel/>
             <RequireAuth>
             <AppRoutes />
+            <HelpAssistant />
             </RequireAuth>
             <DialPad />
             </MobileShell>
@@ -320,7 +323,7 @@ function AppRoutes() {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/status" element={<StatusPage />} />
           <Route path="/debug" element={<DebugConsolePage />} />
-          <Route path="/help" element={<HelpCenterPage />} />
+          <Route path="/help" element={<HelpPage />} />
           <Route path="/uptime" element={<UptimeMonitorPage />} />
           <Route path="/uptime/public" element={<PublicUptimePage />} />
           <Route path="/voice" element={<VoiceAgentPage />} />
