@@ -160,15 +160,33 @@ export default function EmailTrackingPage() {
     toast.success('Deleted')
   }
 
+  // Compute forwards aggregate from the list (richer than stats endpoint)
+  const forwardAggregate = useMemo(() => {
+    let confirmed = 0
+    const companySet = new Set()
+    for (const e of emails) {
+      confirmed += e.confirmed_forwards || e.likely_forwards || 0
+      const recs = Array.isArray(e.forward_recipients) ? e.forward_recipients : []
+      for (const r of recs) {
+        if (r?.company_name) companySet.add(r.company_name)
+      }
+    }
+    return { confirmed, companies: companySet.size }
+  }, [emails])
+
   const statCards = useMemo(() => {
     const s = stats || {}
+    const fwdValue = forwardAggregate.confirmed || s.total_forwards || 0
+    const fwdSub = forwardAggregate.companies > 0
+      ? `${forwardAggregate.companies} compan${forwardAggregate.companies === 1 ? 'y' : 'ies'} identified`
+      : null
     return [
       { label: 'Emails Tracked', value: s.total_sent || 0, icon: Mail, accent: C.teal },
       { label: 'Open Rate', value: `${s.open_rate || 0}%`, icon: Eye, accent: C.green },
       { label: 'Avg Opens / Email', value: s.avg_opens_per_email || 0, icon: Zap, accent: C.red },
-      { label: 'Forwards Detected', value: s.total_forwards || 0, icon: Users, accent: C.amber },
+      { label: 'Forwards Detected', value: fwdValue, sub: fwdSub, icon: Users, accent: C.amber },
     ]
-  }, [stats])
+  }, [stats, forwardAggregate])
 
   return (
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg, fontFamily: FB, color: C.text }}>
@@ -286,13 +304,21 @@ export default function EmailTrackingPage() {
                   {c.label}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                  <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: C.text }}>
-                    {c.value}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: C.text }}>
+                      {c.value}
+                    </div>
+                    {c.sub && (
+                      <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontWeight: 600 }}>
+                        {c.sub}
+                      </div>
+                    )}
                   </div>
                   <div style={{
                     width: 32, height: 32, borderRadius: 8,
                     background: c.accent + '15', color: c.accent,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
                   }}>
                     <Icon size={16} />
                   </div>
@@ -421,6 +447,9 @@ function EmailRow({ email, active, onSelect, onDelete }) {
   const recipients = Array.isArray(email.recipients) ? email.recipients : []
   const opensCount = email.total_opens || 0
   const forwardsCount = email.likely_forwards || 0
+  const forwardRecipients = Array.isArray(email.forward_recipients) ? email.forward_recipients : []
+  const confirmedForwards = email.confirmed_forwards || 0
+  const firstForwardCompany = forwardRecipients.find((f) => f?.company_name)?.company_name || null
   const isRecentlyForwarded =
     email.status === 'forwarded' &&
     email.updated_at &&
@@ -475,13 +504,24 @@ function EmailRow({ email, active, onSelect, onDelete }) {
       </div>
 
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 6, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: C.mutedDark }}>
             <Eye size={12} style={{ verticalAlign: '-2px' }} /> {opensCount}
           </span>
-          {forwardsCount > 0 && (
-            <span style={{ fontSize: 12, color: C.amber }}>
-              ⚠ {forwardsCount}
+          {(confirmedForwards > 0 || forwardsCount > 0) && (
+            <span
+              title={firstForwardCompany ? `Forwarded to ${firstForwardCompany}` : 'Likely forwarded'}
+              style={{
+                fontSize: 10, fontWeight: 700,
+                padding: '2px 7px', borderRadius: 20,
+                background: '#fffbeb', color: '#f59e0b',
+                border: '1px solid #f59e0b30',
+                maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}
+            >
+              🔄 {firstForwardCompany
+                ? `Fwd → ${firstForwardCompany}`
+                : `${confirmedForwards || forwardsCount} forward${(confirmedForwards || forwardsCount) === 1 ? '' : 's'}`}
             </span>
           )}
         </div>
@@ -612,6 +652,18 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
       </div>
 
       <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>
+        {/* Forward Detection — rich card per identified forward */}
+        {Array.isArray(email.forward_recipients) && email.forward_recipients.length > 0 && (
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: C.mutedDark, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+              🔄 Forward Detection — {email.forward_recipients.length} recipient{email.forward_recipients.length !== 1 ? 's' : ''} identified
+            </div>
+            {email.forward_recipients.map((r, i) => (
+              <ForwardRecipientCard key={i} recipient={r} />
+            ))}
+          </div>
+        )}
+
         {/* Recipients */}
         <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
           Recipients
@@ -791,6 +843,120 @@ function DeviceIcon({ type }) {
   if (type === 'mobile') return <Smartphone size={14} color={C.muted} />
   if (type === 'tablet') return <Tablet size={14} color={C.muted} />
   return <Monitor size={14} color={C.muted} />
+}
+
+// ─────────────────────────────────────────────────────────────
+// ForwardRecipientCard — rich display for an identified forward
+// ─────────────────────────────────────────────────────────────
+function ForwardRecipientCard({ recipient }) {
+  const scores = recipient.recipient_type_scores
+  const maxScore = scores ? Math.max(...Object.values(scores).map((n) => Number(n) || 0)) : 0
+
+  return (
+    <div style={{ border: '1.5px solid #f59e0b', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+      {/* Header */}
+      <div style={{ background: '#fffbeb', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 18 }}>🔄</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: '#111' }}>
+            {recipient.company_name
+              ? `Forwarded to someone at ${recipient.company_name}`
+              : recipient.is_corporate
+                ? 'Forwarded to a corporate network'
+                : 'Forwarded to an individual'}
+          </div>
+          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {recipient.location_city && `${recipient.location_city}${recipient.location_country ? `, ${recipient.location_country}` : ''} · `}
+            {recipient.device} · {recipient.email_client} · {timeAgo(recipient.identified_at)}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{
+            fontSize: 18, fontWeight: 800,
+            color: recipient.confidence >= 70 ? '#16a34a'
+              : recipient.confidence >= 50 ? '#f59e0b' : '#6b7280',
+          }}>
+            {recipient.confidence}%
+          </div>
+          <div style={{ fontSize: 10, color: '#9a9a96' }}>confidence</div>
+        </div>
+      </div>
+
+      {/* Company details row */}
+      {recipient.company_name && (
+        <div style={{ padding: '10px 16px', background: '#fff', borderTop: '1px solid #f0f0f0', display: 'flex', gap: 16 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 2 }}>Company</div>
+            <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {recipient.company_name}
+            </div>
+          </div>
+          {recipient.company_domain && (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 10, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 2 }}>Domain</div>
+              <a
+                href={`https://${recipient.company_domain}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ fontSize: 13, color: '#00C2CB', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
+              >
+                {recipient.company_domain} ↗
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Recipient type scores */}
+      {scores && (
+        <div style={{ padding: '10px 16px', background: '#fafafa', borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+            Most likely forwarded to:{' '}
+            <span style={{ color: '#00C2CB', textTransform: 'capitalize' }}>
+              {(recipient.most_likely_type || 'unknown').replace(/_/g, ' ')}
+            </span>
+          </div>
+          {[
+            { key: 'colleague', label: 'Colleague' },
+            { key: 'decision_maker', label: 'Decision Maker' },
+            { key: 'vendor_or_partner', label: 'Vendor / Partner' },
+            { key: 'personal_contact', label: 'Personal Contact' },
+          ].map(({ key, label }) => {
+            const val = Number(scores[key]) || 0
+            const isMax = val === maxScore && maxScore > 0
+            return (
+              <div key={key} style={{ marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                  <span style={{ fontSize: 12, color: isMax ? '#111' : '#6b7280', fontWeight: isMax ? 700 : 400 }}>{label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: isMax ? '#00C2CB' : '#9a9a96' }}>{val}%</span>
+                </div>
+                <div style={{ height: 5, background: '#f0f0f0', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${val}%`, background: isMax ? '#00C2CB' : '#e5e7eb', borderRadius: 99, transition: 'width .5s' }} />
+                </div>
+              </div>
+            )
+          })}
+          {recipient.classification_reasoning && (
+            <div style={{ fontSize: 11, color: '#9a9a96', fontStyle: 'italic', marginTop: 8 }}>
+              {recipient.classification_reasoning}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Proxy warning */}
+      {recipient.proxy_type && (
+        <div style={{ padding: '8px 16px', background: '#f0f9ff', borderTop: '1px solid #e0f2fe', fontSize: 11, color: '#0369a1' }}>
+          ℹ️ Opened via {recipient.proxy_type} — IP may reflect mail server, not recipient's actual location
+        </div>
+      )}
+
+      {/* Disclaimer */}
+      <div style={{ padding: '8px 16px', background: '#f9f9f9', borderTop: '1px solid #f0f0f0', fontSize: 10, color: '#9ca3af' }}>
+        Detected via IP pattern analysis. Exact identity unconfirmed — ask "who did you forward this to?" to confirm.
+      </div>
+    </div>
+  )
 }
 
 // ─────────────────────────────────────────────────────────────
