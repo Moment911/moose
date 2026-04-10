@@ -197,14 +197,25 @@ export default function ClientDetailPage() {
   }
 
   async function deleteClient() {
-    if (deleteConfirm !== 'DELETE') return
+    // Double confirmation: the user must type the client's exact name.
+    // No fallback to "DELETE" — the name match is the only accept path.
+    const expected = (client?.name || '').trim()
+    if (!expected || deleteConfirm.trim() !== expected) return
     setDeleting(true)
     try {
-      await supabase.from('clients').update({ deleted_at: new Date().toISOString(), status: 'deleted' }).eq('id', clientId)
+      // Soft delete — the clients_set_updated_at trigger handles updated_at.
+      await supabase
+        .from('clients')
+        .update({
+          deleted_at: new Date().toISOString(),
+          deleted_by: agencyId || null,
+          status: 'deleted',
+        })
+        .eq('id', clientId)
       toast.success('Client archived')
       navigate('/clients')
     } catch {
-      toast.error('Failed to delete')
+      toast.error('Failed to archive')
     }
     setDeleting(false)
   }
@@ -1375,37 +1386,64 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      {/* Delete modal */}
-      {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 440, maxWidth: '90vw' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Archive Client</div>
-              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
-                <X size={18} />
-              </button>
-            </div>
-            <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, marginBottom: 20, lineHeight: 1.6 }}>
-              This will archive <strong>{client.name}</strong>. The client and all associated data can be restored within 30 days.
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={fieldLabel}>Type DELETE to confirm</label>
-              <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="DELETE" style={inp} />
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={deleteClient} disabled={deleteConfirm !== 'DELETE' || deleting}
-                style={{ flex: 1, padding: 12, borderRadius: 10, border: 'none', background: deleteConfirm === 'DELETE' ? R : '#e5e7eb', color: deleteConfirm === 'DELETE' ? '#fff' : '#9ca3af', fontSize: 14, fontWeight: 700, cursor: deleteConfirm === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: FH }}>
-                {deleting ? 'Archiving...' : 'Archive Client'}
-              </button>
-              <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }}
-                style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 14, cursor: 'pointer', fontFamily: FH }}>
-                Cancel
-              </button>
+      {/* Delete modal — double confirmation: must type the client's exact name */}
+      {showDeleteModal && (() => {
+        const expectedName = (client?.name || '').trim()
+        const nameMatches = expectedName.length > 0 && deleteConfirm.trim() === expectedName
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+            <div style={{ background: '#fff', borderRadius: 16, padding: 32, width: 460, maxWidth: '90vw' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Archive Client</div>
+                <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+                  <X size={18} />
+                </button>
+              </div>
+              <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, marginBottom: 14, lineHeight: 1.6 }}>
+                This will archive <strong>{expectedName}</strong>. The client and all associated data are kept in the database (soft delete) and can be restored by support.
+              </div>
+              <div style={{
+                fontSize: 12, color: '#b45309', background: '#fffbeb',
+                border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 12px',
+                marginBottom: 16, lineHeight: 1.5,
+              }}>
+                ⚠ <strong>Double confirmation required.</strong> To prevent accidental archiving, you must type the client's exact name below.
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={fieldLabel}>Type <code style={{ background: '#f3f4f6', padding: '1px 6px', borderRadius: 4, fontFamily: 'ui-monospace,monospace' }}>{expectedName}</code> to confirm</label>
+                <input
+                  value={deleteConfirm}
+                  onChange={e => setDeleteConfirm(e.target.value)}
+                  placeholder={expectedName}
+                  autoFocus
+                  style={inp}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={deleteClient}
+                  disabled={!nameMatches || deleting}
+                  style={{
+                    flex: 1, padding: 12, borderRadius: 10, border: 'none',
+                    background: nameMatches ? R : '#e5e7eb',
+                    color: nameMatches ? '#fff' : '#9ca3af',
+                    fontSize: 14, fontWeight: 700,
+                    cursor: nameMatches && !deleting ? 'pointer' : 'not-allowed',
+                    fontFamily: FH,
+                  }}
+                >
+                  {deleting ? 'Archiving...' : 'Archive Client'}
+                </button>
+                <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }}
+                  style={{ flex: 1, padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 14, cursor: 'pointer', fontFamily: FH }}>
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

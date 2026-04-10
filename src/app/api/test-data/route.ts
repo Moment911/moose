@@ -240,6 +240,81 @@ async function countTestDataPerModule(agencyId: string) {
 async function clearTestRowsForTable(agencyId: string, table: string): Promise<number> {
   const s = sb()
   try {
+    // Defense in depth for the clients table. If this filter is ever
+    // widened or refactored, a literal DELETE FROM clients wipes real
+    // agency data — so we take an extra roundtrip:
+    //   1. SELECT the ids of rows that would be affected
+    //   2. Log them
+    //   3. DELETE only those specific ids (by id, not by filter reuse)
+    // Other tables use the straight filter-based delete.
+    if (table === 'clients') {
+      const { data: testRows, error: selErr } = await s
+        .from('clients')
+        .select('id, name, source_meta')
+        .eq('agency_id', agencyId)
+        .eq('source_meta->>is_test', 'true')
+
+      if (selErr) {
+        // eslint-disable-next-line no-console
+        console.error('[clearTestRowsForTable] select failed for clients:', selErr.message)
+        return 0
+      }
+
+      const rows = testRows || []
+      // eslint-disable-next-line no-console
+      console.log(
+        `[clearTestRowsForTable] clients: about to delete ${rows.length} test rows for agency ${agencyId}`,
+        rows.map((r: any) => ({ id: r.id, name: r.name })),
+      )
+
+      // Hard guard — if the select returned 0 or if something weird
+      // slipped through (e.g. a row without is_test:true in source_meta),
+      // bail out before the delete.
+      if (rows.length === 0) return 0
+      const safeIds = rows
+        .filter((r: any) => r?.source_meta?.is_test === true)
+        .map((r: any) => r.id)
+      if (safeIds.length !== rows.length) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `[clearTestRowsForTable] ABORT — ${rows.length - safeIds.length} row(s) matched the filter but failed the is_test post-check. Nothing deleted.`,
+        )
+        return 0
+      }
+      // Circuit breaker — refuse to bulk-delete more than 50 clients in one call.
+      if (safeIds.length > 50) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `[clearTestRowsForTable] ABORT — would delete ${safeIds.length} clients (> 50 limit). Nothing deleted.`,
+        )
+        return 0
+      }
+
+      const { count, error: delErr } = await s
+        .from('clients')
+        .delete({ count: 'exact' })
+        .in('id', safeIds)
+      if (delErr) {
+        // eslint-disable-next-line no-console
+        console.error('[clearTestRowsForTable] delete failed for clients:', delErr.message)
+        return 0
+      }
+      return count || 0
+    }
+
+    // Non-clients tables: straightforward filter-based delete with
+    // the same is_test guard.
+    // Pre-count for the log so we can see in Vercel logs what was deleted.
+    try {
+      const { count: previewCount } = await s
+        .from(table)
+        .select('id', { count: 'exact', head: true })
+        .eq('agency_id', agencyId)
+        .eq('source_meta->>is_test', 'true')
+      // eslint-disable-next-line no-console
+      console.log(`[clearTestRowsForTable] ${table}: about to delete ${previewCount || 0} test rows`)
+    } catch { /* preview failure is non-fatal */ }
+
     const { count, error } = await s.from(table)
       .delete({ count: 'exact' })
       .eq('agency_id', agencyId)

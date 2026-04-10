@@ -34,8 +34,14 @@ export const createClient_ = (name, email, agencyId = null) =>
 export const updateClient = (id, data) =>
   supabase.from('clients').update(data).eq('id', id).select().single()
 
+// Soft delete — flip deleted_at instead of removing the row. The lib no
+// longer exposes a hard delete. If you truly need to hard-delete a client
+// (compliance/GDPR right-to-erasure) do it from the Supabase dashboard.
 export const deleteClient = (id) =>
-  supabase.from('clients').delete().eq('id', id)
+  supabase
+    .from('clients')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
 
 // ─── Projects ────────────────────────────────────────────────────────────────
 export const getProjects = (clientId) =>
