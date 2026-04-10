@@ -136,9 +136,11 @@ export default function ClientDetailPage() {
   const saveField = useCallback(async (field, value) => {
     setSaving(true)
     try {
+      // updated_at is bumped automatically by the clients_set_updated_at
+      // BEFORE UPDATE trigger (migration 20260461) — do not set it here.
       await supabase
         .from('clients')
-        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .update({ [field]: value })
         .eq('id', clientId)
       setClient(prev => prev ? { ...prev, [field]: value } : prev)
       setEditingField(null)
@@ -332,20 +334,24 @@ export default function ClientDetailPage() {
       { key: 'owner_email',         label: 'Owner Email'       },
       { key: 'website',             label: 'Website'           },
       { key: 'industry',            label: 'Industry'          },
+      { key: 'year_founded',        label: 'Year Founded'      },
       { key: 'num_employees',       label: 'Team Size'         },
       { key: 'primary_service',     label: 'Primary Service'   },
       { key: 'secondary_services',  label: 'Secondary Services'},
+      { key: 'service_area',        label: 'Service Area'      },
       { key: 'target_customer',     label: 'Target Customer'   },
+      { key: 'avg_deal_size',       label: 'Avg Deal Size'     },
       { key: 'marketing_budget',    label: 'Marketing Budget'  },
       { key: 'marketing_channels',  label: 'Marketing Channels'},
       { key: 'crm_used',            label: 'CRM Used'          },
+      { key: 'hosting_provider',    label: 'Website Host'      },
       { key: 'competitor_1',        label: 'Competitor 1'      },
       { key: 'competitor_2',        label: 'Competitor 2'      },
       { key: 'competitor_3',        label: 'Competitor 3'      },
       { key: 'unique_selling_prop', label: 'USP'               },
       { key: 'brand_voice',         label: 'Brand Voice'       },
-      { key: 'year_founded',        label: 'Year Founded'      },
-      { key: 'service_area',        label: 'Service Area'      },
+      { key: 'tagline',             label: 'Tagline'           },
+      { key: 'review_platforms',    label: 'Review Platforms'  },
       { key: 'referral_sources',    label: 'Referral Sources'  },
       { key: 'notes',               label: 'Notes'             },
     ]

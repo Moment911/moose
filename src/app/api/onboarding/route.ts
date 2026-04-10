@@ -12,6 +12,138 @@ function getSupabase() {
 }
 function getResend() { return new Resend(process.env.RESEND_API_KEY || '') }
 
+// ─────────────────────────────────────────────────────────────
+// Form-data → clients column mapper
+//
+// Shared by both the autosave action and the complete action so the final
+// submission guarantees every column is populated even if autosave missed
+// the last keystroke. Anything not in FIELD_MAP falls through to the
+// `unmappedFields` bucket which the caller merges into onboarding_answers.
+//
+// Array values land in text columns as comma-joined strings so existing
+// text-typed columns (marketing_channels, marketing_budget, etc.) don't
+// blow up with pg type errors.
+// ─────────────────────────────────────────────────────────────
+function mapFormDataToClientColumns(form_data: Record<string, any>): {
+  updateData: Record<string, any>
+  unmappedFields: Record<string, any>
+} {
+  const FIELD_MAP: Record<string, string> = {
+    // Business basics
+    business_name: 'name',
+    email: 'email',
+    phone: 'phone',
+    website: 'website',
+    industry: 'industry',
+    city: 'city',
+    state: 'state',
+    zip: 'zip',
+    address: 'address',
+    // Owner / primary contact
+    owner_name: 'owner_name',
+    owner_title: 'owner_title',
+    owner_phone: 'owner_phone',
+    owner_email: 'owner_email',
+    // `title` is the owner's job title field on the form
+    title: 'owner_title',
+    // Business details
+    num_employees: 'num_employees',
+    year_founded: 'year_founded',
+    service_area: 'service_area',
+    primary_service: 'primary_service',
+    secondary_services: 'secondary_services',
+    target_customer: 'target_customer',
+    avg_deal_size: 'avg_deal_size',
+    // Marketing — the form uses legacy names, columns use the canonical names
+    marketing_channels: 'marketing_channels',
+    current_ad_platforms: 'marketing_channels',
+    marketing_budget: 'marketing_budget',
+    monthly_ad_budget: 'marketing_budget',
+    // Competitors
+    competitor_1: 'competitor_1',
+    competitor_2: 'competitor_2',
+    competitor_3: 'competitor_3',
+    unique_selling_prop: 'unique_selling_prop',
+    // Brand
+    brand_voice: 'brand_voice',
+    tagline: 'tagline',
+    brand_tagline: 'tagline',
+    logo_url: 'logo_url',
+    // Tools + platforms
+    crm_used: 'crm_used',
+    hosting_provider: 'hosting_provider',
+    // Social URLs
+    facebook_url: 'facebook_url',
+    instagram_url: 'instagram_url',
+    linkedin_url: 'linkedin_url',
+    tiktok_url: 'tiktok_url',
+    youtube_url: 'youtube_url',
+    google_business_url: 'google_business_url',
+    google_biz_url: 'google_business_url',
+    // Google rating (form uses different names than columns)
+    google_rating: 'review_rating',
+    google_reviews: 'review_count',
+    // Reviews / referrals
+    review_platforms: 'review_platforms',
+    referral_sources: 'referral_sources',
+    // Freeform
+    notes: 'notes',
+    // The first question on the form — client's own-words self-description.
+    // Used as primary context by every Koto AI system.
+    welcome_statement: 'welcome_statement',
+  }
+
+  // Form fields we deliberately DO NOT persist as columns or spillover.
+  // first_name + last_name get combined into owner_name below.
+  // country is too noisy on its own until we add a real column.
+  // The nested contacts_* objects are containers, not values — they render as
+  // [object Object] if they leak into the jsonb display.
+  const SKIP_KEYS = new Set([
+    'first_name', 'last_name', 'country',
+    'contacts_technical', 'contacts_billing', 'contacts_marketing', 'contacts_emergency',
+  ])
+
+  const updateData: Record<string, any> = {}
+  const unmappedFields: Record<string, any> = {}
+
+  for (const [formKey, value] of Object.entries(form_data || {})) {
+    if (value === null || value === undefined || value === '') continue
+    if (Array.isArray(value) && value.length === 0) continue
+    if (SKIP_KEYS.has(formKey)) continue
+
+    const dbColumn = FIELD_MAP[formKey]
+    if (dbColumn) {
+      // Array → comma-joined string for text columns; primitive values pass through.
+      if (Array.isArray(value)) {
+        updateData[dbColumn] = value
+          .map((item) => {
+            if (item && typeof item === 'object') {
+              return item.name || item.label || item.value || ''
+            }
+            return String(item ?? '')
+          })
+          .filter(Boolean)
+          .join(', ')
+      } else {
+        updateData[dbColumn] = value
+      }
+    } else {
+      unmappedFields[formKey] = value
+    }
+  }
+
+  // Combine first_name + last_name → owner_name (only if either is present
+  // and the form didn't already supply an explicit owner_name).
+  const firstName = (form_data?.first_name && String(form_data.first_name).trim()) || ''
+  const lastName  = (form_data?.last_name  && String(form_data.last_name).trim())  || ''
+  if ((firstName || lastName) && !updateData.owner_name) {
+    const combined = `${firstName} ${lastName}`.trim()
+    if (combined) updateData.owner_name = combined
+  }
+
+  return { updateData, unmappedFields }
+}
+
 function buildOnboardingEmail(opts: {
   clientName: string, agencyName: string, agencyLogo?: string,
   brandColor: string, onboardingUrl: string, contactName?: string
@@ -144,69 +276,7 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        // Form-field name → clients column name. Anything not in this map
-        // (and not in the special-handling list below) falls through to the
-        // onboarding_answers jsonb spillover.
-        const FIELD_MAP: Record<string, string> = {
-          business_name: 'name', name: 'name',
-          email: 'email', phone: 'phone',
-          website: 'website', industry: 'industry',
-          city: 'city', state: 'state', zip: 'zip', address: 'address',
-          owner_name: 'owner_name', owner_title: 'owner_title',
-          owner_phone: 'owner_phone', owner_email: 'owner_email',
-          num_employees: 'num_employees',
-          primary_service: 'primary_service', secondary_services: 'secondary_services',
-          target_customer: 'target_customer',
-          avg_deal_size: 'avg_deal_size',
-          marketing_channels: 'marketing_channels', marketing_budget: 'marketing_budget',
-          competitor_1: 'competitor_1', competitor_2: 'competitor_2', competitor_3: 'competitor_3',
-          unique_selling_prop: 'unique_selling_prop',
-          brand_voice: 'brand_voice',
-          review_platforms: 'review_platforms',
-          crm_used: 'crm_used',
-          referral_sources: 'referral_sources',
-          notes: 'notes',
-          facebook_url: 'facebook_url', instagram_url: 'instagram_url',
-          linkedin_url: 'linkedin_url', tiktok_url: 'tiktok_url',
-          youtube_url: 'youtube_url', google_business_url: 'google_business_url',
-          year_founded: 'year_founded',
-          service_area: 'service_area',
-          tagline: 'tagline', brand_tagline: 'tagline',
-          // title is the owner's job title — map to owner_title
-          title: 'owner_title',
-          // The first question on the form — client's own-words self-description.
-          // Used as primary context by every Koto AI system.
-          welcome_statement: 'welcome_statement',
-        }
-
-        // Form fields we DON'T persist as columns or spillover at all.
-        // first_name + last_name get combined into owner_name below.
-        // country is too noisy on its own — skip until we add a real column.
-        const SKIP_KEYS = new Set(['first_name', 'last_name', 'country'])
-
-        const updateData: Record<string, any> = {}
-        const unmappedFields: Record<string, any> = {}
-
-        for (const [formKey, value] of Object.entries(form_data)) {
-          if (value === null || value === undefined || value === '') continue
-          if (Array.isArray(value) && value.length === 0) continue
-          if (SKIP_KEYS.has(formKey)) continue
-          const dbColumn = FIELD_MAP[formKey]
-          if (dbColumn) {
-            updateData[dbColumn] = value
-          } else {
-            unmappedFields[formKey] = value
-          }
-        }
-
-        // Combine first_name + last_name → owner_name (only if either is present
-        // and the form didn't already supply an explicit owner_name).
-        const firstName = (form_data.first_name && String(form_data.first_name).trim()) || ''
-        const lastName  = (form_data.last_name  && String(form_data.last_name).trim())  || ''
-        if ((firstName || lastName) && !updateData.owner_name) {
-          const combined = `${firstName} ${lastName}`.trim()
-          if (combined) updateData.owner_name = combined
-        }
+        const { updateData, unmappedFields } = mapFormDataToClientColumns(form_data)
 
         updateData.onboarding_status = 'in_progress'
 
@@ -228,7 +298,8 @@ export async function POST(req: NextRequest) {
           _last_autosave: saved_at,
           _autosave_count: (Number(existingAnswers._autosave_count) || 0) + 1,
         }
-        updateData.updated_at = new Date().toISOString()
+        // NOTE: updated_at is handled by the BEFORE UPDATE trigger
+        // (migration 20260461_clients_updated_at_trigger.sql). Do not set it here.
 
         const { error } = await sb.from('clients').update(updateData).eq('id', client_id)
 
@@ -333,26 +404,38 @@ export async function POST(req: NextRequest) {
     if (action === 'complete') {
       const form_data = (body && body.form_data) || {}
 
-      // Look up client name for the notification body
+      // Look up client name for the notification body + load existing answers
       const { data: clientRow } = await sb.from('clients')
-        .select('name, agency_id, email')
+        .select('name, agency_id, email, onboarding_answers')
         .eq('id', client_id)
         .maybeSingle()
       const clientName = clientRow?.name || 'A client'
       const resolvedAgency = agency_id || clientRow?.agency_id || null
 
-      // Mark client onboarding complete + save answers
+      // Re-run the same FIELD_MAP on the final submission so every column
+      // is guaranteed to be populated even if autosave missed the last
+      // keystroke or the network flaked out right before submit. Defense
+      // in depth — autosave should have done this already, but belt-and-
+      // suspenders is cheap and the alternative is silent data loss.
+      const { updateData: mapped, unmappedFields } = mapFormDataToClientColumns(form_data)
+
+      const existingAnswers: Record<string, any> =
+        (clientRow?.onboarding_answers && typeof clientRow.onboarding_answers === 'object')
+          ? clientRow.onboarding_answers
+          : {}
+
       const completeUpdate: Record<string, any> = {
+        ...mapped,
         onboarding_completed_at: new Date().toISOString(),
         onboarding_status: 'complete',
-        onboarding_answers: form_data,
         status: 'active',
+        onboarding_answers: {
+          ...existingAnswers,
+          ...unmappedFields,
+          _submitted_at: new Date().toISOString(),
+        },
       }
-      // Also persist welcome_statement to its dedicated column so every
-      // AI system can read it without parsing the jsonb.
-      if (form_data && typeof form_data.welcome_statement === 'string' && form_data.welcome_statement.trim()) {
-        completeUpdate.welcome_statement = form_data.welcome_statement.trim()
-      }
+      // NOTE: updated_at is handled by the BEFORE UPDATE trigger.
       await sb.from('clients').update(completeUpdate).eq('id', client_id)
 
       // Write a vault entry for the submission (traceability)
