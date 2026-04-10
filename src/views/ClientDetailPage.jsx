@@ -350,19 +350,32 @@ export default function ClientDetailPage() {
     ]
 
     // Internal form fields that should NOT leak into the display.
-    // These are either metadata, nested object containers, form state
-    // flags, or fields that belong in their proper `clients` column
-    // (and we'll derive the display value from displayClient below).
-    const EXCLUDED_KEYS = [
+    // Includes both snake_case and camelCase variants because different
+    // form versions serialize nested contacts differently.
+    const EXCLUDED_KEYS = new Set([
+      // Nested contact containers — snake_case
       'contacts_billing', 'contacts_emergency', 'contacts_marketing', 'contacts_technical',
+      // Nested contact containers — camelCase
+      'contactsBilling', 'contactsEmergency', 'contactsMarketing', 'contactsTechnical',
+      // Persona state
       'persona_approved', 'persona_loading', 'persona_notes', 'persona_result',
+      'personaApproved', 'personaLoading', 'personaNotes', 'personaResult',
+      // Brand color picker state
       'brand_accent_color', 'brand_primary_color', 'brand_secondary_color',
+      'brandAccentColor', 'brandPrimaryColor', 'brandSecondaryColor',
+      // Same-as toggles
       'legal_address_same', 'billing_same_as_legal',
+      'legalAddressSame', 'billingSameAsLegal',
+      // Form state / progress tracking
       'form_step', 'current_step', 'step', 'completed', 'submitted', 'token',
+      'formStep', 'currentStep',
+      // Foreign keys / metadata
       'agency_id', 'client_id', 'user_id', 'id', 'created_at', 'updated_at',
+      'agencyId', 'clientId', 'userId', 'createdAt', 'updatedAt',
       // Promoted elsewhere — don't show raw form versions
       'first_name', 'last_name', 'title', 'country',
-    ]
+      'firstName', 'lastName',
+    ])
 
     // Format any value for display — handles arrays of objects (competitors!),
     // bare objects, booleans, null/undefined, and primitives. No more
@@ -418,11 +431,18 @@ export default function ClientDetailPage() {
     })
     const extraAnswers = Object.entries(rawAnswers).filter(([k, v]) => {
       if (k.startsWith('_')) return false
-      if (EXCLUDED_KEYS.includes(k)) return false
+      if (EXCLUDED_KEYS.has(k)) return false
       if (v === null || v === undefined || v === '') return false
       if (v === false || v === 'false') return false
       if (Array.isArray(v) && v.length === 0) return false
       if (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) return false
+      // Final safety net — if the formatted output would look like "[object Object]"
+      // or a raw JSON blob, drop the field entirely. Covers any nested shape we
+      // didn't explicitly list in EXCLUDED_KEYS.
+      const formatted = formatValue(v)
+      if (!formatted) return false
+      if (formatted.includes('[object')) return false
+      if (String(v).startsWith('{')) return false
       return true
     })
 
@@ -439,95 +459,160 @@ export default function ClientDetailPage() {
     // Empty state when nothing has been saved AND nothing is happening
     if (totalAnswered === 0 && !isInProgress && !isComplete) return null
 
-    // In-progress with zero answers — show "waiting for client" placeholder
+    // Prominent banner shown at the very top whenever the client is actively
+    // filling out the form. Renders both in the "waiting" branch and alongside
+    // the main card so the agency user always sees the live signal first.
+    const progressBanner = isInProgress ? (
+      <div style={{
+        background: 'linear-gradient(135deg, #00C2CB15, #00C2CB08)',
+        border: '1.5px solid #00C2CB40',
+        borderRadius: 12,
+        padding: '14px 20px',
+        marginBottom: 16,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+      }}>
+        <span style={{ fontSize: 24 }}>📋</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: FH, fontWeight: 800, fontSize: 15, color: '#111' }}>
+            Client is filling out their onboarding form right now
+          </div>
+          <div style={{ fontSize: 12, color: '#00C2CB', marginTop: 2, fontFamily: FB }}>
+            Answers are auto-saving every 2 seconds · Page refreshes every 15 seconds
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: '#00C2CB' }}>
+            {totalAnswered}
+          </div>
+          <div style={{ fontSize: 11, color: '#9a9a96', fontFamily: FB }}>fields captured</div>
+        </div>
+      </div>
+    ) : null
+
+    // Shared keyframes used by both branches
+    const keyframes = (
+      <style>{`
+        @keyframes onboarding-pulse-dot   { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+        @keyframes onboarding-pulse-badge {
+          0%,100% { box-shadow: 0 0 0 0 ${T}55; }
+          50%     { box-shadow: 0 0 0 6px ${T}00; }
+        }
+      `}</style>
+    )
+
+    // In-progress with zero answers — show the banner + a "waiting for client" placeholder card
     if (totalAnswered === 0) {
       return (
-        <div style={{ ...card, marginBottom: 16, border: `2px solid ${T}30`, background: '#f0fbfc' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
-              📋 Onboarding Responses
+        <>
+          {progressBanner}
+          <div style={{
+            ...card,
+            marginBottom: 16,
+            borderTop: `3px solid ${T}`,
+            border: `1px solid ${T}30`,
+            background: '#f0fffe',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
+                📋 Onboarding Responses
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse-dot 1.2s ease-in-out infinite' }} />
+                Client is completing the form — answers updating live
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse 1.2s ease-in-out infinite' }} />
-              Client is completing the form — answers updating live
+            <div style={{ marginTop: 10, fontSize: 13, color: '#9a9a96', fontStyle: 'italic' }}>
+              Waiting for client to start filling in the form…
             </div>
           </div>
-          <div style={{ marginTop: 10, fontSize: 12, color: '#9a9a96', fontStyle: 'italic' }}>
-            Waiting for client to start filling in the form…
-          </div>
-          <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
-        </div>
+          {keyframes}
+        </>
       )
     }
 
+    // Main card — has answers (either in progress with real data, or complete)
     return (
-      <div style={{ ...card, marginBottom: 16, border: `2px solid ${isComplete ? GRN : T}20`, background: isComplete ? '#f0fdf4' : '#f0fbfc' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
-              📋 Onboarding Responses
+      <>
+        {progressBanner}
+        <div style={{
+          ...card,
+          marginBottom: 16,
+          borderTop: `3px solid ${isComplete ? GRN : T}`,
+          border: `1px solid ${isComplete ? GRN + '30' : T + '30'}`,
+          background: isComplete ? '#f0fdf4' : isInProgress ? '#f0fffe' : '#fff',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+            <div>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, letterSpacing: '-0.01em' }}>
+                📋 Onboarding Responses
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{
+                  ...badge(isComplete ? GRN : T),
+                  animation: isInProgress ? 'onboarding-pulse-badge 1.5s infinite' : undefined,
+                }}>
+                  {isComplete ? 'COMPLETE ✓' : 'IN PROGRESS'}
+                </span>
+                <span>{totalAnswered} fields</span>
+                {lastSave && <span>· Saved {timeAgo(lastSave)}</span>}
+                {autosaveCount > 0 && <span>· {autosaveCount}x autosaves</span>}
+              </div>
             </div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={badge(isComplete ? GRN : T)}>
-                {isComplete ? 'Complete ✓' : 'In Progress'}
-              </span>
-              <span>{totalAnswered} fields</span>
-              {lastSave && <span>· Saved {timeAgo(lastSave)}</span>}
-              {autosaveCount > 0 && <span>· {autosaveCount}x autosaves</span>}
-            </div>
+            {isInProgress && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse-dot 1.2s ease-in-out infinite' }} />
+                Answers updating live
+              </div>
+            )}
           </div>
-          {isInProgress && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: T, fontFamily: FB, fontWeight: 600 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: T, display: 'inline-block', animation: 'onboarding-pulse 1.2s ease-in-out infinite' }} />
-              Client is completing the form — answers updating live
-            </div>
-          )}
-        </div>
 
-        {/* Progress bar — out of ~22 known display fields */}
-        <div style={{ height: 4, background: '#f0f0f0', borderRadius: 99, marginBottom: 14, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%',
-            width: `${Math.min(100, (totalAnswered / 22) * 100)}%`,
-            background: isComplete ? GRN : T,
-            borderRadius: 99,
-            transition: 'width .5s',
-          }} />
-        </div>
+          {/* Progress bar — out of ~22 known display fields */}
+          <div style={{ height: 4, background: '#f0f0f0', borderRadius: 99, marginBottom: 14, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.min(100, (totalAnswered / 22) * 100)}%`,
+              background: isComplete ? GRN : T,
+              borderRadius: 99,
+              transition: 'width .5s',
+            }} />
+          </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
-          {filledFields.map(({ key, label }) => {
-            const display = formatValue(displayClient?.[key])
-            if (!display) return null
-            return (
-              <div key={key} style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
-                <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
-                  {label}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxHeight: 480, overflowY: 'auto' }}>
+            {filledFields.map(({ key, label }) => {
+              const display = formatValue(displayClient?.[key])
+              if (!display || display.includes('[object')) return null
+              return (
+                <div key={key} style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
+                  <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                    {label}
+                  </div>
+                  <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
+                    {display}
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
-                  {display}
+              )
+            })}
+            {extraAnswers.map(([k, v]) => {
+              const display = formatValue(v)
+              if (!display || display.includes('[object')) return null
+              const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+              return (
+                <div key={k} style={{ padding: '10px 14px', borderRadius: 10, background: '#f0fffe', border: `1px solid ${T}30` }}>
+                  <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                    {prettyKey}
+                  </div>
+                  <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
+                    {display}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-          {extraAnswers.map(([k, v]) => {
-            const display = formatValue(v)
-            if (!display) return null
-            const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-            return (
-              <div key={k} style={{ padding: '10px 14px', borderRadius: 10, background: '#f0fffe', border: `1px solid ${T}30` }}>
-                <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
-                  {prettyKey}
-                </div>
-                <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
-                  {display}
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
-        <style>{`@keyframes onboarding-pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }`}</style>
-      </div>
+        {keyframes}
+      </>
     )
   }
 
