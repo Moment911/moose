@@ -195,13 +195,56 @@ export async function POST(req: NextRequest) {
 
     // ── Called when onboarding form is submitted ─────────────────────────────
     if (action === 'complete') {
-      const { form_data } = await req.json().catch(() => ({ form_data: {} }))
+      // Re-read the body — it was consumed once at the top of POST — so the
+      // form_data lives inside the original parsed body variable.
+      // (Using the destructure on line 129 already pulled { action, client_id,
+      // agency_id }. The OnboardingPage sends form_data in the SAME payload,
+      // so we re-parse from the original request body via req.clone().)
+      const body = await req.clone().json().catch(() => ({} as any))
+      const form_data = body.form_data || {}
 
-      // Mark client onboarding complete
+      // Look up client name for the notification body
+      const { data: clientRow } = await sb.from('clients')
+        .select('name, agency_id, email')
+        .eq('id', client_id)
+        .maybeSingle()
+      const clientName = clientRow?.name || 'A client'
+      const resolvedAgency = agency_id || clientRow?.agency_id || null
+
+      // Mark client onboarding complete + save answers
       await sb.from('clients').update({
         onboarding_completed_at: new Date().toISOString(),
         onboarding_status: 'complete',
+        onboarding_answers: form_data,
+        status: 'active',
       }).eq('id', client_id)
+
+      // Write a vault entry for the submission (traceability)
+      try {
+        await sb.from('koto_data_vault').insert({
+          agency_id: resolvedAgency,
+          client_id,
+          record_type: 'onboarding',
+          source: 'client_provided',
+          title: `${clientName} — Onboarding submission`,
+          payload: form_data,
+        })
+      } catch { /* vault table may not exist in some installs */ }
+
+      // Fire notification — fire and forget
+      try {
+        if (resolvedAgency) {
+          await sb.from('koto_notifications').insert({
+            agency_id: resolvedAgency,
+            type: 'onboarding_complete',
+            title: '📝 Onboarding complete',
+            body: `${clientName} completed their onboarding form`,
+            link: `/clients/${client_id}`,
+            icon: '📝',
+            metadata: { client_id },
+          })
+        }
+      } catch { /* swallow */ }
 
       // Auto-create agent config from onboarding answers
       const { data: existing } = await sb.from('agent_configs')

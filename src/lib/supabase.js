@@ -290,11 +290,111 @@ export const upsertClientProfile = async (clientId, data) => {
 export const createOnboardingToken = (clientId, createdBy) =>
   supabase.from('onboarding_tokens').insert({ client_id: clientId, created_by: createdBy }).select().single()
 
-export const getOnboardingToken = (token) =>
-  supabase.from('onboarding_tokens').select('*, clients(*)').eq('token', token).maybeSingle()
+// UUID regex for the /onboard/:id fallback — if the param is a bare client_id
+// we still want the page to load instead of showing "Link Not Found".
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-export const markTokenUsed = (token) =>
-  supabase.from('onboarding_tokens').update({ used_at: new Date().toISOString() }).eq('token', token)
+/**
+ * Resolves an onboarding URL param to `{ client_id, clients, expires_at, ... }`.
+ * Strategy:
+ *   1. Look up `onboarding_tokens.token = X`
+ *   2. If X is a UUID: try `onboarding_tokens.client_id = X` (latest active token)
+ *   3. If X is a UUID: try `clients.id = X` — return a synthetic no-expiry record
+ *   4. Try `clients.onboarding_token = X`
+ * Returns the same `{ data, error }` shape Supabase returns so the caller
+ * can keep its existing destructure.
+ */
+export const getOnboardingToken = async (token) => {
+  if (!token) return { data: null, error: null }
+
+  // 1. Exact token match
+  const byToken = await supabase
+    .from('onboarding_tokens')
+    .select('*, clients(*)')
+    .eq('token', token)
+    .maybeSingle()
+  if (byToken.data) return byToken
+
+  // 2. If it's a UUID, try onboarding_tokens.client_id
+  if (UUID_RE.test(token)) {
+    const byClientId = await supabase
+      .from('onboarding_tokens')
+      .select('*, clients(*)')
+      .eq('client_id', token)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (byClientId.data) return byClientId
+
+    // 3. Fall back to clients table directly — synthesize a token record
+    const byClient = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', token)
+      .maybeSingle()
+    if (byClient.data) {
+      return {
+        data: {
+          id: null,
+          client_id: byClient.data.id,
+          agency_id: byClient.data.agency_id,
+          token,
+          expires_at: null,     // synthetic records never expire
+          used_at: byClient.data.onboarding_completed_at || null,
+          created_at: byClient.data.created_at,
+          clients: byClient.data,
+        },
+        error: null,
+      }
+    }
+  }
+
+  // 4. Try clients.onboarding_token column
+  const byClientToken = await supabase
+    .from('clients')
+    .select('*')
+    .eq('onboarding_token', token)
+    .maybeSingle()
+  if (byClientToken.data) {
+    return {
+      data: {
+        id: null,
+        client_id: byClientToken.data.id,
+        agency_id: byClientToken.data.agency_id,
+        token,
+        expires_at: null,
+        used_at: byClientToken.data.onboarding_completed_at || null,
+        created_at: byClientToken.data.created_at,
+        clients: byClientToken.data,
+      },
+      error: null,
+    }
+  }
+
+  return { data: null, error: null }
+}
+
+export const markTokenUsed = async (token) => {
+  if (!token) return { data: null, error: null }
+  // Try the tokens table first
+  const r = await supabase
+    .from('onboarding_tokens')
+    .update({ used_at: new Date().toISOString() })
+    .eq('token', token)
+  // Also update the clients table — covers the synthetic (client_id) path
+  if (UUID_RE.test(token)) {
+    await supabase
+      .from('clients')
+      .update({ onboarding_completed_at: new Date().toISOString(), onboarding_status: 'complete' })
+      .eq('id', token)
+  } else {
+    await supabase
+      .from('clients')
+      .update({ onboarding_completed_at: new Date().toISOString(), onboarding_status: 'complete' })
+      .eq('onboarding_token', token)
+  }
+  return r
+}
 
 export const uploadOnboardingFile = async (file, clientId) => {
   const ext = file.name.split('.').pop()

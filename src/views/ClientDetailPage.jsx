@@ -450,30 +450,80 @@ export default function ClientDetailPage() {
         {/* Onboarding section */}
         <div style={card}>
           <div style={sectionTitle}><ChevronRight size={16} color={R} /> Onboarding</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={fieldLabel}>Status</span>
-            <span style={badge(client.onboarding_completed ? GRN : AMB)}>
-              {client.onboarding_completed ? 'Completed' : 'Pending'}
-            </span>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label style={fieldLabel}>Onboarding Link</label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input readOnly value={onboardingLink} style={{ ...inp, flex: 1, color: '#6b7280', fontSize: 12 }} />
-              <button onClick={copyOnboardingLink}
-                style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: copySuccess ? GRN : T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                {copySuccess ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
-              </button>
-            </div>
-          </div>
-          {client.onboarding_answers && (
-            <div style={{ marginTop: 12, padding: 14, borderRadius: 10, background: GRY }}>
-              <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', marginBottom: 8 }}>ONBOARDING ANSWERS</div>
-              <pre style={{ fontSize: 12, fontFamily: FB, color: BLK, whiteSpace: 'pre-wrap', margin: 0 }}>
-                {typeof client.onboarding_answers === 'string' ? client.onboarding_answers : JSON.stringify(client.onboarding_answers, null, 2)}
-              </pre>
-            </div>
-          )}
+          {(() => {
+            const isComplete = !!(client.onboarding_completed_at || client.onboarding_status === 'complete')
+            const answers = client.onboarding_answers
+            const hasAnswers = answers && typeof answers === 'object' && Object.keys(answers).length > 0
+            return (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span style={fieldLabel}>Status</span>
+                  <span style={badge(isComplete ? GRN : AMB)}>
+                    {isComplete ? 'Onboarding Complete ✓' : 'Pending'}
+                  </span>
+                  {client.onboarding_sent_at && !isComplete && (
+                    <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>
+                      Link sent {new Date(client.onboarding_sent_at).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <label style={fieldLabel}>Onboarding Link</label>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input readOnly value={onboardingLink} style={{ ...inp, flex: 1, color: '#6b7280', fontSize: 12 }} />
+                    <button
+                      onClick={copyOnboardingLink}
+                      style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: copySuccess ? GRN : T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+                    >
+                      {copySuccess ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
+                    </button>
+                    <button
+                      onClick={() => window.open(onboardingLink, '_blank', 'noopener')}
+                      style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, flexShrink: 0 }}
+                    >
+                      Preview
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
+                    No account required · Auto-saves · Link never expires
+                  </div>
+                </div>
+
+                {hasAnswers && (
+                  <div style={{ marginTop: 14, padding: 16, borderRadius: 10, background: GRY }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Check size={12} color={GRN} /> SUBMITTED ANSWERS
+                      {client.onboarding_completed_at && (
+                        <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, marginLeft: 6 }}>
+                          {new Date(client.onboarding_completed_at).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {Object.entries(answers).slice(0, 20).map(([key, val]) => {
+                        const display = typeof val === 'string'
+                          ? val
+                          : Array.isArray(val)
+                            ? val.join(', ')
+                            : val && typeof val === 'object'
+                              ? JSON.stringify(val)
+                              : String(val ?? '')
+                        if (!display) return null
+                        return (
+                          <div key={key} style={{ fontSize: 12, fontFamily: FB }}>
+                            <span style={{ color: '#6b7280', fontWeight: 700, textTransform: 'capitalize' }}>
+                              {key.replace(/_/g, ' ')}:
+                            </span>{' '}
+                            <span style={{ color: BLK }}>{display}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </div>
       </div>
     )
