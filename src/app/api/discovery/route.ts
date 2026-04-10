@@ -201,7 +201,131 @@ function getDefaultSections() {
         f('11k', 'GHL OPPORTUNITY · Paid Traffic to Automated Follow-Up Pipeline', 'Ask: When someone submits a form from a paid ad, what happens in the next 5 minutes?', { is_opportunity: true }),
       ],
     },
+    {
+      id: 'section_12',
+      title: '12 — Objections and Concerns',
+      subtitle: 'Call Intelligence',
+      visible: true,
+      is_visible_on_share: false,
+      fields: [
+        f('12a', 'Objections raised during the call', 'List every pushback, concern, or hesitation — exact language if possible'),
+        f('12b', 'How each objection was handled', 'What was said in response and how the client reacted'),
+        f('12c', 'Unresolved objections still in play', 'What concerns are still open that need addressing in the proposal'),
+        f('12d', 'Client sentiment at end of call', 'Excited / Warm / Neutral / Skeptical / Unlikely to move forward'),
+        f('12e', 'Biggest risk to closing this client', 'Your honest assessment of the #1 thing that could kill this deal', { never_share: true }),
+        f('12f', 'Recommended follow-up approach', 'What should happen next and in what order', { never_share: true }),
+      ],
+    },
   ]
+}
+
+// ─────────────────────────────────────────────────────────────
+// Industry-specific field overrides — merged into the default
+// sections when an engagement is created with a matching industry.
+// ─────────────────────────────────────────────────────────────
+function getIndustryOverrides(industry: string | null | undefined): Array<{ section_id: string; fields: Array<{ id: string; question: string; hint?: string }> }> {
+  if (!industry) return []
+  const lower = String(industry).toLowerCase()
+  const groups: Array<{ match: string[]; extras: Array<{ section_id: string; fields: Array<{ id: string; question: string; hint?: string }> }> }> = [
+    {
+      match: ['dental', 'dentist', 'orthodont'],
+      extras: [{
+        section_id: 'section_05',
+        fields: [
+          { id: '05_dental_1', question: 'New patient acquisition cost?' },
+          { id: '05_dental_2', question: 'Insurance acceptance and how it affects marketing?' },
+          { id: '05_dental_3', question: 'Current patient lifetime value?' },
+          { id: '05_dental_4', question: 'Percentage of new patients from referrals?' },
+        ],
+      }],
+    },
+    {
+      match: ['plumb', 'hvac', 'electric', 'roof', 'landscap', 'pest', 'clean'],
+      extras: [{
+        section_id: 'section_05',
+        fields: [
+          { id: '05_trades_1', question: 'Average job ticket value?' },
+          { id: '05_trades_2', question: 'Repeat vs new customer revenue split?' },
+          { id: '05_trades_3', question: 'Field management software?', hint: 'ServiceTitan, Jobber, Housecall Pro' },
+          { id: '05_trades_4', question: 'Busiest season and slow period lead management?' },
+        ],
+      }],
+    },
+    {
+      match: ['medical', 'health', 'therapy', 'clinic', 'practice', 'doctor', 'physician'],
+      extras: [{
+        section_id: 'section_05',
+        fields: [
+          { id: '05_med_1', question: 'HIPAA compliance in marketing and CRM?' },
+          { id: '05_med_2', question: 'Patient no-show rate and cost per no-show?' },
+          { id: '05_med_3', question: 'Accepting new patients and current wait time?' },
+        ],
+      }],
+    },
+    {
+      match: ['ecommerce', 'e-commerce', 'shopify', 'store', 'product'],
+      extras: [{
+        section_id: 'section_04',
+        fields: [
+          { id: '04_ecom_1', question: 'Average order value?' },
+          { id: '04_ecom_2', question: 'Customer acquisition cost by channel?' },
+          { id: '04_ecom_3', question: 'Customer lifetime value?' },
+          { id: '04_ecom_4', question: 'Cart abandonment rate?' },
+        ],
+      }],
+    },
+    {
+      match: ['real estate', 'realtor', 'broker', 'property', 'mortgage'],
+      extras: [{
+        section_id: 'section_05',
+        fields: [
+          { id: '05_re_1', question: 'Average days on market?' },
+          { id: '05_re_2', question: 'Close rate from listing presentation to signed contract?' },
+          { id: '05_re_3', question: 'Real estate specific CRM?', hint: 'Follow Up Boss, LionDesk, kvCORE' },
+          { id: '05_re_4', question: 'Average commission per transaction?' },
+        ],
+      }],
+    },
+    {
+      match: ['law', 'legal', 'attorney', 'lawyer', 'firm'],
+      extras: [{
+        section_id: 'section_05',
+        fields: [
+          { id: '05_legal_1', question: 'Practice areas by revenue?' },
+          { id: '05_legal_2', question: 'Average case value?' },
+          { id: '05_legal_3', question: 'Intake automation when someone calls or submits form?' },
+          { id: '05_legal_4', question: 'Bar association advertising restrictions?' },
+        ],
+      }],
+    },
+  ]
+
+  for (const g of groups) {
+    if (g.match.some((m) => lower.includes(m))) return g.extras
+  }
+  return []
+}
+
+// Applies the overrides above in-place on a sections array.
+function applyIndustryOverrides(sections: any[], industry: string | null | undefined): any[] {
+  const overrides = getIndustryOverrides(industry)
+  if (overrides.length === 0) return sections
+  for (const override of overrides) {
+    const sec = sections.find((s: any) => s.id === override.section_id)
+    if (!sec) continue
+    for (const f of override.fields) {
+      sec.fields.push({
+        id: f.id,
+        question: f.question,
+        hint: f.hint || '',
+        answer: '',
+        source: 'industry_template',
+        question_is_edited: false,
+        ai_questions: [],
+      })
+    }
+  }
+  return sections
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -777,7 +901,7 @@ export async function POST(req: NextRequest) {
       const { client_name, client_id, client_industry, domains } = body
       if (!client_name) return Response.json({ error: 'Missing client_name' }, { status: 400 })
 
-      const sections = getDefaultSections()
+      const sections = applyIndustryOverrides(getDefaultSections(), client_industry)
 
       const { data: eng, error } = await s
         .from('koto_discovery_engagements')
@@ -1684,6 +1808,554 @@ Client's answer: ${answer}`
       }).eq('id', id)
 
       return Response.json({ ok: true })
+    }
+
+    // ─── generate_prep_sheet ─────────────────────────────
+    if (action === 'generate_prep_sheet') {
+      const { engagement_id } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('*').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const { data: domains } = await s.from('koto_discovery_domains').select('url, domain_type, tech_stack').eq('engagement_id', engagement_id)
+
+      // Build condensed context
+      const intelLines = (eng.intel_cards || []).map((c: any) => `- [${c.category || 'intel'}] ${c.title}: ${c.body}`).join('\n') || '(none)'
+
+      const answeredLines: string[] = []
+      for (const sec of eng.sections || []) {
+        for (const f of sec.fields || []) {
+          if ((f.answer || '').trim()) answeredLines.push(`[${sec.id}] ${f.question}: ${f.answer}`)
+        }
+      }
+      const answeredSummary = answeredLines.length ? answeredLines.join('\n').slice(0, 8000) : '(nothing answered yet)'
+
+      const techLines: string[] = []
+      for (const d of domains || []) {
+        const confirmed = (d.tech_stack?.categories || [])
+          .flatMap((c: any) => (c.tools || []).filter((t: any) => t.confidence === 'confirmed').map((t: any) => `${c.name}: ${t.name}`))
+        if (confirmed.length) techLines.push(`${d.url} — ${confirmed.slice(0, 10).join(', ')}`)
+      }
+      const techSummary = techLines.length ? techLines.join('\n') : '(no tech detected)'
+
+      const system = `You are a senior marketing strategist preparing for a client discovery call. Return JSON only: { "client_snapshot": "string", "top_5_questions": [{"question": "string", "why": "string", "section": "string"}], "risk_flags": [{"flag": "string", "probe": "string"}], "tech_gaps_to_confirm": [{"tool_category": "string", "current_status": "string", "confirm_question": "string"}], "ghl_opportunities_most_relevant": [{"opportunity": "string", "reason": "string", "ask": "string"}], "opening_recommendation": "string" }
+
+No preamble, no markdown fence. Be concrete and specific to the client.`
+
+      const userPrompt = `CLIENT: ${eng.client_name}
+INDUSTRY: ${eng.client_industry || 'unknown'}
+
+INTEL CARDS:
+${intelLines}
+
+CONFIRMED TECH STACK:
+${techSummary}
+
+ANSWERED FIELDS SO FAR:
+${answeredSummary}
+
+Produce the prep sheet JSON now.`
+
+      const raw = await callClaude({
+        system,
+        user: userPrompt,
+        maxTokens: 2000,
+        temperature: 0,
+        timeoutMs: 20000,
+      })
+      const parsed = parseJson(raw)
+      if (!parsed) return Response.json({ error: 'Failed to parse prep sheet' }, { status: 500 })
+
+      const now = new Date().toISOString()
+      await s.from('koto_discovery_engagements').update({
+        prep_sheet: parsed,
+        prep_sheet_generated_at: now,
+      }).eq('id', engagement_id)
+
+      vaultWrite({
+        agencyId,
+        recordType: 'discovery_prep_sheet',
+        sourceId: engagement_id,
+        title: `Prep sheet — ${eng.client_name}`,
+        summary: typeof parsed.client_snapshot === 'string' ? parsed.client_snapshot.slice(0, 280) : '',
+        data: parsed,
+      }).catch(() => {})
+
+      return Response.json({ data: { prep_sheet: parsed } })
+    }
+
+    // ─── generate_followup_email ────────────────────────
+    if (action === 'generate_followup_email') {
+      const { engagement_id, recipient_email, recipient_name, send } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('*').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const answeredLines: string[] = []
+      for (const sec of eng.sections || []) {
+        for (const f of sec.fields || []) {
+          if (f.never_share) continue
+          if ((f.answer || '').trim()) answeredLines.push(`[${sec.title}] ${f.question}: ${f.answer}`)
+        }
+      }
+      const summary = answeredLines.length ? answeredLines.join('\n').slice(0, 10000) : '(nothing answered yet)'
+
+      const system = `You are Adam Segall, senior marketing strategist. Write a warm, direct follow-up email after a discovery call. Return JSON only: { "subject": "string", "body_html": "string (HTML with <p> tags and proper escaping)", "body_text": "string (plain text version)", "key_points_heard": ["string"], "top_opportunities": ["string"], "recommended_next_step": "string" }
+
+No preamble. The email should sound like a human wrote it, not a template. Reference specific things the client actually said.`
+
+      const userPrompt = `CLIENT: ${eng.client_name}
+INDUSTRY: ${eng.client_industry || 'unknown'}
+RECIPIENT: ${recipient_name || eng.client_name}
+
+DISCOVERY NOTES:
+${summary}
+
+EXECUTIVE SUMMARY:
+${eng.executive_summary || '(not yet compiled)'}
+
+Produce the follow-up email JSON now.`
+
+      const raw = await callClaude({
+        system,
+        user: userPrompt,
+        maxTokens: 1500,
+        temperature: 0.3,
+        timeoutMs: 20000,
+      })
+      const parsed = parseJson(raw)
+      if (!parsed) return Response.json({ error: 'Failed to parse email' }, { status: 500 })
+
+      const updates: any = { followup_email: parsed }
+      let sent = false
+
+      if (send && recipient_email && process.env.RESEND_API_KEY) {
+        try {
+          const { sendEmail } = await import('@/lib/emailService')
+          const res = await sendEmail(recipient_email, parsed.subject || 'Following up', parsed.body_html || parsed.body_text || '', agencyId)
+          if (res?.success) {
+            sent = true
+            updates.followup_sent_at = new Date().toISOString()
+          }
+        } catch { /* non-fatal */ }
+      }
+
+      await s.from('koto_discovery_engagements').update(updates).eq('id', engagement_id)
+
+      vaultWrite({
+        agencyId,
+        recordType: 'discovery_followup_email',
+        sourceId: engagement_id,
+        title: parsed.subject || `Follow-up — ${eng.client_name}`,
+        summary: typeof parsed.body_text === 'string' ? parsed.body_text.slice(0, 280) : '',
+        data: { ...parsed, sent, recipient_email, recipient_name },
+      }).catch(() => {})
+
+      return Response.json({ data: { email: parsed, sent } })
+    }
+
+    // ─── calculate_readiness ────────────────────────────
+    if (action === 'calculate_readiness') {
+      const { engagement_id } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sections').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const getAnswer = (fieldId: string): string => {
+        for (const sec of eng.sections || []) {
+          for (const f of sec.fields || []) {
+            if (f.id === fieldId) return String(f.answer || '')
+          }
+        }
+        return ''
+      }
+
+      const f10f = getAnswer('10f').toLowerCase()
+      const f10h = getAnswer('10h').toLowerCase()
+      const f10e = getAnswer('10e').toLowerCase()
+      const f04c = getAnswer('04c')
+      const f05c = getAnswer('05c')
+      const f06g = getAnswer('06g')
+      const f10a = getAnswer('10a')
+      const f10d = getAnswer('10d')
+      const f06c = getAnswer('06c').toLowerCase()
+
+      const breakdown: Array<{ factor: string; points: number; met: boolean }> = []
+
+      function record(factor: string, points: number, met: boolean) {
+        breakdown.push({ factor, points: met ? points : 0, met })
+      }
+
+      const hasBudgetGood = /\$3k|\$5k|\$10k|k\+/i.test(f10f)
+      record('Healthy budget ($3k+)', 15, hasBudgetGood)
+
+      const hasBudgetLow = /\$1-3k/i.test(f10f)
+      record('Entry-level budget ($1-3k)', 10, hasBudgetLow && !hasBudgetGood)
+
+      const singleDecisionMaker = (f10h.length > 0 && f10h.length < 60) || /just me|i decide/.test(f10h)
+      record('Clear decision maker', 15, singleDecisionMaker)
+
+      const fullEngagement = /full|retainer/.test(f10e)
+      record('Full retainer engagement type', 10, fullEngagement)
+
+      const hasTeam = /team|staff|employees|people|\d+/.test(f04c) && f04c.length > 0
+      record('Has a team to execute', 10, hasTeam)
+
+      const detailedLeadProcess = f05c.length >= 50
+      record('Detailed lead process explanation', 15, detailedLeadProcess)
+
+      const crmConfidenceMatch = f06g.match(/([4-9]|10)\b/)
+      record('CRM confidence 4-10', 10, !!crmConfidenceMatch)
+
+      const goalsDetailed = f10a.length >= 50
+      record('Detailed goals', 10, goalsDetailed)
+
+      const acknowledgedPastFailures = f10d.length > 0
+      record('Acknowledged what did not work before', 15, acknowledgedPastFailures)
+
+      // Penalties (stored as negative-pointed entries)
+      const unknownWorkflows = /don'?t know|not sure/.test(f06c)
+      if (unknownWorkflows) breakdown.push({ factor: "Unknown workflows (don't know / not sure)", points: -10, met: true })
+
+      const budgetTooLow = /under \$1k/i.test(f10f)
+      if (budgetTooLow) breakdown.push({ factor: 'Budget under $1k', points: -10, met: true })
+
+      const score = Math.max(0, Math.min(100, breakdown.reduce((a, b) => a + b.points, 0)))
+      const label =
+        score >= 80 ? 'High Readiness' :
+        score >= 60 ? 'Good Readiness' :
+        score >= 40 ? 'Moderate Readiness' : 'Low Readiness'
+
+      await s.from('koto_discovery_engagements').update({
+        readiness_score: score,
+        readiness_label: label,
+        readiness_calculated_at: new Date().toISOString(),
+      }).eq('id', engagement_id)
+
+      return Response.json({ data: { score, label, breakdown } })
+    }
+
+    // ─── add_session ────────────────────────────────────
+    if (action === 'add_session') {
+      const { engagement_id, call_date, call_duration_minutes, notes, transcript } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sessions, sections, client_name, client_industry').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const existingSessions = Array.isArray(eng.sessions) ? eng.sessions : []
+      const sessionNumber = existingSessions.length + 1
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+      const now = new Date().toISOString()
+
+      const newSession = {
+        id: sessionId,
+        session_number: sessionNumber,
+        call_date: call_date || now,
+        call_duration_minutes: call_duration_minutes || 0,
+        notes: notes || '',
+        created_at: now,
+      }
+
+      await s.from('koto_discovery_engagements').update({
+        sessions: [...existingSessions, newSession],
+      }).eq('id', engagement_id)
+
+      // If a transcript was provided, run import logic inline
+      let applied_count = 0
+      if (transcript && String(transcript).trim().length > 0) {
+        try {
+          const sections = Array.isArray(eng.sections) ? eng.sections : getDefaultSections()
+          const fieldCatalog: string[] = []
+          for (const sec of sections) {
+            for (const f of sec.fields || []) {
+              if (f.never_share) continue
+              fieldCatalog.push(`${sec.id} / ${f.id}: ${f.question}`)
+            }
+          }
+
+          const trSystem = 'You are analyzing a discovery call transcript. Extract every piece of information mapping to the discovery fields. Return JSON only: { "field_updates": [{"section_id","field_id","answer","confidence","quote"}], "summary": "string" }'
+          const trUser = `CLIENT: ${eng.client_name}
+INDUSTRY: ${eng.client_industry || 'unknown'}
+
+FIELDS:
+${fieldCatalog.join('\n').slice(0, 12000)}
+
+TRANSCRIPT:
+${String(transcript).slice(0, 60000)}`
+
+          const trRaw = await callClaude({
+            system: trSystem,
+            user: trUser,
+            maxTokens: 5000,
+            temperature: 0,
+            timeoutMs: 60000,
+          })
+          const trParsed = parseJson(trRaw) || {}
+          const updates = Array.isArray(trParsed.field_updates) ? trParsed.field_updates : []
+
+          const updatedSections = sections.map((sec: any) => ({ ...sec, fields: [...(sec.fields || [])] }))
+          for (const u of updates) {
+            if (!u?.section_id || !u?.field_id || !u?.answer) continue
+            const sec = updatedSections.find((x: any) => x.id === u.section_id)
+            if (!sec) continue
+            const field = sec.fields.find((f: any) => f.id === u.field_id)
+            if (!field) continue
+            field.answer = u.answer
+            field.source = 'transcript_imported'
+            field.transcript_quote = u.quote || ''
+            field.transcript_confidence = u.confidence || 'medium'
+            field.session_number = sessionNumber
+            applied_count++
+          }
+
+          if (applied_count > 0) {
+            await s.from('koto_discovery_engagements').update({ sections: updatedSections }).eq('id', engagement_id)
+          }
+        } catch { /* non-fatal */ }
+      }
+
+      return Response.json({ ok: true, session: newSession, applied_count })
+    }
+
+    // ─── save_notes ─────────────────────────────────────
+    if (action === 'save_notes') {
+      const { engagement_id, notes } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+      await s.from('koto_discovery_engagements').update({ general_notes: notes || '' }).eq('id', engagement_id)
+      return Response.json({ ok: true })
+    }
+
+    // ─── apply_notes_to_fields ──────────────────────────
+    if (action === 'apply_notes_to_fields') {
+      const { engagement_id } = body
+      if (!engagement_id) return Response.json({ error: 'Missing engagement_id' }, { status: 400 })
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sections, general_notes, client_name, client_industry').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const notes = (eng.general_notes || '').trim()
+      if (!notes) return Response.json({ data: { suggestions: [] } })
+
+      const fieldCatalog: string[] = []
+      const currentAnswers: string[] = []
+      for (const sec of eng.sections || []) {
+        for (const f of sec.fields || []) {
+          if (f.never_share) continue
+          fieldCatalog.push(`${sec.id} / ${f.id}: ${f.question}`)
+          if ((f.answer || '').trim()) currentAnswers.push(`[${sec.id}/${f.id}] ${f.answer}`)
+        }
+      }
+
+      const system = `Extract structured discovery answers from free-form notes. Return JSON: { "suggestions": [{"section_id": "string", "field_id": "string", "field_question": "string", "suggested_answer": "string", "confidence": "high|medium|low", "source_excerpt": "string"}] }
+
+Only suggest answers for fields that have clear evidence in the notes. Skip fields that already have good answers unless the notes add new information. Return ONLY the JSON object.`
+
+      const userPrompt = `CLIENT: ${eng.client_name}
+INDUSTRY: ${eng.client_industry || 'unknown'}
+
+NOTES:
+${notes.slice(0, 15000)}
+
+AVAILABLE FIELDS:
+${fieldCatalog.join('\n').slice(0, 10000)}
+
+CURRENT ANSWERS (for reference — only update if notes add new info):
+${currentAnswers.join('\n').slice(0, 5000)}`
+
+      const raw = await callClaude({
+        system,
+        user: userPrompt,
+        maxTokens: 3000,
+        temperature: 0,
+        timeoutMs: 30000,
+      })
+      const parsed = parseJson(raw) || { suggestions: [] }
+      const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : []
+      return Response.json({ data: { suggestions } })
+    }
+
+    // ─── apply_note_suggestions ─────────────────────────
+    if (action === 'apply_note_suggestions') {
+      const { engagement_id, suggestions } = body
+      if (!engagement_id || !Array.isArray(suggestions)) {
+        return Response.json({ error: 'Missing engagement_id or suggestions' }, { status: 400 })
+      }
+
+      const { data: eng } = await s.from('koto_discovery_engagements').select('sections').eq('id', engagement_id).maybeSingle()
+      if (!eng) return Response.json({ error: 'Not found' }, { status: 404 })
+
+      const sections = Array.isArray(eng.sections) ? eng.sections.map((sec: any) => ({ ...sec, fields: [...(sec.fields || [])] })) : []
+      let applied = 0
+
+      for (const sug of suggestions) {
+        if (!sug?.section_id || !sug?.field_id || !sug?.suggested_answer) continue
+        const sec = sections.find((x: any) => x.id === sug.section_id)
+        if (!sec) continue
+        const field = sec.fields.find((f: any) => f.id === sug.field_id)
+        if (!field) continue
+        field.answer = sug.suggested_answer
+        field.source = 'notes_applied'
+        applied++
+      }
+
+      await s.from('koto_discovery_engagements').update({ sections }).eq('id', engagement_id)
+      return Response.json({ ok: true, applied_count: applied })
+    }
+
+    // ─── create_from_scout ──────────────────────────────
+    if (action === 'create_from_scout') {
+      const { prospect } = body
+      if (!prospect) return Response.json({ error: 'Missing prospect' }, { status: 400 })
+
+      const clientName = prospect.prospect_company || prospect.company_name || prospect.name || 'Unknown'
+      const industry = prospect.industry || prospect.business_type || null
+
+      const sections = applyIndustryOverrides(getDefaultSections(), industry)
+
+      // Pre-fill section 01 with anything we know
+      const s01 = sections.find((x: any) => x.id === 'section_01')
+      if (s01) {
+        const a = s01.fields.find((f: any) => f.id === '01a')
+        if (a) {
+          a.answer = `From Scout: ${clientName}${prospect.city ? ` (${prospect.city})` : ''}. ${prospect.summary || prospect.description || ''}`.trim()
+          a.source = 'ai_generated'
+        }
+      }
+
+      const { data: eng, error } = await s.from('koto_discovery_engagements').insert({
+        agency_id: agencyId,
+        client_name: clientName,
+        client_industry: industry,
+        status: 'research_running',
+        sections,
+        source_meta: {
+          is_test: false,
+          source: 'scout',
+          scout_prospect_id: prospect.id || null,
+          created_via: 'create_from_scout',
+        },
+      }).select('*').maybeSingle()
+
+      if (error || !eng) return Response.json({ error: error?.message || 'Insert failed' }, { status: 500 })
+
+      // Add a primary domain if the prospect has a website
+      const website = prospect.website || prospect.domain || prospect.url
+      if (website) {
+        await s.from('koto_discovery_domains').insert({
+          engagement_id: eng.id,
+          agency_id: agencyId,
+          url: website,
+          domain_type: 'primary',
+          scan_status: 'pending',
+        })
+      }
+
+      // Fire background research (non-blocking)
+      runResearchForEngagement(eng.id).catch(() => {
+        sb().from('koto_discovery_engagements').update({ status: 'research_complete' }).eq('id', eng.id).then(() => {})
+      })
+
+      return Response.json({ data: { engagement_id: eng.id } })
+    }
+
+    // ─── create_from_voice ──────────────────────────────
+    if (action === 'create_from_voice') {
+      const { call_id, lead_id } = body
+      if (!call_id && !lead_id) return Response.json({ error: 'Missing call_id or lead_id' }, { status: 400 })
+
+      let lead: any = null
+      let call: any = null
+      if (lead_id) {
+        const { data } = await s.from('koto_voice_leads').select('*').eq('id', lead_id).maybeSingle()
+        lead = data
+      }
+      if (call_id) {
+        const { data } = await s.from('koto_voice_calls').select('*').eq('id', call_id).maybeSingle()
+        call = data
+        if (!lead && data?.lead_id) {
+          const { data: l2 } = await s.from('koto_voice_leads').select('*').eq('id', data.lead_id).maybeSingle()
+          lead = l2
+        }
+      }
+
+      const clientName = lead?.business_name || lead?.prospect_name || call?.metadata?.business_name || call?.metadata?.prospect_name || 'Unknown'
+      const industry = lead?.industry || null
+
+      const sections = applyIndustryOverrides(getDefaultSections(), industry)
+
+      // Pre-fill section 01 with call context
+      const s01 = sections.find((x: any) => x.id === 'section_01')
+      if (s01) {
+        const a = s01.fields.find((f: any) => f.id === '01a')
+        if (a && (lead || call)) {
+          a.answer = `From Voice call: ${clientName}${lead?.prospect_phone ? ` (${lead.prospect_phone})` : ''}. ${call?.call_analysis?.call_summary || ''}`.trim()
+          a.source = 'ai_generated'
+        }
+      }
+
+      const { data: eng, error } = await s.from('koto_discovery_engagements').insert({
+        agency_id: agencyId,
+        client_name: clientName,
+        client_industry: industry,
+        status: 'research_running',
+        sections,
+        source_meta: {
+          is_test: false,
+          source: 'voice',
+          voice_call_id: call?.id || null,
+          voice_lead_id: lead?.id || null,
+          created_via: 'create_from_voice',
+        },
+      }).select('*').maybeSingle()
+
+      if (error || !eng) return Response.json({ error: error?.message || 'Insert failed' }, { status: 500 })
+
+      // If the call has a transcript, run transcript import inline
+      if (call?.transcript) {
+        try {
+          const fieldCatalog: string[] = []
+          for (const sec of sections) {
+            for (const f of sec.fields || []) {
+              if (f.never_share) continue
+              fieldCatalog.push(`${sec.id} / ${f.id}: ${f.question}`)
+            }
+          }
+          const trSystem = 'Extract discovery answers from this call transcript. Return JSON only: { "field_updates": [{"section_id","field_id","answer","confidence","quote"}] }'
+          const trUser = `CLIENT: ${clientName}\n\nFIELDS:\n${fieldCatalog.join('\n').slice(0, 12000)}\n\nTRANSCRIPT:\n${String(call.transcript).slice(0, 60000)}`
+          const trRaw = await callClaude({
+            system: trSystem,
+            user: trUser,
+            maxTokens: 5000,
+            temperature: 0,
+            timeoutMs: 45000,
+          })
+          const trParsed = parseJson(trRaw) || {}
+          const updates = Array.isArray(trParsed.field_updates) ? trParsed.field_updates : []
+          const updatedSections = sections.map((sec: any) => ({ ...sec, fields: [...(sec.fields || [])] }))
+          for (const u of updates) {
+            if (!u?.section_id || !u?.field_id || !u?.answer) continue
+            const sec2 = updatedSections.find((x: any) => x.id === u.section_id)
+            if (!sec2) continue
+            const field = sec2.fields.find((f: any) => f.id === u.field_id)
+            if (!field) continue
+            field.answer = u.answer
+            field.source = 'transcript_imported'
+            field.transcript_quote = u.quote || ''
+          }
+          await s.from('koto_discovery_engagements').update({ sections: updatedSections }).eq('id', eng.id)
+        } catch { /* non-fatal */ }
+      } else {
+        // No transcript — kick off normal research
+        runResearchForEngagement(eng.id).catch(() => {
+          sb().from('koto_discovery_engagements').update({ status: 'research_complete' }).eq('id', eng.id).then(() => {})
+        })
+      }
+
+      return Response.json({ data: { engagement_id: eng.id } })
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })

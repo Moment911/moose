@@ -7,8 +7,9 @@ import {
   BarChart2, Bookmark, BookmarkCheck, ArrowRight,
   Sparkles, RefreshCw, Shield, Info, ChevronRight,
   Users, TrendingUp, AlertCircle, Building, Zap,
-  BarChart, Eye, HardDrive
+  BarChart, Eye, HardDrive, Brain
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import ScoutLayout from './ScoutLayout'
 import { useAuth } from '../../hooks/useAuth'
 import { useMobile } from '../../hooks/useMobile'
@@ -18,7 +19,6 @@ import { callClaude } from '../../lib/ai'
 import { enrichLeads, SOURCES, confidenceLabel, dataSummary } from '../../lib/scoutEnrich'
 import { runLeadPipeline } from '../../lib/scoutPipeline'
 import { scoutWithPlaces, placeToLead, hasGoogleKey } from '../../lib/googlePlaces'
-import toast from 'react-hot-toast'
 import AIThinkingBox from '../../components/AIThinkingBox'
 
 const R   = '#E6007E'
@@ -269,7 +269,7 @@ function RevenueChip({ revenue }) {
   )
 }
 
-function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
+function LeadCard({ lead, mode, onSave, onAddClient, onReport, onStartDiscovery, saved, view }) {
   const [expanded, setExpanded] = useState(false)
   const temp  = tempLabel(lead.score||50)
   const score = lead.score||50
@@ -491,6 +491,14 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, saved, view }) {
             style={{ display:'flex', alignItems:'center', gap:4, padding:'7px 10px', borderRadius:8, border:`1px solid ${ACCENT}`, background:`${ACCENT}12`, color:ACCENT, fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
             <Sparkles size={11}/> Report
           </button>
+          {onStartDiscovery && (
+            <button
+              onClick={()=>onStartDiscovery(lead)}
+              title="Start a Discovery engagement from this prospect"
+              style={{ display:'flex', alignItems:'center', gap:4, padding:'7px 10px', borderRadius:8, border:'1px solid #00C2CB', background:'#00C2CB12', color:'#00C2CB', fontSize:13, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}>
+              <Brain size={11}/> Discovery
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -721,6 +729,38 @@ export default function ScoutPage() {
     if (next.has(lead.id)) { next.delete(lead.id); toast('Removed') }
     else { next.add(lead.id); toast.success('Saved') }
     setSaved(next)
+  }
+
+  async function startDiscoveryFromProspect(lead) {
+    toast.loading('Creating discovery…', { id: 'disc-start' })
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create_from_scout',
+          agency_id: agencyId,
+          prospect: {
+            id: lead.id,
+            prospect_company: lead.name || lead.business_name,
+            company_name: lead.name || lead.business_name,
+            industry: lead.types?.[0] || '',
+            city: lead.city || lead.address || '',
+            phone: lead.phone || '',
+            website: lead.website || '',
+            summary: lead.ai_summary || '',
+          },
+        }),
+      }).then(r => r.json())
+      if (res?.data?.engagement_id) {
+        toast.success('Discovery engagement created', { id: 'disc-start' })
+        navigate('/discovery')
+      } else {
+        toast.error(res?.error || 'Failed to create', { id: 'disc-start' })
+      }
+    } catch {
+      toast.error('Request failed', { id: 'disc-start' })
+    }
   }
 
   async function addAsClient(lead) {
@@ -1121,7 +1161,9 @@ export default function ScoutPage() {
                   <LeadCard key={lead.id} lead={lead} mode={mode} view={view}
                     saved={saved.has(lead.id)}
                     onSave={toggleSaved}
-                    onAddClient={addAsClient} onReport={(lead)=>navigate('/scout/report', {state:{lead, allLeads:results, query, searchId:currentSearchId, searchLocation:location}})}/>
+                    onAddClient={addAsClient}
+                    onReport={(lead)=>navigate('/scout/report', {state:{lead, allLeads:results, query, searchId:currentSearchId, searchLocation:location}})}
+                    onStartDiscovery={startDiscoveryFromProspect}/>
                 ))}
               </div>
               {displayed.length===0 && (

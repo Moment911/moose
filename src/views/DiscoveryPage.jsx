@@ -6,7 +6,8 @@ import {
   Loader2, AlertTriangle, Info, ChevronDown, ChevronRight, ExternalLink, RefreshCw,
   MessageSquare, Globe, Trash2, Send, Zap, FileText, List, CheckCircle2, AlertOctagon, Lightbulb, TrendingDown,
   Database, PanelRightClose, PanelRightOpen,
-  MoreVertical, Clock, UserPlus, Archive, User, TrendingUp
+  MoreVertical, Clock, UserPlus, Archive, User, TrendingUp,
+  ClipboardList, Mail, Printer, CalendarDays, StickyNote, Award, AlertCircle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
@@ -579,12 +580,17 @@ function DetailView({ aid, id, onBack }) {
   const [busyResearch, setBusyResearch] = useState(false)
   const [busyCompile, setBusyCompile] = useState(false)
   const [showShare, setShowShare] = useState(false)
-  const [mode, setMode] = useState('document') // 'document' | 'interview' | 'profile'
+  const [mode, setMode] = useState('document') // 'document' | 'interview' | 'profile' | 'sessions'
   const [showLivePanel, setShowLivePanel] = useState(false)
   const [busyAudit, setBusyAudit] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showAssign, setShowAssign] = useState(false)
+  const [showPrepSheet, setShowPrepSheet] = useState(false)
+  const [busyPrepSheet, setBusyPrepSheet] = useState(false)
+  const [showFollowup, setShowFollowup] = useState(false)
+  const [readiness, setReadiness] = useState(null) // { score, label, breakdown }
+  const [showReadiness, setShowReadiness] = useState(false)
   const navigate = useNavigate()
 
   // Keystroke state lives in refs so typing does NOT re-render siblings.
@@ -691,6 +697,51 @@ function DetailView({ aid, id, onBack }) {
     }
   }
 
+  async function openPrepSheet() {
+    if (eng?.prep_sheet) {
+      setShowPrepSheet(true)
+      return
+    }
+    setBusyPrepSheet(true)
+    const loadingToast = toast.loading('Generating prep sheet…')
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate_prep_sheet', engagement_id: id, agency_id: aid }),
+      }).then(r => r.json())
+      toast.dismiss(loadingToast)
+      if (res?.data?.prep_sheet) {
+        setEng(prev => prev ? { ...prev, prep_sheet: res.data.prep_sheet } : prev)
+        setShowPrepSheet(true)
+      } else {
+        toast.error(res?.error || 'Prep sheet failed')
+      }
+    } catch {
+      toast.dismiss(loadingToast)
+      toast.error('Prep sheet request failed')
+    } finally {
+      setBusyPrepSheet(false)
+    }
+  }
+
+  async function calculateReadiness() {
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'calculate_readiness', engagement_id: id, agency_id: aid }),
+      }).then(r => r.json())
+      if (res?.data) setReadiness(res.data)
+    } catch { /* silent */ }
+  }
+
+  // Auto-calculate readiness when engagement becomes compiled
+  useEffect(() => {
+    if (eng?.status === 'compiled' && !readiness) {
+      calculateReadiness()
+    }
+    // eslint-disable-next-line
+  }, [eng?.status])
+
   function updateSectionInState(sectionId, mutator) {
     setEng(prev => {
       if (!prev) return prev
@@ -740,6 +791,13 @@ function DetailView({ aid, id, onBack }) {
                   <UserPlus size={11} /> Assign
                 </button>
               )}
+              {readiness && (
+                <ReadinessBadge
+                  score={readiness.score}
+                  label={readiness.label}
+                  onClick={() => setShowReadiness(true)}
+                />
+              )}
             </div>
             <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>{eng.client_industry || 'No industry'}</div>
           </div>
@@ -770,6 +828,29 @@ function DetailView({ aid, id, onBack }) {
             icon={User}
             label="Profile"
             outlined={mode !== 'profile'}
+          />
+          <HeaderBtn
+            onClick={() => setMode(m => m === 'sessions' ? 'document' : 'sessions')}
+            color={mode === 'sessions' ? C.teal : C.text}
+            icon={CalendarDays}
+            label="Sessions"
+            outlined={mode !== 'sessions'}
+          />
+          <HeaderBtn
+            onClick={openPrepSheet}
+            disabled={busyPrepSheet}
+            color={C.text}
+            icon={busyPrepSheet ? Loader2 : ClipboardList}
+            label={busyPrepSheet ? 'Generating…' : 'Prep Sheet'}
+            spinning={busyPrepSheet}
+            outlined
+          />
+          <HeaderBtn
+            onClick={() => setShowFollowup(true)}
+            color={C.text}
+            icon={Mail}
+            label="Follow-Up Email"
+            outlined
           />
           <HeaderBtn
             onClick={() => setShowTranscript(true)}
@@ -807,6 +888,8 @@ function DetailView({ aid, id, onBack }) {
         />
       ) : mode === 'profile' ? (
         <ProfileCard eng={eng} domains={domains} onNavigate={(p) => navigate(p)} />
+      ) : mode === 'sessions' ? (
+        <SessionsView eng={eng} aid={aid} onChange={load} />
       ) : (
       <>
       {/* Layout: sticky nav + main [+ optional live answers panel] */}
@@ -910,6 +993,28 @@ function DetailView({ aid, id, onBack }) {
           aid={aid}
           onClose={() => setShowAssign(false)}
           onAssigned={() => { setShowAssign(false); load() }}
+        />
+      )}
+      {showPrepSheet && eng.prep_sheet && (
+        <PrepSheetModal
+          prepSheet={eng.prep_sheet}
+          clientName={eng.client_name}
+          industry={eng.client_industry}
+          onClose={() => setShowPrepSheet(false)}
+        />
+      )}
+      {showFollowup && (
+        <FollowupEmailModal
+          eng={eng}
+          aid={aid}
+          onClose={() => setShowFollowup(false)}
+          onSent={() => { setShowFollowup(false); load() }}
+        />
+      )}
+      {showReadiness && readiness && (
+        <ReadinessPopover
+          data={readiness}
+          onClose={() => setShowReadiness(false)}
         />
       )}
     </div>
@@ -2292,13 +2397,13 @@ function LiveAnswersPanel({ eng, engagementId, agencyId, answersRef, sectionsRef
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}` }}>
-        {['answers', 'flags', 'summary'].map(t => (
+        {['answers', 'flags', 'summary', 'notes'].map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             style={{
-              flex: 1, padding: '10px 8px', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em',
+              flex: 1, padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em',
               color: tab === t ? C.teal : C.muted,
               borderBottom: tab === t ? `2px solid ${C.teal}` : '2px solid transparent',
             }}
@@ -2335,6 +2440,13 @@ function LiveAnswersPanel({ eng, engagementId, agencyId, answersRef, sectionsRef
             sectionStats={sectionStats}
             totalFields={totalFields}
             totalAnswered={totalAnswered}
+          />
+        )}
+        {tab === 'notes' && (
+          <NotesTab
+            eng={eng}
+            engagementId={engagementId}
+            agencyId={agencyId}
           />
         )}
       </div>
@@ -3325,4 +3437,897 @@ function statusBadgeMap(status) {
     archived: { label: 'Archived', bg: '#F3F4F6', fg: '#6B7280' },
   }
   return map[status] || map.draft
+}
+
+// ─────────────────────────────────────────────────────────────
+// Readiness badge + popover
+// ─────────────────────────────────────────────────────────────
+function ReadinessBadge({ score, label, onClick }) {
+  const palette =
+    score >= 80 ? { bg: C.greenTint, fg: C.green, text: 'Ready ✓' } :
+    score >= 60 ? { bg: C.tealTint, fg: C.teal, text: 'Good Fit' } :
+    score >= 40 ? { bg: C.amberTint, fg: C.amber, text: 'Needs Prep' } :
+                  { bg: '#FEE2E2', fg: '#991b1b', text: 'Not Ready' }
+  return (
+    <button
+      onClick={onClick}
+      title={`Readiness: ${score}/100 — ${label}`}
+      style={{
+        background: palette.bg, border: 'none', borderRadius: 12,
+        padding: '3px 10px', fontSize: 11, fontWeight: 800, color: palette.fg, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 4, textTransform: 'uppercase', letterSpacing: '.04em',
+      }}
+    >
+      <Award size={11} />
+      {palette.text}
+      <span style={{ opacity: 0.7, fontWeight: 600 }}>{score}</span>
+    </button>
+  )
+}
+
+function ReadinessPopover({ data, onClose }) {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: C.white, borderRadius: 14, padding: 24, width: '100%',
+          maxWidth: 520, maxHeight: '85vh', overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <Award size={18} color={C.teal} />
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: C.text }}>Client Readiness</h3>
+          <button
+            onClick={onClose}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: C.muted, padding: 4 }}
+          ><X size={15} /></button>
+        </div>
+
+        <div style={{
+          background: '#fafafa', borderRadius: 12, padding: 18, marginBottom: 16, textAlign: 'center',
+        }}>
+          <div style={{
+            fontSize: 52, fontWeight: 800, color: C.text, lineHeight: 1, fontFamily: 'var(--font-display)',
+          }}>{data.score}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.muted, marginTop: 6 }}>
+            {data.label}
+          </div>
+        </div>
+
+        <div style={{
+          fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10,
+        }}>
+          Breakdown
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {(data.breakdown || []).map((row, i) => {
+            const met = row.met
+            const positive = row.points > 0
+            const negative = row.points < 0
+            const color = positive ? C.green : negative ? '#dc2626' : C.muted
+            return (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 12px', background: met ? (negative ? '#fee2e2' : C.tealTint) : '#fafafa',
+                borderRadius: 8, border: `1px solid ${met ? (negative ? '#fca5a5' : C.teal + '30') : C.border}`,
+              }}>
+                {met
+                  ? (negative ? <AlertCircle size={13} color="#dc2626" /> : <Check size={13} color={C.green} />)
+                  : <X size={13} color={C.muted} />}
+                <div style={{ flex: 1, fontSize: 12, color: C.text, fontWeight: met ? 600 : 500 }}>
+                  {row.factor}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 800, color, fontFamily: 'var(--font-display)' }}>
+                  {row.points > 0 ? '+' : ''}{row.points}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Prep Sheet modal
+// ─────────────────────────────────────────────────────────────
+function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: C.white, borderRadius: 14, width: '100%', maxWidth: 880,
+          maxHeight: '90vh', overflowY: 'auto',
+        }}
+      >
+        <style>{`@media print { .no-print { display: none !important; } body { background: white !important; } }`}</style>
+
+        <div className="no-print" style={{
+          padding: '18px 26px', borderBottom: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', gap: 10, background: '#fafafa',
+          position: 'sticky', top: 0, zIndex: 1,
+        }}>
+          <ClipboardList size={18} color={C.teal} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+              Call Prep Sheet
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>
+              {clientName}{industry ? ` · ${industry}` : ''}
+            </div>
+          </div>
+          <button
+            onClick={() => window.print()}
+            style={{
+              background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
+              padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: C.text,
+              display: 'flex', alignItems: 'center', gap: 5,
+            }}
+          >
+            <Printer size={12} /> Print
+          </button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: C.muted }}>
+            <X size={15} />
+          </button>
+        </div>
+
+        <div style={{ padding: '22px 28px' }}>
+          {prepSheet.client_snapshot && (
+            <div style={{ marginBottom: 22, borderLeft: `3px solid ${C.teal}`, paddingLeft: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Client Snapshot
+              </div>
+              <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>{prepSheet.client_snapshot}</div>
+            </div>
+          )}
+
+          {Array.isArray(prepSheet.top_5_questions) && prepSheet.top_5_questions.length > 0 && (
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+                Top 5 Questions to Ask
+              </div>
+              <ol style={{ margin: 0, paddingLeft: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {prepSheet.top_5_questions.map((q, i) => (
+                  <li key={i} style={{ fontSize: 14, color: C.text }}>
+                    <div style={{ fontWeight: 700, color: C.text, marginBottom: 4 }}>{q.question}</div>
+                    {q.why && <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic', marginBottom: 4 }}>Why: {q.why}</div>}
+                    {q.section && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                        background: C.tealTint, color: C.teal, textTransform: 'uppercase',
+                      }}>{q.section}</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {Array.isArray(prepSheet.risk_flags) && prepSheet.risk_flags.length > 0 && (
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+                Risk Flags
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {prepSheet.risk_flags.map((r, i) => (
+                  <div key={i} style={{
+                    background: C.amberTint, border: `1px solid #FCD34D`, borderRadius: 10, padding: 12,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <AlertTriangle size={13} color={C.amber} />
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>{r.flag}</div>
+                    </div>
+                    {r.probe && <div style={{ fontSize: 12, color: '#92400E', fontStyle: 'italic' }}>Probe: {r.probe}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Array.isArray(prepSheet.tech_gaps_to_confirm) && prepSheet.tech_gaps_to_confirm.length > 0 && (
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+                Tech Gaps to Confirm
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#fafafa' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Category</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Current</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Confirm Question</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prepSheet.tech_gaps_to_confirm.map((g, i) => (
+                    <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: C.text }}>{g.tool_category}</td>
+                      <td style={{ padding: '10px 12px', color: C.muted }}>{g.current_status}</td>
+                      <td style={{ padding: '10px 12px', color: C.text, fontStyle: 'italic' }}>{g.confirm_question}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {Array.isArray(prepSheet.ghl_opportunities_most_relevant) && prepSheet.ghl_opportunities_most_relevant.length > 0 && (
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+                Most Relevant GHL Opportunities
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {prepSheet.ghl_opportunities_most_relevant.map((o, i) => (
+                  <div key={i} style={{
+                    background: C.greenTint, border: `1px solid ${C.green}40`, borderRadius: 10, padding: 12,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Sparkles size={13} color={C.green} />
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#14532d' }}>{o.opportunity}</div>
+                    </div>
+                    {o.reason && <div style={{ fontSize: 12, color: '#166534', marginBottom: 4 }}>{o.reason}</div>}
+                    {o.ask && <div style={{ fontSize: 12, color: '#166534', fontStyle: 'italic' }}>Ask: "{o.ask}"</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {prepSheet.opening_recommendation && (
+            <div style={{
+              background: C.tealTint, border: `1px solid ${C.teal}40`, borderRadius: 12, padding: 16,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Recommended Opening
+              </div>
+              <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>
+                "{prepSheet.opening_recommendation}"
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Follow-Up Email modal
+// ─────────────────────────────────────────────────────────────
+function FollowupEmailModal({ eng, aid, onClose, onSent }) {
+  const [recipientName, setRecipientName] = useState(eng?.client_name || '')
+  const [recipientEmail, setRecipientEmail] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [email, setEmail] = useState(null)
+  const [sending, setSending] = useState(false)
+
+  async function generate() {
+    setBusy(true)
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_followup_email',
+          engagement_id: eng.id,
+          recipient_email: recipientEmail || null,
+          recipient_name: recipientName || null,
+          agency_id: aid,
+        }),
+      }).then(r => r.json())
+      if (res?.data?.email) setEmail(res.data.email)
+      else toast.error(res?.error || 'Generation failed')
+    } catch {
+      toast.error('Generation request failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function send() {
+    if (!recipientEmail) {
+      toast.error('Recipient email required to send')
+      return
+    }
+    setSending(true)
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate_followup_email',
+          engagement_id: eng.id,
+          recipient_email: recipientEmail,
+          recipient_name: recipientName,
+          send: true,
+          agency_id: aid,
+        }),
+      }).then(r => r.json())
+      if (res?.data?.sent) {
+        toast.success(`Sent to ${recipientEmail}`)
+        onSent()
+      } else {
+        toast.error('Send failed — make sure Resend is configured')
+      }
+    } catch {
+      toast.error('Send request failed')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  async function copyText() {
+    if (!email?.body_text) return
+    try {
+      await navigator.clipboard.writeText(`Subject: ${email.subject}\n\n${email.body_text}`)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Copy failed')
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: C.white, borderRadius: 14, width: '100%', maxWidth: 680,
+          maxHeight: '90vh', overflowY: 'auto',
+        }}
+      >
+        <div style={{
+          padding: '18px 24px', borderBottom: `1px solid ${C.border}`,
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <Mail size={18} color={C.teal} />
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: C.text, flex: 1 }}>Follow-Up Email</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: C.muted }}>
+            <X size={15} />
+          </button>
+        </div>
+
+        <div style={{ padding: 22 }}>
+          {!email ? (
+            <>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                Recipient name
+              </div>
+              <input
+                value={recipientName}
+                onChange={e => setRecipientName(e.target.value)}
+                onKeyDown={e => e.stopPropagation()}
+                placeholder="Alex Rivera"
+                style={{
+                  width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`,
+                  borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 12,
+                }}
+              />
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                Recipient email
+              </div>
+              <input
+                value={recipientEmail}
+                onChange={e => setRecipientEmail(e.target.value)}
+                onKeyDown={e => e.stopPropagation()}
+                placeholder="alex@acme.com"
+                style={{
+                  width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`,
+                  borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 16,
+                }}
+              />
+              <button
+                onClick={generate}
+                disabled={busy}
+                style={{
+                  background: C.teal, color: '#fff', border: 'none', borderRadius: 10,
+                  padding: '11px 22px', fontSize: 14, fontWeight: 700, cursor: busy ? 'wait' : 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto',
+                }}
+              >
+                {busy ? <Loader2 size={14} className="anim-spin" /> : <Sparkles size={14} />}
+                {busy ? 'Generating…' : 'Generate & Preview'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{
+                background: '#fafafa', borderRadius: 10, padding: 16, marginBottom: 14, border: `1px solid ${C.border}`,
+              }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 3 }}>Subject</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{email.subject}</div>
+              </div>
+              <div style={{
+                background: C.white, borderRadius: 10, padding: 18, marginBottom: 14, border: `1px solid ${C.border}`,
+                fontSize: 14, color: C.text, lineHeight: 1.65,
+              }} dangerouslySetInnerHTML={{ __html: email.body_html || '' }} />
+              {Array.isArray(email.key_points_heard) && email.key_points_heard.length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                    Key points heard
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {email.key_points_heard.map((p, i) => (
+                      <li key={i} style={{ fontSize: 13, color: C.text }}>{p}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {email.recommended_next_step && (
+                <div style={{
+                  background: C.tealTint, border: `1px solid ${C.teal}40`, borderRadius: 10, padding: 12, marginBottom: 14,
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+                    Recommended next step
+                  </div>
+                  <div style={{ fontSize: 13, color: C.text }}>{email.recommended_next_step}</div>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 18 }}>
+                <button
+                  onClick={() => setEmail(null)}
+                  style={{
+                    background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
+                    padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: C.text,
+                  }}
+                >Regenerate</button>
+                <button
+                  onClick={copyText}
+                  style={{
+                    background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
+                    padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: C.text,
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}
+                >
+                  <Copy size={12} /> Copy
+                </button>
+                <button
+                  onClick={send}
+                  disabled={sending || !recipientEmail}
+                  style={{
+                    background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
+                    padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: sending ? 'wait' : 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    opacity: sending || !recipientEmail ? 0.7 : 1,
+                  }}
+                >
+                  {sending ? <Loader2 size={12} className="anim-spin" /> : <Send size={12} />}
+                  {sending ? 'Sending…' : 'Send'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Notes tab (Live Answers panel)
+// ─────────────────────────────────────────────────────────────
+function NotesTab({ eng, engagementId, agencyId }) {
+  const [notes, setNotes] = useState(eng?.general_notes || '')
+  const [saving, setSaving] = useState(false)
+  const [suggestions, setSuggestions] = useState(null)
+  const [applying, setApplying] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+  const saveTimer = useRef(null)
+  const loadedIdRef = useRef(engagementId)
+
+  useEffect(() => {
+    if (loadedIdRef.current !== engagementId) {
+      loadedIdRef.current = engagementId
+      setNotes(eng?.general_notes || '')
+    }
+  }, [engagementId, eng?.general_notes])
+
+  useEffect(() => {
+    if (notes === (eng?.general_notes || '')) return
+    clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      setSaving(true)
+      fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_notes',
+          engagement_id: engagementId,
+          notes,
+          agency_id: agencyId,
+        }),
+      }).catch(() => {}).finally(() => setSaving(false))
+    }, 1500)
+    return () => clearTimeout(saveTimer.current)
+    // eslint-disable-next-line
+  }, [notes])
+
+  async function analyze() {
+    setAnalyzing(true)
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'apply_notes_to_fields',
+          engagement_id: engagementId,
+          agency_id: agencyId,
+        }),
+      }).then(r => r.json())
+      setSuggestions(res?.data?.suggestions || [])
+    } catch {
+      toast.error('Analysis failed')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  async function applyAll() {
+    if (!suggestions || suggestions.length === 0) return
+    setApplying(true)
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'apply_note_suggestions',
+          engagement_id: engagementId,
+          suggestions,
+          agency_id: agencyId,
+        }),
+      }).then(r => r.json())
+      if (res?.ok) {
+        toast.success(`Applied ${res.applied_count} answers`)
+        setSuggestions(null)
+      } else {
+        toast.error('Apply failed')
+      }
+    } catch {
+      toast.error('Apply request failed')
+    } finally {
+      setApplying(false)
+    }
+  }
+
+  return (
+    <div>
+      <div style={{
+        fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
+      }}>
+        Notes
+        {saving && <span style={{ marginLeft: 6, color: C.teal, fontWeight: 600 }}>saving…</span>}
+      </div>
+      <textarea
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+        onKeyDown={e => e.stopPropagation()}
+        placeholder="Paste anything here — call notes, emails, context…"
+        style={{
+          width: '100%', minHeight: 200, padding: '10px 12px', border: `1px solid ${C.border}`,
+          borderRadius: 8, fontSize: 13, outline: 'none', fontFamily: 'inherit', resize: 'vertical',
+          lineHeight: 1.5, boxSizing: 'border-box',
+        }}
+      />
+      <button
+        onClick={analyze}
+        disabled={analyzing || notes.trim().length === 0}
+        style={{
+          marginTop: 10, width: '100%', background: C.teal, color: '#fff', border: 'none',
+          borderRadius: 8, padding: '9px 16px', fontSize: 12, fontWeight: 700,
+          cursor: analyzing || notes.trim().length === 0 ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+          opacity: analyzing || notes.trim().length === 0 ? 0.6 : 1,
+        }}
+      >
+        {analyzing ? <Loader2 size={12} className="anim-spin" /> : <Sparkles size={12} />}
+        {analyzing ? 'Analyzing…' : 'Apply to Discovery'}
+      </button>
+
+      {suggestions && suggestions.length === 0 && (
+        <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic', marginTop: 12, textAlign: 'center' }}>
+          No new information extracted from notes.
+        </div>
+      )}
+
+      {suggestions && suggestions.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
+          }}>
+            {suggestions.length} Suggestions
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+            {suggestions.map((sug, i) => (
+              <div key={i} style={{
+                padding: '8px 10px', background: '#fafafa', borderRadius: 6, border: `1px solid ${C.border}`,
+              }}>
+                <div style={{ fontSize: 10, color: C.muted, marginBottom: 3 }}>
+                  {sug.section_id}/{sug.field_id} · {sug.confidence}
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.text, marginBottom: 3 }}>
+                  {sug.field_question}
+                </div>
+                <div style={{ fontSize: 12, color: C.text, lineHeight: 1.4 }}>
+                  {sug.suggested_answer}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={applyAll}
+            disabled={applying}
+            style={{
+              width: '100%', background: C.text, color: '#fff', border: 'none', borderRadius: 8,
+              padding: '9px 16px', fontSize: 12, fontWeight: 700, cursor: applying ? 'wait' : 'pointer',
+            }}
+          >
+            {applying ? 'Applying…' : `Apply all ${suggestions.length}`}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sessions mode
+// ─────────────────────────────────────────────────────────────
+function SessionsView({ eng, aid, onChange }) {
+  const [showAdd, setShowAdd] = useState(false)
+  const sessions = Array.isArray(eng?.sessions) ? eng.sessions : []
+  const sortedSessions = [...sessions].sort((a, b) => new Date(b.call_date || b.created_at) - new Date(a.call_date || a.created_at))
+
+  return (
+    <div>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18,
+      }}>
+        <div>
+          <div style={{
+            fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4,
+          }}>
+            Call Sessions
+          </div>
+          <div style={{ fontSize: 14, color: C.muted }}>
+            {sessions.length === 0 ? 'No sessions logged yet' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'} logged`}
+          </div>
+        </div>
+        <button
+          onClick={() => setShowAdd(true)}
+          style={{
+            background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
+            padding: '9px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <Plus size={13} /> Add Session
+        </button>
+      </div>
+
+      {sessions.length === 0 ? (
+        <div style={{
+          padding: 40, textAlign: 'center', background: C.white,
+          borderRadius: 12, border: `1px solid ${C.border}`,
+        }}>
+          <CalendarDays size={32} color={C.muted} style={{ opacity: 0.4 }} />
+          <div style={{ fontSize: 15, color: C.text, fontWeight: 600, marginTop: 10 }}>
+            No call sessions yet
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+            Log a call to build a timeline of every touchpoint with this client.
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: 22,
+        }}>
+          <div style={{ position: 'relative', paddingLeft: 20 }}>
+            <div style={{
+              position: 'absolute', left: 5, top: 6, bottom: 6, width: 2, background: C.tealTint,
+            }} />
+            {sortedSessions.map((sess, i) => (
+              <div key={sess.id} style={{ position: 'relative', marginBottom: i < sortedSessions.length - 1 ? 18 : 0 }}>
+                <div style={{
+                  position: 'absolute', left: -21, top: 4,
+                  width: 12, height: 12, borderRadius: '50%', background: C.teal,
+                  border: `2px solid ${C.white}`,
+                }} />
+                <div style={{
+                  padding: 14, background: '#fafafa', borderRadius: 10, border: `1px solid ${C.border}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, padding: '2px 9px', borderRadius: 10,
+                      background: C.tealTint, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em',
+                    }}>
+                      Session {sess.session_number}
+                    </span>
+                    <span style={{ fontSize: 12, color: C.muted }}>
+                      {new Date(sess.call_date || sess.created_at).toLocaleString()}
+                    </span>
+                    {sess.call_duration_minutes > 0 && (
+                      <span style={{ fontSize: 12, color: C.muted }}>
+                        · {sess.call_duration_minutes} min
+                      </span>
+                    )}
+                  </div>
+                  {sess.notes && (
+                    <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {sess.notes}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showAdd && (
+        <AddSessionModal
+          eng={eng}
+          aid={aid}
+          nextNumber={sessions.length + 1}
+          onClose={() => setShowAdd(false)}
+          onAdded={() => { setShowAdd(false); onChange() }}
+        />
+      )}
+    </div>
+  )
+}
+
+function AddSessionModal({ eng, aid, nextNumber, onClose, onAdded }) {
+  const [callDate, setCallDate] = useState(() => new Date().toISOString().slice(0, 16))
+  const [duration, setDuration] = useState(30)
+  const [notes, setNotes] = useState('')
+  const [transcript, setTranscript] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function submit() {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/discovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_session',
+          engagement_id: eng.id,
+          call_date: callDate,
+          call_duration_minutes: Number(duration) || 0,
+          notes,
+          transcript: transcript.trim() || undefined,
+          agency_id: aid,
+        }),
+      }).then(r => r.json())
+      if (res?.ok) {
+        const extra = res.applied_count ? ` · ${res.applied_count} fields updated from transcript` : ''
+        toast.success(`Session ${nextNumber} added${extra}`)
+        onAdded()
+      } else {
+        toast.error(res?.error || 'Add failed')
+      }
+    } catch {
+      toast.error('Request failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: C.white, borderRadius: 14, padding: 24, width: '100%', maxWidth: 560,
+          maxHeight: '90vh', overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <CalendarDays size={18} color={C.teal} />
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: C.text }}>
+            Add Session #{nextNumber}
+          </h3>
+        </div>
+
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 10, marginBottom: 6 }}>
+          Call date & time
+        </div>
+        <input
+          type="datetime-local"
+          value={callDate}
+          onChange={e => setCallDate(e.target.value)}
+          onKeyDown={e => e.stopPropagation()}
+          style={{
+            width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 8,
+            fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+          }}
+        />
+
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+          Duration (minutes)
+        </div>
+        <input
+          type="number"
+          value={duration}
+          onChange={e => setDuration(e.target.value)}
+          onKeyDown={e => e.stopPropagation()}
+          style={{
+            width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 8,
+            fontSize: 14, outline: 'none', boxSizing: 'border-box',
+          }}
+        />
+
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+          Notes
+        </div>
+        <textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          onKeyDown={e => e.stopPropagation()}
+          placeholder="What was discussed in this session…"
+          rows={5}
+          style={{
+            width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 8,
+            fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical',
+          }}
+        />
+
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+          Optional transcript (will auto-populate discovery fields)
+        </div>
+        <textarea
+          value={transcript}
+          onChange={e => setTranscript(e.target.value)}
+          onKeyDown={e => e.stopPropagation()}
+          placeholder="Paste the call transcript here — leave empty if none."
+          rows={6}
+          style={{
+            width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 8,
+            fontSize: 13, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical',
+          }}
+        />
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 18, justifyContent: 'flex-end' }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: C.white, border: `1px solid ${C.border}`, borderRadius: 8,
+              padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: C.text,
+            }}
+          >Cancel</button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            style={{
+              background: C.teal, color: '#fff', border: 'none', borderRadius: 8,
+              padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: saving ? 'wait' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            {saving && <Loader2 size={12} className="anim-spin" />}
+            {saving ? 'Saving…' : 'Add Session'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }

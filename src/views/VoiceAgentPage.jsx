@@ -921,13 +921,13 @@ export default function VoiceAgentPage() {
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13, fontFamily:FB }}>
             <thead>
               <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
-                {['','Name','Phone','Duration','Outcome','Sentiment','Appointment','TCPA'].map(h=>(
+                {['','Name','Phone','Duration','Outcome','Sentiment','Appointment','TCPA','Discovery'].map(h=>(
                   <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredCalls.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No calls found</td></tr>}
+              {filteredCalls.length===0 && <tr><td colSpan={9} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No calls found</td></tr>}
               {filteredCalls.map(c => {
                 const sc = statusColor(c.outcome||'pending')
                 const expanded = callExpanded===c.id
@@ -942,10 +942,46 @@ export default function VoiceAgentPage() {
                       <td style={{ padding:'10px 14px' }}>{c.sentiment ? <span style={{ color:c.sentiment==='positive'?GRN:c.sentiment==='negative'?R:AMB, fontWeight:600, fontSize:12 }}>{c.sentiment}</span> : '-'}</td>
                       <td style={{ padding:'10px 14px' }}>{c.appointment_set ? <Check size={14} color={GRN} /> : <X size={14} color="#ddd" />}</td>
                       <td style={{ padding:'10px 14px' }}>{c.tcpa_consent ? <Shield size={14} color={GRN} /> : <Shield size={14} color="#ddd" />}</td>
+                      <td style={{ padding:'10px 14px' }}>
+                        <button
+                          onClick={async (ev) => {
+                            ev.stopPropagation()
+                            toast.loading('Creating discovery...', { id: 'disc' })
+                            try {
+                              const res = await fetch('/api/discovery', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  action: 'create_from_voice',
+                                  call_id: c.id,
+                                  lead_id: c.lead_id || null,
+                                  agency_id: aid,
+                                }),
+                              }).then(r => r.json())
+                              if (res?.data?.engagement_id) {
+                                toast.success('Discovery created', { id: 'disc' })
+                                navigate('/discovery')
+                              } else {
+                                toast.error(res?.error || 'Failed to create discovery', { id: 'disc' })
+                              }
+                            } catch {
+                              toast.error('Request failed', { id: 'disc' })
+                            }
+                          }}
+                          title="Start Discovery from this call"
+                          style={{
+                            background: 'none', border: `1px solid ${T}40`, borderRadius: 6,
+                            padding: '5px 8px', cursor: 'pointer', color: T,
+                            display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700,
+                          }}
+                        >
+                          <Brain size={12} /> Start
+                        </button>
+                      </td>
                     </tr>
                     {expanded && (
                       <tr>
-                        <td colSpan={8} style={{ padding:0 }}>
+                        <td colSpan={9} style={{ padding:0 }}>
                           <div style={{ padding:20, background:'#fafafa', borderBottom:'2px solid #e5e7eb' }}>
                             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                               {/* Transcript */}
