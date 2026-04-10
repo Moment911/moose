@@ -109,6 +109,133 @@ function computeMissingFields(client: any): { missing: OnboardingQuestion[]; ans
 }
 
 // ─────────────────────────────────────────────────────────────
+// Phone normalization — strip everything that isn't a digit and
+// drop the leading US country code so we can compare formats like
+// "+1 (305) 555-0100" and "3055550100" as equal.
+// ─────────────────────────────────────────────────────────────
+function normalizePhone(s: string | null | undefined): string {
+  return (s || '').replace(/\D/g, '').replace(/^1/, '')
+}
+
+// ─────────────────────────────────────────────────────────────
+// Resolve call context from phone numbers alone.
+//
+// For inbound calls the webhook has no metadata — only from_number
+// (the caller) and to_number (the agency's onboarding line). This
+// function turns that pair into (agency_id, client_id) by:
+//
+//   1. Looking up agency by matching to_number against
+//      agencies.onboarding_phone_number.
+//   2. Looking up client within that agency by matching from_number
+//      against clients.phone / clients.owner_phone, then against
+//      any phone that a prior voice recipient was attributed to.
+//
+// Returns { agency_id, client_id, orphan_reason } so callers can
+// decide how to handle each unresolved case (orphan notification vs
+// no-op). Always cheap to call — safe to fire on every webhook event.
+// ─────────────────────────────────────────────────────────────
+async function resolveCallContext(args: {
+  sb: any
+  callId?: string | null
+  fromNumber: string
+  toNumber: string
+  metadataAgencyId?: string | null
+  metadataClientId?: string | null
+}): Promise<{
+  agency_id: string | null
+  client_id: string | null
+  orphan_reason: 'agency_not_found' | 'client_not_matched' | null
+  source: 'metadata' | 'call_id_lookup' | 'phone_lookup'
+}> {
+  const { sb, callId, fromNumber, toNumber, metadataAgencyId, metadataClientId } = args
+
+  // 1. Trust metadata first — Retell's outbound flow can set
+  // client_id / agency_id at call-creation time, and some webhook
+  // events also carry them. Cheapest path.
+  if (metadataClientId && metadataAgencyId) {
+    return { agency_id: metadataAgencyId, client_id: metadataClientId, orphan_reason: null, source: 'metadata' }
+  }
+
+  // 2. If we have a call_id, check if a prior webhook event for the
+  // same call already resolved + persisted the context to
+  // koto_onboarding_recipients. This is how function_call and
+  // call_ended events find their client even when the event payload
+  // doesn't include metadata.
+  if (callId) {
+    const { data: existing } = await sb
+      .from('koto_onboarding_recipients')
+      .select('client_id, agency_id')
+      .eq('call_id', callId)
+      .maybeSingle()
+    if (existing?.client_id && existing?.agency_id) {
+      return {
+        agency_id: existing.agency_id,
+        client_id: existing.client_id,
+        orphan_reason: null,
+        source: 'call_id_lookup',
+      }
+    }
+  }
+
+  // 3. Fall back to phone number lookup. First find the agency by
+  // matching the dialed number against its configured onboarding line.
+  const normalizedTo = normalizePhone(toNumber)
+  if (!normalizedTo) {
+    return { agency_id: null, client_id: null, orphan_reason: 'agency_not_found', source: 'phone_lookup' }
+  }
+
+  const { data: agencies } = await sb
+    .from('agencies')
+    .select('id, onboarding_phone_number')
+    .not('onboarding_phone_number', 'is', null)
+
+  const agencyRow = (agencies || []).find((a: any) => normalizePhone(a.onboarding_phone_number) === normalizedTo)
+  if (!agencyRow) {
+    return { agency_id: null, client_id: null, orphan_reason: 'agency_not_found', source: 'phone_lookup' }
+  }
+
+  // 4. Within that agency, try to match the caller to a specific
+  // client. Check three sources in order: clients.phone,
+  // clients.owner_phone, and any phone attributed to a prior voice
+  // recipient for that agency.
+  const normalizedFrom = normalizePhone(fromNumber)
+  if (!normalizedFrom) {
+    return { agency_id: agencyRow.id, client_id: null, orphan_reason: 'client_not_matched', source: 'phone_lookup' }
+  }
+
+  const { data: candidates } = await sb
+    .from('clients')
+    .select('id, phone, owner_phone')
+    .eq('agency_id', agencyRow.id)
+    .is('deleted_at', null)
+
+  const phoneMatch = (candidates || []).find((c: any) =>
+    normalizePhone(c.phone) === normalizedFrom || normalizePhone(c.owner_phone) === normalizedFrom
+  )
+  if (phoneMatch) {
+    return { agency_id: agencyRow.id, client_id: phoneMatch.id, orphan_reason: null, source: 'phone_lookup' }
+  }
+
+  // 5. Last resort — check if a prior voice recipient with this
+  // phone is already attributed to a client in this agency.
+  const { data: priorRecipients } = await sb
+    .from('koto_onboarding_recipients')
+    .select('client_id, phone')
+    .eq('agency_id', agencyRow.id)
+    .eq('source', 'voice')
+    .not('phone', 'is', null)
+    .order('last_active_at', { ascending: false })
+    .limit(100)
+
+  const recipientMatch = (priorRecipients || []).find((r: any) => normalizePhone(r.phone) === normalizedFrom)
+  if (recipientMatch?.client_id) {
+    return { agency_id: agencyRow.id, client_id: recipientMatch.client_id, orphan_reason: null, source: 'phone_lookup' }
+  }
+
+  return { agency_id: agencyRow.id, client_id: null, orphan_reason: 'client_not_matched', source: 'phone_lookup' }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Caller identification — match an incoming phone number to the
 // client's known contacts, or to a previous voice recipient.
 // Returns { name, role, is_known } so the system prompt can greet
@@ -125,11 +252,9 @@ async function identifyCaller(sb: any, clientId: string, callerPhone: string) {
 
   if (!client) return { name: null, role: null, is_known: false, recipient_id: null }
 
-  const normalize = (s: string | null | undefined) =>
-    (s || '').replace(/\D/g, '').replace(/^1/, '')
-  const caller = normalize(callerPhone)
+  const caller = normalizePhone(callerPhone)
 
-  if (normalize(client.owner_phone) === caller || normalize(client.phone) === caller) {
+  if (normalizePhone(client.owner_phone) === caller || normalizePhone(client.phone) === caller) {
     return {
       name: client.owner_name || 'the owner',
       role: 'owner',
@@ -146,7 +271,7 @@ async function identifyCaller(sb: any, clientId: string, callerPhone: string) {
     .order('last_active_at', { ascending: false })
     .limit(25)
 
-  const match = (prior || []).find((r: any) => normalize(r.phone) === caller)
+  const match = (prior || []).find((r: any) => normalizePhone(r.phone) === caller)
   if (match) {
     return {
       name: match.name || null,
@@ -354,6 +479,50 @@ export async function POST(req: NextRequest) {
     // ── Action: get_agent_prompt ─────────────────────────────
     // Called on-demand by the webhook or by a test harness to
     // render the prompt for a specific client.
+    // ── Action: test_lookup ──────────────────────────────────
+    // Debug helper the agency can run from AgencySettings before
+    // going live: pass the caller number + onboarding line number,
+    // get back exactly what resolveCallContext would return for a
+    // real call. No side effects — no DB writes, no notifications.
+    if (action === 'test_lookup') {
+      const { from_number, to_number } = body
+      const lookup = await resolveCallContext({
+        sb,
+        fromNumber: from_number || '',
+        toNumber: to_number || '',
+      })
+
+      let agency: any = null
+      let client: any = null
+      if (lookup.agency_id) {
+        const { data } = await sb
+          .from('agencies')
+          .select('id, name, brand_name, onboarding_phone_number')
+          .eq('id', lookup.agency_id)
+          .maybeSingle()
+        agency = data
+      }
+      if (lookup.client_id) {
+        const { data } = await sb
+          .from('clients')
+          .select('id, name, phone, owner_phone, owner_name')
+          .eq('id', lookup.client_id)
+          .maybeSingle()
+        client = data
+      }
+
+      return NextResponse.json({
+        ok: true,
+        resolved: lookup,
+        agency,
+        client,
+        normalized: {
+          from: normalizePhone(from_number || ''),
+          to: normalizePhone(to_number || ''),
+        },
+      })
+    }
+
     if (action === 'get_agent_prompt') {
       const { client_id, agency_id, caller_phone } = body
       if (!client_id || !agency_id) {
@@ -380,76 +549,122 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Retell webhook events ────────────────────────────────
-    // Retell POSTs here with { event, call } when configured as
-    // the agent's webhook_url. The call object carries metadata
-    // (client_id, agency_id) injected at call-creation time.
+    // Retell POSTs here with { event, call }. The call object may
+    // or may not carry metadata — for inbound calls to a shared
+    // agency onboarding line, we resolve agency + client purely
+    // from phone numbers via resolveCallContext().
     const event = body.event || body.type || ''
     const call = body.call || body.data || {}
     const callId: string = call.call_id || call.id || ''
     const callerPhone: string = call.from_number || ''
+    const dialedNumber: string = call.to_number || ''
     const metadata = { ...(call.metadata || {}), ...(body.metadata || {}) }
-    const clientId: string = metadata.client_id || call.client_id || ''
-    const agencyId: string = metadata.agency_id || call.agency_id || ''
+
+    const resolved = await resolveCallContext({
+      sb,
+      callId,
+      fromNumber: callerPhone,
+      toNumber: dialedNumber,
+      metadataAgencyId: metadata.agency_id || call.agency_id || null,
+      metadataClientId: metadata.client_id || call.client_id || null,
+    })
+    const clientId: string = resolved.client_id || ''
+    const agencyId: string = resolved.agency_id || ''
 
     // ── call_started / call_created ──
     if ((event === 'call_started' || event === 'call_created') && callId) {
-      if (clientId && agencyId) {
-        const caller = await identifyCaller(sb, clientId, callerPhone)
-        const built = await buildOnboardingSystemPrompt({
-          sb,
-          clientId,
-          agencyId,
-          callerName: caller.name,
-          callerPhone,
+      // Orphan: we couldn't figure out which agency owns the number
+      // that was dialed. Retell must be pointing at our webhook but
+      // no agencies.onboarding_phone_number matches. Log and bail.
+      if (!agencyId) {
+        return NextResponse.json({
+          received: true,
+          orphan: true,
+          reason: 'agency_not_found',
+          general_prompt: "I'm sorry — this onboarding line isn't fully configured yet. Please have your account manager reach out directly and we'll get you set up.",
+          begin_message: "Hi! I'm sorry, this onboarding line isn't fully set up yet. Please have your account manager reach out to us directly. Thanks and have a great day!",
         })
+      }
 
-        // Upsert the recipient row so ClientDetailPage can flip into
-        // "live call" mode during the call.
-        const { data: existing } = caller.recipient_id
-          ? await sb.from('koto_onboarding_recipients').select('id').eq('id', caller.recipient_id).maybeSingle()
-          : { data: null as any }
-
-        if (existing) {
-          await sb
-            .from('koto_onboarding_recipients')
-            .update({
-              call_id: callId,
-              status: 'in_progress',
-              last_active_at: new Date().toISOString(),
-            })
-            .eq('id', existing.id)
-        } else {
-          await sb.from('koto_onboarding_recipients').insert({
-            agency_id: agencyId,
-            client_id: clientId,
-            name: caller.name || null,
-            phone: callerPhone || null,
-            source: 'voice',
-            status: 'in_progress',
-            call_id: callId,
-            last_active_at: new Date().toISOString(),
-          })
-        }
-
-        // Dashboard notification
+      // Orphan: agency resolved but no client matched this caller's
+      // phone. Fire a notification so the agency can manually add
+      // the phone to a client record, then gracefully end the call.
+      if (!clientId) {
         await createNotification(
           sb,
           agencyId,
-          'onboarding_call_started',
-          '📞 Onboarding call started',
-          `${caller.name ? caller.name + ' is' : 'Someone is'} calling about ${await clientDisplayName(sb, clientId)} — ${built.missingCount} questions remaining`,
-          `/clients/${clientId}`,
-          '📞',
-          { client_id: clientId, call_id: callId, caller_phone: callerPhone },
+          'onboarding_call_orphan',
+          '📞 Unknown caller to onboarding line',
+          `Call from ${callerPhone || 'an unknown number'} — no matching client. Add this number to a client's record so we can identify them next time.`,
+          '/clients',
+          '⚠️',
+          { call_id: callId, caller_phone: callerPhone, dialed_number: dialedNumber },
         )
-
         return NextResponse.json({
           received: true,
-          general_prompt: built.prompt,
-          begin_message: built.beginMessage,
+          orphan: true,
+          reason: 'client_not_matched',
+          general_prompt: `You are an onboarding specialist. You're speaking with a caller whose phone number isn't matched to any client in our system. Ask them for the name of the business they're calling about, tell them you'll pass the message along, and thank them politely. Do not save any answers — just take a brief message and end the call warmly.`,
+          begin_message: "Hi! Thanks for calling. I don't see your number in our system yet. Could I get the name of the business you're calling about? I'll make sure the team reaches out to you.",
         })
       }
-      return NextResponse.json({ received: true })
+
+      // Happy path: both agency and client resolved.
+      const caller = await identifyCaller(sb, clientId, callerPhone)
+      const built = await buildOnboardingSystemPrompt({
+        sb,
+        clientId,
+        agencyId,
+        callerName: caller.name,
+        callerPhone,
+      })
+
+      // Upsert the recipient row so ClientDetailPage can flip into
+      // "live call" mode during the call AND so subsequent webhook
+      // events can look up the client by call_id alone.
+      const { data: existing } = caller.recipient_id
+        ? await sb.from('koto_onboarding_recipients').select('id').eq('id', caller.recipient_id).maybeSingle()
+        : { data: null as any }
+
+      if (existing) {
+        await sb
+          .from('koto_onboarding_recipients')
+          .update({
+            call_id: callId,
+            status: 'in_progress',
+            last_active_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+      } else {
+        await sb.from('koto_onboarding_recipients').insert({
+          agency_id: agencyId,
+          client_id: clientId,
+          name: caller.name || null,
+          phone: callerPhone || null,
+          source: 'voice',
+          status: 'in_progress',
+          call_id: callId,
+          last_active_at: new Date().toISOString(),
+        })
+      }
+
+      // Dashboard notification
+      await createNotification(
+        sb,
+        agencyId,
+        'onboarding_call_started',
+        '📞 Onboarding call started',
+        `${caller.name ? caller.name + ' is' : 'Someone is'} calling about ${await clientDisplayName(sb, clientId)} — ${built.missingCount} questions remaining`,
+        `/clients/${clientId}`,
+        '📞',
+        { client_id: clientId, call_id: callId, caller_phone: callerPhone, resolved_via: resolved.source },
+      )
+
+      return NextResponse.json({
+        received: true,
+        general_prompt: built.prompt,
+        begin_message: built.beginMessage,
+      })
     }
 
     // ── function_call / tool invocation ──

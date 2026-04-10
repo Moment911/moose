@@ -192,6 +192,10 @@ export default function AgencySettingsPage() {
   const [onboardingPhone, setOnboardingPhone] = useState('')
   const [onboardingAgentId, setOnboardingAgentId] = useState('')
   const [creatingOnboardingAgent, setCreatingOnboardingAgent] = useState(false)
+  const [testFrom, setTestFrom] = useState('')
+  const [testTo, setTestTo] = useState('')
+  const [testResult2, setTestResult2] = useState(null)
+  const [testing2, setTesting2] = useState(false)
   const [modules, setModules] = useState([])
   const [loadingData, setLoadingData] = useState(true)
 
@@ -265,6 +269,29 @@ export default function AgencySettingsPage() {
     }).eq('id', aid)
     toast.success('Onboarding settings saved')
     setSaving(false)
+  }
+
+  async function runTestLookup() {
+    if (!testFrom.trim() || !testTo.trim()) { toast.error('Enter both numbers'); return }
+    setTesting2(true)
+    setTestResult2(null)
+    try {
+      const res = await fetch('/api/onboarding/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'test_lookup',
+          from_number: testFrom.trim(),
+          to_number: testTo.trim(),
+        }),
+      })
+      const json = await res.json()
+      setTestResult2(json)
+    } catch (e) {
+      toast.error('Lookup failed')
+    } finally {
+      setTesting2(false)
+    }
   }
 
   async function createOnboardingAgent() {
@@ -743,6 +770,93 @@ export default function AgencySettingsPage() {
                 </div>
               </div>
             )}
+
+            {/* Caller resolution tester — shows exactly how the webhook
+                would route a hypothetical inbound call. Useful for
+                verifying the onboarding number + a client's phone before
+                going live. */}
+            <div style={{
+              marginTop: 16, paddingTop: 16,
+              borderTop: '1px solid #00C2CB30',
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                🔎 Test caller lookup
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5, marginBottom: 10 }}>
+                Enter a caller's phone and your onboarding line number to verify the webhook will resolve them to the right client. No call is placed.
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                <input
+                  value={testFrom}
+                  onChange={(e) => setTestFrom(e.target.value)}
+                  placeholder="Caller from_number (+1 555…)"
+                  style={INP}
+                />
+                <input
+                  value={testTo}
+                  onChange={(e) => setTestTo(e.target.value)}
+                  placeholder="Onboarding line to_number"
+                  style={INP}
+                />
+                <button
+                  onClick={runTestLookup}
+                  disabled={testing2}
+                  style={{
+                    padding: '9px 16px', borderRadius: 9, border: 'none',
+                    background: '#111', color: '#fff',
+                    fontSize: 13, fontWeight: 800,
+                    cursor: testing2 ? 'default' : 'pointer', fontFamily: FH,
+                    opacity: testing2 ? 0.7 : 1, whiteSpace: 'nowrap',
+                  }}
+                >
+                  {testing2 ? 'Looking up…' : 'Test'}
+                </button>
+              </div>
+
+              {testResult2 && (
+                <div style={{
+                  marginTop: 10,
+                  padding: '10px 14px',
+                  background: testResult2.resolved?.client_id ? '#f0fdf4' : testResult2.resolved?.agency_id ? '#fffbeb' : '#fef2f2',
+                  border: `1px solid ${testResult2.resolved?.client_id ? '#bbf7d0' : testResult2.resolved?.agency_id ? '#fde68a' : '#fecaca'}`,
+                  borderRadius: 8,
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                  color: '#111',
+                }}>
+                  {testResult2.resolved?.client_id ? (
+                    <>
+                      <div style={{ fontWeight: 800, color: '#166534', marginBottom: 4 }}>
+                        ✓ Resolved to {testResult2.client?.name || testResult2.resolved.client_id}
+                      </div>
+                      <div style={{ color: '#166534', fontSize: 11 }}>
+                        Agency: {testResult2.agency?.brand_name || testResult2.agency?.name}
+                        {' · via '}
+                        <code>{testResult2.resolved.source}</code>
+                      </div>
+                    </>
+                  ) : testResult2.resolved?.agency_id ? (
+                    <>
+                      <div style={{ fontWeight: 800, color: '#92400e', marginBottom: 4 }}>
+                        ⚠️ Agency found but no client matched this phone
+                      </div>
+                      <div style={{ color: '#92400e', fontSize: 11 }}>
+                        Agency: {testResult2.agency?.brand_name || testResult2.agency?.name}. Add <code>{testResult2.normalized?.from}</code> to a client's phone or owner_phone field to match next time.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight: 800, color: '#991b1b', marginBottom: 4 }}>
+                        ✗ No agency matches this onboarding line
+                      </div>
+                      <div style={{ color: '#991b1b', fontSize: 11 }}>
+                        Double-check the number above matches your <code>onboarding_phone_number</code> field exactly — we normalize by stripping non-digits and the leading 1.
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </SectionCard>
       )
