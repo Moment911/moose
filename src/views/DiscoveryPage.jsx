@@ -626,6 +626,11 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
   const [coachChatLoading, setCoachChatLoading] = useState(false)
   const [crossData, setCrossData] = useState(null)
   const [crossLoading, setCrossLoading] = useState(false)
+  // N/A smart detection — populated from coachData.not_applicable_suggestion
+  // per section. Keyed by section id.
+  const [naSuggestions, setNaSuggestions] = useState({})
+  const [dismissedNA, setDismissedNA] = useState(() => new Set())
+  const [busyAutofill, setBusyAutofill] = useState(false)
 
   // ── Discovery simulator state (super-admin only) ──────────────
   const [simRunning, setSimRunning] = useState(false)
@@ -723,6 +728,11 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
         if (isChat) toast.error(res.error)
       } else {
         setCoachData(res)
+        // Store N/A suggestion per section so the banner persists even when
+        // the user scrolls away from the section being coached.
+        if (res?.not_applicable_suggestion?.suggested) {
+          setNaSuggestions((prev) => ({ ...prev, [sectionId]: res.not_applicable_suggestion }))
+        }
       }
     } catch (e) {
       if (isChat) toast.error('Coach unavailable')
@@ -765,6 +775,122 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
     setCoachTab('Section Coach')
     setCoachSection(sectionId)
     loadSectionCoaching(sectionId)
+  }
+
+  // Mark a section as N/A via the existing toggle_visibility action. The
+  // section stays rendered (collapsed with an N/A badge in the nav) so it's
+  // clear it was reviewed, not skipped accidentally.
+  async function markSectionNA(sectionId) {
+    try {
+      await fetch('/api/discovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'toggle_visibility',
+          id,
+          section_id: sectionId,
+          visible: false,
+          agency_id: aid,
+        }),
+      })
+      // Optimistically update local state so the UI reflects the change
+      // immediately without waiting for a full reload.
+      setEng((prev) => {
+        if (!prev) return prev
+        const next = { ...prev }
+        next.sections = (prev.sections || []).map((sec) =>
+          sec.id === sectionId ? { ...sec, visible: false } : sec
+        )
+        return next
+      })
+      setNaSuggestions((prev) => {
+        const next = { ...prev }
+        delete next[sectionId]
+        return next
+      })
+      toast.success('Section marked as N/A')
+    } catch (e) {
+      toast.error('Failed to mark section')
+    }
+  }
+
+  function dismissNA(sectionId) {
+    setDismissedNA((prev) => {
+      const next = new Set(prev)
+      next.add(sectionId)
+      return next
+    })
+  }
+
+  // Ask the coach to infer the answer for a single field from all other
+  // context in the engagement, then write it via save_field so the vault
+  // pipeline still runs on the write.
+  async function handleAutoFill(sectionId, fieldId, fieldQuestion) {
+    if (!sectionId || !fieldId) return
+    setBusyAutofill(true)
+    const toastId = 'autofill'
+    toast.loading(`Auto-filling: ${(fieldQuestion || 'field').slice(0, 40)}…`, { id: toastId })
+    try {
+      const res = await fetch('/api/discovery/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'autofill_field',
+          engagement_id: id,
+          agency_id: aid,
+          section_id: sectionId,
+          field_id: fieldId,
+        }),
+      }).then((r) => r.json())
+
+      const answer = (res?.suggested_answer || '').trim()
+      if (!answer) {
+        toast.error('Could not infer an answer for this field', { id: toastId })
+        return
+      }
+
+      // Write via the normal save_field action
+      const saveRes = await fetch('/api/discovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_field',
+          id,
+          section_id: sectionId,
+          field_id: fieldId,
+          answer,
+          source: 'coach_autofill',
+          agency_id: aid,
+        }),
+      }).then((r) => r.json())
+
+      if (saveRes?.ok) {
+        // Mirror the write into local state + answersRef so the document
+        // updates without a full reload.
+        answersRef.current[`${sectionId}:${fieldId}`] = answer
+        setEng((prev) => {
+          if (!prev) return prev
+          const next = { ...prev }
+          next.sections = (prev.sections || []).map((sec) => {
+            if (sec.id !== sectionId) return sec
+            return {
+              ...sec,
+              fields: (sec.fields || []).map((f) =>
+                f.id === fieldId ? { ...f, answer, source: 'coach_autofill' } : f
+              ),
+            }
+          })
+          return next
+        })
+        toast.success('Field auto-filled — review and edit if needed', { id: toastId })
+      } else {
+        toast.error(saveRes?.error || 'Save failed', { id: toastId })
+      }
+    } catch (e) {
+      toast.error('Auto-fill failed', { id: toastId })
+    } finally {
+      setBusyAutofill(false)
+    }
   }
 
   // When the coach panel is first opened (or switches to a section), load
@@ -1217,7 +1343,17 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
           )}
 
           {/* Sections */}
-          {(eng.sections || []).map(section => (
+          {(eng.sections || []).map(section => {
+            const naSug = naSuggestions[section.id]
+            const showNaBanner = !!(
+              naSug &&
+              naSug.suggested &&
+              typeof naSug.confidence === 'number' &&
+              naSug.confidence > 70 &&
+              !dismissedNA.has(section.id) &&
+              section.visible !== false
+            )
+            return (
             <div key={section.id} data-section-id={section.id} style={{ position: 'relative' }}>
               {/* Small "Coach this section" button — only renders when the
                   coach panel is open so it isn't visual noise otherwise */}
@@ -1238,6 +1374,50 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
                 >
                   <Brain size={11} /> Coach
                 </button>
+              )}
+
+              {/* Smart N/A suggestion banner — shows above the section when
+                  the AI coach has detected this section likely doesn't apply. */}
+              {showNaBanner && (
+                <div style={{
+                  background: '#fffbeb',
+                  border: '1px solid #f59e0b40',
+                  borderRadius: 10,
+                  padding: '10px 16px',
+                  marginBottom: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+                  <div style={{ flex: 1, fontSize: 13, color: '#92400e', lineHeight: 1.5 }}>
+                    <strong>This section may not apply</strong> — {naSug.reason}
+                    <span style={{ marginLeft: 6, fontSize: 10, color: '#b45309', fontWeight: 700 }}>
+                      · {naSug.confidence}% confidence
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => markSectionNA(section.id)}
+                    style={{
+                      padding: '5px 12px', background: '#f59e0b', color: '#fff',
+                      border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700,
+                      cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit',
+                    }}
+                  >
+                    Mark N/A
+                  </button>
+                  <button
+                    onClick={() => dismissNA(section.id)}
+                    style={{
+                      padding: '5px 10px', background: 'none',
+                      border: '1px solid #e5e7eb', borderRadius: 6,
+                      fontSize: 12, cursor: 'pointer', color: '#6b7280',
+                      whiteSpace: 'nowrap', fontFamily: 'inherit',
+                    }}
+                  >
+                    Keep
+                  </button>
+                </div>
               )}
               <SectionPanel
                 section={section}
@@ -1268,7 +1448,8 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
                 reloadDomains={load}
               />
             </div>
-          ))}
+            )
+          })}
         </div>
 
         {showLivePanel && !isMobile && (
@@ -1353,6 +1534,8 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
           crossData={crossData}
           crossLoading={crossLoading}
           loadCrossAnalysis={loadCrossAnalysis}
+          onAutoFill={handleAutoFill}
+          busyAutofill={busyAutofill}
           onClose={() => setCoachOpen(false)}
         />
       )}
@@ -1451,21 +1634,73 @@ function HeaderBtn({ onClick, disabled, color, icon: Icon, label, spinning, outl
 // Sticky section nav
 // ─────────────────────────────────────────────────────────────
 function SectionNav({ sections, active, onSelect }) {
+  // Field counts exclude AI-populated placeholder fields unless they've
+  // actually been answered, so the ratio reflects real agency work.
+  const countable = (f) => !f.is_ai_populated || (typeof f.answer === 'string' && f.answer.trim())
+  const isAnswered = (f) => typeof f.answer === 'string' && f.answer.trim().length > 5
+
+  let overallTotal = 0
+  let overallAnswered = 0
+  for (const sec of sections) {
+    if (sec.visible === false) continue
+    const fields = (sec.fields || []).filter(countable)
+    overallTotal += fields.length
+    overallAnswered += fields.filter(isAnswered).length
+  }
+  const overallPct = overallTotal > 0 ? Math.round((overallAnswered / overallTotal) * 100) : 0
+  const overallColor = overallPct >= 70 ? '#16a34a' : overallPct >= 30 ? '#f59e0b' : '#dc2626'
+
   return (
     <div style={{
       position: 'sticky', top: 12, background: C.white, borderRadius: 12, border: `1px solid ${C.border}`,
       padding: 10, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto',
     }}>
+      {/* Overall document completion header */}
+      <div style={{
+        padding: '10px 10px 12px',
+        borderBottom: `1px solid ${C.border}`,
+        marginBottom: 8,
+      }}>
+        <div style={{
+          fontSize: 10, fontWeight: 800, color: C.mutedDark,
+          textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6,
+        }}>
+          Document Completion
+        </div>
+        <div style={{ height: 6, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden', marginBottom: 5 }}>
+          <div style={{
+            height: '100%',
+            width: `${overallPct}%`,
+            background: overallColor,
+            borderRadius: 99,
+            transition: 'width .5s',
+          }} />
+        </div>
+        <div style={{ fontSize: 11, color: C.muted }}>
+          <span style={{ fontWeight: 800, color: overallColor }}>{overallPct}%</span> · {overallAnswered}/{overallTotal} fields answered
+        </div>
+      </div>
+
       <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', padding: '4px 8px 8px' }}>
         Sections
       </div>
       {sections.map(sec => {
-        const fields = sec.fields || []
-        const answered = fields.filter(f => (f.answer || '').trim().length > 0).length
-        const total = fields.length
+        const countableFields = (sec.fields || []).filter(countable)
+        const total = countableFields.length
+        const answered = countableFields.filter(isAnswered).length
         const pct = total > 0 ? Math.round((answered / total) * 100) : 0
-        const hasPendingAIQ = fields.some(f => (f.ai_questions || []).some(q => q.status === 'pending'))
+        const hasPendingAIQ = (sec.fields || []).some(f => (f.ai_questions || []).some(q => q.status === 'pending'))
         const isActive = active === sec.id
+        const isNA = sec.visible === false
+
+        // Color-code by completion — N/A sections get a flat gray bar.
+        const barColor = isNA
+          ? '#9ca3af'
+          : pct >= 70
+            ? '#16a34a'
+            : pct >= 30
+              ? '#f59e0b'
+              : '#dc2626'
 
         return (
           <div
@@ -1481,16 +1716,31 @@ function SectionNav({ sections, active, onSelect }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{
                 flex: 1, fontSize: 14, fontWeight: isActive ? 700 : 500,
-                color: sec.visible === false ? C.muted : C.text,
+                color: isNA ? C.muted : C.text,
               }}>
                 {sec.title}
               </div>
-              {sec.visible === false && <EyeOff size={11} color={C.muted} />}
-              {hasPendingAIQ && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.teal, flexShrink: 0 }} />}
+              {isNA && (
+                <span style={{
+                  fontSize: 9, fontWeight: 800, background: '#f3f4f6', color: '#6b7280',
+                  padding: '1px 5px', borderRadius: 4, letterSpacing: '.05em',
+                }}>
+                  N/A
+                </span>
+              )}
+              {hasPendingAIQ && !isNA && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.teal, flexShrink: 0 }} />}
             </div>
-            <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>{answered}/{total} answered</div>
-            <div style={{ height: 3, background: '#f3f4f6', borderRadius: 2, marginTop: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? C.green : C.teal, transition: 'width .3s' }} />
+            <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
+              {isNA ? 'Not applicable' : `${pct}% · ${answered}/${total}`}
+            </div>
+            <div style={{ height: 3, background: '#f3f4f6', borderRadius: 99, marginTop: 4, overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                width: `${isNA ? 100 : pct}%`,
+                background: barColor,
+                borderRadius: 99,
+                transition: 'width .3s',
+              }} />
             </div>
           </div>
         )
@@ -2714,6 +2964,7 @@ function CoachPanel({
   coachLoading, coachData,
   coachInput, setCoachInput, coachChatLoading, onChat,
   crossData, crossLoading, loadCrossAnalysis,
+  onAutoFill, busyAutofill,
   onClose,
 }) {
   const section = sections.find((s) => s.id === coachSection) || null
@@ -2786,6 +3037,8 @@ function CoachPanel({
             setCoachSection={setCoachSection}
             coachLoading={coachLoading}
             coachData={coachData}
+            onAutoFill={onAutoFill}
+            busyAutofill={busyAutofill}
           />
         ) : (
           <CrossSectionContent
@@ -2832,7 +3085,7 @@ function CoachPanel({
   )
 }
 
-function SectionCoachContent({ section, sections, setCoachSection, coachLoading, coachData }) {
+function SectionCoachContent({ section, sections, setCoachSection, coachLoading, coachData, onAutoFill, busyAutofill }) {
   if (!section) {
     return (
       <div style={{ padding: '14px 6px', color: C.muted, fontSize: 13 }}>
@@ -2991,6 +3244,24 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
                     {o.type || 'win'}
                   </span>
                   {o.opportunity}
+                  {o.can_autofill && o.section_id && o.field_id && onAutoFill && (
+                    <div style={{ marginTop: 6 }}>
+                      <button
+                        onClick={() => onAutoFill(o.section_id, o.field_id, o.opportunity)}
+                        disabled={busyAutofill}
+                        style={{
+                          fontSize: 11, padding: '4px 11px',
+                          background: C.teal, color: '#fff',
+                          border: 'none', borderRadius: 6,
+                          cursor: busyAutofill ? 'default' : 'pointer',
+                          opacity: busyAutofill ? 0.6 : 1,
+                          fontWeight: 700, fontFamily: 'inherit',
+                        }}
+                      >
+                        ✨ Auto-fill {o.field_id}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

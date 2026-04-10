@@ -158,6 +158,16 @@ export async function POST(req: NextRequest) {
 
 Your job is to give specific, tactical, actionable coaching — not generic advice. Always reference the specific answers they've already captured. If a field is empty, push them to ask about it. If an answer contradicts another section, flag it.
 
+You also decide whether the current section is actually applicable to this client. Only suggest marking a section N/A when you're highly confident based on the evidence in the answers — do NOT suggest N/A for a section just because fields are empty.
+
+N/A suggestion rules:
+- section_09 (SMS Marketing) → may be N/A if the business is B2B software/SaaS with no consumer customers and no transactional SMS use case.
+- section_07 with focus on 07c (E-commerce pipeline) → may be N/A if business has no products, pure professional services only.
+- section_11 (Paid Advertising) → may be N/A only if answers clearly show zero current ad spend AND explicit "not interested in ads" language.
+- section_08 (Email Marketing) → may be N/A if B2B enterprise with under 50 contacts and no email list exists.
+- Never suggest N/A for sections 01, 04, 05, 10, or 12 — these are always relevant.
+- Only include a suggestion when confidence is above 70.
+
 Return valid JSON only. No preamble, no markdown fences.`
 
       const userPrompt = `Client: ${eng.client_name || 'Unknown'}
@@ -175,21 +185,34 @@ ${relatedBlock}
 
 ${question ? `The agency user is asking: "${question}"\n\nAnswer conversationally in the chat_response field.` : 'Provide proactive coaching for this section. No user question — generate smart_questions, red_flags, and opportunities based on what you see.'}
 
-Return JSON with this exact shape (all fields required, arrays can be empty):
+Return JSON with this exact shape (all fields required, arrays can be empty, not_applicable_suggestion can be null):
 {
   "smart_questions": ["Specific question 1 they should ask right now", "Question 2", "Question 3"],
   "red_flags": [{ "flag": "Short description of the risk", "severity": "high" }],
-  "opportunities": [{ "opportunity": "Short description of the win", "type": "ghl" }],
+  "opportunities": [
+    {
+      "opportunity": "Short description of the win",
+      "type": "ghl",
+      "section_id": "section_06",
+      "field_id": "06f",
+      "can_autofill": true
+    }
+  ],
   "coaching_note": "1-2 sentence tactical tip for this moment",
-  "chat_response": ${question ? '"Conversational answer to their question — be specific and tactical"' : 'null'}
+  "chat_response": ${question ? '"Conversational answer to their question — be specific and tactical"' : 'null'},
+  "not_applicable_suggestion": { "suggested": true, "reason": "one sentence", "confidence": 85 }
 }
 
 Rules:
 - smart_questions: 3-5 questions, each one specific to THIS client's situation (reference actual answers, platforms, numbers you see above). No generic questions.
 - red_flags: only include actual detected risks from the answers. severity is one of: high | medium | low. Empty array if none.
-- opportunities: only include real opportunities you can spot. type is one of: ghl | email | sms | ads | seo | crm | general. Empty array if none.
+- opportunities: only include real opportunities you can spot.
+  - type is one of: ghl | email | sms | ads | seo | crm | autofill | general.
+  - section_id and field_id may be included when the opportunity is about filling a specific empty field that can be inferred from other answers. Set can_autofill: true in that case. When the opportunity is general strategy, use null for both ids and set can_autofill: false.
+  - Empty array if none.
 - coaching_note: the single most important thing to do right now in this section.
-- chat_response: only populated if the user asked a question, otherwise null.`
+- chat_response: only populated if the user asked a question, otherwise null.
+- not_applicable_suggestion: follow the N/A rules in the system prompt above. Return null when the section IS applicable. Only include an object when suggested is true AND confidence > 70.`
 
       const result = await callClaudeJson({
         model: FAST_MODEL,
@@ -206,6 +229,7 @@ Rules:
           opportunities: [],
           coaching_note: 'Coach is temporarily unavailable — ask questions manually and fill in answers as you go.',
           chat_response: null,
+          not_applicable_suggestion: null,
           error: 'AI unavailable',
         })
       }
@@ -213,6 +237,25 @@ Rules:
       // Compute section completion for the panel header
       const totalFields = (section.fields || []).length
       const answeredFields = (section.fields || []).filter((f: any) => typeof f.answer === 'string' && f.answer.trim()).length
+
+      // Normalize N/A suggestion — never allow it for always-relevant sections
+      // regardless of what the model returns.
+      const neverNaSections = new Set(['section_01', 'section_04', 'section_05', 'section_10', 'section_12'])
+      let naSug: any = null
+      if (
+        result.not_applicable_suggestion &&
+        typeof result.not_applicable_suggestion === 'object' &&
+        result.not_applicable_suggestion.suggested === true &&
+        typeof result.not_applicable_suggestion.confidence === 'number' &&
+        result.not_applicable_suggestion.confidence > 70 &&
+        !neverNaSections.has(section_id)
+      ) {
+        naSug = {
+          suggested: true,
+          reason: String(result.not_applicable_suggestion.reason || '').slice(0, 280),
+          confidence: Math.min(100, Math.round(result.not_applicable_suggestion.confidence)),
+        }
+      }
 
       return NextResponse.json({
         section_id,
@@ -224,6 +267,100 @@ Rules:
         opportunities: Array.isArray(result.opportunities) ? result.opportunities : [],
         coaching_note: typeof result.coaching_note === 'string' ? result.coaching_note : '',
         chat_response: typeof result.chat_response === 'string' ? result.chat_response : null,
+        not_applicable_suggestion: naSug,
+      })
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Action 3: autofill_field
+    //
+    // Given an engagement + section + field, infer a realistic answer for
+    // that field from all the other answers already captured in the doc
+    // plus the client's welcome statement. Returns the suggested text —
+    // the caller is responsible for writing it via save_field so the
+    // normal vault/audit pipeline runs on the write.
+    // ─────────────────────────────────────────────────────────────
+    if (action === 'autofill_field') {
+      const { section_id, field_id } = body
+      if (!section_id || !field_id) {
+        return NextResponse.json({ error: 'Missing section_id or field_id' }, { status: 400 })
+      }
+
+      const section = sections.find((s) => s.id === section_id)
+      const field = section?.fields?.find((f: any) => f.id === field_id)
+      if (!section || !field) {
+        return NextResponse.json({ error: 'Field not found' }, { status: 404 })
+      }
+
+      // Collect up to 20 of the most substantial other answers as context.
+      const contextAnswers: string[] = []
+      for (const sec of sections) {
+        for (const f of (sec.fields || [])) {
+          if (f.id === field_id) continue
+          const ans = typeof f.answer === 'string' ? f.answer.trim() : ''
+          if (ans.length > 3) {
+            contextAnswers.push(`[${sec.id}] ${f.question}: ${ans}`)
+          }
+          if (contextAnswers.length >= 20) break
+        }
+        if (contextAnswers.length >= 20) break
+      }
+
+      const userPrompt = `Client: ${eng.client_name || 'Unknown'}
+Industry: ${eng.client_industry || 'Unknown'}
+Location: ${[clientCity, clientState].filter(Boolean).join(', ') || 'Unknown'}
+Classification: ${classLine}
+
+Business description (client's own words):
+"${clientWelcome || 'Not provided'}"
+
+Other answers already captured across the discovery doc:
+${contextAnswers.length ? contextAnswers.join('\n') : '(none)'}
+
+Field to fill (section ${section_id}):
+"${field.question}"
+${field.hint ? `Hint: ${field.hint}` : ''}
+
+Write the best concrete answer for this field based on the context above. Return ONLY the field value — no quotes, no preamble, no explanation. If you cannot confidently infer an answer, return an empty string.`
+
+      const apiKey = process.env.ANTHROPIC_API_KEY || ''
+      if (!apiKey) {
+        return NextResponse.json({
+          field_id,
+          section_id,
+          suggested_answer: '',
+          field_question: field.question,
+          error: 'AI not configured',
+        })
+      }
+
+      let suggestedAnswer = ''
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: FAST_MODEL,
+            max_tokens: 300,
+            temperature: 0.2,
+            system: 'You are filling in a discovery document field based on all available context. Return only the field value — no explanation, no preamble, no quotes. Be specific and realistic. If you cannot infer a good answer, return an empty string.',
+            messages: [{ role: 'user', content: userPrompt }],
+          }),
+          signal: AbortSignal.timeout(12000),
+        })
+        if (res.ok) {
+          const d = await res.json()
+          const text = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('').trim()
+          // Strip wrapping quotes if the model ignored instructions
+          suggestedAnswer = text.replace(/^["'`]+|["'`]+$/g, '').trim()
+        }
+      } catch { /* fall through with empty answer */ }
+
+      return NextResponse.json({
+        field_id,
+        section_id,
+        suggested_answer: suggestedAnswer,
+        field_question: field.question,
       })
     }
 
