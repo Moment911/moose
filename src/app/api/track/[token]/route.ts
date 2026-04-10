@@ -1,8 +1,16 @@
 /*
- * IPINFO_TOKEN env var — optional but recommended for company identification
- * Free tier: 50,000 requests/month at ipinfo.io
- * Without it: falls back to ipapi.co org field (less accurate company names)
- * With it: returns company.name, company.domain, company.type for business IPs
+ * IPINFO_TOKEN: 8acf85a0baa7d5
+ * Using IPInfo Lite endpoint: https://api.ipinfo.io/lite/{ip}
+ * Add IPINFO_TOKEN=8acf85a0baa7d5 to Vercel environment variables
+ * Free tier: 50,000 requests/month
+ *
+ * REMIND THE USER: Set IPINFO_TOKEN in Vercel env vars (Production + Preview)
+ * before the next deploy — without it, enrichment silently falls back to
+ * ipapi.co's org field and company_domain will be null.
+ *
+ * Lite endpoint response shape (no company object — just org):
+ *   { ip, hostname, city, region, country, org: "AS15169 Google LLC",
+ *     postal, timezone }
  */
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -16,9 +24,23 @@ const PIXEL_GIF = Buffer.from(
 
 // Residential ISPs — filter out so home openers don't appear as "companies"
 const RESIDENTIAL_KEYWORDS = [
-  'comcast', 'spectrum', 'at&t', 'verizon', 'cox', 'xfinity', 'charter',
-  'frontier', 'centurylink', 't-mobile', 'residential', 'broadband', 'cable',
+  'comcast', 'spectrum', 'at&t', 'att internet', 'verizon', 'cox', 'xfinity',
+  'charter', 'frontier', 'centurylink', 'lumen', 't-mobile', 'sprint',
+  'boost mobile', 'starlink', 'residential', 'broadband', 'cable communications',
 ]
+
+// Hosting / cloud providers — not the real end-user company
+const HOSTING_KEYWORDS = [
+  'amazon', 'aws', 'google cloud', 'microsoft azure', 'cloudflare',
+  'digitalocean', 'linode', 'vultr', 'fastly', 'akamai', 'rackspace',
+]
+
+const GENERIC_HOSTING_DOMAINS = new Set([
+  'amazonaws.com', 'googleusercontent.com', 'cloudflare.com', 'azure.com',
+  'compute.amazonaws.com', 'googleapis.com',
+])
+
+const LEGAL_SUFFIX_RE = /\s+(llc|inc|corp|ltd|co|company|group|associates|partners|services|solutions)\.?$/i
 
 function sb() {
   return createClient(
@@ -80,13 +102,14 @@ type IPEnrichment = {
   isp: string | null
   is_corporate: boolean
   city: string | null
+  region: string | null
   country: string | null
   org: string | null
 }
 
 const EMPTY_ENRICHMENT: IPEnrichment = {
   company_name: null, company_domain: null, company_type: null,
-  isp: null, is_corporate: false, city: null, country: null, org: null,
+  isp: null, is_corporate: false, city: null, region: null, country: null, org: null,
 }
 
 async function enrichIPToCompany(ip: string): Promise<IPEnrichment> {
@@ -99,37 +122,59 @@ async function enrichIPToCompany(ip: string): Promise<IPEnrichment> {
     const token = process.env.IPINFO_TOKEN
 
     if (token) {
-      const res = await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json?token=${token}`, {
+      // IPinfo Lite endpoint — no company object, org string only
+      const res = await fetch(`https://api.ipinfo.io/lite/${encodeURIComponent(ip)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
         signal: AbortSignal.timeout(3000),
       })
       if (!res.ok) return { ...EMPTY_ENRICHMENT }
       const d: any = await res.json()
 
-      const companyType: string | null = d?.company?.type || null
-      const isBusiness = companyType === 'business'
-      const isHosting  = companyType === 'hosting' || d?.hosting === true
-      const isISP      = companyType === 'isp'
+      const orgRaw: string = d?.org || ''
+      const cleanOrg = orgRaw.replace(/^AS\d+\s+/, '').trim()
+      const lowerOrg = cleanOrg.toLowerCase()
 
-      const orgName = String(d?.company?.name || d?.org || '').toLowerCase()
-      const isResidential = RESIDENTIAL_KEYWORDS.some((k) => orgName.includes(k))
-      const isCorporate = isBusiness && !isHosting && !isISP && !isResidential
+      const isResidential = RESIDENTIAL_KEYWORDS.some((k) => lowerOrg.includes(k))
+      const isHosting     = HOSTING_KEYWORDS.some((k) => lowerOrg.includes(k))
+      const isCorporate   = !isResidential && !isHosting && cleanOrg.length > 2
 
-      const rawCompany: string | null =
-        (!isResidential && d?.company?.name)
-          ? d.company.name
-          : (!isResidential && d?.org)
-            ? String(d.org).replace(/^AS\d+\s+/, '')
-            : null
+      // ── company_domain: prefer hostname TLD+1, then org guess ─
+      let companyDomain: string | null = null
+      if (d?.hostname && isCorporate) {
+        const parts = String(d.hostname).split('.')
+        if (parts.length >= 2) {
+          const tld1 = parts.slice(-2).join('.').toLowerCase()
+          if (!GENERIC_HOSTING_DOMAINS.has(tld1)) {
+            companyDomain = tld1
+          }
+        }
+      }
+      if (!companyDomain && isCorporate && cleanOrg) {
+        const guess = cleanOrg
+          .toLowerCase()
+          .replace(LEGAL_SUFFIX_RE, '')
+          .replace(/[^a-z0-9]/g, '')
+        if (guess.length > 2) companyDomain = `${guess}.com`
+      }
+
+      const companyType: string | null =
+        isResidential ? 'isp' :
+        isHosting     ? 'hosting' :
+        isCorporate   ? 'business' : null
 
       return {
-        company_name:   rawCompany,
-        company_domain: d?.company?.domain || null,
+        company_name:   isCorporate ? cleanOrg : null,
+        company_domain: companyDomain,
         company_type:   companyType,
-        isp:            d?.org || null,
+        isp:            orgRaw || null,
         is_corporate:   isCorporate,
         city:           d?.city || null,
-        country:        d?.country_name || d?.country || null,
-        org:            d?.org ? String(d.org).replace(/^AS\d+\s+/, '') : null,
+        region:         d?.region || null,
+        country:        d?.country || null,
+        org:            cleanOrg || null,
       }
     }
 
@@ -142,15 +187,19 @@ async function enrichIPToCompany(ip: string): Promise<IPEnrichment> {
 
     const orgRaw: string = d?.org || ''
     const cleanOrg = orgRaw.replace(/^AS\d+\s+/, '').trim()
-    const isResidential = RESIDENTIAL_KEYWORDS.some((k) => cleanOrg.toLowerCase().includes(k))
+    const lowerOrg = cleanOrg.toLowerCase()
+    const isResidential = RESIDENTIAL_KEYWORDS.some((k) => lowerOrg.includes(k))
+    const isHosting     = HOSTING_KEYWORDS.some((k) => lowerOrg.includes(k))
+    const isCorporate   = !isResidential && !isHosting && cleanOrg.length > 2
 
     return {
-      company_name:   !isResidential && cleanOrg ? cleanOrg : null,
+      company_name:   isCorporate ? cleanOrg : null,
       company_domain: null,
-      company_type:   null,
+      company_type:   isResidential ? 'isp' : isHosting ? 'hosting' : isCorporate ? 'business' : null,
       isp:            orgRaw || null,
-      is_corporate:   !isResidential && cleanOrg.length > 0,
+      is_corporate:   isCorporate,
       city:           d?.city || null,
+      region:         d?.region || null,
       country:        d?.country_name || null,
       org:            cleanOrg || null,
     }
@@ -330,6 +379,12 @@ async function processOpen(
   if (ip && proxyType !== 'Apple Mail Privacy Relay') {
     enrichment = await enrichIPToCompany(ip)
   }
+  try {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[EmailTracking] IP ${ip} → company: ${enrichment.company_name || 'unknown'} | corporate: ${enrichment.is_corporate} | proxy: ${proxyType || 'none'}`,
+    )
+  } catch { /* never throw from logging */ }
 
   // ── Recipient classification (only for likely forwards
   // where we actually identified a company) ─────────────
