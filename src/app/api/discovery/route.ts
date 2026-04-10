@@ -1289,19 +1289,25 @@ export async function POST(req: NextRequest) {
 
       let sections = applyIndustryOverrides(getDefaultSections(), client_industry)
 
-      // If the client has a welcome_statement on file from onboarding, pre-fill
-      // section_01 / 01_welcome with it. This is the highest-signal context we
-      // ever get from a client and feeds into every downstream AI step.
+      // If the client has a welcome_statement and/or business_classification
+      // on file from onboarding, pre-fill section_01 / 01_welcome with the
+      // welcome statement and seed the intel cards with both. This is the
+      // highest-signal context we ever get from a client and feeds into
+      // every downstream AI step.
       let preloadedWelcome: string | null = null
+      let preloadedClassification: any = null
       if (client_id) {
         try {
           const { data: clientRecord } = await s
             .from('clients')
-            .select('welcome_statement')
+            .select('welcome_statement, business_classification')
             .eq('id', client_id)
             .maybeSingle()
           if (clientRecord?.welcome_statement && String(clientRecord.welcome_statement).trim()) {
             preloadedWelcome = String(clientRecord.welcome_statement).trim()
+          }
+          if (clientRecord?.business_classification && typeof clientRecord.business_classification === 'object') {
+            preloadedClassification = clientRecord.business_classification
           }
         } catch { /* best-effort */ }
       }
@@ -1318,6 +1324,25 @@ export async function POST(req: NextRequest) {
         })
       }
 
+      // Seed intel_cards with both the welcome statement and the classification
+      // summary so the discovery detail view shows the full picture instantly,
+      // before research has even run.
+      const seedIntel: any[] = []
+      if (preloadedWelcome) {
+        seedIntel.push({ title: 'In Their Own Words', body: preloadedWelcome, category: 'context' })
+      }
+      if (preloadedClassification) {
+        const bc = preloadedClassification
+        const body = [
+          `Business model: ${String(bc.business_model || 'unknown').toUpperCase()}`,
+          `Geographic scope: ${bc.geographic_scope || 'unknown'}`,
+          `Business type: ${String(bc.business_type || 'unknown').replace(/_/g, ' ')}`,
+          `Sales cycle: ${bc.sales_cycle || 'unknown'}`,
+          bc.reasoning ? `Reasoning: ${bc.reasoning}` : '',
+        ].filter(Boolean).join(' · ')
+        seedIntel.push({ title: 'Business Classification', body, category: 'context' })
+      }
+
       const { data: eng, error } = await s
         .from('koto_discovery_engagements')
         .insert({
@@ -1327,11 +1352,7 @@ export async function POST(req: NextRequest) {
           client_industry: client_industry || null,
           status: 'research_running', // kick off research immediately
           sections,
-          // Seed intel_cards with the welcome statement so it surfaces in the
-          // sidebar immediately, before research finishes.
-          intel_cards: preloadedWelcome
-            ? [{ title: 'In Their Own Words', body: preloadedWelcome, category: 'context' }]
-            : [],
+          intel_cards: seedIntel,
         })
         .select('*')
         .maybeSingle()

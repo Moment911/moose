@@ -134,6 +134,7 @@ export default function Sidebar() {
               <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
               <NavLink to="/voice/test-console" icon={Phone} label="Voice Test Lab"/>
               <NavLink to="/test-data" icon={FlaskConical} label="Test Data" badge="DEV" badgeColor="#D97706"/>
+              <NavLink to="/onboarding-simulator" icon={FlaskConical} label="Onboarding Sim" badge="DEV" badgeColor="#D97706"/>
               <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
               <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
                 onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}

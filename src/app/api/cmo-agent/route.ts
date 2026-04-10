@@ -90,7 +90,7 @@ async function loadAgencyContext(agencyId: string) {
     settled(
       Promise.resolve(
         s.from('clients')
-          .select('name, welcome_statement, industry, primary_service')
+          .select('name, welcome_statement, industry, primary_service, business_classification')
           .eq('agency_id', agencyId)
           .not('welcome_statement', 'is', null)
           .limit(10),
@@ -139,7 +139,13 @@ function buildSystemPrompt(ctx: Awaited<ReturnType<typeof loadAgencyContext>>): 
   const welcomeBlock = (ctx.welcomeClients || []).length > 0
     ? '\n\nCLIENT CONTEXT (from their onboarding — their own words):\n' +
       ctx.welcomeClients
-        .map((c: any) => `${c.name} (${c.industry || c.primary_service || 'unknown industry'}): "${String(c.welcome_statement || '').replace(/\s+/g, ' ').trim()}"`)
+        .map((c: any) => {
+          const bc = c.business_classification || null
+          const typeLine = bc
+            ? ` [${String(bc.business_model || 'unknown').toUpperCase()} · ${bc.geographic_scope || 'unknown'} · ${String(bc.business_type || 'unknown').replace(/_/g, ' ')}]`
+            : ''
+          return `${c.name} (${c.industry || c.primary_service || 'unknown industry'})${typeLine}: "${String(c.welcome_statement || '').replace(/\s+/g, ' ').trim()}"`
+        })
         .join('\n')
     : ''
 

@@ -326,26 +326,42 @@ Return valid JSON only with this exact structure:
 
 Be specific, evidence-based, and actionable. Ground every finding and recommendation in the discovery data provided. Do not hedge. Return ONLY the JSON object, no markdown fences, no preamble.`
 
-    // Pull the canonical welcome statement from the client record (if linked)
-    // and prepend it to the user prompt as the highest-signal context.
+    // Pull the canonical welcome statement + business classification from
+    // the client record (if linked) and prepend them to the user prompt as
+    // the highest-signal context. The classification steers the audit so
+    // recommendations are tailored to B2B vs B2C, local vs national, etc.
     let welcomeStatement = ''
+    let classification: any = null
     if (eng.client_id) {
       try {
         const { data: clientRecord } = await s
           .from('clients')
-          .select('welcome_statement')
+          .select('welcome_statement, business_classification')
           .eq('id', eng.client_id)
           .maybeSingle()
         if (clientRecord?.welcome_statement) {
           welcomeStatement = String(clientRecord.welcome_statement).trim()
         }
+        if (clientRecord?.business_classification && typeof clientRecord.business_classification === 'object') {
+          classification = clientRecord.business_classification
+        }
       } catch { /* best-effort */ }
     }
+    const classificationBlock = classification
+      ? `BUSINESS CLASSIFICATION (drives which recommendations apply):\n` +
+        `  Model: ${String(classification.business_model || 'unknown').toUpperCase()}\n` +
+        `  Geographic scope: ${classification.geographic_scope || 'unknown'}\n` +
+        `  Type: ${String(classification.business_type || 'unknown').replace(/_/g, ' ')}\n` +
+        `  Sales cycle: ${classification.sales_cycle || 'unknown'}\n` +
+        (classification.has_sales_team ? `  Has a sales team: yes\n` : '') +
+        (classification.reasoning ? `  Reasoning: ${classification.reasoning}\n` : '') +
+        `IMPORTANT: tailor every recommendation to this business type. B2B vs B2C, local vs national, and consultative vs transactional should all shape the channel mix, tactics, and timeline.\n\n`
+      : ''
     const welcomeBlock = welcomeStatement
       ? `CLIENT IN THEIR OWN WORDS:\n"${welcomeStatement}"\n\n`
       : ''
 
-    const userPrompt = `${welcomeBlock}CLIENT: ${eng.client_name}
+    const userPrompt = `${classificationBlock}${welcomeBlock}CLIENT: ${eng.client_name}
 INDUSTRY: ${eng.client_industry || 'unknown'}
 EXECUTIVE SUMMARY (previously compiled):
 ${eng.executive_summary || '(not yet compiled)'}

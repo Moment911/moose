@@ -54,6 +54,8 @@ function mapFormDataToClientColumns(form_data: Record<string, any>): {
     secondary_services: 'secondary_services',
     target_customer: 'target_customer',
     avg_deal_size: 'avg_deal_size',
+    // Adaptive-question synonyms (B2B contract size → avg_deal_size column)
+    avg_contract_value: 'avg_deal_size',
     // Marketing — the form uses legacy names, columns use the canonical names
     marketing_channels: 'marketing_channels',
     current_ad_platforms: 'marketing_channels',
@@ -71,6 +73,8 @@ function mapFormDataToClientColumns(form_data: Record<string, any>): {
     logo_url: 'logo_url',
     // Tools + platforms
     crm_used: 'crm_used',
+    // Adaptive-question synonym — B2B CRM question maps to same column
+    b2b_crm: 'crm_used',
     hosting_provider: 'hosting_provider',
     // Social URLs
     facebook_url: 'facebook_url',
@@ -298,6 +302,12 @@ export async function POST(req: NextRequest) {
           _last_autosave: saved_at,
           _autosave_count: (Number(existingAnswers._autosave_count) || 0) + 1,
         }
+        // If the client sent along the live Claude classification, persist
+        // it to the dedicated column so every AI system (CMO agent, discovery,
+        // audit) can read it without re-classifying.
+        if (body.classification && typeof body.classification === 'object') {
+          updateData.business_classification = body.classification
+        }
         // NOTE: updated_at is handled by the BEFORE UPDATE trigger
         // (migration 20260461_clients_updated_at_trigger.sql). Do not set it here.
 
@@ -434,6 +444,10 @@ export async function POST(req: NextRequest) {
           ...unmappedFields,
           _submitted_at: new Date().toISOString(),
         },
+      }
+      // Persist the latest business classification if the client passed one
+      if (body.classification && typeof body.classification === 'object') {
+        completeUpdate.business_classification = body.classification
       }
       // NOTE: updated_at is handled by the BEFORE UPDATE trigger.
       await sb.from('clients').update(completeUpdate).eq('id', client_id)

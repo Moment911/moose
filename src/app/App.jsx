@@ -148,6 +148,7 @@ import DiscoveryClientFormPage from '../views/DiscoveryClientFormPage'
 import DiscoverySharedViewPage from '../views/DiscoverySharedViewPage'
 import DiscoveryAnalyticsPage from '../views/DiscoveryAnalyticsPage'
 import TestDataPage from '../views/TestDataPage'
+import OnboardingSimulatorPage from '../views/OnboardingSimulatorPage'
 import DataVaultPage from '../views/DataVaultPage'
 import EmailTrackingPage from '../views/EmailTrackingPage'
 import EmailTrackingGmailHelperPage from '../views/EmailTrackingGmailHelperPage'
@@ -347,6 +348,7 @@ function AppRoutes() {
           <Route path="/email-tracking/gmail-helper" element={<EmailTrackingGmailHelperPage />} />
           <Route path="/discovery/audit/:id" element={<DiscoveryAuditPage />} />
           <Route path="/test-data" element={<TestDataPage />} />
+          <Route path="/onboarding-simulator" element={<OnboardingSimulatorPage />} />
           <Route path="/vault" element={<DataVaultPage />} />
           <Route path="/clients/:id/intelligence" element={<ClientIntelligencePage />} />
           <Route path="/phones" element={<PhoneNumbersPage />} />

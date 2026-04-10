@@ -797,6 +797,14 @@ export default function OnboardingPage() {
   const [personaLoading, setPersonaLoading] = useState(false);
   const [showMissing,   setShowMissing]   = useState(false);
 
+  // ── Adaptive classification (B2B/B2C, local/national, sales cycle) ──
+  // Triggered automatically once welcome_statement is long enough. Drives
+  // which adaptive questions render below the main form.
+  const [classification, setClassification] = useState(null);
+  const [classifying, setClassifying] = useState(false);
+  const [adaptiveQuestions, setAdaptiveQuestions] = useState([]);
+  const classifyTimerRef = useRef(null);
+
   // Compute which required fields are empty
   function getMissingFields() {
     const missing = []
@@ -1013,8 +1021,10 @@ export default function OnboardingPage() {
   async function performAutoSave(formSnapshot) {
     if (!tokenData?.client_id) return;
     // Skip if the serialized payload is identical to the last one sent (dedupe)
+    // Include classification in the dedupe key so a new classification
+    // always flushes a save even when the form itself hasn't changed.
     let serialized = '';
-    try { serialized = JSON.stringify(formSnapshot); } catch { return; }
+    try { serialized = JSON.stringify({ f: formSnapshot, c: classification }); } catch { return; }
     if (serialized === lastSentRef.current) return;
     lastSentRef.current = serialized;
 
@@ -1028,6 +1038,7 @@ export default function OnboardingPage() {
           client_id: tokenData.client_id,
           agency_id: tokenData.agency_id || null,
           form_data: formSnapshot,
+          classification: classification || undefined,
           saved_at: new Date().toISOString(),
         }),
       });
@@ -1037,6 +1048,45 @@ export default function OnboardingPage() {
       setSaveStatus('error');
     }
   }
+
+  // ── Classification trigger ──
+  // Fires 2s after welcome_statement reaches 50+ characters (debounced).
+  // Re-fires when industry or primary_service changes so the classification
+  // sharpens as more context appears.
+  useEffect(() => {
+    if (status !== 'ready') return;
+    const ws = (form.welcome_statement || '').trim();
+    if (ws.length < 50) return;
+
+    clearTimeout(classifyTimerRef.current);
+    classifyTimerRef.current = setTimeout(async () => {
+      setClassifying(true);
+      try {
+        const res = await fetch('/api/onboarding/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            welcome_statement: ws,
+            business_name: form.business_name || tokenData?.clients?.name || '',
+            industry: form.industry || tokenData?.clients?.industry || '',
+            primary_service: form.primary_service || '',
+          }),
+        });
+        const data = await res.json();
+        if (data?.classification) {
+          setClassification(data.classification);
+          try {
+            const { getAdaptiveQuestions } = await import('../lib/onboardingQuestions');
+            setAdaptiveQuestions(getAdaptiveQuestions(data.classification));
+          } catch { /* dynamic import failure is non-fatal */ }
+        }
+      } catch { /* silent — classification is optional */ }
+      setClassifying(false);
+    }, 2000);
+
+    return () => clearTimeout(classifyTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.welcome_statement, form.industry, form.primary_service, status]);
 
   // Debounced watcher — fires 2s after the last form change
   useEffect(() => {
@@ -1576,6 +1626,165 @@ export default function OnboardingPage() {
             <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 8 }}>
               There are no wrong answers — the more detail the better. This is private and only shared with your agency team.
             </div>
+          </div>
+        )}
+
+        {/* ── Classification indicator — shows as soon as Claude has classified ── */}
+        {step === 1 && classification && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '10px 16px', borderRadius: 10,
+            background: '#f0fffe', border: `1px solid ${ACCENT}30`,
+            marginBottom: 20, fontSize: 13, flexWrap: 'wrap',
+          }}>
+            <span style={{ fontSize: 18 }}>
+              {classification.business_model === 'b2b' ? '🏢' :
+               classification.business_model === 'both' ? '🏢👥' : '👥'}
+            </span>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <span style={{ fontWeight: 700, color: '#111' }}>
+                {classification.business_model === 'b2b' ? 'B2B Business' :
+                 classification.business_model === 'both' ? 'B2B + B2C Business' : 'B2C Business'}
+              </span>
+              <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
+              <span style={{ color: '#374151' }}>
+                {classification.geographic_scope === 'local' ? '📍 Local' :
+                 classification.geographic_scope === 'regional' ? '🗺 Regional' :
+                 classification.geographic_scope === 'national' ? '🇺🇸 National' : '🌍 International'}
+              </span>
+              <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
+              <span style={{ color: '#374151', textTransform: 'capitalize' }}>
+                {String(classification.business_type || '').replace(/_/g, ' ')}
+              </span>
+            </div>
+            <span style={{ fontSize: 11, color: '#9a9a96' }}>
+              {adaptiveQuestions.length} tailored question{adaptiveQuestions.length === 1 ? '' : 's'} added
+            </span>
+          </div>
+        )}
+
+        {step === 1 && classifying && !classification && (
+          <div style={{
+            fontSize: 12, color: ACCENT, marginBottom: 16,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: '50%', background: ACCENT,
+              display: 'inline-block', animation: 'spin 1s linear infinite',
+            }}/>
+            Analyzing your business to tailor the questions…
+          </div>
+        )}
+
+        {/* ── Adaptive questions — render below welcome card on step 1 ── */}
+        {step === 1 && adaptiveQuestions.length > 0 && (
+          <div style={{
+            background: '#fff', border: `1px solid ${ACCENT}30`,
+            borderRadius: 14, padding: '22px 26px', marginBottom: 24,
+          }}>
+            <div style={{
+              fontWeight: 800, fontSize: 16, color: '#111',
+              marginBottom: 6, fontFamily: "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",
+            }}>
+              Questions tailored to your business
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 18 }}>
+              Based on what you've shared, these questions are most relevant to your situation.
+            </div>
+
+            {adaptiveQuestions.map((q) => (
+              <div key={q.id} style={{ marginBottom: 18 }}>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: 14, color: '#111', marginBottom: 4 }}>
+                  {q.label}
+                </label>
+                {q.hint && (
+                  <div style={{ fontSize: 12, color: '#9a9a96', marginBottom: 6 }}>
+                    {q.hint}
+                  </div>
+                )}
+
+                {q.type === 'textarea' && (
+                  <textarea
+                    value={form[q.field_key] || ''}
+                    onChange={(e) => set(q.field_key, e.target.value)}
+                    placeholder={q.placeholder}
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '10px 14px', borderRadius: 8,
+                      border: '1px solid #e5e7eb', fontSize: 14, resize: 'vertical',
+                      boxSizing: 'border-box',
+                      fontFamily: "'Raleway','Helvetica Neue',sans-serif",
+                      outline: 'none',
+                    }}
+                  />
+                )}
+
+                {q.type === 'text' && (
+                  <input
+                    type="text"
+                    value={form[q.field_key] || ''}
+                    onChange={(e) => set(q.field_key, e.target.value)}
+                    placeholder={q.placeholder}
+                    style={{
+                      width: '100%', padding: '10px 14px', borderRadius: 8,
+                      border: '1px solid #e5e7eb', fontSize: 14,
+                      boxSizing: 'border-box', outline: 'none',
+                    }}
+                  />
+                )}
+
+                {q.type === 'select' && (
+                  <select
+                    value={form[q.field_key] || ''}
+                    onChange={(e) => set(q.field_key, e.target.value)}
+                    style={{
+                      width: '100%', padding: '10px 14px', borderRadius: 8,
+                      border: '1px solid #e5e7eb', fontSize: 14, background: '#fff',
+                    }}
+                  >
+                    <option value="">Select an option…</option>
+                    {q.options?.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                )}
+
+                {q.type === 'multiselect' && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {q.options?.map((opt) => {
+                      const arr = Array.isArray(form[q.field_key]) ? form[q.field_key] : []
+                      const selected = arr.includes(opt)
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => {
+                            const next = selected ? arr.filter((x) => x !== opt) : [...arr, opt]
+                            set(q.field_key, next)
+                          }}
+                          style={{
+                            padding: '6px 14px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
+                            border: selected ? 'none' : '1px solid #e5e7eb',
+                            background: selected ? ACCENT : '#f9f9f9',
+                            color: selected ? '#fff' : '#374151',
+                            fontWeight: selected ? 700 : 400,
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <div style={{ marginTop: 6 }}>
+                  <AIAssist
+                    small
+                    label="AI Suggest"
+                    prompt={`Suggest a concise, realistic answer for "${q.label}" for this business. If the field is a multiselect, return a comma-separated list of matching options from: ${(q.options || []).join(' | ') || 'n/a'}.`}
+                    onResult={(suggestion) => set(q.field_key, suggestion)}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
