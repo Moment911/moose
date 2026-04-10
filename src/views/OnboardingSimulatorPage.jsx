@@ -446,8 +446,59 @@ function ResultPanel({ result, onDelete, deleting, navigate, onReset }) {
     other:        'Other',
   }
 
+  // Quick summary of the top generated fields — lets the agency user
+  // immediately see what was built without clicking through to the client
+  // detail page.
+  const summaryFields = [
+    { label: 'Business Name',   value: generated.business_name || generated.name },
+    { label: 'Owner Name',      value: generated.owner_name || [generated.first_name, generated.last_name].filter(Boolean).join(' ') },
+    { label: 'Industry',        value: generated.industry },
+    { label: 'Location',        value: [generated.primary_city || generated.city, generated.primary_state || generated.state].filter(Boolean).join(', ') },
+    { label: 'Primary Service', value: generated.primary_service || generated.top_services },
+    { label: 'Marketing Budget', value: generated.monthly_ad_budget || generated.marketing_budget },
+  ].filter((f) => f.value)
+
   return (
     <div>
+      {/* Prominent header — the generated business identity */}
+      <div style={{
+        background: '#fff', border: `1px solid ${C.border}`, borderRadius: 14,
+        padding: '22px 24px', marginBottom: 20,
+      }}>
+        <div style={{ fontSize: 22, fontWeight: 900, color: '#111', marginBottom: 4, fontFamily: FH }}>
+          {generated.business_name || generated.name || 'Simulated Business'}
+        </div>
+        <div style={{ fontSize: 13, color: '#9a9a96', marginBottom: 16 }}>
+          {[
+            cls.business_type && String(cls.business_type).replace(/_/g, ' '),
+            cls.geographic_scope,
+            cls.business_model && String(cls.business_model).toUpperCase(),
+          ].filter(Boolean).join(' · ')}
+          {result.client_id && ` · Client ID: ${result.client_id}`}
+        </div>
+
+        {summaryFields.length > 0 && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 12,
+            paddingTop: 14,
+            borderTop: `1px solid ${C.border}`,
+          }}>
+            {summaryFields.map((f) => (
+              <div key={f.label}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
+                  {f.label}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.text, wordBreak: 'break-word' }}>
+                  {String(f.value)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* SECTION A — Classification */}
       <div style={sectionTitle}>A. Business Classification</div>
       <div style={{
