@@ -2,9 +2,8 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  FlaskConical, Sparkles, CheckCircle, AlertTriangle, ExternalLink,
-  Loader2, Trash2, ArrowRight, Building, Users, Globe, MapPin,
-  Brain, Zap, Copy, Check,
+  FlaskConical, Sparkles, CheckCircle, ExternalLink,
+  Loader2, Trash2, ArrowRight, Building, Copy, Check,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
@@ -132,7 +131,7 @@ const FIELD_ALIAS = {
 }
 
 export default function OnboardingSimulatorPage() {
-  const { isSuperAdmin, agencyId } = useAuth()
+  const { agencyId } = useAuth()
   const isMobile = useMobile()
   const navigate = useNavigate()
 
@@ -214,24 +213,12 @@ export default function OnboardingSimulatorPage() {
     setDeleting(false)
   }
 
-  if (!isSuperAdmin) {
-    return (
-      <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg, fontFamily: FB }}>
-        {!isMobile && <Sidebar />}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <div style={{ maxWidth: 440, textAlign: 'center' }}>
-            <AlertTriangle size={36} color={C.amber} style={{ marginBottom: 14 }} />
-            <div style={{ fontSize: 20, fontWeight: 800, color: C.text, fontFamily: FH, marginBottom: 6 }}>
-              Super admin only
-            </div>
-            <div style={{ fontSize: 14, color: C.muted }}>
-              The onboarding simulator is a developer tool for testing the full form flow. It's restricted to super-admin accounts.
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // NOTE: previously this component had a hard `if (!isSuperAdmin) return ...`
+  // gate here. That was unnecessary (the sidebar link is already hidden behind
+  // `isSuperAdmin && !isImpersonating` in Sidebar.jsx) and caused a blank /
+  // "Super admin only" screen during the brief window when useAuth() has not
+  // yet resolved the session — isSuperAdmin starts `false` and flips to `true`
+  // once auth loads. The full simulator now renders immediately.
 
   return (
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: C.bg, fontFamily: FB, color: C.text }}>
