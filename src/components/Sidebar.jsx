@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Download, Edit2, FileSignature, FileText, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
+  Activity, BarChart2, BookOpen, Brain, CheckCircle, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -133,6 +133,7 @@ export default function Sidebar() {
               <NavLink to="/qa" icon={Shield} label="QA Console" badge="NEW" badgeColor={T}/>
               <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
               <NavLink to="/voice/test-console" icon={Phone} label="Voice Test Lab"/>
+              <NavLink to="/test-data" icon={FlaskConical} label="Test Data" badge="DEV" badgeColor="#D97706"/>
               <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
               <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
                 onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}
@@ -222,6 +223,7 @@ export default function Sidebar() {
 
             {/* AGENCY */}
             <Section label="Agency"/>
+            <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T}/>
             <NavLink to="/phones" icon={Phone} label="Phone Numbers"/>
             <NavLink to="/marketplace" icon={Sparkles} label="Marketplace"/>
             <NavLink to="/integrations" icon={Plug} label="Integrations"/>

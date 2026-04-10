@@ -243,6 +243,55 @@ async function callClaude(opts: {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Vault writers — fire-and-forget. Inline supabase upsert (no
+// fetch to /api/vault — circular call inside the same Next.js fn).
+// All callers wrap in their own try/catch and never await.
+// ─────────────────────────────────────────────────────────────
+async function vaultWrite(args: {
+  agencyId: string
+  recordType: string
+  sourceId: string
+  source?: string
+  title?: string
+  summary?: string
+  data?: any
+  clientId?: string | null
+}): Promise<void> {
+  try {
+    const s = sb()
+    await s.from('koto_data_vault').insert({
+      agency_id: args.agencyId,
+      client_id: args.clientId || null,
+      record_type: args.recordType,
+      source: args.source || 'discovery',
+      source_id: args.sourceId,
+      title: args.title || null,
+      summary: args.summary || null,
+      data: args.data || {},
+    })
+  } catch { /* swallow — vault writes must never break the request */ }
+}
+
+async function vaultSnapshot(args: {
+  agencyId: string
+  sourceType: string
+  sourceId: string
+  label?: string
+  payload: any
+}): Promise<void> {
+  try {
+    const s = sb()
+    await s.from('koto_data_vault_snapshots').insert({
+      agency_id: args.agencyId,
+      source_type: args.sourceType,
+      source_id: args.sourceId,
+      label: args.label || null,
+      payload: args.payload,
+    })
+  } catch { /* swallow */ }
+}
+
 function parseJson(text: string): any {
   if (!text) return null
   try {
@@ -352,6 +401,18 @@ Be brief.`
     sections,
     status: 'research_complete',
   }).eq('id', engagementId)
+
+  // Vault writes — one entry per intel card (fire and forget)
+  for (const card of intel_cards) {
+    vaultWrite({
+      agencyId: eng.agency_id,
+      recordType: 'discovery_intel_card',
+      sourceId: engagementId,
+      title: card.title || 'Intel card',
+      summary: typeof card.body === 'string' ? card.body.slice(0, 280) : '',
+      data: card,
+    }).catch(() => {})
+  }
 }
 
 /**
@@ -809,6 +870,17 @@ export async function POST(req: NextRequest) {
       if (source) field.source = source
 
       await s.from('koto_discovery_engagements').update({ sections }).eq('id', id)
+
+      // Vault write — fire and forget
+      vaultWrite({
+        agencyId,
+        recordType: 'discovery_field',
+        sourceId: id,
+        title: field.question || `${section_id}/${field_id}`,
+        summary: typeof answer === 'string' ? answer.slice(0, 280) : '',
+        data: { section_id, field_id, answer, source: field.source },
+      }).catch(() => {})
+
       return Response.json({ ok: true })
     }
 
@@ -1084,6 +1156,28 @@ Produce 3-4 tight paragraphs covering: (1) who they are and where they stand, (2
         status: 'compiled',
         version_history: trimmedHistory,
       }).eq('id', id)
+
+      // Vault: write a compile entry + a full snapshot
+      vaultWrite({
+        agencyId,
+        recordType: 'discovery_compile',
+        sourceId: id,
+        title: `Compiled v${nextVersionNumber} — ${eng.client_name}`,
+        summary: typeof summary === 'string' ? summary.slice(0, 280) : '',
+        data: { version: nextVersionNumber, executive_summary: summary },
+      }).catch(() => {})
+      vaultSnapshot({
+        agencyId,
+        sourceType: 'discovery_engagement',
+        sourceId: id,
+        label: `Compile v${nextVersionNumber}`,
+        payload: {
+          sections: eng.sections || [],
+          executive_summary: summary,
+          intel_cards: eng.intel_cards || [],
+          client_name: eng.client_name,
+        },
+      }).catch(() => {})
 
       return Response.json({ data: { executive_summary: summary, version: nextVersionNumber } })
     }
@@ -1425,6 +1519,26 @@ Map the transcript onto the fields above. Return ONLY the JSON object, no preamb
         intel_cards: [...existingIntel, ...newIntelCards],
         interview_flags: [...existingFlags, ...newFlagEntries],
       }).eq('id', engagement_id)
+
+      // Vault: one entry per applied field update so the import is fully traceable
+      for (const u of fieldUpdates) {
+        if (!u?.field_id || !u?.answer) continue
+        vaultWrite({
+          agencyId,
+          recordType: 'transcript_import',
+          sourceId: engagement_id,
+          title: `Transcript → ${u.section_id}/${u.field_id}`,
+          summary: typeof u.answer === 'string' ? u.answer.slice(0, 280) : '',
+          data: {
+            section_id: u.section_id,
+            field_id: u.field_id,
+            answer: u.answer,
+            confidence: u.confidence,
+            quote: u.quote,
+            source: 'transcript_imported',
+          },
+        }).catch(() => {})
+      }
 
       return Response.json({
         data: {

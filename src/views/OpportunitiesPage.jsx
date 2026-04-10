@@ -4,7 +4,7 @@ import {
   Zap, Globe, Phone, PhoneIncoming, Search, Upload, User, Eye,
   TrendingUp, ArrowRight, ExternalLink, Clock, FileText, Brain,
   ChevronRight, X, Check, Loader2, Star, Target, Filter,
-  BarChart2, Calendar, Activity, AlertCircle
+  BarChart2, Calendar, Activity, AlertCircle, Trash2
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
@@ -96,6 +96,7 @@ export default function OpportunitiesPage() {
   const [detail, setDetail] = useState(null)
   const [detailTab, setDetailTab] = useState('timeline')
   const [pushing, setPushing] = useState({})
+  const [selectedIds, setSelectedIds] = useState({})
   const searchRef = useRef(null)
 
   useEffect(() => { fetchAll() }, [source])
@@ -148,6 +149,48 @@ export default function OpportunitiesPage() {
     setPushing(p => ({ ...p, [id]: false }))
   }
 
+  async function deleteOpp(id, ev) {
+    if (ev) ev.stopPropagation()
+    if (!confirm('Delete this opportunity? This cannot be undone.')) return
+    try {
+      await fetch('/api/opportunities', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id }),
+      })
+      setOpps(prev => prev.filter(o => o.id !== id))
+      if (selected?.id === id) { setSelected(null); setDetail(null) }
+      setSelectedIds(s => { const c = { ...s }; delete c[id]; return c })
+      toast.success('Deleted')
+    } catch {
+      toast.error('Delete failed')
+    }
+  }
+
+  async function bulkDelete() {
+    const ids = Object.entries(selectedIds).filter(([, v]) => v).map(([k]) => k)
+    if (ids.length === 0) return
+    if (!confirm(`Delete ${ids.length} opportunities?`)) return
+    try {
+      await Promise.all(ids.map(id => fetch('/api/opportunities', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id }),
+      })))
+      setOpps(prev => prev.filter(o => !ids.includes(o.id)))
+      setSelectedIds({})
+      if (selected && ids.includes(selected.id)) { setSelected(null); setDetail(null) }
+      toast.success(`Deleted ${ids.length}`)
+    } catch {
+      toast.error('Bulk delete failed')
+    }
+  }
+
+  function toggleSelect(id, ev) {
+    if (ev) ev.stopPropagation()
+    setSelectedIds(s => ({ ...s, [id]: !s[id] }))
+  }
+
+  const bulkSelectedCount = Object.values(selectedIds).filter(Boolean).length
+
   function handleSearch(e) {
     e.preventDefault()
     fetchAll()
@@ -158,10 +201,23 @@ export default function OpportunitiesPage() {
     const stg = STAGE_CONFIG[opp.stage] || STAGE_CONFIG.new
     const SrcIcon = src.icon
     return (
-      <div onClick={() => openDetail(opp)} style={{
-        background: '#fff', borderRadius: 12, border: selected?.id === opp.id ? `2px solid ${R}` : '1px solid #ececea', padding: '14px 16px', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', gap: 14, transition: 'border .15s ease',
-      }}>
+      <div
+        onClick={() => openDetail(opp)}
+        style={{
+          background: '#fff', borderRadius: 12, border: selected?.id === opp.id ? `2px solid ${R}` : '1px solid #ececea', padding: '14px 16px', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 14, transition: 'border .15s ease',
+          position: 'relative',
+        }}
+        onMouseEnter={ev => { const t = ev.currentTarget.querySelector('[data-trash]'); if (t) t.style.opacity = '1' }}
+        onMouseLeave={ev => { const t = ev.currentTarget.querySelector('[data-trash]'); if (t) t.style.opacity = '0' }}
+      >
+        <input
+          type="checkbox"
+          checked={!!selectedIds[opp.id]}
+          onChange={ev => toggleSelect(opp.id, ev)}
+          onClick={ev => ev.stopPropagation()}
+          style={{ width: 16, height: 16, accentColor: T, cursor: 'pointer' }}
+        />
         <ScoreRing score={opp.score || 0} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
@@ -187,6 +243,20 @@ export default function OpportunitiesPage() {
         ) : (
           <span style={{ fontSize: 11, fontWeight: 700, color: GRN, display: 'flex', alignItems: 'center', gap: 3 }}><Check size={10} /> In GHL</span>
         )}
+        <button
+          data-trash
+          onClick={ev => deleteOpp(opp.id, ev)}
+          title="Delete opportunity"
+          style={{
+            opacity: 0, transition: 'opacity .15s ease',
+            background: 'none', border: 'none', cursor: 'pointer', padding: 6,
+            color: '#9ca3af', display: 'flex', alignItems: 'center',
+          }}
+          onMouseEnter={ev => ev.currentTarget.style.color = '#dc2626'}
+          onMouseLeave={ev => ev.currentTarget.style.color = '#9ca3af'}
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
     )
   }
@@ -250,6 +320,36 @@ export default function OpportunitiesPage() {
           </div>
         </div>
 
+        {/* Bulk action bar */}
+        {bulkSelectedCount > 0 && (
+          <div style={{
+            background: T + '15', borderBottom: `1px solid ${T}40`, padding: '10px 28px',
+            display: 'flex', alignItems: 'center', gap: 12,
+          }}>
+            <Check size={14} color={T} />
+            <div style={{ fontSize: 14, color: BLK, fontWeight: 600, flex: 1 }}>
+              <strong>{bulkSelectedCount}</strong> selected
+            </div>
+            <button
+              onClick={bulkDelete}
+              style={{
+                background: '#dc2626', color: '#fff', border: 'none', borderRadius: 7,
+                padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 5, fontFamily: FH,
+              }}
+            >
+              <Trash2 size={12} /> Delete selected
+            </button>
+            <button
+              onClick={() => setSelectedIds({})}
+              style={{
+                background: 'none', border: 'none', color: T, fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', fontFamily: FH,
+              }}
+            >Clear</button>
+          </div>
+        )}
+
         {/* Content */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
           {/* Main list / board */}
@@ -292,9 +392,23 @@ export default function OpportunitiesPage() {
                 <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>
                   {selected.company_name || selected.contact_name || 'Unknown'}
                 </span>
-                <button onClick={() => { setSelected(null); setDetail(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-                  <X size={16} color="#9a9a96" />
-                </button>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button
+                    onClick={() => deleteOpp(selected.id)}
+                    title="Delete opportunity"
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+                      color: '#9ca3af', display: 'flex', alignItems: 'center',
+                    }}
+                    onMouseEnter={ev => ev.currentTarget.style.color = '#dc2626'}
+                    onMouseLeave={ev => ev.currentTarget.style.color = '#9ca3af'}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                  <button onClick={() => { setSelected(null); setDetail(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                    <X size={16} color="#9a9a96" />
+                  </button>
+                </div>
               </div>
 
               {/* Quick info */}

@@ -4,7 +4,7 @@ import {
   Phone, PhoneCall, PhoneOff, PhoneIncoming, PhoneOutgoing,
   Activity, Clock, TrendingUp, Loader2, RefreshCw, Shield,
   BarChart2, Play, ExternalLink, AlertCircle, Check, Zap,
-  ArrowUp, ArrowDown, Calendar, Volume2, X
+  ArrowUp, ArrowDown, Calendar, Volume2, X, Trash2
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
@@ -323,6 +323,34 @@ export default function VoiceLiveMonitorPage() {
     setLoading(false)
   }
 
+  async function deleteCall(callId) {
+    if (!confirm('Delete this call record? This cannot be undone.')) return
+    try {
+      await fetch('/api/voice', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_call', call_id: callId }),
+      })
+      setRecentCalls(rs => rs.filter(c => c.id !== callId))
+      toast.success('Call deleted')
+    } catch {
+      toast.error('Delete failed')
+    }
+  }
+
+  async function clearOldCallHistory() {
+    if (!confirm('Permanently delete all calls older than 30 days?')) return
+    try {
+      const res = await fetch('/api/voice', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear_call_history' }),
+      }).then(r => r.json())
+      toast.success(`Deleted ${res?.deleted || 0} old calls`)
+      fetchData()
+    } catch {
+      toast.error('Clear failed')
+    }
+  }
+
   async function stopCall(callId) {
     try {
       await fetch('/api/voice', {
@@ -441,7 +469,20 @@ export default function VoiceLiveMonitorPage() {
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>Recent Calls</div>
-              <span style={{ fontSize: 14, color: '#9a9a96' }}>{recentCalls.length} calls</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 14, color: '#9a9a96' }}>{recentCalls.length} calls</span>
+                <button
+                  onClick={clearOldCallHistory}
+                  style={{
+                    background: '#fff', border: '1px solid #ececea', borderRadius: 7,
+                    padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#6b7280',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                  }}
+                  title="Delete calls older than 30 days"
+                >
+                  <Trash2 size={11} /> Clear &gt; 30 days
+                </button>
+              </div>
             </div>
             {recentCalls.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 15, fontFamily: FB }}>
@@ -479,11 +520,25 @@ export default function VoiceLiveMonitorPage() {
                           <td style={{ padding: '10px 12px', fontSize: 18 }}>{SENTIMENT_EMOJI[c.sentiment] || '😐'}</td>
                           <td style={{ padding: '10px 12px', fontSize: 13, color: '#9a9a96' }}>{timeAgo(c.created_at)}</td>
                           <td style={{ padding: '10px 12px' }}>
-                            {c.recording_url && (
-                              <a href={c.recording_url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: T, fontWeight: 700, textDecoration: 'none' }}>
-                                <Play size={11} /> Play
-                              </a>
-                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              {c.recording_url && (
+                                <a href={c.recording_url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: T, fontWeight: 700, textDecoration: 'none' }}>
+                                  <Play size={11} /> Play
+                                </a>
+                              )}
+                              <button
+                                onClick={() => deleteCall(c.id)}
+                                title="Delete call"
+                                style={{
+                                  background: 'none', border: 'none', padding: 4, cursor: 'pointer',
+                                  color: '#9ca3af', display: 'flex', alignItems: 'center',
+                                }}
+                                onMouseEnter={ev => ev.currentTarget.style.color = '#dc2626'}
+                                onMouseLeave={ev => ev.currentTarget.style.color = '#9ca3af'}
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )

@@ -144,6 +144,8 @@ import DiscoveryPage from '../views/DiscoveryPage'
 import DiscoveryAuditPage from '../views/DiscoveryAuditPage'
 import DiscoveryClientFormPage from '../views/DiscoveryClientFormPage'
 import DiscoverySharedViewPage from '../views/DiscoverySharedViewPage'
+import TestDataPage from '../views/TestDataPage'
+import DataVaultPage from '../views/DataVaultPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -329,6 +331,8 @@ function AppRoutes() {
           <Route path="/trades" element={<TradesPortalPage />} />
           <Route path="/discovery" element={<DiscoveryPage />} />
           <Route path="/discovery/audit/:id" element={<DiscoveryAuditPage />} />
+          <Route path="/test-data" element={<TestDataPage />} />
+          <Route path="/vault" element={<DataVaultPage />} />
           <Route path="/clients/:id/intelligence" element={<ClientIntelligencePage />} />
           <Route path="/phones" element={<PhoneNumbersPage />} />
           <Route path="/terms" element={<TermsPage />} />

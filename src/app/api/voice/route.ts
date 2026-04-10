@@ -174,6 +174,40 @@ RULES:
       return NextResponse.json({ ok: true })
     }
 
+    // ── Delete Call ─────────────────────────────────────────────────────────
+    if (action === 'delete_call') {
+      const { call_id } = body
+      if (!call_id) return NextResponse.json({ error: 'Missing call_id' }, { status: 400 })
+      await sb.from('koto_voice_calls').delete().eq('id', call_id).eq('agency_id', agency_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Delete Lead ─────────────────────────────────────────────────────────
+    if (action === 'delete_lead') {
+      const { lead_id } = body
+      if (!lead_id) return NextResponse.json({ error: 'Missing lead_id' }, { status: 400 })
+      await sb.from('koto_voice_leads').delete().eq('id', lead_id).eq('agency_id', agency_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Delete Campaign ─────────────────────────────────────────────────────
+    if (action === 'delete_campaign') {
+      const { campaign_id } = body
+      if (!campaign_id) return NextResponse.json({ error: 'Missing campaign_id' }, { status: 400 })
+      await sb.from('koto_voice_campaigns').delete().eq('id', campaign_id).eq('agency_id', agency_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Clear Call History (calls older than 30 days) ──────────────────────
+    if (action === 'clear_call_history') {
+      const cutoff = new Date(Date.now() - 30 * 86400000).toISOString()
+      const { count } = await sb.from('koto_voice_calls')
+        .delete({ count: 'exact' })
+        .eq('agency_id', agency_id)
+        .lt('created_at', cutoff)
+      return NextResponse.json({ ok: true, deleted: count || 0 })
+    }
+
     // ── Create Campaign ──────────────────────────────────────────────────────
     if (action === 'create_campaign') {
       const { client_id, agent_id, name, scheduled_start, scheduled_end,
