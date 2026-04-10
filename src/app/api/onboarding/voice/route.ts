@@ -201,6 +201,7 @@ async function verifyPin(args: {
   enteredPin: string
   callId: string
   callerPhone: string
+  rawBody?: any
 }): Promise<{
   valid: boolean
   reason?: string
@@ -210,10 +211,45 @@ async function verifyPin(args: {
   client_name?: string
   caller_name?: string | null
 }> {
-  const { sb, dialedNumber, enteredPin, callId, callerPhone } = args
+  const { sb, dialedNumber, enteredPin, callId, callerPhone, rawBody } = args
+
+  // ── Debug: log what we received on the verify_pin tool call ──
+  // eslint-disable-next-line no-console
+  console.log(
+    '[verify_pin] pin:', enteredPin,
+    'phone_number:', dialedNumber,
+    'caller_phone:', callerPhone,
+    'call_id:', callId || rawBody?.call_id || null,
+  )
+
+  // Explicit pool lookup for diagnostics — Retell sometimes sends
+  // the number as `+15613630695`, sometimes as `15613630695`, and
+  // sometimes in display form. Try the raw, `+1`-prefixed, and
+  // 10-digit variants in parallel to see which one the pool row
+  // actually matches.
+  const normalizedTo = (dialedNumber || '').replace(/\D/g, '').replace(/^1/, '')
+  const poolCandidates = [
+    dialedNumber,
+    `+1${normalizedTo}`,
+    `1${normalizedTo}`,
+    normalizedTo,
+  ].filter((v, i, a) => !!v && a.indexOf(v) === i)
+
+  const { data: pool } = await sb
+    .from('koto_onboarding_phone_pool')
+    .select('*')
+    .in('phone_number', poolCandidates)
+    .maybeSingle()
+
+  // eslint-disable-next-line no-console
+  console.log('[verify_pin] pool lookup candidates:', JSON.stringify(poolCandidates))
+  // eslint-disable-next-line no-console
+  console.log('[verify_pin] pool lookup result:', JSON.stringify(pool))
 
   const resolved = await resolveCallContext({ sb, callId, toNumber: dialedNumber })
   if (!resolved.client_id) {
+    // eslint-disable-next-line no-console
+    console.log('[verify_pin] resolveCallContext returned no client_id — resolved:', JSON.stringify(resolved))
     return { valid: false, reason: 'number_not_assigned', message: 'This number is not currently active.' }
   }
 
@@ -222,6 +258,14 @@ async function verifyPin(args: {
     .select('id, name, owner_name, onboarding_pin, onboarding_phone_expires_at, onboarding_status')
     .eq('id', resolved.client_id)
     .maybeSingle()
+
+  // eslint-disable-next-line no-console
+  console.log(
+    '[verify_pin] client pin:', (client as any)?.onboarding_pin,
+    'entered pin:', enteredPin,
+    'client_id:', resolved.client_id,
+    'onboarding_status:', (client as any)?.onboarding_status,
+  )
 
   if (!client) {
     return { valid: false, reason: 'client_not_found' }
@@ -588,6 +632,11 @@ export async function POST(req: NextRequest) {
         }
         // eslint-disable-next-line no-console
         console.log('[onboarding/voice webhook] received:', JSON.stringify(logSnapshot))
+        // Full body dump — truncated at 2k so a runaway transcript
+        // can't blow up the function log. Lets us see every field
+        // Retell actually sends without guessing at names.
+        // eslint-disable-next-line no-console
+        console.log('[voice webhook] full body:', JSON.stringify(body).slice(0, 2000))
       } catch { /* never fail a webhook over logging */ }
     }
 
@@ -867,7 +916,7 @@ export async function POST(req: NextRequest) {
       // ── verify_pin ──
       if (fnName === 'verify_pin') {
         const enteredPin = String(args?.pin || '').trim()
-        const result = await verifyPin({ sb, dialedNumber, enteredPin, callId, callerPhone })
+        const result = await verifyPin({ sb, dialedNumber, enteredPin, callId, callerPhone, rawBody: body })
         return NextResponse.json(result)
       }
 
