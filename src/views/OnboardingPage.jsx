@@ -3317,6 +3317,17 @@ export default function OnboardingPage() {
                   'Add admin@hellokoto.com as Admin'
                 ]}
                 link="https://www.bingplaces.com" linkLabel="Open Bing Places" />
+
+              {/* Link to full access guide */}
+              <div style={{ textAlign: 'center', marginTop: 24, padding: '16px', background: '#f9f9f9', borderRadius: 10 }}>
+                <div style={{ fontSize: 13, color: '#374151', marginBottom: 8 }}>
+                  Not sure how to grant access to a specific platform?
+                </div>
+                <a href="/access-guide" target="_blank" rel="noreferrer"
+                  style={{ color: ACCENT, fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
+                  📋 View our complete access setup guide →
+                </a>
+              </div>
             </div>
           </div>
         )}

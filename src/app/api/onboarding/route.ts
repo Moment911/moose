@@ -602,6 +602,97 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, agent_configured: !existing })
     }
 
+    // ── Send access guide email ──────────────────────────────────────────────
+    // Sends the client a branded email linking to /access-guide with the
+    // agency's access email and a short list of which platforms they should
+    // grant us. Called from the ClientDetailPage "Send Access Guide" button.
+    if (action === 'send_access_guide') {
+      const email: string | undefined = body.email
+      if (!client_id) {
+        return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+      }
+
+      const { data: client } = await sb
+        .from('clients')
+        .select('name, email, platform_access, owner_name, agency_id')
+        .eq('id', client_id)
+        .maybeSingle()
+
+      if (!client) {
+        return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+      }
+
+      const destEmail = (email && email.trim()) || client.email
+      if (!destEmail) {
+        return NextResponse.json({ error: 'No email address provided' }, { status: 400 })
+      }
+
+      const aid = agency_id || client.agency_id
+      const { data: agency } = aid
+        ? await sb.from('agencies').select('name, brand_name').eq('id', aid).maybeSingle()
+        : { data: null as any }
+
+      const agencyName = agency?.brand_name || agency?.name || 'Your Agency'
+      const firstName = (client.owner_name || client.name || 'there').split(' ')[0]
+
+      const accessEmail = 'access@momentamarketing.com'
+      const guideUrl = `${APP_URL}/access-guide?agency_name=${encodeURIComponent(agencyName)}&agency_email=${encodeURIComponent(accessEmail)}`
+
+      // Pull platforms the client checked during onboarding (if any)
+      const platformAccess = (client.platform_access && typeof client.platform_access === 'object') ? client.platform_access : {}
+      const checkedPlatforms = Object.keys(platformAccess).filter(k => platformAccess[k])
+      const platformList = checkedPlatforms.length > 0
+        ? `<div style="background:#f9f9f9;border-radius:10px;padding:16px 20px;margin-bottom:20px">
+             <div style="font-weight:700;margin-bottom:8px">Platforms we need access to:</div>
+             <ul style="margin:0;padding-left:18px;color:#374151;font-size:13px;line-height:1.8">
+               ${checkedPlatforms.map(p => `<li>${p.replace(/_/g, ' ')}</li>`).join('')}
+             </ul>
+           </div>`
+        : ''
+
+      const emailHtml = `
+        <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+          <div style="background:linear-gradient(135deg,#00C2CB,#0099A8);padding:32px;border-radius:14px;margin-bottom:24px;color:#fff">
+            <h1 style="margin:0 0 12px;font-size:24px">Your Access Setup Guide</h1>
+            <p style="margin:0;opacity:0.9">Hi ${firstName}, here's how to securely grant ${agencyName} access to your marketing platforms.</p>
+          </div>
+
+          <div style="background:#f0fffe;border:2px solid #00C2CB40;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center">
+            <div style="font-size:14px;color:#374151;margin-bottom:16px">Click below to view step-by-step instructions for every platform, plus an AI assistant if you don't see yours listed:</div>
+            <a href="${guideUrl}" style="display:inline-block;padding:14px 32px;background:#00C2CB;color:#fff;text-decoration:none;border-radius:10px;font-weight:700;font-size:16px">
+              View Access Setup Guide →
+            </a>
+          </div>
+
+          ${platformList}
+
+          <div style="background:#f9f9f9;border-radius:10px;padding:16px 20px;margin-bottom:20px">
+            <div style="font-weight:700;margin-bottom:8px">📧 Our agency access email:</div>
+            <div style="font-size:20px;color:#00C2CB;font-weight:800">${accessEmail}</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:4px">Use this email when adding us to any platform — never share your password.</div>
+          </div>
+
+          <div style="font-size:13px;color:#6b7280;text-align:center">
+            Questions? Reply to this email or call your account manager directly.
+          </div>
+        </div>
+      `
+
+      try {
+        const resend = getResend()
+        await resend.emails.send({
+          from: 'onboarding@hellokoto.com',
+          to: destEmail,
+          subject: `Your Access Setup Guide — ${agencyName}`,
+          html: emailHtml,
+        })
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message || 'Failed to send email' }, { status: 500 })
+      }
+
+      return NextResponse.json({ ok: true, sent_to: destEmail })
+    }
+
     // ── Get onboarding status for all clients ────────────────────────────────
     if (action === 'status') {
       const { data: clients } = await sb.from('clients')

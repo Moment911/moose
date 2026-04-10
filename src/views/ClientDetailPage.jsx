@@ -98,6 +98,10 @@ export default function ClientDetailPage() {
   const [healthScore, setHealthScore] = useState(null)
   const [onboardingLink, setOnboardingLink] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
+  const [showAccessGuideModal, setShowAccessGuideModal] = useState(false)
+  const [accessGuideEmail, setAccessGuideEmail] = useState('')
+  const [sendingAccessGuide, setSendingAccessGuide] = useState(false)
+  const [accessGuideSent, setAccessGuideSent] = useState(false)
   const [aiInsights, setAiInsights] = useState(null)
   const [loadingInsights, setLoadingInsights] = useState(false)
   const [activityLogs, setActivityLogs] = useState([])
@@ -262,6 +266,41 @@ export default function ClientDetailPage() {
       setTimeout(() => setCopySuccess(false), 2000)
       toast.success('Copied!')
     })
+  }
+
+  function openAccessGuideModal() {
+    setAccessGuideEmail(client?.email || '')
+    setAccessGuideSent(false)
+    setShowAccessGuideModal(true)
+  }
+
+  async function sendAccessGuide() {
+    if (!accessGuideEmail.trim()) { toast.error('Enter an email address'); return }
+    setSendingAccessGuide(true)
+    try {
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_access_guide',
+          client_id: clientId,
+          agency_id: client?.agency_id,
+          email: accessGuideEmail.trim(),
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || json.error) {
+        toast.error(json.error || 'Failed to send')
+      } else {
+        setAccessGuideSent(true)
+        toast.success(`Guide sent to ${accessGuideEmail.trim()}`)
+        setTimeout(() => setShowAccessGuideModal(false), 1500)
+      }
+    } catch (e) {
+      toast.error('Failed to send')
+    } finally {
+      setSendingAccessGuide(false)
+    }
   }
 
   function startEdit(field, value) { setEditingField(field); setEditValue(value || '') }
@@ -878,6 +917,12 @@ export default function ClientDetailPage() {
             >
               Preview
             </button>
+            <button
+              onClick={openAccessGuideModal}
+              style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: '#00C2CB', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+            >
+              📧 Send Access Guide
+            </button>
           </div>
           <div style={{ fontSize: 11, color: '#9ca3af' }}>
             No account required · Auto-saves every 2 seconds · Link never expires
@@ -1444,6 +1489,51 @@ export default function ClientDetailPage() {
           </div>
         )
       })()}
+
+      {/* Send Access Guide modal */}
+      {showAccessGuideModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAccessGuideModal(false) }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 460, width: '100%', fontFamily: FB }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', marginBottom: 6, fontFamily: FH }}>
+              📧 Send Access Setup Guide
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
+              We'll email {client?.name || 'the client'} a branded link to the access guide with step-by-step instructions for every platform and our agency invite email.
+            </div>
+
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Send to:</div>
+            <input
+              type="email"
+              value={accessGuideEmail}
+              onChange={(e) => setAccessGuideEmail(e.target.value)}
+              placeholder="client@example.com"
+              autoFocus
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none', marginBottom: 16, fontFamily: FB, boxSizing: 'border-box' }}
+            />
+
+            {accessGuideSent && (
+              <div style={{ background: '#f0fdf4', border: `1px solid ${GRN}30`, borderRadius: 8, padding: '10px 14px', marginBottom: 12, color: GRN, fontSize: 13, fontWeight: 600 }}>
+                ✓ Guide sent!
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={sendAccessGuide}
+                disabled={sendingAccessGuide || !accessGuideEmail.trim()}
+                style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: 'none', background: '#00C2CB', color: '#fff', fontSize: 14, fontWeight: 700, cursor: sendingAccessGuide ? 'default' : 'pointer', fontFamily: FH, opacity: sendingAccessGuide ? 0.7 : 1 }}>
+                {sendingAccessGuide ? 'Sending...' : 'Send Guide'}
+              </button>
+              <button
+                onClick={() => setShowAccessGuideModal(false)}
+                style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 14, cursor: 'pointer', fontFamily: FH }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
