@@ -221,6 +221,8 @@ export default function Sidebar() {
             {/* OUTREACH */}
             <Section label="Outreach"/>
             <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T}/>
+            <NavLink to="/email-tracking" startsWith icon={Mail} label="Email Tracking" badge="NEW" badgeColor={T}/>
+            <NavLink to="/email-tracking/gmail-helper" icon={Mail} label="Gmail Helper" sub/>
 
             {/* AGENCY */}
             <Section label="Agency"/>

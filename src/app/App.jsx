@@ -149,6 +149,9 @@ import DiscoverySharedViewPage from '../views/DiscoverySharedViewPage'
 import DiscoveryAnalyticsPage from '../views/DiscoveryAnalyticsPage'
 import TestDataPage from '../views/TestDataPage'
 import DataVaultPage from '../views/DataVaultPage'
+import EmailTrackingPage from '../views/EmailTrackingPage'
+import EmailTrackingGmailHelperPage from '../views/EmailTrackingGmailHelperPage'
+import GmailCallbackPage from '../views/GmailCallbackPage'
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
@@ -226,6 +229,7 @@ export default function App() {
           <Route path="/status" element={<StatusPage />} />
           <Route path="/discovery/form/:token" element={<DiscoveryClientFormPage />} />
           <Route path="/discovery/view/:token" element={<DiscoverySharedViewPage />} />
+          <Route path="/integrations/gmail/callback" element={<GmailCallbackPage />} />
 
           {/* ── All app routes (with shell + auth) ── */}
           <Route path="/*" element={
@@ -336,6 +340,8 @@ function AppRoutes() {
           <Route path="/trades" element={<TradesPortalPage />} />
           <Route path="/discovery" element={<DiscoveryPage />} />
           <Route path="/discovery/analytics" element={<DiscoveryAnalyticsPage />} />
+          <Route path="/email-tracking" element={<EmailTrackingPage />} />
+          <Route path="/email-tracking/gmail-helper" element={<EmailTrackingGmailHelperPage />} />
           <Route path="/discovery/audit/:id" element={<DiscoveryAuditPage />} />
           <Route path="/test-data" element={<TestDataPage />} />
           <Route path="/vault" element={<DataVaultPage />} />
