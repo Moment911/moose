@@ -427,6 +427,20 @@ function F({ label, hint, children, required, span2 }) {
   );
 }
 
+// Shows a subtle badge under any field that was auto-populated by the AI.
+// User edits clear the field from aiSuggestedFields, so the badge disappears.
+function AISuggestedBadge({ fieldKey, aiSuggestedFields }) {
+  if (!aiSuggestedFields?.has(fieldKey)) return null;
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontSize: 10, color: '#00C2CB', fontWeight: 600, marginTop: 4,
+    }}>
+      <span>✨</span> AI-suggested — edit freely
+    </div>
+  );
+}
+
 // Fixed-position autosave badge — bottom-right, hidden when idle.
 function SaveStatusBadge({ status }) {
   if (status === 'idle') return null;
@@ -2419,6 +2433,7 @@ export default function OnboardingPage() {
                 </div>
                 <FocusTextarea rows={5} value={form.business_description} onChange={e => set('business_description', e.target.value)}
                   placeholder="We're Miami's most trusted family-owned plumbing company, serving homeowners and businesses since 2012. We specialize in emergency repairs, water heater installation, and whole-home repiping. What sets us apart is our 1-hour response guarantee and upfront pricing — no surprises, ever." />
+                <AISuggestedBadge fieldKey="business_description" aiSuggestedFields={aiSuggestedFields} />
                 <SugBox text={aiSugs.business_description} onAccept={v => acceptSug('business_description', v)} onDismiss={() => clearSug('business_description')} />
               </F>
             </div>
@@ -2498,7 +2513,36 @@ export default function OnboardingPage() {
                 <F label="Seasonal Revenue Patterns" hint="Is your business seasonal? When are your busy and slow periods?" span2>
                   <FocusInput value={form.seasonal_notes} onChange={e => set('seasonal_notes', e.target.value)}
                     placeholder="e.g. Peak season March–August, slow November–January. HVAC demand spikes in summer and during first cold snap." />
+                  <AISuggestedBadge fieldKey="seasonal_notes" aiSuggestedFields={aiSuggestedFields} />
                 </F>
+                {revenueEstimates && (
+                  <div style={{ gridColumn: '1/-1', background: '#f0fffe', border: '1px solid #00C2CB30', borderRadius: 10, padding: '14px 18px', marginTop: 4 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#00C2CB', marginBottom: 8 }}>
+                      ✨ Industry benchmarks for {form.industry || 'your business type'} in {form.primary_city || 'your area'}:
+                    </div>
+                    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 10 }}>
+                      {revenueEstimates.avg_transaction && (
+                        <div><div style={{ fontSize: 11, color: '#9a9a96' }}>Avg transaction</div><div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{revenueEstimates.avg_transaction}</div></div>
+                      )}
+                      {revenueEstimates.avg_visits && (
+                        <div><div style={{ fontSize: 11, color: '#9a9a96' }}>Visits/year</div><div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{revenueEstimates.avg_visits}</div></div>
+                      )}
+                      {revenueEstimates.lifetime_value && (
+                        <div><div style={{ fontSize: 11, color: '#9a9a96' }}>Est. lifetime value</div><div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{revenueEstimates.lifetime_value}</div></div>
+                      )}
+                    </div>
+                    {revenueEstimates.explanation && (
+                      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>{revenueEstimates.explanation}</div>
+                    )}
+                    <button type="button" onClick={() => {
+                      if (revenueEstimates.avg_transaction) set('avg_transaction', String(revenueEstimates.avg_transaction).replace(/[^0-9.]/g, ''));
+                      if (revenueEstimates.avg_visits) set('avg_visits_per_year', String(revenueEstimates.avg_visits).replace(/[^0-9.]/g, ''));
+                      if (revenueEstimates.lifetime_value) set('client_ltv', String(revenueEstimates.lifetime_value).replace(/[^0-9.]/g, ''));
+                    }} style={{ padding: '6px 16px', background: '#00C2CB', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                      Use these estimates
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2543,6 +2587,7 @@ export default function OnboardingPage() {
                   </div>
                   <FocusTextarea rows={5} value={form.ideal_customer_desc} onChange={e => set('ideal_customer_desc', e.target.value)}
                     placeholder="My best customers are homeowners aged 35-55 in Coral Gables and Pinecrest who own their home, earn $100K+, and care deeply about quality over price. They find us through Google when they have an emergency, or through neighbor referrals. They're busy professionals who value quick response times and want the job done right the first time. They become repeat customers and refer their neighbors." />
+                  <AISuggestedBadge fieldKey="ideal_customer_desc" aiSuggestedFields={aiSuggestedFields} />
                   <SugBox text={aiSugs.ideal_customer_desc} onAccept={v => acceptSug('ideal_customer_desc', v)} onDismiss={() => clearSug('ideal_customer_desc')} />
                 </F>
               </div>
@@ -2570,6 +2615,24 @@ export default function OnboardingPage() {
                     <AIAssist prompt={`${CTX}. List the 5 most emotionally charged pain points that drive customers to urgently hire a ${VC.name} business. Industry-specific pain points include: ${VC.painPointContext}. Write each pain point the way a frustrated customer would actually say it — visceral and real. Format as bullet points.`}
                       onResult={v => setSug('customer_pain_points', v)} label="AI Suggest" />
                   </div>
+                  {painPointSuggestions.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, color: '#9a9a96', marginBottom: 6, fontWeight: 600 }}>✨ Common for your industry — click to add:</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {painPointSuggestions.slice(0, 5).map((p, i) => (
+                          <button key={i} type="button"
+                            onClick={() => {
+                              const current = form.customer_pain_points || '';
+                              set('customer_pain_points', current ? current + '\n• ' + p : '• ' + p);
+                            }}
+                            style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+                              background: '#f0fffe', color: '#00C2CB', border: '1px solid #00C2CB40', fontWeight: 500 }}>
+                            + {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <FocusTextarea rows={4} value={form.customer_pain_points} onChange={e => set('customer_pain_points', e.target.value)}
                     placeholder="• Burst pipe flooding their home at 2am — pure panic
 • Called 3 plumbers, nobody showed up — completely let down
@@ -2718,6 +2781,7 @@ export default function OnboardingPage() {
                       label="AI Suggest" />
                   </div>
                   <TagInput value={form.target_cities} onChange={v => set('target_cities', v)} placeholder="e.g. Coral Gables, Brickell — press Enter" />
+                  <AISuggestedBadge fieldKey="target_cities" aiSuggestedFields={aiSuggestedFields} />
                 </F>
               </div>
               <div style={{ marginTop: 20 }}>
@@ -3299,6 +3363,24 @@ export default function OnboardingPage() {
               </div>
               <div style={{ marginTop: 16 }}>
                 <F label="What has NOT worked — or wasted money?" hint="No judgment. Every agency failure is useful data.">
+                  {whatHasntWorkedSuggestions.length > 0 && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, color: '#9a9a96', marginBottom: 6, fontWeight: 600 }}>✨ Common for your industry — click to add:</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {whatHasntWorkedSuggestions.slice(0, 4).map((s, i) => (
+                          <button key={i} type="button"
+                            onClick={() => {
+                              const current = form.what_didnt_work || '';
+                              set('what_didnt_work', current ? current + '\n• ' + s : '• ' + s);
+                            }}
+                            style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
+                              background: '#fff8f0', color: '#f59e0b', border: '1px solid #f59e0b40', fontWeight: 500 }}>
+                            + {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <FocusTextarea rows={4} value={form.what_didnt_work} onChange={e => set('what_didnt_work', e.target.value)}
                     placeholder="Tried Facebook ads for 3 months — spent $3,000, got 2 low-quality leads. Yellow Pages complete waste. Tried a local SEO company but they never showed results. Radio ad felt good but impossible to measure." />
                 </F>
