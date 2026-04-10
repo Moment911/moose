@@ -135,10 +135,6 @@ export async function POST(req: NextRequest) {
     // the existing client UI without any extra wiring) and stores anything
     // unmapped in `clients.onboarding_answers` jsonb. Always returns 200 —
     // the client form never surfaces an error from autosave.
-    //
-    // IMPORTANT: the `clients` table has NO updated_at column. Including it
-    // in any update payload causes Supabase to reject the entire row update
-    // silently (every prior autosave attempt was a no-op for this reason).
     if (action === 'autosave') {
       const form_data = (body.form_data && typeof body.form_data === 'object') ? body.form_data : null
       const saved_at = typeof body.saved_at === 'string' ? body.saved_at : new Date().toISOString()
@@ -211,8 +207,8 @@ export async function POST(req: NextRequest) {
           _last_autosave: saved_at,
           _autosave_count: (Number(existingAnswers._autosave_count) || 0) + 1,
         }
+        updateData.updated_at = new Date().toISOString()
 
-        // NOTE: do NOT include updated_at — clients table has no such column.
         const { error } = await sb.from('clients').update(updateData).eq('id', client_id)
 
         if (error) {

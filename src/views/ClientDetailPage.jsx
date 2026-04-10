@@ -135,8 +135,10 @@ export default function ClientDetailPage() {
   const saveField = useCallback(async (field, value) => {
     setSaving(true)
     try {
-      // NOTE: clients table has no updated_at column — do not include it.
-      await supabase.from('clients').update({ [field]: value }).eq('id', clientId)
+      await supabase
+        .from('clients')
+        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .eq('id', clientId)
       setClient(prev => prev ? { ...prev, [field]: value } : prev)
       setEditingField(null)
       toast.success('Saved')
