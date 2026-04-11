@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 // ─────────────────────────────────────────────────────────────
 // Discovery AI Coach
@@ -52,6 +53,13 @@ async function callClaudeJson(opts: {
     })
     if (!res.ok) return null
     const d = await res.json()
+    // Fire-and-forget token accounting
+    void logTokenUsage({
+      feature: 'discovery_coach',
+      model: opts.model,
+      inputTokens: d.usage?.input_tokens || 0,
+      outputTokens: d.usage?.output_tokens || 0,
+    })
     const text = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n').trim()
     const cleaned = text.replace(/```json|```/g, '').trim()
     try { return JSON.parse(cleaned) } catch { return null }
@@ -350,6 +358,12 @@ Write the best concrete answer for this field based on the context above. Return
         })
         if (res.ok) {
           const d = await res.json()
+          void logTokenUsage({
+            feature: 'discovery_coach_autofill',
+            model: FAST_MODEL,
+            inputTokens: d.usage?.input_tokens || 0,
+            outputTokens: d.usage?.output_tokens || 0,
+          })
           const text = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('').trim()
           // Strip wrapping quotes if the model ignored instructions
           suggestedAnswer = text.replace(/^["'`]+|["'`]+$/g, '').trim()

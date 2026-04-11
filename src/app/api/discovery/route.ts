@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '@/lib/apiAuth'
 import { createNotification } from '@/lib/notifications'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 function sb() {
   return createClient(
@@ -340,6 +341,10 @@ async function callClaude(opts: {
   tools?: any[]
   temperature?: number
   timeoutMs?: number
+  // Optional accounting hints — logged fire-and-forget to koto_token_usage
+  feature?: string
+  agencyId?: string | null
+  metadata?: Record<string, any>
 }): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY || ''
   if (!apiKey) return ''
@@ -361,6 +366,15 @@ async function callClaude(opts: {
     })
     if (!res.ok) return ''
     const d = await res.json()
+    // Fire-and-forget token accounting
+    void logTokenUsage({
+      feature: opts.feature || 'discovery_ai',
+      model: CLAUDE_MODEL,
+      inputTokens: d.usage?.input_tokens || 0,
+      outputTokens: d.usage?.output_tokens || 0,
+      agencyId: opts.agencyId || null,
+      metadata: opts.metadata || {},
+    })
     const parts: string[] = []
     for (const c of d.content || []) if (c.type === 'text' && c.text) parts.push(c.text)
     return parts.join('\n').trim()
@@ -1953,6 +1967,15 @@ Only include extracted_answers for field_ids that appear in the current section'
         })
         if (res.ok) {
           const d = await res.json()
+          // Fire-and-forget token accounting
+          void logTokenUsage({
+            feature: 'discovery_ai',
+            model: CLAUDE_MODEL,
+            inputTokens: d.usage?.input_tokens || 0,
+            outputTokens: d.usage?.output_tokens || 0,
+            agencyId: (eng as any)?.agency_id || null,
+            metadata: { engagement_id: (eng as any)?.id },
+          })
           const txt = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n').trim()
           const j = parseJson(txt)
           if (j && typeof j === 'object') parsed = { ...parsed, ...j }

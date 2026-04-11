@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 // ─────────────────────────────────────────────────────────────
 // Discovery Live Session API
@@ -92,6 +93,13 @@ async function callClaude(opts: {
     })
     if (!res.ok) return null
     const d = await res.json()
+    // Fire-and-forget token accounting
+    void logTokenUsage({
+      feature: 'discovery_live_extraction',
+      model: FAST_MODEL,
+      inputTokens: d.usage?.input_tokens || 0,
+      outputTokens: d.usage?.output_tokens || 0,
+    })
     const text = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('').trim()
     return text || null
   } catch {

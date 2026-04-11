@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createNotification } from '@/lib/notifications'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 // ─────────────────────────────────────────────────────────────
 // Voice onboarding (PIN model)
@@ -1552,6 +1553,15 @@ Return JSON with this exact shape:
             const text = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('').trim()
             const cleaned = text.replace(/```json|```/g, '').trim()
             try { analysis = JSON.parse(cleaned) } catch { analysis = null }
+            // Fire-and-forget token accounting
+            void logTokenUsage({
+              feature: 'voice_onboarding_analysis',
+              model: 'claude-haiku-4-5-20251001',
+              inputTokens: d.usage?.input_tokens || 0,
+              outputTokens: d.usage?.output_tokens || 0,
+              agencyId,
+              metadata: { client_id: clientId, call_id: callId },
+            })
           }
         } catch { /* non-fatal */ }
       }

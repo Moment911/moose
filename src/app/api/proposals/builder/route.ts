@@ -22,6 +22,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import PDFDocument from 'pdfkit'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 export const maxDuration = 120
 
@@ -198,6 +199,15 @@ Return ONLY valid JSON (no markdown fences, no preamble) with this exact shape:
         const text = (claudeData.content || []).filter((cc: any) => cc.type === 'text').map((cc: any) => cc.text).join('').trim()
         const cleaned = text.replace(/```json\s*|```\s*$/g, '').trim()
         proposalContent = JSON.parse(cleaned)
+        // Fire-and-forget token accounting
+        void logTokenUsage({
+          feature: 'proposal_generation',
+          model: 'claude-sonnet-4-5-20250929',
+          inputTokens: claudeData.usage?.input_tokens || 0,
+          outputTokens: claudeData.usage?.output_tokens || 0,
+          agencyId: agency_id,
+          metadata: { client_id },
+        })
       } catch (e: any) {
         console.warn('[proposals/builder generate] parse failed:', e?.message)
         return NextResponse.json({ error: 'Failed to parse proposal JSON', detail: e?.message }, { status: 500 })
