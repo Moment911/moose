@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { DollarSign, Zap, TrendingUp, Clock, RefreshCw, Upload, CreditCard, ExternalLink, Edit3 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -91,10 +92,20 @@ function saveApiKeyLabels(labels) {
 
 
 export default function TokenUsagePage() {
+  // days + provider filter persisted in ?days=… and ?provider=… so
+  // refreshes keep you on the same view
+  const [searchParams, setSearchParams] = useSearchParams()
+  const days = Number(searchParams.get('days')) || 30
+  const providerFilter = searchParams.get('provider') || 'all'
+  const setDays = (n) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev); p.set('days', String(n)); return p
+  }, { replace: true })
+  const setProviderFilter = (v) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev); p.set('provider', v); return p
+  }, { replace: true })
+
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [days, setDays] = useState(30)
-  const [providerFilter, setProviderFilter] = useState('all')
   const [importing, setImporting] = useState(false)
   const [labelEditor, setLabelEditor] = useState(null) // { key, value }
   const [apiKeyLabels, setApiKeyLabels] = useState(() => loadApiKeyLabels())

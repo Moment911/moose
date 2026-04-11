@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -281,12 +281,25 @@ function SendModal({ allClients, agencyId, onClose, onSent }) {
 export default function OnboardingDashboardPage() {
   const { agencyId }  = useAuth()
   const navigate      = useNavigate()
+  // Filter + search persisted in URL so refreshes / back-nav keep state
+  const [searchParams, setSearchParams] = useSearchParams()
+  const filter = searchParams.get('filter') || 'all'
+  const search = searchParams.get('q') || ''
+  const setFilter = (v) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev)
+    if (v === 'all') p.delete('filter'); else p.set('filter', v)
+    return p
+  }, { replace: true })
+  const setSearch = (v) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev)
+    if (!v) p.delete('q'); else p.set('q', v)
+    return p
+  }, { replace: true })
+
   const [clients,     setClients]     = useState([])
   const [loading,     setLoading]     = useState(true)
   const [sending,     setSending]     = useState({})
-  const [filter,      setFilter]      = useState('all')
   const [expanded,    setExpanded]    = useState({})
-  const [search,      setSearch]      = useState('')
   const [showSend,    setShowSend]    = useState(false)
 
   useEffect(() => { if (agencyId) load() }, [agencyId])

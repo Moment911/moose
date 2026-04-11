@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   FileText, Plus, Search, Filter, Send, CheckCircle,
   Clock, Eye, XCircle, ArrowRight, MoreHorizontal,
@@ -52,10 +52,23 @@ export default function ProposalsPage() {
   const navigate = useNavigate()
   const { agencyId, firstName } = useAuth()
   const { clients } = useClient()
+  // Search + status filter persisted in URL
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search = searchParams.get('q') || ''
+  const statusFilter = searchParams.get('status') || 'all'
+  const setSearch = (v) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev)
+    if (!v) p.delete('q'); else p.set('q', v)
+    return p
+  }, { replace: true })
+  const setStatusFilter = (v) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev)
+    if (v === 'all') p.delete('status'); else p.set('status', v)
+    return p
+  }, { replace: true })
+
   const [proposals, setProposals] = useState([])
   const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
   const [menuOpen, setMenuOpen]   = useState(null)
   const [sharingId, setSharingId] = useState(null)
   const [historyProposal, setHistoryProposal] = useState(null)

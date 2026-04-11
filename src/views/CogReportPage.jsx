@@ -25,6 +25,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import {
   DollarSign, RefreshCw, Plus, ExternalLink, TrendingUp,
@@ -97,9 +98,17 @@ function fmt$(n) { return `$${Number(n || 0).toFixed(2)}` }
 function fmt$4(n) { return `$${Number(n || 0).toFixed(4)}` }
 
 export default function CogReportPage() {
+  // days window is persisted in ?days=… so refreshes stay on the same view
+  const [searchParams, setSearchParams] = useSearchParams()
+  const days = Number(searchParams.get('days')) || 30
+  const setDays = (n) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev)
+    p.set('days', String(n))
+    return p
+  }, { replace: true })
+
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [days, setDays] = useState(30)
   const [syncing, setSyncing] = useState(false)
   const [platformList, setPlatformList] = useState([])
   const [showAdd, setShowAdd] = useState(false)
