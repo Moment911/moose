@@ -868,29 +868,34 @@ export async function POST(req: NextRequest) {
       const inboundFromNumber: string = body.call_inbound.from_number || ''
       const inboundToNumber: string = body.call_inbound.to_number || ''
 
+      // eslint-disable-next-line no-console
+      console.log('[call_inbound] fired — to:', inboundToNumber, 'from:', inboundFromNumber)
+
       const dynVars = await buildInboundDynamicVariables({
         sb,
         toNumber: inboundToNumber,
       })
 
-      // Retell expects the response in { call_inbound: {...} } shape.
-      // All dynamic_variables values MUST be strings — Retell
-      // string-coerces them before template substitution.
-      return NextResponse.json({
-        call_inbound: {
-          dynamic_variables: dynVars.variables,
-          metadata: {
-            agency_id: dynVars.agency_id || '',
-            client_id: dynVars.client_id || '',
-            dialed_number: inboundToNumber,
-          },
-        },
-        // Also echoed at the top level for belt-and-suspenders. Retell
-        // sometimes honors either shape depending on the integration
-        // path; harmless if one is ignored.
-        llm_dynamic_variables: dynVars.variables,
+      // Per Retell's inbound dynamic variables webhook spec, the
+      // response must be a FLAT { dynamic_variables, metadata }
+      // object. No outer call_inbound wrapper — wrapping it
+      // causes Retell to ignore the variables entirely and fall
+      // back to whatever static strings are on the LLM resource.
+      // All values must be strings; Retell string-coerces them
+      // before substituting into {{placeholder}} tokens.
+      const response = {
         dynamic_variables: dynVars.variables,
-      })
+        metadata: {
+          agency_id: dynVars.agency_id || '',
+          client_id: dynVars.client_id || '',
+          dialed_number: inboundToNumber,
+        },
+      }
+
+      // eslint-disable-next-line no-console
+      console.log('[call_inbound] response:', JSON.stringify(response).slice(0, 2000))
+
+      return NextResponse.json(response)
     }
 
     // ─────────────────────────────────────────────────────────

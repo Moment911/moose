@@ -215,6 +215,15 @@ async function retellImportCarrierNumber(args: {
   }
 }
 
+// Retell's inbound dynamic variables webhook URL is a
+// PHONE-NUMBER-level field, not an agent-level field. We set it
+// here alongside the agent id so every provisioned number
+// correctly receives the pre-call hook that injects the per-call
+// system prompt + begin message.
+function getInboundWebhookUrl(): string {
+  return `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding/voice`
+}
+
 async function retellAssignAgent(args: {
   phoneNumber: string
   inboundAgentId: string
@@ -223,10 +232,26 @@ async function retellAssignAgent(args: {
     return { ok: false, error: 'RETELL_API_KEY not configured' }
   }
   try {
+    // Two things must be set on the phone number for inbound
+    // calls to work end-to-end:
+    //
+    //   inbound_agent_id       → which agent answers the call
+    //   inbound_webhook_url    → where Retell POSTs the pre-call
+    //                            hook with { call_inbound: {...} }
+    //                            to get dynamic variables back
+    //
+    // The second field is PHONE-NUMBER-level, not agent-level,
+    // even though the agent has its own webhook_url for post-call
+    // notification events. Miss this and calls still connect but
+    // the agent uses whatever static begin_message / general_prompt
+    // is on the Retell LLM resource — no per-client personalization.
     const res = await fetch(`${RETELL_API_BASE}/update-phone-number/${encodeURIComponent(args.phoneNumber)}`, {
       method: 'PATCH',
       headers: retellHeaders(),
-      body: JSON.stringify({ inbound_agent_id: args.inboundAgentId }),
+      body: JSON.stringify({
+        inbound_agent_id: args.inboundAgentId,
+        inbound_webhook_url: getInboundWebhookUrl(),
+      }),
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
