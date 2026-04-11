@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useScrollRestoration } from '../hooks/useScrollRestoration'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
@@ -81,9 +82,20 @@ export default function ClientDetailPage() {
   const { agencyId, isSuperAdmin } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
+  const [searchParams, setSearchParams] = useSearchParams()
   const [client, setClient] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState('overview')
+  // Active section persisted in ?tab=… so a refresh lands on the same tab.
+  const activeSection = searchParams.get('tab') || 'overview'
+  const setActiveSection = (key) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('tab', key)
+      return next
+    }, { replace: true })
+  }
+  const scrollContainerRef = useRef(null)
+  useScrollRestoration(scrollContainerRef)
   const [saving, setSaving] = useState(false)
   const [editingField, setEditingField] = useState(null)
   const [editValue, setEditValue] = useState('')
@@ -1622,7 +1634,7 @@ export default function ClientDetailPage() {
         </div>
 
         {/* Scrollable content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+        <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
           <div style={{ maxWidth: 1000, margin: '0 auto' }}>
             {renderOverviewSection()}
             <div style={{ height: 32 }} />

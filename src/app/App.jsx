@@ -1,6 +1,6 @@
 "use client"
 import '../styles/design-system.css'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { MobileMenuProvider } from '../context/MobileMenuContext'
 import MobileShell from '../components/mobile/MobileShell'
@@ -205,6 +205,20 @@ function HomeSplitter() {
   return <Navigate to="/dashboard" replace />
 }
 
+// Writes every non-public route to localStorage so reloads / re-logins
+// can bring you back to where you were.
+function RouteTracker() {
+  const location = useLocation()
+  useEffect(() => {
+    const skip = ['/', '/login', '/signup', '/onboard', '/onboarding', '/review', '/r/', '/p/']
+    const shouldSkip = skip.some((s) => location.pathname === s || location.pathname.startsWith(s + '/'))
+    if (!shouldSkip) {
+      try { localStorage.setItem('koto_last_route', location.pathname + location.search) } catch {}
+    }
+  }, [location])
+  return null
+}
+
 export default function App() {
   useEffect(() => { setupErrorTracking() }, [])
 
@@ -218,6 +232,7 @@ export default function App() {
         <CommandPalette />
         <OnboardingWizard />
         <RealTimeCostMeter />
+        <RouteTracker />
         <Routes>
           {/* ── Public routes (no shell) ── */}
           <Route path="/" element={<HomeSplitter />} />

@@ -80,13 +80,29 @@ export default function ClientsPage() {
   const { agencyId, firstName, isSuperAdmin, isImpersonating, impersonatedAgency } = useAuth()
   const { refreshClients } = useClient()
 
+  // Filters persisted in sessionStorage so they survive navigation + refresh.
+  const getSession = (k, fallback) => {
+    if (typeof window === 'undefined') return fallback
+    try { return sessionStorage.getItem(k) ?? fallback } catch { return fallback }
+  }
+  const setSession = (k, v) => {
+    if (typeof window === 'undefined') return
+    try { sessionStorage.setItem(k, v) } catch {}
+  }
   const [clients, setClients]   = useState([])
   const [loading, setLoading]   = useState(true)
-  const [search, setSearch]     = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [industryFilter, setIndustryFilter] = useState('all')
-  const [sortKey, setSortKey]   = useState('name')
-  const [sortDir, setSortDir]   = useState('asc')
+  const [search, setSearch]     = useState(() => getSession('clients_search', ''))
+  const [statusFilter, setStatusFilter] = useState(() => getSession('clients_status_filter', 'all'))
+  const [industryFilter, setIndustryFilter] = useState(() => getSession('clients_industry_filter', 'all'))
+  const [sortKey, setSortKey]   = useState(() => getSession('clients_sort_key', 'name'))
+  const [sortDir, setSortDir]   = useState(() => getSession('clients_sort_dir', 'asc'))
+
+  // Persist every change so refresh returns to the same view
+  useEffect(() => { setSession('clients_search', search) }, [search])
+  useEffect(() => { setSession('clients_status_filter', statusFilter) }, [statusFilter])
+  useEffect(() => { setSession('clients_industry_filter', industryFilter) }, [industryFilter])
+  useEffect(() => { setSession('clients_sort_key', sortKey) }, [sortKey])
+  useEffect(() => { setSession('clients_sort_dir', sortDir) }, [sortDir])
   const [showAdd, setShowAdd]   = useState(false)
   const [menuOpen, setMenuOpen] = useState(null)
   const [editingId, setEditingId] = useState(null)

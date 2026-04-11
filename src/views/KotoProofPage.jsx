@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage, FileText, Globe, Plus, Trash2, Clock, MessageSquare, Activity,
          ChevronLeft, Settings, Send, Globe2, Lock, KeyRound, ChevronDown, ChevronUp,
          Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch } from 'lucide-react'
@@ -45,7 +45,10 @@ export default function KotoProofPage() {
   const [activity, setActivity] = useState([])
   const [rounds, setRounds] = useState([])
   const [team, setTeam] = useState([])
-  const [tab, setTab] = useState('files')
+  // Tab persisted in ?tab=files so refreshes keep you on the same tab
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = searchParams.get('tab') || 'files'
+  const setTab = (next) => setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set('tab', next); return p }, { replace: true })
   const [showUpload, setShowUpload] = useState(false)
   const [showAccess, setShowAccess] = useState(false)
   const [emailSending, setEmailSending] = useState(false)
