@@ -13,7 +13,7 @@ import DialPad from '../components/DialPad'
 import LoginPage from '../views/LoginPage'
 import ClientsPage from '../views/ClientsPage'
 import DashboardPage from '../views/DashboardPage'
-import ProjectPage from '../views/ProjectPage'
+// ProjectPage consolidated into KotoProofPage (was 99% identical — only AISummaryModal import path differed)
 import MessagesPage from '../views/MessagesPage'
 import TasksPage from '../views/TasksPage'
 import TaskDetailPage from '../views/TaskDetailPage'
@@ -132,6 +132,7 @@ import BillingAdminPage from '../views/BillingAdminPage'
 import StripeDashboardPage from '../views/StripeDashboardPage'
 import InvoiceBuilderPage from '../views/InvoiceBuilderPage'
 import KotoProofPage from '../views/KotoProofPage'
+import FileReviewPage from '../views/FileReviewPage'
 import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
@@ -295,8 +296,10 @@ function AppRoutes() {
           <Route path="/proposal-library" element={<ProposalLibraryPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
-          <Route path="/project/:projectId" element={<ProjectPage />} />
+          <Route path="/project/:projectId" element={<KotoProofPage />} />
+          <Route path="/project/:projectId/review/:fileId" element={<FileReviewPage />} />
           <Route path="/proof/:projectId" element={<KotoProofPage />} />
+          <Route path="/proof/:projectId/review/:fileId" element={<FileReviewPage />} />
           <Route path="/proof" element={<KotoProofPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/tasks" element={<TasksPage />} />

@@ -32,10 +32,14 @@ const ROLE_STYLES = {
   viewer: { label: 'Viewer', cls: 'bg-gray-100 text-gray-600', icon: Eye },
 }
 
-export default function ProjectPage() {
+export default function KotoProofPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const [project, setProject] = useState(null)
+  // Fallback: some routes (e.g. bare /proof) have no :projectId param,
+  // so URL construction in navigate() was producing /project/undefined/...
+  // Resolve it from the loaded project state once available.
+  const resolvedProjectId = projectId || project?.id
   const [client, setClient] = useState(null)
   const [files, setFiles] = useState([])
   const [activity, setActivity] = useState([])
@@ -100,8 +104,8 @@ export default function ProjectPage() {
     try {
       const openFiles = files.filter(f => f.open_comments > 0)
       await sendEmailSummary({ project_name: project.name, client_name: client?.name,
-        files: openFiles.map(f => ({ name: f.name, open_comments: f.open_comments, url: `${window.location.origin}/project/${projectId}/review/${f.id}` })),
-        total_open: files.reduce((a, f) => a + (f.open_comments || 0), 0), review_url: `${window.location.origin}/project/${projectId}` })
+        files: openFiles.map(f => ({ name: f.name, open_comments: f.open_comments, url: `${window.location.origin}/project/${resolvedProjectId}/review/${f.id}` })),
+        total_open: files.reduce((a, f) => a + (f.open_comments || 0), 0), review_url: `${window.location.origin}/project/${resolvedProjectId}` })
       toast.success('Email summary sent!')
     } catch { toast.error('Failed to send email') }
     setEmailSending(false)
@@ -116,7 +120,7 @@ export default function ProjectPage() {
     setAddingMember(true)
     try {
       const { data, error } = await addProjectAccess({
-        project_id: projectId, email: newMemberEmail.trim(), name: newMemberName.trim() || null, role: newMemberRole,
+        project_id: resolvedProjectId, email: newMemberEmail.trim(), name: newMemberName.trim() || null, role: newMemberRole,
       })
       if (error) throw error
       setTeam(prev => [...prev, data])
@@ -124,7 +128,7 @@ export default function ProjectPage() {
       // Send invite email
       const reviewUrl = project.access_level !== 'private'
         ? `${window.location.origin}/review/${project.public_token}`
-        : `${window.location.origin}/project/${projectId}`
+        : `${window.location.origin}/project/${resolvedProjectId}`
       await sendEmailSummary({
         type: 'team_invite', project_name: project.name, client_name: client?.name,
         member_name: newMemberName.trim() || newMemberEmail.trim(), member_email: newMemberEmail.trim(),
@@ -148,7 +152,7 @@ export default function ProjectPage() {
   async function handleResendInvite(member) {
     const reviewUrl = project.access_level !== 'private'
       ? `${window.location.origin}/review/${project.public_token}`
-      : `${window.location.origin}/project/${projectId}`
+      : `${window.location.origin}/project/${resolvedProjectId}`
     await sendEmailSummary({
       type: 'team_invite', project_name: project.name, client_name: client?.name,
       member_name: member.name || member.email, member_email: member.email,
@@ -198,7 +202,7 @@ export default function ProjectPage() {
       total_open: totalOpen,
       rounds_used: rounds.length,
       max_rounds: maxRounds,
-      review_url: `${window.location.origin}/project/${projectId}`,
+      review_url: `${window.location.origin}/project/${resolvedProjectId}`,
     })
     toast.success('Agency notified!')
   }
@@ -222,7 +226,16 @@ export default function ProjectPage() {
       const existingVersions = files.filter(x => x.parent_file_id === parent.id || x.id === parent.id || (parent.parent_file_id && (x.parent_file_id === parent.parent_file_id || x.id === parent.parent_file_id)))
       const maxVer = Math.max(...existingVersions.map(x => x.version_number || 1), parent.version_number || 1)
       const rootId = parent.parent_file_id || parent.id
-      const { data } = await createFile({ project_id: projectId, name: f.name, url, storage_path: path, type: f.type, size: f.size, version_number: maxVer + 1, parent_file_id: rootId })
+      // HTML files sometimes come through with an empty .type — fall back to extension
+      const typeFromExt = (() => {
+        if (f.type) return f.type
+        const ext = f.name.split('.').pop()?.toLowerCase()
+        const map = { html: 'text/html', htm: 'text/html', pdf: 'application/pdf',
+          png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp',
+          mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm' }
+        return map[ext || ''] || 'application/octet-stream'
+      })()
+      const { data } = await createFile({ project_id: projectId, name: f.name, url, storage_path: path, type: typeFromExt, size: f.size, version_number: maxVer + 1, parent_file_id: rootId })
       if (data) setFiles(prev => [data, ...prev])
       toast.success(`Version ${maxVer + 1} uploaded!`, { id: 'ver-upload' })
     } catch { toast.error('Upload failed', { id: 'ver-upload' }) }
@@ -293,9 +306,9 @@ export default function ProjectPage() {
               {project?.slack_channel_url && <a href={project.slack_channel_url} target="_blank" rel="noreferrer" className="btn-secondary text-sm"><MessageSquare size={13} strokeWidth={1.5} /> Slack</a>}
               <button onClick={handleSendEmail} disabled={emailSending || totalOpen === 0} className="btn-secondary text-sm"><Send size={13} />{emailSending ? 'Sending\u2026' : 'Email Summary'}</button>
               <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={13} /> Access</button>
-              <button onClick={() => navigate(`/project/${projectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={13} /> New Email</button>
-              <button onClick={() => navigate(`/project/${projectId}/canvas`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><PenLine size={13} /> New Canvas</button>
-              <button onClick={() => navigate(`/esign/${projectId}`)} className="btn-secondary text-sm" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={13} /> Proposal / Sign</button>
+              <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={13} /> New Email</button>
+              <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><PenLine size={13} /> New Canvas</button>
+              <button onClick={() => navigate(`/esign/${resolvedProjectId}`)} className="btn-secondary text-sm" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={13} /> Proposal / Sign</button>
               <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-sm"><Plus size={13} /> Upload File</button>
             </div>
           </div>
@@ -306,7 +319,7 @@ export default function ProjectPage() {
           <div className="flex gap-6">
             {[
               { key: 'files', label: `Files (${files.length})` },
-              { key: 'tasks', label: 'Tasks', link: `/project/${projectId}/tasks` },
+              { key: 'tasks', label: 'Tasks', link: `/project/${resolvedProjectId}/tasks` },
               { key: 'team', label: `Team (${team.length})` },
               { key: 'rounds', label: `Rounds (${rounds.length})` },
               { key: 'integrations', label: 'Integrations' },
@@ -343,7 +356,7 @@ export default function ProjectPage() {
                   </div>
                   {canvases.map(canvas => (
                     <div key={canvas.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
-                      onClick={() => navigate(`/project/${projectId}/canvas/${canvas.id}`)}
+                      onClick={() => navigate(`/project/${resolvedProjectId}/canvas/${canvas.id}`)}
                       style={{ borderLeft: '3px solid #E6007E' }}>
                       <div className="w-16 h-16 rounded-lg bg-brand-50 flex-shrink-0 flex items-center justify-center border border-brand-200">
                         <PenLine size={24} className="text-brand-500" />
@@ -367,7 +380,7 @@ export default function ProjectPage() {
               {/* Quick create canvas */}
               {canvases.length === 0 && (
                 <div className="card p-4 border-dashed border-2 border-brand-200 bg-brand-50/30 hover:bg-brand-50 transition-colors cursor-pointer flex items-center gap-3"
-                  onClick={() => navigate(`/project/${projectId}/canvas`)}>
+                  onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)}>
                   <div className="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center"><PenLine size={18} className="text-brand-600" /></div>
                   <div>
                     <p className="text-sm font-medium text-brand-700">Create a Design Canvas</p>
@@ -385,7 +398,7 @@ export default function ProjectPage() {
                   </div>
                   {emails.map(email => (
                     <div key={email.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
-                      onClick={() => navigate(`/project/${projectId}/email/${email.id}`)}
+                      onClick={() => navigate(`/project/${resolvedProjectId}/email/${email.id}`)}
                       style={{ borderLeft: '3px solid #E6007E' }}>
                       <div className="w-16 h-16 rounded-lg bg-brand-50 flex-shrink-0 flex items-center justify-center border border-brand-200">
                         <Mail size={24} className="text-brand-500" />
@@ -417,8 +430,8 @@ export default function ProjectPage() {
               {files.length === 0 && canvases.length === 0 && emails.length === 0 && !showUpload && (
                 <div className="text-center py-12"><FileImage size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm mb-4">Get started by creating something.</p>
                   <div className="flex items-center justify-center gap-3">
-                    <button onClick={() => navigate(`/project/${projectId}/canvas`)} className="btn-secondary"><PenLine size={15} /> Design Canvas</button>
-                    <button onClick={() => navigate(`/project/${projectId}/email`)} className="btn-secondary" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={15} /> Email Designer</button>
+                    <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary"><PenLine size={15} /> Design Canvas</button>
+                    <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={15} /> Email Designer</button>
                     <button onClick={() => setShowUpload(true)} className="btn-primary"><Plus size={15} /> Upload File</button>
                   </div>
                 </div>
@@ -427,7 +440,12 @@ export default function ProjectPage() {
                 const versions = files.filter(f => f.parent_file_id === file.id || (file.parent_file_id && f.parent_file_id === file.parent_file_id && f.id !== file.id))
                 return (
                 <div key={file.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
-                  onClick={() => file.type?.startsWith('video/') ? setVideoModal(file) : navigate(`/project/${projectId}/review/${file.id}`)}>
+                  onClick={() => {
+                    const pid = projectId || project?.id
+                    if (!pid) { toast.error('Project not loaded yet'); return }
+                    if (file.type?.startsWith('video/')) { setVideoModal(file) }
+                    else { navigate(`/project/${pid}/review/${file.id}`) }
+                  }}>
                   <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border border-gray-200">
                     {file.type?.startsWith('image/') ? <img src={file.url} alt="" className="w-full h-full object-cover" /> : <FileTypeIcon type={file.type} size={28} />}
                   </div>
@@ -451,7 +469,7 @@ export default function ProjectPage() {
                   </div>
                 </div>
               )})}
-              <input ref={versionInputRef} type="file" className="hidden" accept="image/*,.pdf,.html" onChange={handleVersionUpload} />
+              <input ref={versionInputRef} type="file" className="hidden" accept="image/*,.pdf,text/html,.html,.htm,video/*" onChange={handleVersionUpload} />
             </div>
           )}
 
@@ -571,7 +589,7 @@ export default function ProjectPage() {
                       <div className="flex items-center gap-1.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
                         {signatures[round.id] && <span className="text-sm bg-green-50 text-green-700 px-2 py-1 rounded-lg font-medium flex items-center gap-1"><Pen size={9} /> Signed</span>}
                         <button onClick={() => handleExportPdf(round)} className="text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1" title="Export as PDF"><Download size={10} /> PDF</button>
-                        {!signatures[round.id] && <a href={`/sign/${projectId}/${round.id}`} target="_blank" rel="noreferrer" className="text-sm bg-purple-50 text-purple-700 hover:bg-purple-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Pen size={10} /> E-Sign</a>}
+                        {!signatures[round.id] && <a href={`/sign/${resolvedProjectId}/${round.id}`} target="_blank" rel="noreferrer" className="text-sm bg-purple-50 text-purple-700 hover:bg-purple-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Pen size={10} /> E-Sign</a>}
                         {round.status !== 'complete' && <button onClick={() => handleMarkRoundComplete(round)} className="text-sm bg-green-50 text-green-700 hover:bg-green-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Check size={10} /> Done</button>}
                         <button onClick={() => handleNotifyClient(round)} className="text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1"><Mail size={10} /> Notify</button>
                         <div className="text-gray-700">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</div>

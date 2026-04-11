@@ -13,6 +13,26 @@ const ACCEPTED = {
   'image/webp': ['.webp'],
   'application/pdf': ['.pdf'],
   'text/html': ['.html', '.htm'],
+  'video/mp4': ['.mp4'],
+  'video/quicktime': ['.mov'],
+  'video/webm': ['.webm'],
+}
+
+// Browsers sometimes hand us a File with an empty .type for HTML
+// files because the OS doesn't always have a MIME mapping. Fall
+// back to the extension so the preview path in FileReviewPage
+// can switch on the right renderer.
+function normalizeType(file) {
+  if (file.type) return file.type
+  const ext = file.name?.split('.').pop()?.toLowerCase()
+  const map = {
+    html: 'text/html', htm: 'text/html',
+    pdf: 'application/pdf',
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
+    gif: 'image/gif', webp: 'image/webp',
+    mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm',
+  }
+  return map[ext || ''] || 'application/octet-stream'
 }
 
 function FileIcon({ type }) {
@@ -57,7 +77,7 @@ export default function UploadDropzone({ projectId, onUploaded }) {
           name: file.name,
           url,
           storage_path: path,
-          type: file.type,
+          type: normalizeType(file),
           size: file.size,
           public_token: nanoid(16),
           open_comments: 0,
