@@ -133,6 +133,7 @@ import StripeDashboardPage from '../views/StripeDashboardPage'
 import InvoiceBuilderPage from '../views/InvoiceBuilderPage'
 import KotoProofPage from '../views/KotoProofPage'
 import FileReviewPage from '../views/FileReviewPage'
+import ProofListPage from '../views/ProofListPage'
 import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
@@ -300,7 +301,7 @@ function AppRoutes() {
           <Route path="/project/:projectId/review/:fileId" element={<FileReviewPage />} />
           <Route path="/proof/:projectId" element={<KotoProofPage />} />
           <Route path="/proof/:projectId/review/:fileId" element={<FileReviewPage />} />
-          <Route path="/proof" element={<KotoProofPage />} />
+          <Route path="/proof" element={<ProofListPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:taskId" element={<TaskDetailPage />} />

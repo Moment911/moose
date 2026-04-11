@@ -453,9 +453,24 @@ export default function KotoProofPage() {
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-gray-900 text-sm truncate">{file.name}</p>
                       {(file.version_number || 1) > 1 && <span className="text-[13px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5"><GitBranch size={8} /> v{file.version_number}</span>}
+                      {/* File type badge */}
+                      {(() => {
+                        const t = file.type || ''
+                        const isHtml = t === 'text/html' || /\.html?$/i.test(file.name || '')
+                        const isPdf = t === 'application/pdf'
+                        const isImg = t.startsWith('image/')
+                        const isVid = t.startsWith('video/')
+                        const label = isImg ? '🖼️ Image' : isPdf ? '📄 PDF' : isHtml ? '🌐 HTML' : isVid ? '🎬 Video' : '📦 File'
+                        const cls = isImg ? 'bg-blue-50 text-blue-700'
+                          : isPdf ? 'bg-red-50 text-red-700'
+                          : isHtml ? 'bg-green-50 text-green-700'
+                          : isVid ? 'bg-purple-50 text-purple-700'
+                          : 'bg-gray-100 text-gray-600'
+                        return <span className={`text-[11px] px-1.5 py-0.5 rounded font-semibold ${cls}`}>{label}</span>
+                      })()}
                     </div>
                     <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm text-gray-700">{file.type?.startsWith('image/') ? 'Image' : file.type === 'application/pdf' ? 'PDF' : file.type?.startsWith('video/') ? 'Screen Recording' : 'HTML'}{file.size && ` \u00b7 ${(file.size / 1024 / 1024).toFixed(1)} MB`}</span>
+                      <span className="text-sm text-gray-700">{file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : ''}</span>
                       <span className="text-sm text-gray-700 flex items-center gap-1"><Clock size={10} />{formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}</span>
                     </div>
                   </div>

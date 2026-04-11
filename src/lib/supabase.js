@@ -192,6 +192,18 @@ export const getRepliesForAnnotations = async (annotationIds) => {
 export const createReply = (data) =>
   supabase.from('annotation_replies').insert(data).select().single()
 
+// Named helpers expected by FileReviewPage — `getRepliesForAnnotations`
+// takes an array and returns a map; these two are the single-annotation
+// variants so callers don't have to build throwaway arrays.
+export const getAnnotationReplies = (annotationId) =>
+  supabase.from('annotation_replies')
+    .select('*')
+    .eq('annotation_id', annotationId)
+    .order('created_at')
+
+export const addAnnotationReply = (data) =>
+  supabase.from('annotation_replies').insert(data).select().single()
+
 // ─── Client Activity (cross-project) ────────────────────────────────────────
 export const getClientActivity = async (clientId) => {
   const { data: projects } = await getProjects(clientId)

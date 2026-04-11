@@ -101,6 +101,11 @@ export default function PublicReviewPage() {
   const [authorName, setAuthorName] = useState(() => localStorage.getItem('mm_client_author') || '')
   const [imgDims, setImgDims] = useState({ width: 0, height: 0 })
   const [htmlBlobUrl, setHtmlBlobUrl] = useState(null)
+  // Tall-page controls for HTML/PDF — clients can widen/lengthen
+  // the preview so annotations reach the whole design.
+  const [htmlWidth, setHtmlWidth] = useState(1280)
+  const [htmlHeight, setHtmlHeight] = useState(2400)
+  const [pdfHeight, setPdfHeight] = useState(1000)
   const [rounds, setRounds] = useState([])
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
@@ -120,18 +125,25 @@ export default function PublicReviewPage() {
   useEffect(() => { loadFileByToken() }, [token])
   useEffect(() => { localStorage.setItem('mm_client_author', authorName) }, [authorName])
 
-  // HTML blob
+  // HTML blob + keep annotation canvas dims in sync with htmlWidth/height
   useEffect(() => {
-    if (!file?.url || file?.type !== 'text/html') return
+    if (!file?.url || (file?.type !== 'text/html' && !/\.html?$/i.test(file?.name || ''))) return
     let objectUrl = null
     fetch(file.url).then(r => r.text()).then(html => {
       const blob = new Blob([html], { type: 'text/html' })
       objectUrl = URL.createObjectURL(blob)
       setHtmlBlobUrl(objectUrl)
-      setImgDims({ width: 1024, height: 5000 })
-    }).catch(() => { setHtmlBlobUrl(file.url); setImgDims({ width: 1024, height: 5000 }) })
+    }).catch(() => { setHtmlBlobUrl(file.url) })
     return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [file])
+
+  // Sync annotation canvas dimensions to the active HTML/PDF size
+  useEffect(() => {
+    const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
+    const isPdf = file?.type === 'application/pdf'
+    if (isHtml) setImgDims({ width: htmlWidth, height: htmlHeight })
+    else if (isPdf) setImgDims({ width: 900, height: pdfHeight })
+  }, [file, htmlWidth, htmlHeight, pdfHeight])
 
   // Realtime — no duplicates
   useEffect(() => {
@@ -448,21 +460,62 @@ export default function PublicReviewPage() {
       )}
 
       {/* Canvas + sidebar */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative flex-col">
+        {/* Tall page controls — HTML and PDF only */}
+        {(file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')) && (
+          <div className="bg-gray-50 border-b border-gray-200 px-4 py-1.5 flex items-center gap-2 text-xs text-gray-600 flex-shrink-0 flex-wrap">
+            <span className="font-semibold text-gray-700">Preview:</span>
+            {[
+              { label: '📱 Mobile', width: 375 },
+              { label: '📱 Tablet', width: 768 },
+              { label: '🖥 Desktop', width: 1280 },
+              { label: '🖥 Wide', width: 1920 },
+            ].map((p) => (
+              <button
+                key={p.width}
+                onClick={() => setHtmlWidth(p.width)}
+                className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                  htmlWidth === p.width ? 'bg-brand-500 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}>
+                {p.label}
+              </button>
+            ))}
+            <span className="ml-2">·</span>
+            <span className="text-gray-500">Height:</span>
+            <button onClick={() => setHtmlHeight((h) => Math.max(600, h - 600))} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">−600</button>
+            <span className="font-bold text-gray-700">{htmlHeight}px</span>
+            <button onClick={() => setHtmlHeight((h) => h + 600)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+600</button>
+            <button onClick={() => setHtmlHeight((h) => h + 1200)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+1200</button>
+          </div>
+        )}
+        {file?.type === 'application/pdf' && (
+          <div className="bg-gray-50 border-b border-gray-200 px-4 py-1.5 flex items-center gap-2 text-xs text-gray-600 flex-shrink-0">
+            <span className="font-semibold text-gray-700">Page height:</span>
+            <button onClick={() => setPdfHeight((h) => Math.max(500, h - 600))} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">−600</button>
+            <span className="font-bold text-gray-700">{pdfHeight}px</span>
+            <button onClick={() => setPdfHeight((h) => h + 600)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+600</button>
+            <button onClick={() => setPdfHeight((h) => h + 1200)} className="px-2 py-0.5 rounded bg-white border border-gray-200 hover:bg-gray-50 font-semibold">+1200</button>
+          </div>
+        )}
+
+        <div className="flex flex-1 overflow-hidden relative">
         <div className="flex-1 overflow-auto bg-gray-100 p-2 md:p-6 flex items-start justify-center"
           onMouseDown={() => { if (activeBubble) closeBubble() }}>
           <div style={{ position: 'relative' }}>
             <div className="relative inline-block shadow-2xl rounded-lg overflow-hidden bg-white">
               {file?.type?.startsWith('image/') && (
-                <img ref={imgRef} src={file.url} alt={file.name} onLoad={handleImageLoad} className="block max-w-full" draggable={false} />
+                <img ref={imgRef} src={file.url} alt={file.name}
+                  onLoad={(e) => setImgDims({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })}
+                  className="block" draggable={false}
+                  style={{ width: imgDims.width || 'auto', height: imgDims.height || 'auto' }} />
               )}
               {file?.type === 'application/pdf' && (
                 <iframe src={`${file.url}#toolbar=0`} title={file.name} className="block"
-                  style={{ width: 900, height: 700, border: 'none' }} onLoad={() => setImgDims({ width: 900, height: 700 })} />
+                  style={{ width: 900, height: pdfHeight, border: 'none' }} />
               )}
-              {file?.type === 'text/html' && htmlBlobUrl && (
+              {(file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')) && htmlBlobUrl && (
                 <iframe src={htmlBlobUrl} title={file.name} className="block"
-                  style={{ width: 1024, height: 5000, border: 'none' }} sandbox="allow-scripts allow-same-origin" />
+                  style={{ width: htmlWidth, height: htmlHeight, border: 'none' }} sandbox="allow-scripts allow-same-origin" />
               )}
               {imgDims.width > 0 && imgDims.height > 0 && (
                 <AnnotationCanvas width={imgDims.width} height={imgDims.height} tool={roundsExhausted ? 'select' : tool} color={color}
@@ -597,6 +650,7 @@ export default function PublicReviewPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* Sticky submit CTA bar */}
