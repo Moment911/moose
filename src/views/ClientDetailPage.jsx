@@ -1146,6 +1146,7 @@ export default function ClientDetailPage() {
           client={client}
           voiceRecipients={voiceRecipients}
           onEmailMissing={openMissingEmailModal}
+          onClientRefresh={loadAllData}
         />
 
         {/* Submitted confirmation card — only when complete */}
@@ -1818,32 +1819,76 @@ export default function ClientDetailPage() {
 //      "Email missing fields" button so the agency can hand off to a
 //      teammate when a call ends incomplete.
 // ─────────────────────────────────────────────────────────────
-function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing }) {
-  const [onboardingPhone, setOnboardingPhone] = useState(null)
-  const [loading, setLoading] = useState(true)
+function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing, onClientRefresh }) {
   const [copied, setCopied] = useState(false)
+  const [provisioning, setProvisioning] = useState(false)
+  const [sending, setSending] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      if (!agencyId) { setLoading(false); return }
-      const { data } = await supabase
-        .from('agencies')
-        .select('onboarding_phone_number')
-        .eq('id', agencyId)
-        .maybeSingle()
-      if (cancelled) return
-      setOnboardingPhone(data?.onboarding_phone_number || null)
-      setLoading(false)
-    }
-    load()
-    return () => { cancelled = true }
-  }, [agencyId])
+  // Prefer the per-client provisioned number. Fall back to the
+  // agency-level default only if the per-client number isn't set yet.
+  const clientPhoneDisplay = client?.onboarding_phone_display || client?.onboarding_phone || null
+  const clientPin = client?.onboarding_pin || null
+  const hasDedicatedNumber = !!(client?.onboarding_phone && client?.onboarding_pin)
 
   const voiceCalls = (voiceRecipients || []).filter((r) => r.source === 'voice')
 
   const T = '#00C2CB'
-  const GRN = '#16a34a'
+
+  async function handleProvisionNumber() {
+    if (!client?.id) return
+    setProvisioning(true)
+    try {
+      const res = await fetch('/api/onboarding/telnyx-provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'init_client_onboarding',
+          client_id: client.id,
+          agency_id: agencyId,
+        }),
+      })
+      const data = await res.json()
+      if (data?.phone_number || data?.already_assigned) {
+        toast.success(`Number provisioned: ${data.display_number || data.phone_number}${data.pin ? ` · PIN: ${data.pin}` : ''}`)
+        onClientRefresh?.()
+      } else if (data?.skipped) {
+        toast(data.message || 'Skipped — test client')
+      } else {
+        toast.error(data?.error || 'Failed to provision number')
+      }
+    } catch (e) {
+      toast.error('Failed to provision number')
+    }
+    setProvisioning(false)
+  }
+
+  async function handleSendEmail() {
+    if (!client?.id) return
+    setSending(true)
+    try {
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_link',
+          client_id: client.id,
+          agency_id: agencyId,
+        }),
+      })
+      const data = await res.json()
+      if (data?.sent) toast.success('Onboarding email sent!')
+      else toast.error(data?.error || 'Failed to send email')
+    } catch (e) {
+      toast.error('Failed to send email')
+    }
+    setSending(false)
+  }
+
+  function copyLink() {
+    const url = `${window.location.origin}/onboard/${client?.id}`
+    navigator.clipboard.writeText(url)
+    toast.success('Onboarding link copied!')
+  }
 
   return (
     <div style={{
@@ -1861,35 +1906,81 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
         The AI will ask all the questions and save answers automatically.
       </div>
 
-      {loading ? (
-        <div style={{ fontSize: 12, color: '#9a9a96' }}>Loading…</div>
-      ) : onboardingPhone ? (
+      {hasDedicatedNumber ? (
         <div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: T, marginBottom: 8, fontFamily: 'var(--font-display)' }}>
-            {onboardingPhone}
+          <div style={{ fontSize: 22, fontWeight: 900, color: T, marginBottom: 4, fontFamily: 'var(--font-display)' }}>
+            {clientPhoneDisplay}
           </div>
+          {clientPin && (
+            <div style={{ fontSize: 12, color: '#374151', marginBottom: 10 }}>
+              PIN: <strong style={{ fontFamily: 'monospace', fontSize: 14 }}>{clientPin}</strong>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button
               onClick={() => {
-                navigator.clipboard.writeText(onboardingPhone)
+                navigator.clipboard.writeText(clientPhoneDisplay)
                 setCopied(true)
                 setTimeout(() => setCopied(false), 2000)
               }}
               style={{ padding: '7px 14px', background: T, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              {copied ? '✓ Copied' : 'Copy Number'}
+              {copied ? '✓ Copied' : '📞 Copy Number'}
+            </button>
+            <button
+              onClick={copyLink}
+              style={{ padding: '7px 14px', background: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              🔗 Copy Link
+            </button>
+            <button
+              onClick={handleSendEmail}
+              disabled={sending || !client?.email}
+              title={!client?.email ? 'Client has no email on file' : 'Send onboarding email'}
+              style={{ padding: '7px 14px', background: client?.email ? '#E6007E' : '#f3f4f6', color: client?.email ? '#fff' : '#9ca3af', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: client?.email ? 'pointer' : 'not-allowed' }}>
+              {sending ? '⏳ Sending…' : '✉️ Send Email'}
             </button>
           </div>
         </div>
       ) : (
         <div style={{
-          padding: '12px 14px',
-          background: '#fffbeb',
+          padding: '14px 16px',
+          background: '#fef9f0',
           border: '1px solid #fde68a',
-          borderRadius: 8,
-          fontSize: 12,
-          color: '#92400e',
+          borderRadius: 10,
+          fontSize: 13,
         }}>
-          ⚠️ No onboarding phone number set up yet. Configure it in <strong>Agency Settings → Onboarding</strong>.
+          <div style={{ fontWeight: 700, color: '#92400e', marginBottom: 8 }}>
+            ⚠️ No voice onboarding number yet
+          </div>
+          <div style={{ fontSize: 12, color: '#92400e', marginBottom: 12 }}>
+            Provision a dedicated phone number so {client?.name || 'this client'} can complete
+            onboarding by calling in instead of filling out the form.
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleProvisionNumber}
+              disabled={provisioning}
+              style={{
+                padding: '8px 16px',
+                background: provisioning ? '#e5e7eb' : '#00C2CB',
+                color: provisioning ? '#9ca3af' : '#fff',
+                border: 'none', borderRadius: 8,
+                fontSize: 12, fontWeight: 700, cursor: provisioning ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+              {provisioning ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning…</> : <>📞 Provision Number & PIN</>}
+            </button>
+            <button
+              onClick={copyLink}
+              style={{
+                padding: '8px 16px',
+                background: '#fff',
+                border: '1px solid #e5e7eb',
+                color: '#374151', borderRadius: 8,
+                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}>
+              🔗 Copy Onboarding Link
+            </button>
+          </div>
         </div>
       )}
 
