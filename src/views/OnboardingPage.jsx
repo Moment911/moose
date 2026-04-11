@@ -1063,6 +1063,46 @@ export default function OnboardingPage() {
 
   const firstName = form.first_name?.trim()?.split(' ')[0] || '';
 
+  // ── White-label branding (custom domain support) ──
+  // If we're loaded on a non-Koto domain, fetch the agency's brand
+  // colors/logo and apply them. Falls back silently to Koto branding
+  // if the domain isn't claimed by an agency.
+  const [whiteLabel, setWhiteLabel] = useState(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const host = window.location.hostname;
+    const isCustomDomain = !host.includes('hellokoto.com')
+      && !host.includes('localhost')
+      && !host.endsWith('.vercel.app');
+    if (!isCustomDomain) return;
+
+    fetch(`/api/agency/white-label?domain=${encodeURIComponent(host)}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (d && d.brand_name) {
+          setWhiteLabel(d);
+          // Expose brand colors as CSS variables so components that
+          // opt in via var(--brand-primary) pick them up automatically.
+          if (d.primary_color) {
+            document.documentElement.style.setProperty('--brand-primary', d.primary_color);
+          }
+          if (d.secondary_color) {
+            document.documentElement.style.setProperty('--brand-secondary', d.secondary_color);
+          }
+          // Update favicon if provided
+          if (d.favicon_url) {
+            const link = document.querySelector("link[rel='icon']") || document.createElement('link');
+            link.rel = 'icon';
+            link.href = d.favicon_url;
+            document.head.appendChild(link);
+          }
+          // Update document title
+          document.title = `Onboarding · ${d.brand_name}`;
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.log('[OnboardingPage] load effect fired — token param:', token);

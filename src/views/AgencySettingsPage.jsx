@@ -472,11 +472,43 @@ export default function AgencySettingsPage() {
 
           {/* Custom domain */}
           <Field label="Custom Portal Domain" hint="Optional — clients visit your domain instead of hellokoto.com">
-            <input value={agency.custom_domain||''} onChange={e=>setAgency(a=>({...a,custom_domain:e.target.value}))}
-              style={INP} placeholder="portal.youragency.com"/>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <input value={agency.custom_domain||''} onChange={e=>setAgency(a=>({...a,custom_domain:e.target.value,_domain_verified:null}))}
+                style={{...INP,flex:1}} placeholder="portal.youragency.com"/>
+              <button
+                onClick={async ()=>{
+                  if (!agency.custom_domain) return
+                  setAgency(a=>({...a,_domain_verifying:true}))
+                  try {
+                    const r = await fetch('/api/agency/white-label', {
+                      method:'POST',
+                      headers:{'Content-Type':'application/json'},
+                      body: JSON.stringify({ action:'verify_domain', agency_id: agency.id, domain: agency.custom_domain }),
+                    })
+                    const d = await r.json()
+                    setAgency(a=>({...a,_domain_verifying:false,_domain_verified:d.verified,_domain_target:d.cname_target}))
+                  } catch {
+                    setAgency(a=>({...a,_domain_verifying:false,_domain_verified:false}))
+                  }
+                }}
+                disabled={!agency.custom_domain || agency._domain_verifying}
+                style={{padding:'10px 16px',borderRadius:9,border:'1.5px solid #ececea',background:'#f9f9f7',fontSize:13,fontWeight:700,color:'#374151',cursor: agency.custom_domain ? 'pointer' : 'not-allowed',whiteSpace:'nowrap',flexShrink:0}}>
+                {agency._domain_verifying ? 'Checking…' : 'Verify DNS'}
+              </button>
+            </div>
             {agency.custom_domain && (
               <div style={{marginTop:6,padding:'8px 12px',borderRadius:8,background:'#f0fdf4',border:'1px solid #bbf7d0',fontSize:13,color:'#166534'}}>
                 Point <code style={{fontFamily:'monospace',background:'#dcfce7',padding:'1px 5px',borderRadius:4}}>{agency.custom_domain}</code> CNAME → <code style={{fontFamily:'monospace',background:'#dcfce7',padding:'1px 5px',borderRadius:4}}>hellokoto.com</code> in your DNS settings.
+              </div>
+            )}
+            {agency._domain_verified === true && (
+              <div style={{marginTop:6,padding:'8px 12px',borderRadius:8,background:'#ecfdf5',border:'1px solid #a7f3d0',fontSize:13,color:'#065f46'}}>
+                ✓ Verified — CNAME points to <code style={{fontFamily:'monospace'}}>{agency._domain_target}</code>
+              </div>
+            )}
+            {agency._domain_verified === false && (
+              <div style={{marginTop:6,padding:'8px 12px',borderRadius:8,background:'#fef2f2',border:'1px solid #fecaca',fontSize:13,color:'#991b1b'}}>
+                ✗ Not verified yet. {agency._domain_target ? `CNAME currently points to ${agency._domain_target}.` : 'No CNAME record found.'} DNS changes can take up to 24 hours to propagate.
               </div>
             )}
           </Field>
