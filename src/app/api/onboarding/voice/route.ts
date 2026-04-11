@@ -313,6 +313,35 @@ const PRIORITY_FIELDS = [
   'unique_selling_prop', 'referral_sources', 'competitor_1',
 ] as const
 
+// Human-readable labels for every field the agent might mention.
+// Used when listing missing fields conversationally ("we still need
+// things like your monthly marketing budget, your ideal customer…")
+// instead of leaking field IDs into the caller's ears.
+const FIELD_LABELS: Record<string, string> = {
+  welcome_statement: 'a description of your business in your own words',
+  owner_name: 'your name and role',
+  primary_service: 'your primary service or product',
+  target_customer: 'your ideal customer',
+  marketing_budget: 'your monthly marketing budget',
+  crm_used: 'the C-R-M or software you use',
+  notes: 'your goals for the next twelve months',
+  city: 'your city and state',
+  num_employees: 'your team size',
+  unique_selling_prop: 'what sets you apart from competitors',
+  referral_sources: 'where your best customers come from',
+  competitor_1: 'your main competitor',
+  secondary_services: 'other services you offer',
+  year_founded: 'when the business was founded',
+  website: 'your website',
+  annual_revenue: 'your approximate annual revenue',
+  phone: 'your best contact phone number',
+  email: 'your best email',
+  industry: 'your industry',
+  state: 'the state you operate in',
+  avg_deal_size: 'the average value of a typical job',
+  marketing_channels: 'which marketing channels you use today',
+}
+
 type OnboardingState = 'fresh' | 'partial' | 'nearly_complete'
 
 function computeOnboardingState(client: any): {
@@ -334,13 +363,14 @@ function computeOnboardingState(client: any): {
 }
 
 // Return top N missing-field labels in plain English (not field ids)
-// so the agent can list them conversationally. Falls back to the
-// prettified field name if no label is on the question record.
+// so the agent can list them conversationally. Prefers the
+// FIELD_LABELS map (human-readable sentences) and falls back to a
+// prettified version of the field name only when a label is missing.
 function topMissingLabels(missing: Array<{ field: string; question: string }>, n = 5): string[] {
   return missing.slice(0, n).map((q) => {
-    const f = q.field
-    const pretty = f.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-    return pretty
+    const label = FIELD_LABELS[q.field]
+    if (label) return label
+    return q.field.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   })
 }
 
@@ -433,6 +463,28 @@ VOICE & TONE:
 - Short answers get brief confirmations. Long answers get "Got it — so primarily X. I have that."
 - Never interrupt unless they've clearly finished
 - One sentence of genuine reaction is allowed when something is interesting. Then move on.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SPEAKING STYLE FOR NATURAL TTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Everything you say is read aloud by a TTS engine. These rules make you sound natural, not robotic:
+
+- Use em dashes (—) for natural pauses, not commas. "Got it — moving on." sounds better than "Got it, moving on."
+- Use ellipses (...) sparingly for a thoughtful pause, like "And... one more thing."
+- Write numbers as WORDS, not digits: "twelve employees" not "12 employees", "fifteen minutes" not "15 minutes", "five thousand a month" not "$5,000/month".
+- Spell out common abbreviations phonetically so the TTS pronounces them right:
+  - CRM → "C-R-M"
+  - SEO → "S-E-O"
+  - B2B → "B-two-B"
+  - ROI → "R-O-I"
+  - KPI → "K-P-I"
+  - API → "A-P-I"
+- Use contractions ALWAYS: "I'll", "we've", "you're", "that's", "don't", "we'll", "I'm", "let's".
+- Short sentences sound better than long ones in TTS. Break up anything over ~15 words.
+- End every question with a clear "?" so the TTS rises at the end.
+- NEVER use bullet points or numbered lists in spoken responses — always conversational prose.
+- Avoid parentheticals in spoken text — they sound awkward when read aloud.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 STEP 1 — PIN (the caller ALREADY heard the greeting and was asked for their PIN)
