@@ -526,7 +526,11 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const onboardingUrl = `${APP_URL}/onboarding/${token}`
+      // The onboarding page lives at /onboard/:clientId — the resolver
+      // accepts the bare client id as a token, so we don't need to ship
+      // the synthetic token in the URL. Keeping the token in the DB
+      // (above) is still useful for legacy email links.
+      const onboardingUrl = `${APP_URL}/onboard/${client_id}`
       const brandColor    = agency?.brand_color || '#ea2729'
       const agencyName    = agency?.brand_name  || agency?.name || 'Your Agency'
       const contactName   = client.name?.split(' ')?.[0]
