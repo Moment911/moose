@@ -597,6 +597,197 @@ async function provisionOneClient(
 }
 
 // ─────────────────────────────────────────────────────────────
+// provisionOneClientViaRetell — the simpler, Retell-native path
+//
+// Instead of the 7-step Telnyx BYOC flow (order → wait → fetch
+// id → assign connection → import into Retell → bind agent →
+// persist), this hits Retell's /create-phone-number endpoint
+// which does everything in one round-trip:
+//   - buys a number from Retell's own inventory
+//   - binds the inbound_agent_id
+//   - sets inbound_webhook_url
+//
+// Cost is roughly $2/month per number vs $1 for Telnyx BYOC,
+// but it sidesteps the BYOC import path that's been returning
+// intermittent 404s during bulk provisioning.
+//
+// Stored in the same koto_onboarding_phone_pool table with
+// provider='retell' so the release flow knows to skip the
+// Telnyx-side delete. The Retell phone_number_id is reused for
+// the telnyx_phone_id column to avoid a schema migration for
+// a single new field — release uses the provider flag to
+// dispatch the correct API call.
+//
+// Returns the same shape as provisionOneClient so bulk_provision
+// can pick either strategy without the loop caring which ran.
+// ─────────────────────────────────────────────────────────────
+async function provisionOneClientViaRetell(
+  s: any,
+  args: { client_id: string; agency_id: string; area_code?: string | null },
+): Promise<any> {
+  const { client_id, agency_id, area_code } = args
+
+  if (!process.env.RETELL_API_KEY) {
+    return { ok: false, error: 'RETELL_API_KEY not configured' }
+  }
+
+  // Short-circuit if already assigned + not expired (same as
+  // the Telnyx path — idempotent by design).
+  const { data: existing } = await s
+    .from('clients')
+    .select('onboarding_phone, onboarding_phone_display, onboarding_pin, onboarding_phone_expires_at')
+    .eq('id', client_id)
+    .maybeSingle()
+
+  if (
+    existing?.onboarding_phone &&
+    existing?.onboarding_pin &&
+    existing.onboarding_phone_expires_at &&
+    new Date(existing.onboarding_phone_expires_at) > new Date()
+  ) {
+    return {
+      ok: true,
+      already_assigned: true,
+      phone_number: existing.onboarding_phone,
+      display_number: existing.onboarding_phone_display,
+      pin: existing.onboarding_pin,
+      expires_at: existing.onboarding_phone_expires_at,
+      provider: 'retell',
+    }
+  }
+
+  // Resolve the onboarding agent id the same way init_client_onboarding
+  // does — per-agency first, env var as fallback.
+  const { data: agency } = await s
+    .from('agencies')
+    .select('onboarding_agent_id, brand_name, name')
+    .eq('id', agency_id)
+    .maybeSingle()
+
+  const inboundAgentId =
+    (agency as any)?.onboarding_agent_id ||
+    process.env.RETELL_ONBOARDING_AGENT_ID ||
+    null
+
+  if (!inboundAgentId) {
+    return {
+      ok: false,
+      error: 'No onboarding agent id — set RETELL_ONBOARDING_AGENT_ID or configure an agent in Agency Settings.',
+    }
+  }
+
+  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding/voice`
+
+  // Single POST — Retell buys, binds the agent, and wires the
+  // webhook all in one shot.
+  let retellResponse: any = null
+  try {
+    const res = await fetch(`${RETELL_API_BASE}/create-phone-number`, {
+      method: 'POST',
+      headers: retellHeaders(),
+      body: JSON.stringify({
+        area_code: area_code ? Number(area_code) : Number('561'),
+        inbound_agent_id: inboundAgentId,
+        inbound_webhook_url: webhookUrl,
+      }),
+    })
+    retellResponse = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return {
+        ok: false,
+        error:
+          retellResponse?.error_message ||
+          retellResponse?.message ||
+          `Retell create-phone-number failed (${res.status})`,
+        retell_response: retellResponse,
+      }
+    }
+  } catch (e: any) {
+    return { ok: false, error: e?.message || 'Retell create-phone-number request failed' }
+  }
+
+  const retellPhoneNumber: string | undefined = retellResponse?.phone_number
+  const retellPhoneNumberId: string | undefined =
+    retellResponse?.phone_number_id || retellResponse?.phone_number
+
+  if (!retellPhoneNumber) {
+    return {
+      ok: false,
+      error: 'Retell create-phone-number returned no phone_number field',
+      retell_response: retellResponse,
+    }
+  }
+
+  // Generate PIN + display number + persist everything
+  const pin = generatePin()
+  const displayNumber = formatDisplayNumber(retellPhoneNumber)
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { error: poolError } = await s.from('koto_onboarding_phone_pool').insert({
+    phone_number: retellPhoneNumber,
+    display_number: displayNumber,
+    // Reuse telnyx_phone_id column for the Retell id (provider
+    // column distinguishes which API the id belongs to).
+    telnyx_phone_id: retellPhoneNumberId,
+    telnyx_order_id: null,
+    connection_id: null,
+    provider: 'retell',
+    status: 'assigned',
+    assigned_to_client_id: client_id,
+    assigned_to_agency_id: agency_id,
+    assigned_at: new Date().toISOString(),
+    expires_at: expiresAt,
+    total_assignments: 1,
+  })
+
+  if (poolError) {
+    // Roll back the Retell number so we don't leak billing
+    await retellDeletePhoneNumber(retellPhoneNumber).catch(() => {})
+    return { ok: false, error: 'Failed to save pool entry: ' + poolError.message }
+  }
+
+  await s
+    .from('clients')
+    .update({
+      onboarding_phone: retellPhoneNumber,
+      onboarding_phone_display: displayNumber,
+      onboarding_pin: pin,
+      onboarding_phone_assigned_at: new Date().toISOString(),
+      onboarding_phone_expires_at: expiresAt,
+    })
+    .eq('id', client_id)
+
+  return {
+    ok: true,
+    phone_number: retellPhoneNumber,
+    display_number: displayNumber,
+    pin,
+    retell_phone_number_id: retellPhoneNumberId,
+    retell_agent_id: inboundAgentId,
+    provider: 'retell',
+    // These fields exist so the response shape matches
+    // provisionOneClient and bulk_provision can treat both
+    // strategies the same:
+    connection_assigned: null,
+    retell_imported: true,
+    agent_assigned: true,
+    agent_assign_error: null,
+    expires_at: expiresAt,
+  }
+}
+
+// Strategy picker for bulk_provision and single provision paths.
+// If the caller explicitly sets prefer_retell_numbers, trust it.
+// Otherwise default to Retell-native when RETELL_API_KEY is set
+// (because the BYOC import has been 404ing and the Retell path
+// is more reliable).
+function pickProvisionStrategy(body: any): 'retell' | 'telnyx' {
+  if (body?.prefer_retell_numbers === true) return 'retell'
+  if (body?.prefer_retell_numbers === false) return 'telnyx'
+  return process.env.RETELL_API_KEY ? 'retell' : 'telnyx'
+}
+
+// ─────────────────────────────────────────────────────────────
 // POST handler — provision + release + bulk + init + tokens
 // ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
@@ -671,7 +862,41 @@ export async function POST(req: NextRequest) {
     }
 
     // ── provision ───────────────────────────────────────────────
+    // Default single-client provision. Routes through the strategy
+    // picker: Retell-native when RETELL_API_KEY is set, Telnyx
+    // BYOC otherwise. Callers can force a specific path by passing
+    // prefer_retell_numbers: true|false in the body, or by calling
+    // action='provision_via_retell' / action='provision_via_telnyx'
+    // directly for explicit control.
     if (action === 'provision') {
+      if (!client_id || !agency_id) {
+        return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+      }
+      const strategy = pickProvisionStrategy(body)
+      const result = strategy === 'retell'
+        ? await provisionOneClientViaRetell(s, { client_id, agency_id, area_code })
+        : await provisionOneClient(s, { client_id, agency_id, area_code })
+      if (result.ok) return NextResponse.json({ ...result, strategy })
+      return NextResponse.json({ ...result, strategy }, { status: 500 })
+    }
+
+    // ── provision_via_retell ────────────────────────────────────
+    // Explicit Retell-native single-client provision. Use this
+    // when you want to bypass the strategy picker (e.g. testing,
+    // or forcing Retell regardless of env state).
+    if (action === 'provision_via_retell') {
+      if (!client_id || !agency_id) {
+        return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+      }
+      const result = await provisionOneClientViaRetell(s, { client_id, agency_id, area_code })
+      if (result.ok) return NextResponse.json(result)
+      return NextResponse.json(result, { status: 500 })
+    }
+
+    // ── provision_via_telnyx ────────────────────────────────────
+    // Explicit Telnyx BYOC single-client provision — symmetrical
+    // escape hatch to provision_via_retell above.
+    if (action === 'provision_via_telnyx') {
       if (!client_id || !agency_id) {
         return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
       }
@@ -746,6 +971,12 @@ export async function POST(req: NextRequest) {
       const dryRun = !!body.dry_run
       const MAX_PER_CALL = 25
 
+      // Strategy picker — Retell-native when RETELL_API_KEY is
+      // set (bypasses the flaky BYOC import path), Telnyx BYOC
+      // otherwise. Caller can override via prefer_retell_numbers.
+      const strategy = pickProvisionStrategy(body)
+      const perNumberCost = strategy === 'retell' ? 2.00 : 1.00
+
       // Find candidates — clients with no onboarding_phone, not
       // deleted, not tagged as test/simulation.
       const { data: candidates } = await s
@@ -766,14 +997,19 @@ export async function POST(req: NextRequest) {
       if (dryRun) {
         return NextResponse.json({
           total,
-          estimated_monthly_cost: total * 1.00,
+          strategy,
+          estimated_monthly_cost: total * perNumberCost,
           capped_per_call: MAX_PER_CALL,
           would_process: Math.min(total, MAX_PER_CALL),
         })
       }
 
-      if (!getApiKey()) {
+      // Enforce the env keys required for the chosen strategy
+      if (strategy === 'telnyx' && !getApiKey()) {
         return NextResponse.json({ error: 'TELNYX_API_KEY not configured' }, { status: 500 })
+      }
+      if (strategy === 'retell' && !process.env.RETELL_API_KEY) {
+        return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
       }
 
       const scoped = filtered.slice(0, MAX_PER_CALL)
@@ -789,11 +1025,17 @@ export async function POST(req: NextRequest) {
           await ensureOnboardingToken(s, c.id, agency_id)
 
           const ac = extractAreaCodeFromPhone(c.phone)
-          const r = await provisionOneClient(s, {
-            client_id: c.id,
-            agency_id,
-            area_code: ac || null,
-          })
+          const r = strategy === 'retell'
+            ? await provisionOneClientViaRetell(s, {
+                client_id: c.id,
+                agency_id,
+                area_code: ac || null,
+              })
+            : await provisionOneClient(s, {
+                client_id: c.id,
+                agency_id,
+                area_code: ac || null,
+              })
 
           if (r.ok && !r.error) {
             provisioned += 1
@@ -890,28 +1132,44 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, message: 'No phone assigned' })
       }
 
+      // Pull the provider column so we know whether the number
+      // lives in Telnyx (BYOC) or Retell (native) — the two
+      // teardown paths are different and trying the wrong one
+      // wastes API calls and leaves stale log noise.
       const { data: pool } = await s
         .from('koto_onboarding_phone_pool')
-        .select('id, telnyx_phone_id')
+        .select('id, telnyx_phone_id, provider')
         .eq('assigned_to_client_id', client_id)
         .eq('status', 'assigned')
         .maybeSingle()
 
-      // Tear down in reverse order: Retell first (so it stops
-      // trying to route calls to a number we're about to kill),
-      // then Telnyx (billing stops).
-      const retellReleased = await retellDeletePhoneNumber(client.onboarding_phone)
+      const provider = (pool as any)?.provider || 'telnyx'
 
+      // Teardown order:
+      // - retell-native: just delete on the Retell side — there
+      //   is no Telnyx order to release
+      // - telnyx BYOC: delete from Retell first (stops routing)
+      //   then delete from Telnyx (stops billing). The number is
+      //   registered in both systems so both need to be freed.
+      let retellReleased = false
       let telnyxReleased = false
-      if (pool?.telnyx_phone_id && getApiKey()) {
-        telnyxReleased = await deleteNumber(pool.telnyx_phone_id)
+
+      if (provider === 'retell') {
+        retellReleased = await retellDeletePhoneNumber(client.onboarding_phone)
+        telnyxReleased = true // nothing on the Telnyx side to release
+      } else {
+        retellReleased = await retellDeletePhoneNumber(client.onboarding_phone)
+        if (pool?.telnyx_phone_id && getApiKey()) {
+          telnyxReleased = await deleteNumber(pool.telnyx_phone_id)
+        }
       }
 
       if (pool?.id) {
+        const fullyReleased = provider === 'retell' ? retellReleased : (retellReleased && telnyxReleased)
         await s
           .from('koto_onboarding_phone_pool')
           .update({
-            status: telnyxReleased ? 'released' : 'released_local_only',
+            status: fullyReleased ? 'released' : 'released_local_only',
             assigned_to_client_id: null,
             assigned_to_agency_id: null,
             released_at: new Date().toISOString(),
@@ -933,8 +1191,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         ok: true,
         released: client.onboarding_phone,
+        provider,
         retell_deleted: retellReleased,
-        telnyx_deleted: telnyxReleased,
+        telnyx_deleted: provider === 'retell' ? null : telnyxReleased,
       })
     }
 
