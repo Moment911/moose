@@ -135,6 +135,7 @@ import KotoProofPage from '../views/KotoProofPage'
 import FileReviewPage from '../views/FileReviewPage'
 import ProofListPage from '../views/ProofListPage'
 import TokenUsagePage from '../views/TokenUsagePage'
+import CogReportPage from '../views/CogReportPage'
 import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
@@ -304,6 +305,7 @@ function AppRoutes() {
           <Route path="/proof/:projectId/review/:fileId" element={<FileReviewPage />} />
           <Route path="/proof" element={<ProofListPage />} />
           <Route path="/token-usage" element={<TokenUsagePage />} />
+          <Route path="/cog-report" element={<CogReportPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/tasks" element={<TasksPage />} />
           <Route path="/tasks/:taskId" element={<TaskDetailPage />} />

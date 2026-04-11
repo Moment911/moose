@@ -128,6 +128,53 @@ function apiKeyToFeature(label: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Cost category buckets for the Expense Intelligence dashboard.
+// Every cost_type in koto_platform_costs + every provider in
+// koto_token_usage maps to exactly one category.
+// ─────────────────────────────────────────────────────────────
+const CATEGORY_FOR_COST_TYPE: Record<string, string> = {
+  // AI & LLMs
+  anthropic_api:          'ai_llms',
+  anthropic_subscription: 'ai_llms',
+  claude_ai_max:          'ai_llms',
+  claude_ai_extra:        'ai_llms',
+  openai_api:             'ai_llms',
+  gemini_api:             'ai_llms',
+  heygen_api:             'ai_llms',
+  // Voice & Phone
+  retell_voice:    'voice_phone',
+  retell_numbers:  'voice_phone',
+  telnyx_numbers:  'voice_phone',
+  telnyx_sms:      'voice_phone',
+  twilio_voice:    'voice_phone',
+  twilio_sms:      'voice_phone',
+  // Infrastructure
+  vercel:           'infrastructure',
+  supabase:         'infrastructure',
+  supabase_storage: 'infrastructure',
+  // Data & Search
+  google_places: 'data_search',
+  google_ads:    'data_search',
+  google_search: 'data_search',
+  brave_search:  'data_search',
+  ipinfo:        'data_search',
+  // Business Tools
+  resend_email: 'business_tools',
+  stripe_fees:  'business_tools',
+  ghl:          'business_tools',
+}
+
+function categoryFor(costType: string): string {
+  return CATEGORY_FOR_COST_TYPE[costType] || 'other'
+}
+
+function providerCategory(provider: string): string {
+  if (provider === 'anthropic' || provider === 'openai' || provider === 'google') return 'ai_llms'
+  if (provider === 'retell') return 'voice_phone'
+  return 'other'
+}
+
+// ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -429,6 +476,272 @@ export async function POST(req: NextRequest) {
         grand_total: Number((totalCost + platformTotal).toFixed(2)),
         recent,
       })
+    }
+
+    // ── log_platform_cost ─────────────────────────────────
+    // Record a flat-fee line item (Vercel Pro, Supabase Pro, GHL,
+    // Retell number rental, one-off Places API charges, etc.).
+    if (action === 'log_platform_cost') {
+      const { agency_id, cost_type, amount, unit_count, description, date, metadata } = body
+      if (!cost_type || amount === undefined) {
+        return NextResponse.json({ error: 'cost_type and amount required' }, { status: 400 })
+      }
+      const { data, error } = await sb().from('koto_platform_costs').insert({
+        agency_id: agency_id || null,
+        cost_type,
+        amount: Number(amount),
+        unit_count: unit_count ?? 1,
+        description: description || null,
+        date: date || new Date().toISOString().slice(0, 10),
+        metadata: metadata || {},
+      }).select().single()
+      if (error) {
+        console.warn('[token-usage log_platform_cost] insert failed:', error.message)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+      return NextResponse.json({ logged: true, data })
+    }
+
+    // ── platform_summary ──────────────────────────────────
+    if (action === 'platform_summary') {
+      const { date_from, date_to } = body
+      const from = date_from || new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+      const to = date_to || new Date().toISOString().slice(0, 10)
+
+      const { data, error } = await sb()
+        .from('koto_platform_costs')
+        .select('*')
+        .gte('date', from)
+        .lte('date', to)
+        .order('date', { ascending: false })
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+      const rows = data || []
+      let total = 0
+      const byType: Record<string, any> = {}
+      const byCategory: Record<string, any> = {}
+      for (const r of rows) {
+        const amt = Number(r.amount)
+        total += amt
+        const t = r.cost_type
+        if (!byType[t]) byType[t] = { total: 0, entries: 0 }
+        byType[t].total += amt
+        byType[t].entries += 1
+        const cat = categoryFor(t)
+        if (!byCategory[cat]) byCategory[cat] = { total: 0, entries: 0 }
+        byCategory[cat].total += amt
+        byCategory[cat].entries += 1
+      }
+
+      return NextResponse.json({
+        date_from: from,
+        date_to: to,
+        total: Number(total.toFixed(2)),
+        by_type: byType,
+        by_category: byCategory,
+        rows,
+      })
+    }
+
+    // ── cog_overview ──────────────────────────────────────
+    // The master summary for CogReportPage. Combines
+    // koto_token_usage (metered API calls) + koto_platform_costs
+    // (flat fees) into one category-bucketed expense view.
+    if (action === 'cog_overview') {
+      const { days = 30 } = body
+      const since = new Date(Date.now() - days * 86400000).toISOString()
+      const sinceDate = since.slice(0, 10)
+
+      // Metered API calls
+      const { data: tokenRows } = await sb()
+        .from('koto_token_usage')
+        .select('*')
+        .gte('created_at', since)
+      // Flat-fee costs
+      const { data: platformRows } = await sb()
+        .from('koto_platform_costs')
+        .select('*')
+        .gte('date', sinceDate)
+
+      const tokens = tokenRows || []
+      const platform = platformRows || []
+
+      // Category totals
+      const byCategory: Record<string, any> = {
+        ai_llms:         { label: 'AI & LLMs',       color: '#8b5cf6', total: 0, sources: {} },
+        voice_phone:     { label: 'Voice & Phone',   color: '#00C2CB', total: 0, sources: {} },
+        infrastructure:  { label: 'Infrastructure',  color: '#16a34a', total: 0, sources: {} },
+        data_search:     { label: 'Data & Search',   color: '#f59e0b', total: 0, sources: {} },
+        business_tools:  { label: 'Business Tools',  color: '#E6007E', total: 0, sources: {} },
+        other:           { label: 'Other',           color: '#9ca3af', total: 0, sources: {} },
+      }
+
+      // Service-level breakdown
+      const byService: Record<string, any> = {}
+      const ensureService = (key: string, label: string, category: string) => {
+        if (!byService[key]) {
+          byService[key] = {
+            key, label, category,
+            api_cost: 0, platform_cost: 0, total: 0,
+            calls: 0, tokens: 0,
+          }
+        }
+      }
+
+      // Fold token-usage rows
+      for (const r of tokens) {
+        const cost = Number(r.total_cost)
+        const cat = providerCategory(r.provider || 'anthropic')
+        byCategory[cat].total += cost
+        const serviceKey = r.provider || 'other'
+        const serviceLabel = ({ anthropic: 'Anthropic API', openai: 'OpenAI API', google: 'Google Gemini', retell: 'Retell Voice', other: 'Other AI' } as any)[serviceKey] || serviceKey
+        ensureService(serviceKey, serviceLabel, cat)
+        byService[serviceKey].api_cost += cost
+        byService[serviceKey].total += cost
+        byService[serviceKey].calls += 1
+        byService[serviceKey].tokens += r.input_tokens + r.output_tokens
+        if (!byCategory[cat].sources[serviceKey]) byCategory[cat].sources[serviceKey] = 0
+        byCategory[cat].sources[serviceKey] += cost
+      }
+
+      // Fold platform cost rows
+      const SERVICE_META: Record<string, { label: string; icon: string }> = {
+        vercel:                 { label: 'Vercel',            icon: '⚡' },
+        supabase:               { label: 'Supabase',          icon: '🗄️' },
+        ghl:                    { label: 'GoHighLevel',       icon: '🔗' },
+        claude_ai_max:          { label: 'Claude.ai Max Plan', icon: '🧠' },
+        claude_ai_extra:        { label: 'Claude.ai Extras',  icon: '🧠' },
+        anthropic_subscription: { label: 'Claude.ai Max Plan', icon: '🧠' },
+        retell_numbers:         { label: 'Retell Numbers',    icon: '☎️' },
+        retell_voice:           { label: 'Retell Voice',      icon: '🎙️' },
+        telnyx_numbers:         { label: 'Telnyx Numbers',    icon: '☎️' },
+        telnyx_sms:             { label: 'Telnyx SMS',        icon: '💬' },
+        twilio_voice:           { label: 'Twilio Voice',      icon: '☎️' },
+        twilio_sms:             { label: 'Twilio SMS',        icon: '💬' },
+        google_places:          { label: 'Google Places',     icon: '🗺️' },
+        google_ads:             { label: 'Google Ads',        icon: '📊' },
+        brave_search:           { label: 'Brave Search',      icon: '🔍' },
+        resend_email:           { label: 'Resend',            icon: '📧' },
+        stripe_fees:            { label: 'Stripe',            icon: '💳' },
+        heygen_api:             { label: 'HeyGen',            icon: '🎬' },
+      }
+
+      for (const r of platform) {
+        const amt = Number(r.amount)
+        const cat = categoryFor(r.cost_type)
+        byCategory[cat].total += amt
+        const meta = SERVICE_META[r.cost_type] || { label: r.cost_type, icon: '📦' }
+        const serviceKey = r.cost_type
+        ensureService(serviceKey, meta.label, cat)
+        byService[serviceKey].platform_cost += amt
+        byService[serviceKey].total += amt
+        if (!byCategory[cat].sources[serviceKey]) byCategory[cat].sources[serviceKey] = 0
+        byCategory[cat].sources[serviceKey] += amt
+      }
+
+      const grandTotal = Object.values(byCategory).reduce((a: number, c: any) => a + c.total, 0)
+
+      return NextResponse.json({
+        days,
+        grand_total: Number(grandTotal.toFixed(2)),
+        by_category: byCategory,
+        by_service: Object.values(byService).sort((a: any, b: any) => b.total - a.total),
+        api_rows: tokens.length,
+        platform_rows: platform.length,
+      })
+    }
+
+    // ── sync_retell_calls ─────────────────────────────────
+    // Pulls recent calls from Retell API, converts duration to
+    // minutes, and logs each as a row in koto_token_usage with
+    // model='retell-voice'. Idempotent via session_id = call_id.
+    if (action === 'sync_retell_calls') {
+      const apiKey = process.env.RETELL_API_KEY
+      if (!apiKey) {
+        return NextResponse.json({ available: false, error: 'RETELL_API_KEY not set' }, { status: 400 })
+      }
+      const { limit = 500 } = body
+      try {
+        const res = await fetch('https://api.retellai.com/v2/list-calls', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ limit }),
+          signal: AbortSignal.timeout(30000),
+        })
+        if (!res.ok) {
+          const text = await res.text()
+          console.warn('[sync_retell_calls] API error:', res.status, text.slice(0, 300))
+          return NextResponse.json({ error: `Retell API ${res.status}: ${text.slice(0, 200)}` }, { status: 502 })
+        }
+        const calls: any[] = await res.json()
+
+        // Existing session_ids we've already logged
+        const ids = calls.map((c) => c.call_id).filter(Boolean)
+        const { data: existing } = await sb()
+          .from('koto_token_usage')
+          .select('session_id')
+          .in('session_id', ids)
+        const already = new Set((existing || []).map((r: any) => r.session_id))
+
+        const toInsert: any[] = []
+        let totalMinutes = 0
+        let totalCost = 0
+
+        for (const call of calls) {
+          if (!call.call_id || already.has(call.call_id)) continue
+          const durationMs = call.duration_ms || call.end_timestamp - call.start_timestamp || 0
+          if (durationMs <= 0) continue
+          const minutes = Math.ceil(durationMs / 60000)
+          const cost = minutes * 0.05
+          totalMinutes += minutes
+          totalCost += cost
+          const startedAt = call.start_timestamp
+            ? new Date(call.start_timestamp).toISOString()
+            : new Date().toISOString()
+          toInsert.push({
+            provider: 'retell',
+            session_id: call.call_id,
+            feature: 'voice_onboarding',
+            model: 'retell-voice',
+            input_tokens: 0,
+            output_tokens: minutes,
+            input_cost: 0,
+            output_cost: cost,
+            metadata: {
+              retell_call_id: call.call_id,
+              agent_id: call.agent_id || null,
+              from_number: call.from_number || null,
+              to_number: call.to_number || null,
+              duration_ms: durationMs,
+              duration_minutes: minutes,
+              source: 'retell_sync',
+            },
+            created_at: startedAt,
+          })
+        }
+
+        if (toInsert.length > 0) {
+          const { error: insErr } = await sb().from('koto_token_usage').insert(toInsert)
+          if (insErr) {
+            console.warn('[sync_retell_calls] insert failed:', insErr.message)
+            return NextResponse.json({ error: insErr.message }, { status: 500 })
+          }
+        }
+
+        return NextResponse.json({
+          synced: toInsert.length,
+          skipped: calls.length - toInsert.length,
+          total_minutes: totalMinutes,
+          total_cost: Number(totalCost.toFixed(4)),
+          calls_fetched: calls.length,
+        })
+      } catch (e: any) {
+        console.error('[sync_retell_calls] fatal:', e)
+        return NextResponse.json({ error: e?.message || 'sync failed' }, { status: 500 })
+      }
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
