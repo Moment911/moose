@@ -302,6 +302,13 @@ export default function ProposalBuilderPage() {
   const [sending, setSending]   = useState(false)
   const [converting, setConverting] = useState(false)
   const saveTimer = useRef(null)
+  // Called here at the top with every other hook — React error #310
+  // was caused by useMobile() being called AFTER the `if (loading)
+  // return ...` block on line ~448. On the first render loading=true
+  // so useMobile() was skipped; once load() resolved the second render
+  // called one extra hook and React threw "Rendered more hooks than
+  // during the previous render."
+  const isMobile = useMobile()
 
   useEffect(() => { load() }, [id])
 
@@ -453,8 +460,6 @@ export default function ProposalBuilderPage() {
       </div>
     </div>
   )
-
-  const isMobile = useMobile()
 
   /* ─── MOBILE: redirect to proposals list (builder not suited for mobile) ─── */
   if (isMobile && !loading) {
