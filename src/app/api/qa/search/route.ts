@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 export const runtime = 'nodejs'
 
@@ -19,6 +20,10 @@ export async function POST(req: NextRequest) {
         const results = (data.web?.results || []).map((r: any) => ({
           url: r.url, title: r.title, snippet: r.description
         }))
+        void trackPlatformCost({
+          cost_type: 'brave_search', amount: PLATFORM_RATES.brave_search, unit_count: 1,
+          description: 'Brave Search API', metadata: { feature: 'qa_search' },
+        })
         return NextResponse.json({ results, source: 'brave' })
       }
     }

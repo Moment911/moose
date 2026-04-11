@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createVideoVoicemail, checkVideoStatus, sendVideoEmail, listHeyGenAvatars } from '@/lib/heygenVideoEngine'
+import { trackPlatformCost } from '@/lib/tokenTracker'
 
 const HEYGEN_API = 'https://api.heygen.com'
 
@@ -111,6 +112,15 @@ export async function POST(req: NextRequest) {
       }
 
       const vmId = await createVideoVoicemail(leadData, agency_id, { avatarId: avatar_id, voiceId: voice_id, customScript: custom_script, emailTo: email_to })
+      // HeyGen charges per video — flat $0.50/video is a rough estimate;
+      // replace with actual invoice amount when HeyGen bills.
+      if (vmId) {
+        void trackPlatformCost({
+          cost_type: 'heygen_api', amount: 0.50, unit_count: 1,
+          description: 'HeyGen video voicemail',
+          metadata: { feature: 'video_voicemail', vm_id: vmId, agency_id, avatar_id },
+        })
+      }
       return Response.json({ success: !!vmId, vm_id: vmId })
     }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 export const runtime = 'nodejs'
 
@@ -169,6 +170,15 @@ export async function POST(req: NextRequest) {
     const results = await Promise.allSettled(sends.map(e => getResend().emails.send(e)))
     const sent  = results.filter(r=>r.status==='fulfilled').length
     const errs  = results.filter((r): r is PromiseRejectedResult => r.status==='rejected').map(r=>r.reason?.message||String(r.reason))
+    if (sent > 0) {
+      void trackPlatformCost({
+        cost_type: 'resend_email',
+        amount: sent * PLATFORM_RATES.resend_email,
+        unit_count: sent,
+        description: `desk ticket emails (${sent} sent)`,
+        metadata: { feature: 'desk_ticket' },
+      })
+    }
     return NextResponse.json({ sent, failed:errs.length, errors:errs.length?errs:undefined })
   } catch(e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })

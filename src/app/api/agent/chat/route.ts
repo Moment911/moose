@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
 const OPENAI_KEY    = process.env.OPENAI_API_KEY    || ''
@@ -270,6 +271,12 @@ async function askGPT(systemPrompt: string, messages: any[]): Promise<string | n
       }),
     })
     const data = await res.json()
+    void logTokenUsage({
+      feature: 'agent_chat',
+      model: data.model || 'gpt-4o',
+      inputTokens: data.usage?.prompt_tokens || 0,
+      outputTokens: data.usage?.completion_tokens || 0,
+    })
     return data.choices?.[0]?.message?.content || null
   } catch { return null }
 }
@@ -287,6 +294,12 @@ async function askGemini(systemPrompt: string, messages: any[]): Promise<string 
       body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 1000 } }),
     })
     const data = await res.json()
+    void logTokenUsage({
+      feature: 'agent_chat',
+      model: 'gemini-2.5-flash',
+      inputTokens: data.usageMetadata?.promptTokenCount || 0,
+      outputTokens: data.usageMetadata?.candidatesTokenCount || 0,
+    })
     return data.candidates?.[0]?.content?.parts?.[0]?.text || null
   } catch { return null }
 }

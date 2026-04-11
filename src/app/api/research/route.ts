@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { logTokenUsage } from '@/lib/tokenTracker'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -76,6 +77,12 @@ Return ONLY valid JSON.`
     response_format: { type: 'json_object' },
     max_tokens: 2000,
   })
+  void logTokenUsage({
+    feature: 'seo_research',
+    model: completion.model || 'gpt-4o',
+    inputTokens: completion.usage?.prompt_tokens || 0,
+    outputTokens: completion.usage?.completion_tokens || 0,
+  })
 
   try {
     return JSON.parse(completion.choices[0].message.content || '{}')
@@ -128,6 +135,13 @@ SEO Research findings:
       { role: 'user', content: prompt }
     ],
     max_tokens: 3000,
+  })
+  void logTokenUsage({
+    feature: 'seo_content_module',
+    model: completion.model || 'gpt-4o',
+    inputTokens: completion.usage?.prompt_tokens || 0,
+    outputTokens: completion.usage?.completion_tokens || 0,
+    metadata: { module_type: moduleType },
   })
 
   const raw = completion.choices[0].message.content || ''

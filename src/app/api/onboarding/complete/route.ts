@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { buildOnboardingPdf } from '../../../../lib/onboardingPdf'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 export const maxDuration = 60
 
@@ -207,6 +208,11 @@ export async function POST(req: NextRequest) {
           ],
         })
         sendResults.agency = { ok: true, id: (r as any)?.data?.id || null }
+        void trackPlatformCost({
+          cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+          description: 'onboarding complete — agency notification',
+          metadata: { feature: 'onboarding_complete', recipient: 'agency' },
+        })
       } catch (e: any) {
         console.warn('[onboarding/complete] agency email failed:', e?.message)
         sendResults.agency = { ok: false, error: e?.message }
@@ -266,6 +272,11 @@ export async function POST(req: NextRequest) {
           ],
         })
         sendResults.client = { ok: true, id: (r as any)?.data?.id || null }
+        void trackPlatformCost({
+          cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+          description: 'onboarding complete — client copy',
+          metadata: { feature: 'onboarding_complete', recipient: 'client' },
+        })
       } catch (e: any) {
         console.warn('[onboarding/complete] client email failed:', e?.message)
         sendResults.client = { ok: false, error: e?.message }

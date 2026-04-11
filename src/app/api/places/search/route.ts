@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
 
@@ -34,6 +35,11 @@ export async function POST(req: NextRequest) {
         results: []
       }, { status: 200 })
     }
+
+    void trackPlatformCost({
+      cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+      description: 'Places text search', metadata: { feature: 'places_search' },
+    })
 
     const results = (data.places || []).map((p: any) => ({
       place_id:     p.id,
