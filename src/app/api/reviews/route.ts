@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const GOOGLE_KEY    = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
@@ -18,6 +19,10 @@ async function searchBusiness(query: string) {
   })
   if (!res.ok) return []
   const d = await res.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'reviews business search', metadata: { feature: 'reviews', query },
+  })
   return (d.places || []).map((p: any) => ({
     place_id:     p.id,
     name:         p.displayName?.text,
@@ -41,6 +46,10 @@ async function fetchReviews(placeId: string) {
   })
   if (!res.ok) return null
   const d = await res.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'reviews place details', metadata: { feature: 'reviews', place_id: placeId },
+  })
   return {
     name:          d.displayName?.text,
     rating:        d.rating,

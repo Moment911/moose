@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '../../../lib/apiAuth'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const RETELL_API_KEY = process.env.RETELL_API_KEY || ''
 const RETELL_BASE = 'https://api.retellai.com'
@@ -825,6 +826,11 @@ Return ONLY the script text, no markdown or JSON.`
           const placesRes = await fetch(
             `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(lead.business_name)}&inputtype=textquery&fields=formatted_address,rating,user_ratings_total,business_status,types&key=${PLACES_KEY}`
           )
+          void trackPlatformCost({
+            cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+            description: 'voice pre-call Places enrichment',
+            metadata: { feature: 'voice_pre_call', lead_id: lead.id },
+          })
           const placesData = await placesRes.json()
           const place = placesData.candidates?.[0]
           if (place) {

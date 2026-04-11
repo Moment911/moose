@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 function sb() {
   return createClient(
@@ -86,19 +87,34 @@ async function scanGoogleBusiness(query: string, placeId?: string) {
   if (!key) return { error: 'Google Places API key not configured' }
   try {
     let place: any = null
+    // Track Places calls. Each fetch = 1 request = $0.017. The
+    // findplacefromtext + details combination is two units.
+    let placesCalls = 0
     if (placeId) {
       const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,user_ratings_total,formatted_phone_number,formatted_address,website,opening_hours,business_status,photos,types,reviews&key=${key}`)
+      placesCalls++
       const data = await res.json()
       place = data.result
     } else if (query) {
       const searchRes = await fetch(`https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(query)}&inputtype=textquery&fields=place_id&key=${key}`)
+      placesCalls++
       const searchData = await searchRes.json()
       const pid = searchData.candidates?.[0]?.place_id
       if (pid) {
         const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${pid}&fields=name,rating,user_ratings_total,formatted_phone_number,formatted_address,website,opening_hours,business_status,photos,types,reviews&key=${key}`)
+        placesCalls++
         const data = await res.json()
         place = data.result
       }
+    }
+    if (placesCalls > 0) {
+      void trackPlatformCost({
+        cost_type: 'google_places',
+        amount: placesCalls * PLATFORM_RATES.google_places,
+        unit_count: placesCalls,
+        description: 'onboarding template GBP scan',
+        metadata: { feature: 'onboarding_template', query: query || null, place_id: placeId || null },
+      })
     }
     if (!place) return { error: 'Business not found on Google' }
     return {

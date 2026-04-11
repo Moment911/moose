@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 export const runtime = 'nodejs'
 
@@ -78,6 +79,10 @@ export async function POST(req: NextRequest) {
       }
 
       const data = await res.json()
+      void trackPlatformCost({
+        cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+        description: 'scout text search', metadata: { feature: 'scout_places', query },
+      })
       return NextResponse.json({ places: data.places || [], error: null })
     }
 
@@ -92,6 +97,10 @@ export async function POST(req: NextRequest) {
 
       if (!res.ok) return NextResponse.json({ error: 'Details fetch failed', place: null })
       const place = await res.json()
+      void trackPlatformCost({
+        cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+        description: 'scout place details', metadata: { feature: 'scout_places', place_id: placeId },
+      })
       return NextResponse.json({ place, error: null })
     }
 

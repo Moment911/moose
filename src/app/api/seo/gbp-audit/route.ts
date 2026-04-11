@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const GOOGLE_KEY    = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
@@ -12,6 +13,10 @@ async function fetchPlace(placeId: string) {
     headers: { 'X-Goog-Api-Key': GOOGLE_KEY, 'X-Goog-FieldMask': FIELDS }
   })
   if (!res.ok) return null
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'GBP audit — place details', metadata: { feature: 'gbp_audit', place_id: placeId },
+  })
   return res.json()
 }
 
@@ -31,6 +36,10 @@ async function fetchNearbyCompetitors(placeId: string, type: string, lat: number
   })
   if (!res.ok) return []
   const d = await res.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'GBP audit — nearby competitors', metadata: { feature: 'gbp_audit', type },
+  })
   return (d.places || []).filter((p: any) => p.id !== placeId).slice(0, 4)
 }
 
