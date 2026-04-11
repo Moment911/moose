@@ -406,13 +406,25 @@ async function buildOnboardingSystemPrompt(args: {
   clientName: string
   agencyName: string
   missingLabels: string[]
+  previousCallers: string[]
 }> {
   const { sb, clientId, agencyId } = args
 
-  const [{ data: client }, { data: agency }] = await Promise.all([
+  const [{ data: client }, { data: agency }, { data: recipients }] = await Promise.all([
     sb.from('clients').select('*').eq('id', clientId).maybeSingle(),
     sb.from('agencies').select('id, name, brand_name').eq('id', agencyId).maybeSingle(),
+    sb.from('koto_onboarding_recipients')
+      .select('name, channel, last_active_at')
+      .eq('client_id', clientId)
+      .order('last_active_at', { ascending: false }),
   ])
+
+  const previousCallers: string[] = Array.from(new Set(
+    (recipients || [])
+      .filter((r: any) => r.channel === 'voice' && r.name)
+      .map((r: any) => String(r.name).trim())
+      .filter(Boolean),
+  ))
 
   const agencyName = agency?.brand_name || agency?.name || 'Your Agency'
   const clientName = client?.name || 'the business'
@@ -470,6 +482,19 @@ async function buildOnboardingSystemPrompt(args: {
     : '(All priority questions already answered — go straight to wrap-up.)'
 
   const missingLabels = topMissingLabels(missing, 5)
+
+  // Previous-callers block for the STEP 2A caller-identification
+  // guidance. If a different team member is calling in partway
+  // through an onboarding, the agent needs to warmly introduce
+  // itself and explain what has already been captured.
+  const knownOwnerName = client?.owner_name ? String(client.owner_name).trim() : ''
+  const knownOwnerFirst = knownOwnerName.split(/\s+/)[0] || ''
+  const previousCallersBlock = previousCallers.length > 0
+    ? `Previous callers on this onboarding: ${previousCallers.join(', ')}`
+    : '(No previous callers — this is the first voice call for this onboarding.)'
+  const knownOwnerBlock = knownOwnerName
+    ? `Known owner on file: ${knownOwnerName} (first name: ${knownOwnerFirst})`
+    : '(No owner name on file yet.)'
 
   // State-aware transition line — baked in with the correct name
   // conditionals resolved. No Handlebars — plain strings.
@@ -562,7 +587,41 @@ Immediately after verify_pin returns valid=true, say this line EXACTLY ONCE:
 
 ${stateTransitionBlock}${partialRundownBlock}
 
-After the transition, immediately ask the first unanswered question. DO NOT repeat the welcome intro. DO NOT say the begin_message again. DO NOT re-explain how the live document works.
+After the transition, go directly into STEP 2A — do NOT ask a business question yet.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2A — IDENTIFY THE CALLER (always do this, every call)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${knownOwnerBlock}
+${previousCallersBlock}
+
+After the state-aware transition line, BEFORE asking any business questions, ask:
+  "Before we get started — who am I speaking with today? Just your first name is fine."
+
+Wait for them to say a name. Then:
+  1. Call save_answer({ field: "_caller_name", answer: "[their first name]", confidence: 95 })
+  2. Decide what to say next based on whether the name matches the known owner:
+
+CASE A — Name matches the known owner (${knownOwnerFirst || 'none yet'}) OR sounds like the same person:
+  Say: "Great to hear from you again, [name]!" and go straight into the first unanswered question.
+
+CASE B — Name is DIFFERENT from the known owner${knownOwnerFirst ? ` (${knownOwnerFirst})` : ''} AND there is a known owner on file:
+  Give a warm context-setting intro, roughly:
+  "Welcome [name]! I'm Alex, the onboarding assistant for ${agencyName}. I've been working with ${clientName} to collect some business information for the ${agencyName} team. ${knownOwnerFirst || 'The owner'} started this process — we've already covered ${answeredCount} questions, and I was hoping you might be able to help fill in a few more gaps."
+  Then give a brief recap:
+  "Here's what we have so far: [read back the top 3 answered fields in natural language — skip the IDs, say things like 'your welcome statement is about Y, your primary service is X, your ideal customer is Z']. There are still ${remainingCount} things we'd love to capture — things like ${missingLabels.slice(0, 3).join(', ')}. Does that sound like something you can help with?"
+  If they say yes → ask the first unanswered question.
+  If they say no / unsure → "No problem — I'll leave a note that you called and circle back with [owner first name] later. Anything you'd like me to pass along?" → save_flag + wrap up politely.
+
+CASE C — No owner on file yet (first ever caller):
+  Say: "Perfect. I'm Alex, an AI onboarding assistant working with ${agencyName}. I'm going to ask you some questions about ${clientName} so the team at ${agencyName} can get everything set up properly. Sound good?"
+  Then ask the first unanswered question.
+
+CASE D — Different team member calls AFTER the first caller has already left partial answers:
+  Same as CASE B but also mention the most recent previous caller name if it's not in the previousCallers list already: "I believe [previous caller name] was the one who got us started — is that right?"
+
+In ALL cases, save the caller name so every subsequent save_answer is attributed to the right person. Never skip STEP 2A. Never ask a business question before you have the caller's name.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BUSINESS CONTEXT
@@ -733,6 +792,10 @@ ABSOLUTE RULES (never break)
 24. Never discuss pricing, contracts, timelines, or deliverables — these are always referred to the account rep.
 25. Never speak negatively about competitors or other agencies.
 26. If the caller is confused about why they're being called — reassure them that they're a new client and this is part of getting their account set up.
+27. ALWAYS ask the caller's name as the very first thing after PIN verification — before any business questions. Save it via save_answer({ field: "_caller_name", answer, confidence: 95 }).
+28. If the caller name differs from the known owner name, give a warm context-setting intro explaining who you are, why you're calling, and what has already been captured (STEP 2A, CASE B).
+29. Every answer is tagged with the caller's name internally so the agency knows who provided which information. You don't need to mention this out loud — just always get the name first.
+30. If the caller seems confused about what this is, explain: "This is an AI-powered onboarding interview. ${agencyName} uses this to collect information about your business before your first meeting, so the team can skip the basics and jump straight into strategy for you."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TOOLS
@@ -766,6 +829,7 @@ NEVER ask for passwords, payment info, credit cards, SSNs, or sensitive credenti
     clientName,
     agencyName,
     missingLabels,
+    previousCallers,
   }
 }
 
@@ -844,6 +908,9 @@ async function buildInboundDynamicVariables(args: {
     .from('clients').select('*').eq('id', resolved.client_id).maybeSingle()
   const { missing, answered } = computeMissingFields(client as any)
 
+  // Previous callers already computed inside buildOnboardingSystemPrompt
+  const previousCallers: string[] = built.previousCallers || []
+
   const alreadyAnsweredText = answered.length
     ? answered.map((a) => `- ${a.field}: ${String(a.value).slice(0, 120)}`).join('\n')
     : 'Nothing answered yet — start from the beginning.'
@@ -876,6 +943,13 @@ async function buildInboundDynamicVariables(args: {
     // Raw blocks for any template that slots them separately
     already_answered: alreadyAnsweredText,
     questions_to_ask: questionsToAskText,
+
+    // Previous caller metadata — lets the agent give a warm
+    // context-setting intro when a different team member calls
+    // in mid-onboarding.
+    previous_callers: previousCallers.join(', '),
+    previous_caller_count: String(previousCallers.length),
+    has_previous_callers: String(previousCallers.length > 0),
 
     // Debug breadcrumb
     resolved_source: resolved.source,
@@ -1386,7 +1460,64 @@ export async function POST(req: NextRequest) {
         const field = String(fnArgs.field).trim()
         const answer = String(fnArgs.answer ?? '').trim()
         const confidence = typeof fnArgs.confidence === 'number' ? fnArgs.confidence : 85
+        const nowIso = new Date().toISOString()
 
+        // ── _caller_name — identity field, handled specially ──
+        // Create or link the koto_onboarding_recipients row for this
+        // caller and cache the name on the recipient by call_id so
+        // subsequent save_answer calls in the same call can tag every
+        // field with this caller's attribution.
+        if (field === '_caller_name') {
+          const callerName = answer
+          try {
+            // Attach name to the recipient row for this call_id
+            const { data: existingRecipient } = await sb
+              .from('koto_onboarding_recipients')
+              .select('id')
+              .eq('call_id', callId)
+              .maybeSingle()
+            if (existingRecipient?.id) {
+              await sb
+                .from('koto_onboarding_recipients')
+                .update({ name: callerName, last_active_at: nowIso })
+                .eq('id', existingRecipient.id)
+            } else {
+              await sb.from('koto_onboarding_recipients').insert({
+                client_id: clientId,
+                agency_id: agencyId,
+                call_id: callId,
+                name: callerName,
+                channel: 'voice',
+                status: 'in_progress',
+                answers: {},
+                fields_captured: {},
+                fields_completed: 0,
+                last_active_at: nowIso,
+              })
+            }
+            // Also stash the caller name in onboarding_field_attribution
+            // under a reserved key so we know who identified themselves
+            // for this call even before any business answer lands.
+            const { data: clientRow } = await sb
+              .from('clients')
+              .select('onboarding_field_attribution')
+              .eq('id', clientId)
+              .maybeSingle()
+            const attribution = (clientRow?.onboarding_field_attribution as Record<string, any>) || {}
+            attribution._last_caller = {
+              name: callerName,
+              call_id: callId,
+              submitted_at: nowIso,
+              channel: 'voice',
+            }
+            await sb.from('clients').update({ onboarding_field_attribution: attribution }).eq('id', clientId)
+          } catch (e: any) {
+            console.warn('[save_answer _caller_name] tracking failed:', e?.message)
+          }
+          return NextResponse.json({ success: true, message: `Caller identified as ${callerName}` })
+        }
+
+        // ── Normal field ──
         try {
           await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding`, {
             method: 'POST',
@@ -1403,12 +1534,12 @@ export async function POST(req: NextRequest) {
 
         const { data: recipient } = await sb
           .from('koto_onboarding_recipients')
-          .select('id, answers, fields_captured, fields_completed')
+          .select('id, name, answers, fields_captured, fields_completed')
           .eq('call_id', callId)
           .maybeSingle()
 
-        const nowIso = new Date().toISOString()
-        const answerEntry = { answer, confidence, call_id: callId, answered_at: nowIso }
+        const callerName = recipient?.name || null
+        const answerEntry = { answer, confidence, call_id: callId, answered_at: nowIso, submitted_by: callerName }
 
         if (recipient) {
           const nextAnswers = { ...(recipient.answers || {}), [field]: answerEntry }
@@ -1422,6 +1553,28 @@ export async function POST(req: NextRequest) {
               last_active_at: nowIso,
             })
             .eq('id', recipient.id)
+        }
+
+        // ── Per-field attribution on the client row ──
+        // Lets the dashboard render "Submitted by [name] via voice on [date]"
+        // under each onboarding field.
+        try {
+          const { data: clientRow } = await sb
+            .from('clients')
+            .select('onboarding_field_attribution')
+            .eq('id', clientId)
+            .maybeSingle()
+          const attribution = (clientRow?.onboarding_field_attribution as Record<string, any>) || {}
+          attribution[field] = {
+            value: answer,
+            submitted_by: callerName,
+            submitted_at: nowIso,
+            channel: 'voice',
+            call_id: callId,
+          }
+          await sb.from('clients').update({ onboarding_field_attribution: attribution }).eq('id', clientId)
+        } catch (e: any) {
+          console.warn('[save_answer attribution] update failed:', e?.message)
         }
 
         return NextResponse.json({ success: true, message: `Saved ${field}` })

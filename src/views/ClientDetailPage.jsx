@@ -590,6 +590,29 @@ export default function ClientDetailPage() {
     }
 
     const rawAnswers = client?.onboarding_answers || {}
+    const attribution = client?.onboarding_field_attribution || {}
+
+    // Small "Submitted by X via voice on Mar 5" subtitle under each field.
+    // Returns null when nothing's tracked yet — keeps the cards tight.
+    const renderAttribution = (fieldKey) => {
+      const entry = attribution?.[fieldKey]
+      if (!entry || !entry.submitted_by) return null
+      const when = entry.submitted_at ? new Date(entry.submitted_at) : null
+      const whenStr = when ? when.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
+      return (
+        <div style={{
+          fontSize: 10,
+          color: '#9ca3af',
+          fontFamily: FB,
+          marginTop: 5,
+          fontStyle: 'italic',
+        }}>
+          Submitted by <strong style={{ color: '#6b7280' }}>{entry.submitted_by}</strong>
+          {entry.channel ? ` via ${entry.channel}` : ''}
+          {whenStr ? ` on ${whenStr}` : ''}
+        </div>
+      )
+    }
 
     // Derive a display-only client that backfills owner_name / owner_title
     // from the raw form fields when the proper columns are empty. This
@@ -778,6 +801,7 @@ export default function ClientDetailPage() {
                   <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
                     {display}
                   </div>
+                  {renderAttribution(key)}
                 </div>
               )
             })}
@@ -793,6 +817,7 @@ export default function ClientDetailPage() {
                   <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
                     {display}
                   </div>
+                  {renderAttribution(k)}
                 </div>
               )
             })}
