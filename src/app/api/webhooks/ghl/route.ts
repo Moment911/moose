@@ -23,6 +23,30 @@ async function handleGHLWebhook(event: any, integrationId: string, agencyId: str
         const { data: newClient } = await getSupabase().from('clients').insert({ agency_id: agencyId, name, email: contact.email || '', phone: contact.phone || '', website: contact.website || '', ghl_contact_id: contact.id, ghl_location_id: locationId, status: 'lead' }).select().single()
         if (newClient) {
           await getSupabase().from('crm_sync_log').insert({ integration_id: integrationId, agency_id: agencyId, client_id: newClient.id, direction: 'webhook', entity_type: 'contact', entity_id: contact.id, moose_id: newClient.id, action: 'create', status: 'success', payload: { ghl_contact: contact } })
+
+          // Create onboarding token
+          try {
+            await getSupabase().from('onboarding_tokens').insert({
+              client_id: newClient.id,
+              agency_id: newClient.agency_id,
+              token: newClient.id,
+              expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            })
+          } catch (e) {
+            console.warn('[ghl webhook] token creation failed:', e)
+          }
+
+          // Fire and forget provision — never block
+          const origin = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+          fetch(`${origin}/api/onboarding/telnyx-provision`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'init_client_onboarding',
+              client_id: newClient.id,
+              agency_id: newClient.agency_id,
+            }),
+          }).catch((e) => console.warn('[ghl webhook] auto-provision failed:', e))
         }
       }
       break

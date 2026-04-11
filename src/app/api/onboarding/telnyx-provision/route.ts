@@ -943,11 +943,21 @@ export async function POST(req: NextRequest) {
       // if we have one — keeps the assigned number in the same
       // geography when possible.
       const ac = extractAreaCodeFromPhone((client as any).phone)
-      const result = await provisionOneClient(s, {
-        client_id,
-        agency_id,
-        area_code: ac || null,
-      })
+
+      // Use the Retell-native path — bypasses the flaky Telnyx BYOC
+      // import that 404s on number assignment. Falls back to the
+      // legacy path only if RETELL_API_KEY is missing.
+      const result = process.env.RETELL_API_KEY
+        ? await provisionOneClientViaRetell(s, {
+            client_id,
+            agency_id,
+            area_code: ac || null,
+          })
+        : await provisionOneClient(s, {
+            client_id,
+            agency_id,
+            area_code: ac || null,
+          })
 
       return NextResponse.json(result)
     }

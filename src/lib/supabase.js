@@ -28,8 +28,48 @@ export const getClients = (agencyId = null, includeDeleted = false) => {
   return agencyId ? q.eq('agency_id', agencyId) : q
 }
 
-export const createClient_ = (name, email, agencyId = null) =>
-  supabase.from('clients').insert({ name, email, ...(agencyId ? { agency_id: agencyId } : {}) }).select().single()
+export const createClient_ = async (name, email, agencyId = null) => {
+  const { data, error } = await supabase
+    .from('clients')
+    .insert({ name, email, ...(agencyId ? { agency_id: agencyId } : {}) })
+    .select()
+    .single()
+
+  if (error || !data) return { data, error }
+
+  // Create onboarding token immediately so the /onboard/:id link works.
+  try {
+    await supabase.from('onboarding_tokens').insert({
+      client_id: data.id,
+      agency_id: agencyId || data.agency_id,
+      token: data.id,
+      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    })
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[createClient_] token creation failed:', e)
+  }
+
+  // Fire and forget — provision Retell number + PIN.
+  // Never block client creation on this.
+  const appUrl = (typeof window !== 'undefined' && window.location?.origin)
+    || process.env.NEXT_PUBLIC_APP_URL
+    || 'https://hellokoto.com'
+  fetch(`${appUrl}/api/onboarding/telnyx-provision`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'init_client_onboarding',
+      client_id: data.id,
+      agency_id: agencyId || data.agency_id,
+    }),
+  }).catch((e) => {
+    // eslint-disable-next-line no-console
+    console.warn('[createClient_] auto-provision failed:', e)
+  })
+
+  return { data, error: null }
+}
 
 export const updateClient = (id, data) =>
   supabase.from('clients').update(data).eq('id', id).select().single()
