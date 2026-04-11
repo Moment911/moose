@@ -38,6 +38,28 @@ const SERVICE_OPTIONS = [
   'Conversion Optimization',
 ]
 
+// ── Field resolver ────────────────────────────────────────────
+// Client data lives in two places: dedicated columns (primary_service,
+// target_customer, marketing_budget…) set by the FIELD_MAP, and the
+// onboarding_answers jsonb spillover from the web form which uses
+// different names (products_services, ideal_customer_desc,
+// budget_for_agency…). Always pass multiple aliases.
+function pick(client, ...keys) {
+  if (!client) return ''
+  const answers = client.onboarding_answers || client.onboarding_data || {}
+  for (const k of keys) {
+    const direct = client[k]
+    if (direct !== null && direct !== undefined && String(direct).trim() !== '') {
+      return Array.isArray(direct) ? direct.filter(Boolean).join(', ') : String(direct)
+    }
+    const jsonb = answers[k]
+    if (jsonb !== null && jsonb !== undefined && String(jsonb).trim() !== '') {
+      return Array.isArray(jsonb) ? jsonb.filter(Boolean).join(', ') : String(jsonb)
+    }
+  }
+  return ''
+}
+
 export default function KotoProposalBuilderPage() {
   const { agencyId } = useAuth()
   const navigate = useNavigate()
@@ -71,13 +93,18 @@ export default function KotoProposalBuilderPage() {
       .select('*')
       .eq('id', clientId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn('[KotoProposalBuilderPage] client load failed:', error.message)
+        }
         setClient(data)
         setLoading(false)
-        if (data?.marketing_budget) {
-          const n = parseFloat(String(data.marketing_budget).replace(/[^0-9.]/g, ''))
-          if (!isNaN(n) && n > 0) setMonthlyBudget(n)
-        }
+        // Seed the budget slider from whichever source has a number —
+        // the autosave column, the legacy form field, or the adaptive
+        // agency budget question.
+        const raw = pick(data, 'marketing_budget', 'monthly_ad_budget', 'budget_for_agency')
+        const n = parseFloat(String(raw).replace(/[^0-9.]/g, ''))
+        if (!isNaN(n) && n > 0) setMonthlyBudget(n)
       })
   }, [clientId])
 
@@ -187,16 +214,23 @@ export default function KotoProposalBuilderPage() {
           {/* Left — client summary */}
           <div style={{ background: '#fff', borderRadius: 14, padding: 20, overflow: 'auto', border: '1px solid #e5e7eb' }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', letterSpacing: 1, marginBottom: 12 }}>FROM ONBOARDING</div>
-            <DataRow label="Industry" value={client.industry} />
-            <DataRow label="Location" value={[client.city, client.state].filter(Boolean).join(', ')} />
-            <DataRow label="Primary service" value={client.primary_service} />
-            <DataRow label="Ideal customer" value={client.target_customer} />
-            <DataRow label="Marketing budget" value={client.marketing_budget} />
-            <DataRow label="Current channels" value={client.marketing_channels} />
-            <DataRow label="CRM" value={client.crm_used} />
-            <DataRow label="Goals" value={client.notes} />
-            <DataRow label="Competitors" value={[client.competitor_1, client.competitor_2].filter(Boolean).join(', ')} />
-            <DataRow label="UVP" value={client.unique_selling_prop} />
+            <DataRow label="Industry" value={pick(client, 'industry')} />
+            <DataRow label="Location" value={
+              [pick(client, 'city', 'primary_city'), pick(client, 'state')].filter(Boolean).join(', ')
+            } />
+            <DataRow label="Welcome statement" value={pick(client, 'welcome_statement', 'business_description')} />
+            <DataRow label="Primary service" value={pick(client, 'primary_service', 'products_services', 'top_services')} />
+            <DataRow label="Ideal customer" value={pick(client, 'target_customer', 'ideal_customer_desc', 'customer_types')} />
+            <DataRow label="Pain points" value={pick(client, 'customer_pain_points')} />
+            <DataRow label="Marketing budget" value={pick(client, 'marketing_budget', 'monthly_ad_budget', 'budget_for_agency')} />
+            <DataRow label="Current channels" value={pick(client, 'marketing_channels', 'current_ad_platforms')} />
+            <DataRow label="CRM" value={pick(client, 'crm_used', 'b2b_crm')} />
+            <DataRow label="Goals" value={pick(client, 'notes', 'primary_goal', 'growth_scope')} />
+            <DataRow label="Competitors" value={
+              [pick(client, 'competitor_1'), pick(client, 'competitor_2'), pick(client, 'competitor_3')].filter(Boolean).join(', ')
+            } />
+            <DataRow label="UVP" value={pick(client, 'unique_selling_prop', 'unique_value_prop', 'why_choose_you')} />
+            <DataRow label="Brand voice" value={pick(client, 'brand_voice', 'brand_tone')} />
           </div>
 
           {/* Center — preview */}

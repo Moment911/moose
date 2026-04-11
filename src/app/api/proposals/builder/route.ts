@@ -94,19 +94,54 @@ export async function POST(req: NextRequest) {
       }
 
       const c = client as any
+      // Resolver — checks dedicated columns first, then the
+      // onboarding_answers jsonb (which the web form populates with
+      // different key names than the voice agent does).
+      const answers = c.onboarding_answers || {}
+      const pick = (...keys: string[]): string => {
+        for (const k of keys) {
+          const direct = c[k]
+          if (direct !== null && direct !== undefined && String(direct).trim() !== '') {
+            return Array.isArray(direct) ? direct.filter(Boolean).join(', ') : String(direct)
+          }
+          const jsonb = answers[k]
+          if (jsonb !== null && jsonb !== undefined && String(jsonb).trim() !== '') {
+            return Array.isArray(jsonb) ? jsonb.filter(Boolean).join(', ') : String(jsonb)
+          }
+        }
+        return ''
+      }
+
+      const clientNameStr = c.name || 'N/A'
+      const industryStr = pick('industry') || 'N/A'
+      const locationStr = [pick('city', 'primary_city'), pick('state')].filter(Boolean).join(', ') || 'N/A'
+      const descriptionStr = pick('welcome_statement', 'business_description') || 'N/A'
+      const primaryServiceStr = pick('primary_service', 'products_services', 'top_services') || 'N/A'
+      const idealCustomerStr = pick('target_customer', 'ideal_customer_desc', 'customer_types') || 'N/A'
+      const painPointsStr = pick('customer_pain_points')
+      const budgetStr = pick('marketing_budget', 'monthly_ad_budget', 'budget_for_agency') || 'N/A'
+      const channelsStr = pick('marketing_channels', 'current_ad_platforms') || 'N/A'
+      const crmStr = pick('crm_used', 'b2b_crm') || 'N/A'
+      const goalsStr = pick('notes', 'primary_goal', 'growth_scope') || 'N/A'
+      const competitorsStr = [pick('competitor_1'), pick('competitor_2'), pick('competitor_3')].filter(Boolean).join(', ') || 'N/A'
+      const uvpStr = pick('unique_selling_prop', 'unique_value_prop', 'why_choose_you') || 'N/A'
+      const brandVoiceStr = pick('brand_voice', 'brand_tone')
+
       const userPrompt = `Generate a marketing proposal for:
-Client: ${c.name || 'N/A'}
-Industry: ${c.industry || 'N/A'}
-Location: ${[c.city, c.state].filter(Boolean).join(', ') || 'N/A'}
-Business description: ${c.welcome_statement || 'N/A'}
-Primary service: ${c.primary_service || 'N/A'}
-Ideal customer: ${c.target_customer || 'N/A'}
-Current marketing budget: ${c.marketing_budget || 'N/A'}
-Current channels: ${c.marketing_channels || 'N/A'}
-CRM: ${c.crm_used || 'N/A'}
-Goals: ${c.notes || 'N/A'}
-Competitors: ${[c.competitor_1, c.competitor_2].filter(Boolean).join(', ') || 'N/A'}
-Unique value: ${c.unique_selling_prop || 'N/A'}
+Client: ${clientNameStr}
+Industry: ${industryStr}
+Location: ${locationStr}
+Business description: ${descriptionStr}
+Primary service: ${primaryServiceStr}
+Ideal customer: ${idealCustomerStr}
+${painPointsStr ? `Customer pain points: ${painPointsStr}` : ''}
+Current marketing budget: ${budgetStr}
+Current channels: ${channelsStr}
+CRM: ${crmStr}
+Goals: ${goalsStr}
+Competitors: ${competitorsStr}
+Unique value: ${uvpStr}
+${brandVoiceStr ? `Brand voice: ${brandVoiceStr}` : ''}
 Agency: ${agencyName}
 Proposed monthly investment: ${monthly_budget || 'TBD'}
 ${tone ? `Tone: ${tone}` : ''}
