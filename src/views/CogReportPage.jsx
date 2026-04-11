@@ -106,8 +106,21 @@ export default function CogReportPage() {
   const [budgets, setBudgets] = useState([])
   const [editingBudget, setEditingBudget] = useState(null) // { category, monthly_budget }
   const [features, setFeatures] = useState([])
+  const [trend, setTrend] = useState(null)
 
-  useEffect(() => { load(); loadBudgets(); loadFeatures() }, [days])
+  useEffect(() => { load(); loadBudgets(); loadFeatures(); loadTrend() }, [days])
+
+  async function loadTrend() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'month_trend', months: 3 }),
+      })
+      const d = await res.json()
+      setTrend(d)
+    } catch {}
+  }
 
   async function loadFeatures() {
     try {
@@ -418,6 +431,79 @@ export default function CogReportPage() {
                 )}
               </div>
             </div>
+
+            {/* Month-over-month trend */}
+            {trend && trend.days && trend.days.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>3-Month Cost Trend</div>
+                    <div style={{ fontSize: 12, color: '#6b7280' }}>Daily stacked spend across all categories</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#6b7280' }}>
+                    {['ai_llms', 'voice_phone', 'infrastructure', 'data_search', 'business_tools'].map((k) => (
+                      <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 2, background: (byCategory[k]?.color || '#9ca3af') }} />
+                        {byCategory[k]?.label || k}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {(() => {
+                  const maxTotal = Math.max(...trend.days.map((d) => d.total), 0.01)
+                  const H = 120
+                  return (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: H }}>
+                        {trend.days.map((d) => {
+                          const cats = ['ai_llms', 'voice_phone', 'infrastructure', 'data_search', 'business_tools', 'other']
+                          return (
+                            <div key={d.day}
+                              title={`${d.day} · ${fmt$(d.total)}`}
+                              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minWidth: 3 }}>
+                              {cats.map((c) => {
+                                const h = (d[c] / maxTotal) * H
+                                if (h <= 0) return null
+                                return (
+                                  <div key={c}
+                                    style={{ height: `${h}px`, background: byCategory[c]?.color || '#9ca3af', opacity: 0.85 }} />
+                                )
+                              })}
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#9ca3af' }}>
+                        <span>{trend.days[0]?.day}</span>
+                        <span>{trend.days[trend.days.length - 1]?.day}</span>
+                      </div>
+                    </>
+                  )
+                })()}
+
+                {/* Monthly summary table */}
+                {trend.by_month && Object.keys(trend.by_month).length > 0 && (
+                  <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: `repeat(${Object.keys(trend.by_month).length}, 1fr)`, gap: 10 }}>
+                    {Object.entries(trend.by_month).sort((a, b) => a[0].localeCompare(b[0])).map(([month, vals], i, arr) => {
+                      const prev = i > 0 ? arr[i - 1][1].total : 0
+                      const delta = vals.total - prev
+                      const pct = prev > 0 ? Math.round((delta / prev) * 100) : null
+                      return (
+                        <div key={month} style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px' }}>
+                          <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{month}</div>
+                          <div style={{ fontSize: 20, fontWeight: 900, color: '#111', marginTop: 4 }}>{fmt$(vals.total)}</div>
+                          {pct !== null && (
+                            <div style={{ fontSize: 11, color: delta > 0 ? '#dc2626' : '#16a34a', fontWeight: 700, marginTop: 2 }}>
+                              {delta > 0 ? '▲' : '▼'} {Math.abs(pct)}% vs prev
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Feature cost breakdown */}
             {features.length > 0 && (

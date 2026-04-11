@@ -651,6 +651,75 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // ── month_trend ───────────────────────────────────────
+    // Returns stacked cost-per-day for the last N months so the
+    // dashboard can render a stacked area chart. Each day carries
+    // the total cost in each of the 6 categories plus a grand.
+    // Pulls from BOTH koto_token_usage and koto_platform_costs.
+    if (action === 'month_trend') {
+      const { months = 3 } = body
+      const since = new Date()
+      since.setUTCMonth(since.getUTCMonth() - months)
+      since.setUTCDate(1)
+      since.setUTCHours(0, 0, 0, 0)
+      const sinceIso = since.toISOString()
+      const sinceDate = sinceIso.slice(0, 10)
+
+      const [tokensRes, platformRes] = await Promise.all([
+        sb().from('koto_token_usage').select('provider, total_cost, created_at').gte('created_at', sinceIso),
+        sb().from('koto_platform_costs').select('cost_type, amount, date').gte('date', sinceDate),
+      ])
+
+      const byDay: Record<string, Record<string, number>> = {}
+      const ensure = (day: string) => {
+        if (!byDay[day]) {
+          byDay[day] = { ai_llms: 0, voice_phone: 0, infrastructure: 0, data_search: 0, business_tools: 0, other: 0, total: 0 }
+        }
+        return byDay[day]
+      }
+
+      for (const r of tokensRes.data || []) {
+        const day = String(r.created_at).slice(0, 10)
+        const cat = providerCategory(r.provider || 'anthropic')
+        const bucket = ensure(day)
+        const c = Number(r.total_cost)
+        bucket[cat] += c
+        bucket.total += c
+      }
+
+      for (const r of platformRes.data || []) {
+        const day = String(r.date)
+        const cat = categoryFor(r.cost_type)
+        const bucket = ensure(day)
+        const c = Number(r.amount)
+        bucket[cat] += c
+        bucket.total += c
+      }
+
+      // Sort ascending by day so the chart draws left-to-right
+      const days = Object.entries(byDay)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([day, vals]) => ({ day, ...vals }))
+
+      // Month rollup
+      const byMonth: Record<string, Record<string, number>> = {}
+      for (const d of days) {
+        const month = d.day.slice(0, 7)
+        if (!byMonth[month]) {
+          byMonth[month] = { ai_llms: 0, voice_phone: 0, infrastructure: 0, data_search: 0, business_tools: 0, other: 0, total: 0 }
+        }
+        for (const k of Object.keys(byMonth[month])) {
+          byMonth[month][k] += (d as any)[k] || 0
+        }
+      }
+
+      return NextResponse.json({
+        months,
+        days,
+        by_month: byMonth,
+      })
+    }
+
     // ── feature_breakdown ─────────────────────────────────
     // Rolls up koto_token_usage by feature, returning for each:
     //   - total_calls, total_cost, total_tokens
