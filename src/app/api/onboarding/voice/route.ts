@@ -1585,6 +1585,20 @@ Return JSON with this exact shape:
       const summaryLine = analysis?.call_summary || null
 
       if (missingPriority1.length === 0) {
+        // All priority fields captured — fire the completion email +
+        // PDF summary. Fire and forget; the webhook still returns 200
+        // even if the email route is slow or fails.
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+        fetch(`${appUrl}/api/onboarding/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'send_completion_email',
+            client_id: clientId,
+            agency_id: agencyId,
+          }),
+        }).catch((e) => console.warn('[voice call_ended] completion email trigger failed:', e))
+
         const body = analysis
           ? `${callerName} · ${fieldsCaptured} fields captured${engagementPct != null ? ` · Engagement: ${engagementPct}%` : ''}${summaryLine ? ` · ${summaryLine}` : ''}`
           : `${callerName} completed onboarding for ${clientName} — ${fieldsCaptured} fields captured`

@@ -745,6 +745,17 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({ client_id, agency_id, run_type: 'onboarding' }),
       }).catch(() => {}) // don't await — run in background
 
+      // Send completion email + PDF summary (fire and forget)
+      fetch(`${APP_URL}/api/onboarding/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_completion_email',
+          client_id,
+          agency_id: resolvedAgency,
+        }),
+      }).catch((e) => console.warn('[onboarding complete] completion email trigger failed:', e))
+
       return NextResponse.json({ ok: true, agent_configured: !existing })
     }
 

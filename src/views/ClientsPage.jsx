@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase, getClients, createClient_, updateClient, deleteClient } from '../lib/supabase'
+import { calculateHealthScore } from '../lib/clientHealthScore'
 import { useAuth } from '../hooks/useAuth'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
@@ -702,6 +703,7 @@ export default function ClientsPage() {
                       { key:'name',     label:'Client Name' },
                       { key:'industry', label:'Industry' },
                       { key:'status',   label:'Status' },
+                      { key:'health',   label:'Health' },
                       { key:'email',    label:'Contact' },
                     ].map(col => (
                       <th key={col.key} style={THstyle(col.key)} onClick={() => toggleSort(col.key)}>
@@ -715,7 +717,9 @@ export default function ClientsPage() {
                   </tr>
                 </thead>
                 <tbody style={{ position:'relative' }}>
-                  {filtered.map((client, i) => (
+                  {filtered.map((client, i) => {
+                    const health = calculateHealthScore(client)
+                    return (
                     <tr key={client.id}
                       style={{ borderBottom: i < filtered.length-1 ? '1px solid #f3f4f6' : 'none', cursor:'pointer', transition:'background .1s' }}
                       onMouseEnter={e => { e.currentTarget.style.background='#fafafa'; e.currentTarget.style.transform='translateX(2px)' }}
@@ -751,6 +755,21 @@ export default function ClientsPage() {
                       {/* Status */}
                       <td style={{ padding:'14px 14px' }}>
                         <StatusDot status={client.status}/>
+                      </td>
+
+                      {/* Health */}
+                      <td style={{ padding:'14px 14px' }}>
+                        <div style={{
+                          display:'inline-flex', alignItems:'center', gap:4,
+                          padding:'3px 10px', borderRadius:20,
+                          background: `${health.color}15`,
+                          border: `1px solid ${health.color}40`,
+                          fontSize:12, fontWeight:800, color: health.color,
+                          cursor:'pointer',
+                        }}
+                        title={`Health Score: ${health.total}/100${health.flags.length ? '\n' + health.flags.join('\n') : ''}`}>
+                          {health.grade} · {health.total}
+                        </div>
                       </td>
 
                       {/* Contact */}
@@ -800,7 +819,8 @@ export default function ClientsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

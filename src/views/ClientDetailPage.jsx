@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
+import { calculateHealthScore } from '../lib/clientHealthScore'
 import {
   ArrowLeft, Trash2, ExternalLink, Phone, Mail, Globe, Building, FileText,
   Star, BarChart2, Activity, Brain, Copy, Check, Loader2, RefreshCw,
@@ -256,8 +257,8 @@ export default function ClientDetailPage() {
       if (clientData) {
         const link = `${window.location.origin}/onboard/${clientId}`
         setOnboardingLink(link)
-        const score = computeHealthScore(clientData)
-        setHealthScore(score)
+        const health = calculateHealthScore(clientData)
+        setHealthScore(health.total)
       }
       const [pagesRes, sitesRes, callsRes, inboundRes, tasksRes, logsRes] = await Promise.all([
         supabase.from('koto_wp_pages').select('id,title,status,created_at').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20),
@@ -279,19 +280,9 @@ export default function ClientDetailPage() {
     setLoading(false)
   }
 
-  function computeHealthScore(c) {
-    if (!c) return 0
-    let score = 0
-    if (c.website) score += 20
-    if (c.phone) score += 15
-    if (c.email) score += 15
-    if (c.industry) score += 10
-    if (c.address) score += 10
-    if (c.notes) score += 10
-    if (c.owner_name) score += 10
-    if (c.primary_service) score += 10
-    return Math.min(100, score)
-  }
+  // Health scoring lives in src/lib/clientHealthScore.ts so it stays
+  // consistent between the row badge on ClientsPage and the detail
+  // header here.
 
   async function deleteClient() {
     // Double confirmation: the user must type the client's exact name.
