@@ -478,21 +478,47 @@ async function provisionOneClient(
   // 4. Assign Telnyx voice connection (route → Retell BYOC trunk)
   const connectionOk = await assignConnection(phoneNumberId)
 
-  // 5. Import into Retell
+  // 5. Import into Retell — NON-FATAL.
+  //
+  // create-phone-number-from-carrier-number has been returning
+  // intermittent 404s during bulk provisioning (root cause
+  // unknown — possibly a Retell-side routing change or a rate
+  // limit). Previously this triggered a Telnyx rollback, which
+  // meant bulk runs would lose every partially-provisioned
+  // number and leak nothing but also complete zero clients.
+  //
+  // New behavior: log the error, carry on, persist everything
+  // to Telnyx + our DB. The Telnyx connection
+  // (TELNYX_ONBOARDING_CONNECTION_ID) is the SIP trust boundary
+  // that hands calls off to Retell's BYOC trunk — the Retell
+  // import is what makes the number appear in Retell's
+  // dashboard and enables the inbound_webhook_url / agent
+  // binding pattern.
+  //
+  // CAVEAT: if this import fails, calls to the number will
+  // likely not route correctly on the Retell side until
+  // someone manually imports the number in the Retell
+  // dashboard (or we retry the import successfully later).
+  // The return value's retell_imported field tells the caller
+  // whether the number is fully live or needs a manual fix.
   const connectionId = getConnectionId()
   const retellImport = await retellImportCarrierNumber({
     phoneNumber: selectedNumber,
     connectionId,
   })
   if (!retellImport.ok) {
-    await deleteNumber(phoneNumberId).catch(() => {})
-    return {
-      ok: false,
-      error: `Retell import failed: ${retellImport.error}. Telnyx order rolled back.`,
-    }
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[provision] Retell BYOC import FAILED for ${selectedNumber} — continuing anyway. ` +
+      `Number is in Telnyx but not registered with Retell. Manual dashboard import may be needed. ` +
+      `Error: ${retellImport.error}`,
+    )
   }
 
-  // 6. Bind the agency's onboarding agent to the imported number
+  // 6. Bind the agency's onboarding agent to the imported number.
+  // Only attempt this if the import succeeded — otherwise
+  // update-phone-number/{number} will 404 for the same reason
+  // the import did.
   const { data: agency } = await s
     .from('agencies')
     .select('onboarding_agent_id, brand_name, name')
@@ -502,7 +528,9 @@ async function provisionOneClient(
   const inboundAgentId = (agency as any)?.onboarding_agent_id || null
   let agentAssignOk = false
   let agentAssignError: string | null = null
-  if (inboundAgentId) {
+  if (!retellImport.ok) {
+    agentAssignError = 'Skipped — Retell import failed upstream so there is no phone number record to bind an agent to.'
+  } else if (inboundAgentId) {
     const assignRes = await retellAssignAgent({
       phoneNumber: selectedNumber,
       inboundAgentId,
