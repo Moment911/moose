@@ -305,14 +305,61 @@ async function verifyPin(args: {
 // ─────────────────────────────────────────────────────────────
 // Build the Retell system prompt for a specific client.
 // ─────────────────────────────────────────────────────────────
+// Priority field list used for onboarding state calculation.
+// Kept in sync with the spec in the call_inbound handler comments.
+const PRIORITY_FIELDS = [
+  'welcome_statement', 'owner_name', 'primary_service', 'target_customer',
+  'marketing_budget', 'crm_used', 'notes', 'city', 'num_employees',
+  'unique_selling_prop', 'referral_sources', 'competitor_1',
+] as const
+
+type OnboardingState = 'fresh' | 'partial' | 'nearly_complete'
+
+function computeOnboardingState(client: any): {
+  state: OnboardingState
+  answeredCount: number
+  remainingCount: number
+  pct: number
+} {
+  const total = PRIORITY_FIELDS.length
+  const answered = PRIORITY_FIELDS.filter((f) => {
+    const v = client?.[f]
+    return v && String(v).trim().length > 3
+  }).length
+  const remaining = total - answered
+  const pct = Math.round((answered / total) * 100)
+  const state: OnboardingState =
+    answered === 0 ? 'fresh' : pct >= 70 ? 'nearly_complete' : 'partial'
+  return { state, answeredCount: answered, remainingCount: remaining, pct }
+}
+
+// Return top N missing-field labels in plain English (not field ids)
+// so the agent can list them conversationally. Falls back to the
+// prettified field name if no label is on the question record.
+function topMissingLabels(missing: Array<{ field: string; question: string }>, n = 5): string[] {
+  return missing.slice(0, n).map((q) => {
+    const f = q.field
+    const pretty = f.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    return pretty
+  })
+}
+
 async function buildOnboardingSystemPrompt(args: {
   sb: any
   clientId: string
   agencyId: string
-  pinVerified?: boolean
-  callerName?: string | null
-}): Promise<{ prompt: string; beginMessage: string; missingCount: number; answeredCount: number }> {
-  const { sb, clientId, agencyId, pinVerified, callerName } = args
+}): Promise<{
+  prompt: string
+  beginMessage: string
+  missingCount: number
+  answeredCount: number
+  state: OnboardingState
+  callerFirstName: string
+  clientName: string
+  agencyName: string
+  missingLabels: string[]
+}> {
+  const { sb, clientId, agencyId } = args
 
   const [{ data: client }, { data: agency }] = await Promise.all([
     sb.from('clients').select('*').eq('id', clientId).maybeSingle(),
@@ -323,60 +370,108 @@ async function buildOnboardingSystemPrompt(args: {
   const clientName = client?.name || 'the business'
 
   const { missing, answered } = computeMissingFields(client)
+  const { state, answeredCount, remainingCount } = computeOnboardingState(client)
 
-  const welcomeStatement = client?.welcome_statement
-    ? `The client already told us: "${String(client.welcome_statement).slice(0, 600)}"`
-    : 'No prior information on file.'
-  const classificationLine = client?.business_classification && typeof client.business_classification === 'object'
-    ? `Business type: ${String(client.business_classification.business_model || '').toUpperCase()} | ${client.business_classification.geographic_scope || ''} | ${client.business_classification.business_type || ''}`
+  const callerFirstName = client?.owner_name
+    ? String(client.owner_name).trim().split(/\s+/)[0] || ''
     : ''
+
+  // Business context block (optional lines — omitted if empty)
+  const welcomeStatement = client?.welcome_statement
+    ? `Background (their own words): "${String(client.welcome_statement).slice(0, 600)}"`
+    : ''
+  const classificationLine = client?.business_classification && typeof client.business_classification === 'object'
+    ? `Classification: ${String(client.business_classification.business_model || '').toUpperCase()} | ${client.business_classification.geographic_scope || ''} | ${client.business_classification.business_type || ''}`
+    : ''
+  const businessContextBlock = [welcomeStatement, classificationLine].filter(Boolean).join('\n') || '(No prior context on file.)'
 
   const answeredBlock = answered.length
     ? answered.map((a) => `- ${a.field}: ${String(a.value).slice(0, 120)}`).join('\n')
-    : 'Nothing answered yet — start from the beginning.'
+    : '(Nothing answered yet — this is a fresh call.)'
 
-  const topMissing = missing.slice(0, 8)
-  const remainingCount = Math.max(0, missing.length - topMissing.length)
+  const topMissing = missing.slice(0, 12)
   const questionsBlock = topMissing.length
     ? topMissing.map((q, i) => `${i + 1}. ${q.question} [field: ${q.field}]`).join('\n')
-    : 'All priority questions are already answered — just confirm anything that sounds outdated and wrap up.'
+    : '(All priority questions already answered — go straight to wrap-up.)'
 
-  const prompt = `You are an onboarding specialist calling on behalf of ${agencyName}. You are warm, professional, and efficient. Your goal is to collect information about ${clientName} to help the agency do their best work.
+  const missingLabels = topMissingLabels(missing, 5)
+
+  // State-aware transition line — baked in with the correct name
+  // conditionals resolved. No Handlebars — plain strings.
+  const namePart = callerFirstName ? `, ${callerFirstName}` : ''
+  const freshTransition = `"Perfect${namePart}! So here's how this works — I'm going to ask you about ${clientName}, and as you answer, everything populates live in your onboarding document. If you've got that link open you can actually watch it happen, which is kind of satisfying. We'll cover about ${remainingCount} things — takes about 10 to 15 minutes. Anything you don't know, just say skip it. Ready? Let's go."`
+  const partialTransition = `"Perfect${namePart}! So we've already got ${answeredCount} things on file for ${clientName} — nice work. Still need ${remainingCount} more. Want me to tell you what's missing, or should we just dive in?"`
+  const nearlyCompleteTransition = `"Perfect${namePart}! Good news — you're almost done. Just ${remainingCount} more things and ${clientName} is all set. This won't take long."`
+
+  const stateTransitionBlock =
+    state === 'fresh' ? freshTransition
+    : state === 'nearly_complete' ? nearlyCompleteTransition
+    : partialTransition
+
+  const partialRundownBlock = state === 'partial' && missingLabels.length > 0
+    ? `\n\nIf the caller asks what's missing (says "tell me" / "what's missing" / "rundown"):\n  "Sure — we still need things like ${missingLabels.join(', ')}, and a few others. Nothing too involved. Ready?"\n  → Then ask the first missing question.\nIf they say "dive in" / "let's go" / "just start" / anything affirmative:\n  "Perfect. Let's pick up where we left off."\n  → Then ask the first missing question.`
+    : ''
+
+  const prompt = `You are Alex, the onboarding specialist for ${agencyName}.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STEP 1 — MANDATORY: PIN VERIFICATION
+WHO YOU ARE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-The VERY FIRST thing you do after greeting the caller is ask them for their 4-digit onboarding PIN. They received it in their onboarding email or on their onboarding page.
+Sharp, warm, genuinely curious about every business you talk to. You've onboarded hundreds of businesses and find something interesting in every single one. Efficient but never rushed. Professional but never stiff. Lightly playful when the moment calls for it — a dry observation, a genuine laugh — but never waste the caller's time or go off topic.
 
-Say: "Before we get started, can you read me the 4-digit PIN on your onboarding page?"
+Your superpower: making people feel like they just had a great conversation with someone who really gets their business — not like they filled out a form.
 
-When the caller says the PIN, call the verify_pin tool immediately with:
-  { "pin": "1234" }
+YOU ARE NOT:
+- Sycophantic — NEVER say "wow", "amazing", "fantastic", "absolutely", "certainly", "great question"
+- Robotic — never read questions like a script, rephrase naturally each time
+- Repetitive — never use the same acknowledgment twice in a row
+- A salesperson — you're here to learn, not pitch
 
-If verify_pin returns valid=true, greet them by name if you have it and start the questions.
-If verify_pin returns valid=false with reason='wrong_pin', say: "Hmm, that PIN doesn't match what I have. Could you read it to me one more time?" and try again. After 3 failed attempts say: "I'm having trouble verifying that PIN. Please double check the 4 digits on your onboarding page and call back. Thanks!" and end the call.
-If verify_pin returns reason='session_expired' or 'already_complete', read the message back to the caller and end the call warmly.
-
-Do NOT ask any onboarding questions until verify_pin has returned valid=true.
+VOICE & TONE:
+- Mirror the caller's energy — if they're fast and direct, match it. If they're thoughtful and slow, slow down.
+- Short answers get brief confirmations. Long answers get "Got it — so primarily X. I have that."
+- Never interrupt unless they've clearly finished
+- One sentence of genuine reaction is allowed when something is interesting. Then move on.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AFTER PIN IS VERIFIED — MANDATORY TRANSITION
+STEP 1 — PIN (the caller ALREADY heard the greeting and was asked for their PIN)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-As soon as verify_pin returns valid=true, say this line EXACTLY before asking any questions:
+The begin_message already asked for the PIN. DO NOT ask for it again. Just wait for the caller to say 4 digits.
 
-"Perfect. Before we dive in, just a heads up — everything you tell me will appear live in your onboarding document. If you have the link open, you can watch your answers populate in real time as we go. Now let's get started."
+When they say the digits, call the verify_pin tool IMMEDIATELY with { "pin": "1234" }.
 
-Then immediately ask the first question from the QUESTIONS TO ASK list below. Do not skip this transition line even if the caller sounds rushed — it takes 8 seconds and sets the whole tone.
+PIN INTERPRETATION — CRITICAL:
+The caller will say the PIN in different ways. ALWAYS interpret as 4 separate digits:
+- "five three seven seven" → pin: "5377"
+- "five thousand three hundred seventy seven" → pin: "5377"
+- "fifty-three seventy-seven" → pin: "5377"
+- If unclear: "Just to confirm — five, three, seven, seven?" then call verify_pin with the confirmed digits.
+
+RESPONSE HANDLING:
+- verify_pin returns valid=true → go to STEP 2 (state-aware transition)
+- valid=false + reason='wrong_pin' → "Hmm, that's not quite matching. Want to try once more?"
+  After 2 failed attempts: "Let's pause here — double-check those 4 digits on your onboarding page and give us a call back. Thanks!" → end call.
+- reason='session_expired' or 'already_complete' → read the returned message back to the caller warmly, then end the call.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — STATE-AWARE TRANSITION (say EXACTLY ONCE, NEVER repeat the welcome intro)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current onboarding state: ${state} (${answeredCount} of ${PRIORITY_FIELDS.length} priority fields answered)
+
+Immediately after verify_pin returns valid=true, say this line EXACTLY ONCE:
+
+${stateTransitionBlock}${partialRundownBlock}
+
+After the transition, immediately ask the first unanswered question. DO NOT repeat the welcome intro. DO NOT say the begin_message again. DO NOT re-explain how the live document works.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 BUSINESS CONTEXT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-${welcomeStatement}
-${classificationLine}
-${pinVerified && callerName ? `You are speaking with ${callerName}.` : ''}
+${businessContextBlock}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALREADY ANSWERED (do NOT ask these again)
@@ -385,87 +480,134 @@ ALREADY ANSWERED (do NOT ask these again)
 ${answeredBlock}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-QUESTIONS TO ASK (in order, ask only these)
+QUESTIONS TO ASK (in order, skip any already answered above)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${questionsBlock}
-${remainingCount > 0 ? `\n…and ${remainingCount} more questions if time allows.` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CONVERSATION STYLE
+QUESTION DELIVERY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-- Be conversational, not robotic. Don't read questions like a survey.
-- After each answer, ACKNOWLEDGE briefly before moving on. Rotate through these acknowledgments — never use the same one twice in a row:
-  "Perfect, thank you."
-  "Great, got it."
-  "Love that, thank you."
-  "That's really helpful."
-  "Makes sense, thanks."
-  "Excellent, noted."
-  "Got it, that's useful."
-  "Awesome, thanks for sharing that."
-- Vary your sentence structure. Don't start every response with "Great" or every question with "And".
-- If they say they don't know something, say "No problem, someone else from your team can provide that later" and call save_flag with reason='needs_followup'.
-- Save each answer immediately using the save_answer tool after your acknowledgment.
-- Confirm tricky answers by repeating them back briefly: "Got it, so your primary service is X — is that right?"
+- Rephrase every question naturally — never read it verbatim
+- ONE question per turn. Never stack multiple questions.
+- After a LONG answer: "Got it — so [extract the key point]. Moving on."
+- After a SHORT answer: "[Brief confirm]. And..."
+- Save each answer immediately via save_answer AFTER your acknowledgment.
+
+ACKNOWLEDGMENT ROTATION (NEVER repeat consecutively):
+"Perfect, thank you." / "Got it, that's really helpful." / "Excellent, noted." / "Great, I have that." / "Wonderful, thank you." / "Good to know." / "Understood." / "Appreciate that." / "That's great context." / "Noted."
+
+GENUINE REACTIONS (use sparingly, 1 sentence max, then next question):
+- Something surprising: "Oh interesting — [one observation]."
+- Something common but they seem unsure: "That's actually more common than you'd think."
+- Something ambitious: "Love that. Okay, next one —"
+- Empty budget: "Ha, zero budget — well that's what we're here to fix. Next..."
+
+NATURAL TRANSITIONS (rotate):
+"And..." / "Next..." / "Moving on —" / "Okay, and..." / "Good. Now..." / "That helps. What about..." / "Got it. And..."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VOICE COMMAND HANDLING
+SPECIAL SITUATIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Listen for these caller commands and handle them naturally:
+THEY DON'T KNOW:
+"No problem at all — we'll flag that one. [Next question]"
+Call save_flag({ field, reason: 'needs_followup' }). Never dwell.
 
-"skip this" / "next" / "move on"
-  → Call save_flag with reason='skipped'. Say: "No problem, we can come back to that. Moving on…"
+CORRECTION ("wait" / "actually" / "that's wrong" / "update that" / "change that"):
+"Of course — go ahead." [pause and listen]
+Confirm: "Got it, so [corrected answer] — updated."
+Call save_answer with the corrected value.
+CRITICAL: After EVERY correction, CONTINUE to the next unanswered question.
+NEVER end the call after a correction. Corrections are normal. Keep going.
 
-"I don't know" / "not sure" / "I'll have to check"
-  → Call save_flag with reason='needs_followup'. Say: "That's totally fine. I'll flag that one — you or a teammate can fill it in later. Next question…"
+TANGENT (they give a long story):
+Let them finish. Then: "That's really useful context — I've noted that. Now, [next question]"
 
-"let me correct that" / "wait that's wrong" / "actually"
-  → Re-ask the previous question. Say: "Of course! Let me ask that again."
-  → When they answer again, call save_answer with the corrected value for the same field. The system keeps the latest.
+RUSHED CALLER:
+Pick up pace. Shorter questions. "Quick one —" before each.
 
-"someone else will answer this" / "a colleague will handle this"
-  → Call save_flag with reason='colleague_will_answer'. Say: "Got it, I'll leave that for a teammate. They can call this same number with the same PIN. Moving on…"
+NERVOUS OR UNCERTAIN CALLER:
+Slow down. Warmer tone. "There are no wrong answers — just tell me how you see it."
 
-"how much is left?" / "how many questions?" / "are we almost done?"
-  → Tell them how many questions remain out of the total.
+THEY ASK IF YOU'RE AI:
+"Yep, I'm an AI — but everything goes to a real team at ${agencyName} who reviews it personally. Think of me as the world's most patient intake form." [light tone, then continue]
 
-"what have we covered?" / "read back my answers"
-  → Briefly summarize the fields captured so far.
+THEY ASK WHAT THIS IS FOR:
+"This all goes into your onboarding document — it helps the ${agencyName} team understand your business before day one so they hit the ground running instead of spending the first month asking basic questions."
 
-"I'm done for now" / "I need to go"
-  → Wrap up warmly. Say: "Perfect! Your onboarding link stays active — you or anyone on your team can call this same number or visit the link to add more. Our team will review everything and be in touch. Have a great day!"
+THEY ASK HOW MUCH IS LEFT:
+"We've covered ${answeredCount} — just ${remainingCount} more to go."
+
+THEY WANT A SUMMARY:
+Read back the top 5 answered fields naturally. "So far I have: you're in [city], your primary service is [X], ideal customer is [Y]..." etc.
+
+THEY SAY "I'M DONE" / "GOODBYE" / "THAT'S ALL":
+Go immediately to WRAP UP. Do not ask more questions.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WRAP UP
+WRAP UP (always give the full wrap-up, never hang up abruptly)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-When you've covered all questions: "That's everything I need for now. I'll pass this along to the team. Thanks so much for your time — have a great day!"
+When all priority questions are answered OR the caller says they're done, say:
+
+"That's everything I need${namePart} — thank you so much for your time. I've captured everything we need for ${clientName}. The team at ${agencyName} will review it and be in touch soon.
+
+One last thing — your onboarding link stays active. If you think of anything to add, or if someone else on your team wants to fill in the gaps, they can call this same number anytime or just visit the link.
+
+Have a great rest of your day!"
+
+Call save_answer for any pending final answers BEFORE ending the call.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ABSOLUTE RULES (never break)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Call save_answer immediately after EVERY confirmed answer.
+2. Call verify_pin before asking ANY questions — no exceptions.
+3. NEVER end the call after a correction — always continue to the next question.
+4. NEVER ask for the PIN a second time — the caller already knows to provide it.
+5. NEVER repeat the welcome introduction after PIN verification.
+6. NEVER stack multiple questions in one turn.
+7. NEVER use the same acknowledgment twice in a row.
+8. NEVER say "wow", "amazing", "fantastic", "absolutely", "certainly", or "great question".
+9. ALWAYS give the full wrap-up before ending — never hang up abruptly.
+10. ALWAYS interpret PIN as 4 individual digits regardless of how it's spoken.
+11. NEVER go off topic — if they try to discuss something unrelated, acknowledge briefly and redirect: "Ha, good point — let me stay on track though. [Next question]"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TOOLS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-verify_pin(pin: string) — MUST be called first, before any questions.
-save_answer(field: string, answer: string, confidence: number) — called after every valid answer.
-save_flag(field: string, reason: 'skipped'|'needs_followup'|'colleague_will_answer') — called when the caller skips or defers a question.
+verify_pin(pin: string) — MUST be called first, before any questions. PIN is always 4 digits.
+save_answer(field: string, answer: string, confidence: number) — called after every confirmed answer. Confidence 0-100.
+save_flag(field: string, reason: 'skipped'|'needs_followup'|'colleague_will_answer') — called when the caller skips or defers.
 
-NEVER ask for passwords, payment info, credit cards, SSNs, or sensitive credentials. If the caller offers them, politely redirect to business questions.`
+NEVER ask for passwords, payment info, credit cards, SSNs, or sensitive credentials. If the caller offers them, politely redirect.`
 
-  // New verbose intro — explains the live-doc sync + directs the
-  // caller to the onboarding link before the PIN prompt. Same text
-  // for every call variant; the post-PIN transition line (injected
-  // into the system prompt above) handles the "welcome back"
-  // personalization after verify_pin returns valid=true.
-  const beginMessage = `Hi! Welcome to ${agencyName}'s onboarding. My name is Alex and I'll be collecting some information about your business today — this usually takes about 10 to 15 minutes. Here's how it works: I'll ask you a series of questions, and as you answer, your responses will automatically appear in your onboarding document in real time. You can follow along at any time by visiting the link that was sent to you — you'll actually see the answers populate as we talk. If you don't know the answer to something, just say 'skip it' and we'll move on — someone else on your team can fill that in later by calling this same number or visiting the link. Ready to get started? Go ahead and tell me your 4-digit PIN and we'll begin.`
+  // State-aware begin message — what the agent actually says first.
+  // Baked with agency name, client name, first name, counts already
+  // resolved so Retell just substitutes {{begin_message}} → this text.
+  let beginMessage: string
+  if (state === 'fresh') {
+    beginMessage = `Hi! Welcome to ${agencyName}'s onboarding — you've reached the right place. My name is Alex, and I'll be collecting some information about your business today. Here's the cool part — as you answer each question, everything populates live in your onboarding document in real time. So if you've got that link open, you can actually watch it happen as we talk. We'll cover about ${remainingCount} things today, takes around 10 to 15 minutes. If there's anything you're not sure about, just say skip it — someone else can always fill that in later. Sound good? Go ahead and give me your 4-digit PIN and we'll get started.`
+  } else if (state === 'nearly_complete') {
+    beginMessage = `Hi${namePart}! You're almost at the finish line — welcome back to ${agencyName}'s onboarding. My name is Alex. We've got most of what we need, just ${remainingCount} more things and you're done. Give me your PIN and we'll knock this out quick.`
+  } else {
+    beginMessage = `Hi${namePart}! Welcome back to ${agencyName}'s onboarding line — my name is Alex. Looks like you've already made some great progress — we've got ${answeredCount} things on file. We're not done yet though — still need about ${remainingCount} more to round things out. Go ahead and give me your PIN and we'll pick up right where you left off.`
+  }
 
   return {
     prompt,
     beginMessage,
     missingCount: missing.length,
-    answeredCount: answered.length,
+    answeredCount,
+    state,
+    callerFirstName,
+    clientName,
+    agencyName,
+    missingLabels,
   }
 }
 
@@ -502,65 +644,82 @@ async function buildInboundDynamicVariables(args: {
 
   const resolved = await resolveCallContext({ sb, toNumber })
 
-  let agencyDisplayName = 'our onboarding team'
-  let clientDisplayName = 'your business'
-  let firstNameDisplay = 'there'
-  let missingCount = 0
-  let systemPromptText = ''
-  let beginMessageText = `Hi! Before we get started, could you read me the 4-digit PIN from your onboarding page?`
-  let alreadyAnsweredText = ''
-  let questionsToAskText = ''
-
-  if (resolved.agency_id && resolved.client_id) {
-    const [agencyRes, clientRes] = await Promise.all([
-      sb.from('agencies').select('name, brand_name').eq('id', resolved.agency_id).maybeSingle(),
-      sb.from('clients').select('*').eq('id', resolved.client_id).maybeSingle(),
-    ])
-    const agency = agencyRes.data as any
-    const client = clientRes.data as any
-
-    if (agency) {
-      agencyDisplayName = agency.brand_name || agency.name || agencyDisplayName
-    }
-    if (client) {
-      clientDisplayName = client.name || clientDisplayName
-      if (client.owner_name) {
-        firstNameDisplay = String(client.owner_name).split(/\s+/)[0] || firstNameDisplay
-      }
-      const { missing, answered } = computeMissingFields(client)
-      missingCount = missing.length
-
-      alreadyAnsweredText = answered.length
-        ? answered.map((a) => `- ${a.field}: ${String(a.value).slice(0, 120)}`).join('\n')
-        : 'Nothing answered yet — start from the beginning.'
-
-      const topMissing = missing.slice(0, 8)
-      questionsToAskText = topMissing.length
-        ? topMissing.map((q, i) => `${i + 1}. ${q.question} [field: ${q.field}]`).join('\n')
-        : 'All priority questions are already answered — just confirm anything that sounds outdated and wrap up.'
-
-      // Build the full system prompt via the existing builder so
-      // both the notification webhook and the pre-call webhook
-      // return the exact same prompt string.
-      const built = await buildOnboardingSystemPrompt({
-        sb,
-        clientId: resolved.client_id,
-        agencyId: resolved.agency_id,
-      })
-      systemPromptText = built.prompt
-      beginMessageText = built.beginMessage
+  // Unresolved orphan call — return generic fallback variables so
+  // Retell can still substitute {{begin_message}} and {{system_prompt}}
+  // without crashing the template engine.
+  if (!resolved.agency_id || !resolved.client_id) {
+    return {
+      variables: {
+        system_prompt: `You are Alex, an onboarding specialist. The caller dialed a number that isn't currently assigned to an onboarding session. Apologize warmly, tell them to check their onboarding page or email for the correct number and PIN, and end the call politely. Do not call any tools.`,
+        begin_message: `Hi! Thanks for calling. Unfortunately this line isn't linked to an active onboarding session right now. Please check your onboarding page for the correct number and give us a call back. Thanks!`,
+        agency_name: 'our onboarding team',
+        client_name: 'your business',
+        first_name: '',
+        caller_name: '',
+        already_answered: '',
+        questions_to_ask: '',
+        missing_count: '0',
+        fields_captured_count: '0',
+        fields_remaining_count: '0',
+        onboarding_state: 'orphan',
+        resolved_source: resolved.source,
+      },
+      agency_id: null,
+      client_id: null,
     }
   }
 
+  // Happy path — build the full per-client prompt via the main
+  // builder, which already computes state, transition text, counts,
+  // and the name-aware begin_message.
+  const built = await buildOnboardingSystemPrompt({
+    sb,
+    clientId: resolved.client_id,
+    agencyId: resolved.agency_id,
+  })
+
+  // Reload a small slice of state for the already_answered /
+  // questions_to_ask blocks so they're accessible as standalone
+  // dynamic variables too (useful if any part of the template
+  // references them directly instead of going through system_prompt).
+  const { data: client } = await sb
+    .from('clients').select('*').eq('id', resolved.client_id).maybeSingle()
+  const { missing, answered } = computeMissingFields(client as any)
+
+  const alreadyAnsweredText = answered.length
+    ? answered.map((a) => `- ${a.field}: ${String(a.value).slice(0, 120)}`).join('\n')
+    : 'Nothing answered yet — start from the beginning.'
+  const topMissing = missing.slice(0, 12)
+  const questionsToAskText = topMissing.length
+    ? topMissing.map((q, i) => `${i + 1}. ${q.question} [field: ${q.field}]`).join('\n')
+    : 'All priority questions are already answered — just confirm anything that sounds outdated and wrap up.'
+
   const variables: Record<string, string> = {
-    system_prompt: systemPromptText || `You are an onboarding specialist for ${agencyDisplayName}. Ask the caller for their 4-digit PIN and call the verify_pin tool. If verification fails, politely end the call.`,
-    begin_message: beginMessageText,
-    agency_name: agencyDisplayName,
-    client_name: clientDisplayName,
-    first_name: firstNameDisplay,
+    // Core templates that Retell substitutes
+    system_prompt: built.prompt,
+    begin_message: built.beginMessage,
+
+    // Per-call identity — referenced in transition lines and the
+    // post-PIN wrap-up inside the system prompt
+    agency_name: built.agencyName,
+    client_name: built.clientName,
+    first_name: built.callerFirstName || '',
+    caller_name: built.callerFirstName || '',
+
+    // State metadata — exposed so the Retell template could use
+    // them directly if the dashboard is edited to reference
+    // {{fields_captured_count}} etc.
+    onboarding_state: built.state,
+    fields_captured_count: String(built.answeredCount),
+    fields_remaining_count: String(built.missingCount),
+    missing_count: String(built.missingCount),
+    missing_labels: built.missingLabels.join(', '),
+
+    // Raw blocks for any template that slots them separately
     already_answered: alreadyAnsweredText,
     questions_to_ask: questionsToAskText,
-    missing_count: String(missingCount),
+
+    // Debug breadcrumb
     resolved_source: resolved.source,
   }
 
@@ -1149,21 +1308,25 @@ export async function POST(req: NextRequest) {
 
     // ── call_ended ──
     if (event === 'call_ended' && callId && clientId && agencyId) {
-      const { data: recipient } = await sb
+      const { data: recipientRaw } = await sb
         .from('koto_onboarding_recipients')
-        .select('id, name, fields_captured, fields_completed')
+        .select('id, name, answers, fields_captured, fields_completed')
         .eq('call_id', callId)
         .maybeSingle()
+      const recipient = recipientRaw as any
 
       const fieldsCaptured = recipient?.fields_completed ?? (
         recipient?.fields_captured ? Object.keys(recipient.fields_captured).length : 0
       )
 
-      const { data: client } = await sb.from('clients').select('*').eq('id', clientId).maybeSingle()
+      const { data: clientRaw } = await sb.from('clients').select('*').eq('id', clientId).maybeSingle()
+      const client = clientRaw as any
       const { missing } = computeMissingFields(client)
       const missingPriority1 = missing.filter((m) => m.priority === 1)
       const clientName = client?.name || 'the client'
       const callerName = recipient?.name || 'Someone'
+      const { data: agencyRaw } = await sb.from('agencies').select('name, brand_name').eq('id', agencyId).maybeSingle()
+      const agencyName = (agencyRaw as any)?.brand_name || (agencyRaw as any)?.name || 'Your Agency'
 
       if (recipient) {
         await sb
@@ -1176,27 +1339,176 @@ export async function POST(req: NextRequest) {
           .eq('id', recipient.id)
       }
 
+      // ── Post-call intelligence ──
+      // Fire Claude Haiku on the call transcript to extract a
+      // summary, sentiment, engagement score, upsell signals, and
+      // follow-up recommendation. Non-fatal: any failure is
+      // swallowed so the webhook still returns 200 and the normal
+      // completion notification still lands.
+      const transcript: string = typeof call?.transcript === 'string' ? call.transcript : ''
+      const fieldsList: string[] = recipient?.fields_captured
+        ? Object.keys(recipient.fields_captured)
+        : []
+      let analysis: any = null
+      if (transcript && transcript.length > 20 && process.env.ANTHROPIC_API_KEY) {
+        try {
+          const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': process.env.ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 600,
+              temperature: 0.2,
+              system: 'You are analyzing a business onboarding call. Extract insights in JSON only — no preamble, no markdown fences.',
+              messages: [
+                {
+                  role: 'user',
+                  content: `Client: ${clientName}
+Agency: ${agencyName}
+Fields captured this call: ${fieldsList.join(', ') || '(none)'}
+
+Transcript:
+${transcript.slice(0, 8000)}
+
+Return JSON with this exact shape:
+{
+  "call_summary": "one sentence summary of what was discussed",
+  "caller_sentiment": "engaged" | "neutral" | "rushed" | "hesitant",
+  "caller_engagement_score": 0-100,
+  "notable_insights": ["insight 1", "insight 2"],
+  "upsell_signals": ["signal 1"] or [],
+  "follow_up_recommended": true/false,
+  "follow_up_reason": "reason if true" or null,
+  "flags": ["anything unusual or concerning"] or []
+}`,
+                },
+              ],
+            }),
+            signal: AbortSignal.timeout(15000),
+          })
+          if (anthropicRes.ok) {
+            const d = await anthropicRes.json()
+            const text = (d.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('').trim()
+            const cleaned = text.replace(/```json|```/g, '').trim()
+            try { analysis = JSON.parse(cleaned) } catch { analysis = null }
+          }
+        } catch { /* non-fatal */ }
+      }
+
+      // Persist the analysis under _call_analysis inside the
+      // recipient's answers jsonb so the ClientDetailPage can
+      // render it without a schema change.
+      if (analysis && recipient?.id) {
+        try {
+          const nextAnswers = {
+            ...(recipient.answers || {}),
+            _call_analysis: {
+              ...analysis,
+              call_id: callId,
+              analyzed_at: new Date().toISOString(),
+              fields_captured_this_call: fieldsList,
+            },
+          }
+          await sb
+            .from('koto_onboarding_recipients')
+            .update({ answers: nextAnswers })
+            .eq('id', recipient.id)
+        } catch { /* non-fatal */ }
+      }
+
+      // Primary completion notification — enriched with analysis
+      // if we got one back. Falls back to the old shape otherwise.
+      const engagementPct = typeof analysis?.caller_engagement_score === 'number'
+        ? Math.round(analysis.caller_engagement_score)
+        : null
+      const summaryLine = analysis?.call_summary || null
+
       if (missingPriority1.length === 0) {
+        const body = analysis
+          ? `${callerName} · ${fieldsCaptured} fields captured${engagementPct != null ? ` · Engagement: ${engagementPct}%` : ''}${summaryLine ? ` · ${summaryLine}` : ''}`
+          : `${callerName} completed onboarding for ${clientName} — ${fieldsCaptured} fields captured`
         await createNotification(
           sb, agencyId,
           'onboarding_call_complete',
-          '✅ Voice onboarding complete',
-          `${callerName} completed onboarding for ${clientName} — ${fieldsCaptured} fields captured`,
+          `📞 Voice onboarding call complete — ${clientName}`,
+          body,
           `/clients/${clientId}`, '📞',
-          { client_id: clientId, fields_captured: fieldsCaptured, call_id: callId },
+          {
+            client_id: clientId,
+            fields_captured: fieldsCaptured,
+            call_id: callId,
+            ...(analysis && {
+              call_summary: analysis.call_summary,
+              caller_sentiment: analysis.caller_sentiment,
+              engagement_score: analysis.caller_engagement_score,
+              notable_insights: analysis.notable_insights,
+              upsell_signals: analysis.upsell_signals,
+            }),
+          },
         )
       } else {
+        const body = analysis
+          ? `${callerName} · ${fieldsCaptured} fields captured · ${missingPriority1.length} priority missing${engagementPct != null ? ` · Engagement: ${engagementPct}%` : ''}${summaryLine ? ` · ${summaryLine}` : ''}`
+          : `${callerName} covered ${fieldsCaptured} fields for ${clientName}. ${missingPriority1.length} priority field${missingPriority1.length === 1 ? '' : 's'} still missing.`
         await createNotification(
           sb, agencyId,
           'onboarding_call_partial',
-          '📞 Onboarding call ended — action needed',
-          `${callerName} covered ${fieldsCaptured} fields for ${clientName}. ${missingPriority1.length} priority field${missingPriority1.length === 1 ? '' : 's'} still missing.`,
+          `📞 Onboarding call ended — action needed (${clientName})`,
+          body,
           `/clients/${clientId}`, '⚠️',
-          { client_id: clientId, fields_captured: fieldsCaptured, missing_fields: missingPriority1.map((f) => f.field), call_id: callId },
+          {
+            client_id: clientId,
+            fields_captured: fieldsCaptured,
+            missing_fields: missingPriority1.map((f) => f.field),
+            call_id: callId,
+            ...(analysis && {
+              call_summary: analysis.call_summary,
+              caller_sentiment: analysis.caller_sentiment,
+              engagement_score: analysis.caller_engagement_score,
+              notable_insights: analysis.notable_insights,
+              upsell_signals: analysis.upsell_signals,
+            }),
+          },
         )
       }
 
-      return NextResponse.json({ received: true, fields_captured: fieldsCaptured })
+      // Separate upsell notification — only if the analysis flagged
+      // real signals. Keeps upsells surfaced even if the agency
+      // dismisses the main completion toast.
+      if (Array.isArray(analysis?.upsell_signals) && analysis.upsell_signals.length > 0) {
+        for (const signal of analysis.upsell_signals.slice(0, 3)) {
+          await createNotification(
+            sb, agencyId,
+            'onboarding_call_upsell',
+            `💡 Upsell signal from ${clientName}`,
+            String(signal),
+            `/clients/${clientId}`, '💡',
+            { client_id: clientId, call_id: callId, signal },
+          )
+        }
+      }
+
+      // Separate follow-up notification if Haiku flagged it
+      if (analysis?.follow_up_recommended && analysis?.follow_up_reason) {
+        await createNotification(
+          sb, agencyId,
+          'onboarding_call_followup',
+          `⚠️ Follow-up needed for ${clientName}`,
+          String(analysis.follow_up_reason),
+          `/clients/${clientId}`, '⚠️',
+          { client_id: clientId, call_id: callId, reason: analysis.follow_up_reason },
+        )
+      }
+
+      return NextResponse.json({
+        received: true,
+        fields_captured: fieldsCaptured,
+        analysis_present: !!analysis,
+      })
     }
 
     return NextResponse.json({ received: true, handled: false })
