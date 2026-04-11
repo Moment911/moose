@@ -12,8 +12,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
-import { DollarSign, Zap, TrendingUp, Clock, RefreshCw, Upload, CreditCard, ExternalLink, Edit3 } from 'lucide-react'
+import { DollarSign, Zap, TrendingUp, Clock, RefreshCw, Upload, CreditCard, ExternalLink, Edit3, Radio } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
+import { formatDistanceToNow } from 'date-fns'
 
 const FEATURE_LABELS = {
   voice_onboarding_analysis: '🎙️ Voice Onboarding Analysis',
@@ -111,7 +113,69 @@ export default function TokenUsagePage() {
   const [apiKeyLabels, setApiKeyLabels] = useState(() => loadApiKeyLabels())
   const fileInputRef = useRef(null)
 
+  // ── Realtime state ──
+  const [isConnected, setIsConnected] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState(null)
+  const [flashing, setFlashing] = useState(false)
+  const [liveIncrement, setLiveIncrement] = useState({ cost: 0, calls: 0, tokens: 0 })
+
   useEffect(() => { load() }, [days, providerFilter])
+
+  // ── Supabase realtime — koto_token_usage + koto_platform_costs ──
+  // Replaces the old polling approach. Every new row streams in and
+  // updates the running totals + flashes the live indicator.
+  useEffect(() => {
+    const tokenChannel = supabase
+      .channel('token-usage-live')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'koto_token_usage',
+      }, (payload) => {
+        const row = payload.new
+        const cost = Number(row.total_cost || 0)
+        const tokens = Number(row.total_tokens || row.input_tokens + row.output_tokens || 0)
+        setLiveIncrement((prev) => ({
+          cost: prev.cost + cost,
+          calls: prev.calls + 1,
+          tokens: prev.tokens + tokens,
+        }))
+        setLastUpdated(new Date())
+        setFlashing(true)
+        setTimeout(() => setFlashing(false), 2000)
+        // Toast notification
+        const label = FEATURE_LABELS[row.feature] || row.feature
+        const modelShort = MODEL_LABELS[row.model] || row.model
+        toast(`💡 ${label} · ${modelShort} · $${cost.toFixed(4)} · ${tokens.toLocaleString()} tokens`, {
+          duration: 3000,
+          style: { fontSize: 12 },
+        })
+      })
+      .subscribe((status) => {
+        setIsConnected(status === 'SUBSCRIBED')
+      })
+
+    const platformChannel = supabase
+      .channel('platform-costs-live')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'koto_platform_costs',
+      }, (payload) => {
+        const row = payload.new
+        setLastUpdated(new Date())
+        toast(`💳 Platform cost · ${row.cost_type} · $${Number(row.amount).toFixed(2)}`, {
+          duration: 3000,
+          style: { fontSize: 12 },
+        })
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(tokenChannel)
+      supabase.removeChannel(platformChannel)
+    }
+  }, [])
 
   async function load() {
     setLoading(true)
@@ -187,9 +251,38 @@ export default function TokenUsagePage() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 900, color: '#111', margin: 0 }}>Token Usage</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h1 style={{ fontSize: 24, fontWeight: 900, color: '#111', margin: 0 }}>Token Usage</h1>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '3px 10px', borderRadius: 999,
+                background: isConnected ? '#dcfce7' : '#fee2e2',
+                border: `1px solid ${isConnected ? '#16a34a40' : '#dc262640'}`,
+                transition: 'all .3s',
+                transform: flashing ? 'scale(1.05)' : 'scale(1)',
+              }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: isConnected ? '#16a34a' : '#dc2626',
+                  animation: isConnected ? 'pulse 2s infinite' : 'none',
+                }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: isConnected ? '#16a34a' : '#dc2626' }}>
+                  {isConnected ? 'LIVE' : 'DISCONNECTED'}
+                </span>
+              </div>
+            </div>
             <p style={{ fontSize: 14, color: '#6b7280', marginTop: 4 }}>
               Multi-provider AI cost breakdown — Anthropic, OpenAI, Google, Retell
+              {lastUpdated && (
+                <span style={{ marginLeft: 10, color: '#9ca3af', fontSize: 12 }}>
+                  · Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+                </span>
+              )}
+              {liveIncrement.calls > 0 && (
+                <span style={{ marginLeft: 10, color: '#16a34a', fontSize: 12, fontWeight: 700 }}>
+                  · +{liveIncrement.calls} live {liveIncrement.calls === 1 ? 'call' : 'calls'} · +${liveIncrement.cost.toFixed(4)}
+                </span>
+              )}
             </p>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -568,6 +661,12 @@ export default function TokenUsagePage() {
           </div>
         </div>
       )}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1) }
+          50% { opacity: 0.55; transform: scale(0.85) }
+        }
+      `}</style>
     </div>
   )
 }
