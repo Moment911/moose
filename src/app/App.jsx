@@ -136,6 +136,7 @@ import FileReviewPage from '../views/FileReviewPage'
 import ProofListPage from '../views/ProofListPage'
 import TokenUsagePage from '../views/TokenUsagePage'
 import CogReportPage from '../views/CogReportPage'
+import RealTimeCostMeter from '../components/RealTimeCostMeter'
 import QAIntelligencePage from '../views/QAIntelligencePage'
 import IndustryAgentPage from '../views/IndustryAgentPage'
 import ClientIntelligencePage from '../views/ClientIntelligencePage'
@@ -216,6 +217,7 @@ export default function App() {
         <Toaster position="top-right" />
         <CommandPalette />
         <OnboardingWizard />
+        <RealTimeCostMeter />
         <Routes>
           {/* ── Public routes (no shell) ── */}
           <Route path="/" element={<HomeSplitter />} />
