@@ -651,6 +651,63 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // ── get_budgets ───────────────────────────────────────
+    if (action === 'get_budgets') {
+      const { agency_id } = body
+      let q = sb().from('koto_category_budgets').select('*').order('category')
+      if (agency_id) q = q.eq('agency_id', agency_id)
+      else q = q.is('agency_id', null)
+      const { data, error } = await q
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ budgets: data || [] })
+    }
+
+    // ── set_budget ────────────────────────────────────────
+    // Upsert per-category monthly budget. category = ai_llms |
+    // voice_phone | infrastructure | data_search | business_tools |
+    // other | 'total'. alert_threshold_pct defaults to 80.
+    if (action === 'set_budget') {
+      const { agency_id, category, monthly_budget, alert_threshold_pct } = body
+      if (!category || monthly_budget === undefined) {
+        return NextResponse.json({ error: 'category and monthly_budget required' }, { status: 400 })
+      }
+      // Upsert by (agency_id, category)
+      const sbClient = sb()
+      const { data: existing } = await sbClient
+        .from('koto_category_budgets')
+        .select('id')
+        .eq('category', category)
+        .is('agency_id', agency_id || null)
+        .maybeSingle()
+      if (existing?.id) {
+        const { data, error } = await sbClient.from('koto_category_budgets').update({
+          monthly_budget: Number(monthly_budget),
+          alert_threshold_pct: alert_threshold_pct || 80,
+          updated_at: new Date().toISOString(),
+        }).eq('id', existing.id).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ budget: data })
+      } else {
+        const { data, error } = await sbClient.from('koto_category_budgets').insert({
+          agency_id: agency_id || null,
+          category,
+          monthly_budget: Number(monthly_budget),
+          alert_threshold_pct: alert_threshold_pct || 80,
+        }).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ budget: data })
+      }
+    }
+
+    // ── delete_budget ─────────────────────────────────────
+    if (action === 'delete_budget') {
+      const { id } = body
+      if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+      const { error } = await sb().from('koto_category_budgets').delete().eq('id', id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+
     // ── sync_openai ───────────────────────────────────────
     // Pulls daily usage from OpenAI for the last N days and
     // writes one row per (day × model) into koto_token_usage

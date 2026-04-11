@@ -83,8 +83,39 @@ export default function CogReportPage() {
   const [syncing, setSyncing] = useState(false)
   const [platformList, setPlatformList] = useState([])
   const [showAdd, setShowAdd] = useState(false)
+  const [budgets, setBudgets] = useState([])
+  const [editingBudget, setEditingBudget] = useState(null) // { category, monthly_budget }
 
-  useEffect(() => { load() }, [days])
+  useEffect(() => { load(); loadBudgets() }, [days])
+
+  async function loadBudgets() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_budgets' }),
+      })
+      const d = await res.json()
+      setBudgets(d.budgets || [])
+    } catch {}
+  }
+
+  async function saveBudget(category, amount) {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'set_budget', category, monthly_budget: Number(amount) }),
+      })
+      const d = await res.json()
+      if (!res.ok) toast.error(d.error || 'Save failed')
+      else {
+        toast.success('Budget saved')
+        await loadBudgets()
+      }
+    } catch (e) { toast.error(e.message) }
+    setEditingBudget(null)
+  }
 
   async function load() {
     setLoading(true)
@@ -264,6 +295,66 @@ export default function CogReportPage() {
                     </div>
                   )
                 })}
+            </div>
+
+            {/* Budget manager */}
+            <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 4 }}>Monthly Budget</div>
+              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>Set a spending ceiling per category — get a red banner when you hit the alert threshold</div>
+              {Object.entries(byCategory).map(([key, cat]) => {
+                const budget = budgets.find((b) => b.category === key)
+                // Normalize window spend to a monthly-equivalent burn rate so the
+                // progress bar is meaningful even when days !== 30.
+                const monthlyBurn = days > 0 ? (cat.total / days) * 30 : cat.total
+                const pct = budget ? Math.round((monthlyBurn / Number(budget.monthly_budget)) * 100) : 0
+                const alertPct = budget?.alert_threshold_pct || 80
+                const over = pct >= 100
+                const warn = pct >= alertPct && !over
+                const barColor = over ? '#dc2626' : warn ? '#f59e0b' : cat.color
+                const Icon = CATEGORY_ICONS[key] || DollarSign
+                return (
+                  <div key={key} style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Icon size={13} color={cat.color} />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{cat.label}</span>
+                        {over && <span style={{ padding: '1px 7px', borderRadius: 10, background: '#fef2f2', color: '#dc2626', fontSize: 10, fontWeight: 800 }}>OVER BUDGET</span>}
+                        {warn && <span style={{ padding: '1px 7px', borderRadius: 10, background: '#fffbeb', color: '#f59e0b', fontSize: 10, fontWeight: 800 }}>{pct}%</span>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                        <span style={{ color: '#374151', fontWeight: 700 }}>{fmt$(monthlyBurn)}</span>
+                        <span style={{ color: '#9ca3af' }}>/</span>
+                        {editingBudget?.category === key ? (
+                          <>
+                            <input
+                              type="number"
+                              value={editingBudget.monthly_budget}
+                              onChange={(e) => setEditingBudget({ ...editingBudget, monthly_budget: e.target.value })}
+                              onKeyDown={(e) => e.key === 'Enter' && saveBudget(key, editingBudget.monthly_budget)}
+                              autoFocus
+                              style={{ width: 80, padding: '3px 8px', borderRadius: 6, border: '1.5px solid #E6007E', fontSize: 12 }}
+                            />
+                            <button onClick={() => saveBudget(key, editingBudget.monthly_budget)} style={{ padding: '3px 10px', borderRadius: 6, border: 'none', background: '#E6007E', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                          </>
+                        ) : (
+                          <button onClick={() => setEditingBudget({ category: key, monthly_budget: budget?.monthly_budget || '' })}
+                            style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: budget ? '#111' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                            {budget ? fmt$(Number(budget.monthly_budget)) : 'Set budget'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {budget && (
+                      <div style={{ height: 6, background: '#f3f4f6', borderRadius: 10, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${Math.min(100, pct)}%`, background: barColor, borderRadius: 10, transition: 'width .3s' }} />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 8 }}>
+                Spend shown is window-normalized to a 30-day burn rate so it's comparable to the monthly budget regardless of the window you picked.
+              </div>
             </div>
 
             {/* Service cards grid */}
