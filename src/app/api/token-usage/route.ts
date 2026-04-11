@@ -651,6 +651,100 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // ── sync_openai ───────────────────────────────────────
+    // Pulls daily usage from OpenAI for the last N days and
+    // writes one row per (day × model) into koto_token_usage
+    // with provider='openai'. Only covers the last 90 days —
+    // OpenAI's usage endpoint doesn't go further back.
+    //
+    // Requires OPENAI_API_KEY. If unset, returns { available: false }.
+    // Idempotent via session_id = openai_{date}_{snapshot_id}.
+    if (action === 'sync_openai') {
+      const apiKey = process.env.OPENAI_API_KEY
+      if (!apiKey) {
+        return NextResponse.json({ available: false, error: 'OPENAI_API_KEY not set — add it in Vercel env vars' })
+      }
+      const { days = 30 } = body
+      const targetDays: string[] = []
+      for (let i = 0; i < Math.min(days, 90); i++) {
+        const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10)
+        targetDays.push(d)
+      }
+
+      let totalInserted = 0
+      let totalCost = 0
+      const errors: string[] = []
+
+      for (const day of targetDays) {
+        try {
+          const res = await fetch(`https://api.openai.com/v1/usage?date=${day}`, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal: AbortSignal.timeout(15000),
+          })
+          if (!res.ok) {
+            errors.push(`${day}: ${res.status}`)
+            continue
+          }
+          const usage = await res.json()
+          const lines: any[] = usage?.data || []
+          if (lines.length === 0) continue
+
+          // Dedupe — delete existing rows for this day+model then re-insert.
+          const sessionIds = lines.map((l: any, idx: number) => `openai_${day}_${l.snapshot_id || l.model || 'unknown'}_${idx}`)
+          await sb().from('koto_token_usage').delete().in('session_id', sessionIds)
+
+          const rows: any[] = []
+          for (let i = 0; i < lines.length; i++) {
+            const l = lines[i]
+            const model = l.snapshot_id || l.model || 'gpt-4o'
+            const inTok = Number(l.n_context_tokens_total || l.n_prompt_tokens_total || 0)
+            const outTok = Number(l.n_generated_tokens_total || l.n_completion_tokens_total || 0)
+            if (inTok === 0 && outTok === 0) continue
+            const price = PRICING[model] || PRICING.default
+            const inputCost = (inTok / 1_000_000) * price.input
+            const outputCost = (outTok / 1_000_000) * price.output
+            totalCost += inputCost + outputCost
+            rows.push({
+              provider: 'openai',
+              session_id: sessionIds[i],
+              feature: 'openai_sync',
+              model,
+              input_tokens: inTok,
+              output_tokens: outTok,
+              input_cost: Number(inputCost.toFixed(6)),
+              output_cost: Number(outputCost.toFixed(6)),
+              metadata: {
+                source: 'openai_usage_api',
+                is_historical: true,
+                day,
+                n_requests: l.n_requests || 0,
+                operation: l.operation || null,
+              },
+              created_at: `${day}T12:00:00Z`,
+            })
+          }
+          if (rows.length > 0) {
+            const { error: insErr } = await sb().from('koto_token_usage').insert(rows)
+            if (insErr) {
+              errors.push(`${day} insert: ${insErr.message}`)
+            } else {
+              totalInserted += rows.length
+            }
+          }
+        } catch (e: any) {
+          errors.push(`${day}: ${e.message}`)
+        }
+      }
+
+      return NextResponse.json({
+        available: true,
+        synced: totalInserted,
+        total_cost: Number(totalCost.toFixed(4)),
+        days_checked: targetDays.length,
+        errors: errors.length ? errors.slice(0, 10) : undefined,
+      })
+    }
+
     // ── sync_retell_calls ─────────────────────────────────
     // Pulls recent calls from Retell API, converts duration to
     // minutes, and logs each as a row in koto_token_usage with

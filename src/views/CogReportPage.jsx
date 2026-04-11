@@ -117,20 +117,31 @@ export default function CogReportPage() {
   async function syncAll() {
     setSyncing(true)
     try {
-      const res = await fetch('/api/token-usage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'sync_retell_calls' }),
-      })
-      const d = await res.json()
-      if (!res.ok) {
-        toast.error(d.error || 'Retell sync failed')
-      } else if (d.synced === 0) {
-        toast.success(`Retell: nothing new — ${d.calls_fetched} calls already synced`)
-      } else {
-        toast.success(`Retell: ${d.synced} new calls · ${d.total_minutes} min · ${fmt$(d.total_cost)}`)
-        await load()
-      }
+      const [retellRes, openaiRes] = await Promise.all([
+        fetch('/api/token-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_retell_calls' }),
+        }),
+        fetch('/api/token-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_openai', days: 30 }),
+        }),
+      ])
+      const retell = await retellRes.json()
+      const openai = await openaiRes.json()
+
+      const parts = []
+      if (retell.error) parts.push(`Retell failed: ${retell.error}`)
+      else parts.push(`Retell: ${retell.synced || 0} new · ${fmt$(retell.total_cost || 0)}`)
+
+      if (openai.available === false) parts.push('OpenAI: not configured')
+      else if (openai.error) parts.push(`OpenAI failed: ${openai.error}`)
+      else parts.push(`OpenAI: ${openai.synced || 0} rows · ${fmt$(openai.total_cost || 0)}`)
+
+      toast.success(parts.join(' · '))
+      await load()
     } catch (e) {
       toast.error(e.message || 'Sync failed')
     }
@@ -183,7 +194,7 @@ export default function CogReportPage() {
               <Plus size={13} /> Add Expense
             </button>
             <button onClick={syncAll} disabled={syncing} style={btnStyle('#8b5cf6')}>
-              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing…' : 'Sync Retell'}
+              <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing…' : 'Sync All'}
             </button>
             <a href="/token-usage" style={{ ...btnStyle('#00C2CB'), textDecoration: 'none' }}>
               <ExternalLink size={13} /> AI detail
