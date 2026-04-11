@@ -881,6 +881,7 @@ export default function ClientDetailPage() {
               { label: 'Voice Campaign', path: '/voice', color: '#8b5cf6' },
               { label: 'View Reports', path: `/perf/${clientId}`, color: AMB },
               { label: 'Onboarding', path: `/onboard/${clientId}`, color: BLK },
+              { label: '✨ Create Proposal', path: `/koto-proposal-builder/${clientId}`, color: T },
               { label: 'Documents', path: `/clients/${clientId}/documents`, color: '#6b7280' },
             ].map(a => (
               <button key={a.label} onClick={() => navigate(a.path)}

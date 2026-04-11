@@ -121,6 +121,7 @@ import ClientPermissionsPage from '../views/ClientPermissionsPage'
 import ProposalsPage from '../views/ProposalsPage'
 import PlatformAdminPage from '../views/PlatformAdminPage'
 import ProposalBuilderPage from '../views/ProposalBuilderPage'
+import KotoProposalBuilderPage from '../views/KotoProposalBuilderPage'
 import ProposalLibraryPage from '../views/ProposalLibraryPage'
 import ProposalPublicPage from '../views/ProposalPublicPage'
 import ProposalPublicViewPage from '../views/ProposalPublicViewPage'
@@ -289,6 +290,8 @@ function AppRoutes() {
                 <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
+          <Route path="/koto-proposal-builder/:clientId" element={<KotoProposalBuilderPage />} />
+          <Route path="/koto-proposal-builder" element={<KotoProposalBuilderPage />} />
           <Route path="/proposal-library" element={<ProposalLibraryPage />} />
           <Route path="/platform" element={<AgencySettingsPage />} />
           <Route path="/client/:clientId" element={<DashboardPage />} />
