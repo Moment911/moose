@@ -11,7 +11,8 @@
 
 import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
-import { DollarSign, Zap, TrendingUp, Clock, RefreshCw } from 'lucide-react'
+import { DollarSign, Zap, TrendingUp, Clock, RefreshCw, Download, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 const FEATURE_LABELS = {
   voice_onboarding_analysis: '🎙️ Voice Onboarding Analysis',
@@ -21,6 +22,7 @@ const FEATURE_LABELS = {
   discovery_coach_autofill: '✨ Discovery Autofill',
   discovery_live_extraction: '🎤 Live Transcription',
   onboarding_suggest: '✨ Onboarding Suggestions',
+  historical: '📜 Historical (pre-tracking)',
   default: '🤖 AI Call',
 }
 
@@ -45,10 +47,150 @@ function fmt(n) { return Number(n || 0).toLocaleString() }
 function fmtCost(n) { return `$${Number(n || 0).toFixed(4)}` }
 function fmtCostLarge(n) { return `$${Number(n || 0).toFixed(2)}` }
 
+// ─────────────────────────────────────────────────────────────
+// HistoricalSyncModal — backfills koto_token_usage from the
+// Anthropic Admin API. Requires ANTHROPIC_ADMIN_KEY on the
+// server. Offers dry-run preview before real insert, and an
+// overwrite option to replace a previously-synced window.
+// ─────────────────────────────────────────────────────────────
+function HistoricalSyncModal({ onClose, onDone }) {
+  const today = new Date().toISOString().slice(0, 10)
+  const ninetyAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+  const [startDate, setStartDate] = useState(ninetyAgo)
+  const [endDate, setEndDate] = useState(today)
+  const [overwrite, setOverwrite] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [preview, setPreview] = useState(null)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState(null)
+
+  async function runSync(dryRun) {
+    setBusy(true)
+    setError(null)
+    if (dryRun) setPreview(null)
+    else setResult(null)
+    try {
+      const res = await fetch('/api/token-usage/historical-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start_date: startDate,
+          end_date: endDate,
+          dry_run: dryRun,
+          overwrite,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Sync failed')
+      } else if (dryRun) {
+        setPreview(data)
+      } else {
+        setResult(data)
+        toast.success(`Inserted ${data.inserted} rows (${fmtCostLarge(data.total_cost)})`)
+        onDone?.()
+      }
+    } catch (e) {
+      setError(e.message || 'Network error')
+    }
+    setBusy(false)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 560, padding: 28, maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#111' }}>Sync Historical Usage</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+              Backfill Claude API usage from the Anthropic Admin API
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ background: '#fff8f0', border: '1px solid #fde68a', borderRadius: 10, padding: '12px 14px', marginBottom: 18, fontSize: 12, color: '#92400e' }}>
+          Requires <code style={{ background: '#fef3c7', padding: '1px 5px', borderRadius: 4 }}>ANTHROPIC_ADMIN_KEY</code> in Vercel env vars.
+          Generate one at <strong>console.anthropic.com → Settings → API Keys → Admin Keys</strong>. Only Org Owners can create admin keys.
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+              Start date
+            </label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+              End date
+            </label>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+          </div>
+        </div>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#374151', marginBottom: 18, cursor: 'pointer' }}>
+          <input type="checkbox" checked={overwrite} onChange={e => setOverwrite(e.target.checked)} />
+          Overwrite — delete existing historical rows in this window before insert
+        </label>
+
+        <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+          <button onClick={() => runSync(true)} disabled={busy}
+            style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: busy ? 'wait' : 'pointer' }}>
+            {busy ? 'Working…' : 'Dry Run (Preview)'}
+          </button>
+          <button onClick={() => runSync(false)} disabled={busy}
+            style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: '#E6007E', color: '#fff', fontSize: 13, fontWeight: 800, cursor: busy ? 'wait' : 'pointer' }}>
+            {busy ? 'Syncing…' : 'Run Sync'}
+          </button>
+        </div>
+
+        {error && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '12px 14px', fontSize: 12, color: '#991b1b', marginBottom: 12 }}>
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        {preview && (
+          <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '14px 16px', fontSize: 12, color: '#075985' }}>
+            <div style={{ fontWeight: 800, marginBottom: 8, fontSize: 13, color: '#0c4a6e' }}>Preview — nothing inserted yet</div>
+            <div>Buckets fetched: <strong>{preview.buckets_fetched}</strong></div>
+            <div>Rows to insert: <strong>{preview.rows_would_insert}</strong></div>
+            <div>Rows skipped (already synced): <strong>{preview.rows_skipped}</strong></div>
+            <div>Total input tokens: <strong>{fmt(preview.total_input_tokens)}</strong></div>
+            <div>Total output tokens: <strong>{fmt(preview.total_output_tokens)}</strong></div>
+            <div style={{ marginTop: 6, fontSize: 14, color: '#0c4a6e' }}>
+              Estimated cost: <strong>{fmtCostLarge(preview.total_cost)}</strong>
+            </div>
+          </div>
+        )}
+
+        {result && (
+          <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 10, padding: '14px 16px', fontSize: 12, color: '#166534' }}>
+            <div style={{ fontWeight: 800, marginBottom: 8, fontSize: 13, color: '#14532d' }}>✓ Sync complete</div>
+            <div>Rows inserted: <strong>{result.inserted}</strong></div>
+            <div>Rows skipped: <strong>{result.skipped}</strong></div>
+            <div>Buckets fetched: <strong>{result.buckets_fetched}</strong></div>
+            <div style={{ marginTop: 6, fontSize: 14, color: '#14532d' }}>
+              Total backfilled cost: <strong>{fmtCostLarge(result.total_cost)}</strong>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function TokenUsagePage() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(30)
+  const [showSync, setShowSync] = useState(false)
 
   useEffect(() => { load() }, [days])
 
@@ -86,12 +228,18 @@ export default function TokenUsagePage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button onClick={() => setShowSync(true)}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #E6007E40', background: '#fff', color: '#E6007E', cursor: 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Download size={13} /> Sync Historical
+            </button>
             <select value={days} onChange={e => setDays(Number(e.target.value))}
               style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: '#fff' }}>
               <option value={7}>Last 7 days</option>
               <option value={30}>Last 30 days</option>
               <option value={60}>Last 60 days</option>
               <option value={90}>Last 90 days</option>
+              <option value={180}>Last 180 days</option>
+              <option value={365}>Last 365 days</option>
             </select>
             <button onClick={load}
               style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: '#6b7280' }}>
@@ -99,6 +247,8 @@ export default function TokenUsagePage() {
             </button>
           </div>
         </div>
+
+        {showSync && <HistoricalSyncModal onClose={() => setShowSync(false)} onDone={load} />}
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: 80, color: '#9ca3af' }}>Loading usage data…</div>
