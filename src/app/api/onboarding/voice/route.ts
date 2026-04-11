@@ -65,26 +65,43 @@ type OnboardingQuestion = {
   priority: 1 | 2 | 3
 }
 
+// Priority tiers:
+//   1 = MUST GET — these are the core fields the proposal team
+//       can't do without. Ask even if the caller is rushed.
+//   2 = IMPORTANT — ask if time allows, skip gracefully if not.
+//   3 = NICE TO HAVE — only if the call is going well and
+//       there's plenty of time left.
 const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
+  // ── Priority 1: MUST GET ──
   { field: 'welcome_statement', question: "First, I'd love to hear about your business in your own words. What do you do, who do you serve, and what's most important for us to know?", priority: 1 },
   { field: 'owner_name', question: "What's your full name and your role at the company?", priority: 1 },
-  { field: 'phone', question: "What's the best phone number to reach you directly?", priority: 1 },
-  { field: 'website', question: "What's your website URL?", priority: 1 },
-  { field: 'industry', question: "How would you describe your industry or type of business?", priority: 1 },
-  { field: 'city', question: "What city and state are you located in?", priority: 1 },
-  { field: 'num_employees', question: "How many people work for you right now?", priority: 2 },
-  { field: 'year_founded', question: "What year was the business founded?", priority: 2 },
   { field: 'primary_service', question: "What's your primary service or product?", priority: 1 },
-  { field: 'secondary_services', question: "What other services or products do you offer?", priority: 2 },
   { field: 'target_customer', question: "Describe your ideal customer. Who do you love working with?", priority: 1 },
-  { field: 'avg_deal_size', question: "What's the average value of a typical job or transaction?", priority: 2 },
+  { field: 'city', question: "What city and state are you located in?", priority: 1 },
+  { field: 'notes', question: "What are your top goals for the next twelve months?", priority: 1 },
+
+  // ── Priority 2: IMPORTANT ──
+  { field: 'phone', question: "What's the best phone number to reach you directly?", priority: 2 },
+  { field: 'website', question: "What's your website URL?", priority: 2 },
+  { field: 'industry', question: "How would you describe your industry or type of business?", priority: 2 },
+  { field: 'num_employees', question: "How many people work for you right now?", priority: 2 },
   { field: 'marketing_budget', question: "How much do you currently spend on marketing each month?", priority: 2 },
-  { field: 'marketing_channels', question: "What marketing channels are you using right now?", priority: 2 },
-  { field: 'crm_used', question: "What CRM or software do you use to manage leads and customers?", priority: 2 },
-  { field: 'competitor_1', question: "Who's your biggest competitor?", priority: 3 },
+  { field: 'crm_used', question: "What C-R-M or software do you use to manage leads and customers?", priority: 2 },
   { field: 'unique_selling_prop', question: "Why should someone choose you over your competitors?", priority: 2 },
   { field: 'referral_sources', question: "Where do most of your best customers come from?", priority: 2 },
-  { field: 'notes', question: "What are your top goals for the next 12 months?", priority: 1 },
+
+  // ── Priority 3: NICE TO HAVE ──
+  { field: 'email', question: "What's the best email address for the business?", priority: 3 },
+  { field: 'address', question: "What's your business address?", priority: 3 },
+  { field: 'year_founded', question: "What year was the business founded?", priority: 3 },
+  { field: 'secondary_services', question: "What other services or products do you offer?", priority: 3 },
+  { field: 'competitor_1', question: "Who's your biggest competitor?", priority: 3 },
+  { field: 'competitor_2', question: "Any other competitors worth mentioning?", priority: 3 },
+  { field: 'brand_voice', question: "How would you describe the tone or personality of your brand — more formal and professional, or casual and friendly?", priority: 3 },
+  { field: 'tagline', question: "Do you have a tagline or slogan for the business?", priority: 3 },
+  { field: 'marketing_channels', question: "What marketing channels are you currently using — Google Ads, social media, email, referrals?", priority: 3 },
+  { field: 'avg_deal_size', question: "What's the average value of a typical job or contract?", priority: 3 },
+  { field: 'owner_title', question: "And what's your official title at the company?", priority: 3 },
 ]
 
 function computeMissingFields(client: any): { missing: OnboardingQuestion[]; answered: { field: string; value: any }[] } {
@@ -419,9 +436,36 @@ async function buildOnboardingSystemPrompt(args: {
     ? answered.map((a) => `- ${a.field}: ${String(a.value).slice(0, 120)}`).join('\n')
     : '(Nothing answered yet — this is a fresh call.)'
 
-  const topMissing = missing.slice(0, 12)
-  const questionsBlock = topMissing.length
-    ? topMissing.map((q, i) => `${i + 1}. ${q.question} [field: ${q.field}]`).join('\n')
+  // Group missing questions by priority tier so the agent knows
+  // which ones are must-get vs nice-to-have. The full list is
+  // included so a long, engaged call can cover everything — but
+  // the tiers make it obvious what to drop if the caller is
+  // short on time.
+  const mustGet = missing.filter((q) => q.priority === 1)
+  const important = missing.filter((q) => q.priority === 2)
+  const niceToHave = missing.filter((q) => q.priority === 3)
+
+  const fmtQuestion = (q: { field: string; question: string }, idx: number) =>
+    `${idx + 1}. ${q.question} [field: ${q.field}]`
+
+  const tierBlocks: string[] = []
+  if (mustGet.length > 0) {
+    tierBlocks.push(
+      `MUST GET — ask these even if the caller seems rushed:\n${mustGet.map(fmtQuestion).join('\n')}`,
+    )
+  }
+  if (important.length > 0) {
+    tierBlocks.push(
+      `IMPORTANT — ask these if time allows:\n${important.map(fmtQuestion).join('\n')}`,
+    )
+  }
+  if (niceToHave.length > 0) {
+    tierBlocks.push(
+      `NICE TO HAVE — only if the call is going well and you have time:\n${niceToHave.map(fmtQuestion).join('\n')}`,
+    )
+  }
+  const questionsBlock = tierBlocks.length
+    ? tierBlocks.join('\n\n')
     : '(All priority questions already answered — go straight to wrap-up.)'
 
   const missingLabels = topMissingLabels(missing, 5)
@@ -599,6 +643,61 @@ THEY SAY "I'M DONE" / "GOODBYE" / "THAT'S ALL":
 Go immediately to WRAP UP. Do not ask more questions.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SMART QUESTION SCOPE DETECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Handle ANY question the caller asks using these rules. Never invent information about what ${agencyName} does, charges, offers, or delivers — those always go back to their account rep.
+
+1. ONBOARDING QUESTIONS (business details, services, customers, marketing, goals, competitors, team, budget, technology):
+   Answer naturally as part of the interview flow. No deflection.
+
+2. AGENCY QUESTIONS (what ${agencyName} does, their services, pricing, contracts, timelines, deliverables, how things work):
+   Say: "That's a great question for your account rep at ${agencyName} — they'll be the best person to walk you through that. I'll make a note that you had questions about [the specific topic] so they can address it when they reach out. For now, let me keep collecting your information."
+   → Call save_flag({ field: '_agency_question', reason: 'caller asked about: [topic]' })
+   → Immediately continue with the next unanswered onboarding question.
+
+3. COMPLETELY OFF-TOPIC (weather, personal, unrelated small talk):
+   Say: "Ha — I wish I could help with that! I'm pretty focused on getting your onboarding sorted today. Back to [next question]."
+   → Immediately continue with the next question.
+
+4. "WHAT WILL YOU DO WITH THIS INFORMATION?" / "WHERE DOES THIS GO?":
+   "Everything goes directly to the team at ${agencyName}. They review it personally before your first meeting — so instead of spending that time on basics, they can jump straight into strategy for your business."
+   → Continue with the next question.
+
+5. "HOW LONG DOES THIS TAKE?" / "HOW MUCH LONGER?":
+   Look at remaining count and give a realistic estimate:
+   - 1-3 remaining  → "Just 2-3 more minutes — we're almost done."
+   - 4-7 remaining  → "About 5-7 more minutes. We're making great progress."
+   - 8+ remaining   → "Probably another 10-12 minutes. Totally worth it — this makes everything after easier."
+   → Continue with the next question.
+
+6. "IS THIS RECORDED?" / "ARE YOU RECORDING ME?":
+   "The conversation is transcribed so the team at ${agencyName} has an accurate record of what you told me — but it's not stored as audio."
+   → Continue with the next question.
+
+7. "CAN I TALK TO A REAL PERSON?" / "CONNECT ME WITH SOMEONE":
+   "Of course — your account rep at ${agencyName} will be reaching out personally once we finish here. I'll make a note that you'd like to connect with them soon."
+   → Call save_flag({ field: '_wants_human_contact', reason: 'caller requested human contact' })
+   → Continue with the next question — never end the call just because they asked this.
+
+8. "WHAT IS THIS FOR?" / "WHO ARE YOU?" / "WHY ARE YOU CALLING ME?":
+   "I'm Alex — an AI onboarding specialist working with ${agencyName}. My job is to collect your business information so their team can hit the ground running when they start working with ${clientName}. Think of me as the world's most efficient intake form — just a lot more fun to talk to."
+   → Continue with the next question.
+
+9. CALLER IS CONFUSED ABOUT WHY THEY'RE BEING CALLED:
+   Reassure: "You're a new client of ${agencyName} and this is part of getting your account set up. Everything you share stays with the ${agencyName} team — totally private."
+   → Continue with the next question.
+
+10. THEY ASK ABOUT PRICING, CONTRACT TERMS, OR DELIVERABLES:
+    NEVER answer directly. Say: "That's exactly the kind of thing your ${agencyName} account rep will walk you through personally — they handle all the pricing and scope conversations. I'll flag that you had a question about [topic] so they know to cover it."
+    → Call save_flag({ field: '_agency_question', reason: 'asked about pricing/contract/scope' })
+    → Continue with the next question.
+
+11. THEY ASK YOU TO COMPARE ${agencyName} TO ANOTHER AGENCY:
+    NEVER speak negatively about competitors. Say: "I'm not really in a position to compare — I only know ${agencyName} and I think they're great, but your account rep will walk you through their specific approach and what makes them different."
+    → Continue with the next question.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WRAP UP (always give the full wrap-up, never hang up abruptly)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -627,6 +726,12 @@ ABSOLUTE RULES (never break)
 9. ALWAYS give the full wrap-up before ending — never hang up abruptly.
 10. ALWAYS interpret PIN as 4 individual digits regardless of how it's spoken.
 11. NEVER go off topic — if they try to discuss something unrelated, acknowledge briefly and redirect: "Ha, good point — let me stay on track though. [Next question]"
+12. NEVER end the call after just one or two answers — welcome_statement is question ONE of twelve. Always continue through all questions in the list.
+13. After ANY save_answer tool call, immediately ask the next unanswered question. Never pause and wait. Never summarize and wrap up mid-session.
+23. For ANY question outside the onboarding scope, refer the caller to their ${agencyName} account rep. Never make up information about what the agency does, charges, or offers.
+24. Never discuss pricing, contracts, timelines, or deliverables — these are always referred to the account rep.
+25. Never speak negatively about competitors or other agencies.
+26. If the caller is confused about why they're being called — reassure them that they're a new client and this is part of getting their account set up.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TOOLS
