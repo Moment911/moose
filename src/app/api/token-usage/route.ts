@@ -651,6 +651,61 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // ── feature_breakdown ─────────────────────────────────
+    // Rolls up koto_token_usage by feature, returning for each:
+    //   - total_calls, total_cost, total_tokens
+    //   - avg_cost_per_call (= total_cost / total_calls)
+    //   - primary_model (most-used model for that feature)
+    // Used by the CogReportPage "Cost per Feature" table.
+    if (action === 'feature_breakdown') {
+      const { days = 30, agency_id } = body
+      const since = new Date(Date.now() - days * 86400000).toISOString()
+      let q = sb()
+        .from('koto_token_usage')
+        .select('feature, model, total_cost, input_tokens, output_tokens')
+        .gte('created_at', since)
+      if (agency_id) q = q.eq('agency_id', agency_id)
+      const { data, error } = await q
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+      const rows: any[] = data || []
+      const byFeature: Record<string, any> = {}
+      for (const r of rows) {
+        const f = r.feature || 'unknown'
+        if (!byFeature[f]) {
+          byFeature[f] = {
+            feature: f,
+            calls: 0,
+            total_cost: 0,
+            input_tokens: 0,
+            output_tokens: 0,
+            models: {} as Record<string, number>,
+          }
+        }
+        byFeature[f].calls += 1
+        byFeature[f].total_cost += Number(r.total_cost)
+        byFeature[f].input_tokens += r.input_tokens
+        byFeature[f].output_tokens += r.output_tokens
+        byFeature[f].models[r.model] = (byFeature[f].models[r.model] || 0) + 1
+      }
+
+      const out = Object.values(byFeature).map((f: any) => {
+        const primaryModel = Object.entries(f.models).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || null
+        return {
+          feature: f.feature,
+          calls: f.calls,
+          total_cost: Number(f.total_cost.toFixed(6)),
+          avg_cost_per_call: Number((f.total_cost / Math.max(1, f.calls)).toFixed(6)),
+          total_tokens: f.input_tokens + f.output_tokens,
+          input_tokens: f.input_tokens,
+          output_tokens: f.output_tokens,
+          primary_model: primaryModel,
+        }
+      }).sort((a: any, b: any) => b.total_cost - a.total_cost)
+
+      return NextResponse.json({ features: out, days, total_rows: rows.length })
+    }
+
     // ── get_budgets ───────────────────────────────────────
     if (action === 'get_budgets') {
       const { agency_id } = body

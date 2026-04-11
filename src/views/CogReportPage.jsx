@@ -32,6 +32,26 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const FEATURE_LABELS = {
+  voice_onboarding_analysis: '🎙️ Voice Onboarding Analysis',
+  voice_onboarding: '🎙️ Voice Onboarding',
+  proposal_generation: '📄 Proposal Generation',
+  discovery_ai: '🔍 Discovery AI',
+  discovery_coach: '💡 Discovery Coach',
+  discovery_coach_autofill: '✨ Discovery Autofill',
+  discovery_live_extraction: '🎤 Live Transcription',
+  onboarding_suggest: '✨ Onboarding Suggestions',
+  seo_research: '🔍 SEO Research',
+  seo_content_module: '📝 SEO Content Module',
+  agent_chat: '🤖 Agent Chat',
+  external_audit: '🔎 External Audit Work',
+  koto_app: '🛠️ Koto App',
+  obsidian_copilot: '📝 Obsidian Copilot',
+  openai_sync: '🟢 OpenAI (historical)',
+  external: '🌐 External',
+  unknown: '❓ Unknown',
+}
+
 const CATEGORY_ICONS = {
   ai_llms:        Zap,
   voice_phone:    Mic,
@@ -85,8 +105,21 @@ export default function CogReportPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [budgets, setBudgets] = useState([])
   const [editingBudget, setEditingBudget] = useState(null) // { category, monthly_budget }
+  const [features, setFeatures] = useState([])
 
-  useEffect(() => { load(); loadBudgets() }, [days])
+  useEffect(() => { load(); loadBudgets(); loadFeatures() }, [days])
+
+  async function loadFeatures() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'feature_breakdown', days }),
+      })
+      const d = await res.json()
+      setFeatures(d.features || [])
+    } catch {}
+  }
 
   async function loadBudgets() {
     try {
@@ -385,6 +418,48 @@ export default function CogReportPage() {
                 )}
               </div>
             </div>
+
+            {/* Feature cost breakdown */}
+            {features.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 4 }}>Cost per Koto Feature</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>What each feature actually costs per call, and total burn for the window</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ background: '#f9fafb' }}>
+                        {['Feature', 'Calls', 'Avg / call', 'Total', 'Tokens', 'Primary model'].map((h, i) => (
+                          <th key={h} style={{ padding: '8px 14px', textAlign: i >= 1 && i <= 3 ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {features.map((f) => (
+                        <tr key={f.feature} style={{ borderTop: '1px solid #f9fafb' }}>
+                          <td style={{ padding: '10px 14px', fontWeight: 600, color: '#374151' }}>{FEATURE_LABELS[f.feature] || f.feature}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#6b7280' }}>{f.calls.toLocaleString()}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#6b7280' }}>${f.avg_cost_per_call.toFixed(4)}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#E6007E' }}>{fmt$(f.total_cost)}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#9ca3af' }}>{Number(f.total_tokens).toLocaleString()}</td>
+                          <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 11 }}>{f.primary_model || '—'}</td>
+                        </tr>
+                      ))}
+                      <tr style={{ borderTop: '2px solid #e5e7eb', fontWeight: 800 }}>
+                        <td style={{ padding: '10px 14px', color: '#111' }}>Total across {features.length} features</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#111' }}>
+                          {features.reduce((a, f) => a + f.calls, 0).toLocaleString()}
+                        </td>
+                        <td></td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#E6007E', fontSize: 14 }}>
+                          {fmt$(features.reduce((a, f) => a + f.total_cost, 0))}
+                        </td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Savings tracker */}
             <div style={{ background: '#fff', borderRadius: 14, border: '1.5px solid #16a34a40', padding: 22, marginBottom: 20 }}>
