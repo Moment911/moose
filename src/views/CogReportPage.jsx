@@ -28,7 +28,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import {
   DollarSign, RefreshCw, Plus, ExternalLink, TrendingUp,
-  Zap, Mic, Server, Search, Briefcase, X,
+  Zap, Mic, Server, Search, Briefcase, X, Download,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -144,6 +144,33 @@ export default function CogReportPage() {
       const d = await res.json()
       setBudgets(d.budgets || [])
     } catch {}
+  }
+
+  async function exportPdf() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'export_pdf', days }),
+      })
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}))
+        toast.error(d.error || 'PDF export failed')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `koto-expense-report-${new Date().toISOString().slice(0, 10)}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      toast.success('PDF downloaded')
+    } catch (e) {
+      toast.error(e.message || 'Export failed')
+    }
   }
 
   async function saveBudget(category, amount) {
@@ -272,6 +299,9 @@ export default function CogReportPage() {
             </button>
             <button onClick={syncAll} disabled={syncing} style={btnStyle('#8b5cf6')}>
               <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing…' : 'Sync All'}
+            </button>
+            <button onClick={exportPdf} style={btnStyle('#16a34a')}>
+              <Download size={13} /> Export PDF
             </button>
             <a href="/token-usage" style={{ ...btnStyle('#00C2CB'), textDecoration: 'none' }}>
               <ExternalLink size={13} /> AI detail

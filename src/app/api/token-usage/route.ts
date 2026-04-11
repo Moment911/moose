@@ -18,6 +18,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { buildCogReportPdf } from '@/lib/cogReportPdf'
 
 export const maxDuration = 60
 
@@ -648,6 +649,119 @@ export async function POST(req: NextRequest) {
         by_service: Object.values(byService).sort((a: any, b: any) => b.total - a.total),
         api_rows: tokens.length,
         platform_rows: platform.length,
+      })
+    }
+
+    // ── export_pdf ────────────────────────────────────────
+    // Builds the monthly expense report PDF and returns it as
+    // a binary stream. Reuses the same rollup logic as
+    // cog_overview, feature_breakdown, and platform_summary but
+    // scopes to a single month (or a custom day window).
+    if (action === 'export_pdf') {
+      const { days = 30, month_label } = body
+      const since = new Date(Date.now() - days * 86400000).toISOString()
+      const sinceDate = since.slice(0, 10)
+
+      // Pull tokens + platform + features in parallel
+      const [{ data: tokenRows }, { data: platformRows }] = await Promise.all([
+        sb().from('koto_token_usage').select('*').gte('created_at', since),
+        sb().from('koto_platform_costs').select('*').gte('date', sinceDate),
+      ])
+      const tokens = tokenRows || []
+      const platform = platformRows || []
+
+      // ── Category totals (same shape as cog_overview) ──
+      const byCategory: Record<string, any> = {
+        ai_llms:        { label: 'AI & LLMs',       color: '#8b5cf6', total: 0 },
+        voice_phone:    { label: 'Voice & Phone',   color: '#00C2CB', total: 0 },
+        infrastructure: { label: 'Infrastructure',  color: '#16a34a', total: 0 },
+        data_search:    { label: 'Data & Search',   color: '#f59e0b', total: 0 },
+        business_tools: { label: 'Business Tools',  color: '#E6007E', total: 0 },
+        other:          { label: 'Other',           color: '#9ca3af', total: 0 },
+      }
+
+      let apiCost = 0
+      let platformCostTotal = 0
+      const byService: Record<string, any> = {}
+      const ensureService = (key: string, label: string) => {
+        if (!byService[key]) byService[key] = { label, api_cost: 0, platform_cost: 0, total: 0, calls: 0, tokens: 0 }
+      }
+      const byFeature: Record<string, any> = {}
+
+      for (const r of tokens) {
+        const c = Number(r.total_cost)
+        apiCost += c
+        const cat = providerCategory(r.provider || 'anthropic')
+        byCategory[cat].total += c
+        const serviceKey = r.provider || 'other'
+        const serviceLabel = ({ anthropic: 'Anthropic API', openai: 'OpenAI API', google: 'Google Gemini', retell: 'Retell Voice' } as any)[serviceKey] || serviceKey
+        ensureService(serviceKey, serviceLabel)
+        byService[serviceKey].api_cost += c
+        byService[serviceKey].total += c
+        byService[serviceKey].calls += 1
+        byService[serviceKey].tokens += r.input_tokens + r.output_tokens
+        // features
+        const f = r.feature || 'unknown'
+        if (!byFeature[f]) byFeature[f] = { feature: f, calls: 0, total_cost: 0, models: {} as Record<string, number> }
+        byFeature[f].calls += 1
+        byFeature[f].total_cost += c
+        byFeature[f].models[r.model] = (byFeature[f].models[r.model] || 0) + 1
+      }
+
+      const PLATFORM_META: Record<string, string> = {
+        vercel: 'Vercel', supabase: 'Supabase', ghl: 'GoHighLevel',
+        claude_ai_max: 'Claude.ai Max Plan', claude_ai_extra: 'Claude.ai Extras',
+        retell_numbers: 'Retell Numbers', retell_voice: 'Retell Voice',
+        telnyx_numbers: 'Telnyx Numbers', twilio_voice: 'Twilio Voice',
+        google_places: 'Google Places', brave_search: 'Brave Search',
+        resend_email: 'Resend', heygen_api: 'HeyGen', stripe_fees: 'Stripe',
+      }
+
+      for (const r of platform) {
+        const amt = Number(r.amount)
+        platformCostTotal += amt
+        const cat = categoryFor(r.cost_type)
+        byCategory[cat].total += amt
+        const label = PLATFORM_META[r.cost_type] || r.cost_type
+        ensureService(r.cost_type, label)
+        byService[r.cost_type].platform_cost += amt
+        byService[r.cost_type].total += amt
+      }
+
+      const features = Object.values(byFeature).map((f: any) => ({
+        feature: f.feature,
+        calls: f.calls,
+        total_cost: Number(f.total_cost.toFixed(6)),
+        avg_cost_per_call: Number((f.total_cost / Math.max(1, f.calls)).toFixed(6)),
+        primary_model: (Object.entries(f.models).sort((a: any, b: any) => b[1] - a[1])[0]?.[0]) || null,
+      })).sort((a: any, b: any) => b.total_cost - a.total_cost)
+
+      const serviceArr = Object.values(byService).sort((a: any, b: any) => b.total - a.total) as any[]
+      const platformForReport = (platform || []).map((r) => ({
+        date: String(r.date),
+        cost_type: r.cost_type,
+        amount: Number(r.amount),
+        description: r.description || '',
+      }))
+
+      const monthLabel = month_label || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const pdfBuffer = await buildCogReportPdf({
+        month: monthLabel,
+        grand_total: Number((apiCost + platformCostTotal).toFixed(2)),
+        api_cost: Number(apiCost.toFixed(2)),
+        platform_cost: Number(platformCostTotal.toFixed(2)),
+        by_category: byCategory,
+        by_service: serviceArr,
+        features,
+        platform_rows: platformForReport,
+      })
+
+      return new NextResponse(new Uint8Array(pdfBuffer), {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="koto-expense-report-${monthLabel.replace(/\s+/g, '-')}.pdf"`,
+          'Cache-Control': 'no-store',
+        },
       })
     }
 
