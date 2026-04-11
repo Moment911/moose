@@ -12,10 +12,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
-import { DollarSign, Zap, TrendingUp, Clock, RefreshCw, Upload, CreditCard, ExternalLink, Edit3, Radio } from 'lucide-react'
+import { DollarSign, Zap, TrendingUp, Clock, RefreshCw, Upload, CreditCard, ExternalLink, Edit3, Radio, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
 
 const FEATURE_LABELS = {
   voice_onboarding_analysis: '🎙️ Voice Onboarding Analysis',
@@ -71,6 +72,30 @@ function fmt(n) { return Number(n || 0).toLocaleString() }
 function fmtCost(n) { return `$${Number(n || 0).toFixed(4)}` }
 function fmtCostLarge(n) { return `$${Number(n || 0).toFixed(2)}` }
 
+// Suggest an appropriate bucket size for a given window length.
+function autoGranularity(days) {
+  if (days <= 1) return 'hour'
+  if (days <= 2) return 'hour'
+  if (days <= 14) return 'day'
+  if (days <= 60) return 'day'
+  if (days <= 180) return 'week'
+  return 'month'
+}
+
+// Format an ISO bucket timestamp for the X axis tick.
+function tickLabel(iso, granularity) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (granularity === 'minute' || granularity === '5minute' || granularity === '15minute') {
+    return format(d, 'HH:mm')
+  }
+  if (granularity === 'hour') return format(d, 'MMM d HH:mm')
+  if (granularity === 'day') return format(d, 'MMM d')
+  if (granularity === 'week') return format(d, 'MMM d')
+  if (granularity === 'month') return format(d, 'MMM yyyy')
+  return format(d, 'MMM d')
+}
+
 // API-key label mapping lives in localStorage so you can rename
 // raw Anthropic Console labels ("momenta audit") to something
 // more meaningful ("Claude.ai Audit Work") without a DB round-trip.
@@ -94,17 +119,37 @@ function saveApiKeyLabels(labels) {
 
 
 export default function TokenUsagePage() {
-  // days + provider filter persisted in ?days=… and ?provider=… so
-  // refreshes keep you on the same view
+  // days + provider filter + granularity persisted in URL so refreshes
+  // and back/forward keep the same view. Drill-down writes ?date_from,
+  // ?date_to, and ?granularity to zoom into specific windows.
   const [searchParams, setSearchParams] = useSearchParams()
   const days = Number(searchParams.get('days')) || 30
   const providerFilter = searchParams.get('provider') || 'all'
+  const granularity = searchParams.get('granularity') || autoGranularity(days)
+  const dateFrom = searchParams.get('date_from') || null
+  const dateTo = searchParams.get('date_to') || null
+
   const setDays = (n) => setSearchParams((prev) => {
-    const p = new URLSearchParams(prev); p.set('days', String(n)); return p
+    const p = new URLSearchParams(prev)
+    p.set('days', String(n))
+    p.delete('date_from')
+    p.delete('date_to')
+    p.set('granularity', autoGranularity(n))
+    return p
   }, { replace: true })
   const setProviderFilter = (v) => setSearchParams((prev) => {
     const p = new URLSearchParams(prev); p.set('provider', v); return p
   }, { replace: true })
+  const setGranularity = (v) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev); p.set('granularity', v); return p
+  }, { replace: true })
+  const drillInto = (from, to, gran) => setSearchParams((prev) => {
+    const p = new URLSearchParams(prev)
+    p.set('date_from', from)
+    p.set('date_to', to)
+    p.set('granularity', gran)
+    return p
+  }, { replace: false }) // not replace — we want back button to zoom out
 
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -119,7 +164,7 @@ export default function TokenUsagePage() {
   const [flashing, setFlashing] = useState(false)
   const [liveIncrement, setLiveIncrement] = useState({ cost: 0, calls: 0, tokens: 0 })
 
-  useEffect(() => { load() }, [days, providerFilter])
+  useEffect(() => { load() }, [days, providerFilter, granularity, dateFrom, dateTo])
 
   // ── Supabase realtime — koto_token_usage + koto_platform_costs ──
   // Replaces the old polling approach. Every new row streams in and
@@ -183,7 +228,14 @@ export default function TokenUsagePage() {
       const res = await fetch('/api/token-usage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'summary', days, provider: providerFilter }),
+        body: JSON.stringify({
+          action: 'summary',
+          days,
+          provider: providerFilter,
+          granularity,
+          date_from: dateFrom,
+          date_to: dateTo,
+        }),
       })
       const d = await res.json()
       setData(d)
@@ -567,30 +619,101 @@ export default function TokenUsagePage() {
               </div>
             )}
 
-            {/* Daily chart */}
-            {byDay.length > 0 && (
+            {/* Interactive cost chart (recharts) with drill-down */}
+            {data?.time_buckets && data.time_buckets.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 20, marginBottom: 24 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 16 }}>Daily Cost ({days} days)</div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
-                  {(() => {
-                    const maxCost = Math.max(...byDay.map(([, d]) => d.total_cost), 0.001)
-                    return byDay.map(([day, d]) => (
-                      <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
-                        title={`${day}: ${fmtCost(d.total_cost)} · ${fmt(d.total_tokens)} tokens · ${d.calls} calls`}>
-                        <div style={{
-                          width: '100%',
-                          height: `${Math.max(4, Math.round((d.total_cost / maxCost) * 70))}px`,
-                          background: '#E6007E',
-                          borderRadius: '3px 3px 0 0',
-                          opacity: 0.8,
-                        }} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>Cost Over Time</div>
+                    {/* Breadcrumb */}
+                    {(dateFrom || dateTo) && (
+                      <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginTop: 4, fontSize: 11, color: '#6b7280' }}>
+                        <button
+                          onClick={() => setSearchParams((prev) => {
+                            const p = new URLSearchParams(prev)
+                            p.delete('date_from')
+                            p.delete('date_to')
+                            p.set('granularity', autoGranularity(days))
+                            return p
+                          }, { replace: false })}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#00C2CB', padding: 0, fontSize: 11, fontWeight: 700 }}>
+                          All time
+                        </button>
+                        <ChevronRight size={11} />
+                        <span style={{ color: '#111', fontWeight: 700 }}>
+                          {dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`}
+                        </span>
                       </div>
-                    ))
-                  })()}
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    {['minute', '5minute', '15minute', 'hour', 'day', 'week', 'month'].map((g) => (
+                      <button
+                        key={g}
+                        onClick={() => setGranularity(g)}
+                        style={{
+                          padding: '4px 10px', borderRadius: 6,
+                          border: granularity === g ? '1.5px solid #E6007E' : '1px solid #e5e7eb',
+                          background: granularity === g ? '#E6007E15' : '#fff',
+                          color: granularity === g ? '#E6007E' : '#6b7280',
+                          fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                        }}>
+                        {g === '5minute' ? '5m' : g === '15minute' ? '15m' : g === 'minute' ? '1m' : g === 'hour' ? '1h' : g === 'day' ? '1d' : g === 'week' ? '1w' : '1mo'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af', marginTop: 6 }}>
-                  <span>{byDay[0]?.[0]}</span>
-                  <span>{byDay[byDay.length - 1]?.[0]}</span>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart
+                    data={data.time_buckets}
+                    margin={{ top: 8, right: 10, bottom: 5, left: 10 }}
+                    onClick={(e) => {
+                      if (!e?.activePayload?.[0]) return
+                      const bucket = e.activePayload[0].payload
+                      const ts = new Date(bucket.timestamp)
+                      // Drill down by one level
+                      if (granularity === 'month') {
+                        const y = ts.getUTCFullYear()
+                        const m = ts.getUTCMonth()
+                        const from = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10)
+                        const to = new Date(Date.UTC(y, m + 1, 0)).toISOString().slice(0, 10)
+                        drillInto(from, to, 'day')
+                      } else if (granularity === 'week') {
+                        const from = ts.toISOString().slice(0, 10)
+                        const to = new Date(ts.getTime() + 6 * 86400000).toISOString().slice(0, 10)
+                        drillInto(from, to, 'day')
+                      } else if (granularity === 'day') {
+                        const d = ts.toISOString().slice(0, 10)
+                        drillInto(d, d, 'hour')
+                      } else if (granularity === 'hour') {
+                        const d = ts.toISOString().slice(0, 10)
+                        drillInto(d, d, '15minute')
+                      } else if (granularity === '15minute' || granularity === '5minute') {
+                        const d = ts.toISOString().slice(0, 10)
+                        drillInto(d, d, 'minute')
+                      }
+                    }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis
+                      dataKey="timestamp"
+                      tickFormatter={(ts) => tickLabel(ts, granularity)}
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                    />
+                    <YAxis
+                      tickFormatter={(v) => `$${Number(v).toFixed(4)}`}
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      width={70}
+                    />
+                    <Tooltip
+                      formatter={(value) => [`$${Number(value).toFixed(6)}`, 'Cost']}
+                      labelFormatter={(ts) => tickLabel(ts, granularity)}
+                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                    />
+                    <Bar dataKey="cost" fill="#E6007E" radius={[3, 3, 0, 0]} style={{ cursor: 'pointer' }} />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, textAlign: 'center' }}>
+                  Click any bar to drill into {granularity === 'month' ? 'daily' : granularity === 'week' || granularity === 'day' ? 'hourly' : granularity === 'hour' ? '15-minute' : 'per-minute'} view
                 </div>
               </div>
             )}

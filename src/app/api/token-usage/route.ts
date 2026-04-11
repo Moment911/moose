@@ -358,13 +358,28 @@ export async function POST(req: NextRequest) {
 
     // ── summary ────────────────────────────────────────────
     if (action === 'summary') {
-      const { agency_id, days = 30, provider: providerFilter = 'all' } = body
-      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+      const {
+        agency_id,
+        days = 30,
+        provider: providerFilter = 'all',
+        granularity = 'day',
+        date_from,
+        date_to,
+      } = body
+
+      // Explicit date_from/date_to overrides the days window
+      const since = date_from
+        ? new Date(date_from + 'T00:00:00Z').toISOString()
+        : new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+      const until = date_to
+        ? new Date(date_to + 'T23:59:59Z').toISOString()
+        : new Date().toISOString()
 
       let q = sb()
         .from('koto_token_usage')
         .select('*')
         .gte('created_at', since)
+        .lte('created_at', until)
         .order('created_at', { ascending: false })
       if (agency_id) q = q.eq('agency_id', agency_id)
       if (providerFilter && providerFilter !== 'all') q = q.eq('provider', providerFilter)
@@ -426,6 +441,52 @@ export async function POST(req: NextRequest) {
         byDay[day].calls += 1
       }
 
+      // ── Granular time buckets for drill-down charts ──
+      // minute = 1-min buckets (for last 30min / last 2hr)
+      // 5minute = 5-min buckets
+      // hour = 1-hour buckets
+      // day = 1-day buckets
+      // week = 1-week (ISO week)
+      // month = 1-month
+      const intervals: Record<string, number> = {
+        minute:   60 * 1000,
+        '5minute': 5 * 60 * 1000,
+        '15minute': 15 * 60 * 1000,
+        hour:     60 * 60 * 1000,
+        day:      24 * 60 * 60 * 1000,
+        week:     7 * 24 * 60 * 60 * 1000,
+      }
+      const buckets: Record<string, any> = {}
+      const intervalMs = intervals[granularity] || intervals.day
+
+      for (const r of rows) {
+        const t = new Date(r.created_at).getTime()
+        let bucketKey: string
+        if (granularity === 'month') {
+          bucketKey = String(r.created_at).slice(0, 7) + '-01T00:00:00Z'
+        } else {
+          const bucketTs = Math.floor(t / intervalMs) * intervalMs
+          bucketKey = new Date(bucketTs).toISOString()
+        }
+        if (!buckets[bucketKey]) {
+          buckets[bucketKey] = {
+            timestamp: bucketKey,
+            cost: 0,
+            calls: 0,
+            tokens: 0,
+            features: {} as Record<string, number>,
+          }
+        }
+        buckets[bucketKey].cost += Number(r.total_cost)
+        buckets[bucketKey].calls += 1
+        buckets[bucketKey].tokens += r.input_tokens + r.output_tokens
+        const f = r.feature || 'unknown'
+        buckets[bucketKey].features[f] = (buckets[bucketKey].features[f] || 0) + Number(r.total_cost)
+      }
+      const timeBuckets = Object.values(buckets).sort((a: any, b: any) =>
+        a.timestamp.localeCompare(b.timestamp),
+      )
+
       // Flat-fee platform costs (Claude.ai subscription, refunds, etc.)
       const sinceDate = since.slice(0, 10)
       const { data: platformRows } = await sb()
@@ -458,6 +519,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         days,
         provider_filter: providerFilter,
+        granularity,
+        date_from: since.slice(0, 10),
+        date_to: until.slice(0, 10),
         total_calls: rows.length,
         total_input_tokens: totalInputTokens,
         total_output_tokens: totalOutputTokens,
@@ -468,6 +532,7 @@ export async function POST(req: NextRequest) {
         by_provider: byProvider,
         by_api_key: byApiKey,
         by_day: byDay,
+        time_buckets: timeBuckets,
         platform_costs: {
           total: Number(platformTotal.toFixed(2)),
           entries: (platformRows || []).length,
