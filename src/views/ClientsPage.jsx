@@ -172,7 +172,7 @@ export default function ClientsPage() {
         toast.error(enforceData.reason || 'Client limit reached — upgrade your plan')
         return
       }
-      const { error } = await supabase.from('clients').insert({
+      const { data: newClient, error } = await supabase.from('clients').insert({
         name:          form.name.trim(),
         email:         form.email.trim() || null,
         phone:         form.phone.trim() || null,
@@ -201,6 +201,24 @@ export default function ClientsPage() {
           toast.error(error.message)
         }
         return
+      }
+
+      // Fire-and-forget auto-provisioning for voice onboarding.
+      // Creates the onboarding_tokens row + orders a Telnyx number
+      // with a 4-digit PIN. Never blocks the UI — if Telnyx is down
+      // or there's no onboarding agent configured, the client was
+      // still created successfully and provisioning can be retried
+      // later from /test-data → Bulk Voice Onboarding Setup.
+      if (newClient?.id) {
+        fetch('/api/onboarding/telnyx-provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'init_client_onboarding',
+            client_id: newClient.id,
+            agency_id: agencyId,
+          }),
+        }).catch((e) => console.warn('[auto-provision] failed:', e?.message))
       }
       // Update with extra fields
       if (form.phone || form.website || form.industry || form.status !== 'active') {

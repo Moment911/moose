@@ -55,6 +55,96 @@ export default function TestDataPage() {
   const [discoResult, setDiscoResult] = useState(null)
   const [discoDeleting, setDiscoDeleting] = useState(false)
 
+  // ── Bulk Voice Onboarding Setup state ──────────────────────────────
+  const [bulkDryRun, setBulkDryRun] = useState(null)
+  const [bulkRunning, setBulkRunning] = useState(false)
+  const [bulkResults, setBulkResults] = useState(null)
+  const [bulkLog, setBulkLog] = useState([])
+  const [fixingTokens, setFixingTokens] = useState(false)
+
+  async function fixMissingTokens() {
+    setFixingTokens(true)
+    try {
+      const res = await fetch('/api/onboarding/telnyx-provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fix_missing_tokens', agency_id: aid }),
+      })
+      const data = await res.json()
+      if (data?.error) {
+        toast.error(data.error)
+        setBulkLog((prev) => [`✗ fix_missing_tokens: ${data.error}`, ...prev])
+      } else {
+        toast.success(`Created ${data.created} onboarding tokens (${data.skipped} already existed)`)
+        setBulkLog((prev) => [
+          `✓ Created ${data.created} onboarding tokens · ${data.skipped} already existed · ${data.total_checked} clients checked`,
+          ...prev,
+        ])
+      }
+    } catch (e) {
+      toast.error(e?.message || 'Fix tokens failed')
+    } finally {
+      setFixingTokens(false)
+    }
+  }
+
+  async function bulkDryRunCheck() {
+    try {
+      const res = await fetch('/api/onboarding/telnyx-provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bulk_provision', agency_id: aid, dry_run: true }),
+      })
+      const data = await res.json()
+      if (data?.error) {
+        toast.error(data.error)
+        return
+      }
+      setBulkDryRun(data)
+    } catch (e) {
+      toast.error(e?.message || 'Dry run failed')
+    }
+  }
+
+  async function bulkProvisionRun() {
+    if (!bulkDryRun || bulkDryRun.total === 0) return
+    setBulkRunning(true)
+    setBulkResults(null)
+    setBulkLog([`Starting bulk provision for ${bulkDryRun.would_process || bulkDryRun.total} clients…`])
+    try {
+      const res = await fetch('/api/onboarding/telnyx-provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bulk_provision', agency_id: aid, dry_run: false }),
+      })
+      const data = await res.json()
+      setBulkResults(data)
+      if (data?.error) {
+        setBulkLog((prev) => [`✗ ${data.error}`, ...prev])
+      } else {
+        // Prepend each result line to the log in order
+        const lines = (data.results || []).map((r) =>
+          r.status === 'provisioned'
+            ? `✓ ${r.client_name} — ${r.phone_number} · PIN ${r.pin}`
+            : `✗ ${r.client_name} — ${r.error || 'failed'}`
+        )
+        const summary = `Done · ${data.provisioned} provisioned · ${data.failed} failed · ~$${(data.estimated_monthly_cost || 0).toFixed(2)}/mo`
+        const moreNote = data.has_more ? `⚠️  ${data.remaining} more clients remain — click again to continue` : ''
+        setBulkLog((prev) => [summary, ...(moreNote ? [moreNote] : []), ...lines.reverse(), ...prev])
+        if (data.has_more) {
+          // Refresh dry-run counter so the UI reflects what's left
+          bulkDryRunCheck()
+        } else {
+          setBulkDryRun(null)
+        }
+      }
+    } catch (e) {
+      setBulkLog((prev) => [`✗ ${e?.message || 'bulk provision failed'}`, ...prev])
+    } finally {
+      setBulkRunning(false)
+    }
+  }
+
   // ── Voice Onboarding Test state ────────────────────────────────────
   const [voiceTestLog, setVoiceTestLog] = useState([])
   const [voiceTestLoading, setVoiceTestLoading] = useState(false)
@@ -574,6 +664,187 @@ export default function TestDataPage() {
                   <Trash2 size={13} /> Delete Test Engagement
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Bulk Voice Onboarding Setup ── */}
+        <div style={card}>
+          <div style={cardHeader}>
+            <Phone size={16} color="#dc2626" />
+            <span>Bulk Voice Onboarding Setup</span>
+            <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: '#fef2f2', color: '#991b1b', letterSpacing: '.06em' }}>
+              SPENDS MONEY
+            </span>
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>
+            Provision Telnyx numbers and 4-digit PINs for every client that doesn't have one yet. Runs in three steps.
+          </div>
+
+          {/* Step 1 — Fix tokens */}
+          <div style={{ background: '#f9f9f9', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 4 }}>
+              Step 1 — Fix onboarding URLs
+            </div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 10, lineHeight: 1.5 }}>
+              Creates <code style={{ background: '#eef', padding: '1px 5px', borderRadius: 4 }}>/onboard/[client-id]</code> links for any clients missing an onboarding_tokens row. Free — no Telnyx calls.
+            </div>
+            <button
+              onClick={fixMissingTokens}
+              disabled={fixingTokens}
+              style={{
+                padding: '8px 16px',
+                background: C.teal,
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: fixingTokens ? 'default' : 'pointer',
+                opacity: fixingTokens ? 0.6 : 1,
+                fontFamily: 'inherit',
+              }}
+            >
+              {fixingTokens ? 'Fixing…' : 'Fix Missing Tokens'}
+            </button>
+          </div>
+
+          {/* Step 2 — Dry run */}
+          <div style={{ background: '#f9f9f9', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 4 }}>
+              Step 2 — Preview how many clients need numbers
+            </div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 10, lineHeight: 1.5 }}>
+              Counts clients without <code>onboarding_phone</code> (excluding test/simulation clients) and estimates monthly cost. No provisioning happens.
+            </div>
+            <button
+              onClick={bulkDryRunCheck}
+              style={{
+                padding: '8px 16px',
+                background: C.mutedDark,
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Check How Many Need Numbers
+            </button>
+            {bulkDryRun && (
+              <div style={{
+                marginTop: 12,
+                padding: '10px 14px',
+                background: '#fff',
+                borderRadius: 8,
+                border: `1px solid ${C.border}`,
+                fontSize: 13,
+                color: C.text,
+              }}>
+                <strong>{bulkDryRun.total}</strong> clients need numbers
+                {bulkDryRun.total > 0 && (
+                  <>
+                    {' · Estimated cost: '}
+                    <strong>${(bulkDryRun.estimated_monthly_cost || 0).toFixed(2)}/month</strong>
+                  </>
+                )}
+                {bulkDryRun.total > (bulkDryRun.capped_per_call || 25) && (
+                  <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>
+                    This run will process <strong>{bulkDryRun.would_process}</strong> at a time — you'll need to click provision multiple times to complete all {bulkDryRun.total}.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Step 3 — Provision */}
+          {bulkDryRun && bulkDryRun.total > 0 && (
+            <div style={{
+              background: '#fffbeb',
+              border: '1px solid #f59e0b40',
+              borderRadius: 10,
+              padding: 14,
+              marginBottom: 12,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 4 }}>
+                Step 3 — Provision
+              </div>
+              <div style={{ fontSize: 12, color: '#92400e', marginBottom: 10, lineHeight: 1.55 }}>
+                ⚠️ This orders real Telnyx numbers at ~$1/month each. Total exposure:{' '}
+                <strong>${(bulkDryRun.estimated_monthly_cost || 0).toFixed(2)}/month</strong>. Each number is released automatically when onboarding completes.
+              </div>
+              <button
+                onClick={bulkProvisionRun}
+                disabled={bulkRunning}
+                style={{
+                  padding: '10px 22px',
+                  background: '#dc2626',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 800,
+                  cursor: bulkRunning ? 'default' : 'pointer',
+                  opacity: bulkRunning ? 0.7 : 1,
+                  fontFamily: 'inherit',
+                }}
+              >
+                {bulkRunning
+                  ? '⏳ Provisioning…'
+                  : `📞 Provision ${bulkDryRun.would_process || bulkDryRun.total} Numbers`}
+              </button>
+            </div>
+          )}
+
+          {/* Summary + log */}
+          {bulkResults && !bulkResults.error && (
+            <div style={{
+              marginBottom: 12,
+              padding: '10px 14px',
+              background: bulkResults.failed > 0 ? '#fffbeb' : '#f0fdf4',
+              border: `1px solid ${bulkResults.failed > 0 ? '#fde68a' : '#bbf7d0'}`,
+              borderRadius: 8,
+              fontSize: 12,
+              color: bulkResults.failed > 0 ? '#92400e' : '#166534',
+            }}>
+              <strong>
+                {bulkResults.provisioned} provisioned · {bulkResults.failed} failed
+              </strong>
+              {' · '}${(bulkResults.estimated_monthly_cost || 0).toFixed(2)}/mo added
+              {bulkResults.has_more && (
+                <> · <strong>{bulkResults.remaining}</strong> remaining — run again to continue</>
+              )}
+            </div>
+          )}
+
+          {bulkLog.length > 0 && (
+            <div style={{
+              background: '#0d1117',
+              borderRadius: 10,
+              padding: '10px 14px',
+              fontFamily: 'ui-monospace,monospace',
+              fontSize: 11,
+              color: '#c9d1d9',
+              maxHeight: 240,
+              overflowY: 'auto',
+              lineHeight: 1.6,
+            }}>
+              {bulkLog.map((line, i) => (
+                <div
+                  key={i}
+                  style={{
+                    color: line.startsWith('✓') ? '#00ff88'
+                      : line.startsWith('✗') ? '#ff4444'
+                      : line.startsWith('⚠️') ? '#fbbf24'
+                      : '#c9d1d9',
+                    marginBottom: 2,
+                  }}
+                >
+                  {line}
+                </div>
+              ))}
             </div>
           )}
         </div>

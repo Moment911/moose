@@ -346,8 +346,230 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 
+// Claim the full 300s Vercel function budget. The bulk_provision
+// handler can take up to ~225s for 25 sequential provisions, so we
+// need more than the 60s default. This also benefits the
+// single-client provision path which occasionally hits ~10s when
+// Telnyx is slow to register a new number.
+export const maxDuration = 300
+
 // ─────────────────────────────────────────────────────────────
-// POST handler — provision + release
+// Helpers used by bulk_provision, init_client_onboarding, and
+// the single provision action. Keep these close to the POST
+// handler so the call sites don't need to import anything else.
+// ─────────────────────────────────────────────────────────────
+
+// Pulls the 3-digit US area code from a free-form phone string.
+// Returns null for anything that doesn't look like a valid US
+// number so the caller falls back to the default area code list.
+function extractAreaCodeFromPhone(phone: string | null | undefined): string | null {
+  if (!phone) return null
+  const digits = String(phone).replace(/\D/g, '')
+  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1, 4)
+  if (digits.length === 10) return digits.slice(0, 3)
+  return null
+}
+
+// Creates an onboarding_tokens row for a client if missing. Uses
+// the client id as the token value so /onboard/:client_id always
+// resolves via the UUID-aware resolver in src/lib/supabase.js.
+// Returns { created: boolean } so callers can count new rows.
+async function ensureOnboardingToken(
+  s: any,
+  clientId: string,
+  agencyId: string,
+): Promise<{ created: boolean; error?: string }> {
+  try {
+    const { data: existing } = await s
+      .from('onboarding_tokens')
+      .select('id')
+      .eq('client_id', clientId)
+      .maybeSingle()
+    if (existing) return { created: false }
+
+    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    const { error } = await s.from('onboarding_tokens').insert({
+      client_id: clientId,
+      agency_id: agencyId,
+      token: clientId, // resolver accepts client_id directly too
+      expires_at: expiresAt,
+    })
+    if (error) return { created: false, error: error.message }
+    return { created: true }
+  } catch (e: any) {
+    return { created: false, error: e?.message || 'ensureOnboardingToken failed' }
+  }
+}
+
+// The entire provision flow for one client, returned as a plain
+// object instead of a NextResponse. Used by:
+//   - action='provision'           (single client)
+//   - action='init_client_onboarding' (post-insert hook)
+//   - action='bulk_provision'      (batch loop)
+//
+// Idempotent: if the client already has an active, non-expired
+// assignment, returns the existing details without spending more
+// Telnyx money. Rolls back Telnyx + Retell state on failure.
+async function provisionOneClient(
+  s: any,
+  args: { client_id: string; agency_id: string; area_code?: string | null },
+): Promise<any> {
+  const { client_id, agency_id, area_code } = args
+
+  if (!getApiKey()) {
+    return { ok: false, error: 'TELNYX_API_KEY not configured' }
+  }
+
+  // Short-circuit if already assigned + not expired
+  const { data: existing } = await s
+    .from('clients')
+    .select('onboarding_phone, onboarding_phone_display, onboarding_pin, onboarding_phone_expires_at')
+    .eq('id', client_id)
+    .maybeSingle()
+
+  if (
+    existing?.onboarding_phone &&
+    existing?.onboarding_pin &&
+    existing.onboarding_phone_expires_at &&
+    new Date(existing.onboarding_phone_expires_at) > new Date()
+  ) {
+    return {
+      ok: true,
+      already_assigned: true,
+      phone_number: existing.onboarding_phone,
+      display_number: existing.onboarding_phone_display,
+      pin: existing.onboarding_pin,
+      expires_at: existing.onboarding_phone_expires_at,
+    }
+  }
+
+  // 1. Find an available number
+  const areaCodesToTry: (string | null)[] = area_code
+    ? [area_code, '800', null]
+    : ['561', '305', '954', '800', null]
+
+  let selectedNumber: string | null = null
+  for (const ac of areaCodesToTry) {
+    selectedNumber = await searchAvailableNumber(ac)
+    if (selectedNumber) break
+  }
+  if (!selectedNumber) {
+    return { ok: false, error: 'No phone numbers available from Telnyx' }
+  }
+
+  // 2. Order it
+  const { orderId, error: orderError } = await orderNumber(selectedNumber)
+  if (orderError) {
+    return { ok: false, error: orderError }
+  }
+
+  // 3. Wait for Telnyx to process, fetch the phone number id
+  await new Promise((r) => setTimeout(r, 2000))
+  const phoneNumberId = await fetchPhoneNumberId(selectedNumber)
+  if (!phoneNumberId) {
+    return {
+      ok: false,
+      error: 'Number ordered but could not retrieve id from Telnyx. Check dashboard.',
+      ordered_number: selectedNumber,
+      order_id: orderId,
+    }
+  }
+
+  // 4. Assign Telnyx voice connection (route → Retell BYOC trunk)
+  const connectionOk = await assignConnection(phoneNumberId)
+
+  // 5. Import into Retell
+  const connectionId = getConnectionId()
+  const retellImport = await retellImportCarrierNumber({
+    phoneNumber: selectedNumber,
+    connectionId,
+  })
+  if (!retellImport.ok) {
+    await deleteNumber(phoneNumberId).catch(() => {})
+    return {
+      ok: false,
+      error: `Retell import failed: ${retellImport.error}. Telnyx order rolled back.`,
+    }
+  }
+
+  // 6. Bind the agency's onboarding agent to the imported number
+  const { data: agency } = await s
+    .from('agencies')
+    .select('onboarding_agent_id, brand_name, name')
+    .eq('id', agency_id)
+    .maybeSingle()
+
+  const inboundAgentId = (agency as any)?.onboarding_agent_id || null
+  let agentAssignOk = false
+  let agentAssignError: string | null = null
+  if (inboundAgentId) {
+    const assignRes = await retellAssignAgent({
+      phoneNumber: selectedNumber,
+      inboundAgentId,
+    })
+    agentAssignOk = assignRes.ok
+    agentAssignError = assignRes.error
+  } else {
+    agentAssignError = 'No onboarding agent configured for this agency — create one in Agency Settings.'
+  }
+
+  // 7. Generate PIN + persist everything
+  const pin = generatePin()
+  const displayNumber = formatDisplayNumber(selectedNumber)
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { error: poolError } = await s.from('koto_onboarding_phone_pool').insert({
+    phone_number: selectedNumber,
+    display_number: displayNumber,
+    telnyx_phone_id: phoneNumberId,
+    telnyx_order_id: orderId,
+    connection_id: connectionId,
+    provider: 'telnyx',
+    status: 'assigned',
+    assigned_to_client_id: client_id,
+    assigned_to_agency_id: agency_id,
+    assigned_at: new Date().toISOString(),
+    expires_at: expiresAt,
+    total_assignments: 1,
+  })
+
+  if (poolError) {
+    // Roll back everything — no orphans on either side
+    await retellDeletePhoneNumber(selectedNumber).catch(() => {})
+    await deleteNumber(phoneNumberId).catch(() => {})
+    return { ok: false, error: 'Failed to save pool entry: ' + poolError.message }
+  }
+
+  await s
+    .from('clients')
+    .update({
+      onboarding_phone: selectedNumber,
+      onboarding_phone_display: displayNumber,
+      onboarding_pin: pin,
+      onboarding_phone_assigned_at: new Date().toISOString(),
+      onboarding_phone_expires_at: expiresAt,
+    })
+    .eq('id', client_id)
+
+  return {
+    ok: true,
+    phone_number: selectedNumber,
+    display_number: displayNumber,
+    pin,
+    telnyx_phone_id: phoneNumberId,
+    telnyx_order_id: orderId,
+    connection_id: connectionId,
+    connection_assigned: connectionOk,
+    retell_imported: retellImport.ok,
+    retell_agent_id: inboundAgentId,
+    agent_assigned: agentAssignOk,
+    agent_assign_error: agentAssignError,
+    expires_at: expiresAt,
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// POST handler — provision + release + bulk + init + tokens
 // ─────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
@@ -425,169 +647,203 @@ export async function POST(req: NextRequest) {
       if (!client_id || !agency_id) {
         return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
       }
+      const result = await provisionOneClient(s, { client_id, agency_id, area_code })
+      if (result.ok) return NextResponse.json(result)
+      return NextResponse.json(result, { status: 500 })
+    }
+
+    // ── init_client_onboarding ─────────────────────────────────
+    // One-shot helper called after a new client is created. Does
+    // two things: creates an onboarding_tokens row if missing, and
+    // fires provisioning (unless the client is tagged is_test /
+    // is_simulation in source_meta — we never spend real money on
+    // test data). Fire-and-forget from the caller's perspective.
+    if (action === 'init_client_onboarding') {
+      if (!client_id || !agency_id) {
+        return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+      }
+
+      const { data: client } = await s
+        .from('clients')
+        .select('id, name, agency_id, source_meta, phone')
+        .eq('id', client_id)
+        .maybeSingle()
+
+      if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+      const sm = (client as any).source_meta || {}
+      const isTest = sm?.is_test === true || sm?.is_simulation === true
+      if (isTest) {
+        return NextResponse.json({
+          ok: true,
+          skipped: true,
+          reason: 'test_client',
+          message: 'Test/simulation client — skipping auto-provision',
+        })
+      }
+
+      // Ensure the onboarding token exists so the /onboard/:id link
+      // resolves even if provisioning fails.
+      await ensureOnboardingToken(s, client_id, agency_id)
+
+      // Figure out a preferred area code from the client's phone
+      // if we have one — keeps the assigned number in the same
+      // geography when possible.
+      const ac = extractAreaCodeFromPhone((client as any).phone)
+      const result = await provisionOneClient(s, {
+        client_id,
+        agency_id,
+        area_code: ac || null,
+      })
+
+      return NextResponse.json(result)
+    }
+
+    // ── bulk_provision ─────────────────────────────────────────
+    // Iterates over every client for an agency missing an
+    // onboarding_phone and provisions one sequentially.
+    //
+    // dry_run=true: returns { total, estimated_monthly_cost } with
+    // zero side effects — safe preview before spending money.
+    //
+    // Real run: capped at 25 clients per invocation to stay under
+    // the Vercel 300s function limit (each provision averages ~9s
+    // including the 800ms inter-request delay). Returns has_more
+    // when more clients remain so the UI can call again.
+    if (action === 'bulk_provision') {
+      if (!agency_id) {
+        return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      }
+
+      const dryRun = !!body.dry_run
+      const MAX_PER_CALL = 25
+
+      // Find candidates — clients with no onboarding_phone, not
+      // deleted, not tagged as test/simulation.
+      const { data: candidates } = await s
+        .from('clients')
+        .select('id, name, phone, source_meta, onboarding_phone, deleted_at')
+        .eq('agency_id', agency_id)
+        .is('onboarding_phone', null)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true })
+
+      const filtered = (candidates || []).filter((c: any) => {
+        const sm = c.source_meta || {}
+        return !(sm.is_test === true || sm.is_simulation === true)
+      })
+
+      const total = filtered.length
+
+      if (dryRun) {
+        return NextResponse.json({
+          total,
+          estimated_monthly_cost: total * 1.00,
+          capped_per_call: MAX_PER_CALL,
+          would_process: Math.min(total, MAX_PER_CALL),
+        })
+      }
+
       if (!getApiKey()) {
         return NextResponse.json({ error: 'TELNYX_API_KEY not configured' }, { status: 500 })
       }
 
-      // If this client already has an active assignment, return it
-      // instead of buying another number.
-      const { data: existing } = await s
-        .from('clients')
-        .select('onboarding_phone, onboarding_phone_display, onboarding_pin, onboarding_phone_expires_at')
-        .eq('id', client_id)
-        .maybeSingle()
+      const scoped = filtered.slice(0, MAX_PER_CALL)
+      const results: any[] = []
+      let provisioned = 0
+      let failed = 0
+      let skipped = 0
 
-      if (
-        existing?.onboarding_phone &&
-        existing?.onboarding_pin &&
-        existing.onboarding_phone_expires_at &&
-        new Date(existing.onboarding_phone_expires_at) > new Date()
-      ) {
-        return NextResponse.json({
-          ok: true,
-          already_assigned: true,
-          phone_number: existing.onboarding_phone,
-          display_number: existing.onboarding_phone_display,
-          pin: existing.onboarding_pin,
-          expires_at: existing.onboarding_phone_expires_at,
-        })
+      for (let i = 0; i < scoped.length; i++) {
+        const c: any = scoped[i]
+        try {
+          // Ensure token exists for every client we touch
+          await ensureOnboardingToken(s, c.id, agency_id)
+
+          const ac = extractAreaCodeFromPhone(c.phone)
+          const r = await provisionOneClient(s, {
+            client_id: c.id,
+            agency_id,
+            area_code: ac || null,
+          })
+
+          if (r.ok && !r.error) {
+            provisioned += 1
+            results.push({
+              client_id: c.id,
+              client_name: c.name,
+              status: 'provisioned',
+              phone_number: r.display_number || r.phone_number,
+              pin: r.pin,
+            })
+          } else {
+            failed += 1
+            results.push({
+              client_id: c.id,
+              client_name: c.name,
+              status: 'failed',
+              error: r.error || 'unknown error',
+            })
+          }
+        } catch (e: any) {
+          failed += 1
+          results.push({
+            client_id: c.id,
+            client_name: c.name,
+            status: 'failed',
+            error: e?.message || 'exception',
+          })
+        }
+
+        // 800ms delay between calls to stay under Telnyx rate limits
+        if (i < scoped.length - 1) {
+          await new Promise((r) => setTimeout(r, 800))
+        }
       }
-
-      // 1. Find an available number — try the preferred area code
-      // first, then a short list of common US ones, then any.
-      const areaCodesToTry: (string | null)[] = area_code
-        ? [area_code, '800', null]
-        : ['561', '305', '954', '800', null]
-
-      let selectedNumber: string | null = null
-      for (const ac of areaCodesToTry) {
-        selectedNumber = await searchAvailableNumber(ac)
-        if (selectedNumber) break
-      }
-
-      if (!selectedNumber) {
-        return NextResponse.json({ error: 'No phone numbers available from Telnyx' }, { status: 500 })
-      }
-
-      // 2. Order it
-      const { orderId, error: orderError } = await orderNumber(selectedNumber)
-      if (orderError) {
-        return NextResponse.json({ error: orderError }, { status: 500 })
-      }
-
-      // 3. Wait for Telnyx to process, then fetch the phone number id
-      await new Promise((r) => setTimeout(r, 2000))
-      const phoneNumberId = await fetchPhoneNumberId(selectedNumber)
-      if (!phoneNumberId) {
-        return NextResponse.json({
-          error: 'Number ordered but could not retrieve id from Telnyx. Check the Telnyx dashboard and try again.',
-          ordered_number: selectedNumber,
-          order_id: orderId,
-        }, { status: 500 })
-      }
-
-      // 4. Assign to the Telnyx voice connection so Telnyx routes
-      // the call into the Retell BYOC trunk. Not fatal if it fails —
-      // the agency can fix it from the Telnyx dashboard.
-      const connectionOk = await assignConnection(phoneNumberId)
-
-      // 5. Import the number into Retell via the BYOC path. This is
-      // the step that tells Retell the number exists. Without it,
-      // Retell will 404 on any inbound call to the number.
-      const connectionId = getConnectionId()
-      const retellImport = await retellImportCarrierNumber({
-        phoneNumber: selectedNumber,
-        connectionId,
-      })
-      if (!retellImport.ok) {
-        // Retell import failed — roll back the Telnyx order so we
-        // don't leave an orphan number on the account.
-        await deleteNumber(phoneNumberId).catch(() => {})
-        return NextResponse.json({
-          error: `Retell import failed: ${retellImport.error}. Telnyx order was rolled back.`,
-        }, { status: 500 })
-      }
-
-      // 6. Look up the agency's onboarding agent and assign it to
-      // the imported number so inbound calls actually route to our
-      // webhook. If no onboarding agent exists yet, the provision
-      // still succeeds but we return a warning so the agency knows
-      // to click "Create Retell Onboarding Agent" in Agency Settings
-      // and retry.
-      const { data: agency } = await s
-        .from('agencies')
-        .select('onboarding_agent_id, brand_name, name')
-        .eq('id', agency_id)
-        .maybeSingle()
-
-      const inboundAgentId = agency?.onboarding_agent_id || null
-      let agentAssignOk = false
-      let agentAssignError: string | null = null
-      if (inboundAgentId) {
-        const assignRes = await retellAssignAgent({
-          phoneNumber: selectedNumber,
-          inboundAgentId,
-        })
-        agentAssignOk = assignRes.ok
-        agentAssignError = assignRes.error
-      } else {
-        agentAssignError = 'No onboarding agent configured for this agency — create one in Agency Settings → Onboarding → Voice Onboarding, then release and re-provision this number.'
-      }
-
-      // 7. Generate PIN + save everything
-      const pin = generatePin()
-      const displayNumber = formatDisplayNumber(selectedNumber)
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-
-      const { error: poolError } = await s.from('koto_onboarding_phone_pool').insert({
-        phone_number: selectedNumber,
-        display_number: displayNumber,
-        telnyx_phone_id: phoneNumberId,
-        telnyx_order_id: orderId,
-        connection_id: connectionId,
-        provider: 'telnyx',
-        status: 'assigned',
-        assigned_to_client_id: client_id,
-        assigned_to_agency_id: agency_id,
-        assigned_at: new Date().toISOString(),
-        expires_at: expiresAt,
-        total_assignments: 1,
-      })
-
-      if (poolError) {
-        // Pool write failed — roll back both Retell and Telnyx so we
-        // don't leave orphans on either side.
-        await retellDeletePhoneNumber(selectedNumber).catch(() => {})
-        await deleteNumber(phoneNumberId).catch(() => {})
-        return NextResponse.json({ error: 'Failed to save pool entry: ' + poolError.message }, { status: 500 })
-      }
-
-      await s
-        .from('clients')
-        .update({
-          onboarding_phone: selectedNumber,
-          onboarding_phone_display: displayNumber,
-          onboarding_pin: pin,
-          onboarding_phone_assigned_at: new Date().toISOString(),
-          onboarding_phone_expires_at: expiresAt,
-        })
-        .eq('id', client_id)
 
       return NextResponse.json({
-        ok: true,
-        phone_number: selectedNumber,
-        display_number: displayNumber,
-        pin,
-        telnyx_phone_id: phoneNumberId,
-        telnyx_order_id: orderId,
-        connection_id: connectionId,
-        connection_assigned: connectionOk,
-        retell_imported: retellImport.ok,
-        retell_agent_id: inboundAgentId,
-        agent_assigned: agentAssignOk,
-        agent_assign_error: agentAssignError,
-        expires_at: expiresAt,
+        total,
+        processed: scoped.length,
+        provisioned,
+        failed,
+        skipped,
+        has_more: filtered.length > MAX_PER_CALL,
+        remaining: Math.max(0, filtered.length - MAX_PER_CALL),
+        results,
+        estimated_monthly_cost: provisioned * 1.00,
       })
+    }
+
+    // ── fix_missing_tokens ─────────────────────────────────────
+    // Creates onboarding_tokens rows for any clients in this
+    // agency that don't have one. No Telnyx calls — cheap.
+    // Uses client.id as the token value so /onboard/:client_id
+    // always resolves.
+    if (action === 'fix_missing_tokens') {
+      if (!agency_id) {
+        return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+      }
+
+      const { data: clients } = await s
+        .from('clients')
+        .select('id, agency_id, source_meta')
+        .eq('agency_id', agency_id)
+        .is('deleted_at', null)
+
+      const eligible = (clients || []).filter((c: any) => {
+        const sm = c.source_meta || {}
+        return !(sm.is_test === true || sm.is_simulation === true)
+      })
+
+      let created = 0
+      let skipped = 0
+      for (const c of eligible) {
+        const result = await ensureOnboardingToken(s, (c as any).id, agency_id)
+        if (result.created) created += 1
+        else skipped += 1
+      }
+
+      return NextResponse.json({ created, skipped, total_checked: eligible.length })
     }
 
     // ── release ────────────────────────────────────────────────
