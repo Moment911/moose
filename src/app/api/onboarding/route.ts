@@ -975,12 +975,25 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Get onboarding status for all clients ────────────────────────────────
+    // Returns the full client row under `profile` so the dashboard can
+    // compute completion % against dedicated columns AND the jsonb
+    // onboarding_answers spillover in one place. Uses select('*') so we
+    // don't break when optional columns (first_name, business_description,
+    // brand_tone, etc.) aren't present on this install.
     if (action === 'status') {
       const { data: clients } = await sb.from('clients')
-        .select('id,name,email,status,onboarding_sent_at,onboarding_completed_at,onboarding_status')
+        .select('*')
         .eq('agency_id', agency_id)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
-      return NextResponse.json({ clients: clients || [] })
+
+      return NextResponse.json({
+        clients: (clients || []).map((c: any) => ({
+          ...c,
+          profile: c, // the client row IS the profile
+          onboarding_data: c.onboarding_answers || {},
+        })),
+      })
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

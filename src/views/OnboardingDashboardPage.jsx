@@ -52,16 +52,43 @@ const REQUIRED_FIELDS = [
   { key:'budget_for_agency',    label:'Monthly Budget',            step:12 },
 ]
 
-function getMissing(profile) {
-  if (!profile) return REQUIRED_FIELDS.map(f => ({ ...f }))
+// Treat a value as present when it's a non-empty string or non-empty array.
+function hasVal(v) {
+  if (v === null || v === undefined) return false
+  if (Array.isArray(v)) return v.length > 0
+  return String(v).trim().length > 0
+}
+
+// Some REQUIRED_FIELDS keys don't map 1:1 to real client columns —
+// business_name is stored in clients.name, first_name / last_name are
+// derived from owner_name, business_description spills into notes or
+// onboarding_answers, etc. This function checks dedicated columns first
+// and then falls back to the onboarding_answers jsonb.
+function getMissing(client) {
+  if (!client) return REQUIRED_FIELDS.map(f => ({ ...f }))
+  const answers = client.onboarding_answers || client.onboarding_data || {}
+
   return REQUIRED_FIELDS.filter(f => {
-    const v = profile[f.key]
-    return !v || (Array.isArray(v) ? v.length === 0 : v.toString().trim() === '')
+    // 1. Dedicated column on the clients row
+    if (hasVal(client[f.key])) return false
+
+    // 2. Spillover jsonb (set by the onboarding autosave action)
+    if (hasVal(answers[f.key])) return false
+
+    // 3. Field-specific fallbacks — tolerant of schema drift
+    if (f.key === 'business_name' && hasVal(client.name)) return false
+    if (f.key === 'business_description' && (hasVal(client.notes) || hasVal(client.welcome_statement))) return false
+    if (f.key === 'first_name' && hasVal(client.owner_name)) return false
+    if (f.key === 'last_name' && client.owner_name?.includes?.(' ')) return false
+    if (f.key === 'primary_city' && hasVal(client.city)) return false
+    if (f.key === 'primary_goal' && hasVal(client.notes)) return false
+
+    return true
   })
 }
 
-function pct(profile) {
-  const miss = getMissing(profile)
+function pct(client) {
+  const miss = getMissing(client)
   return Math.round(((REQUIRED_FIELDS.length - miss.length) / REQUIRED_FIELDS.length) * 100)
 }
 
@@ -295,8 +322,11 @@ export default function OnboardingDashboardPage() {
   }
 
   function copyLink(client) {
-    if (!client.onboarding_token) { sendLink(client); return }
-    const url = `${window.location.origin}/onboarding/${client.onboarding_token}`
+    // The OnboardingPage resolver accepts the bare client id as the token,
+    // so this works even when the client has never had a separate
+    // onboarding_tokens row generated (common for clients created via the
+    // convert-from-Scout flow).
+    const url = `${window.location.origin}/onboard/${client.id}`
     navigator.clipboard.writeText(url)
     toast.success('Onboarding link copied!')
   }
@@ -332,10 +362,10 @@ export default function OnboardingDashboardPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
+              <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:BLK, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Users size={18} color={TEAL}/> Client Onboarding
               </div>
-              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 Send links, track completion, view profiles — {completionRate}% complete
               </div>
             </div>
@@ -346,7 +376,7 @@ export default function OnboardingDashboardPage() {
                 <Plus size={14}/> Send New Link
               </button>
               <button onClick={load}
-                style={{ padding:'9px 10px', borderRadius:9, border:'1px solid rgba(255,255,255,.1)', background:'transparent', color:'#999999', cursor:'pointer' }}>
+                style={{ padding:'9px 10px', borderRadius:9, border:'1px solid #e5e7eb', background:'#fff', color:'#6b7280', cursor:'pointer' }}>
                 <RefreshCw size={13}/>
               </button>
             </div>
@@ -427,9 +457,11 @@ export default function OnboardingDashboardPage() {
                 const cfg        = STATUS_CFG[status] || STATUS_CFG.not_sent
                 const Icon       = cfg.icon
                 const isSending  = sending[cl.id]
-                const profile    = cl.profile || cl.onboarding_data || {}
-                const missing    = getMissing(profile)
-                const completion = pct(profile)
+                // `cl` is the full client row since the status API now
+                // spreads `...c, profile: c`. Compute completion against
+                // the client row + onboarding_answers fallback.
+                const missing    = getMissing(cl)
+                const completion = pct(cl)
                 const isExpanded = expanded[cl.id]
 
                 return (
@@ -500,12 +532,25 @@ export default function OnboardingDashboardPage() {
                         )}
 
                         {/* View profile */}
-                        <button onClick={() => navigate(`/client-profile/${cl.id}`)}
+                        <button onClick={() => navigate(`/clients/${cl.id}`)}
                           style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                           <Eye size={10}/> Profile
                         </button>
                       </div>
                     </div>
+
+                    {/* Voice onboarding line — show if client has a provisioned number */}
+                    {cl.onboarding_phone && (
+                      <div style={{ padding:'0 18px 10px', fontSize:11, color:'#6b7280', fontFamily:FB, display:'flex', alignItems:'center', gap:6 }}>
+                        📞 {cl.onboarding_phone_display || cl.onboarding_phone}
+                        {cl.onboarding_pin && (
+                          <>
+                            <span style={{ color:'#d1d5db' }}>·</span>
+                            PIN: <strong style={{ color:BLK, fontFamily:'monospace' }}>{cl.onboarding_pin}</strong>
+                          </>
+                        )}
+                      </div>
+                    )}
 
                     {/* Missing fields panel */}
                     {isExpanded && missing.length > 0 && (
