@@ -95,8 +95,19 @@ function TemplateField({ label, value, onChange, rows=6, aiContext='' }) {
 
 export default function PlatformAdminPage() {
   const navigate = useNavigate()
-  const { agencyId, firstName, agencyName, isOwner } = useAuth()
-  const [section, setSection] = useState('onboarding')
+  const { agencyId, firstName, agencyName, isOwner, isSuperAdmin, isImpersonating } = useAuth()
+
+  // Koto super admin (not impersonating) sees full platform controls.
+  // Agency owners see only their own settings + client permission controls.
+  const isPlatformLevel = isSuperAdmin && !isImpersonating
+
+  const visibleSections = isPlatformLevel
+    ? SECTIONS
+    : SECTIONS.filter(s => !['agencies', 'users', 'features'].includes(s.key)).concat([
+        { key: 'client_perms', label: 'Client Permissions', icon: Lock, desc: 'Control what your clients can see and access' },
+      ])
+
+  const [section, setSection] = useState(isPlatformLevel ? 'agencies' : 'client_perms')
   const [saving, setSaving]   = useState(false)
 
   // Agency features state
@@ -226,7 +237,7 @@ export default function PlatformAdminPage() {
           <div style={{ fontSize:13, color:'#374151', marginTop:2 }}>{agencyName}</div>
         </div>
         <nav style={{ flex:1, overflowY:'auto', padding:'10px 10px' }}>
-          {SECTIONS.map(s => {
+          {visibleSections.map(s => {
             const I = s.icon
             return (
               <button key={s.key} onClick={() => setSection(s.key)}
@@ -452,12 +463,16 @@ export default function PlatformAdminPage() {
           )}
 
           {/* ── ACCESS ── */}
-          {section === 'agencies' && (
+          {section === 'agencies' && isPlatformLevel && (
             <AgenciesPanel />
           )}
 
-          {section === 'users' && (
+          {section === 'users' && isPlatformLevel && (
             <UsersPanel />
+          )}
+
+          {section === 'client_perms' && !isPlatformLevel && (
+            <ClientPermissionsPanel agencyId={agencyId} />
           )}
 
           {section === 'access' && (
@@ -755,6 +770,141 @@ function UsersPanel() {
 
 const lbl = { display:'block', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4 }
 const inp = { width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, boxSizing:'border-box', background:'#fff' }
+
+/* ── Client Permissions Panel — agency owners control what clients see ─ */
+const CLIENT_PERM_FIELDS = [
+  { key:'can_view_pages', label:'View Pages' },
+  { key:'can_view_reviews', label:'View Reviews' },
+  { key:'can_view_reports', label:'View Reports' },
+  { key:'can_view_rankings', label:'View Rankings' },
+  { key:'can_view_tasks', label:'View Tasks' },
+  { key:'can_edit_tasks', label:'Edit Tasks' },
+  { key:'can_view_proposals', label:'View Proposals' },
+  { key:'can_view_billing', label:'View Billing' },
+  { key:'can_use_page_builder', label:'Use Page Builder' },
+  { key:'can_use_seo_hub', label:'Use SEO Hub' },
+  { key:'can_use_scout', label:'Use Scout' },
+  { key:'can_use_voice_agent', label:'Use Voice Agent' },
+  { key:'can_use_cmo_agent', label:'Use CMO Agent' },
+]
+
+function ClientPermissionsPanel({ agencyId }) {
+  const [clients, setClients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState(null)
+  const [perms, setPerms] = useState({})
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => { load() }, [agencyId])
+
+  async function load() {
+    setLoading(true)
+    const { data } = await supabase.from('clients').select('id, name, industry, status')
+      .eq('agency_id', agencyId).is('deleted_at', null).order('name')
+    setClients(data || [])
+    setLoading(false)
+  }
+
+  async function loadPerms(clientId) {
+    const res = await fetch(`/api/permissions?action=get_client_permissions&client_id=${clientId}&agency_id=${agencyId}`).then(r=>r.json())
+    setPerms(prev => ({ ...prev, [clientId]: res.permissions || res || {} }))
+  }
+
+  async function toggleExpand(clientId) {
+    if (expanded === clientId) { setExpanded(null); return }
+    setExpanded(clientId)
+    if (!perms[clientId]) await loadPerms(clientId)
+  }
+
+  function togglePerm(clientId, key) {
+    setPerms(prev => ({
+      ...prev,
+      [clientId]: { ...prev[clientId], [key]: !prev[clientId]?.[key] }
+    }))
+  }
+
+  async function savePerms(clientId) {
+    setSaving(true)
+    const clientPerms = perms[clientId] || {}
+    const updates = {}
+    CLIENT_PERM_FIELDS.forEach(f => { updates[f.key] = !!clientPerms[f.key] })
+    await fetch('/api/permissions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_client_permissions', client_id: clientId, agency_id: agencyId, permissions: updates }),
+    })
+    toast.success('Permissions saved')
+    setSaving(false)
+  }
+
+  async function enableAll(clientId) {
+    const all = {}
+    CLIENT_PERM_FIELDS.forEach(f => { all[f.key] = true })
+    setPerms(prev => ({ ...prev, [clientId]: { ...prev[clientId], ...all } }))
+  }
+
+  async function disableAll(clientId) {
+    const all = {}
+    CLIENT_PERM_FIELDS.forEach(f => { all[f.key] = false })
+    setPerms(prev => ({ ...prev, [clientId]: { ...prev[clientId], ...all } }))
+  }
+
+  if (loading) return <div style={{ padding:40, textAlign:'center', color:'#999' }}>Loading clients…</div>
+  if (clients.length === 0) return <div style={{ padding:40, textAlign:'center', color:'#999', fontSize:14 }}>No clients yet. Add clients from the Clients page first.</div>
+
+  return (
+    <div>
+      <div style={{ fontSize:16, fontWeight:800, color:'#111', marginBottom:4 }}>Client Access Control</div>
+      <div style={{ fontSize:13, color:'#6b7280', marginBottom:16 }}>Control what each of your clients can see and access when they log in.</div>
+
+      {clients.map(cl => {
+        const isExpanded = expanded === cl.id
+        const cp = perms[cl.id] || {}
+        const enabledCount = CLIENT_PERM_FIELDS.filter(f => cp[f.key]).length
+
+        return (
+          <div key={cl.id} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', marginBottom:8, overflow:'hidden' }}>
+            <button onClick={() => toggleExpand(cl.id)}
+              style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', border:'none', cursor:'pointer', background: isExpanded ? '#f9fafb' : '#fff', textAlign:'left' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <span style={{ fontSize:14, fontWeight:700, color:'#111' }}>{cl.name}</span>
+                {cl.industry && <span style={{ fontSize:11, color:'#6b7280' }}>{cl.industry}</span>}
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:12, color:'#6b7280' }}>{enabledCount}/{CLIENT_PERM_FIELDS.length} enabled</span>
+                <ChevronRight size={14} color="#9ca3af" style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition:'transform .15s' }}/>
+              </div>
+            </button>
+
+            {isExpanded && (
+              <div style={{ padding:'0 16px 16px', borderTop:'1px solid #f3f4f6' }}>
+                <div style={{ display:'flex', gap:8, padding:'12px 0', borderBottom:'1px solid #f3f4f6', marginBottom:12 }}>
+                  <button onClick={() => enableAll(cl.id)} style={{ fontSize:11, fontWeight:700, padding:'4px 12px', borderRadius:6, border:'1px solid #bbf7d0', background:'#f0fdf4', color:'#16a34a', cursor:'pointer' }}>Enable All</button>
+                  <button onClick={() => disableAll(cl.id)} style={{ fontSize:11, fontWeight:700, padding:'4px 12px', borderRadius:6, border:'1px solid #fecaca', background:'#fef2f2', color:'#dc2626', cursor:'pointer' }}>Disable All</button>
+                </div>
+
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                  {CLIENT_PERM_FIELDS.map(f => (
+                    <label key={f.key} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 10px', borderRadius:8, cursor:'pointer', background: cp[f.key] ? '#dcfce7' : '#f9fafb', border: cp[f.key] ? '1px solid #bbf7d0' : '1px solid #e5e7eb', transition:'all .15s' }}>
+                      <input type="checkbox" checked={!!cp[f.key]} onChange={() => togglePerm(cl.id, f.key)}
+                        style={{ accentColor:'#16a34a', width:16, height:16 }}/>
+                      <span style={{ fontSize:13, fontWeight:600, color: cp[f.key] ? '#111' : '#6b7280' }}>{f.label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <button onClick={() => savePerms(cl.id)} disabled={saving}
+                  style={{ display:'flex', alignItems:'center', gap:6, marginTop:14, padding:'8px 20px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                  {saving ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }}/> : <Save size={13}/>}
+                  Save Permissions
+                </button>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 /* ── Agency Features Panel (inline sub-component) ──────────────────────── */
 function AgencyFeaturesPanel({ agencies, setAgencies, expanded, setExpanded, featData, setFeatData, saving, setSaving }) {
