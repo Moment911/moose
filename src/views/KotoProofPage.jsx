@@ -303,16 +303,14 @@ export default function KotoProofPage() {
               {rounds.length > 0 && <span className="text-sm bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full font-medium">Round {rounds.length} of {maxRounds}</span>}
               {team.length > 0 && <span className="text-sm bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1"><Users size={10} />{team.length} member{team.length !== 1 ? 's' : ''}</span>}
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setShowAISummary(true)} disabled={allAnnotations.length === 0} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Wand2 size={13} /> AI Summary</button>
-              {/* Notify Agency removed - now only on client side */}
-              {project?.slack_channel_url && <a href={project.slack_channel_url} target="_blank" rel="noreferrer" className="btn-secondary text-sm"><MessageSquare size={13} strokeWidth={1.5} /> Slack</a>}
-              <button onClick={handleSendEmail} disabled={emailSending || totalOpen === 0} className="btn-secondary text-sm"><Send size={13} />{emailSending ? 'Sending\u2026' : 'Email Summary'}</button>
-              <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={13} /> Access</button>
-              <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={13} /> New Email</button>
-              <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><PenLine size={13} /> New Canvas</button>
-              <button onClick={() => navigate(`/esign/${resolvedProjectId}`)} className="btn-secondary text-sm" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={13} /> Proposal / Sign</button>
-              <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-sm"><Plus size={13} /> Upload File</button>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-sm"><Plus size={12} /> Upload</button>
+              <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={12} /> Access</button>
+              <button onClick={handleSendEmail} disabled={emailSending || totalOpen === 0} className="btn-secondary text-sm"><Send size={12} />{emailSending ? '…' : 'Email'}</button>
+              <button onClick={() => setShowAISummary(true)} disabled={allAnnotations.length === 0} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Wand2 size={12} /> AI</button>
+              <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><PenLine size={12} /> Canvas</button>
+              <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={12} /> Email</button>
+              <button onClick={() => navigate(`/esign/${resolvedProjectId}`)} className="btn-secondary text-sm" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={12} /> Sign</button>
             </div>
           </div>
         </div>
