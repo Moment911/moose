@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { parseNaturalLanguageQuery } from '@/lib/scoutQueryParser'
-import { runScoutSearch, generateOpeningLine } from '@/lib/scoutEngine'
+import { runScoutSearch, runScoutSweep, generateOpeningLine } from '@/lib/scoutEngine'
 
 function sb() {
   return createClient(
@@ -100,6 +100,81 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const action = body.action
     const s = sb()
+
+    // ── run_sweep ────────────────────────────────────────────────────────────
+    // Multi-city sweep mode. Instead of issuing a single query and capping at
+    // Google's ~60-result limit, this iterates every municipality in the
+    // target state (via Census API) and runs a search per city. Much slower
+    // but gives complete coverage. Use this for county-level or state-wide
+    // prospecting.
+    //
+    // Body: { action: 'run_sweep', query, state, agency_id,
+    //         industry_keywords?, industry_sic_code?,
+    //         max_results?, max_municipalities?, incorporated_only?,
+    //         min_rating?, max_rating?, min_reviews?, max_reviews?,
+    //         has_website?, campaign_id? }
+    if (action === 'run_sweep') {
+      const {
+        query, state, agency_id, campaign_id,
+        industry_keywords, industry_sic_code,
+        max_results, max_municipalities, incorporated_only,
+        min_rating, max_rating, min_reviews, max_reviews, has_website,
+      } = body
+
+      if (!state) return Response.json({ error: 'state required for sweep' }, { status: 400 })
+
+      // Derive industry keywords from the natural-language query if the
+      // caller didn't pass them directly.
+      let keywords: string[] = industry_keywords
+      if (!keywords?.length && query) {
+        const parsed = await parseNaturalLanguageQuery(query)
+        keywords = parsed.industry_keywords || []
+      }
+      if (!keywords?.length) {
+        return Response.json({ error: 'industry_keywords or query required' }, { status: 400 })
+      }
+
+      const { data: search } = await s.from('koto_scout_searches').insert({
+        agency_id: agency_id || '00000000-0000-0000-0000-000000000099',
+        natural_language_query: query || `sweep: ${keywords.join(' ')} in ${state}`,
+        parsed_criteria: { industry_keywords: keywords, state, sweep: true },
+        industry_sic_code: industry_sic_code || null,
+        industry_name: keywords[0] || null,
+        location_state: state,
+        min_rating, max_rating, min_reviews, max_reviews,
+        has_website,
+        status: 'pending',
+        campaign_id: campaign_id || null,
+      }).select('id').single()
+
+      if (!search) return Response.json({ error: 'Failed to create search' }, { status: 500 })
+
+      const result = await runScoutSweep({
+        state,
+        industryKeywords: keywords,
+        industrySicCode: industry_sic_code || null,
+        agencyId: agency_id || '00000000-0000-0000-0000-000000000099',
+        searchId: search.id,
+        maxResults: max_results || 500,
+        maxMunicipalities: max_municipalities || 150,
+        incorporatedOnly: !!incorporated_only,
+        minRating: min_rating,
+        maxRating: max_rating,
+        minReviews: min_reviews,
+        maxReviews: max_reviews,
+        hasWebsite: has_website,
+      })
+
+      return Response.json({
+        success: true,
+        search_id: search.id,
+        found: result.found,
+        leads: result.leads,
+        municipalities_searched: result.municipalities_searched,
+        municipalities_total: result.municipalities_total,
+        geo_provenance: result.geo_provenance,
+      })
+    }
 
     if (action === 'run_search') {
       const { query, agency_id, max_results, campaign_id } = body

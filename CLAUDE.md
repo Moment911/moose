@@ -10,3 +10,4 @@
 @_knowledge/database/tables.md
 @_knowledge/env-vars.md
 @_knowledge/session-log.md
+@_knowledge/data-integrity-standard.md

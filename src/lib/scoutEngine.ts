@@ -4,6 +4,9 @@ import 'server-only' // fails the build if this module is ever imported from a c
 
 import { createClient } from '@supabase/supabase-js'
 import type { ParsedScoutQuery } from './scoutQueryParser'
+import { getMunicipalitiesForState, type GeoPlace } from './geoLookup'
+import { getOrFetch, cacheKeys } from './geoCache'
+import type { VerifiedDataSource } from './dataIntegrity'
 
 function getSupabase() {
   return createClient(
@@ -175,6 +178,230 @@ export async function runScoutSearch(
   }).eq('id', searchId)
 
   return { found: allLeads.length, leads: allLeads }
+}
+
+// ── Sweep mode — multi-city search ──────────────────────────────────────────
+//
+// The previous implementation issued a single Google Places query per search
+// ("plumber Miami FL") and relied on whatever ~60 results Google returned.
+// That hides the long tail: a search for "general contractors in Miami-Dade"
+// would miss Coral Gables, Hialeah, Doral, Aventura, etc. because they're
+// different municipalities.
+//
+// Sweep mode fetches the authoritative municipality list from the Census API
+// (via geoLookup.ts / geoCache.ts), then issues one search per municipality
+// and dedupes by phone/address. This trades latency for completeness — a
+// sweep over 100+ municipalities is slow but will not miss cities.
+//
+// Inputs:
+//   state            — 2-letter US state code (required)
+//   industryKeywords — e.g. ['general contractor']
+//   agencyId         — current agency
+//   maxResults       — global cap across all municipalities
+//   incorporatedOnly — if true, skip Census Designated Places (unincorporated)
+//   maxMunicipalities — cap on how many cities to hit (safety valve)
+
+export interface ScoutSweepOptions {
+  state: string
+  industryKeywords: string[]
+  industrySicCode?: string | null
+  agencyId: string
+  searchId: string
+  maxResults?: number
+  incorporatedOnly?: boolean
+  maxMunicipalities?: number
+  minRating?: number | null
+  maxRating?: number | null
+  minReviews?: number | null
+  maxReviews?: number | null
+  hasWebsite?: boolean | null
+}
+
+export interface ScoutSweepResult {
+  found: number
+  leads: ScoutLead[]
+  municipalities_searched: number
+  municipalities_total: number
+  geo_provenance: Omit<VerifiedDataSource, 'data'>
+}
+
+export async function runScoutSweep(opts: ScoutSweepOptions): Promise<ScoutSweepResult> {
+  const supabase = getSupabase()
+  const placesKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY
+  if (!placesKey) {
+    return {
+      found: 0,
+      leads: [],
+      municipalities_searched: 0,
+      municipalities_total: 0,
+      geo_provenance: {
+        source_url: '',
+        source_name: 'Google Places key missing',
+        source_type: 'government-federal',
+        fetched_at: new Date().toISOString(),
+        expires_at: new Date().toISOString(),
+        cross_referenced: false,
+        ai_generated: false,
+        confidence: 'single-source',
+      },
+    }
+  }
+
+  // 1. Fetch the full municipality list from Census (cached up to 6 months).
+  const places = await getOrFetch(
+    cacheKeys.places(opts.state, !!opts.incorporatedOnly),
+    'geo-municipality',
+    () => getMunicipalitiesForState(opts.state, { incorporatedOnly: opts.incorporatedOnly })
+  )
+
+  const municipalitiesTotal = places.data.length
+  const municipalityCap = opts.maxMunicipalities ?? 150
+  const municipalities: GeoPlace[] = places.data.slice(0, municipalityCap)
+
+  // 2. Update search record with provenance so the UI can surface it later.
+  //    Wrapped in try/catch because the provenance columns may not exist in
+  //    the koto_scout_searches table yet on this environment — if they're
+  //    missing the update silently no-ops.
+  try {
+    await supabase.from('koto_scout_searches').update({
+      status: 'running',
+      geo_source_name: places.source_name,
+      geo_source_url: places.source_url,
+      geo_fetched_at: places.fetched_at,
+      geo_total_municipalities: municipalitiesTotal,
+      geo_searched_municipalities: municipalities.length,
+    }).eq('id', opts.searchId)
+  } catch { /* columns may not exist yet */ }
+
+  // 3. For each municipality, run one Google Places text search.
+  //    Dedupe across municipalities by phone (preferred) or address.
+  const seen = new Set<string>()
+  const allLeads: ScoutLead[] = []
+  const maxResults = opts.maxResults ?? 500
+
+  for (const muni of municipalities) {
+    if (allLeads.length >= maxResults) break
+
+    const queryParts = [...opts.industryKeywords, muni.name, opts.state]
+    const searchQuery = queryParts.join(' ')
+
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${placesKey}`
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
+      if (!res.ok) continue
+      const data = await res.json()
+      const results = data.results || []
+
+      for (const place of results) {
+        if (allLeads.length >= maxResults) break
+
+        // Filter gates
+        if (opts.minRating && (place.rating || 0) < opts.minRating) continue
+        if (opts.maxRating && (place.rating || 5) > opts.maxRating) continue
+        if (opts.minReviews && (place.user_ratings_total || 0) < opts.minReviews) continue
+        if (opts.maxReviews && (place.user_ratings_total || 0) > opts.maxReviews) continue
+
+        // Fetch phone + website from place details (paid call — keep minimal)
+        let phone: string | null = null
+        let website: string | null = null
+        if (place.place_id) {
+          try {
+            const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=formatted_phone_number,website&key=${placesKey}`
+            const detailRes = await fetch(detailUrl, { signal: AbortSignal.timeout(5000) })
+            if (detailRes.ok) {
+              const detailData = await detailRes.json()
+              phone = detailData.result?.formatted_phone_number || null
+              website = detailData.result?.website || null
+            }
+          } catch { /* continue without details */ }
+        }
+
+        if (opts.hasWebsite === true && !website) continue
+        if (opts.hasWebsite === false && website) continue
+
+        // Dedupe — prefer phone, fall back to place_id, then address
+        const key = phone || place.place_id || place.formatted_address
+        if (!key || seen.has(key)) continue
+        seen.add(key)
+
+        const { score, explanation } = scoreOpportunity(
+          place.rating, place.user_ratings_total, website, place.business_status
+        )
+
+        allLeads.push({
+          business_name: place.name || 'Unknown',
+          phone,
+          website,
+          address: place.formatted_address || null,
+          city: muni.name,
+          state: opts.state,
+          zip: extractZip(place.formatted_address),
+          google_place_id: place.place_id || null,
+          google_rating: place.rating || null,
+          google_review_count: place.user_ratings_total || null,
+          google_business_status: place.business_status || null,
+          google_profile_url: `https://www.google.com/maps/place/?q=place_id:${place.place_id}`,
+          industry_sic_code: opts.industrySicCode || null,
+          industry_name: opts.industryKeywords[0] || null,
+          lead_score: Math.min(100, score + 10),
+          opportunity_score: score,
+          opportunity_explanation: explanation,
+          source: 'scout-sweep',
+        })
+      }
+
+      // Rate limiting — don't hammer Google
+      await new Promise(r => setTimeout(r, 120))
+    } catch (e: any) {
+      console.warn(`[scout-sweep] ${muni.name}: ${e.message}`)
+      continue
+    }
+  }
+
+  // 4. Save leads with their municipality attribution.
+  if (allLeads.length > 0) {
+    const rows = allLeads.map(lead => ({
+      agency_id: opts.agencyId,
+      search_id: opts.searchId,
+      business_name: lead.business_name,
+      phone: lead.phone,
+      website: lead.website,
+      address: lead.address,
+      city: lead.city,
+      state: lead.state,
+      zip: lead.zip,
+      google_place_id: lead.google_place_id,
+      google_rating: lead.google_rating,
+      google_review_count: lead.google_review_count,
+      google_business_status: lead.google_business_status,
+      google_profile_url: lead.google_profile_url,
+      industry_sic_code: lead.industry_sic_code,
+      industry_name: lead.industry_name,
+      lead_score: lead.lead_score,
+      opportunity_score: lead.opportunity_score,
+      lead_score_breakdown: { explanation: lead.opportunity_explanation },
+      status: 'new',
+      source: 'scout-sweep',
+    }))
+    await supabase.from('koto_scout_leads').insert(rows)
+  }
+
+  await supabase.from('koto_scout_searches').update({
+    status: 'completed',
+    total_found: allLeads.length,
+    completed_at: new Date().toISOString(),
+  }).eq('id', opts.searchId)
+
+  // Strip `data` from the provenance before returning (callers don't need
+  // the full municipality list echoed back).
+  const { data: _, ...geo_provenance } = places
+  return {
+    found: allLeads.length,
+    leads: allLeads,
+    municipalities_searched: municipalities.length,
+    municipalities_total: municipalitiesTotal,
+    geo_provenance,
+  }
 }
 
 function scoreOpportunity(
