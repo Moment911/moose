@@ -114,7 +114,23 @@ export default function KotoProofPage() {
     setEmailSending(false)
   }
 
-  function onUploaded(newFiles) { setFiles(f => [...newFiles, ...f]); setShowUpload(false); setRefresh(r => r + 1) }
+  async function onUploaded(newFiles) {
+    setFiles(f => [...newFiles, ...f])
+    setShowUpload(false)
+    setRefresh(r => r + 1)
+    // Auto-enable public access + generate token if missing so client link works
+    if (project && (project.access_level === 'private' || !project.public_token)) {
+      const token = project.public_token || crypto.randomUUID().replace(/-/g, '')
+      await supabase.from('projects').update({ access_level: 'public', public_token: token }).eq('id', resolvedProjectId)
+      setProject(prev => prev ? { ...prev, access_level: 'public', public_token: token } : prev)
+    }
+    // Show the share link
+    const token = project?.public_token || ''
+    if (token) {
+      const url = `${window.location.origin}/review/${token}`
+      toast.success(<span>Files uploaded! <b style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>{navigator.clipboard.writeText(url);toast.success('Link copied')}}>Copy client link</b></span>, { duration: 8000 })
+    }
+  }
 
   // ── Team management ──
   async function handleAddMember(e) {
@@ -348,6 +364,23 @@ export default function KotoProofPage() {
           {/* FILES TAB */}
           {tab === 'files' && (
             <div className="space-y-3">
+              {/* Client Review Link */}
+              {project?.public_token && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d060', marginBottom: 4 }}>
+                  <Globe2 size={16} style={{ color: '#16a34a', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>Client Review Link</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {window.location.origin}/review/{project.public_token}
+                    </div>
+                  </div>
+                  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/review/${project.public_token}`); toast.success('Link copied!') }}
+                    style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Copy Link
+                  </button>
+                </div>
+              )}
+
               {/* Canvases */}
               {canvases.length > 0 && (
                 <>
