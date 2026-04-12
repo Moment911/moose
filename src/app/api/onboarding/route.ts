@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
@@ -549,6 +550,11 @@ export async function POST(req: NextRequest) {
         subject: `Welcome to ${agencyName} — Complete Your Onboarding`,
         html,
       })
+      void trackPlatformCost({
+        cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+        description: 'onboarding send_link email',
+        metadata: { feature: 'onboarding_send_link', client_id, agency_id },
+      })
 
       // Mark client as onboarding_sent
       await sb.from('clients').update({
@@ -702,6 +708,11 @@ export async function POST(req: NextRequest) {
             to: clientRow.email,
             subject: `Next step: grant ${agencyName} access to your platforms`,
             html,
+          })
+          void trackPlatformCost({
+            cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+            description: 'onboarding access guide email',
+            metadata: { feature: 'onboarding_access_guide', client_id },
           })
         }
       } catch { /* non-fatal — notification already fired */ }
@@ -875,6 +886,11 @@ export async function POST(req: NextRequest) {
           subject: `We still need a few details for ${clientName}`,
           html: emailHtml,
         })
+        void trackPlatformCost({
+          cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+          description: 'onboarding missing fields email',
+          metadata: { feature: 'onboarding_missing_fields', client_id },
+        })
       } catch (e: any) {
         return NextResponse.json({ error: e?.message || 'Failed to send email' }, { status: 500 })
       }
@@ -970,6 +986,11 @@ export async function POST(req: NextRequest) {
           to: destEmail,
           subject: `Your Access Setup Guide — ${agencyName}`,
           html: emailHtml,
+        })
+        void trackPlatformCost({
+          cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+          description: 'access setup guide email',
+          metadata: { feature: 'onboarding_access_guide_manual', client_id },
         })
       } catch (e: any) {
         return NextResponse.json({ error: e?.message || 'Failed to send email' }, { status: 500 })

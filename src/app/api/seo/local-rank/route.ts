@@ -48,6 +48,10 @@ async function geocode(location: string) {
   const r = await fetch(url)
   if (!r.ok) return null
   const d = await r.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'local-rank geocode', metadata: { feature: 'seo_local_rank', op: 'geocode' },
+  })
   const loc = d.results?.[0]?.geometry?.location
   if (!loc) return null
   return { lat: loc.lat, lng: loc.lng, formatted: d.results[0].formatted_address }
@@ -69,6 +73,10 @@ async function textSearch(keyword: string, location: string, maxResults = 20) {
     }),
   })
   if (!r.ok) { console.error('textSearch error:', await r.text()); return null }
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'local-rank text search', metadata: { feature: 'seo_local_rank', op: 'text_search' },
+  })
   return r.json()
 }
 
@@ -95,6 +103,10 @@ async function nearbySearch(keyword: string, lat: number, lng: number, radiusM =
     }),
   })
   if (!r.ok) { console.error('nearbySearch error:', await r.text()); return null }
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'local-rank nearby search', metadata: { feature: 'seo_local_rank', op: 'nearby_search' },
+  })
   return r.json()
 }
 
@@ -108,6 +120,10 @@ async function placeDetails(placeId: string) {
     },
   })
   if (!r.ok) return null
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'local-rank place details', metadata: { feature: 'seo_local_rank', op: 'details' },
+  })
   return r.json()
 }
 

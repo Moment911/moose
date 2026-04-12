@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const GOOGLE_KEY    = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
@@ -19,6 +20,10 @@ async function fetchPlace(placeId: string) {
     headers: { 'X-Goog-Api-Key': GOOGLE_KEY, 'X-Goog-FieldMask': PLACE_FIELDS }
   })
   if (!res.ok) return null
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'competitor-intel place details', metadata: { feature: 'seo_competitor_intel', op: 'details' },
+  })
   return res.json()
 }
 
@@ -39,6 +44,10 @@ async function searchNearby(lat: number, lng: number, type: string, excludeId: s
   })
   if (!res.ok) return []
   const d = await res.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'competitor-intel nearby', metadata: { feature: 'seo_competitor_intel', op: 'nearby', type },
+  })
   return (d.places || []).filter((p: any) => p.id !== excludeId)
 }
 
@@ -55,6 +64,10 @@ async function searchByName(query: string, location: string) {
   })
   if (!res.ok) return []
   const d = await res.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'competitor-intel text search', metadata: { feature: 'seo_competitor_intel', op: 'text_search' },
+  })
   return d.places || []
 }
 

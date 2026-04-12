@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
 
@@ -9,6 +10,10 @@ async function geocode(location: string) {
   )
   if (!r.ok) return null
   const d = await r.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'market-density geocode', metadata: { feature: 'seo_market_density', op: 'geocode' },
+  })
   const loc = d.results?.[0]?.geometry?.location
   if (!loc) return null
   return {
@@ -51,6 +56,10 @@ async function computeInsights(lat: number, lng: number, radiusM: number, placeT
     console.error('Places Aggregate error:', err)
     return null
   }
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'market-density aggregate insights', metadata: { feature: 'seo_market_density', op: 'compute_insights' },
+  })
   return r.json()
 }
 

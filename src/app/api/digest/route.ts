@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
 
@@ -198,6 +199,10 @@ export async function POST(req: NextRequest) {
             subject: `📊 Weekly Digest — ${data.alerts.length > 0 ? `${data.alerts.length} alerts need attention · ` : ''}${data.clients.length} clients`,
             html,
           })
+          void trackPlatformCost({
+            cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+            description: 'weekly CMO digest', metadata: { feature: 'weekly_digest', agency_id: ag.id },
+          })
           sent++
         } catch { /* continue to next agency */ }
       }
@@ -213,6 +218,10 @@ export async function POST(req: NextRequest) {
       const hrs = slaHours[ticket.priority] || 24
       const agencyName = agency.brand_name || agency.name || 'Your Agency'
 
+      void trackPlatformCost({
+        cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+        description: 'desk SLA breach alert', metadata: { feature: 'sla_alert', ticket_id: ticket.id, priority: ticket.priority },
+      })
       await getResend().emails.send({
         from:    'Koto Alerts <alerts@hellokoto.com>',
         to:      agency.billing_email,

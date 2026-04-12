@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
 const APP_URL       = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
@@ -107,6 +108,11 @@ async function sendToContact(contact: any, campaign: any, client: any, agency: a
           logoUrl:    agency?.brand_logo_url,
           brandColor: agency?.brand_color,
         }),
+      })
+      void trackPlatformCost({
+        cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+        description: 'review request email',
+        metadata: { feature: 'review_campaign', campaign_id: campaign.id, client_id: client?.id },
       })
       sent = true; channel = 'email'
     } catch { /* fall through to SMS */ }

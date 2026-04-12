@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const STRIPE_SECRET         = process.env.STRIPE_SECRET_KEY       || ''
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET   || ''
@@ -222,6 +223,11 @@ export async function POST(req: NextRequest) {
         if (process.env.RESEND_API_KEY) {
           const { Resend } = await import('resend')
           const resend = new Resend(process.env.RESEND_API_KEY)
+          void trackPlatformCost({
+            cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+            description: 'stripe trial end reminder',
+            metadata: { feature: 'stripe_trial_reminder', agency_id: trialSub.metadata?.agency_id },
+          })
           await resend.emails.send({
             from: 'Koto Billing <billing@hellokoto.com>',
             to: trialSub.metadata?.agency_email || '',

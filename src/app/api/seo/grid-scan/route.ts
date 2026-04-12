@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || ''
 
@@ -9,6 +10,10 @@ async function geocode(location: string) {
   )
   if (!r.ok) return null
   const d = await r.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'grid-scan geocode', metadata: { feature: 'seo_grid_scan', op: 'geocode' },
+  })
   const loc = d.results?.[0]?.geometry?.location
   return loc ? { lat: loc.lat, lng: loc.lng, formatted: d.results[0].formatted_address } : null
 }
@@ -36,6 +41,10 @@ async function searchAtPoint(keyword: string, lat: number, lng: number, radiusM 
   })
   if (!r.ok) return []
   const d = await r.json()
+  void trackPlatformCost({
+    cost_type: 'google_places', amount: PLATFORM_RATES.google_places, unit_count: 1,
+    description: 'grid-scan point search', metadata: { feature: 'seo_grid_scan', op: 'search_at_point' },
+  })
   return (d.places || []).filter((p: any) => p.businessStatus !== 'CLOSED_PERMANENTLY')
 }
 

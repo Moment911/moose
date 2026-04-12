@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
 import { Resend } from 'resend'
+import { trackPlatformCost, PLATFORM_RATES } from '@/lib/tokenTracker'
 
 export const runtime = 'nodejs'
 
@@ -223,6 +224,10 @@ Be specific, confident, and concise. Focus on performance vs prior period and to
     to:      toEmail,
     subject: `${clientName} — ${days}-day Performance Report · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})}`,
     html,
+  })
+  void trackPlatformCost({
+    cost_type: 'resend_email', amount: PLATFORM_RATES.resend_email, unit_count: 1,
+    description: 'client performance report', metadata: { feature: 'perf_report', days },
   })
 
   return NextResponse.json({ sent: true, to: toEmail, email_id: emailResult.data?.id })
