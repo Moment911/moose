@@ -71,6 +71,8 @@ export function AuthProvider({ children }) {
     setImpersonatedClient(null)
     sessionStorage.removeItem('koto_imp_agency')
     sessionStorage.removeItem('koto_imp_client')
+    // Reload the real user's agency features
+    if (user) loadAgencyData(user.id)
   }
 
   // ── Agency → Client Preview ────────────────────────────────────────────────
@@ -164,6 +166,20 @@ export function AuthProvider({ children }) {
       setRole('client')
     }
   }
+
+  // ── Reload agency features when impersonation changes ──────────────────────
+  // When a Koto admin switches into an agency, we need to load THAT agency's
+  // features so can() and feat() gate correctly. Without this, the features
+  // from the admin's own agency (or none) stay in state.
+  useEffect(() => {
+    if (!impersonatedAgency?.id) return
+    ;(async () => {
+      const { data: ag } = await supabase.from('agencies').select('*').eq('id', impersonatedAgency.id).single()
+      if (ag) setAgency(ag)
+      const { data: features } = await supabase.from('agency_features').select('*').eq('agency_id', impersonatedAgency.id).single()
+      if (features) setAgencyFeatures(features)
+    })()
+  }, [impersonatedAgency?.id])
 
   // ── Load client permissions ────────────────────────────────────────────────
   async function loadClientPermissions(clientId, agId) {
