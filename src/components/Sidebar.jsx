@@ -129,7 +129,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
 }
 
 export default function Sidebar() {
-  const { user, firstName, agencyId, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures } = useAuth()
+  const { user, firstName, agencyId, agencyName, agency, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
