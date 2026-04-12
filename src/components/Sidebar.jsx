@@ -206,11 +206,21 @@ export default function Sidebar() {
         <div style={{flex:1,overflowY:'auto',padding:'4px 6px',
           scrollbarWidth:'none'}}>
 
-          {/* ══════ CLIENT VIEW (minimal — only permitted items) ══════ */}
+          {/* ══════ CLIENT VIEW — shows only what agency has permitted ══════ */}
           {showClientView && (<>
             <NavLink to="/" exact icon={LayoutGrid} label="Dashboard"/>
-            <NavLink to="/tasks" startsWith icon={CheckSquare} label="My Tasks"/>
+            <NavLink to="/tasks" startsWith icon={CheckSquare} label="My Tasks" hidden={!can?.('view_tasks')}/>
             <NavLink to="/desk" startsWith icon={Inbox} label="Support"/>
+            <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof" hidden={!can?.('view_pages')}/>
+            <NavLink to="/reviews" startsWith icon={Star} label="Reviews" hidden={!can?.('view_reviews')}/>
+            <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals" hidden={!can?.('view_proposals')}/>
+            <NavLink to="/perf" startsWith icon={TrendingUp} label="Reports" hidden={!can?.('view_reports')}/>
+            <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub" hidden={!can?.('seo_hub')}/>
+            <NavLink to="/page-builder" icon={Sparkles} label="Page Builder" hidden={!can?.('page_builder')}/>
+            <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!can?.('scout')}/>
+            <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" hidden={!can?.('voice_agent')}/>
+            <NavLink to="/agent" icon={Brain} label="AI CMO" hidden={!can?.('cmo_agent')}/>
+            <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!can?.('view_billing')}/>
             <NavLink to="/help" icon={HelpCircle} label="Help Center"/>
           </>)}
 
