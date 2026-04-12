@@ -948,6 +948,40 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
+        {/* Client Branding */}
+        <div style={card}>
+          <div style={sectionTitle}><Globe size={16} color={T} /> Client Branding</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+            {client?.logo_url ? (
+              <img src={client.logo_url} alt={client?.name} style={{ height: 48, maxWidth: 160, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', padding: 6 }} />
+            ) : (
+              <div style={{ width: 48, height: 48, borderRadius: 8, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 11, fontWeight: 700 }}>No logo</div>
+            )}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Logo URL</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  defaultValue={client?.logo_url || ''}
+                  placeholder="/logos/client-logo.png or https://..."
+                  id="client-logo-input"
+                  style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                />
+                <button onClick={async () => {
+                  const url = document.getElementById('client-logo-input')?.value?.trim()
+                  if (!url) { toast.error('Enter a logo URL'); return }
+                  const { error } = await supabase.from('clients').update({ logo_url: url }).eq('id', clientId)
+                  if (error) toast.error(error.message)
+                  else { toast.success('Logo updated'); setClient(prev => prev ? { ...prev, logo_url: url } : prev) }
+                }}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  Save
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Upload an image to /public/logos/ or paste any public URL</div>
+            </div>
+          </div>
+        </div>
+
         {/* Client Login */}
         <div style={card}>
           <div style={sectionTitle}><Key size={16} color={T} /> Client Portal Login</div>
