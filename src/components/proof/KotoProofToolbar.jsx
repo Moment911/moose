@@ -1,6 +1,6 @@
 "use client";
 import { MousePointer2, Pin, ArrowUpRight, Circle, Square, PenLine, Undo2, Trash2, Link, CheckCircle } from 'lucide-react'
-import ColorPicker from './ColorPicker'
+import ColorPicker from '../ColorPicker'
 
 const TOOLS = [
   { key: 'select', icon: MousePointer2, label: 'Select (V)' },
