@@ -233,9 +233,12 @@ export default function FileReviewPage() {
   // not as top-level fields. These helpers pack shape coords into data
   // on write and unpack them on read so the rest of the code sees flat
   // objects like { type: 'pin', x: 123, y: 456, ... }.
+  // FileReviewPage is the AGENCY-side viewer (requires login).
+  // PublicReviewPage is the CLIENT-side viewer (public token).
+  // Annotations created here are tagged source='agency'.
   function packAnnotation(fields) {
     const { type, color, text, author, resolved, file_id, ...coords } = fields
-    return { file_id, type, color, text: text || null, author, resolved, data: coords }
+    return { file_id, type, color, text: text || null, author, resolved, data: coords, source: 'agency' }
   }
   function unpackAnnotation(row) {
     if (!row) return row

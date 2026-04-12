@@ -93,11 +93,16 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[13px] font-medium text-gray-800">{ann.author || 'Anonymous'}</span>
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase tracking-wider">
                           {TYPE_LABELS[ann.type]?.label || ann.type}
                         </span>
+                        {ann.source === 'agency' ? (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600 uppercase tracking-wider">Agency</span>
+                        ) : (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 uppercase tracking-wider">Client</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1.5">
                         {ann.resolved && <span className="text-[13px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-medium">Resolved</span>}
