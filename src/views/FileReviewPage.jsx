@@ -504,11 +504,12 @@ export default function FileReviewPage() {
 
       {/* Main area — canvas + sidebar */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
-        {/* Scrollable canvas container */}
+        {/* Scrollable canvas container — minWidth:0 prevents flex overflow under sidebar */}
         <div
           ref={canvasContainerRef}
           style={{
             flex: 1,
+            minWidth: 0,
             overflow: 'auto',
             background: CANVAS_BG,
             padding: 24,
