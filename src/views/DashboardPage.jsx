@@ -948,32 +948,7 @@ export default function DashboardPage() {
      CLIENT VIEW — minimal dashboard, just welcome + links to permitted tools
      ══════════════════════════════════════════════════════════════════════════ */
   if (showClientDashboard) {
-    return (
-      <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
-        <Sidebar />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '24px 32px' }}>
-            <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0 }}>
-              Welcome{firstName ? `, ${firstName}` : ''}
-            </h1>
-            <p style={{ fontSize: 14, color: '#6b7280', marginTop: 4, fontFamily: FB }}>
-              Use the menu on the left to access your tools.
-            </p>
-          </div>
-          <div style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
-            <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>👋</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 8 }}>
-                Your workspace is ready
-              </div>
-              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-                Select a tool from the sidebar to get started. Your agency has set up the tools you need — everything is ready to go.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <ClientDashboard firstName={firstName} greeting={greeting} agency={agency} agencyName={agencyName} can={can} navigate={navigate} aid={aid} />
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -1222,6 +1197,135 @@ export default function DashboardPage() {
         </div>
       </div>
       {showViewAs && <ViewAsModal open={showViewAs} onClose={() => setShowViewAs(false)} />}
+    </div>
+  )
+}
+
+// ── Client Dashboard — personalized greeting + pending items ─────────────
+function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigate, aid }) {
+  const [pendingItems, setPendingItems] = useState([])
+  const [loadingItems, setLoadingItems] = useState(true)
+
+  useEffect(() => {
+    loadPendingItems()
+  }, [aid])
+
+  async function loadPendingItems() {
+    setLoadingItems(true)
+    const items = []
+
+    try {
+      // Check for pending proof annotations (client needs to review agency responses)
+      if (can?.('view_pages')) {
+        const { data: projs } = await supabase.from('projects').select('id, name, client_id, clients!inner(agency_id)').eq('clients.agency_id', aid).limit(20)
+        if (projs?.length) {
+          const projIds = projs.map(p => p.id)
+          const { data: anns } = await supabase.from('annotations').select('id, file_id, status, agency_reply, files!inner(project_id, name)').in('files.project_id', projIds).limit(100)
+          const withReplies = (anns || []).filter(a => a.agency_reply && a.status !== 'completed')
+          const pendingReview = (anns || []).filter(a => a.status === 'updated' || a.status === 'in_progress')
+          if (withReplies.length > 0) {
+            items.push({ icon: '💬', label: `${withReplies.length} agency response${withReplies.length > 1 ? 's' : ''} to review`, to: '/proof', color: '#7c3aed' })
+          }
+          if (pendingReview.length > 0) {
+            items.push({ icon: '🔄', label: `${pendingReview.length} annotation${pendingReview.length > 1 ? 's' : ''} in progress`, to: '/proof', color: '#00C2CB' })
+          }
+          if (projs.length > 0 && withReplies.length === 0 && pendingReview.length === 0) {
+            items.push({ icon: '✅', label: `${projs.length} project${projs.length > 1 ? 's' : ''} — all up to date`, to: '/proof', color: '#16a34a' })
+          }
+        }
+      }
+
+      // Check for open tasks
+      if (can?.('view_tasks')) {
+        const { count } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('agency_id', aid).eq('status', 'open')
+        if (count > 0) items.push({ icon: '📋', label: `${count} open task${count > 1 ? 's' : ''}`, to: '/tasks', color: '#f59e0b' })
+      }
+
+      // Check for open desk tickets
+      if (can?.('view_reports')) {
+        const { count } = await supabase.from('desk_tickets').select('*', { count: 'exact', head: true }).eq('agency_id', aid).not('status', 'in', '("resolved","closed")')
+        if (count > 0) items.push({ icon: '🎫', label: `${count} open support ticket${count > 1 ? 's' : ''}`, to: '/desk', color: '#E6007E' })
+      }
+
+      // Check for pending proposals
+      if (can?.('view_proposals')) {
+        const { count } = await supabase.from('koto_proposals').select('*', { count: 'exact', head: true }).eq('agency_id', aid).is('accepted_at', null)
+        if (count > 0) items.push({ icon: '📄', label: `${count} proposal${count > 1 ? 's' : ''} awaiting review`, to: '/proposals', color: '#7c3aed' })
+      }
+    } catch (e) {
+      console.warn('[ClientDashboard] pending items load:', e)
+    }
+
+    if (items.length === 0) {
+      items.push({ icon: '✨', label: 'You\'re all caught up — nothing pending', to: null, color: '#16a34a' })
+    }
+
+    setPendingItems(items)
+    setLoadingItems(false)
+  }
+
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+  const FB = "'Raleway','Helvetica Neue',sans-serif"
+  const BLK = '#111111'
+  const GRY = '#F9F9F9'
+  const T = '#00C2CB'
+
+  return (
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
+      <Sidebar />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Header with greeting */}
+        <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '24px 32px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </div>
+          <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
+            {greeting}
+          </h1>
+          {agencyName && (
+            <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4, fontFamily: FB }}>
+              Powered by {agencyName}
+            </p>
+          )}
+        </div>
+
+        {/* Pending items */}
+        <div style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
+          <div style={{ maxWidth: 600 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 16 }}>
+              {loadingItems ? 'Checking for updates…' : 'Your Updates'}
+            </div>
+
+            {loadingItems ? (
+              <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Scanning your workspace…</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {pendingItems.map((item, i) => (
+                  <div key={i}
+                    onClick={() => item.to && navigate(item.to)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '14px 18px', borderRadius: 12,
+                      background: '#fff', border: `1.5px solid ${item.color}20`,
+                      cursor: item.to ? 'pointer' : 'default',
+                      transition: 'all .15s',
+                    }}
+                    onMouseEnter={e => { if (item.to) { e.currentTarget.style.borderColor = item.color; e.currentTarget.style.transform = 'translateY(-1px)' } }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = item.color + '20'; e.currentTarget.style.transform = '' }}>
+                    <div style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{item.label}</div>
+                    </div>
+                    {item.to && (
+                      <div style={{ fontSize: 12, fontWeight: 700, color: item.color, fontFamily: FH }}>View →</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
