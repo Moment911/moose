@@ -183,11 +183,24 @@ export default function Sidebar() {
         fontFamily:"var(--font-body)",
       }}>
 
-        {/* Logo */}
-        <div style={{padding:'20px 16px 14px',flexShrink:0,borderBottom:'1px solid #f3f4f6'}}>
-          <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <img src="/koto_logo.svg" alt="Koto" style={{height:28,width:'auto',display:'block'}}/>
-          </div>
+        {/* Logo — client view shows agency logo (or Koto default), agency view shows Koto */}
+        <div style={{padding: showClientView ? '16px 16px 12px' : '20px 16px 14px', flexShrink:0, borderBottom:'1px solid #f3f4f6'}}>
+          {showClientView ? (
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+              {agency?.brand_logo_url ? (
+                <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
+              ) : (
+                <img src="/koto_logo.svg" alt="Koto" style={{height:24,width:'auto',display:'block'}}/>
+              )}
+              <div style={{fontSize:10,color:'#9ca3af',fontWeight:600,letterSpacing:'.05em',textTransform:'uppercase'}}>
+                Client Portal
+              </div>
+            </div>
+          ) : (
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <img src="/koto_logo.svg" alt="Koto" style={{height:28,width:'auto',display:'block'}}/>
+            </div>
+          )}
         </div>
 
         {/* Search — scoped to current hierarchy level */}
@@ -378,7 +391,7 @@ export default function Sidebar() {
                 overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                 {firstName||user?.email?.split('@')[0]||'Agent'}
               </div>
-              <div style={{fontSize:13,color:'#9ca3af'}}>Agency</div>
+              <div style={{fontSize:13,color:'#9ca3af'}}>{showClientView ? (agency?.brand_name || 'Client') : isSuperAdmin && !isImpersonating ? 'Koto Admin' : (agencyName || 'Agency')}</div>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:4}}>
               <NotificationCenter/>
