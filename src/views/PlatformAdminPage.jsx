@@ -19,13 +19,15 @@ const ACCENT = '#E6007E'
 const TEAL   = '#00C2CB'
 
 const SECTIONS = [
+  { key:'agencies',    label:'Agencies',               icon:Building2,      desc:'Create, manage, and switch into agency accounts' },
+  { key:'users',       label:'Users & Passwords',      icon:Key,            desc:'Create user accounts, set and reset passwords' },
+  { key:'features',    label:'Agency Features',        icon:ToggleRight,    desc:'Control which features each agency can access' },
   { key:'onboarding',  label:'Onboarding Templates',  icon:ClipboardList, desc:'Customize what clients fill out' },
   { key:'proposals',   label:'Proposal & SOW Library', icon:FileText,      desc:'Pre-written service templates' },
   { key:'agreements',  label:'Agreement Templates',    icon:Shield,         desc:'Legal terms and clauses' },
   { key:'branding',    label:'Agency Branding',        icon:Globe,          desc:'Colors, logo, white-label' },
   { key:'integrations',label:'Platform Integrations',  icon:Zap,            desc:'API keys and connections' },
   { key:'access',      label:'Access & Permissions',   icon:Lock,           desc:'Team roles and client access' },
-  { key:'features',    label:'Agency Features',        icon:ToggleRight,    desc:'Control which features each agency can access' },
 ]
 
 const FEATURE_GROUPS = [
@@ -450,6 +452,14 @@ export default function PlatformAdminPage() {
           )}
 
           {/* ── ACCESS ── */}
+          {section === 'agencies' && (
+            <AgenciesPanel />
+          )}
+
+          {section === 'users' && (
+            <UsersPanel />
+          )}
+
           {section === 'access' && (
             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'22px 24px' }}>
               <div style={{ fontSize:16, fontWeight:800, color:'#111', marginBottom:6 }}>Role-based access</div>
@@ -487,6 +497,264 @@ export default function PlatformAdminPage() {
     </div>
   )
 }
+
+/* ── Agencies Panel — create, manage, switch into agencies ────────────── */
+function AgenciesPanel() {
+  const { impersonateAgency } = useAuth()
+  const navigate = useNavigate()
+  const [agencies, setAgencies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
+  const [form, setForm] = useState({ name:'', owner_name:'', owner_email:'', owner_password:'', plan:'starter' })
+  const [creating, setCreating] = useState(false)
+
+  useEffect(() => { load() }, [])
+  async function load() {
+    setLoading(true)
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'list_agencies' }) }).then(r=>r.json())
+    setAgencies(res.agencies || res || [])
+    setLoading(false)
+  }
+
+  async function handleCreate() {
+    if (!form.name) { toast.error('Agency name required'); return }
+    setCreating(true)
+    try {
+      // 1. Create the agency
+      const agRes = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'create_agency', name:form.name, owner_name:form.owner_name, owner_email:form.owner_email, plan:form.plan, send_welcome_email:true })
+      }).then(r=>r.json())
+      if (agRes.error) { toast.error(agRes.error); setCreating(false); return }
+
+      // 2. Create the owner user account with password
+      if (form.owner_email && form.owner_password) {
+        const userRes = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ action:'create_user', email:form.owner_email, password:form.owner_password, first_name:form.owner_name?.split(' ')[0], last_name:form.owner_name?.split(' ').slice(1).join(' '), agency_id:agRes.id, role:'owner' })
+        }).then(r=>r.json())
+        if (userRes.error) toast.error('Agency created but user failed: ' + userRes.error)
+        else toast.success('Agency + user created')
+      } else {
+        toast.success('Agency created (no user account — add one in Users tab)')
+      }
+      setShowCreate(false)
+      setForm({ name:'', owner_name:'', owner_email:'', owner_password:'', plan:'starter' })
+      load()
+    } catch (e) { toast.error(e.message) }
+    setCreating(false)
+  }
+
+  function switchTo(ag) {
+    impersonateAgency({ id: ag.id, name: ag.brand_name || ag.name })
+    toast.success(`Switched to ${ag.brand_name || ag.name}`)
+    navigate('/')
+  }
+
+  if (loading) return <div style={{ padding:40, textAlign:'center', color:'#999' }}>Loading agencies…</div>
+
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+        <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{agencies.length} Agencies</div>
+        <button onClick={()=>setShowCreate(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border:'none', background:ACCENT, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+          <Plus size={14}/> New Agency
+        </button>
+      </div>
+
+      {showCreate && (
+        <div style={{ background:'#f9fafb', borderRadius:12, border:'1px solid #e5e7eb', padding:20, marginBottom:16 }}>
+          <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:12 }}>Create New Agency</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div>
+              <label style={lbl}>Agency Name *</label>
+              <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Momenta Marketing" style={inp}/>
+            </div>
+            <div>
+              <label style={lbl}>Plan</label>
+              <select value={form.plan} onChange={e=>setForm({...form,plan:e.target.value})} style={inp}>
+                <option value="starter">Starter ($297/mo)</option>
+                <option value="growth">Growth ($597/mo)</option>
+                <option value="agency">Agency ($997/mo)</option>
+                <option value="enterprise">Enterprise ($1,997/mo)</option>
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Owner Name</label>
+              <input value={form.owner_name} onChange={e=>setForm({...form,owner_name:e.target.value})} placeholder="John Smith" style={inp}/>
+            </div>
+            <div>
+              <label style={lbl}>Owner Email</label>
+              <input value={form.owner_email} onChange={e=>setForm({...form,owner_email:e.target.value})} placeholder="john@agency.com" style={inp}/>
+            </div>
+            <div style={{ gridColumn:'1 / -1' }}>
+              <label style={lbl}>Set Password (leave blank to skip user creation)</label>
+              <input type="password" value={form.owner_password} onChange={e=>setForm({...form,owner_password:e.target.value})} placeholder="Minimum 6 characters" style={inp}/>
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:8, marginTop:14 }}>
+            <button onClick={handleCreate} disabled={creating || !form.name}
+              style={{ padding:'8px 20px', borderRadius:8, border:'none', background:form.name ? ACCENT : '#e5e7eb', color:'#fff', fontSize:13, fontWeight:700, cursor:form.name?'pointer':'not-allowed' }}>
+              {creating ? 'Creating…' : 'Create Agency'}
+            </button>
+            <button onClick={()=>setShowCreate(false)} style={{ padding:'8px 16px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:13, fontWeight:700, cursor:'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {agencies.map(ag => (
+        <div key={ag.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:'#fff', borderRadius:10, border:'1px solid #e5e7eb', marginBottom:8 }}>
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{ag.brand_name || ag.name}</div>
+            <div style={{ fontSize:12, color:'#6b7280' }}>{ag.owner_email || '—'} · {ag.plan || 'starter'} · {ag.status || 'active'}</div>
+          </div>
+          <div style={{ display:'flex', gap:6 }}>
+            <button onClick={()=>switchTo(ag)} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid '+TEAL+'40', background:'#fff', color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer' }}>
+              Switch Into →
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ── Users & Passwords Panel ─────────────────────────────────────────── */
+function UsersPanel() {
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [pwUserId, setPwUserId] = useState(null)
+  const [newPw, setNewPw] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
+  const [form, setForm] = useState({ email:'', password:'', first_name:'', last_name:'', agency_id:'', role:'owner' })
+  const [agencies, setAgencies] = useState([])
+  const [creating, setCreating] = useState(false)
+
+  useEffect(() => { load() }, [])
+  async function load() {
+    setLoading(true)
+    const [uRes, aRes] = await Promise.all([
+      fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'list_users' }) }).then(r=>r.json()),
+      fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'list_agencies' }) }).then(r=>r.json()),
+    ])
+    setUsers(uRes.users || [])
+    setAgencies(aRes.agencies || aRes || [])
+    setLoading(false)
+  }
+
+  async function setPassword(userId) {
+    if (!newPw || newPw.length < 6) { toast.error('Password must be at least 6 characters'); return }
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'set_password', user_id:userId, new_password:newPw })
+    }).then(r=>r.json())
+    if (res.error) toast.error(res.error)
+    else { toast.success('Password updated'); setPwUserId(null); setNewPw('') }
+  }
+
+  async function sendReset(email) {
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'send_password_reset', email })
+    }).then(r=>r.json())
+    if (res.error) toast.error(res.error)
+    else toast.success(res.message || 'Reset email sent')
+  }
+
+  async function handleCreate() {
+    if (!form.email || !form.password) { toast.error('Email and password required'); return }
+    setCreating(true)
+    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'create_user', ...form })
+    }).then(r=>r.json())
+    if (res.error) toast.error(res.error)
+    else { toast.success('User created'); setShowCreate(false); setForm({ email:'', password:'', first_name:'', last_name:'', agency_id:'', role:'owner' }); load() }
+    setCreating(false)
+  }
+
+  if (loading) return <div style={{ padding:40, textAlign:'center', color:'#999' }}>Loading users…</div>
+
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+        <div style={{ fontSize:16, fontWeight:800, color:'#111' }}>{users.length} Users</div>
+        <button onClick={()=>setShowCreate(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border:'none', background:TEAL, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+          <Plus size={14}/> New User
+        </button>
+      </div>
+
+      {showCreate && (
+        <div style={{ background:'#f9fafb', borderRadius:12, border:'1px solid #e5e7eb', padding:20, marginBottom:16 }}>
+          <div style={{ fontSize:14, fontWeight:800, color:'#111', marginBottom:12 }}>Create User Account</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+            <div><label style={lbl}>Email *</label><input value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="user@agency.com" style={inp}/></div>
+            <div><label style={lbl}>Password *</label><input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder="Min 6 characters" style={inp}/></div>
+            <div><label style={lbl}>First Name</label><input value={form.first_name} onChange={e=>setForm({...form,first_name:e.target.value})} style={inp}/></div>
+            <div><label style={lbl}>Last Name</label><input value={form.last_name} onChange={e=>setForm({...form,last_name:e.target.value})} style={inp}/></div>
+            <div>
+              <label style={lbl}>Assign to Agency</label>
+              <select value={form.agency_id} onChange={e=>setForm({...form,agency_id:e.target.value})} style={inp}>
+                <option value="">No agency</option>
+                {agencies.map(a=><option key={a.id} value={a.id}>{a.brand_name||a.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Role</label>
+              <select value={form.role} onChange={e=>setForm({...form,role:e.target.value})} style={inp}>
+                <option value="owner">Owner</option>
+                <option value="admin">Admin</option>
+                <option value="member">Staff</option>
+                <option value="viewer">Viewer</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:8, marginTop:14 }}>
+            <button onClick={handleCreate} disabled={creating || !form.email || !form.password}
+              style={{ padding:'8px 20px', borderRadius:8, border:'none', background:TEAL, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+              {creating ? 'Creating…' : 'Create User'}
+            </button>
+            <button onClick={()=>setShowCreate(false)} style={{ padding:'8px 16px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:13, fontWeight:700, cursor:'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {users.map(u => (
+        <div key={u.id} style={{ background:'#fff', borderRadius:10, border:'1px solid #e5e7eb', padding:'12px 16px', marginBottom:8 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div>
+              <div style={{ fontSize:14, fontWeight:700, color:'#111' }}>{u.first_name ? `${u.first_name} ${u.last_name||''}` : u.email}</div>
+              <div style={{ fontSize:12, color:'#6b7280' }}>
+                {u.email}
+                {u.agency ? ` · ${u.agency.name} (${u.agency.role})` : ' · No agency'}
+                {u.last_sign_in_at ? ` · Last login ${new Date(u.last_sign_in_at).toLocaleDateString()}` : ' · Never logged in'}
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:6 }}>
+              <button onClick={()=>{ setPwUserId(pwUserId===u.id?null:u.id); setNewPw('') }}
+                style={{ padding:'5px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:pwUserId===u.id?'#f3f4f6':'#fff', color:'#374151', fontSize:11, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                <Key size={11}/> Set Password
+              </button>
+              <button onClick={()=>sendReset(u.email)}
+                style={{ padding:'5px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:11, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                <RefreshCw size={11}/> Send Reset
+              </button>
+            </div>
+          </div>
+          {pwUserId === u.id && (
+            <div style={{ display:'flex', gap:8, marginTop:10, alignItems:'center' }}>
+              <input type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="New password (min 6 chars)"
+                onKeyDown={e=>e.key==='Enter'&&setPassword(u.id)}
+                style={{ flex:1, padding:'7px 10px', borderRadius:6, border:'1.5px solid #e5e7eb', fontSize:13 }}/>
+              <button onClick={()=>setPassword(u.id)} disabled={!newPw||newPw.length<6}
+                style={{ padding:'7px 14px', borderRadius:6, border:'none', background:newPw?.length>=6?ACCENT:'#e5e7eb', color:'#fff', fontSize:12, fontWeight:700, cursor:newPw?.length>=6?'pointer':'not-allowed' }}>
+                Save Password
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const lbl = { display:'block', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:4 }
+const inp = { width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, boxSizing:'border-box', background:'#fff' }
 
 /* ── Agency Features Panel (inline sub-component) ──────────────────────── */
 function AgencyFeaturesPanel({ agencies, setAgencies, expanded, setExpanded, featData, setFeatData, saving, setSaving }) {

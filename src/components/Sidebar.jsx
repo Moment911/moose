@@ -52,7 +52,7 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
 }
 
 // Accordion section — persists open/close state in localStorage
-function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath }) {
+function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, forceOpen }) {
   // Auto-open if any child route matches the current path
   const childPaths = []
   const extractPaths = (kids) => {
@@ -68,6 +68,9 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath })
   const hasActiveChild = childPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))
 
   const storageKey = `koto_sidebar_${id}`
+  // Also check for a global search query passed via prop
+  const searchActive = typeof window !== 'undefined' && document.querySelector('[data-sidebar-search]')?.value?.trim()
+
   const [open, setOpen] = useState(() => {
     if (typeof window === 'undefined') return defaultOpen ?? true
     const saved = localStorage.getItem(storageKey)
@@ -75,7 +78,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath })
     return defaultOpen ?? hasActiveChild
   })
 
-  // Auto-open when navigating into this section
+  // Auto-open when navigating into this section or when search is active
   useEffect(() => {
     if (hasActiveChild && !open) setOpen(true)
   }, [currentPath])
@@ -111,7 +114,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath })
           opacity: 0.5,
         }} />
       </button>
-      {open && (
+      {(open || forceOpen) && (
         <div style={{ overflow: 'hidden' }}>
           {children}
         </div>
@@ -212,7 +215,7 @@ export default function Sidebar() {
 
             {/* SUPER ADMIN: Platform + Testing section */}
             {isSuperAdmin && !isImpersonating && (
-              <Section id="admin" label="Admin & Testing" icon={Shield} currentPath={path}>
+              <Section id="admin" label="Admin & Testing" icon={Shield} currentPath={path} forceOpen={!!sq}>
                 <NavLink to="/" exact icon={LayoutGrid} label="Platform Overview"/>
                 <NavLink to="/platform-admin" icon={Shield} label="Platform Admin"/>
                 <NavLink to="/billing-admin" icon={CreditCard} label="Billing Admin"/>
@@ -240,7 +243,7 @@ export default function Sidebar() {
             )}
 
             {/* CLIENTS */}
-            <Section id="clients" label="Clients" icon={Users} defaultOpen currentPath={path}>
+            <Section id="clients" label="Clients" icon={Users} defaultOpen currentPath={path} forceOpen={!!sq}>
               <NavLink to="/clients" startsWith icon={Users} label="Clients" hidden={!match('Clients')}/>
               <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T} hidden={!match('Discovery')}/>
               <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub hidden={!match('Analytics')}/>
@@ -252,7 +255,7 @@ export default function Sidebar() {
             </Section>
 
             {/* GROWTH */}
-            <Section id="growth" label="Growth" icon={TrendingUp} currentPath={path}>
+            <Section id="growth" label="Growth" icon={TrendingUp} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/reviews" startsWith icon={Star} label="Reviews" hidden={!match('Reviews') || !feat('reviews')}/>
               <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns" hidden={!match('Review Campaigns') || !feat('reviews')}/>
               <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals" hidden={!match('Proposals') || !feat('proposals')}/>
@@ -262,12 +265,12 @@ export default function Sidebar() {
             </Section>
 
             {/* DESIGN */}
-            <Section id="design" label="Design" icon={FileSignature} currentPath={path}>
+            <Section id="design" label="Design" icon={FileSignature} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof" hidden={!match('KotoProof')}/>
             </Section>
 
             {/* SEO & CONTENT */}
-            <Section id="seo" label="SEO & Content" icon={BarChart2} currentPath={path}>
+            <Section id="seo" label="SEO & Content" icon={BarChart2} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/page-builder" icon={Sparkles} label="Page Builder" hidden={!match('Page Builder') || !feat('page_builder')}/>
               <NavLink to="/wordpress" icon={Globe} label="WP Plugin" hidden={!match('WP Plugin')}/>
               <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub" hidden={!match('SEO Hub') || !feat('seo_hub')}/>
@@ -286,7 +289,7 @@ export default function Sidebar() {
             </Section>
 
             {/* INTELLIGENCE — feature-gated items */}
-            <Section id="intelligence" label="Intelligence" icon={Brain} currentPath={path}>
+            <Section id="intelligence" label="Intelligence" icon={Brain} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" badge="AI" badgeColor={R} hidden={!match('Predictive Intel')}/>
               <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R} hidden={!match('AI CMO') || !feat('cmo_agent')}/>
               <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R} hidden={!match('Performance')}/>
@@ -298,7 +301,7 @@ export default function Sidebar() {
             </Section>
 
             {/* VOICE & AI — gated by voice_agent feature */}
-            <Section id="voice" label="Voice & AI" icon={Phone} currentPath={path}>
+            <Section id="voice" label="Voice & AI" icon={Phone} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R} hidden={!match('Voice Agent') || !feat('voice_agent')}/>
               <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub hidden={!match('Closer') || !feat('voice_agent')}/>
               <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service" hidden={!match('Answering') || !feat('answering_service')}/>
@@ -311,7 +314,7 @@ export default function Sidebar() {
 
             {/* KOTOCLOSE — gated by voice_agent feature */}
             {feat('voice_agent') && (
-            <Section id="kotoclose" label="KotoClose" icon={Target} currentPath={path}>
+            <Section id="kotoclose" label="KotoClose" icon={Target} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/kotoclose/dashboard" startsWith icon={Target} label="Live Dashboard" badge="AI" badgeColor={R} hidden={!match('Live Dashboard')}/>
               <NavLink to="/kotoclose/calls" icon={Phone} label="Call Log" sub hidden={!match('Call Log')}/>
               <NavLink to="/kotoclose/callbacks" icon={Clock} label="Callbacks" sub hidden={!match('Callbacks')}/>
@@ -322,14 +325,14 @@ export default function Sidebar() {
             )}
 
             {/* OUTREACH */}
-            <Section id="outreach" label="Outreach" icon={Mail} currentPath={path}>
+            <Section id="outreach" label="Outreach" icon={Mail} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T} hidden={!match('Sequences')}/>
               <NavLink to="/email-tracking" startsWith icon={Mail} label="Email Tracking" badge="NEW" badgeColor={T} hidden={!match('Email Tracking')}/>
               <NavLink to="/email-tracking/gmail-helper" icon={Mail} label="Gmail Helper" sub hidden={!match('Gmail Helper')}/>
             </Section>
 
             {/* AGENCY — billing/settings gated by role */}
-            <Section id="agency" label="Agency" icon={Settings} defaultOpen currentPath={path}>
+            <Section id="agency" label="Agency" icon={Settings} defaultOpen currentPath={path} forceOpen={!!sq}>
               <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T} hidden={!match('Data Vault')}/>
               <NavLink to="/phones" icon={Phone} label="Phone Numbers" hidden={!match('Phone Numbers') || !feat('phone_numbers')}/>
               <NavLink to="/marketplace" icon={Sparkles} label="Marketplace" hidden={!match('Marketplace') || !feat('marketplace')}/>

@@ -231,5 +231,66 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data)
   }
 
+  // ── Create user account with email + password ──────────────────────────
+  if (action === 'create_user') {
+    const { email, password, first_name, last_name, agency_id, role } = body
+    if (!email || !password) return NextResponse.json({ error: 'email and password required' }, { status: 400 })
+    const { data: authUser, error: authErr } = await s.auth.admin.createUser({
+      email, password, email_confirm: true,
+      user_metadata: { first_name: first_name || '', last_name: last_name || '' },
+    })
+    if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 })
+    if (agency_id && authUser.user) {
+      await s.from('agency_members').insert({ agency_id, user_id: authUser.user.id, role: role || 'owner' })
+    }
+    return NextResponse.json({ user: { id: authUser.user?.id, email } })
+  }
+
+  // ── Set/reset password for any user ───────────────────────────────────
+  if (action === 'set_password') {
+    const { user_id, email, new_password } = body
+    if (!new_password) return NextResponse.json({ error: 'new_password required' }, { status: 400 })
+    let uid = user_id
+    if (!uid && email) {
+      const { data: { users } } = await s.auth.admin.listUsers()
+      uid = users?.find((u: any) => u.email === email)?.id
+    }
+    if (!uid) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    const { error } = await s.auth.admin.updateUserById(uid, { password: new_password })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // ── Send password reset email ─────────────────────────────────────────
+  if (action === 'send_password_reset') {
+    const { email } = body
+    if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 })
+    const { error } = await s.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/login?reset=1`,
+    })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, message: `Reset email sent to ${email}` })
+  }
+
+  // ── List all users with agency membership ─────────────────────────────
+  if (action === 'list_users') {
+    const { data: { users }, error } = await s.auth.admin.listUsers()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    const { data: members } = await s.from('agency_members').select('user_id, agency_id, role, agencies(name, brand_name)')
+    const memberMap: Record<string, any> = {}
+    for (const m of members || []) memberMap[m.user_id] = m
+    const enriched = (users || []).map((u: any) => ({
+      id: u.id, email: u.email,
+      first_name: u.user_metadata?.first_name, last_name: u.user_metadata?.last_name,
+      created_at: u.created_at, last_sign_in_at: u.last_sign_in_at,
+      agency: memberMap[u.id] ? {
+        id: memberMap[u.id].agency_id,
+        name: memberMap[u.id].agencies?.brand_name || memberMap[u.id].agencies?.name,
+        role: memberMap[u.id].role,
+      } : null,
+    }))
+    return NextResponse.json({ users: enriched })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
