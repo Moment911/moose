@@ -109,13 +109,13 @@ export async function POST(req: NextRequest) {
     // prospecting.
     //
     // Body: { action: 'run_sweep', query, state, agency_id,
-    //         industry_keywords?, industry_sic_code?,
+    //         industry_keywords?, industry_sic_code?, counties?,
     //         max_results?, max_municipalities?, incorporated_only?,
     //         min_rating?, max_rating?, min_reviews?, max_reviews?,
     //         has_website?, campaign_id? }
     if (action === 'run_sweep') {
       const {
-        query, state, agency_id, campaign_id,
+        query, state, agency_id, campaign_id, counties,
         industry_keywords, industry_sic_code,
         max_results, max_municipalities, incorporated_only,
         min_rating, max_rating, min_reviews, max_reviews, has_website,
@@ -151,6 +151,7 @@ export async function POST(req: NextRequest) {
 
       const result = await runScoutSweep({
         state,
+        counties: Array.isArray(counties) ? counties : counties ? [counties] : undefined,
         industryKeywords: keywords,
         industrySicCode: industry_sic_code || null,
         agencyId: agency_id || '00000000-0000-0000-0000-000000000099',

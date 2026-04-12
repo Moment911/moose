@@ -203,6 +203,7 @@ export async function runScoutSearch(
 
 export interface ScoutSweepOptions {
   state: string
+  counties?: string[]           // optional county names to filter to
   industryKeywords: string[]
   industrySicCode?: string | null
   agencyId: string
@@ -247,12 +248,22 @@ export async function runScoutSweep(opts: ScoutSweepOptions): Promise<ScoutSweep
     }
   }
 
-  // 1. Fetch the full municipality list from Census (cached up to 6 months).
-  const places = await getOrFetch(
-    cacheKeys.places(opts.state, !!opts.incorporatedOnly),
-    'geo-municipality',
-    () => getMunicipalitiesForState(opts.state, { incorporatedOnly: opts.incorporatedOnly })
-  )
+  // 1. Fetch the municipality list from Census (cached up to 6 months).
+  //    If counties are specified, filter via Gazetteer + FCC Area API.
+  let places: Awaited<ReturnType<typeof getMunicipalitiesForState>>
+
+  if (opts.counties?.length) {
+    const { getPlacesForCounties } = await import('./geoLookup')
+    places = await getPlacesForCounties(opts.state, opts.counties, {
+      incorporatedOnly: opts.incorporatedOnly,
+    })
+  } else {
+    places = await getOrFetch(
+      cacheKeys.places(opts.state, !!opts.incorporatedOnly),
+      'geo-municipality',
+      () => getMunicipalitiesForState(opts.state, { incorporatedOnly: opts.incorporatedOnly })
+    )
+  }
 
   const municipalitiesTotal = places.data.length
   const municipalityCap = opts.maxMunicipalities ?? 150

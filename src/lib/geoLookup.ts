@@ -236,19 +236,29 @@ export async function getZipCodesForState(stateAbbr: string): Promise<ZipsResult
 // unreliable in general. Callers that need strict county filtering should
 // treat this as "best effort" and verify results manually.
 //
-// TODO: replace with TIGER/Line-backed point-in-polygon lookup.
+// Uses Census Gazetteer lat/lon + FCC Area API to determine which county
+// each place belongs to. This is expensive on first call (~1 FCC request
+// per 10 places per second) but cached for 6 months. For a state like
+// Florida with ~1000 places, the first call takes ~2 minutes. After that
+// the mapping is instant from cache.
+//
+// If countyNames is empty, returns all places (no filtering).
 export async function getPlacesForCounties(
   stateAbbr: string,
   countyNames: string[],
   opts: PlacesOptions = {}
 ): Promise<PlacesResult> {
   const all = await getPlacesForState(stateAbbr, opts)
-  // Intentionally return all places for now — until TIGER shapefiles are
-  // wired in, we trust the caller to run per-place searches and dedupe.
-  // Mark that the filtering is not yet implemented so UI can warn.
+
+  if (!countyNames.length) return all
+
+  // Lazy import to avoid circular dependency
+  const { filterPlacesByCounty } = await import('./countyLookup')
+  const { filtered } = await filterPlacesByCounty(all.data, stateAbbr, countyNames)
+
   return {
     ...all,
-    confidence: 'single-source',
-    data: all.data,
+    confidence: 'cross-referenced',
+    data: filtered,
   }
 }

@@ -590,6 +590,7 @@ export default function ScoutPage() {
   const [currentSearchId, setCurrentSearchId] = useState(null)
   const [selectedLead, setSelectedLead] = useState(null)
   const [sweepMeta, setSweepMeta] = useState(null) // provenance from Census sweep
+  const [sweepCounties, setSweepCounties] = useState('') // comma-separated county names for sweep filtering
 
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
 
@@ -622,7 +623,9 @@ export default function ScoutPage() {
     if (!stateCode) { toast.error('Enter a valid US state — e.g. "FL", "Texas", or "Miami, FL"'); return }
 
     setSearching(true); setResults([]); setStats(null); setSearchError(null); setSweepMeta(null)
-    toast('Sweeping all cities in ' + stateCode + '… this takes a minute', { icon: '🔍', duration: 8000 })
+    const counties = sweepCounties.split(',').map(s => s.trim()).filter(Boolean)
+    const countyNote = counties.length ? ` (${counties.join(', ')} count${counties.length > 1 ? 'ies' : 'y'})` : ''
+    toast(`Sweeping ${counties.length ? counties.length + ' counties' : 'all cities'} in ${stateCode}${countyNote}… this takes a minute`, { icon: '🔍', duration: 8000 })
 
     try {
       const res = await fetch('/api/scout/search', {
@@ -631,6 +634,7 @@ export default function ScoutPage() {
         body: JSON.stringify({
           action: 'run_sweep',
           state: stateCode,
+          counties: counties.length ? counties : undefined,
           industry_keywords: term.split(',').map(s => s.trim()).filter(Boolean),
           agency_id: agencyId || '00000000-0000-0000-0000-000000000099',
           max_results: 500,
@@ -1058,12 +1062,12 @@ export default function ScoutPage() {
           <span style={{ fontSize:15, fontWeight:800, color:'#111' }}>Scout</span>
           <span style={{ fontSize:14, color:'#4b5563' }}>·</span>
           {/* Mode tabs */}
-          <div style={{ display:'flex', gap:2, background:'#f3f4f6', borderRadius:10, padding:3 }}>
+          <div style={{ display:'flex', gap:3, background:'#f3f4f6', borderRadius:10, padding:3 }}>
             {SEARCH_MODES.map(m=>(
               <button key={m.id} onClick={()=>{ setMode(m.id); setResults([]); setStats(null) }}
-                style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:8, border:'none', background:mode===m.id?'#fff':'transparent', cursor:'pointer', boxShadow:mode===m.id?'0 1px 3px rgba(0,0,0,.1)':'none', transition:'all .15s' }}>
-                <span style={{ fontSize:15 }}></span>
-                <span style={{ fontSize:14, fontWeight:mode===m.id?700:500, color:mode===m.id?m.color:'#374151', whiteSpace:'nowrap' }}>{m.label}</span>
+                style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 16px', borderRadius:8, border:mode===m.id?`1.5px solid ${m.color}30`:'1.5px solid transparent', background:mode===m.id?'#fff':'transparent', cursor:'pointer', boxShadow:mode===m.id?'0 2px 8px rgba(0,0,0,.08)':'none', transition:'all .15s' }}>
+                <m.icon size={13} color={mode===m.id?m.color:'#9ca3af'} style={{flexShrink:0}}/>
+                <span style={{ fontSize:13, fontWeight:mode===m.id?800:500, color:mode===m.id?m.color:'#374151', whiteSpace:'nowrap', fontFamily:FH }}>{m.label}</span>
               </button>
             ))}
           </div>
@@ -1098,20 +1102,33 @@ export default function ScoutPage() {
         )}
 
         {/* ── Search bar ── */}
-        <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'12px 24px', flexShrink:0 }}>
+        <div style={{ background:'#fff', borderBottom:`2px solid ${modeConfig.color}15`, padding:'14px 24px', flexShrink:0 }}>
           <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-            <div style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'10px 16px' }}>
-              <Search size={16} color="#9ca3af" style={{ flexShrink:0 }}/>
+            <div style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'11px 16px', transition:'border-color .15s' }}
+              onFocus={e=>e.currentTarget.style.borderColor=modeConfig.color+'60'}
+              onBlur={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+              <Search size={16} color={modeConfig.color} style={{ flexShrink:0, opacity:.6 }}/>
               <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
                 placeholder={modeConfig.placeholder_q}
-                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:15, color:'#111' }}/>
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:15, color:'#111', fontFamily:FH }}/>
             </div>
-            <div style={{ display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'10px 16px', width:200 }}>
-              <MapPin size={15} color="#9ca3af" style={{ flexShrink:0 }}/>
+            <div style={{ display:'flex', alignItems:'center', gap:10, background:'#f9fafb', borderRadius:12, border:'1.5px solid #e5e7eb', padding:'11px 16px', width:220, transition:'border-color .15s' }}
+              onFocus={e=>e.currentTarget.style.borderColor=modeConfig.color+'60'}
+              onBlur={e=>e.currentTarget.style.borderColor='#e5e7eb'}>
+              <MapPin size={15} color={modeConfig.color} style={{ flexShrink:0, opacity:.6 }}/>
               <input value={location} onChange={e=>setLocation(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
                 placeholder={modeConfig.placeholder_loc}
-                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:15, color:'#111' }}/>
+                style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:15, color:'#111', fontFamily:FH }}/>
             </div>
+            {mode === 'sweep' && (
+              <div style={{ display:'flex', alignItems:'center', gap:10, background:'#eff6ff', borderRadius:12, border:'1.5px solid #93c5fd60', padding:'10px 16px', width:260 }}
+                title="Leave blank to search ALL cities in the state">
+                <Building size={15} color="#2563eb" style={{ flexShrink:0 }}/>
+                <input value={sweepCounties} onChange={e=>setSweepCounties(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runSearch()}
+                  placeholder="Counties (optional) e.g. Miami-Dade, Broward"
+                  style={{ flex:1, border:'none', outline:'none', background:'transparent', fontSize:13, color:'#111' }}/>
+              </div>
+            )}
             <button onClick={()=>setShowFilters(s=>!s)} style={{ display:'flex', alignItems:'center', gap:6, padding:'11px 16px', borderRadius:12, border:`1.5px solid ${showFilters?modeConfig.color:'#e5e7eb'}`, background:showFilters?modeConfig.color+'08':'#fff', color:showFilters?modeConfig.color:'#374151', fontSize:15, cursor:'pointer', fontWeight:600 }}>
               <Filter size={14}/> Filters
               {(filterGaps.length>0||selectedIndustries.length>0||filterScore>0)&&<span style={{ width:7,height:7,borderRadius:'50%',background:modeConfig.color,flexShrink:0 }}/>}
@@ -1183,26 +1200,31 @@ export default function ScoutPage() {
           {/* Empty state */}
           {!searching && !hasResults && !searchError && (
             <div>
-              <div style={{ marginBottom:24 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:'#4b5563', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10 }}>Quick Searches</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+              <div style={{ marginBottom:28 }}>
+                <div style={{ fontSize:11, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.12em', marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>
+                  <Zap size={10} color={modeConfig.color}/> Quick Searches
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:8 }}>
                   {(QUICK_SEARCHES[mode]||QUICK_SEARCHES.prospect).map(qs=>(
                     <button key={qs.label} onClick={()=>{ setQuery(qs.q); setLocation(qs.loc); setTimeout(runSearch,100) }}
-                      style={{ fontSize:15, padding:'8px 16px', borderRadius:24, border:'1.5px solid #e5e7eb', background:'#fff', cursor:'pointer', color:'#374151', fontWeight:600, display:'flex', alignItems:'center', gap:6, transition:'all .12s' }}
-                      onMouseEnter={e=>{ e.currentTarget.style.borderColor=modeConfig.color; e.currentTarget.style.color=modeConfig.color }}
-                      onMouseLeave={e=>{ e.currentTarget.style.borderColor='#e5e7eb'; e.currentTarget.style.color='#374151' }}>
-                      <modeConfig.icon size={11}/> {qs.label}
+                      style={{ fontSize:14, padding:'12px 16px', borderRadius:12, border:'1.5px solid #e5e7eb', borderLeft:`3px solid ${modeConfig.color}40`, background:'#fff', cursor:'pointer', color:'#374151', fontWeight:600, fontFamily:FH, display:'flex', alignItems:'center', gap:8, transition:'all .15s', textAlign:'left' }}
+                      onMouseEnter={e=>{ e.currentTarget.style.borderColor=modeConfig.color; e.currentTarget.style.borderLeftColor=modeConfig.color; e.currentTarget.style.background=`${modeConfig.color}06`; e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,.06)' }}
+                      onMouseLeave={e=>{ e.currentTarget.style.borderColor='#e5e7eb'; e.currentTarget.style.borderLeftColor=`${modeConfig.color}40`; e.currentTarget.style.background='#fff'; e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='none' }}>
+                      <modeConfig.icon size={13} color={modeConfig.color} style={{flexShrink:0}}/> {qs.label}
                     </button>
                   ))}
                 </div>
               </div>
-              {/* Data source info - only show if no real data */}
               {/* Hero */}
-              <div style={{ background:'linear-gradient(135deg,#18181b,#27272a)', borderRadius:20, padding:'40px', textAlign:'center' }}>
-                <div style={{ width:64, height:64, borderRadius:'50%', background:modeConfig.color, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:28 }}>
-                  </div>
-                <h2 style={{ fontSize:26, fontWeight:900, color:'#fff', marginBottom:10, letterSpacing:-.5 }}>{modeConfig.label}</h2>
-                <p style={{ fontSize:15, color:'#4b5563', lineHeight:1.65, maxWidth:500, margin:'0 auto' }}>{modeConfig.desc}</p>
+              <div style={{ background:'linear-gradient(135deg,#18181b,#27272a)', borderRadius:20, padding:'48px 40px', textAlign:'center' }}>
+                <div style={{ width:72, height:72, borderRadius:18, background:`${modeConfig.color}20`, border:`2px solid ${modeConfig.color}40`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px' }}>
+                  <modeConfig.icon size={32} color={modeConfig.color}/>
+                </div>
+                <h2 style={{ fontSize:28, fontWeight:900, color:'#fff', fontFamily:FB, letterSpacing:'-.03em', marginBottom:10 }}>{modeConfig.label}</h2>
+                <p style={{ fontSize:15, color:'rgba(255,255,255,.5)', lineHeight:1.65, maxWidth:480, margin:'0 auto 28px' }}>{modeConfig.desc}</p>
+                <div style={{ fontSize:12, fontWeight:700, color:'rgba(255,255,255,.3)', textTransform:'uppercase', letterSpacing:'.1em', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                  <Search size={11}/> Try a quick search above or pick one below
+                </div>
               </div>
             </div>
           )}
@@ -1272,17 +1294,19 @@ export default function ScoutPage() {
 
               {/* Stats */}
               {mode!=='market' && stats && (
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:18 }}>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10, marginBottom:20 }}>
                   {[
-                    { label:'Total Found',   value:stats.total,                color:'#111' },
-                    { label:'Hot Leads',  value:stats.hot,                  color:'#dc2626' },
-                    { label:'Warm Leads',    value:stats.warm,                 color:ACCENT },
-                    { label:'Avg Score',     value:stats.avgScore,             color:scoreColor(stats.avgScore) },
-                    { label:'Data Verified', value:`${stats.verified}/${stats.total}`, color:'#16a34a' },
+                    { label:'Total Found',   value:stats.total,                color:'#111',    border:'#e5e7eb' },
+                    { label:'Hot Leads',      value:stats.hot,                  color:'#dc2626', border:'#dc2626' },
+                    { label:'Warm Leads',     value:stats.warm,                 color:ACCENT,    border:ACCENT },
+                    { label:'Avg Score',      value:stats.avgScore,             color:scoreColor(stats.avgScore), border:scoreColor(stats.avgScore) },
+                    { label:'Data Verified',  value:`${stats.verified}/${stats.total}`, color:'#16a34a', border:'#16a34a' },
                   ].map(s=>(
-                    <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
-                      <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-                      <div style={{ fontSize:13, color:'#4b5563', marginTop:2 }}>{s.label}</div>
+                    <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', borderTop:`3px solid ${s.border}`, padding:'16px 16px 14px', transition:'transform .15s, box-shadow .15s' }}
+                      onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,.06)'}}
+                      onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='none'}}>
+                      <div style={{ fontSize:24, fontWeight:900, color:s.color, fontFamily:FB, letterSpacing:'-.03em' }}>{s.value}</div>
+                      <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', marginTop:4, textTransform:'uppercase', letterSpacing:'.08em' }}>{s.label}</div>
                     </div>
                   ))}
                 </div>

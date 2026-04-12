@@ -80,13 +80,12 @@ export const DATA_SOURCES = {
   // ── INDUSTRY CLASSIFICATIONS ──────────────────────────────────────────────
 
   naics_codes: {
-    name: 'US Census Bureau — NAICS 2022 Reference',
-    url: 'https://www.census.gov/naics/reference_files_tools/2022_NAICS_Descriptions.xlsx',
+    name: 'US Census Bureau — Economic Census NAICS 2017',
+    url: 'https://api.census.gov/data/2017/ecnbasic?get=NAICS2017_LABEL,NAICS2017&for=us:*&NAICS2017=*',
     api_docs: 'https://www.census.gov/naics/',
     source_type: 'government-federal',
-    notes: 'NAICS reference data is distributed as a downloadable Excel file — no live JSON endpoint. The 2022 edition of the brief incorrectly pointed at /data/2022/cbp with NAICS2022_LABEL, which returns "unknown variable". Workaround: parse the XLSX at build time and ship a static JSON to /public/naics-2022.json, or use a mirror like naicslist.com (unofficial).',
+    notes: 'The 2022 CBP endpoint lacks a label field (only has NAICS2017 code, no title). The 2017 Economic Census basic endpoint has both NAICS2017_LABEL and NAICS2017, returning 2,111 unique codes. Verified working 2026-04-12. See src/lib/industrySources.ts for the fetch wrapper.',
     threshold_key: 'industry-naics',
-    broken: true,
   },
 
   sic_codes: {
