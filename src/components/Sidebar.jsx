@@ -259,76 +259,76 @@ export default function Sidebar() {
 
             {/* CLIENTS */}
             <Section id="clients" label="Clients" icon={Users} defaultOpen currentPath={path} forceOpen={!!sq}>
-              <NavLink to="/clients" startsWith icon={Users} label="Clients" hidden={!match('Clients')}/>
-              <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T} hidden={!match('Discovery')}/>
-              <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub hidden={!match('Analytics')}/>
-              <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding" hidden={!match('Onboarding')}/>
+              <NavLink to="/clients" startsWith icon={Users} label="Clients" hidden={!match('Clients') || !feat('clients')}/>
+              <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T} hidden={!match('Discovery') || !feat('discovery')}/>
+              <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub hidden={!match('Analytics') || !feat('discovery')}/>
+              <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding" hidden={!match('Onboarding') || !feat('onboarding')}/>
               <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks" hidden={!match('Tasks') || !feat('tasks')}/>
-              <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk" hidden={!match('KotoDesk')}/>
-              <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub hidden={!match('Q&A Knowledge')}/>
-              <NavLink to="/desk/reports" startsWith icon={BarChart2} label="Desk Reports" sub hidden={!match('Desk Reports')}/>
+              <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk" hidden={!match('KotoDesk') || !feat('koto_desk')}/>
+              <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub hidden={!match('Q&A Knowledge') || !feat('koto_desk')}/>
+              <NavLink to="/desk/reports" startsWith icon={BarChart2} label="Desk Reports" sub hidden={!match('Desk Reports') || !feat('koto_desk')}/>
             </Section>
 
             {/* GROWTH */}
             <Section id="growth" label="Growth" icon={TrendingUp} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/reviews" startsWith icon={Star} label="Reviews" hidden={!match('Reviews') || !feat('reviews')}/>
-              <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns" hidden={!match('Review Campaigns') || !feat('reviews')}/>
+              <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns" hidden={!match('Review Campaigns') || !feat('review_campaigns')}/>
               <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals" hidden={!match('Proposals') || !feat('proposals')}/>
-              <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library" hidden={!match('Proposal Library') || !feat('proposals')}/>
-              <NavLink to="/automations" icon={Workflow} label="Automations" hidden={!match('Automations')}/>
-              <NavLink to="/invoice-builder" icon={FileText} label="Invoice Builder" hidden={!match('Invoice Builder')}/>
+              <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library" hidden={!match('Proposal Library') || !feat('proposal_library')}/>
+              <NavLink to="/automations" icon={Workflow} label="Automations" hidden={!match('Automations') || !feat('automations')}/>
+              <NavLink to="/invoice-builder" icon={FileText} label="Invoice Builder" hidden={!match('Invoice Builder') || !feat('invoice_builder')}/>
             </Section>
 
             {/* DESIGN */}
             <Section id="design" label="Design" icon={FileSignature} currentPath={path} forceOpen={!!sq}>
-              <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof" hidden={!match('KotoProof')}/>
+              <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof" hidden={!match('KotoProof') || !feat('koto_proof')}/>
             </Section>
 
             {/* SEO & CONTENT */}
             <Section id="seo" label="SEO & Content" icon={BarChart2} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/page-builder" icon={Sparkles} label="Page Builder" hidden={!match('Page Builder') || !feat('page_builder')}/>
-              <NavLink to="/wordpress" icon={Globe} label="WP Plugin" hidden={!match('WP Plugin')}/>
+              <NavLink to="/wordpress" icon={Globe} label="WP Plugin" hidden={!match('WP Plugin') || !feat('wordpress_plugin')}/>
               <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub" hidden={!match('SEO Hub') || !feat('seo_hub')}/>
               {path.startsWith('/seo') && (<>
-                <NavLink to="/seo/gbp-audit" icon={MapPin} label="GBP Audit" sub/>
-                <NavLink to="/seo/onpage" icon={Globe} label="On-Page Audit" sub/>
-                <NavLink to="/seo/keyword-gap" icon={Search} label="Keyword Gap" sub/>
-                <NavLink to="/seo/monthly-report" icon={FileText} label="Monthly Report" sub/>
-                <NavLink to="/seo/content-gap" icon={BookOpen} label="Content Gap" sub/>
-                <NavLink to="/seo/technical-audit" icon={Code2} label="Tech Audit" sub/>
-                <NavLink to="/seo/ai-visibility" icon={Brain} label="AI Visibility" sub/>
-                <NavLink to="/seo/white-label" icon={Download} label="White-Label Report" sub/>
-                <NavLink to="/seo/competitor-intel" icon={BarChart2} label="Competitor Intel" sub/>
-                <NavLink to="/seo/citations" icon={MapPin} label="Citation Tracker" sub/>
+                <NavLink to="/seo/gbp-audit" icon={MapPin} label="GBP Audit" sub hidden={!feat('gbp_audit')}/>
+                <NavLink to="/seo/onpage" icon={Globe} label="On-Page Audit" sub hidden={!feat('onpage_audit')}/>
+                <NavLink to="/seo/keyword-gap" icon={Search} label="Keyword Gap" sub hidden={!feat('keyword_gap')}/>
+                <NavLink to="/seo/monthly-report" icon={FileText} label="Monthly Report" sub hidden={!feat('monthly_report')}/>
+                <NavLink to="/seo/content-gap" icon={BookOpen} label="Content Gap" sub hidden={!feat('content_gap')}/>
+                <NavLink to="/seo/technical-audit" icon={Code2} label="Tech Audit" sub hidden={!feat('technical_audit')}/>
+                <NavLink to="/seo/ai-visibility" icon={Brain} label="AI Visibility" sub hidden={!feat('ai_visibility')}/>
+                <NavLink to="/seo/white-label" icon={Download} label="White-Label Report" sub hidden={!feat('white_label_report')}/>
+                <NavLink to="/seo/competitor-intel" icon={BarChart2} label="Competitor Intel" sub hidden={!feat('competitor_intel')}/>
+                <NavLink to="/seo/citations" icon={MapPin} label="Citation Tracker" sub hidden={!feat('citation_tracker')}/>
               </>)}
             </Section>
 
-            {/* INTELLIGENCE — feature-gated items */}
+            {/* INTELLIGENCE */}
             <Section id="intelligence" label="Intelligence" icon={Brain} currentPath={path} forceOpen={!!sq}>
-              <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" badge="AI" badgeColor={R} hidden={!match('Predictive Intel')}/>
+              <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" badge="AI" badgeColor={R} hidden={!match('Predictive Intel') || !feat('predictive_intel')}/>
               <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R} hidden={!match('AI CMO') || !feat('cmo_agent')}/>
-              <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R} hidden={!match('Performance')}/>
+              <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R} hidden={!match('Performance') || !feat('performance_dashboard')}/>
               <NavLink to="/scout" startsWith icon={Target} label="Scout" badge="NEW" badgeColor={T} hidden={!match('Scout') || !feat('scout')}/>
               <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub hidden={!match('Scout History') || !feat('scout')}/>
-              <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub hidden={!match('Pipeline CRM') || !feat('scout')}/>
-              <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T} hidden={!match('Q&A Intelligence')}/>
-              <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R} hidden={!match('Opportunities')}/>
+              <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub hidden={!match('Pipeline CRM') || !feat('pipeline_crm')}/>
+              <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T} hidden={!match('Q&A Intelligence') || !feat('qa_intelligence')}/>
+              <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R} hidden={!match('Opportunities') || !feat('opportunities')}/>
             </Section>
 
-            {/* VOICE & AI — gated by voice_agent feature */}
+            {/* VOICE & AI */}
             <Section id="voice" label="Voice & AI" icon={Phone} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R} hidden={!match('Voice Agent') || !feat('voice_agent')}/>
               <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub hidden={!match('Closer') || !feat('voice_agent')}/>
               <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service" hidden={!match('Answering') || !feat('answering_service')}/>
-              <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub hidden={!match('Industry Agents')}/>
-              <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub hidden={!match('Video Voicemails')}/>
-              <NavLink to="/avatars" icon={Users} label="AI Avatars" sub hidden={!match('AI Avatars')}/>
+              <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub hidden={!match('Industry Agents') || !feat('industry_agents')}/>
+              <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub hidden={!match('Video Voicemails') || !feat('video_voicemails')}/>
+              <NavLink to="/avatars" icon={Users} label="AI Avatars" sub hidden={!match('AI Avatars') || !feat('ai_avatars')}/>
               <NavLink to="/trades" icon={Zap} label="Trades Portal" sub hidden={!match('Trades Portal')}/>
-              <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R} hidden={!match('Visitor Intelligence')}/>
+              <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R} hidden={!match('Visitor Intelligence') || !feat('pixel_tracking')}/>
             </Section>
 
-            {/* KOTOCLOSE — gated by voice_agent feature */}
-            {feat('voice_agent') && (
+            {/* KOTOCLOSE */}
+            {feat('kotoclose') && (
             <Section id="kotoclose" label="KotoClose" icon={Target} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/kotoclose/dashboard" startsWith icon={Target} label="Live Dashboard" badge="AI" badgeColor={R} hidden={!match('Live Dashboard')}/>
               <NavLink to="/kotoclose/calls" icon={Phone} label="Call Log" sub hidden={!match('Call Log')}/>
@@ -341,21 +341,21 @@ export default function Sidebar() {
 
             {/* OUTREACH */}
             <Section id="outreach" label="Outreach" icon={Mail} currentPath={path} forceOpen={!!sq}>
-              <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T} hidden={!match('Sequences')}/>
-              <NavLink to="/email-tracking" startsWith icon={Mail} label="Email Tracking" badge="NEW" badgeColor={T} hidden={!match('Email Tracking')}/>
-              <NavLink to="/email-tracking/gmail-helper" icon={Mail} label="Gmail Helper" sub hidden={!match('Gmail Helper')}/>
+              <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T} hidden={!match('Sequences') || !feat('email_sequences')}/>
+              <NavLink to="/email-tracking" startsWith icon={Mail} label="Email Tracking" badge="NEW" badgeColor={T} hidden={!match('Email Tracking') || !feat('email_tracking')}/>
+              <NavLink to="/email-tracking/gmail-helper" icon={Mail} label="Gmail Helper" sub hidden={!match('Gmail Helper') || !feat('email_tracking')}/>
             </Section>
 
-            {/* AGENCY — billing/settings gated by role */}
+            {/* AGENCY */}
             <Section id="agency" label="Agency" icon={Settings} defaultOpen currentPath={path} forceOpen={!!sq}>
-              <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T} hidden={!match('Data Vault')}/>
+              <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T} hidden={!match('Data Vault') || !feat('data_vault')}/>
               <NavLink to="/phones" icon={Phone} label="Phone Numbers" hidden={!match('Phone Numbers') || !feat('phone_numbers')}/>
               <NavLink to="/marketplace" icon={Sparkles} label="Marketplace" hidden={!match('Marketplace') || !feat('marketplace')}/>
               <NavLink to="/integrations" icon={Plug} label="Integrations" hidden={!match('Integrations')}/>
               <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub hidden={!match('GoHighLevel')}/>
-              <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!match('Billing') || !feat('billing')}/>
-              <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings" hidden={!match('Agency Settings') || !feat('agency_settings')}/>
-              <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI" hidden={!match('Help Center')}/>
+              <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!match('Billing') || !feat('client_billing')}/>
+              <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings" hidden={!match('Agency Settings') || !feat('team_management')}/>
+              <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI" hidden={!match('Help Center') || !feat('help_center')}/>
               <NavLink to="/access-guide" icon={Key} label="Access Guide" hidden={!match('Access Guide')}/>
             </Section>
 
