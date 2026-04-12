@@ -439,8 +439,35 @@ export default function KotoProofPage() {
                   </div>
                 </div>
               )}
+              {/* Feedback summary banner — shows when there are annotations */}
+              {allAnnotations.length > 0 && (
+                <div className="card p-4 mb-3" style={{ background:'#eff6ff', border:'1px solid #93c5fd60' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <MessageSquare size={16} className="text-blue-600"/>
+                      <div>
+                        <div className="text-sm font-bold text-blue-900">
+                          {allAnnotations.length} annotation{allAnnotations.length !== 1 ? 's' : ''} · {allAnnotations.filter(a => a.status === 'pending' || (!a.resolved && a.status !== 'completed')).length} pending · {allAnnotations.filter(a => a.status === 'completed' || a.resolved).length} resolved
+                        </div>
+                        <div className="text-xs text-blue-600 mt-0.5">
+                          {rounds.length} round{rounds.length !== 1 ? 's' : ''} submitted
+                          {rounds.some(r => r.status === 'submitted') && ' · latest awaiting review'}
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => setTab('rounds')} className="text-xs font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors">
+                      Review Feedback →
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {files.map((file, fileIdx) => {
                 const versions = files.filter(f => f.parent_file_id === file.id || (file.parent_file_id && f.parent_file_id === file.parent_file_id && f.id !== file.id))
+                // Live annotation counts from the loaded allAnnotations (not stale comment_count)
+                const fileAnns = allAnnotations.filter(a => a.file_id === file.id)
+                const openAnns = fileAnns.filter(a => !a.resolved && a.status !== 'completed')
+                const resolvedAnns = fileAnns.filter(a => a.resolved || a.status === 'completed')
 
                 async function moveFile(dir) {
                   const newIdx = fileIdx + dir
@@ -492,8 +519,9 @@ export default function KotoProofPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {file.open_comments > 0 && <span className="badge-open flex items-center gap-1"><MessageSquare size={10} />{file.open_comments} open</span>}
-                    {file.comment_count > 0 && file.open_comments === 0 && <span className="badge-resolved flex items-center gap-1"><MessageSquare size={10} />{file.comment_count} resolved</span>}
+                    {openAnns.length > 0 && <span className="badge-open flex items-center gap-1"><MessageSquare size={10} />{openAnns.length} open</span>}
+                    {resolvedAnns.length > 0 && openAnns.length === 0 && <span className="badge-resolved flex items-center gap-1"><MessageSquare size={10} />{resolvedAnns.length} resolved</span>}
+                    {fileAnns.length > 0 && openAnns.length > 0 && resolvedAnns.length > 0 && <span className="text-[11px] text-gray-400">{resolvedAnns.length}/{fileAnns.length} done</span>}
                     {/* Reorder buttons */}
                     <div className="opacity-0 group-hover:opacity-100 flex flex-col gap-0.5" onClick={e => e.stopPropagation()}>
                       <button onClick={() => moveFile(-1)} disabled={fileIdx === 0} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 p-0.5" title="Move up">
@@ -641,7 +669,7 @@ export default function KotoProofPage() {
                         round={round}
                         summary={summary}
                         projectId={resolvedProjectId}
-                        onUpdate={() => { loadRounds(); loadAnnotations() }}
+                        onUpdate={() => loadAll()}
                       />
                     )}
                   </div>
