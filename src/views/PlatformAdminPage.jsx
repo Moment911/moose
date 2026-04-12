@@ -1027,14 +1027,23 @@ function AgencyFeaturesPanel({ agencies, setAgencies, expanded, setExpanded, fea
             {isExpanded && (
               <div style={{ padding: '0 18px 18px', borderTop: '1px solid #f3f4f6' }}>
                 {/* Plan preset buttons */}
-                <div style={{ display: 'flex', gap: 8, padding: '14px 0', borderBottom: '1px solid #f3f4f6', marginBottom: 14 }}>
-                  <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, lineHeight: '28px' }}>Apply plan defaults:</span>
+                <div style={{ display: 'flex', gap: 8, padding: '14px 0', borderBottom: '1px solid #f3f4f6', marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, lineHeight: '28px' }}>Plan defaults:</span>
                   {['starter', 'growth', 'agency'].map(p => (
                     <button key={p} onClick={() => applyPlanDefaults(a.agency_id, p)} disabled={saving}
                       style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', textTransform: 'uppercase', color: p === 'agency' ? ACCENT : p === 'growth' ? TEAL : '#6b7280' }}>
                       {p}
                     </button>
                   ))}
+                  <div style={{ width: 1, height: 20, background: '#e5e7eb', margin: '0 4px' }} />
+                  <button onClick={() => { const next = { ...featData }; FEATURE_GROUPS.forEach(g => g.features.forEach(f => { next[f.key] = true })); setFeatData(next) }}
+                    style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 6, border: '1px solid #bbf7d0', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer' }}>
+                    Select All
+                  </button>
+                  <button onClick={() => { const next = { ...featData }; FEATURE_GROUPS.forEach(g => g.features.forEach(f => { next[f.key] = false })); setFeatData(next) }}
+                    style={{ fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer' }}>
+                    Remove All
+                  </button>
                 </div>
 
                 {/* Feature toggles by group */}
