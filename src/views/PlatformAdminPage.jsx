@@ -97,17 +97,26 @@ export default function PlatformAdminPage() {
   const navigate = useNavigate()
   const { agencyId, firstName, agencyName, isOwner, isSuperAdmin, isImpersonating } = useAuth()
 
-  // Koto super admin (not impersonating) sees full platform controls.
-  // Agency owners see only their own settings + client permission controls.
-  const isPlatformLevel = isSuperAdmin && !isImpersonating
+  // Three modes:
+  // 1. Koto admin (not impersonating) — full platform: agencies, users, features
+  // 2. Koto admin (impersonating agency) — agency features + client perms for that agency
+  // 3. Regular agency owner — only client permissions + templates
+  const isPlatformHome = isSuperAdmin && !isImpersonating
+  const isKotoImpersonating = isSuperAdmin && isImpersonating
 
-  const visibleSections = isPlatformLevel
+  const visibleSections = isPlatformHome
     ? SECTIONS
-    : SECTIONS.filter(s => !['agencies', 'users', 'features'].includes(s.key)).concat([
-        { key: 'client_perms', label: 'Client Permissions', icon: Lock, desc: 'Control what your clients can see and access' },
-      ])
+    : isKotoImpersonating
+      ? [
+          { key: 'features', label: 'Agency Features', icon: ToggleRight, desc: `Control what ${agencyName || 'this agency'} can access` },
+          { key: 'client_perms', label: 'Client Permissions', icon: Lock, desc: 'Control what this agency\'s clients can see' },
+          ...SECTIONS.filter(s => !['agencies', 'users', 'features'].includes(s.key)),
+        ]
+      : SECTIONS.filter(s => !['agencies', 'users', 'features'].includes(s.key)).concat([
+          { key: 'client_perms', label: 'Client Permissions', icon: Lock, desc: 'Control what your clients can see and access' },
+        ])
 
-  const [section, setSection] = useState(isPlatformLevel ? 'agencies' : 'client_perms')
+  const [section, setSection] = useState(isPlatformHome ? 'agencies' : isKotoImpersonating ? 'features' : 'client_perms')
   const [saving, setSaving]   = useState(false)
 
   // Agency features state
@@ -463,15 +472,15 @@ export default function PlatformAdminPage() {
           )}
 
           {/* ── ACCESS ── */}
-          {section === 'agencies' && isPlatformLevel && (
+          {section === 'agencies' && isPlatformHome && (
             <AgenciesPanel />
           )}
 
-          {section === 'users' && isPlatformLevel && (
+          {section === 'users' && isPlatformHome && (
             <UsersPanel />
           )}
 
-          {section === 'client_perms' && !isPlatformLevel && (
+          {section === 'client_perms' && (isKotoImpersonating || !isSuperAdmin) && (
             <ClientPermissionsPanel agencyId={agencyId} />
           )}
 
