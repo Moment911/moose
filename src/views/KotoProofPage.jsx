@@ -81,7 +81,7 @@ export default function KotoProofPage() {
       getEmailDesigns(projectId),
     ])
     if (projectData) { setProject(projectData); setClient(projectData.clients || null) }
-    setFiles(fileData || [])
+    setFiles((fileData || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)))
     setActivity(acts || [])
     setRounds(roundData || [])
     setTeam(accessData || [])
@@ -439,8 +439,22 @@ export default function KotoProofPage() {
                   </div>
                 </div>
               )}
-              {files.map(file => {
+              {files.map((file, fileIdx) => {
                 const versions = files.filter(f => f.parent_file_id === file.id || (file.parent_file_id && f.parent_file_id === file.parent_file_id && f.id !== file.id))
+
+                async function moveFile(dir) {
+                  const newIdx = fileIdx + dir
+                  if (newIdx < 0 || newIdx >= files.length) return
+                  const reordered = [...files]
+                  const [moved] = reordered.splice(fileIdx, 1)
+                  reordered.splice(newIdx, 0, moved)
+                  setFiles(reordered)
+                  // Persist sort order
+                  for (let i = 0; i < reordered.length; i++) {
+                    supabase.from('files').update({ sort_order: i }).eq('id', reordered[i].id).then(() => {})
+                  }
+                }
+
                 return (
                 <div key={file.id} className="card flex items-center gap-4 p-4 hover:shadow-md transition-shadow cursor-pointer group"
                   onClick={() => {
@@ -480,6 +494,15 @@ export default function KotoProofPage() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {file.open_comments > 0 && <span className="badge-open flex items-center gap-1"><MessageSquare size={10} />{file.open_comments} open</span>}
                     {file.comment_count > 0 && file.open_comments === 0 && <span className="badge-resolved flex items-center gap-1"><MessageSquare size={10} />{file.comment_count} resolved</span>}
+                    {/* Reorder buttons */}
+                    <div className="opacity-0 group-hover:opacity-100 flex flex-col gap-0.5" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => moveFile(-1)} disabled={fileIdx === 0} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 p-0.5" title="Move up">
+                        <ChevronUp size={12} />
+                      </button>
+                      <button onClick={() => moveFile(1)} disabled={fileIdx === files.length - 1} className="text-gray-300 hover:text-gray-600 disabled:opacity-20 p-0.5" title="Move down">
+                        <ChevronDown size={12} />
+                      </button>
+                    </div>
                     {!file.type?.startsWith('video/') && <button onClick={e => { e.stopPropagation(); setVersionUploadFor(file); setTimeout(() => versionInputRef.current?.click(), 50) }}
                       className="opacity-0 group-hover:opacity-100 text-purple-400 hover:text-purple-600 p-1" title="Upload new version"><Upload size={13} /></button>}
                     <button onClick={e => handleDeleteFile(file, e)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 p-1"><Trash2 size={14} /></button>
