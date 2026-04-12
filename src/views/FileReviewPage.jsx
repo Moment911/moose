@@ -131,7 +131,7 @@ export default function FileReviewPage() {
         setFile(current || null)
 
         const { data: anns } = await getAnnotations(fileId)
-        setAnnotations(anns || [])
+        setAnnotations((anns || []).map(unpackAnnotation))
 
         const annIds = (anns || []).map((a) => a.id)
         if (annIds.length > 0) {
@@ -211,6 +211,21 @@ export default function FileReviewPage() {
   const prevFile = currentIndex > 0 ? allFiles[currentIndex - 1] : null
   const nextFile = currentIndex >= 0 && currentIndex < allFiles.length - 1 ? allFiles[currentIndex + 1] : null
 
+  // ── Annotation helpers ──
+  // The annotations table stores coordinates in a `data` jsonb column,
+  // not as top-level fields. These helpers pack shape coords into data
+  // on write and unpack them on read so the rest of the code sees flat
+  // objects like { type: 'pin', x: 123, y: 456, ... }.
+  function packAnnotation(fields) {
+    const { type, color, text, author, resolved, file_id, ...coords } = fields
+    return { file_id, type, color, text: text || null, author, resolved, data: coords }
+  }
+  function unpackAnnotation(row) {
+    if (!row) return row
+    const { data: coords, ...rest } = row
+    return { ...rest, ...(coords || {}) }
+  }
+
   // ── Annotation handlers ──
   function handlePinPlace(pos) {
     if (!authorName) { setShowNamePrompt(true); return }
@@ -220,7 +235,7 @@ export default function FileReviewPage() {
 
   async function submitPin() {
     if (!pendingPin) return
-    const { data, error } = await createAnnotation({
+    const { data, error } = await createAnnotation(packAnnotation({
       file_id: fileId,
       type: 'pin',
       x: pendingPin.x,
@@ -229,9 +244,9 @@ export default function FileReviewPage() {
       text: pendingComment.trim() || null,
       author: authorName,
       resolved: false,
-    })
+    }))
     if (error || !data) { toast.error('Failed to add comment'); return }
-    setAnnotations((prev) => [...prev, data])
+    setAnnotations((prev) => [...prev, unpackAnnotation(data)])
     toast.success('Comment added')
     setPendingPin(null)
     setPendingComment('')
@@ -239,17 +254,17 @@ export default function FileReviewPage() {
 
   async function handleAddAnnotation(shape) {
     if (!authorName) { setShowNamePrompt(true); return }
-    const { data, error } = await createAnnotation({
+    const { data, error } = await createAnnotation(packAnnotation({
       file_id: fileId, ...shape, author: authorName, resolved: false,
-    })
-    if (error || !data) return
-    setAnnotations((prev) => [...prev, data])
+    }))
+    if (error || !data) { toast.error('Failed to save annotation'); return }
+    setAnnotations((prev) => [...prev, unpackAnnotation(data)])
   }
 
   async function handleResolve(id) {
     const { data } = await updateAnnotation(id, { resolved: true })
     if (data) {
-      setAnnotations((prev) => prev.map((a) => (a.id === id ? data : a)))
+      setAnnotations((prev) => prev.map((a) => (a.id === id ? unpackAnnotation(data) : a)))
       toast.success('Resolved')
     }
   }
@@ -482,6 +497,10 @@ export default function FileReviewPage() {
               borderRadius: 6,
               overflow: 'hidden',
             }}>
+              {/* When a drawing tool is active, disable pointer events on the
+                  underlying content so the SVG annotation overlay gets all
+                  mouse/touch events. Otherwise the iframe or PDF steals clicks
+                  and annotations can't be drawn. */}
               {isImage && (
                 <img
                   src={file.url}
@@ -490,7 +509,7 @@ export default function FileReviewPage() {
                     width: e.currentTarget.naturalWidth,
                     height: e.currentTarget.naturalHeight,
                   })}
-                  style={{ display: 'block', width: '100%', height: '100%' }}
+                  style={{ display: 'block', width: '100%', height: '100%', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}
                   draggable={false}
                 />
               )}
@@ -498,7 +517,7 @@ export default function FileReviewPage() {
                 <object
                   data={`${file.url}#toolbar=0`}
                   type="application/pdf"
-                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none' }}>
+                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}>
                   <iframe
                     src={`${file.url}#toolbar=0`}
                     title={file.name}
@@ -510,8 +529,8 @@ export default function FileReviewPage() {
                 <iframe
                   src={file.url}
                   title={file.name}
-                  sandbox="allow-scripts allow-same-origin"
-                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none' }}
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}
                 />
               )}
               {isVideo && (

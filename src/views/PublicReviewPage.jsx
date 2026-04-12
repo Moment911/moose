@@ -191,7 +191,8 @@ export default function PublicReviewPage() {
 
   async function loadAnnotations(fileId) {
     const { data } = await getAnnotations(fileId)
-    setAnnotations(data || [])
+    // Unpack data jsonb into flat fields for canvas rendering
+    setAnnotations((data || []).map(a => ({ ...a, ...(a.data || {}) })))
   }
 
   function handleImageLoad(e) { setImgDims({ width: e.target.offsetWidth, height: e.target.offsetHeight }) }
