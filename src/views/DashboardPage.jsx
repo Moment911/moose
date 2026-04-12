@@ -139,7 +139,7 @@ function DashStatusDot({ label, status }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin } = useAuth()
+  const { user, firstName, agencyId, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating } = useAuth()
   const isMobile = useMobile()
 
   const isAgencyAdmin = !isSuperAdmin
@@ -376,16 +376,23 @@ export default function DashboardPage() {
   /* ══════════════════════════════════════════════════════════════════════════
      AGENCY ADMIN — QUICK ACTIONS
      ══════════════════════════════════════════════════════════════════════════ */
+  // feat() check — same logic as sidebar: respect agency features when impersonating
+  const feat = (key) => !key || (isSuperAdmin && !isImpersonating) || can?.(key) !== false
+
   const AGENCY_ACTIONS = [
-    { icon: Sparkles,      label: 'Build Pages',     to: '/page-builder',  bg: R },
-    { icon: Target,        label: 'Find Leads',      to: '/scout',         bg: T },
-    { icon: Star,          label: 'Get Reviews',     to: '/reviews',       bg: GRN },
-    { icon: Phone,         label: 'Voice Agent',     to: '/voice',         bg: AMB },
-    { icon: FileSignature, label: 'Send Proposal',   to: '/proposals',     bg: '#7c3aed' },
-    { icon: Zap,           label: 'Run Automation',  to: '/automations',   bg: R },
-    { icon: BarChart2,     label: 'View Reports',    to: '/seo',           bg: T },
-    { icon: Brain,         label: 'Ask CMO AI',      to: '/agent',         bg: BLK },
-  ]
+    { icon: Sparkles,      label: 'Build Pages',     to: '/page-builder',  bg: R,         feat: 'page_builder' },
+    { icon: Target,        label: 'Find Leads',      to: '/scout',         bg: T,         feat: 'scout' },
+    { icon: Star,          label: 'Get Reviews',     to: '/reviews',       bg: GRN,       feat: 'reviews' },
+    { icon: Phone,         label: 'Voice Agent',     to: '/voice',         bg: AMB,       feat: 'voice_agent' },
+    { icon: FileSignature, label: 'Send Proposal',   to: '/proposals',     bg: '#7c3aed', feat: 'proposals' },
+    { icon: Zap,           label: 'Run Automation',  to: '/automations',   bg: R,         feat: 'automations' },
+    { icon: BarChart2,     label: 'View Reports',    to: '/seo',           bg: T,         feat: 'seo_hub' },
+    { icon: Brain,         label: 'Ask CMO AI',      to: '/agent',         bg: BLK,       feat: 'cmo_agent' },
+    { icon: Inbox,         label: 'KotoDesk',        to: '/desk',          bg: T,         feat: 'koto_desk' },
+    { icon: FileSignature, label: 'KotoProof',       to: '/proof',         bg: '#7c3aed', feat: 'koto_proof' },
+    { icon: Brain,         label: 'Discovery',       to: '/discovery',     bg: T,         feat: 'discovery' },
+    { icon: Users,         label: 'View Clients',    to: '/clients',       bg: BLK,       feat: 'clients' },
+  ].filter(a => feat(a.feat))
 
   const SUPER_ACTIONS = [
     { icon: Globe,  label: 'View Agencies',  to: '/platform-admin', bg: T },
@@ -977,28 +984,29 @@ export default function DashboardPage() {
         {/* ── Scrollable body ─────────────────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
 
-          {/* ── Stats Row 1: 5 cards ──────────────────────────────────────── */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 16,
-          }}>
-            <DashStatCard loading={loading} label="Active Clients"     value={agencyStats.activeClients}    icon={Users}      accent={R} />
-            <DashStatCard loading={loading} label="Pages Generated"     value={agencyStats.pagesGenerated}   icon={FileText}   accent={T} />
-            <DashStatCard loading={loading} label="Reviews Collected"   value={agencyStats.reviewsCollected} icon={Star}       accent={GRN} />
-            <DashStatCard loading={loading} label="Scout Leads"         value={agencyStats.scoutLeads}       icon={Target}     accent={T} />
-            <DashStatCard loading={loading} label="WP Sites"            value={agencyStats.wpSites}          icon={HardDrive}  accent={AMB} />
-          </div>
+          {/* ── Stats — only shows cards for enabled features ─────────────── */}
+          {(() => {
+            const stats = [
+              { label: 'Active Clients',     value: agencyStats.activeClients,    icon: Users,          accent: R,         feat: 'clients' },
+              { label: 'Pages Generated',    value: agencyStats.pagesGenerated,   icon: FileText,       accent: T,         feat: 'page_builder' },
+              { label: 'Reviews Collected',  value: agencyStats.reviewsCollected, icon: Star,           accent: GRN,       feat: 'reviews' },
+              { label: 'Scout Leads',        value: agencyStats.scoutLeads,       icon: Target,         accent: T,         feat: 'scout' },
+              { label: 'WP Sites',           value: agencyStats.wpSites,          icon: HardDrive,      accent: AMB,       feat: 'wordpress_plugin' },
+              { label: 'Tasks Due Today',    value: agencyStats.tasksDue,         icon: Clock,          accent: AMB,       feat: 'tasks' },
+              { label: 'Open Proposals',     value: agencyStats.openProposals,    icon: FileSignature,  accent: '#7c3aed', feat: 'proposals' },
+              { label: 'Desk Tickets',       value: agencyStats.deskTickets,      icon: Inbox,          accent: agencyStats.deskTickets > 0 ? R : '#6b7280', feat: 'koto_desk' },
+              { label: 'Avg Rating',         value: agencyStats.avgRating ? `${agencyStats.avgRating} ★` : '—', icon: Star, accent: GRN, feat: 'reviews' },
+            ].filter(s => feat(s.feat))
+            if (stats.length === 0) return null
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 5)}, 1fr)`, gap: 14, marginBottom: 24 }}>
+                {stats.map(s => <DashStatCard key={s.label} loading={loading} label={s.label} value={s.value} icon={s.icon} accent={s.accent} />)}
+              </div>
+            )
+          })()}
 
-          {/* ── Stats Row 2: 4 cards ──────────────────────────────────────── */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
-          }}>
-            <DashStatCard loading={loading} label="Tasks Due Today"  value={agencyStats.tasksDue}       icon={Clock}         accent={AMB} />
-            <DashStatCard loading={loading} label="Open Proposals"   value={agencyStats.openProposals}  icon={FileSignature} accent={'#7c3aed'} />
-            <DashStatCard loading={loading} label="Desk Tickets"     value={agencyStats.deskTickets}    icon={Inbox}         accent={agencyStats.deskTickets > 0 ? R : '#6b7280'} />
-            <DashStatCard loading={loading} label="Avg Rating"       value={agencyStats.avgRating ? `${agencyStats.avgRating} ★` : '—'} icon={Star} accent={GRN} />
-          </div>
-
-          {/* ── Quick Actions: 4x2 grid ───────────────────────────────────── */}
+          {/* ── Quick Actions — only shows enabled features ────────────────── */}
+          {AGENCY_ACTIONS.length > 0 && (
           <div style={{ marginBottom: 24 }}>
             <div style={{
               fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK,
@@ -1007,13 +1015,14 @@ export default function DashboardPage() {
               Quick Actions
             </div>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14,
+              display: 'grid', gridTemplateColumns: `repeat(${Math.min(AGENCY_ACTIONS.length, 4)}, 1fr)`, gap: 14,
             }}>
               {AGENCY_ACTIONS.map(a => (
-                <DashActionTile key={a.to} icon={a.icon} label={a.label} bg={a.bg} onClick={() => navigate(a.to)} />
+                <DashActionTile key={a.to || a.label} icon={a.icon} label={a.label} bg={a.bg} onClick={() => a.action ? a.action() : navigate(a.to)} />
               ))}
             </div>
           </div>
+          )}
 
           {/* ── Two-column: Activity + Right sidebar ──────────────────────── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
