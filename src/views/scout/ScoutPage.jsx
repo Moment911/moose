@@ -46,6 +46,16 @@ const SEARCH_MODES = [
     placeholder_loc: 'Miami, FL',
   },
   {
+    id:    'sweep',
+    icon:  MapPin,
+    emoji: '',
+    label: 'City Sweep',
+    desc:  'Search EVERY city in a state using Census data — complete coverage, no missed municipalities',
+    color: '#0ea5e9',
+    placeholder_q:   'General Contractor, Plumber, HVAC…',
+    placeholder_loc: 'FL, TX, CA…  (2-letter state code)',
+  },
+  {
     id:    'competitor',
     icon:  BarChart,
     emoji: '',
@@ -100,6 +110,12 @@ const QUICK_SEARCHES = {
     { label:'Law firms in NYC',           q:'Law Firm', loc:'New York, NY' },
     { label:'Salons in LA',               q:'Salon',    loc:'Los Angeles, CA' },
     { label:'Gyms in Houston',            q:'Gym',      loc:'Houston, TX' },
+  ],
+  sweep: [
+    { label:'All plumbers in Florida',       q:'Plumber',          loc:'FL' },
+    { label:'All HVAC in Texas',             q:'HVAC',             loc:'TX' },
+    { label:'All dental offices in Georgia', q:'Dental',           loc:'GA' },
+    { label:'All contractors in New York',   q:'General Contractor',loc:'NY' },
   ],
   competitor: [
     { label:'HVAC competitors in Miami',   q:'HVAC',    loc:'Miami, FL' },
@@ -573,9 +589,93 @@ export default function ScoutPage() {
   const [pipelineProgress, setPipelineProgress] = useState(null)
   const [currentSearchId, setCurrentSearchId] = useState(null)
   const [selectedLead, setSelectedLead] = useState(null)
+  const [sweepMeta, setSweepMeta] = useState(null) // provenance from Census sweep
 
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
+
+  // ── City Sweep handler (server-side, Census → multi-city Google Places) ──
+  async function runSweepSearch() {
+    const term = query.trim() || selectedIndustries.map(k=>INDUSTRIES.find(i=>i.key===k)?.label).filter(Boolean).join(', ')
+    const stateCode = location.trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
+    if (!term) { toast.error('Enter an industry or business type'); return }
+    if (!stateCode || stateCode.length !== 2) { toast.error('Enter a 2-letter state code (e.g. FL, TX, CA)'); return }
+
+    setSearching(true); setResults([]); setStats(null); setSearchError(null); setSweepMeta(null)
+    toast('Sweeping all cities in ' + stateCode + '… this takes a minute', { icon: '🔍', duration: 8000 })
+
+    try {
+      const res = await fetch('/api/scout/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'run_sweep',
+          state: stateCode,
+          industry_keywords: term.split(',').map(s => s.trim()).filter(Boolean),
+          agency_id: agencyId || '00000000-0000-0000-0000-000000000099',
+          max_results: 500,
+          max_municipalities: 150,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        setSearchError(data.error || 'Sweep failed')
+        setSearching(false)
+        return
+      }
+
+      setSweepMeta({
+        municipalities_searched: data.municipalities_searched,
+        municipalities_total: data.municipalities_total,
+        geo_provenance: data.geo_provenance,
+      })
+
+      // Map server leads to the shape the UI expects
+      const mapped = (data.leads || []).map((l, i) => ({
+        id:            l.google_place_id || `sweep-${i}`,
+        name:          l.business_name,
+        address:       l.address || '',
+        phone:         l.phone || '',
+        website:       l.website || '',
+        email:         '',
+        rating:        l.google_rating,
+        review_count:  l.google_review_count,
+        score:         l.opportunity_score || 50,
+        temperature:   l.opportunity_score >= 75 ? 'Hot Lead' : l.opportunity_score >= 50 ? 'Warm' : 'Lukewarm',
+        gaps:          [],
+        ai_summary:    l.opportunity_explanation || '',
+        place_id:      l.google_place_id,
+        maps_url:      l.google_profile_url,
+        city:          l.city,
+        state:         l.state,
+        _real_data:    true,
+        _confidence:   85,
+        _confLabel:    { label: 'Verified', color: '#16a34a', bg: '#f0fdf4' },
+        _provenance:   [],
+      }))
+
+      const enriched = enrichLeads(mapped, stateCode)
+      setResults(enriched)
+      setDataSource('google')
+      setStats({
+        total:    enriched.length,
+        hot:      enriched.filter(l => l.score >= 75).length,
+        warm:     enriched.filter(l => l.score >= 50 && l.score < 75).length,
+        avgScore: enriched.length > 0 ? Math.round(enriched.reduce((s, l) => s + l.score, 0) / enriched.length) : 0,
+        verified: enriched.length,
+        realData: enriched.length,
+      })
+      setCurrentSearchId(data.search_id)
+      toast.success(`Found ${enriched.length} businesses across ${data.municipalities_searched} cities`)
+    } catch (e) {
+      setSearchError(e.message || 'Sweep failed')
+    }
+    setSearching(false)
+  }
+
   async function runSearch() {
+    // Sweep mode uses a completely different path — server-side Census → multi-city search
+    if (mode === 'sweep') return runSweepSearch()
+
     const term = query.trim() || selectedIndustries.map(k=>INDUSTRIES.find(i=>i.key===k)?.label).filter(Boolean).join(', ')
     if (!term && !location.trim()) { toast.error('Enter a business type or location'); return }
     setSearching(true); setResults([]); setStats(null); setSearchError(null)
@@ -1112,7 +1212,7 @@ export default function ScoutPage() {
                 </div>
               )}
               {/* Data source banner */}
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background:'#e8f9fa', border:`1px solid ${TEAL}60` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom: sweepMeta ? 8 : 16, padding:'10px 14px', borderRadius:12, background:'#e8f9fa', border:`1px solid ${TEAL}60` }}>
                 <HardDrive size={14} color={TEAL}/>
                 <span style={{ fontSize:15, fontWeight:700, color:'#0e7490' }}>
                   {dataSource === 'mixed'
@@ -1121,6 +1221,30 @@ export default function ScoutPage() {
                 </span>
                 <span style={{ marginLeft:'auto', fontSize:13, color:'#4b5563' }}>{results.length} results for "{query}" in {location}</span>
               </div>
+
+              {/* Sweep provenance banner — shows Census data source attribution */}
+              {sweepMeta && (
+                <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:10, marginBottom:16, padding:'10px 14px', borderRadius:12, background:'#eff6ff', border:'1px solid #93c5fd60' }}>
+                  <MapPin size={14} color="#2563eb"/>
+                  <span style={{ fontSize:13, fontWeight:700, color:'#1d4ed8' }}>
+                    Searched {sweepMeta.municipalities_searched} of {sweepMeta.municipalities_total} municipalities
+                  </span>
+                  {sweepMeta.geo_provenance?.source_name && (
+                    <span style={{ fontSize:11, fontWeight:600, color:'#4b5563' }}>
+                      · Source: {sweepMeta.geo_provenance.source_url ? (
+                        <a href={sweepMeta.geo_provenance.source_url} target="_blank" rel="noreferrer" style={{ color:'#2563eb', textDecoration:'underline' }}>
+                          {sweepMeta.geo_provenance.source_name}
+                        </a>
+                      ) : sweepMeta.geo_provenance.source_name}
+                    </span>
+                  )}
+                  {sweepMeta.geo_provenance?.fetched_at && (
+                    <span style={{ fontSize:11, color:'#6b7280', marginLeft:'auto' }}>
+                      Fetched {new Date(sweepMeta.geo_provenance.fetched_at).toLocaleDateString('en-US', { month:'short', day:'numeric' })}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Market summary (market mode only) */}
               {mode==='market' && <MarketSummaryCard results={results} query={query} location={location}/>}
