@@ -143,7 +143,9 @@ export default function DashboardPage() {
   const isMobile = useMobile()
 
   const showClientDashboard = isClient || isPreviewingClient
-  const isAgencyAdmin = !isSuperAdmin && !showClientDashboard
+  // When impersonating an agency, show the agency dashboard — not super admin
+  const showSuperDashboard = isSuperAdmin && !isImpersonating && !showClientDashboard
+  const isAgencyAdmin = !showSuperDashboard && !showClientDashboard
   const [showViewAs, setShowViewAs] = useState(false)
 
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -540,7 +542,7 @@ export default function DashboardPage() {
   /* ══════════════════════════════════════════════════════════════════════════
      MOBILE — SUPER ADMIN
      ══════════════════════════════════════════════════════════════════════════ */
-  if (isMobile && isSuperAdmin) {
+  if (isMobile && showSuperDashboard) {
     return (
       <MobilePage padded={false}>
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 16px 0' }}>
@@ -653,9 +655,9 @@ export default function DashboardPage() {
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
-     DESKTOP — SUPER ADMIN
+     DESKTOP — SUPER ADMIN (only when NOT impersonating)
      ══════════════════════════════════════════════════════════════════════════ */
-  if (isSuperAdmin) {
+  if (showSuperDashboard) {
     return (
       <div className="page-shell" style={{
         display: 'flex', height: '100vh', overflow: 'hidden',
