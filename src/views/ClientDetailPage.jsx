@@ -2061,7 +2061,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
         </div>
       )}
 
-      {voiceCalls.length === 0 && onboardingPhone && (
+      {voiceCalls.length === 0 && hasDedicatedNumber && (
         <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 12 }}>
           Multiple team members can call this number. Each caller is identified and their answers are tracked separately.
         </div>
