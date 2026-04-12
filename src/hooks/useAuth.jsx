@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
-const BYPASS_AUTH = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true'
+// BYPASS_AUTH only works in development — blocked in production builds.
+// This prevents accidentally deploying with auth bypassed.
+const BYPASS_AUTH = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true' && process.env.NODE_ENV !== 'production'
 const BYPASS_USER = {
   id: '00000000-0000-0000-0000-000000000001',
   email: 'adam@hellokoto.com',

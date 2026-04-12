@@ -1,4 +1,4 @@
-import 'server-only' // fails the build if this module is ever imported from a client component
+import 'server-only'
 import { createClient } from '@supabase/supabase-js'
 
 function getDb() {
@@ -8,69 +8,152 @@ function getDb() {
   )
 }
 
+export interface ApiSessionContext {
+  agencyId: string | null
+  userId: string | null
+  isSuperAdmin: boolean
+  role: string | null  // 'super_admin' | 'owner' | 'admin' | 'member' | 'viewer' | 'client'
+  clientId: string | null
+  verified: boolean    // true if session was cryptographically verified
+}
+
 /**
- * Resolve the agency_id for an API request.
+ * Verify the current request's session and return the authorized agency_id.
  *
- * Priority:
- * 1. x-koto-agency-id header (super admin impersonation)
- * 2. agency_id from query params or body
- * 3. Falls back to bypass agency for dev mode
+ * This is the ONLY correct way for API routes to determine agency_id.
+ * It replaces the old pattern of trusting body.agency_id blindly.
  *
- * In production with auth enforcement, this should verify the session.
- * For now it trusts the client-supplied agency_id but logs for audit.
+ * Rules:
+ * - Super admins can access any agency via x-koto-agency-id header
+ * - Agency members are locked to their own agency_id (ignores body.agency_id)
+ * - Clients return their client's agency_id
+ * - No session = no access (returns verified: false)
+ *
+ * If the request has no auth token but provides agency_id in body/params,
+ * it's allowed with verified: false for backwards compatibility during
+ * migration. API routes should check `ctx.verified` and eventually reject
+ * unverified requests.
  */
+export async function verifySession(req: Request, body?: Record<string, any>): Promise<ApiSessionContext> {
+  const db = getDb()
+  const authHeader = req.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+
+  // No token — unverified fallback for backwards compat
+  if (!token) {
+    const headerAgencyId = req.headers.get('x-koto-agency-id')
+    const bodyAgencyId = body?.agency_id
+    const searchParams = new URL(req.url).searchParams
+    const paramAgencyId = searchParams.get('agency_id')
+    return {
+      agencyId: headerAgencyId || bodyAgencyId || paramAgencyId || null,
+      userId: null,
+      isSuperAdmin: false,
+      role: null,
+      clientId: null,
+      verified: false,
+    }
+  }
+
+  // Verify the token
+  const { data: { user }, error } = await db.auth.getUser(token)
+  if (error || !user) {
+    return { agencyId: null, userId: null, isSuperAdmin: false, role: null, clientId: null, verified: false }
+  }
+
+  // Check if super admin
+  const { data: adminRow } = await db.from('koto_platform_admins')
+    .select('id').eq('user_id', user.id).maybeSingle()
+  const isSuperAdmin = !!adminRow
+
+  if (isSuperAdmin) {
+    const impersonatedAgencyId = req.headers.get('x-koto-agency-id') || body?.agency_id
+    // Log impersonation for audit
+    if (impersonatedAgencyId) {
+      db.from('koto_audit_log').insert({
+        user_id: user.id,
+        action: 'impersonate',
+        target_agency_id: impersonatedAgencyId,
+        ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || null,
+        user_agent: req.headers.get('user-agent')?.slice(0, 200) || null,
+      }).then(() => {}) // fire-and-forget
+    }
+    return {
+      agencyId: impersonatedAgencyId || null,
+      userId: user.id,
+      isSuperAdmin: true,
+      role: 'super_admin',
+      clientId: null,
+      verified: true,
+    }
+  }
+
+  // Look up agency membership — this is the source of truth
+  const { data: member } = await db.from('agency_members')
+    .select('agency_id, role').eq('user_id', user.id).maybeSingle()
+
+  if (member) {
+    // CRITICAL: always use the member's agency_id, NEVER trust body.agency_id
+    // for non-super-admin users. This prevents cross-agency data access.
+    return {
+      agencyId: member.agency_id,
+      userId: user.id,
+      isSuperAdmin: false,
+      role: member.role,
+      clientId: null,
+      verified: true,
+    }
+  }
+
+  // Check if client user
+  const { data: clientUser } = await db.from('koto_client_users')
+    .select('client_id, agency_id').eq('user_id', user.id).maybeSingle()
+
+  if (clientUser) {
+    return {
+      agencyId: clientUser.agency_id,
+      userId: user.id,
+      isSuperAdmin: false,
+      role: 'client',
+      clientId: clientUser.client_id,
+      verified: true,
+    }
+  }
+
+  // Fallback: check agencies.owner_id
+  const { data: ownedAgency } = await db.from('agencies')
+    .select('id').eq('owner_id', user.id).maybeSingle()
+
+  return {
+    agencyId: ownedAgency?.id || null,
+    userId: user.id,
+    isSuperAdmin: false,
+    role: ownedAgency ? 'owner' : null,
+    clientId: null,
+    verified: true,
+  }
+}
+
+// ── Legacy helpers (kept for backwards compat, delegates to verifySession) ──
+
 export function resolveAgencyId(
   req: Request,
   searchParams?: URLSearchParams,
   body?: Record<string, any>
 ): string | null {
-  // Header override (used by impersonation bar + super admin)
   const headerId = req.headers.get('x-koto-agency-id')
   if (headerId) return headerId
-
-  // From query params
   const paramId = searchParams?.get('agency_id')
   if (paramId) return paramId
-
-  // From request body
   if (body?.agency_id) return body.agency_id
-
-  // Dev bypass
   return null
 }
 
-/**
- * Check if request is from a super admin.
- * Checks x-koto-admin header or verifies against koto_platform_admins.
- */
 export async function isSuperAdminRequest(req: Request): Promise<boolean> {
-  const adminHeader = req.headers.get('x-koto-admin')
-  if (adminHeader === 'true') return true
-
-  // Check auth token against platform admins
-  const authHeader = req.headers.get('authorization')
-  if (!authHeader) return false
-
-  try {
-    const token = authHeader.replace('Bearer ', '')
-    const db = getDb()
-    const { data: { user } } = await db.auth.getUser(token)
-    if (!user) return false
-    const { data } = await db.from('koto_platform_admins').select('id').eq('user_id', user.id).single()
-    return !!data
-  } catch {
-    return false
-  }
+  const ctx = await verifySession(req)
+  return ctx.isSuperAdmin
 }
 
-/**
- * Enforce agency_id scoping. Returns the verified agency_id
- * or null if not available.
- *
- * For super admins: allows any agency_id from params/headers
- * For regular users: the agency_id they provide is trusted
- * (full session verification should be added in production)
- */
 export function enforceAgencyScope(
   req: Request,
   searchParams?: URLSearchParams,
