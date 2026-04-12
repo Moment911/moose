@@ -265,7 +265,7 @@ export default function App() {
             <AgencyControlPanel/>
             <RequireAuth>
             <AppRoutes />
-            <HelpAssistant />
+            {/* HelpAssistant floating button removed per user request */}
             </RequireAuth>
             {/* DialPad removed from always-on — now only loads when navigating to /voice */}
             </MobileShell>

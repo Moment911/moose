@@ -90,6 +90,9 @@ export default function FileReviewPage() {
 
   const [pendingPin, setPendingPin] = useState(null)
   const [pendingComment, setPendingComment] = useState('')
+  const [pendingShapeComment, setPendingShapeComment] = useState(null) // { id, x, y } — shape saved, awaiting text
+  const [editingAnnotation, setEditingAnnotation] = useState(null) // annotation id being edited
+  const [editText, setEditText] = useState('')
 
   const canvasContainerRef = useRef(null)
 
@@ -258,7 +261,48 @@ export default function FileReviewPage() {
       file_id: fileId, ...shape, author: authorName, resolved: false,
     }))
     if (error || !data) { toast.error('Failed to save annotation'); return }
-    setAnnotations((prev) => [...prev, unpackAnnotation(data)])
+    const unpacked = unpackAnnotation(data)
+    setAnnotations((prev) => [...prev, unpacked])
+    setSelectedId(unpacked.id)
+    // Show a comment popover at the shape's center so the user can add a note
+    const cx = shape.type === 'arrow' ? ((shape.x1 + shape.x2) / 2)
+      : shape.type === 'circle' ? shape.cx
+      : shape.type === 'rect' ? (shape.x + (shape.w || 0))
+      : shape.type === 'freehand' ? (shape.points?.[0]?.x ?? 200)
+      : 200
+    const cy = shape.type === 'arrow' ? ((shape.y1 + shape.y2) / 2)
+      : shape.type === 'circle' ? shape.cy
+      : shape.type === 'rect' ? shape.y
+      : shape.type === 'freehand' ? (shape.points?.[0]?.y ?? 200)
+      : 200
+    setPendingShapeComment({ id: unpacked.id, x: cx, y: cy })
+    setPendingComment('')
+    setTool('select')
+  }
+
+  async function submitShapeComment() {
+    if (!pendingShapeComment) return
+    const text = pendingComment.trim()
+    if (text) {
+      const { data } = await updateAnnotation(pendingShapeComment.id, { text })
+      if (data) {
+        setAnnotations((prev) => prev.map((a) => a.id === pendingShapeComment.id ? { ...unpackAnnotation(data), text } : a))
+      }
+    }
+    setPendingShapeComment(null)
+    setPendingComment('')
+  }
+
+  async function handleEditAnnotation(id) {
+    const text = editText.trim()
+    if (!text) return
+    const { data } = await updateAnnotation(id, { text })
+    if (data) {
+      setAnnotations((prev) => prev.map((a) => a.id === id ? { ...a, text } : a))
+      toast.success('Comment updated')
+    }
+    setEditingAnnotation(null)
+    setEditText('')
   }
 
   async function handleResolve(id) {
@@ -576,6 +620,44 @@ export default function FileReviewPage() {
                 </div>
               )}
 
+              {/* Pending shape comment popover — appears after drawing a rect/circle/arrow/freehand */}
+              {pendingShapeComment && (
+                <div style={{
+                  position: 'absolute',
+                  left: pendingShapeComment.x + 14,
+                  top: pendingShapeComment.y + 14,
+                  zIndex: 100,
+                  background: '#fff',
+                  borderRadius: 10,
+                  padding: 12,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                  minWidth: 240,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 6 }}>Add a note to this annotation</div>
+                  <textarea
+                    placeholder="Describe the change needed…"
+                    autoFocus
+                    rows={3}
+                    value={pendingComment}
+                    onChange={(e) => setPendingComment(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitShapeComment() } }}
+                    style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: 8, fontSize: 13, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                  />
+                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                    <button
+                      onClick={submitShapeComment}
+                      style={{ flex: 1, padding: '6px', background: TEAL, color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                      {pendingComment.trim() ? 'Save Note' : 'Skip (no note)'}
+                    </button>
+                    <button
+                      onClick={() => { setPendingShapeComment(null); setPendingComment('') }}
+                      style={{ padding: '6px 10px', background: '#f9f9f9', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Pending pin comment popover — positioned in content coordinates */}
               {pendingPin && (
                 <div style={{
@@ -624,6 +706,11 @@ export default function FileReviewPage() {
             replies={replies}
             onAddReply={handleAddReply}
             authorName={authorName}
+            onEditAnnotation={async (id, text) => {
+              const { data } = await updateAnnotation(id, { text })
+              if (data) setAnnotations((prev) => prev.map((a) => a.id === id ? { ...a, text } : a))
+            }}
+            onDeleteAnnotation={(id) => handleDelete(id)}
           />
           {selectedId && (() => {
             const ann = annotations.find((a) => a.id === selectedId)

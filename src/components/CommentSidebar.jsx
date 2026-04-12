@@ -8,11 +8,13 @@ const AVATAR_COLORS = ['#E6007E', '#59c6d0', '#185FA5', '#7C3ABF', '#3B6D11', '#
 function getInitials(name) { return (name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() }
 function getAvatarColor(name) { let hash = 0; for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash); return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] }
 
-export default function CommentSidebar({ annotations, selectedId, onSelect, replies = {}, onAddReply, authorName, onCreateTask, onUploadScreenshot, typingUser }) {
+export default function CommentSidebar({ annotations, selectedId, onSelect, replies = {}, onAddReply, authorName, onCreateTask, onUploadScreenshot, typingUser, onEditAnnotation, onDeleteAnnotation }) {
   const [collapsed, setCollapsed] = useState({})
   const [filter, setFilter] = useState('all')
   const [replyingTo, setReplyingTo] = useState(null)
   const [replyText, setReplyText] = useState('')
+  const [editingId, setEditingId] = useState(null)
+  const [editValue, setEditValue] = useState('')
 
   const pins = annotations.filter(a => a.type === 'pin')
   const pinNum = (ann) => pins.findIndex(a => a.id === ann.id) + 1
@@ -98,19 +100,38 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                       <>
                         {ann.type === 'approve' ? (
                           <p className="text-[13px] text-green-600 font-medium mt-1">Approved this section</p>
+                        ) : editingId === ann.id ? (
+                          <div className="mt-1" onClick={e => e.stopPropagation()}>
+                            <textarea
+                              value={editValue}
+                              onChange={e => setEditValue(e.target.value)}
+                              onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (editValue.trim() && onEditAnnotation) { onEditAnnotation(ann.id, editValue.trim()); setEditingId(null) } } if (e.key === 'Escape') setEditingId(null) }}
+                              rows={2}
+                              autoFocus
+                              className="w-full text-[13px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400 resize-none"
+                            />
+                            <div className="flex gap-1.5 mt-1">
+                              <button onClick={() => { if (editValue.trim() && onEditAnnotation) { onEditAnnotation(ann.id, editValue.trim()); setEditingId(null) } }}
+                                className="text-[11px] bg-brand-500 text-white px-2 py-1 rounded font-medium">Save</button>
+                              <button onClick={() => setEditingId(null)}
+                                className="text-[11px] text-gray-400 px-2 py-1 rounded hover:text-gray-600">Cancel</button>
+                            </div>
+                          </div>
                         ) : ann.text ? (
                           <div className="mt-1">
                             <p className="text-[13px] text-gray-600 leading-relaxed whitespace-pre-wrap" style={{ textDecoration: ann.resolved ? 'line-through' : 'none' }}>
                               {ann.text.replace(/\[Screenshot:.*?\]/g, '').trim()}
                             </p>
-                            {/* Render attached screenshots */}
                             {(ann.text.match(/\[Screenshot: (.*?)\]/g) || []).map((m, i) => {
                               const url = m.match(/\[Screenshot: (.*?)\]/)?.[1]
                               return url ? <img key={i} src={url} alt="Screenshot" className="mt-2 rounded-lg border border-gray-200 max-w-full max-h-32 object-cover cursor-pointer" onClick={e => { e.stopPropagation(); window.open(url, '_blank') }} /> : null
                             })}
                           </div>
                         ) : (
-                          <p className="text-[13px] text-gray-400 italic mt-1">No comment</p>
+                          <p className="text-[13px] text-gray-400 italic mt-1 cursor-pointer hover:text-gray-500"
+                            onClick={e => { e.stopPropagation(); setEditingId(ann.id); setEditValue('') }}>
+                            Click to add a note…
+                          </p>
                         )}
 
                         {ann.created_at && <p className="text-[13px] text-gray-400 mt-1.5">{format(new Date(ann.created_at), 'MMM d, h:mm a')}</p>}
@@ -133,6 +154,18 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
 
                         {/* Action buttons */}
                         <div className="flex items-center gap-2 mt-1.5">
+                          {ann.type !== 'approve' && onEditAnnotation && (
+                            <button onClick={e => { e.stopPropagation(); setEditingId(ann.id); setEditValue(ann.text || '') }}
+                              className="text-[13px] text-gray-400 hover:text-brand-500 flex items-center gap-1 transition-colors">
+                              <Reply size={9} /> Edit
+                            </button>
+                          )}
+                          {ann.type !== 'approve' && onDeleteAnnotation && (
+                            <button onClick={e => { e.stopPropagation(); if (confirm('Delete this annotation?')) onDeleteAnnotation(ann.id) }}
+                              className="text-[13px] text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors">
+                              <Send size={9} /> Delete
+                            </button>
+                          )}
                           {onAddReply && ann.type !== 'approve' && (
                             <button onClick={e => { e.stopPropagation(); setReplyingTo(replyingTo === ann.id ? null : ann.id); setReplyText('') }}
                               className="text-[13px] text-gray-400 hover:text-brand-500 flex items-center gap-1 transition-colors">
