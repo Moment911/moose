@@ -29,9 +29,11 @@ import { useSearchParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import {
   DollarSign, RefreshCw, Plus, ExternalLink, TrendingUp,
-  Zap, Mic, Server, Search, Briefcase, X, Download,
+  Zap, Mic, Server, Search, Briefcase, X, Download, Activity, Database,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
+import { formatDistanceToNow } from 'date-fns'
 
 const FEATURE_LABELS = {
   voice_onboarding_analysis: '🎙️ Voice Onboarding Analysis',
@@ -116,8 +118,94 @@ export default function CogReportPage() {
   const [editingBudget, setEditingBudget] = useState(null) // { category, monthly_budget }
   const [features, setFeatures] = useState([])
   const [trend, setTrend] = useState(null)
+  const [liveEvents, setLiveEvents] = useState([])
+  const [supabaseUsage, setSupabaseUsage] = useState(null)
+  const [buildImpacts, setBuildImpacts] = useState([])
 
-  useEffect(() => { load(); loadBudgets(); loadFeatures(); loadTrend() }, [days])
+  useEffect(() => { load(); loadBudgets(); loadFeatures(); loadTrend(); loadEvents(); loadSupabaseUsage(); loadBuildImpacts() }, [days])
+
+  // Live event stream — subscribe to BOTH koto_events and koto_token_usage
+  // so new deployments, commits, voice calls, and AI invocations all
+  // flow into the activity feed without a full page reload.
+  useEffect(() => {
+    const eventsChannel = supabase
+      .channel('cog-events-live')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'koto_events',
+      }, (payload) => {
+        const e = payload.new
+        setLiveEvents((prev) => [{
+          type: e.event_type,
+          title: e.title,
+          description: e.description,
+          time: e.timestamp,
+          metadata: e.metadata,
+        }, ...prev].slice(0, 30))
+      })
+      .subscribe()
+
+    const callsChannel = supabase
+      .channel('cog-calls-live')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'koto_token_usage',
+      }, (payload) => {
+        const c = payload.new
+        setLiveEvents((prev) => [{
+          type: 'ai_call',
+          title: `💡 ${c.feature || 'AI call'} · ${c.model}`,
+          description: null,
+          time: c.created_at,
+          cost: Number(c.total_cost),
+          tokens: Number(c.total_tokens || c.input_tokens + c.output_tokens),
+        }, ...prev].slice(0, 30))
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(eventsChannel)
+      supabase.removeChannel(callsChannel)
+    }
+  }, [])
+
+  async function loadEvents() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'events_feed', limit: 30 }),
+      })
+      const d = await res.json()
+      setLiveEvents(d.events || [])
+    } catch {}
+  }
+
+  async function loadSupabaseUsage() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync_supabase_usage' }),
+      })
+      const d = await res.json()
+      if (d.available !== false) setSupabaseUsage(d)
+    } catch {}
+  }
+
+  async function loadBuildImpacts() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'build_impact', limit: 8 }),
+      })
+      const d = await res.json()
+      setBuildImpacts(d.impacts || [])
+    } catch {}
+  }
 
   async function loadTrend() {
     try {
@@ -230,31 +318,34 @@ export default function CogReportPage() {
   async function syncAll() {
     setSyncing(true)
     try {
-      const [retellRes, openaiRes] = await Promise.all([
-        fetch('/api/token-usage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'sync_retell_calls' }),
-        }),
-        fetch('/api/token-usage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'sync_openai', days: 30 }),
-        }),
+      const post = (action, body = {}) => fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...body }),
+      }).then((r) => r.json())
+
+      const [retell, openai, vercel, github] = await Promise.all([
+        post('sync_retell_calls'),
+        post('sync_openai', { days: 30 }),
+        post('sync_vercel_deployments', { limit: 50 }),
+        post('sync_github_commits', { limit: 50 }),
       ])
-      const retell = await retellRes.json()
-      const openai = await openaiRes.json()
 
       const parts = []
-      if (retell.error) parts.push(`Retell failed: ${retell.error}`)
-      else parts.push(`Retell: ${retell.synced || 0} new · ${fmt$(retell.total_cost || 0)}`)
-
-      if (openai.available === false) parts.push('OpenAI: not configured')
-      else if (openai.error) parts.push(`OpenAI failed: ${openai.error}`)
-      else parts.push(`OpenAI: ${openai.synced || 0} rows · ${fmt$(openai.total_cost || 0)}`)
+      if (retell.error) parts.push(`Retell failed`)
+      else parts.push(`Retell: ${retell.synced || 0}`)
+      if (openai.available === false) parts.push('OpenAI: skipped')
+      else if (openai.error) parts.push('OpenAI failed')
+      else parts.push(`OpenAI: ${openai.synced || 0}`)
+      if (vercel.available === false) parts.push('Vercel: skipped')
+      else if (vercel.error) parts.push('Vercel failed')
+      else parts.push(`Vercel: ${vercel.synced || 0} deploys`)
+      if (github.available === false) parts.push('GitHub: skipped')
+      else if (github.error) parts.push('GitHub failed')
+      else parts.push(`GitHub: ${github.synced || 0} commits`)
 
       toast.success(parts.join(' · '))
-      await load()
+      await Promise.all([load(), loadEvents(), loadBuildImpacts()])
     } catch (e) {
       toast.error(e.message || 'Sync failed')
     }
@@ -471,6 +562,146 @@ export default function CogReportPage() {
               </div>
             </div>
 
+            {/* Live activity feed + Supabase usage — side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              {/* Live activity feed */}
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <Activity size={14} color="#E6007E" />
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>Live Activity</div>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: '#16a34a', animation: 'pulse 2s infinite',
+                  }} />
+                </div>
+                <div style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {liveEvents.length === 0 && (
+                    <div style={{ fontSize: 12, color: '#9ca3af', padding: 20, textAlign: 'center' }}>
+                      Nothing yet. Events will stream in live as they happen.
+                    </div>
+                  )}
+                  {liveEvents.slice(0, 20).map((event, i) => (
+                    <div key={`${event.time}-${i}`} style={{
+                      padding: '8px 12px',
+                      background: i === 0 ? '#f0fffe' : '#f9fafb',
+                      borderRadius: 8,
+                      border: `1px solid ${i === 0 ? '#00C2CB30' : '#f3f4f6'}`,
+                      fontSize: 12,
+                    }}>
+                      <div style={{ fontWeight: 700, color: '#111', marginBottom: 2 }}>
+                        {event.title}
+                      </div>
+                      <div style={{ color: '#9ca3af', fontSize: 10 }}>
+                        {event.cost ? `${fmt$4(event.cost)} · ` : ''}
+                        {event.tokens ? `${Number(event.tokens).toLocaleString()} tokens · ` : ''}
+                        {event.time ? formatDistanceToNow(new Date(event.time), { addSuffix: true }) : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Supabase usage card */}
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <Database size={14} color="#3ecf8e" />
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>Supabase Usage</div>
+                </div>
+                {supabaseUsage ? (
+                  <>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>Database Size</div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: '#111' }}>{supabaseUsage.db_size || '—'}</div>
+                      {/* 500MB is the free tier; Pro has 8GB soft cap */}
+                      {supabaseUsage.db_bytes > 0 && (
+                        <div style={{ height: 6, background: '#f3f4f6', borderRadius: 10, marginTop: 6, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%',
+                            width: `${Math.min(100, (supabaseUsage.db_bytes / (8 * 1024 * 1024 * 1024)) * 100)}%`,
+                            background: '#3ecf8e',
+                            borderRadius: 10,
+                          }} />
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12 }}>
+                      <div>
+                        <div style={{ color: '#9ca3af', fontSize: 11 }}>Token usage rows</div>
+                        <div style={{ fontWeight: 800, color: '#111' }}>{Number(supabaseUsage.token_usage_rows).toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#9ca3af', fontSize: 11 }}>Events</div>
+                        <div style={{ fontWeight: 800, color: '#111' }}>{Number(supabaseUsage.events_rows).toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#9ca3af', fontSize: 11 }}>Clients</div>
+                        <div style={{ fontWeight: 800, color: '#111' }}>{Number(supabaseUsage.clients_rows).toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#9ca3af', fontSize: 11 }}>Platform costs</div>
+                        <div style={{ fontWeight: 800, color: '#111' }}>{Number(supabaseUsage.platform_costs_rows).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 14, padding: '10px 12px', background: '#f9f9f9', borderRadius: 8, fontSize: 11, color: '#6b7280' }}>
+                      Pro plan · ${supabaseUsage.monthly_cost || 25}/month · billed monthly
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 12, color: '#9ca3af', padding: 20, textAlign: 'center' }}>
+                    Loading usage…
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Build Impact correlation table */}
+            {buildImpacts.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>🚀 Build Impact</div>
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>
+                  AI cost changes in the 24 hours before and after each deploy
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ background: '#f9fafb' }}>
+                        {['Deploy', 'When', 'Before', 'After', 'Change', 'Top Feature'].map((h) => (
+                          <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {buildImpacts.map((imp) => {
+                        const up = imp.change > 0
+                        return (
+                          <tr key={imp.deployment_id} style={{ borderTop: '1px solid #f9fafb' }}>
+                            <td style={{ padding: '10px 12px', fontWeight: 600, color: '#374151', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {imp.url ? (
+                                <a href={`https://${imp.url}`} target="_blank" rel="noreferrer" style={{ color: '#374151', textDecoration: 'none' }}>{imp.title}</a>
+                              ) : imp.title}
+                            </td>
+                            <td style={{ padding: '10px 12px', color: '#6b7280' }}>
+                              {formatDistanceToNow(new Date(imp.timestamp), { addSuffix: true })}
+                            </td>
+                            <td style={{ padding: '10px 12px', color: '#6b7280' }}>{fmt$4(imp.cost_before)}</td>
+                            <td style={{ padding: '10px 12px', color: '#6b7280' }}>{fmt$4(imp.cost_after)}</td>
+                            <td style={{ padding: '10px 12px', fontWeight: 800, color: up ? '#dc2626' : '#16a34a' }}>
+                              {up ? '+' : ''}{fmt$4(imp.change)}
+                            </td>
+                            <td style={{ padding: '10px 12px', color: '#374151', fontSize: 11 }}>
+                              {imp.top_feature || '—'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Month-over-month trend */}
             {trend && trend.days && trend.days.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
@@ -653,6 +884,13 @@ export default function CogReportPage() {
 
       {/* Add expense modal */}
       {showAdd && <AddExpenseModal onClose={() => setShowAdd(false)} onSave={addExpense} />}
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1) }
+          50% { opacity: 0.55; transform: scale(0.85) }
+        }
+      `}</style>
     </div>
   )
 }
