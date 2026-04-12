@@ -139,7 +139,7 @@ function DashStatusDot({ label, status }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient } = useAuth()
+  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient } = useAuth()
   const isMobile = useMobile()
 
   const showClientDashboard = isClient || isPreviewingClient
