@@ -1011,6 +1011,53 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    // ── get_savings ───────────────────────────────────────
+    // Returns the editable rows behind the Savings vs Alternatives
+    // card on /cog-report. Replaces the old hardcoded SAVINGS const.
+    if (action === 'get_savings') {
+      const { data, error } = await sb()
+        .from('koto_savings')
+        .select('*')
+        .order('sort_order')
+        .order('created_at')
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ savings: data || [] })
+    }
+
+    // ── set_savings ───────────────────────────────────────
+    // Insert when id is missing, update when id is provided.
+    if (action === 'set_savings') {
+      const { id, label, using_tool, instead_of, monthly_savings, sort_order } = body
+      if (!label || !using_tool || !instead_of || monthly_savings === undefined) {
+        return NextResponse.json({ error: 'label, using_tool, instead_of, monthly_savings required' }, { status: 400 })
+      }
+      const payload = {
+        label,
+        using_tool,
+        instead_of,
+        monthly_savings: Number(monthly_savings),
+        sort_order: Number(sort_order ?? 0),
+        updated_at: new Date().toISOString(),
+      }
+      if (id) {
+        const { data, error } = await sb().from('koto_savings').update(payload).eq('id', id).select().single()
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ row: data })
+      }
+      const { data, error } = await sb().from('koto_savings').insert(payload).select().single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ row: data })
+    }
+
+    // ── delete_savings ────────────────────────────────────
+    if (action === 'delete_savings') {
+      const { id } = body
+      if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+      const { error } = await sb().from('koto_savings').delete().eq('id', id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+
     // ── sync_vercel_deployments ──────────────────────────
     // Pulls recent deployments from the Vercel API and upserts
     // each as a koto_events row (event_type='deployment').

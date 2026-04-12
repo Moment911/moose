@@ -30,10 +30,37 @@ import Sidebar from '../components/Sidebar'
 import {
   DollarSign, RefreshCw, Plus, ExternalLink, TrendingUp,
   Zap, Mic, Server, Search, Briefcase, X, Download, Activity, Database,
+  Pencil, Trash2, Check,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { formatDistanceToNow } from 'date-fns'
+
+// Tiny badge used on every card to indicate where the numbers come from,
+// so there's no ambiguity between live data, historical imports, estimates
+// and sections that still need setup. Colors are intentionally muted —
+// these are informational, not alerts.
+const SOURCE_STYLES = {
+  'auto-tracked':        { bg: '#ecfdf5', fg: '#16a34a', border: '#16a34a30' },
+  'from billing history':{ bg: '#eef2ff', fg: '#4338ca', border: '#4338ca30' },
+  'estimate':            { bg: '#fffbeb', fg: '#b45309', border: '#b4530930' },
+  'needs setup':         { bg: '#f3f4f6', fg: '#6b7280', border: '#9ca3af40' },
+  'mixed':               { bg: '#faf5ff', fg: '#7c3aed', border: '#7c3aed30' },
+}
+function SourceBadge({ kind, title }) {
+  const s = SOURCE_STYLES[kind] || SOURCE_STYLES['needs setup']
+  return (
+    <span title={title || ''} style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      padding: '2px 7px', borderRadius: 20,
+      background: s.bg, color: s.fg, border: `1px solid ${s.border}`,
+      fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4,
+      whiteSpace: 'nowrap',
+    }}>
+      {kind}
+    </span>
+  )
+}
 
 const FEATURE_LABELS = {
   voice_onboarding_analysis: '🎙️ Voice Onboarding Analysis',
@@ -87,15 +114,6 @@ const COST_TYPE_OPTIONS = [
   { value: 'other',            label: '📦 Other',              category: 'other' },
 ]
 
-// What Koto features save you vs alternatives (for savings tracker)
-const SAVINGS = [
-  { label: 'Obsidian vs Notion AI',             saves: 20,  using: 'Obsidian + Copilot', instead: 'Notion AI' },
-  { label: 'Koto voice onboarding vs Calendly + VA', saves: 300, using: 'Retell + Koto',      instead: 'Calendly + virtual assistant' },
-  { label: 'Koto proposals vs Proposify',       saves: 49,  using: 'Claude API',        instead: 'Proposify' },
-  { label: 'Koto proof review vs Filestage',    saves: 49,  using: 'Koto built-in',     instead: 'Filestage' },
-  { label: 'Koto discovery vs strategy consult', saves: 500, using: 'Claude API',        instead: 'Strategy consultant /session' },
-]
-
 function fmt$(n) { return `$${Number(n || 0).toFixed(2)}` }
 function fmt$4(n) { return `$${Number(n || 0).toFixed(4)}` }
 
@@ -121,8 +139,11 @@ export default function CogReportPage() {
   const [liveEvents, setLiveEvents] = useState([])
   const [supabaseUsage, setSupabaseUsage] = useState(null)
   const [buildImpacts, setBuildImpacts] = useState([])
+  const [savings, setSavings] = useState([])
+  const [editingSavingId, setEditingSavingId] = useState(null) // null | 'new' | uuid
+  const [savingDraft, setSavingDraft] = useState(null) // { label, using_tool, instead_of, monthly_savings }
 
-  useEffect(() => { load(); loadBudgets(); loadFeatures(); loadTrend(); loadEvents(); loadSupabaseUsage(); loadBuildImpacts() }, [days])
+  useEffect(() => { load(); loadBudgets(); loadFeatures(); loadTrend(); loadEvents(); loadSupabaseUsage(); loadBuildImpacts(); loadSavings() }, [days])
 
   // Live event stream — subscribe to BOTH koto_events and koto_token_usage
   // so new deployments, commits, voice calls, and AI invocations all
@@ -241,6 +262,54 @@ export default function CogReportPage() {
       const d = await res.json()
       setBudgets(d.budgets || [])
     } catch {}
+  }
+
+  async function loadSavings() {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_savings' }),
+      })
+      const d = await res.json()
+      setSavings(d.savings || [])
+    } catch {}
+  }
+
+  async function upsertSaving(draft, id) {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'set_savings',
+          id: id && id !== 'new' ? id : undefined,
+          label: draft.label,
+          using_tool: draft.using_tool,
+          instead_of: draft.instead_of,
+          monthly_savings: Number(draft.monthly_savings || 0),
+          sort_order: draft.sort_order ?? (savings.length + 1) * 10,
+        }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Save failed'); return }
+      setEditingSavingId(null)
+      setSavingDraft(null)
+      await loadSavings()
+    } catch (e) { toast.error(e.message) }
+  }
+
+  async function deleteSaving(id) {
+    try {
+      const res = await fetch('/api/token-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_savings', id }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Delete failed'); return }
+      await loadSavings()
+    } catch (e) { toast.error(e.message) }
   }
 
   async function exportPdf() {
@@ -376,7 +445,7 @@ export default function CogReportPage() {
     }
   }
 
-  const totalSavings = SAVINGS.reduce((a, s) => a + s.saves, 0)
+  const totalSavings = savings.reduce((a, s) => a + Number(s.monthly_savings || 0), 0)
   const byCategory = data?.by_category || {}
   const byService = data?.by_service || []
 
@@ -428,8 +497,11 @@ export default function CogReportPage() {
             {/* Grand total + savings banners */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14, marginBottom: 20 }}>
               <div style={{ background: 'linear-gradient(135deg, #111 0%, #1a1a2e 100%)', borderRadius: 16, padding: '26px 30px', color: '#fff' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 6 }}>
-                  Total Tech Spend — last {days} days
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, gap: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', letterSpacing: 1.2, textTransform: 'uppercase' }}>
+                    Total Tech Spend — last {days} days
+                  </div>
+                  <SourceBadge kind="mixed" title="Real auto-tracked API calls + platform costs imported from your billing history" />
                 </div>
                 <div style={{ fontSize: 44, fontWeight: 900, lineHeight: 1 }}>{fmt$(data?.grand_total || 0)}</div>
                 <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 8 }}>
@@ -437,8 +509,11 @@ export default function CogReportPage() {
                 </div>
               </div>
               <div style={{ background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)', borderRadius: 16, padding: '22px 26px', color: '#fff' }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 6, opacity: 0.9 }}>
-                  Koto Savings vs Alternatives
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', opacity: 0.9 }}>
+                    Koto Savings vs Alternatives
+                  </div>
+                  <SourceBadge kind="estimate" title="Your editable estimates — click the section below to change them" />
                 </div>
                 <div style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{fmt$(totalSavings)}/mo</div>
                 <div style={{ fontSize: 11, opacity: 0.9, marginTop: 8 }}>what you'd pay with separate tools</div>
@@ -447,7 +522,10 @@ export default function CogReportPage() {
 
             {/* Category bars */}
             <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 16 }}>By Category</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>By Category</div>
+                <SourceBadge kind="mixed" title="Rolled up from auto-tracked API calls and billing-history platform costs" />
+              </div>
               {Object.entries(byCategory)
                 .sort((a, b) => b[1].total - a[1].total)
                 .map(([key, cat]) => {
@@ -475,7 +553,10 @@ export default function CogReportPage() {
 
             {/* Budget manager */}
             <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 4 }}>Monthly Budget</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 4 }}>Monthly Budget</div>
+                <SourceBadge kind={budgets.length === 0 ? 'needs setup' : 'auto-tracked'} title={budgets.length === 0 ? 'No budgets set yet — click Set budget on any row to start tracking alerts' : 'Live burn rate vs your saved budgets'} />
+              </div>
               <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>Set a spending ceiling per category — get a red banner when you hit the alert threshold</div>
               {Object.entries(byCategory).map(([key, cat]) => {
                 const budget = budgets.find((b) => b.category === key)
@@ -535,8 +616,11 @@ export default function CogReportPage() {
 
             {/* Service cards grid */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrendingUp size={14} /> Service Breakdown
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#111', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <TrendingUp size={14} /> Service Breakdown
+                </div>
+                <SourceBadge kind="mixed" title="Per-service totals combining real API usage and billing-history entries" />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
                 {byService.map((svc) => (
@@ -573,6 +657,9 @@ export default function CogReportPage() {
                     width: 6, height: 6, borderRadius: '50%',
                     background: '#16a34a', animation: 'pulse 2s infinite',
                   }} />
+                  <div style={{ marginLeft: 'auto' }}>
+                    <SourceBadge kind="auto-tracked" title="Realtime stream from koto_events and koto_token_usage" />
+                  </div>
                 </div>
                 <div style={{ maxHeight: 360, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {liveEvents.length === 0 && (
@@ -606,6 +693,9 @@ export default function CogReportPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                   <Database size={14} color="#3ecf8e" />
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>Supabase Usage</div>
+                  <div style={{ marginLeft: 'auto' }}>
+                    <SourceBadge kind="auto-tracked" title="Live query against your Supabase database" />
+                  </div>
                 </div>
                 {supabaseUsage ? (
                   <>
@@ -654,11 +744,12 @@ export default function CogReportPage() {
               </div>
             </div>
 
-            {/* Build Impact correlation table */}
+            {/* Build Impact correlation table — hidden entirely when empty */}
             {buildImpacts.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>🚀 Build Impact</div>
+                  <SourceBadge kind="auto-tracked" title="Calculated from Vercel deployments synced via Sync All" />
                 </div>
                 <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>
                   AI cost changes in the 24 hours before and after each deploy
@@ -707,7 +798,10 @@ export default function CogReportPage() {
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>3-Month Cost Trend</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#111', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      3-Month Cost Trend
+                      <SourceBadge kind="mixed" title="Real daily spend from API calls and platform costs" />
+                    </div>
                     <div style={{ fontSize: 12, color: '#6b7280' }}>Daily stacked spend across all categories</div>
                   </div>
                   <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#6b7280' }}>
@@ -778,7 +872,10 @@ export default function CogReportPage() {
             {/* Feature cost breakdown */}
             {features.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 22, marginBottom: 20 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 4 }}>Cost per Koto Feature</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>Cost per Koto Feature</div>
+                  <SourceBadge kind="auto-tracked" title="Aggregated from koto_token_usage rows logged by tokenTracker" />
+                </div>
                 <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>What each feature actually costs per call, and total burn for the window</div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -817,23 +914,107 @@ export default function CogReportPage() {
               </div>
             )}
 
-            {/* Savings tracker */}
+            {/* Savings tracker — editable rows backed by koto_savings table */}
             <div style={{ background: '#fff', borderRadius: 14, border: '1.5px solid #16a34a40', padding: 22, marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#16a34a', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                💚 Savings vs Alternatives
-              </div>
-              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>What Koto saves you vs buying separate tools</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 100px', gap: 10, fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #f3f4f6' }}>
-                <div>Tool</div><div>Using</div><div>Instead of</div><div style={{ textAlign: 'right' }}>Savings/mo</div>
-              </div>
-              {SAVINGS.map((s, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 100px', gap: 10, fontSize: 13, padding: '10px 0', borderBottom: i < SAVINGS.length - 1 ? '1px solid #f9fafb' : 'none' }}>
-                  <div style={{ fontWeight: 700, color: '#111' }}>{s.label}</div>
-                  <div style={{ color: '#374151' }}>{s.using}</div>
-                  <div style={{ color: '#6b7280' }}>{s.instead}</div>
-                  <div style={{ textAlign: 'right', fontWeight: 800, color: '#16a34a' }}>{fmt$(s.saves)}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  💚 Savings vs Alternatives
                 </div>
-              ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <SourceBadge kind="estimate" title="Your own editable estimates — not derived from live data" />
+                  <button
+                    onClick={() => {
+                      setEditingSavingId('new')
+                      setSavingDraft({ label: '', using_tool: '', instead_of: '', monthly_savings: '' })
+                    }}
+                    style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid #16a34a40', background: '#fff', color: '#16a34a', fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Plus size={12} /> Add row
+                  </button>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>
+                What Koto saves you vs buying separate tools. These are your own estimates — click any row to edit.
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr 110px 70px', gap: 10, fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #f3f4f6' }}>
+                <div>Tool</div><div>Using</div><div>Instead of</div><div style={{ textAlign: 'right' }}>Savings/mo</div><div></div>
+              </div>
+
+              {savings.length === 0 && editingSavingId !== 'new' && (
+                <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af', fontSize: 12 }}>
+                  No savings rows yet. Click <strong>Add row</strong> to start tracking what Koto replaces.
+                </div>
+              )}
+
+              {savings.map((s) => {
+                const isEditing = editingSavingId === s.id
+                const draft = isEditing ? savingDraft : null
+                if (isEditing && draft) {
+                  return (
+                    <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr 110px 70px', gap: 10, fontSize: 13, padding: '10px 0', borderBottom: '1px solid #f9fafb' }}>
+                      <input value={draft.label} onChange={(e) => setSavingDraft({ ...draft, label: e.target.value })} placeholder="Tool / comparison" style={miniInput} autoFocus />
+                      <input value={draft.using_tool} onChange={(e) => setSavingDraft({ ...draft, using_tool: e.target.value })} placeholder="Using" style={miniInput} />
+                      <input value={draft.instead_of} onChange={(e) => setSavingDraft({ ...draft, instead_of: e.target.value })} placeholder="Instead of" style={miniInput} />
+                      <input type="number" value={draft.monthly_savings} onChange={(e) => setSavingDraft({ ...draft, monthly_savings: e.target.value })} placeholder="0" style={{ ...miniInput, textAlign: 'right' }} />
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <button onClick={() => upsertSaving(draft, s.id)} title="Save" style={iconBtn('#16a34a')}><Check size={13} /></button>
+                        <button onClick={() => { setEditingSavingId(null); setSavingDraft(null) }} title="Cancel" style={iconBtn('#9ca3af')}><X size={13} /></button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={s.id}
+                    onClick={() => {
+                      setEditingSavingId(s.id)
+                      setSavingDraft({
+                        label: s.label,
+                        using_tool: s.using_tool,
+                        instead_of: s.instead_of,
+                        monthly_savings: s.monthly_savings,
+                        sort_order: s.sort_order,
+                      })
+                    }}
+                    style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr 110px 70px', gap: 10, fontSize: 13, padding: '10px 0', borderBottom: '1px solid #f9fafb', cursor: 'pointer' }}>
+                    <div style={{ fontWeight: 700, color: '#111' }}>{s.label}</div>
+                    <div style={{ color: '#374151' }}>{s.using_tool}</div>
+                    <div style={{ color: '#6b7280' }}>{s.instead_of}</div>
+                    <div style={{ textAlign: 'right', fontWeight: 800, color: '#16a34a' }}>{fmt$(s.monthly_savings)}</div>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditingSavingId(s.id)
+                          setSavingDraft({
+                            label: s.label, using_tool: s.using_tool, instead_of: s.instead_of,
+                            monthly_savings: s.monthly_savings, sort_order: s.sort_order,
+                          })
+                        }}
+                        title="Edit" style={iconBtn('#9ca3af')}><Pencil size={12} /></button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (confirm(`Delete "${s.label}"?`)) deleteSaving(s.id)
+                        }}
+                        title="Delete" style={iconBtn('#dc2626')}><Trash2 size={12} /></button>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {editingSavingId === 'new' && savingDraft && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr 110px 70px', gap: 10, fontSize: 13, padding: '10px 0', borderBottom: '1px solid #f9fafb' }}>
+                  <input value={savingDraft.label} onChange={(e) => setSavingDraft({ ...savingDraft, label: e.target.value })} placeholder="Tool / comparison" style={miniInput} autoFocus />
+                  <input value={savingDraft.using_tool} onChange={(e) => setSavingDraft({ ...savingDraft, using_tool: e.target.value })} placeholder="Using" style={miniInput} />
+                  <input value={savingDraft.instead_of} onChange={(e) => setSavingDraft({ ...savingDraft, instead_of: e.target.value })} placeholder="Instead of" style={miniInput} />
+                  <input type="number" value={savingDraft.monthly_savings} onChange={(e) => setSavingDraft({ ...savingDraft, monthly_savings: e.target.value })} placeholder="0" style={{ ...miniInput, textAlign: 'right' }} />
+                  <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                    <button onClick={() => upsertSaving(savingDraft)} title="Save" style={iconBtn('#16a34a')}><Check size={13} /></button>
+                    <button onClick={() => { setEditingSavingId(null); setSavingDraft(null) }} title="Cancel" style={iconBtn('#9ca3af')}><X size={13} /></button>
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10, paddingTop: 10, borderTop: '2px solid #16a34a30' }}>
                 <div style={{ fontSize: 14, fontWeight: 900, color: '#16a34a' }}>
                   Total: {fmt$(totalSavings)}/mo · {fmt$(totalSavings * 12)}/yr
@@ -844,10 +1025,11 @@ export default function CogReportPage() {
             {/* Recent platform costs table */}
             {platformList.length > 0 && (
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#111' }}>
                     Platform Cost Entries ({platformList.length})
                   </div>
+                  <SourceBadge kind="from billing history" title="Manually entered or imported from your real invoices (Vercel, Supabase, GHL, Claude.ai, Retell)" />
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -975,4 +1157,26 @@ const btnStyle = (color, solid = false) => ({
   color: solid ? '#fff' : color,
   fontSize: 13, fontWeight: 700, cursor: 'pointer',
   display: 'flex', alignItems: 'center', gap: 6,
+})
+
+// Compact inputs for inline savings row editing
+const miniInput = {
+  padding: '5px 8px',
+  borderRadius: 6,
+  border: '1.5px solid #e5e7eb',
+  fontSize: 12,
+  outline: 'none',
+  background: '#fff',
+  fontFamily: 'inherit',
+  minWidth: 0,
+}
+const iconBtn = (color) => ({
+  padding: '4px 6px',
+  borderRadius: 6,
+  border: '1px solid #e5e7eb',
+  background: '#fff',
+  color,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
 })
