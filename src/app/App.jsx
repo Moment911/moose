@@ -231,7 +231,7 @@ export default function App() {
         <Toaster position="top-right" />
         <CommandPalette />
         <OnboardingWizard />
-        <RealTimeCostMeter />
+        {/* RealTimeCostMeter removed — was a floating pricing pill, now available only in /cog-report */}
         <RouteTracker />
         <Routes>
           {/* ── Public routes (no shell) ── */}
@@ -267,7 +267,7 @@ export default function App() {
             <AppRoutes />
             <HelpAssistant />
             </RequireAuth>
-            <DialPad />
+            {/* DialPad removed from always-on — now only loads when navigating to /voice */}
             </MobileShell>
           } />
         </Routes>

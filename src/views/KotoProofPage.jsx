@@ -613,15 +613,13 @@ export default function KotoProofPage() {
                         <div className="text-gray-700">{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</div>
                       </div>
                     </div>
-                    {isExpanded && summary.length > 0 && (
-                      <div className="border-t border-gray-100">{summary.map((group, gi) => (
-                        <div key={gi}>
-                          <div className="bg-gray-50 px-5 py-2.5 flex items-center gap-2 border-b border-gray-100"><FileText size={13} className="text-gray-700" /><span className="text-sm font-medium text-gray-700">{group.fileName}</span><span className="text-sm text-gray-700 ml-auto">{group.comments?.length || 0} comments</span></div>
-                          <div className="divide-y divide-gray-50">{(group.comments || []).map((c, ci) => (
-                            <div key={ci} className="px-5 py-3 flex items-start gap-3"><span className="text-sm flex-shrink-0 mt-0.5">{TOOL_ICONS[c.type] || '\u25ef'}</span><div className="flex-1 min-w-0"><p className="text-sm text-gray-800">{c.text}</p><p className="text-sm text-gray-700 mt-0.5">by {c.author}</p></div></div>
-                          ))}</div>
-                        </div>
-                      ))}</div>
+                    {isExpanded && (
+                      <RoundAnnotationReview
+                        round={round}
+                        summary={summary}
+                        projectId={resolvedProjectId}
+                        onUpdate={() => { loadRounds(); loadAnnotations() }}
+                      />
                     )}
                   </div>
                 )
@@ -720,6 +718,177 @@ export default function KotoProofPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Agency review panel for a round's annotations ──────────────────────────
+// Shows live annotations (not the snapshot), with status controls and
+// agency reply for each. Agency can mark annotations as:
+//   pending → in_progress → updated → completed | declined
+const STATUS_CFG = {
+  pending:     { label: 'Pending',     bg: 'bg-gray-100',  text: 'text-gray-600'  },
+  in_progress: { label: 'In Progress', bg: 'bg-blue-50',   text: 'text-blue-700'  },
+  updated:     { label: 'Updated',     bg: 'bg-amber-50',  text: 'text-amber-700' },
+  completed:   { label: 'Completed',   bg: 'bg-green-50',  text: 'text-green-700' },
+  declined:    { label: 'Declined',    bg: 'bg-red-50',    text: 'text-red-600'   },
+}
+const STATUS_FLOW = ['pending', 'in_progress', 'updated', 'completed', 'declined']
+
+function RoundAnnotationReview({ round, summary, projectId, onUpdate }) {
+  const [annotations, setAnnotations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [replyInputs, setReplyInputs] = useState({})
+
+  useEffect(() => { loadRoundAnnotations() }, [round.id])
+
+  async function loadRoundAnnotations() {
+    setLoading(true)
+    const { data } = await supabase
+      .from('annotations')
+      .select('*, files(name)')
+      .eq('round_number', round.round_number)
+      .order('created_at')
+    // Group by file
+    setAnnotations(data || [])
+    setLoading(false)
+  }
+
+  async function setStatus(annId, status) {
+    await supabase.from('annotations').update({ status, updated_at: new Date().toISOString() }).eq('id', annId)
+    setAnnotations(prev => prev.map(a => a.id === annId ? { ...a, status } : a))
+    toast.success(`Marked as ${STATUS_CFG[status]?.label || status}`)
+    onUpdate?.()
+  }
+
+  async function submitReply(annId) {
+    const text = replyInputs[annId]?.trim()
+    if (!text) return
+    await supabase.from('annotations').update({
+      agency_reply: text,
+      agency_reply_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq('id', annId)
+    setAnnotations(prev => prev.map(a => a.id === annId ? { ...a, agency_reply: text, agency_reply_at: new Date().toISOString() } : a))
+    setReplyInputs(prev => ({ ...prev, [annId]: '' }))
+    toast.success('Reply saved')
+    onUpdate?.()
+  }
+
+  async function bulkSetStatus(status) {
+    const ids = annotations.filter(a => a.status !== status).map(a => a.id)
+    if (!ids.length) return
+    await supabase.from('annotations').update({ status, updated_at: new Date().toISOString() }).in('id', ids)
+    setAnnotations(prev => prev.map(a => ids.includes(a.id) ? { ...a, status } : a))
+    toast.success(`${ids.length} annotations marked ${STATUS_CFG[status]?.label}`)
+    onUpdate?.()
+  }
+
+  // Group by file
+  const byFile = {}
+  for (const ann of annotations) {
+    const fname = ann.files?.name || 'Unknown file'
+    if (!byFile[fname]) byFile[fname] = []
+    byFile[fname].push(ann)
+  }
+
+  if (loading) return <div className="border-t border-gray-100 px-5 py-8 text-center text-gray-400 text-sm">Loading annotations...</div>
+
+  if (annotations.length === 0 && summary?.length > 0) {
+    // Fall back to snapshot if no live annotations match this round
+    return (
+      <div className="border-t border-gray-100">{summary.map((group, gi) => (
+        <div key={gi}>
+          <div className="bg-gray-50 px-5 py-2.5 flex items-center gap-2 border-b border-gray-100"><FileText size={13} className="text-gray-700" /><span className="text-sm font-medium text-gray-700">{group.fileName}</span><span className="text-sm text-gray-700 ml-auto">{group.comments?.length || 0} comments</span></div>
+          <div className="divide-y divide-gray-50">{(group.comments || []).map((c, ci) => (
+            <div key={ci} className="px-5 py-3 flex items-start gap-3"><span className="text-sm flex-shrink-0 mt-0.5">{TOOL_ICONS[c.type] || '\u25ef'}</span><div className="flex-1 min-w-0"><p className="text-sm text-gray-800">{c.text}</p><p className="text-sm text-gray-700 mt-0.5">by {c.author}</p></div></div>
+          ))}</div>
+        </div>
+      ))}</div>
+    )
+  }
+
+  if (annotations.length === 0) return <div className="border-t border-gray-100 px-5 py-8 text-center text-gray-400 text-sm">No annotations for this round yet.</div>
+
+  const pendingCount = annotations.filter(a => a.status === 'pending').length
+  const completedCount = annotations.filter(a => a.status === 'completed').length
+
+  return (
+    <div className="border-t border-gray-100">
+      {/* Bulk actions bar */}
+      <div className="bg-gray-50 px-5 py-2.5 flex items-center gap-3 border-b border-gray-100">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{annotations.length} annotations</span>
+        <span className="text-xs text-gray-400">·</span>
+        <span className="text-xs text-gray-500">{completedCount} done · {pendingCount} pending</span>
+        <div className="ml-auto flex items-center gap-1.5">
+          <button onClick={() => bulkSetStatus('in_progress')} className="text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium transition-colors">All → In Progress</button>
+          <button onClick={() => bulkSetStatus('completed')} className="text-xs px-2.5 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 font-medium transition-colors">All → Completed</button>
+        </div>
+      </div>
+
+      {Object.entries(byFile).map(([fileName, anns]) => (
+        <div key={fileName}>
+          <div className="bg-gray-50 px-5 py-2 flex items-center gap-2 border-b border-gray-100">
+            <FileText size={12} className="text-gray-400" />
+            <span className="text-sm font-medium text-gray-600">{fileName}</span>
+            <span className="text-xs text-gray-400 ml-auto">{anns.length}</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {anns.map(ann => {
+              const st = STATUS_CFG[ann.status] || STATUS_CFG.pending
+              return (
+                <div key={ann.id} className="px-5 py-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-sm flex-shrink-0 mt-0.5">{TOOL_ICONS[ann.type] || '\u25ef'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-800">{ann.text || <span className="text-gray-400 italic">{ann.type} annotation</span>}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">by {ann.author} · {ann.created_at ? formatDistanceToNow(new Date(ann.created_at), { addSuffix: true }) : ''}</p>
+
+                      {/* Agency reply */}
+                      {ann.agency_reply && (
+                        <div className="mt-2 pl-3 border-l-2 border-blue-200 bg-blue-50/50 rounded-r-lg py-1.5 pr-2">
+                          <p className="text-xs text-blue-800">{ann.agency_reply}</p>
+                          <p className="text-xs text-blue-400 mt-0.5">Agency reply{ann.agency_reply_at ? ' · ' + formatDistanceToNow(new Date(ann.agency_reply_at), { addSuffix: true }) : ''}</p>
+                        </div>
+                      )}
+
+                      {/* Reply input */}
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          value={replyInputs[ann.id] || ''}
+                          onChange={e => setReplyInputs(prev => ({ ...prev, [ann.id]: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && submitReply(ann.id)}
+                          placeholder="Reply to client..."
+                          className="flex-1 text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-300 bg-white"
+                        />
+                        {replyInputs[ann.id]?.trim() && (
+                          <button onClick={() => submitReply(ann.id)} className="text-xs px-2.5 py-1.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Send</button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status badge + actions */}
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${st.bg} ${st.text}`}>{st.label}</span>
+                      <div className="flex gap-1">
+                        {STATUS_FLOW.filter(s => s !== ann.status).map(s => {
+                          const c = STATUS_CFG[s]
+                          return (
+                            <button key={s} onClick={() => setStatus(ann.id, s)} title={c.label}
+                              className={`text-xs px-1.5 py-0.5 rounded ${c.bg} ${c.text} hover:opacity-80 font-medium transition-opacity`}>
+                              {c.label.split(' ')[0]}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
