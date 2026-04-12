@@ -117,7 +117,7 @@ const SETUP_STEPS = [
       { label: 'Copy Client ID', action: 'Copy Client ID and add as NEXT_PUBLIC_GOOGLE_CLIENT_ID', highlight: null },
     ],
     vercelVar: { key: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID', placeholder: '88526871187-xxx.apps.googleusercontent.com' },
-    extraVars: [{ key: 'NEXT_PUBLIC_GOOGLE_CLIENT_SECRET', placeholder: 'GOCSPX-...' }],
+    extraVars: [{ key: 'GOOGLE_CLIENT_SECRET', placeholder: 'GOCSPX-...' }],
   },
   {
     id:       'ghl',

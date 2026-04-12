@@ -20,7 +20,8 @@ async function getGSCKeywords(clientId: string) {
   if (conn.refresh_token && conn.token_expires_at && new Date(conn.token_expires_at) < new Date()) {
     const r = await fetch('https://oauth2.googleapis.com/token', {
       method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({ client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim()||'', client_secret: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET?.trim()||'', refresh_token: conn.refresh_token, grant_type:'refresh_token' })
+      // env-leak-check: legacy-fallback
+      body: new URLSearchParams({ client_id: (process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)?.trim()||'', client_secret: (process.env.GOOGLE_CLIENT_SECRET || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET)?.trim()||'', refresh_token: conn.refresh_token, grant_type:'refresh_token' })
     })
     const d = await r.json()
     if (d.access_token) token = d.access_token

@@ -21,8 +21,8 @@ async function getValidToken(conn: any) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_id:     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || '',
-        client_secret: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET?.trim() || '',
+        client_id:     (process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)?.trim() || '',
+        client_secret: (process.env.GOOGLE_CLIENT_SECRET || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET)?.trim() || '', // env-leak-check: legacy-fallback
         refresh_token: conn.refresh_token,
         grant_type:    'refresh_token',
       }),

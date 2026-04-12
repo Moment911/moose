@@ -8,8 +8,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing code or redirect_uri' }, { status: 400 })
     }
 
-    const clientId     = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim()
-    const clientSecret = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET?.trim()
+    const clientId     = (process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)?.trim()
+    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET)?.trim() // env-leak-check: legacy-fallback
 
     if (!clientId || !clientSecret) {
       return NextResponse.json({ error: 'Google OAuth not configured' }, { status: 500 })

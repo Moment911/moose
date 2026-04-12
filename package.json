@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/check-env-leaks.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check-env-leaks": "node scripts/check-env-leaks.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
