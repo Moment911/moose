@@ -184,15 +184,12 @@ export function AuthProvider({ children }) {
     // Super admin can do everything
     if (isSuperAdmin) return true
 
-    // Agency owner/admin can do everything at agency level
+    // Agency owner/admin — check agency feature flags from the DB.
+    // If the feature key exists as a column in agency_features and is
+    // explicitly false, block it. Unknown keys default to allowed so
+    // new features work before the column is added.
     if (isAgencyAdmin) {
-      // Check agency feature flags for AI features
-      if (feature === 'ai_personas' && !agencyFeatures.ai_personas) return false
-      if (feature === 'ai_social_posts' && !agencyFeatures.ai_social_posts) return false
-      if (feature === 'ai_review_responses' && !agencyFeatures.ai_review_responses) return false
-      if (feature === 'white_label' && !agencyFeatures.white_label) return false
-      if (feature === 'custom_domain' && !agencyFeatures.custom_domain) return false
-      if (feature === 'api_access' && !agencyFeatures.api_access) return false
+      if (feature in agencyFeatures && agencyFeatures[feature] === false) return false
       return true
     }
 
