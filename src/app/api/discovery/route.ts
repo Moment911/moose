@@ -2384,10 +2384,19 @@ Produce the prep sheet JSON now.`
         user: userPrompt,
         maxTokens: 2000,
         temperature: 0,
-        timeoutMs: 20000,
+        timeoutMs: 30000,
+        feature: 'discovery_prep_sheet',
+        agencyId,
       })
+      if (!raw) {
+        console.error('[discovery] prep sheet: callClaude returned empty — check ANTHROPIC_API_KEY and model availability')
+        return Response.json({ error: 'AI did not return a response — check API key configuration' }, { status: 500 })
+      }
       const parsed = parseJson(raw)
-      if (!parsed) return Response.json({ error: 'Failed to parse prep sheet' }, { status: 500 })
+      if (!parsed) {
+        console.error('[discovery] prep sheet: parseJson failed on raw response:', raw.slice(0, 500))
+        return Response.json({ error: 'Failed to parse prep sheet — AI response was not valid JSON', raw_preview: raw.slice(0, 200) }, { status: 500 })
+      }
 
       const now = new Date().toISOString()
       await s.from('koto_discovery_engagements').update({
