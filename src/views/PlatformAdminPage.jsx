@@ -511,8 +511,8 @@ function AgenciesPanel() {
   useEffect(() => { load() }, [])
   async function load() {
     setLoading(true)
-    const res = await fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'list_agencies' }) }).then(r=>r.json())
-    setAgencies(res.agencies || res || [])
+    const res = await fetch('/api/admin?action=list_agencies').then(r=>r.json())
+    setAgencies(Array.isArray(res) ? res : res.agencies || [])
     setLoading(false)
   }
 
@@ -633,10 +633,10 @@ function UsersPanel() {
     setLoading(true)
     const [uRes, aRes] = await Promise.all([
       fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'list_users' }) }).then(r=>r.json()),
-      fetch('/api/admin', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'list_agencies' }) }).then(r=>r.json()),
+      fetch('/api/admin?action=list_agencies').then(r=>r.json()),
     ])
     setUsers(uRes.users || [])
-    setAgencies(aRes.agencies || aRes || [])
+    setAgencies(Array.isArray(aRes) ? aRes : aRes.agencies || [])
     setLoading(false)
   }
 
