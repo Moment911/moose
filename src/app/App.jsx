@@ -350,6 +350,8 @@ function AppRoutes() {
           <Route path="/client-auth" element={<ClientAuthPage />} />
           <Route path="/wireframe" element={<WireframePage />} />
           <Route path="/wireframe/:projectId" element={<WireframePage />} />
+          <Route path="/project/:projectId/canvas" element={<WireframePage />} />
+          <Route path="/project/:projectId/canvas/:canvasId" element={<WireframePage />} />
           <Route path="/esign/:projectId" element={<ESignaturePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/status" element={<StatusPage />} />
