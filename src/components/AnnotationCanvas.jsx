@@ -201,20 +201,34 @@ export default function AnnotationCanvas({
       )
     }
 
+    // Sequential number across ALL annotation types
+    const annNum = annotations.findIndex(a => a.id === ann.id) + 1
+
     if (ann.type === 'pin') {
-      const num = annotations.filter(a => a.type === 'pin').findIndex(a => a.id === ann.id) + 1
       return (
         <g key={ann.id} {...commonProps} transform={`translate(${ann.x}, ${ann.y})`}>
           <circle cx={0} cy={0} r={isSelected ? 14 : 12} fill={c} opacity={opacity}
             stroke={isSelected ? 'white' : 'rgba(0,0,0,0.15)'} strokeWidth={isSelected ? 2 : 1}
             filter={isSelected ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.2))'} />
-          <text x={0} y={4} textAnchor="middle" fill="white" fontSize={10} fontWeight="700">{num}</text>
+          <text x={0} y={4} textAnchor="middle" fill="white" fontSize={10} fontWeight="700">{annNum}</text>
         </g>
+      )
+    }
+
+    // Number badge helper — small circle with number at a given position
+    function numBadge(bx, by) {
+      return (
+        <>
+          <circle cx={bx} cy={by} r={10} fill={c} stroke="white" strokeWidth={1.5}
+            filter="drop-shadow(0 1px 3px rgba(0,0,0,0.3))" />
+          <text x={bx} y={by + 3.5} textAnchor="middle" fill="white" fontSize={9} fontWeight="700">{annNum}</text>
+        </>
       )
     }
 
     if (ann.type === 'arrow') {
       const id = `arr-${ann.id}`
+      const midX = (ann.x1 + ann.x2) / 2, midY = (ann.y1 + ann.y2) / 2
       return (
         <g key={ann.id} {...commonProps} opacity={opacity}>
           <defs>
@@ -227,6 +241,7 @@ export default function AnnotationCanvas({
             strokeLinecap="round" />
           <line x1={ann.x1} y1={ann.y1} x2={ann.x2} y2={ann.y2}
             stroke="transparent" strokeWidth={16} />
+          {numBadge(midX, midY - 14)}
         </g>
       )
     }
@@ -238,6 +253,7 @@ export default function AnnotationCanvas({
             fill="none" stroke={c} strokeWidth={strokeW} strokeLinecap="round"
             filter={isSelected ? `drop-shadow(0 0 4px ${c}88)` : ''} />
           <ellipse cx={ann.cx} cy={ann.cy} rx={ann.rx} ry={ann.ry} fill="transparent" stroke="transparent" strokeWidth={16} />
+          {numBadge(ann.cx - (ann.rx || 0), ann.cy - (ann.ry || 0))}
         </g>
       )
     }
@@ -248,15 +264,21 @@ export default function AnnotationCanvas({
           <rect x={ann.x} y={ann.y} width={ann.w} height={ann.h} rx={3}
             fill={`${c}18`} stroke={c} strokeWidth={strokeW}
             filter={isSelected ? `drop-shadow(0 0 4px ${c}88)` : ''} />
+          {numBadge(ann.x, ann.y - 6)}
         </g>
       )
     }
 
     if (ann.type === 'freehand') {
+      // Parse first point from path data for badge placement
+      const firstMatch = (ann.d || '').match(/M\s*([\d.]+)\s+([\d.]+)/)
+      const fx = firstMatch ? parseFloat(firstMatch[1]) : 0
+      const fy = firstMatch ? parseFloat(firstMatch[2]) : 0
       return (
         <g key={ann.id} {...commonProps} opacity={opacity}>
           <path d={ann.d} fill="none" stroke={c} strokeWidth={strokeW} strokeLinecap="round" strokeLinejoin="round" />
           <path d={ann.d} fill="none" stroke="transparent" strokeWidth={16} />
+          {numBadge(fx - 10, fy - 10)}
         </g>
       )
     }
@@ -274,7 +296,9 @@ export default function AnnotationCanvas({
         position: 'absolute', top: 0, left: 0,
         cursor: readOnly ? 'default' : TOOL_CURSOR[tool] || 'default',
         userSelect: 'none',
-        pointerEvents: tool === 'select' ? 'none' : 'auto',
+        // Always receive events so shapes are clickable in select mode.
+        // Background clicks in select mode pass through via the transparent fill.
+        pointerEvents: 'auto',
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

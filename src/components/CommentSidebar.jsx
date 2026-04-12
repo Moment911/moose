@@ -16,8 +16,17 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState('')
 
-  const pins = annotations.filter(a => a.type === 'pin')
-  const pinNum = (ann) => pins.findIndex(a => a.id === ann.id) + 1
+  // Number ALL annotations sequentially (not just pins)
+  const annIndex = (ann) => annotations.findIndex(a => a.id === ann.id) + 1
+  const TYPE_LABELS = {
+    pin: { label: 'Comment', icon: '📌' },
+    arrow: { label: 'Arrow', icon: '↗' },
+    circle: { label: 'Circle', icon: '◯' },
+    rect: { label: 'Rectangle', icon: '▭' },
+    freehand: { label: 'Drawing', icon: '✏️' },
+    approve: { label: 'Approved', icon: '✓' },
+    hotspot: { label: 'Hotspot', icon: '🔗' },
+  }
 
   const filtered = annotations.filter(a => {
     if (filter === 'open') return !a.resolved && a.type !== 'approve'
@@ -76,18 +85,20 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
               onClick={() => onSelect(ann)}>
               <div className="px-4 py-3">
                 <div className="flex items-start gap-2.5">
-                  {/* Avatar or pin number */}
-                  {ann.type === 'approve' ? (
-                    <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5"><Check size={12} className="text-white" /></div>
-                  ) : num !== null ? (
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0 mt-0.5" style={{ background: ann.color || avatarColor }}>{num}</div>
-                  ) : (
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0 mt-0.5" style={{ background: avatarColor }}>{initials}</div>
-                  )}
+                  {/* Numbered badge for ALL annotation types */}
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 mt-0.5"
+                    style={{ background: ann.type === 'approve' ? '#22c55e' : (ann.color || avatarColor) }}>
+                    {ann.type === 'approve' ? '✓' : annIndex(ann)}
+                  </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[13px] font-medium text-gray-800">{ann.author || 'Anonymous'}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[13px] font-medium text-gray-800">{ann.author || 'Anonymous'}</span>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase tracking-wider">
+                          {TYPE_LABELS[ann.type]?.label || ann.type}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-1.5">
                         {ann.resolved && <span className="text-[13px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-medium">Resolved</span>}
                         <button onClick={e => { e.stopPropagation(); setCollapsed(c => ({ ...c, [ann.id]: isOpen })) }} className="text-gray-300 hover:text-gray-500">

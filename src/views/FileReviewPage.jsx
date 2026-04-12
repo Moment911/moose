@@ -87,6 +87,7 @@ export default function FileReviewPage() {
   const [authorName, setAuthorName] = useState('')
   const [showNamePrompt, setShowNamePrompt] = useState(false)
   const [nameInput, setNameInput] = useState('')
+  const [htmlContent, setHtmlContent] = useState(null) // fetched HTML for srcdoc rendering
 
   const [pendingPin, setPendingPin] = useState(null)
   const [pendingComment, setPendingComment] = useState('')
@@ -158,6 +159,19 @@ export default function FileReviewPage() {
     if (stored) setAuthorName(stored)
     else setShowNamePrompt(true)
   }, [])
+
+  // ── Fetch HTML content for srcdoc rendering ──
+  // Supabase Storage serves .html files as text/plain, which means
+  // iframes with src= show raw code instead of a rendered page.
+  // Fetching the content and using srcdoc= bypasses this entirely.
+  useEffect(() => {
+    if (!isHtml || !file?.url) return
+    setHtmlContent(null)
+    fetch(file.url)
+      .then(r => r.text())
+      .then(html => setHtmlContent(html))
+      .catch(() => setHtmlContent(null))
+  }, [file?.url, isHtml])
 
   function submitName() {
     const n = nameInput.trim()
@@ -400,6 +414,37 @@ export default function FileReviewPage() {
           <a href={file.url} download={file.name} style={{ marginLeft: 6, background: '#2a2a2a', color: '#fff', padding: '7px 10px', borderRadius: 7, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
             <Download size={14} />
           </a>
+          <div style={{ width: 1, height: 20, background: '#333', margin: '0 4px' }} />
+          <button
+            onClick={() => { toast.success('All changes saved'); navigate(`/project/${projectId}`) }}
+            style={{ background: '#2a2a2a', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+            Save & Close
+          </button>
+          <button
+            onClick={async () => {
+              const count = annotations.filter(a => !a.resolved).length
+              if (count === 0) { toast.error('No annotations to submit'); return }
+              try {
+                const { data: round } = await supabase.from('revision_rounds').insert({
+                  project_id: projectId,
+                  round_number: 1,
+                  submitted_by: authorName || 'Reviewer',
+                  comment_count: count,
+                  file_count: 1,
+                  status: 'submitted',
+                  submitted_at: new Date().toISOString(),
+                  summary: [{ fileName: file.name, comments: annotations.filter(a => !a.resolved).map(a => ({ type: a.type, text: a.text || '', author: a.author })) }],
+                }).select().single()
+                if (round) {
+                  await supabase.from('annotations').update({ round_number: round.round_number }).in('id', annotations.filter(a => !a.resolved).map(a => a.id))
+                  toast.success(`Round submitted with ${count} annotations`)
+                  navigate(`/project/${projectId}`)
+                }
+              } catch (e) { toast.error('Submit failed') }
+            }}
+            style={{ background: TEAL, color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 5 }}>
+            Submit Review ({annotations.filter(a => !a.resolved).length})
+          </button>
         </div>
       </div>
 
@@ -570,12 +615,18 @@ export default function FileReviewPage() {
                 </object>
               )}
               {isHtml && (
-                <iframe
-                  src={file.url}
-                  title={file.name}
-                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}
-                />
+                htmlContent ? (
+                  <iframe
+                    srcDoc={htmlContent}
+                    title={file.name}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: contentWidth, height: 200, color: '#9ca3af', fontSize: 14 }}>
+                    Loading HTML preview…
+                  </div>
+                )
               )}
               {isVideo && (
                 <video
@@ -595,7 +646,12 @@ export default function FileReviewPage() {
                 </div>
               )}
 
-              {/* Annotation SVG overlay — snaps to content dimensions */}
+              {/* Annotation SVG overlay — snaps to content dimensions.
+                  pointerEvents is ALWAYS 'auto' so shapes are clickable
+                  in select mode. The SVG itself handles tool-specific
+                  cursor and ignores mouseDown when tool=select for
+                  background clicks (but existing shapes still get events
+                  via their own pointerEvents:auto on each <g>). */}
               {!isVideo && (isImage || isPdf || isHtml) && contentWidth > 0 && contentHeight > 0 && (
                 <div
                   data-ann-svg
@@ -604,7 +660,7 @@ export default function FileReviewPage() {
                     inset: 0,
                     width: contentWidth,
                     height: contentHeight,
-                    pointerEvents: tool === 'select' ? 'none' : 'auto',
+                    pointerEvents: 'auto',
                   }}>
                   <AnnotationCanvas
                     width={contentWidth}
