@@ -31,25 +31,48 @@ const SECTIONS = [
 ]
 
 const FEATURE_GROUPS = [
-  { label: 'Core Features', features: [
-    { key: 'page_builder', label: 'Page Builder' }, { key: 'wordpress_plugin', label: 'WordPress Plugin' },
-    { key: 'seo_hub', label: 'SEO Hub' }, { key: 'reviews', label: 'Reviews' },
-    { key: 'review_campaigns', label: 'Review Campaigns' }, { key: 'proposals', label: 'Proposals' },
-    { key: 'proposal_library', label: 'Proposal Library' }, { key: 'automations', label: 'Automations' },
-    { key: 'tasks', label: 'Tasks' }, { key: 'koto_desk', label: 'KotoDesk' },
-    { key: 'help_center', label: 'Help Center' }, { key: 'scout', label: 'Scout' },
-    { key: 'pipeline_crm', label: 'Pipeline CRM' }, { key: 'performance_dashboard', label: 'Performance Dashboard' },
+  { label: 'Clients & CRM', features: [
+    { key: 'clients', label: 'Clients' }, { key: 'discovery', label: 'Discovery' },
+    { key: 'onboarding', label: 'Onboarding' }, { key: 'tasks', label: 'Tasks' },
+    { key: 'koto_desk', label: 'KotoDesk' }, { key: 'pipeline_crm', label: 'Pipeline CRM' },
   ]},
-  { label: 'AI / Premium', features: [
-    { key: 'cmo_agent', label: 'CMO Agent' }, { key: 'voice_agent', label: 'Voice Agent (Outbound)' },
-    { key: 'answering_service', label: 'Answering Service (Inbound)' },
+  { label: 'Growth & Sales', features: [
+    { key: 'reviews', label: 'Reviews' }, { key: 'review_campaigns', label: 'Review Campaigns' },
+    { key: 'proposals', label: 'Proposals' }, { key: 'proposal_library', label: 'Proposal Library' },
+    { key: 'automations', label: 'Automations' }, { key: 'invoice_builder', label: 'Invoice Builder' },
+  ]},
+  { label: 'Design & Proof', features: [
+    { key: 'koto_proof', label: 'KotoProof' }, { key: 'page_builder', label: 'Page Builder' },
+    { key: 'wordpress_plugin', label: 'WordPress Plugin' }, { key: 'email_designer', label: 'Email Designer' },
+  ]},
+  { label: 'SEO & Content', features: [
+    { key: 'seo_hub', label: 'SEO Hub' }, { key: 'gbp_audit', label: 'GBP Audit' },
+    { key: 'onpage_audit', label: 'On-Page Audit' }, { key: 'keyword_gap', label: 'Keyword Gap' },
+    { key: 'content_gap', label: 'Content Gap' }, { key: 'technical_audit', label: 'Technical Audit' },
+    { key: 'ai_visibility', label: 'AI Visibility' }, { key: 'competitor_intel', label: 'Competitor Intel' },
+    { key: 'citation_tracker', label: 'Citation Tracker' }, { key: 'monthly_report', label: 'Monthly Report' },
+    { key: 'white_label_report', label: 'White-Label Report' },
+  ]},
+  { label: 'Intelligence & AI', features: [
+    { key: 'cmo_agent', label: 'AI CMO Agent' }, { key: 'scout', label: 'Scout' },
+    { key: 'performance_dashboard', label: 'Performance Dashboard' },
+    { key: 'predictive_intel', label: 'Predictive Intel' }, { key: 'qa_intelligence', label: 'Q&A Intelligence' },
+    { key: 'opportunities', label: 'Opportunities' },
+  ]},
+  { label: 'Voice & AI Agents', features: [
+    { key: 'voice_agent', label: 'Voice Agent' }, { key: 'answering_service', label: 'Answering Service' },
+    { key: 'kotoclose', label: 'KotoClose' }, { key: 'industry_agents', label: 'Industry Agents' },
+    { key: 'video_voicemails', label: 'Video Voicemails' }, { key: 'ai_avatars', label: 'AI Avatars' },
     { key: 'ai_page_research', label: 'AI Page Research' }, { key: 'ai_script_generation', label: 'AI Script Generation' },
   ]},
-  { label: 'Billing', features: [
-    { key: 'client_billing', label: 'Client Billing' }, { key: 'credit_system', label: 'Credit System' },
-    { key: 'phone_numbers', label: 'Phone Numbers' },
+  { label: 'Outreach', features: [
+    { key: 'email_sequences', label: 'Email Sequences' }, { key: 'email_tracking', label: 'Email Tracking' },
+    { key: 'pixel_tracking', label: 'Visitor Intelligence' },
   ]},
-  { label: 'Admin', features: [
+  { label: 'Agency & Admin', features: [
+    { key: 'data_vault', label: 'Data Vault' }, { key: 'phone_numbers', label: 'Phone Numbers' },
+    { key: 'marketplace', label: 'Marketplace' }, { key: 'help_center', label: 'Help Center' },
+    { key: 'client_billing', label: 'Client Billing' }, { key: 'credit_system', label: 'Credit System' },
     { key: 'team_management', label: 'Team Management' }, { key: 'white_label', label: 'White Label' },
     { key: 'custom_domain', label: 'Custom Domain' }, { key: 'api_access', label: 'API Access' },
   ]},
