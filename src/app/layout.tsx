@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Koto — Marketing Platform",
   description: "The AI-powered agency platform. White-label AI marketing tools for agencies.",
-  icons: { icon: "/moose-logo-orange.svg" },
+  icons: { icon: "/koto_icon.svg" },
 }
 
 export default function RootLayout({
