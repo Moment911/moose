@@ -486,74 +486,9 @@ export default function FileReviewPage() {
         </div>
       )}
 
-      {/* Width controls — HTML files only */}
-      {isHtml && (
-        <div style={{ background: '#111', borderBottom: '1px solid #333', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#666', flexShrink: 0 }}>
-          <span style={{ color: '#888', fontWeight: 600 }}>Width:</span>
-          {WIDTH_PRESETS.map((p) => {
-            const Icon = p.icon
-            const active = iframeWidth === p.width
-            return (
-              <button
-                key={p.key}
-                onClick={() => setIframeWidth(p.width)}
-                style={{
-                  padding: '4px 10px', borderRadius: 6, border: 'none',
-                  background: active ? TEAL : '#333',
-                  color: '#fff', cursor: 'pointer', display: 'flex',
-                  alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700,
-                }}>
-                <Icon size={11} /> {p.label}
-              </button>
-            )
-          })}
-          <input
-            type="number"
-            value={iframeWidth}
-            onChange={(e) => setIframeWidth(Number(e.target.value) || 1280)}
-            style={{ width: 72, padding: '2px 8px', background: '#222', border: '1px solid #444', borderRadius: 4, color: '#fff', fontSize: 12 }}
-          />
-          <span>px</span>
-        </div>
-      )}
-
-      {/* Height controls — HTML and PDF only */}
-      {(isHtml || isPdf) && (
-        <div style={{ background: '#111', borderBottom: '1px solid #333', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#666', flexShrink: 0 }}>
-          <span style={{ color: '#888', fontWeight: 600 }}>Page height:</span>
-          <button
-            onClick={() => isPdf ? setPdfHeight((h) => Math.max(600, h - 600)) : setIframeHeight((h) => Math.max(600, h - 600))}
-            style={{ padding: '3px 10px', background: '#333', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-            Shorter −600
-          </button>
-          <span style={{ color: '#999', minWidth: 60, textAlign: 'center', fontWeight: 700 }}>
-            {isPdf ? pdfHeight : iframeHeight}px
-          </span>
-          <button
-            onClick={() => isPdf ? setPdfHeight((h) => h + 600) : setIframeHeight((h) => h + 600)}
-            style={{ padding: '3px 10px', background: '#333', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-            Taller +600
-          </button>
-          <button
-            onClick={() => isPdf ? setPdfHeight((h) => h + 1200) : setIframeHeight((h) => h + 1200)}
-            style={{ padding: '3px 10px', background: '#444', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
-            +1200
-          </button>
-          <input
-            type="number"
-            value={isPdf ? pdfHeight : iframeHeight}
-            onChange={(e) => {
-              const n = Number(e.target.value) || 600
-              if (isPdf) setPdfHeight(n); else setIframeHeight(n)
-            }}
-            style={{ width: 80, padding: '2px 8px', background: '#222', border: '1px solid #444', borderRadius: 4, color: '#fff', fontSize: 12 }}
-          />
-          <span>px</span>
-          <div style={{ marginLeft: 'auto', color: '#555', fontSize: 11 }}>
-            Annotations stick to their position even when you resize
-          </div>
-        </div>
-      )}
+      {/* Width/height preset controls disabled — srcdoc rendering doesn't
+          resize the inner HTML content properly with these controls.
+          Re-enable when we implement a proper responsive preview. */}
 
       {/* Main area — canvas + sidebar */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
