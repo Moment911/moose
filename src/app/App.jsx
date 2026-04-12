@@ -39,7 +39,7 @@ import ListsPage from '../views/ListsPage'
 import EmailDesignerPage from '../views/EmailDesignerPage'
 import AutomationsPage from '../views/AutomationsPage'
 import PublicReviewPage from '../views/PublicReviewPage'
-import ReviewPage from '../views/ReviewPage'
+// ReviewPage stub removed — was never linked from UI
 import ClientDashboardPage from '../views/ClientDashboardPage'
 import ClientAuthPage from '../views/ClientAuthPage'
 import WireframePage from '../views/WireframePage'
@@ -345,7 +345,7 @@ function AppRoutes() {
           <Route path="/email-designer" element={<EmailDesignerPage />} />
           <Route path="/email-designer/:templateId" element={<EmailDesignerPage />} />
           <Route path="/automations" element={<AutomationsPage />} />
-          <Route path="/review-internal/:projectId" element={<ReviewPage />} />
+          {/* ReviewPage stub removed — /review-internal was never linked from UI */}
           <Route path="/client-portal" element={<ClientDashboardPage />} />
           <Route path="/client-auth" element={<ClientAuthPage />} />
           <Route path="/wireframe" element={<WireframePage />} />
@@ -362,6 +362,12 @@ function AppRoutes() {
           <Route path="/voice/live" element={<VoiceLiveMonitorPage />} />
           <Route path="/answering" element={<AnsweringServicePage />} />
           <Route path="/voice/closer" element={<VoiceCloserPage />} />
+          <Route path="/kotoclose/dashboard" element={<VoiceCloserPage />} />
+          <Route path="/kotoclose/calls" element={<VoiceCloserPage />} />
+          <Route path="/kotoclose/callbacks" element={<VoiceCloserPage />} />
+          <Route path="/kotoclose/campaigns" element={<VoiceCloserPage />} />
+          <Route path="/kotoclose/voicemail" element={<VoiceCloserPage />} />
+          <Route path="/kotoclose/analytics" element={<VoiceCloserPage />} />
           <Route path="/qa-intelligence" element={<QAIntelligencePage />} />
           <Route path="/industry-agents" element={<IndustryAgentPage />} />
           <Route path="/opportunities" element={<OpportunitiesPage />} />
