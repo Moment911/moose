@@ -594,11 +594,32 @@ export default function ScoutPage() {
   const modeConfig = SEARCH_MODES.find(m=>m.id===mode) || SEARCH_MODES[0]
 
   // ── City Sweep handler (server-side, Census → multi-city Google Places) ──
+  // Known US state abbreviations for validation
+  const US_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC','PR'])
+  // Map of common full state names → abbreviations
+  const STATE_NAMES = {florida:'FL',texas:'TX',california:'CA',newyork:'NY',georgia:'GA',illinois:'IL',ohio:'OH',pennsylvania:'PA',virginia:'VA',northcarolina:'NC',newjersey:'NJ',michigan:'MI',washington:'WA',arizona:'AZ',massachusetts:'MA',tennessee:'TN',indiana:'IN',missouri:'MO',maryland:'MD',wisconsin:'WI',colorado:'CO',minnesota:'MN',southcarolina:'SC',alabama:'AL',louisiana:'LA',kentucky:'KY',oregon:'OR',oklahoma:'OK',connecticut:'CT',utah:'UT',iowa:'IA',nevada:'NV',arkansas:'AR',mississippi:'MS',kansas:'KS',newmexico:'NM',nebraska:'NE',idaho:'ID',westvirginia:'WV',hawaii:'HI',newhampshire:'NH',maine:'ME',montana:'MT',rhodeisland:'RI',delaware:'DE',southdakota:'SD',northdakota:'ND',alaska:'AK',vermont:'VT',wyoming:'WY'}
+
+  function parseStateCode(raw) {
+    const trimmed = raw.trim()
+    // "Miami, FL" or "Houston, TX" → take part after comma
+    if (trimmed.includes(',')) {
+      const after = trimmed.split(',').pop().trim().toUpperCase().replace(/[^A-Z]/g, '')
+      if (after.length === 2 && US_STATES.has(after)) return after
+    }
+    // Direct 2-letter code: "FL", "TX"
+    const upper = trimmed.toUpperCase().replace(/[^A-Z]/g, '')
+    if (upper.length === 2 && US_STATES.has(upper)) return upper
+    // Full state name: "Florida", "Texas"
+    const normalized = trimmed.toLowerCase().replace(/\s+/g, '')
+    if (STATE_NAMES[normalized]) return STATE_NAMES[normalized]
+    return null
+  }
+
   async function runSweepSearch() {
     const term = query.trim() || selectedIndustries.map(k=>INDUSTRIES.find(i=>i.key===k)?.label).filter(Boolean).join(', ')
-    const stateCode = location.trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
+    const stateCode = parseStateCode(location)
     if (!term) { toast.error('Enter an industry or business type'); return }
-    if (!stateCode || stateCode.length !== 2) { toast.error('Enter a 2-letter state code (e.g. FL, TX, CA)'); return }
+    if (!stateCode) { toast.error('Enter a valid US state — e.g. "FL", "Texas", or "Miami, FL"'); return }
 
     setSearching(true); setResults([]); setStats(null); setSearchError(null); setSweepMeta(null)
     toast('Sweeping all cities in ' + stateCode + '… this takes a minute', { icon: '🔍', duration: 8000 })

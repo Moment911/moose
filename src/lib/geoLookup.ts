@@ -39,7 +39,13 @@ export const FIPS_TO_STATE: Record<string, string> = Object.fromEntries(
 
 export function fipsForState(stateAbbr: string): string {
   const fips = STATE_FIPS[stateAbbr.toUpperCase()]
-  if (!fips) throw new Error(`[geoLookup] Unknown state abbreviation: ${stateAbbr}`)
+  if (!fips) {
+    const valid = Object.keys(STATE_FIPS).sort().join(', ')
+    throw new Error(
+      `[geoLookup] "${stateAbbr}" is not a valid US state abbreviation. ` +
+      `Use a 2-letter code like FL, TX, CA. Valid codes: ${valid}`
+    )
+  }
   return fips
 }
 
