@@ -155,6 +155,10 @@ export default function Sidebar() {
 
   const greeting = getGreeting(firstName)
 
+  // When previewing as a client OR logged in as a real client user,
+  // show the restricted client view with only permitted items.
+  const showClientView = isClient || isPreviewingClient
+
   // Search filter — matches label text, case insensitive
   const sq = searchQuery.toLowerCase().trim()
   const match = (label) => !sq || label.toLowerCase().includes(sq)
@@ -187,7 +191,7 @@ export default function Sidebar() {
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder={isSuperAdmin && !isImpersonating ? 'Search platform…' : isClient ? 'Search…' : 'Search tools…'}
+              placeholder={isSuperAdmin && !isImpersonating ? 'Search platform…' : showClientView ? 'Search…' : 'Search tools…'}
               style={{flex:1,border:'none',background:'transparent',outline:'none',fontSize:12,color:'#374151',fontFamily:'inherit'}}
             />
             {searchQuery && (
@@ -203,7 +207,7 @@ export default function Sidebar() {
           scrollbarWidth:'none'}}>
 
           {/* ══════ CLIENT VIEW (minimal — only permitted items) ══════ */}
-          {isClient && (<>
+          {showClientView && (<>
             <NavLink to="/" exact icon={LayoutGrid} label="Dashboard"/>
             <NavLink to="/tasks" startsWith icon={CheckSquare} label="My Tasks"/>
             <NavLink to="/desk" startsWith icon={Inbox} label="Support"/>
@@ -211,7 +215,7 @@ export default function Sidebar() {
           </>)}
 
           {/* ══════ AGENCY VIEW (standard tools) ══════ */}
-          {!isClient && (<>
+          {!showClientView && (<>
 
             {/* SUPER ADMIN: Platform + Testing section */}
             {isSuperAdmin && !isImpersonating && (
