@@ -168,16 +168,27 @@ export function AuthProvider({ children }) {
   }
 
   // ── Reload agency features when impersonation changes ──────────────────────
-  // When a Koto admin switches into an agency, we need to load THAT agency's
-  // features so can() and feat() gate correctly. Without this, the features
-  // from the admin's own agency (or none) stay in state.
+  // When a Koto admin switches into an agency, load THAT agency's features.
+  // Uses the permissions API (server-side, service role key) instead of the
+  // client-side supabase because RLS on agency_features blocks reads when
+  // the admin isn't a member of the impersonated agency.
   useEffect(() => {
     if (!impersonatedAgency?.id) return
     ;(async () => {
+      // Load agency details (agencies table has SELECT using true)
       const { data: ag } = await supabase.from('agencies').select('*').eq('id', impersonatedAgency.id).single()
       if (ag) setAgency(ag)
-      const { data: features } = await supabase.from('agency_features').select('*').eq('agency_id', impersonatedAgency.id).single()
-      if (features) setAgencyFeatures(features)
+
+      // Load features via API (bypasses RLS)
+      try {
+        const res = await fetch(`/api/permissions?action=get_agency_features&agency_id=${impersonatedAgency.id}`)
+        const features = await res.json()
+        if (features && !features.error) setAgencyFeatures(features)
+      } catch {
+        // Fallback: try direct read (works if user has valid JWT + is_platform_admin)
+        const { data: features } = await supabase.from('agency_features').select('*').eq('agency_id', impersonatedAgency.id).single()
+        if (features) setAgencyFeatures(features)
+      }
     })()
   }, [impersonatedAgency?.id])
 
