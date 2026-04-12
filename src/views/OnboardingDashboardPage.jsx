@@ -460,8 +460,16 @@ export default function OnboardingDashboardPage() {
               </div>
 
               {filtered.length === 0 && (
-                <div style={{ padding:'40px 24px', textAlign:'center', color:'#9ca3af', fontFamily:FB, fontSize:14 }}>
-                  {search || filter !== 'all' ? 'No clients match your filter' : 'No clients yet — add clients first, then send onboarding links'}
+                <div style={{ padding:'40px 24px', textAlign:'center', fontFamily:FB }}>
+                  <div style={{ color:'#9ca3af', fontSize:14, marginBottom:16 }}>
+                    {search || filter !== 'all' ? 'No clients match your filter' : 'No clients yet — add a client to get started'}
+                  </div>
+                  {!search && filter === 'all' && (
+                    <button onClick={() => navigate('/clients')}
+                      style={{ padding:'10px 20px', borderRadius:8, border:'none', background:R, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                      + Add First Client
+                    </button>
+                  )}
                 </div>
               )}
 
