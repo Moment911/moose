@@ -20,6 +20,14 @@ export function getFirstName(user) {
   return user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || ''
 }
 
+export function getFullName(user) {
+  if (!user) return ''
+  const first = user.user_metadata?.first_name || ''
+  const last = user.user_metadata?.last_name || ''
+  const full = (first + ' ' + last).trim()
+  return full || user.user_metadata?.full_name || user.email?.split('@')[0] || ''
+}
+
 export function getGreeting(name) {
   const h = new Date().getHours()
   const time = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
@@ -279,8 +287,9 @@ export function AuthProvider({ children }) {
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const firstName  = getFirstName(user)
+  const fullName   = getFullName(user)
   const initials   = getInitials(user)
-  const greeting   = getGreeting(firstName)
+  const greeting   = getGreeting(fullName || firstName)
   const agencyName = impersonatedAgency?.name || agency?.brand_name || agency?.name || ''
 
   return (
@@ -294,7 +303,7 @@ export function AuthProvider({ children }) {
       agencyName,
 
       // User info
-      firstName, initials, greeting,
+      firstName, fullName, initials, greeting,
 
       // 3-tier role system
       role,
