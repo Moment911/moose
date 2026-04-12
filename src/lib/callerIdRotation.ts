@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Caller ID Rotation ───────────────────────────────────────────────────────
 // Rotates through phone numbers to maximize answer rates and avoid spam flagging.
 

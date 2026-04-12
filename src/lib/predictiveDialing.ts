@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Predictive Dialing Engine ─────────────────────────────────────────────────
 import { createClient } from '@supabase/supabase-js'
 

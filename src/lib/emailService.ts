@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 async function logComm(params: {
   channel: string; recipient: string; subject?: string;
   body_preview?: string; status: string; provider: string;

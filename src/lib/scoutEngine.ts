@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Scout Search Engine ──────────────────────────────────────────────────────
 // Runs Google Places searches, enriches leads, scores opportunities.
 

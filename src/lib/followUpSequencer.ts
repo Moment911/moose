@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Multi-Touch Follow-Up Sequencer ──────────────────────────────────────────
 // Automatically queues SMS, email, and call follow-ups after voice calls.
 

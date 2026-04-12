@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Synthetic Call Data Generator ─────────────────────────────────────────────
 // Uses Claude, OpenAI GPT-4, and Google Gemini to generate realistic
 // hypothetical sales calls across industries for AI training.

@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── HeyGen Video Voicemail Engine ────────────────────────────────────────────
 // Generates personalized video voicemails using HeyGen AI avatars.
 

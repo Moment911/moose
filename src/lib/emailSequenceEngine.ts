@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Email Sequence Engine ────────────────────────────────────────────────────
 // Multi-channel outbound sequences: email, SMS, call with personalization,
 // AI generation, reply handling, and GHL sync.

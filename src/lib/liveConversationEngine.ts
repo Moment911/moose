@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Live Conversation Engine ──────────────────────────────────────────────────
 // Feature 3: Dynamic Script Adaptation
 // Feature 4: Competitor Intelligence Injection

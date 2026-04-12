@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Parallel Dialing Engine ───────────────────────────────────────────────────
 // Dials 2-5 leads simultaneously. First to answer gets the AI agent.
 // Others get clean hangup or voicemail drop.

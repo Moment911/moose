@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Pre-Call Intelligence Engine ──────────────────────────────────────────────
 // Enriches caller/lead data before or at the start of a call so the AI agent
 // (and the closer dashboard) have maximum context.

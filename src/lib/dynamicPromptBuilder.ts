@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Dynamic Voice Prompt Builder ─────────────────────────────────────────────
 // Builds system prompts and dynamic variables for Retell AI voice agents
 // using pre-call intelligence + agency/agent configuration.

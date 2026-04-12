@@ -1,3 +1,4 @@
+import 'server-only' // fails the build if this module is ever imported from a client component
 // ── Multi-Platform Pixel Event Firing ─────────────────────────────────────────
 // Fires tracking events to Facebook, Google, TikTok, LinkedIn simultaneously.
 
