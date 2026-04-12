@@ -71,7 +71,7 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
 
         {filtered.map((ann) => {
           const isSelected = ann.id === selectedId
-          const num = ann.type === 'pin' ? pinNum(ann) : null
+          const num = annIndex(ann)
           const isOpen = !collapsed[ann.id]
           const annReplies = replies[ann.id] || []
           const initials = getInitials(ann.author)
