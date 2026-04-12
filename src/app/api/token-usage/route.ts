@@ -1011,6 +1011,271 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
+    // ── sync_vercel_deployments ──────────────────────────
+    // Pulls recent deployments from the Vercel API and upserts
+    // each as a koto_events row (event_type='deployment').
+    // Requires VERCEL_ACCESS_TOKEN — generate at vercel.com/account/tokens.
+    if (action === 'sync_vercel_deployments') {
+      const token = process.env.VERCEL_ACCESS_TOKEN
+      if (!token) {
+        return NextResponse.json({ available: false, error: 'VERCEL_ACCESS_TOKEN not set' })
+      }
+      const { limit = 50 } = body
+      try {
+        const res = await fetch(`https://api.vercel.com/v6/deployments?limit=${limit}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(20000),
+        })
+        if (!res.ok) {
+          return NextResponse.json({ error: `Vercel API ${res.status}` }, { status: 502 })
+        }
+        const data = await res.json()
+        const deployments: any[] = data.deployments || []
+        if (deployments.length === 0) {
+          return NextResponse.json({ synced: 0, total: 0 })
+        }
+
+        // Dedupe — skip rows we've already logged
+        const ids = deployments.map((d) => `vercel_${d.uid}`)
+        const { data: existing } = await sb()
+          .from('koto_events')
+          .select('metadata')
+          .in('metadata->>event_key', ids)
+        const knownKeys = new Set((existing || []).map((r: any) => r.metadata?.event_key))
+
+        const rows = deployments
+          .filter((d) => !knownKeys.has(`vercel_${d.uid}`))
+          .map((d) => {
+            const commitMsg = d.meta?.githubCommitMessage?.split('\n')[0]?.slice(0, 80) || d.name || 'deployment'
+            return {
+              event_type: 'deployment',
+              title: `🚀 ${commitMsg}`,
+              description: `${d.state} · ${d.creator?.username || 'system'}`,
+              timestamp: new Date(d.createdAt).toISOString(),
+              metadata: {
+                event_key: `vercel_${d.uid}`,
+                source: 'vercel',
+                deployment_id: d.uid,
+                commit_sha: d.meta?.githubCommitSha,
+                commit_message: d.meta?.githubCommitMessage,
+                branch: d.meta?.githubCommitRef,
+                state: d.state,
+                url: d.url,
+                ready_state: d.readyState,
+              },
+            }
+          })
+
+        if (rows.length > 0) {
+          const { error: insErr } = await sb().from('koto_events').insert(rows)
+          if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })
+        }
+
+        return NextResponse.json({
+          synced: rows.length,
+          skipped: deployments.length - rows.length,
+          total: deployments.length,
+        })
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message }, { status: 500 })
+      }
+    }
+
+    // ── sync_github_commits ──────────────────────────────
+    // Pulls recent commits from a GitHub repo and stores each as
+    // an event_type='commit' row. Requires GITHUB_TOKEN with repo
+    // read scope.
+    if (action === 'sync_github_commits') {
+      const token = process.env.GITHUB_TOKEN
+      if (!token) {
+        return NextResponse.json({ available: false, error: 'GITHUB_TOKEN not set' })
+      }
+      const { repo = 'Moment911/moose', limit = 50 } = body
+      try {
+        const res = await fetch(`https://api.github.com/repos/${repo}/commits?per_page=${limit}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+          },
+          signal: AbortSignal.timeout(20000),
+        })
+        if (!res.ok) {
+          const txt = await res.text()
+          return NextResponse.json({ error: `GitHub ${res.status}: ${txt.slice(0, 200)}` }, { status: 502 })
+        }
+        const commits: any[] = await res.json()
+
+        const keys = commits.map((c) => `commit_${c.sha}`)
+        const { data: existing } = await sb()
+          .from('koto_events')
+          .select('metadata')
+          .in('metadata->>event_key', keys)
+        const known = new Set((existing || []).map((r: any) => r.metadata?.event_key))
+
+        const rows = commits
+          .filter((c) => !known.has(`commit_${c.sha}`))
+          .map((c) => ({
+            event_type: 'commit',
+            title: `🔀 ${String(c.commit?.message || '').split('\n')[0].slice(0, 80)}`,
+            description: c.commit?.author?.name || 'unknown',
+            timestamp: new Date(c.commit?.author?.date || c.commit?.committer?.date || Date.now()).toISOString(),
+            metadata: {
+              event_key: `commit_${c.sha}`,
+              source: 'github',
+              sha: c.sha,
+              author: c.commit?.author?.name,
+              url: c.html_url,
+              repo,
+            },
+          }))
+
+        if (rows.length > 0) {
+          const { error: insErr } = await sb().from('koto_events').insert(rows)
+          if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 })
+        }
+        return NextResponse.json({ synced: rows.length, total: commits.length })
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message }, { status: 500 })
+      }
+    }
+
+    // ── sync_supabase_usage ──────────────────────────────
+    // Hits the Supabase Management API for current project usage
+    // (DB size, row counts, storage, bandwidth) and returns it.
+    // Read-only — no writes to koto_platform_costs from here.
+    if (action === 'sync_supabase_usage') {
+      const token = process.env.SUPABASE_ACCESS_TOKEN
+      const projectRef = 'suqpieuasfudgdtylotn'
+      if (!token) {
+        return NextResponse.json({ available: false, error: 'SUPABASE_ACCESS_TOKEN not set' })
+      }
+      try {
+        // Database row counts we actually care about
+        const queries = [
+          'SELECT COUNT(*) FROM koto_token_usage',
+          'SELECT COUNT(*) FROM koto_platform_costs',
+          'SELECT COUNT(*) FROM clients',
+          'SELECT COUNT(*) FROM koto_events',
+          "SELECT pg_size_pretty(pg_database_size(current_database())) AS db_size",
+          "SELECT pg_database_size(current_database())::bigint AS db_bytes",
+        ]
+        const results: any = {}
+        for (const q of queries) {
+          const res = await fetch(
+            `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
+            {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: q }),
+              signal: AbortSignal.timeout(10000),
+            },
+          )
+          if (res.ok) {
+            const data = await res.json()
+            if (Array.isArray(data) && data[0]) {
+              const [k] = Object.keys(data[0])
+              results[q] = data[0][k]
+            }
+          }
+        }
+        return NextResponse.json({
+          available: true,
+          token_usage_rows: Number(results['SELECT COUNT(*) FROM koto_token_usage'] || 0),
+          platform_costs_rows: Number(results['SELECT COUNT(*) FROM koto_platform_costs'] || 0),
+          clients_rows: Number(results['SELECT COUNT(*) FROM clients'] || 0),
+          events_rows: Number(results['SELECT COUNT(*) FROM koto_events'] || 0),
+          db_size: results["SELECT pg_size_pretty(pg_database_size(current_database())) AS db_size"] || null,
+          db_bytes: Number(results["SELECT pg_database_size(current_database())::bigint AS db_bytes"] || 0),
+          plan: 'pro',
+          monthly_cost: 25.00,
+        })
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message }, { status: 500 })
+      }
+    }
+
+    // ── events_feed ──────────────────────────────────────
+    // Returns the last N rows from koto_events for the live activity
+    // feed + unions in recent token_usage rows as ai_call events.
+    if (action === 'events_feed') {
+      const { limit = 30 } = body
+      const [{ data: events }, { data: calls }] = await Promise.all([
+        sb().from('koto_events').select('*').order('timestamp', { ascending: false }).limit(limit),
+        sb().from('koto_token_usage').select('id, feature, model, total_cost, total_tokens, created_at').order('created_at', { ascending: false }).limit(limit),
+      ])
+
+      const merged = [
+        ...(events || []).map((e: any) => ({
+          type: e.event_type,
+          title: e.title,
+          description: e.description,
+          time: e.timestamp,
+          metadata: e.metadata,
+        })),
+        ...(calls || []).map((c: any) => ({
+          type: 'ai_call',
+          title: `💡 ${c.feature || 'AI call'} · ${c.model}`,
+          description: null,
+          time: c.created_at,
+          cost: Number(c.total_cost),
+          tokens: Number(c.total_tokens),
+        })),
+      ].sort((a, b) => String(b.time).localeCompare(String(a.time))).slice(0, limit)
+
+      return NextResponse.json({ events: merged })
+    }
+
+    // ── build_impact ─────────────────────────────────────
+    // For each recent deployment, calculate the cost delta between
+    // the 24 hours BEFORE and AFTER it landed. Used by the Build
+    // Impact table in CogReportPage.
+    if (action === 'build_impact') {
+      const { limit = 10 } = body
+      const { data: deployments } = await sb()
+        .from('koto_events')
+        .select('*')
+        .eq('event_type', 'deployment')
+        .order('timestamp', { ascending: false })
+        .limit(limit)
+
+      const impacts: any[] = []
+      for (const d of deployments || []) {
+        const t = new Date(d.timestamp).getTime()
+        const before = new Date(t - 24 * 86400000).toISOString()
+        const middle = new Date(t).toISOString()
+        const after = new Date(t + 24 * 86400000).toISOString()
+
+        const [beforeRes, afterRes] = await Promise.all([
+          sb().from('koto_token_usage').select('total_cost, feature').gte('created_at', before).lt('created_at', middle),
+          sb().from('koto_token_usage').select('total_cost, feature').gte('created_at', middle).lt('created_at', after),
+        ])
+
+        const beforeCost = (beforeRes.data || []).reduce((a: number, r: any) => a + Number(r.total_cost), 0)
+        const afterCost = (afterRes.data || []).reduce((a: number, r: any) => a + Number(r.total_cost), 0)
+
+        const topFeature: Record<string, number> = {}
+        for (const r of afterRes.data || []) {
+          const f = r.feature || 'unknown'
+          topFeature[f] = (topFeature[f] || 0) + Number(r.total_cost)
+        }
+        const top = Object.entries(topFeature).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+
+        impacts.push({
+          deployment_id: d.id,
+          title: d.title,
+          timestamp: d.timestamp,
+          cost_before: Number(beforeCost.toFixed(4)),
+          cost_after: Number(afterCost.toFixed(4)),
+          change: Number((afterCost - beforeCost).toFixed(4)),
+          top_feature: top,
+          commit_message: d.metadata?.commit_message || null,
+          url: d.metadata?.url || null,
+        })
+      }
+
+      return NextResponse.json({ impacts })
+    }
+
     // ── sync_openai ───────────────────────────────────────
     // Pulls daily usage from OpenAI for the last N days and
     // writes one row per (day × model) into koto_token_usage
