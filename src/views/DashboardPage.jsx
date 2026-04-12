@@ -139,10 +139,11 @@ function DashStatusDot({ label, status }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating } = useAuth()
+  const { user, firstName, agencyId, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient } = useAuth()
   const isMobile = useMobile()
 
-  const isAgencyAdmin = !isSuperAdmin
+  const showClientDashboard = isClient || isPreviewingClient
+  const isAgencyAdmin = !isSuperAdmin && !showClientDashboard
   const [showViewAs, setShowViewAs] = useState(false)
 
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -933,6 +934,38 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     CLIENT VIEW — minimal dashboard, just welcome + links to permitted tools
+     ══════════════════════════════════════════════════════════════════════════ */
+  if (showClientDashboard) {
+    return (
+      <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
+        <Sidebar />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '24px 32px' }}>
+            <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0 }}>
+              Welcome{firstName ? `, ${firstName}` : ''}
+            </h1>
+            <p style={{ fontSize: 14, color: '#6b7280', marginTop: 4, fontFamily: FB }}>
+              Use the menu on the left to access your tools.
+            </p>
+          </div>
+          <div style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
+            <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '60px 24px' }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>👋</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 8 }}>
+                Your workspace is ready
+              </div>
+              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
+                Select a tool from the sidebar to get started. Your agency has set up the tools you need — everything is ready to go.
               </div>
             </div>
           </div>

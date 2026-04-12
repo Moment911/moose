@@ -42,6 +42,7 @@ import {
 import AnnotationCanvas from '../components/AnnotationCanvas'
 import AnnotationToolbar from '../components/AnnotationToolbar'
 import CommentSidebar from '../components/CommentSidebar'
+import { useAuth } from '../hooks/useAuth'
 
 const BG = '#111'
 const PANEL = '#1a1a1a'
@@ -61,6 +62,7 @@ const WIDTH_PRESETS = [
 export default function FileReviewPage() {
   const { projectId, fileId } = useParams()
   const navigate = useNavigate()
+  const { firstName: authFirstName, agencyName } = useAuth()
 
   const [project, setProject] = useState(null)
   const [allFiles, setAllFiles] = useState([])
@@ -152,13 +154,20 @@ export default function FileReviewPage() {
     })()
   }, [projectId, fileId])
 
-  // ── Author name prompt ──
+  // ── Author name — auto-set from auth for agency users, prompt for others ──
   useEffect(() => {
     if (typeof window === 'undefined') return
+    // If logged in as agency staff, use their name + agency automatically
+    if (authFirstName) {
+      const name = agencyName ? `${authFirstName} (${agencyName})` : authFirstName
+      setAuthorName(name)
+      localStorage.setItem('mm_proof_author', name)
+      return
+    }
     const stored = localStorage.getItem('mm_proof_author')
     if (stored) setAuthorName(stored)
     else setShowNamePrompt(true)
-  }, [])
+  }, [authFirstName, agencyName])
 
   // ── Fetch HTML content for srcdoc rendering ──
   // Supabase Storage serves .html files as text/plain, which means

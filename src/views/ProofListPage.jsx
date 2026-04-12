@@ -12,7 +12,7 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FolderOpen, Plus, Clock, MessageSquare, ArrowRight, Users, X } from 'lucide-react'
+import { FolderOpen, Plus, Clock, MessageSquare, ArrowRight, Users, X, Trash2 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -146,20 +146,36 @@ export default function ProofListPage() {
                       )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#6b7280' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Clock size={11} /> {formatDistanceToNow(new Date(p.updated_at || p.created_at), { addSuffix: true })}
-                    </div>
-                    {p.access_level && (
-                      <div style={{
-                        padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700,
-                        background: p.access_level === 'public' ? '#dcfce7' : p.access_level === 'password' ? '#fef3c7' : '#f3f4f6',
-                        color: p.access_level === 'public' ? '#166534' : p.access_level === 'password' ? '#92400e' : '#374151',
-                        textTransform: 'uppercase', letterSpacing: 0.5,
-                      }}>
-                        {p.access_level}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: '#6b7280' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Clock size={11} /> {formatDistanceToNow(new Date(p.updated_at || p.created_at), { addSuffix: true })}
                       </div>
-                    )}
+                      {p.access_level && (
+                        <div style={{
+                          padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700,
+                          background: p.access_level === 'public' ? '#dcfce7' : p.access_level === 'password' ? '#fef3c7' : '#f3f4f6',
+                          color: p.access_level === 'public' ? '#166534' : p.access_level === 'password' ? '#92400e' : '#374151',
+                          textTransform: 'uppercase', letterSpacing: 0.5,
+                        }}>
+                          {p.access_level}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (!confirm(`Delete "${p.name}"? This will remove all files and annotations.`)) return
+                        supabase.from('projects').delete().eq('id', p.id).then(() => {
+                          toast.success('Project deleted')
+                          loadProjects()
+                        })
+                      }}
+                      style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #fecaca', background: '#fff', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, opacity: 0.6, transition: 'opacity .15s' }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                      onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+                      <Trash2 size={11} /> Delete
+                    </button>
                   </div>
                 </div>
               ))}

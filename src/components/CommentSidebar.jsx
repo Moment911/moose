@@ -85,9 +85,9 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
               onClick={() => onSelect(ann)}>
               <div className="px-4 py-3">
                 <div className="flex items-start gap-2.5">
-                  {/* Numbered badge for ALL annotation types */}
+                  {/* Numbered badge — purple for agency, teal for client */}
                   <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 mt-0.5"
-                    style={{ background: ann.type === 'approve' ? '#22c55e' : (ann.color || avatarColor) }}>
+                    style={{ background: ann.type === 'approve' ? '#22c55e' : ann.source === 'agency' ? '#7c3aed' : '#00C2CB' }}>
                     {ann.type === 'approve' ? '✓' : annIndex(ann)}
                   </div>
 

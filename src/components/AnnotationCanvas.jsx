@@ -146,7 +146,8 @@ export default function AnnotationCanvas({
   function renderAnnotation(ann, idx) {
     const isSelected = ann.id === selectedId
     const isHovered = ann.id === hovered
-    const c = ann.color || COLORS[0]
+    // Agency annotations = purple, client = teal, fallback to original color
+    const c = ann.source === 'agency' ? '#7c3aed' : ann.source === 'client' ? '#00C2CB' : (ann.color || COLORS[0])
     const strokeW = isSelected ? 3 : 2.5
     const opacity = isSelected ? 1 : isHovered ? 0.9 : 0.75
 
