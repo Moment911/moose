@@ -67,6 +67,11 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
   extractPaths(children)
   const hasActiveChild = childPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))
 
+  // Hide the entire section if ALL children are hidden
+  const childArray = Array.isArray(children) ? children.flat() : [children]
+  const allHidden = childArray.every(c => !c || c.props?.hidden === true)
+  if (allHidden) return null
+
   const storageKey = `koto_sidebar_${id}`
   // Also check for a global search query passed via prop
   const searchActive = typeof window !== 'undefined' && document.querySelector('[data-sidebar-search]')?.value?.trim()
@@ -323,7 +328,7 @@ export default function Sidebar() {
               <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub hidden={!match('Industry Agents') || !feat('industry_agents')}/>
               <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub hidden={!match('Video Voicemails') || !feat('video_voicemails')}/>
               <NavLink to="/avatars" icon={Users} label="AI Avatars" sub hidden={!match('AI Avatars') || !feat('ai_avatars')}/>
-              <NavLink to="/trades" icon={Zap} label="Trades Portal" sub hidden={!match('Trades Portal')}/>
+              <NavLink to="/trades" icon={Zap} label="Trades Portal" sub hidden={!match('Trades Portal') || !feat('industry_agents')}/>
               <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R} hidden={!match('Visitor Intelligence') || !feat('pixel_tracking')}/>
             </Section>
 
@@ -351,12 +356,12 @@ export default function Sidebar() {
               <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T} hidden={!match('Data Vault') || !feat('data_vault')}/>
               <NavLink to="/phones" icon={Phone} label="Phone Numbers" hidden={!match('Phone Numbers') || !feat('phone_numbers')}/>
               <NavLink to="/marketplace" icon={Sparkles} label="Marketplace" hidden={!match('Marketplace') || !feat('marketplace')}/>
-              <NavLink to="/integrations" icon={Plug} label="Integrations" hidden={!match('Integrations')}/>
-              <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub hidden={!match('GoHighLevel')}/>
+              <NavLink to="/integrations" icon={Plug} label="Integrations" hidden={!match('Integrations') || !feat('team_management')}/>
+              <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub hidden={!match('GoHighLevel') || !feat('team_management')}/>
               <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!match('Billing') || !feat('client_billing')}/>
               <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings" hidden={!match('Agency Settings') || !feat('team_management')}/>
               <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI" hidden={!match('Help Center') || !feat('help_center')}/>
-              <NavLink to="/access-guide" icon={Key} label="Access Guide" hidden={!match('Access Guide')}/>
+              <NavLink to="/access-guide" icon={Key} label="Access Guide" hidden={!match('Access Guide') || !feat('help_center')}/>
             </Section>
 
           </>)}
