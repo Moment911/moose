@@ -181,14 +181,17 @@ export function AuthProvider({ children }) {
 
   // ── Permission helper ──────────────────────────────────────────────────────
   const can = useCallback((feature) => {
-    // Super admin can do everything
-    if (isSuperAdmin) return true
+    // Super admin can do everything — UNLESS impersonating an agency,
+    // in which case we respect that agency's feature flags so the
+    // admin sees exactly what the agency sees.
+    if (isSuperAdmin && !impersonatedAgency) return true
 
-    // Agency owner/admin — check agency feature flags from the DB.
-    // If the feature key exists as a column in agency_features and is
-    // explicitly false, block it. Unknown keys default to allowed so
-    // new features work before the column is added.
-    if (isAgencyAdmin) {
+    // Agency owner/admin (or super admin impersonating) — check agency
+    // feature flags from the DB. If the feature key exists as a column
+    // in agency_features and is explicitly false, block it. Unknown
+    // keys default to allowed so new features work before the column
+    // is added.
+    if (isAgencyAdmin || (isSuperAdmin && impersonatedAgency)) {
       if (feature in agencyFeatures && agencyFeatures[feature] === false) return false
       return true
     }

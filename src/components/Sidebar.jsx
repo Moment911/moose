@@ -163,8 +163,9 @@ export default function Sidebar() {
   const sq = searchQuery.toLowerCase().trim()
   const match = (label) => !sq || label.toLowerCase().includes(sq)
 
-  // Feature gate helper — hides nav items the agency's plan doesn't include
-  const feat = (featureKey) => isSuperAdmin || !featureKey || can?.(featureKey) !== false
+  // Feature gate helper — hides nav items the agency's plan doesn't include.
+  // When impersonating, respect the agency's flags (don't bypass with isSuperAdmin).
+  const feat = (featureKey) => (!featureKey) || (isSuperAdmin && !isImpersonating) || can?.(featureKey) !== false
 
   return (
     <>
