@@ -10,7 +10,7 @@ import {
   ArrowLeft, Trash2, ExternalLink, Phone, Mail, Globe, Building, FileText,
   Star, BarChart2, Activity, Brain, Copy, Check, Loader2, RefreshCw,
   ChevronRight, Shield, Zap, TrendingUp, Clock, Users, MessageSquare,
-  Search, Edit2, X
+  Search, Edit2, X, Key, Eye, EyeOff
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -946,6 +946,12 @@ export default function ClientDetailPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Client Login */}
+        <div style={card}>
+          <div style={sectionTitle}><Key size={16} color={T} /> Client Portal Login</div>
+          <ClientLoginSection clientId={clientId} clientName={client?.name} clientEmail={client?.email} agencyId={agencyId} />
         </div>
 
         {/* Recent activity mini-feed */}
@@ -2085,6 +2091,134 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
           Multiple team members can call this number. Each caller is identified and their answers are tracked separately.
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Client Login Section — create/manage client portal login ─────────────
+function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
+  const [email, setEmail] = useState(clientEmail || '')
+  const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [existingUser, setExistingUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Check if a login already exists for this client
+    supabase.from('koto_client_users').select('id, user_id').eq('client_id', clientId).maybeSingle()
+      .then(({ data }) => {
+        if (data) setExistingUser(data)
+        setLoading(false)
+      })
+  }, [clientId])
+
+  async function handleCreate() {
+    if (!email || !password) { toast.error('Email and password required'); return }
+    if (password.length < 6) { toast.error('Password must be at least 6 characters'); return }
+    setCreating(true)
+    try {
+      // 1. Create auth user
+      const res = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create_user', email, password, first_name: clientName?.split(' ')[0] || '', last_name: clientName?.split(' ').slice(1).join(' ') || '' }),
+      }).then(r => r.json())
+      if (res.error) { toast.error(res.error); setCreating(false); return }
+
+      // 2. Create koto_client_users row
+      const { error: cuErr } = await supabase.from('koto_client_users').insert({
+        user_id: res.user.id, client_id: clientId, agency_id: agencyId, role: 'viewer',
+      })
+      if (cuErr) { toast.error('User created but client link failed: ' + cuErr.message); setCreating(false); return }
+
+      // 3. Create default permissions
+      await supabase.from('koto_client_permissions').upsert({
+        client_id: clientId, agency_id: agencyId,
+        can_view_pages: true, can_view_reviews: true, can_view_reports: true,
+        can_view_tasks: true, can_edit_tasks: false, can_view_proposals: true,
+      }, { onConflict: 'client_id' })
+
+      setExistingUser({ user_id: res.user.id })
+      toast.success(`Login created for ${email}`)
+    } catch (e) { toast.error(e.message) }
+    setCreating(false)
+  }
+
+  async function handleResetPassword() {
+    const newPw = prompt('Enter new password (min 6 characters):')
+    if (!newPw || newPw.length < 6) { if (newPw) toast.error('Password must be 6+ characters'); return }
+    const res = await fetch('/api/admin', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'set_password', user_id: existingUser.user_id, new_password: newPw }),
+    }).then(r => r.json())
+    if (res.error) toast.error(res.error)
+    else toast.success('Password updated')
+  }
+
+  async function handleSendReset() {
+    if (!email) { toast.error('No email on file'); return }
+    const res = await fetch('/api/admin', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'send_password_reset', email }),
+    }).then(r => r.json())
+    if (res.error) toast.error(res.error)
+    else toast.success(res.message || 'Reset email sent')
+  }
+
+  if (loading) return <div style={{ fontSize: 13, color: '#9ca3af' }}>Checking login…</div>
+
+  if (existingUser) {
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a' }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>Login active</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>· {email || clientEmail || 'email on file'}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={handleResetPassword}
+            style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Key size={11} /> Set Password
+          </button>
+          <button onClick={handleSendReset}
+            style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Mail size={11} /> Send Reset Email
+          </button>
+          <button onClick={() => { navigator.clipboard.writeText('https://hellokoto.com/login'); toast.success('Login URL copied') }}
+            style={{ padding: '7px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Copy size={11} /> Copy Login URL
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+        Create a login so {clientName || 'this client'} can access their portal at hellokoto.com/login
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Email</label>
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="client@company.com"
+            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Password</label>
+          <div style={{ position: 'relative' }}>
+            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters"
+              style={{ width: '100%', padding: '8px 32px 8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+            <button onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}>
+              {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+        </div>
+      </div>
+      <button onClick={handleCreate} disabled={creating || !email || !password}
+        style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: email && password ? T : '#e5e7eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: email && password ? 'pointer' : 'not-allowed' }}>
+        {creating ? 'Creating…' : 'Create Client Login'}
+      </button>
     </div>
   )
 }

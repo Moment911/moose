@@ -162,8 +162,26 @@ export function AuthProvider({ children }) {
       const { data: features } = await supabase.from('agency_features').select('*').eq('agency_id', member.agency_id).single()
       if (features) setAgencyFeatures(features)
     } else {
-      // No agency membership — might be a client-only user
-      setRole('client')
+      // No agency membership — check if this is a client user
+      const { data: clientUser } = await supabase
+        .from('koto_client_users')
+        .select('client_id, agency_id, role')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (clientUser) {
+        setAgencyId(clientUser.agency_id)
+        setRole('client')
+
+        // Load agency details (for branding)
+        const { data: ag } = await supabase.from('agencies').select('*').eq('id', clientUser.agency_id).single()
+        if (ag) setAgency(ag)
+
+        // Load this client's permissions
+        loadClientPermissions(clientUser.client_id, clientUser.agency_id)
+      } else {
+        setRole('client') // fallback
+      }
     }
   }
 
