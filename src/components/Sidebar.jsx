@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Activity, BarChart2, BookOpen, Brain, CheckCircle, DollarSign, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, Zap
@@ -50,11 +50,71 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
   )
 }
 
-function Section({ label }) {
+// Accordion section — persists open/close state in localStorage
+function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath }) {
+  // Auto-open if any child route matches the current path
+  const childPaths = []
+  const extractPaths = (kids) => {
+    if (!kids) return
+    const arr = Array.isArray(kids) ? kids : [kids]
+    arr.forEach(child => {
+      if (!child || !child.props) return
+      if (child.props.to) childPaths.push(child.props.to)
+      if (child.props.children) extractPaths(child.props.children)
+    })
+  }
+  extractPaths(children)
+  const hasActiveChild = childPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))
+
+  const storageKey = `koto_sidebar_${id}`
+  const [open, setOpen] = useState(() => {
+    if (typeof window === 'undefined') return defaultOpen ?? true
+    const saved = localStorage.getItem(storageKey)
+    if (saved !== null) return saved === '1'
+    return defaultOpen ?? hasActiveChild
+  })
+
+  // Auto-open when navigating into this section
+  useEffect(() => {
+    if (hasActiveChild && !open) setOpen(true)
+  }, [currentPath])
+
+  const toggle = useCallback(() => {
+    setOpen(prev => {
+      const next = !prev
+      localStorage.setItem(storageKey, next ? '1' : '0')
+      return next
+    })
+  }, [storageKey])
+
   return (
-    <div style={{padding:'18px 14px 4px',fontSize:14,fontWeight:800,
-      color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.12em'}}>
-      {label}
+    <div style={{ marginBottom: 2 }}>
+      <button
+        onClick={toggle}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', padding: '10px 14px 4px', border: 'none', background: 'none',
+          cursor: 'pointer', textAlign: 'left',
+          fontSize: 11, fontWeight: 800, color: hasActiveChild ? R : '#9ca3af',
+          textTransform: 'uppercase', letterSpacing: '.1em',
+          transition: 'color .15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#374151'}
+        onMouseLeave={e => e.currentTarget.style.color = hasActiveChild ? R : '#9ca3af'}
+      >
+        {SIcon && <SIcon size={11} style={{ opacity: 0.7 }} />}
+        <span style={{ flex: 1 }}>{label}</span>
+        <ChevronDown size={11} style={{
+          transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+          transition: 'transform .15s',
+          opacity: 0.5,
+        }} />
+      </button>
+      {open && (
+        <div style={{ overflow: 'hidden' }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -64,6 +124,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+  const path = location.pathname
 
   const [clients,      setClients]      = useState([])
   const [expanded,     setExpanded]     = useState({})
@@ -122,29 +183,29 @@ export default function Sidebar() {
           {/* ══════ AGENCY VIEW (standard tools) ══════ */}
           {!isClient && (<>
 
-            {/* SUPER ADMIN: Platform section at top */}
-            {isSuperAdmin && !isImpersonating && (<>
-              <Section label="Platform"/>
-              <NavLink to="/" exact icon={LayoutGrid} label="Platform Overview"/>
-              <NavLink to="/platform-admin" icon={Shield} label="Platform Admin"/>
-              <NavLink to="/billing-admin" icon={CreditCard} label="Billing Admin"/>
-{/* Stripe merged into /billing */}
-              <NavLink to="/debug" icon={Shield} label="Debug Console"/>
-              <NavLink to="/qa" icon={Shield} label="QA Console" badge="NEW" badgeColor={T}/>
-              <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
-              <NavLink to="/voice/test-console" icon={Phone} label="Voice Test Lab"/>
-              <NavLink to="/test-data" icon={FlaskConical} label="Test Data" badge="DEV" badgeColor="#D97706"/>
-              <NavLink to="/onboarding-simulator" icon={FlaskConical} label="Onboarding Sim" badge="DEV" badgeColor="#D97706"/>
-              <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
-              <NavLink to="/cog-report" icon={DollarSign} label="Expense Intelligence"/>
-              <NavLink to="/token-usage" icon={Zap} label="Token Usage" sub/>
-              <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
-                onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}
-                onMouseLeave={e=>{e.currentTarget.style.color='#374151';e.currentTarget.style.background='transparent'}}>
-                <Activity size={14} style={{flexShrink:0,opacity:.65}}/><span style={{flex:1,lineHeight:1.2}}>System Status ↗</span>
-              </a>
-              <NavLink to="/master-admin" icon={Shield} label="Master Admin"/>
-            </>)}
+            {/* SUPER ADMIN: Platform + Testing section */}
+            {isSuperAdmin && !isImpersonating && (
+              <Section id="admin" label="Admin & Testing" icon={Shield} currentPath={path}>
+                <NavLink to="/" exact icon={LayoutGrid} label="Platform Overview"/>
+                <NavLink to="/platform-admin" icon={Shield} label="Platform Admin"/>
+                <NavLink to="/billing-admin" icon={CreditCard} label="Billing Admin"/>
+                <NavLink to="/master-admin" icon={Shield} label="Master Admin"/>
+                <NavLink to="/debug" icon={Shield} label="Debug Console"/>
+                <NavLink to="/qa" icon={Shield} label="QA Console" badge="NEW" badgeColor={T}/>
+                <NavLink to="/cog-report" icon={DollarSign} label="Expense Intelligence"/>
+                <NavLink to="/token-usage" icon={Zap} label="Token Usage" sub/>
+                <NavLink to="/uptime" icon={Activity} label="Uptime Monitor"/>
+                <a href="/status" target="_blank" rel="noopener noreferrer" style={{display:'flex',alignItems:'center',gap:10,padding:'6px 14px',borderRadius:8,textDecoration:'none',color:'#374151',fontSize:13,margin:'1px 0',transition:'all .12s ease'}}
+                  onMouseEnter={e=>{e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.color='#374151';e.currentTarget.style.background='transparent'}}>
+                  <Activity size={14} style={{flexShrink:0,opacity:.65}}/><span style={{flex:1,lineHeight:1.2}}>System Status ↗</span>
+                </a>
+                <NavLink to="/voice/live" icon={Phone} label="Live Calls"/>
+                <NavLink to="/voice/test-console" icon={Phone} label="Voice Test Lab"/>
+                <NavLink to="/test-data" icon={FlaskConical} label="Test Data" badge="DEV" badgeColor="#D97706"/>
+                <NavLink to="/onboarding-simulator" icon={FlaskConical} label="Onboarding Sim" badge="DEV" badgeColor="#D97706"/>
+              </Section>
+            )}
 
             {/* Dashboard (when impersonating or agency admin) */}
             {(isImpersonating || !isSuperAdmin) && (
@@ -152,92 +213,104 @@ export default function Sidebar() {
             )}
 
             {/* CLIENTS */}
-            <Section label="Clients"/>
-            <NavLink to="/clients" startsWith icon={Users} label="Clients"/>
-            <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T}/>
-            <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub/>
-            <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
-            <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks"/>
-            <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk"/>
-            <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub/>
-            <NavLink to="/desk/reports" startsWith icon={BarChart2} label="Desk Reports" sub/>
+            <Section id="clients" label="Clients" icon={Users} defaultOpen currentPath={path}>
+              <NavLink to="/clients" startsWith icon={Users} label="Clients"/>
+              <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T}/>
+              <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub/>
+              <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding"/>
+              <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks"/>
+              <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk"/>
+              <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub/>
+              <NavLink to="/desk/reports" startsWith icon={BarChart2} label="Desk Reports" sub/>
+            </Section>
 
             {/* GROWTH */}
-            <Section label="Growth"/>
-            <NavLink to="/reviews" startsWith icon={Star} label="Reviews"/>
-            <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns"/>
-            <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals"/>
-            <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
-            <NavLink to="/automations" icon={Workflow} label="Automations"/>
-            <NavLink to="/invoice-builder" icon={FileText} label="Invoice Builder"/>
+            <Section id="growth" label="Growth" icon={TrendingUp} currentPath={path}>
+              <NavLink to="/reviews" startsWith icon={Star} label="Reviews"/>
+              <NavLink to="/review-campaigns" startsWith icon={Star} label="Review Campaigns"/>
+              <NavLink to="/proposals" startsWith icon={FileSignature} label="Proposals"/>
+              <NavLink to="/proposal-library" startsWith icon={Layers} label="Proposal Library"/>
+              <NavLink to="/automations" icon={Workflow} label="Automations"/>
+              <NavLink to="/invoice-builder" icon={FileText} label="Invoice Builder"/>
+            </Section>
+
+            {/* DESIGN */}
+            <Section id="design" label="Design" icon={FileSignature} currentPath={path}>
+              <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof"/>
+            </Section>
 
             {/* SEO & CONTENT */}
-            {/* DESIGN */}
-            <Section label="Design"/>
-            <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof"/>
-
-            <Section label="SEO & Content"/>
-            <NavLink to="/page-builder" icon={Sparkles} label="Page Builder"/>
-            <NavLink to="/wordpress" icon={Globe} label="WP Plugin"/>
-            <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub"/>
-            {location.pathname.startsWith('/seo') && (<>
-              <NavLink to="/seo/gbp-audit" icon={MapPin} label="GBP Audit" sub/>
-              <NavLink to="/seo/onpage" icon={Globe} label="On-Page Audit" sub/>
-              <NavLink to="/seo/keyword-gap" icon={Search} label="Keyword Gap" sub/>
-              <NavLink to="/seo/monthly-report" icon={FileText} label="Monthly Report" sub/>
-              <NavLink to="/seo/content-gap" icon={BookOpen} label="Content Gap" sub/>
-              <NavLink to="/seo/technical-audit" icon={Code2} label="Tech Audit" sub/>
-              <NavLink to="/seo/ai-visibility" icon={Brain} label="AI Visibility" sub/>
-              <NavLink to="/seo/white-label" icon={Download} label="White-Label Report" sub/>
-              <NavLink to="/seo/competitor-intel" icon={BarChart2} label="Competitor Intel" sub/>
-              <NavLink to="/seo/citations" icon={MapPin} label="Citation Tracker" sub/>
-            </>)}
+            <Section id="seo" label="SEO & Content" icon={BarChart2} currentPath={path}>
+              <NavLink to="/page-builder" icon={Sparkles} label="Page Builder"/>
+              <NavLink to="/wordpress" icon={Globe} label="WP Plugin"/>
+              <NavLink to="/seo" startsWith icon={BarChart2} label="SEO Hub"/>
+              {path.startsWith('/seo') && (<>
+                <NavLink to="/seo/gbp-audit" icon={MapPin} label="GBP Audit" sub/>
+                <NavLink to="/seo/onpage" icon={Globe} label="On-Page Audit" sub/>
+                <NavLink to="/seo/keyword-gap" icon={Search} label="Keyword Gap" sub/>
+                <NavLink to="/seo/monthly-report" icon={FileText} label="Monthly Report" sub/>
+                <NavLink to="/seo/content-gap" icon={BookOpen} label="Content Gap" sub/>
+                <NavLink to="/seo/technical-audit" icon={Code2} label="Tech Audit" sub/>
+                <NavLink to="/seo/ai-visibility" icon={Brain} label="AI Visibility" sub/>
+                <NavLink to="/seo/white-label" icon={Download} label="White-Label Report" sub/>
+                <NavLink to="/seo/competitor-intel" icon={BarChart2} label="Competitor Intel" sub/>
+                <NavLink to="/seo/citations" icon={MapPin} label="Citation Tracker" sub/>
+              </>)}
+            </Section>
 
             {/* INTELLIGENCE */}
-            <Section label="Intelligence"/>
-            <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" badge="AI" badgeColor={R}/>
-            <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R}/>
-            <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R}/>
-            <NavLink to="/scout" startsWith icon={Target} label="Scout" badge="NEW" badgeColor={T}/>
-            <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub/>
-            <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub/>
-            <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R}/>
-            <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub/>
-            <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service"/>
-            <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T}/>
-            <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub/>
-            <NavLink to="/trades" icon={Zap} label="Trades Portal" sub/>
-            <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R}/>
-            <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R}/>
-            <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub/>
-            <NavLink to="/avatars" icon={Users} label="AI Avatars" sub/>
+            <Section id="intelligence" label="Intelligence" icon={Brain} currentPath={path}>
+              <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" badge="AI" badgeColor={R}/>
+              <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R}/>
+              <NavLink to="/perf" startsWith icon={TrendingUp} label="Performance" badge="AI" badgeColor={R}/>
+              <NavLink to="/scout" startsWith icon={Target} label="Scout" badge="NEW" badgeColor={T}/>
+              <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub/>
+              <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub/>
+              <NavLink to="/qa-intelligence" icon={Brain} label="Q&A Intelligence" badge="NEW" badgeColor={T}/>
+              <NavLink to="/opportunities" icon={Zap} label="Opportunities" badge="NEW" badgeColor={R}/>
+            </Section>
+
+            {/* VOICE & AI */}
+            <Section id="voice" label="Voice & AI" icon={Phone} currentPath={path}>
+              <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R}/>
+              <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub/>
+              <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service"/>
+              <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub/>
+              <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub/>
+              <NavLink to="/avatars" icon={Users} label="AI Avatars" sub/>
+              <NavLink to="/trades" icon={Zap} label="Trades Portal" sub/>
+              <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" badge="NEW" badgeColor={R}/>
+            </Section>
 
             {/* KOTOCLOSE */}
-            <Section label="KotoClose"/>
-            <NavLink to="/kotoclose/dashboard" startsWith icon={Target} label="Live Dashboard" badge="AI" badgeColor={R}/>
-            <NavLink to="/kotoclose/calls" icon={Phone} label="Call Log" sub/>
-            <NavLink to="/kotoclose/callbacks" icon={Clock} label="Callbacks" sub/>
-            <NavLink to="/kotoclose/campaigns" icon={Globe} label="Campaigns" sub/>
-            <NavLink to="/kotoclose/voicemail" icon={PhoneIncoming} label="VM Studio" sub/>
-            <NavLink to="/kotoclose/analytics" icon={BarChart2} label="Performance" sub/>
+            <Section id="kotoclose" label="KotoClose" icon={Target} currentPath={path}>
+              <NavLink to="/kotoclose/dashboard" startsWith icon={Target} label="Live Dashboard" badge="AI" badgeColor={R}/>
+              <NavLink to="/kotoclose/calls" icon={Phone} label="Call Log" sub/>
+              <NavLink to="/kotoclose/callbacks" icon={Clock} label="Callbacks" sub/>
+              <NavLink to="/kotoclose/campaigns" icon={Globe} label="Campaigns" sub/>
+              <NavLink to="/kotoclose/voicemail" icon={PhoneIncoming} label="VM Studio" sub/>
+              <NavLink to="/kotoclose/analytics" icon={BarChart2} label="Performance" sub/>
+            </Section>
 
             {/* OUTREACH */}
-            <Section label="Outreach"/>
-            <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T}/>
-            <NavLink to="/email-tracking" startsWith icon={Mail} label="Email Tracking" badge="NEW" badgeColor={T}/>
-            <NavLink to="/email-tracking/gmail-helper" icon={Mail} label="Gmail Helper" sub/>
+            <Section id="outreach" label="Outreach" icon={Mail} currentPath={path}>
+              <NavLink to="/sequences" icon={Mail} label="Sequences" badge="NEW" badgeColor={T}/>
+              <NavLink to="/email-tracking" startsWith icon={Mail} label="Email Tracking" badge="NEW" badgeColor={T}/>
+              <NavLink to="/email-tracking/gmail-helper" icon={Mail} label="Gmail Helper" sub/>
+            </Section>
 
             {/* AGENCY */}
-            <Section label="Agency"/>
-            <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T}/>
-            <NavLink to="/phones" icon={Phone} label="Phone Numbers"/>
-            <NavLink to="/marketplace" icon={Sparkles} label="Marketplace"/>
-            <NavLink to="/integrations" icon={Plug} label="Integrations"/>
-            <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub/>
-            <NavLink to="/billing" icon={CreditCard} label="Billing"/>
-            <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
-            <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI"/>
-            <NavLink to="/access-guide" icon={Key} label="Access Guide"/>
+            <Section id="agency" label="Agency" icon={Settings} defaultOpen currentPath={path}>
+              <NavLink to="/vault" icon={Database} label="Data Vault" badge="NEW" badgeColor={T}/>
+              <NavLink to="/phones" icon={Phone} label="Phone Numbers"/>
+              <NavLink to="/marketplace" icon={Sparkles} label="Marketplace"/>
+              <NavLink to="/integrations" icon={Plug} label="Integrations"/>
+              <NavLink to="/integrations/ghl" icon={Zap} label="GoHighLevel" sub/>
+              <NavLink to="/billing" icon={CreditCard} label="Billing"/>
+              <NavLink to="/agency-settings" startsWith icon={Settings} label="Agency Settings"/>
+              <NavLink to="/help" icon={HelpCircle} label="Help Center" badge="AI"/>
+              <NavLink to="/access-guide" icon={Key} label="Access Guide"/>
+            </Section>
 
           </>)}
         </div>

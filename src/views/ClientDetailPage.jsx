@@ -910,20 +910,39 @@ export default function ClientDetailPage() {
         {/* Quick actions */}
         <div style={card}>
           <div style={sectionTitle}><Zap size={16} color={R} /> Quick Actions</div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
             {[
-              { label: 'Build SEO Page', path: '/page-builder', color: R },
-              { label: 'View Reviews', path: '/reviews', color: T },
+              { label: 'Onboarding', path: `/onboard/${clientId}`, color: BLK },
+              { label: '✨ Create Proposal', path: `/koto-proposal-builder/${clientId}`, color: T },
+              { label: 'KotoProof Project', action: 'create_proof', color: '#8b5cf6' },
+              { label: 'SEO Hub', path: `/seo/${clientId}`, color: R },
+              { label: 'Discovery', path: '/discovery', color: T },
               { label: 'Scout Leads', path: '/scout', color: GRN },
               { label: 'Voice Campaign', path: '/voice', color: '#8b5cf6' },
               { label: 'View Reports', path: `/perf/${clientId}`, color: AMB },
-              { label: 'Onboarding', path: `/onboard/${clientId}`, color: BLK },
-              { label: '✨ Create Proposal', path: `/koto-proposal-builder/${clientId}`, color: T },
+              { label: 'View Reviews', path: '/reviews', color: R },
               { label: 'Documents', path: `/clients/${clientId}/documents`, color: '#6b7280' },
             ].map(a => (
-              <button key={a.label} onClick={() => navigate(a.path)}
-                style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${a.color}30`, background: a.color + '08', color: a.color, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
-                {a.label} <ChevronRight size={12} />
+              <button key={a.label} onClick={async () => {
+                if (a.action === 'create_proof') {
+                  const name = client?.name ? `${client.name} — Review` : 'New Review Project'
+                  const { data, error } = await supabase.from('projects').insert({ client_id: clientId, name }).select().single()
+                  if (error) { toast.error('Failed to create project'); return }
+                  toast.success('Project created')
+                  navigate(`/project/${data.id}`)
+                } else {
+                  navigate(a.path)
+                }
+              }}
+                style={{
+                  padding: '14px 16px', borderRadius: 12,
+                  border: `1.5px solid ${a.color}25`,
+                  background: a.color + '06', color: a.color,
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  textAlign: 'center', minHeight: 48,
+                }}>
+                {a.label}
               </button>
             ))}
           </div>
