@@ -252,16 +252,31 @@ export async function POST(req: NextRequest) {
     if (!email || !password) return NextResponse.json({ error: 'email and password required' }, { status: 400 })
     if (!client_id || !agency_id) return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
 
-    // 1. Create auth user
+    // 1. Create auth user (or find existing)
+    let userId: string
     const { data: authUser, error: authErr } = await s.auth.admin.createUser({
       email, password, email_confirm: true,
       user_metadata: { first_name: first_name || '', last_name: last_name || '' },
     })
-    if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 })
+    if (authErr) {
+      // If user already exists, find them and re-link
+      if (authErr.message?.includes('already been registered')) {
+        const { data: { users } } = await s.auth.admin.listUsers()
+        const existing = users?.find((u: any) => u.email === email)
+        if (!existing) return NextResponse.json({ error: 'User exists but could not be found' }, { status: 500 })
+        userId = existing.id
+        // Update their name
+        await s.auth.admin.updateUserById(userId, { user_metadata: { first_name: first_name || '', last_name: last_name || '' } })
+      } else {
+        return NextResponse.json({ error: authErr.message }, { status: 500 })
+      }
+    } else {
+      userId = authUser.user!.id
+    }
 
     // 2. Link to client
     const { error: cuErr } = await s.from('koto_client_users').insert({
-      user_id: authUser.user!.id, client_id, agency_id, role: memberRole || 'viewer',
+      user_id: userId, client_id, agency_id, role: memberRole || 'viewer',
     })
     if (cuErr) return NextResponse.json({ error: 'User created but client link failed: ' + cuErr.message }, { status: 500 })
 
@@ -273,7 +288,7 @@ export async function POST(req: NextRequest) {
       can_view_tasks: false, can_edit_tasks: false, can_view_proposals: false,
     }, { onConflict: 'client_id' })
 
-    return NextResponse.json({ user: { id: authUser.user?.id, email } })
+    return NextResponse.json({ user: { id: userId, email } })
   }
 
   // ── Remove client team member ────────────────────────────────────────────
