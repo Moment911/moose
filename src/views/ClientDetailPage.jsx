@@ -130,6 +130,8 @@ export default function ClientDetailPage() {
   const [fdLoading, setFdLoading] = useState(false)
   const [fdSaving, setFdSaving] = useState(false)
   const [fdPromptPreview, setFdPromptPreview] = useState(null)
+  const [fdCalls, setFdCalls] = useState([])
+  const [fdCallsLoading, setFdCallsLoading] = useState(false)
   const [missingEmailTo, setMissingEmailTo] = useState('')
   const [missingEmailToName, setMissingEmailToName] = useState('')
   const [sendingMissingEmail, setSendingMissingEmail] = useState(false)
@@ -295,11 +297,16 @@ export default function ClientDetailPage() {
       setTasks(tasksRes.data || [])
       setActivityLogs(logsRes.data || [])
 
-      // Load front desk config
+      // Load front desk config + calls
       try {
-        const fdRes = await fetch(`/api/front-desk?action=get&client_id=${clientId}&agency_id=${aid}`)
+        const [fdRes, fdCallsRes] = await Promise.all([
+          fetch(`/api/front-desk?action=get&client_id=${clientId}&agency_id=${aid}`),
+          fetch(`/api/front-desk?action=get_calls&client_id=${clientId}&agency_id=${aid}`),
+        ])
         const fdData = await fdRes.json()
         if (fdData.config) setFdConfig(fdData.config)
+        const fdCallsData = await fdCallsRes.json()
+        setFdCalls(fdCallsData.calls || [])
       } catch {}
     } catch {
       toast.error('Failed to load client')
@@ -2118,21 +2125,159 @@ export default function ClientDetailPage() {
               ))}
             </div>
 
-            {/* Metrics */}
-            {(fd.total_calls > 0 || fd.total_appointments > 0) && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {[
-                  { label: 'Total Calls', val: fd.total_calls || 0 },
-                  { label: 'Appointments', val: fd.total_appointments || 0 },
-                  { label: 'Transfers', val: fd.total_transfers || 0 },
-                ].map(s => (
-                  <div key={s.label} style={{ textAlign: 'center', padding: '12px 8px', background: GRY, borderRadius: 10 }}>
-                    <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: BLK }}>{s.val}</div>
-                    <div style={{ fontSize: 10, fontFamily: FH, color: '#9ca3af', marginTop: 2 }}>{s.label}</div>
+            {/* Phone Number */}
+            <div style={{ marginBottom: 16, padding: '16px', background: fd.retell_phone_number ? '#f0fdf4' : GRY, borderRadius: 12, border: `1px solid ${fd.retell_phone_number ? '#bbf7d0' : '#e5e7eb'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fd.retell_phone_number ? 8 : 0 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Phone size={15} color={fd.retell_phone_number ? GRN : '#9ca3af'} /> Phone Number
                   </div>
-                ))}
+                  {fd.retell_phone_number ? (
+                    <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK, marginTop: 4 }}>{fd.retell_phone_number}</div>
+                  ) : (
+                    <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>No phone number assigned. Provision one to start receiving calls.</div>
+                  )}
+                </div>
+                {fd.retell_phone_number ? (
+                  <button onClick={async () => {
+                    if (!confirm('Release this phone number? Callers will no longer reach the AI receptionist.')) return
+                    setFdLoading(true)
+                    try {
+                      const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release_number', client_id: clientId, agency_id: aid }) })
+                      const data = await res.json()
+                      if (data.error) throw new Error(data.error)
+                      fdUpdate('retell_phone_number', null); fdUpdate('retell_agent_id', null)
+                      toast.success('Phone number released')
+                    } catch (e) { toast.error(e.message) }
+                    setFdLoading(false)
+                  }} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>
+                    Release Number
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input id="fd-area-code" defaultValue="954" placeholder="Area code" style={{ width: 70, padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, textAlign: 'center', color: BLK }} />
+                    <button onClick={async () => {
+                      const areaCode = document.getElementById('fd-area-code')?.value || '954'
+                      setFdLoading(true)
+                      try {
+                        const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'provision_number', client_id: clientId, agency_id: aid, area_code: areaCode }) })
+                        const data = await res.json()
+                        if (data.error) throw new Error(data.error)
+                        fdUpdate('retell_phone_number', data.phone_number); fdUpdate('retell_agent_id', data.agent_id)
+                        toast.success(`Phone number provisioned: ${data.phone_number}`)
+                      } catch (e) { toast.error(e.message) }
+                      setFdLoading(false)
+                    }} disabled={fdLoading} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: fdLoading ? 0.5 : 1 }}>
+                      {fdLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Phone size={13} />} Get a Number
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+              {fd.retell_phone_number && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <button onClick={async () => {
+                    setFdLoading(true)
+                    try {
+                      const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_agent', client_id: clientId, agency_id: aid }) })
+                      const data = await res.json()
+                      if (data.error) throw new Error(data.error)
+                      toast.success('AI agent synced with latest settings')
+                    } catch (e) { toast.error(e.message) }
+                    setFdLoading(false)
+                  }} disabled={fdLoading} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: T, cursor: 'pointer' }}>
+                    Sync Agent Settings
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Voicemail Settings */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={fdLabel}>Voicemail Settings</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ ...fdLabel, fontSize: 12 }}>Voicemail Greeting</label>
+                  <textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone, and someone will get back to you shortly." style={{ ...fdInput, resize: 'vertical' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div>
+                    <label style={{ ...fdLabel, fontSize: 12 }}>Transfer Timeout (seconds)</label>
+                    <input type="number" value={fd.transfer_timeout_seconds || 30} onChange={e => fdUpdate('transfer_timeout_seconds', parseInt(e.target.value) || 30)} style={{ ...fdInput, width: 100 }} />
+                  </div>
+                  <div>
+                    <label style={{ ...fdLabel, fontSize: 12 }}>Max Voicemail Length (seconds)</label>
+                    <input type="number" value={fd.voicemail_max_seconds || 120} onChange={e => fdUpdate('voicemail_max_seconds', parseInt(e.target.value) || 120)} style={{ ...fdInput, width: 100 }} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <label style={{ ...fdLabel, fontSize: 12 }}>Transfer Announcement</label>
+                <input value={fd.transfer_announce_template || 'You have an incoming call from {caller}. Press 1 to connect.'} onChange={e => fdUpdate('transfer_announce_template', e.target.value)} style={fdInput} />
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>What the office hears when the AI transfers a call. Use {'{caller}'} for the caller's name/number.</div>
+              </div>
+            </div>
+
+            {/* Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+              {[
+                { label: 'Total Calls', val: fd.total_calls || 0, color: T },
+                { label: 'Appointments', val: fd.total_appointments || 0, color: GRN },
+                { label: 'Transfers', val: fd.total_transfers || 0, color: AMB },
+                { label: 'Voicemails', val: fd.total_voicemails || 0, color: '#7c3aed' },
+              ].map(s => (
+                <div key={s.label} style={{ textAlign: 'center', padding: '14px 8px', background: GRY, borderRadius: 10 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: s.color }}>{s.val}</div>
+                  <div style={{ fontSize: 11, fontFamily: FH, color: '#6b7280', marginTop: 2 }}>{s.label}</div>
+                </div>
+              ))}
+            {/* Recent Calls */}
+            <div>
+              <label style={fdLabel}>Recent Calls</label>
+              {fdCalls.length === 0 ? (
+                <div style={{ background: GRY, borderRadius: 10, padding: '20px', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>
+                  No calls yet. Once the phone number is active, calls will appear here.
+                </div>
+              ) : (
+                <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
+                        {['Time', 'Caller', 'Duration', 'Outcome', 'Sentiment', ''].map(h => (
+                          <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fdCalls.slice(0, 20).map(call => {
+                        const outcomeColor = { answered: GRN, appointment: '#7c3aed', transferred: T, voicemail: AMB, missed: '#9ca3af' }[call.outcome] || '#6b7280'
+                        return (
+                          <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '10px 12px', fontSize: 12, color: '#6b7280' }}>{new Date(call.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{call.caller_name || call.caller_phone || 'Unknown'}</div>
+                              {call.caller_name && call.caller_phone && <div style={{ fontSize: 11, color: '#9ca3af' }}>{call.caller_phone}</div>}
+                            </td>
+                            <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 13, color: BLK }}>{call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}:${String(call.duration_seconds % 60).padStart(2, '0')}` : '0:00'}</td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: outcomeColor + '15', color: outcomeColor, textTransform: 'uppercase' }}>
+                                {call.voicemail ? '📩 VM' : call.outcome}
+                              </span>
+                            </td>
+                            <td style={{ padding: '10px 12px', fontSize: 16 }}>{call.sentiment === 'positive' ? '😊' : call.sentiment === 'negative' ? '😞' : '😐'}</td>
+                            <td style={{ padding: '10px 12px' }}>
+                              {call.recording_url && <a href={call.recording_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: T, fontWeight: 700, textDecoration: 'none' }}>▶ Play</a>}
+                              {call.voicemail_url && <a href={call.voicemail_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#7c3aed', fontWeight: 700, textDecoration: 'none', marginLeft: 8 }}>📩 VM</a>}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            </div>
           </>)}
         </div>
 
