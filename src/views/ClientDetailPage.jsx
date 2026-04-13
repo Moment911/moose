@@ -2326,12 +2326,9 @@ export default function ClientDetailPage() {
                 </div>
               )}
             </div>
+          </div>)}
 
-            </div>
-          )}
-
-          {/* Prompt Preview Modal */}
-        {fdPromptPreview && (
+          {fdPromptPreview && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
             <div style={{ background: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '80vh', overflow: 'auto', padding: 24 }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
