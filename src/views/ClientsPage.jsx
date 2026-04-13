@@ -308,7 +308,7 @@ export default function ClientsPage() {
               <h1 style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em' }}>
                 {isSuperAdmin && !isImpersonating ? 'All Clients' : 'Clients'}
               </h1>
-              <p style={{ fontSize:13, color: '#999999', margin:'2px 0 0' }}>
+              <p style={{ fontSize:13, color: '#9ca3af', margin:'2px 0 0' }}>
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
@@ -323,12 +323,12 @@ export default function ClientsPage() {
         <MobileSearch value={search} onChange={setSearch} placeholder="Search clients…"/>
 
         {/* Status filter tabs */}
-        <div style={{ display:'flex', overflowX:'auto', background:'#fff', borderBottom:'1px solid #ececea', scrollbarWidth:'none' }}>
+        <div style={{ display:'flex', overflowX:'auto', background:'#fff', borderBottom:'1px solid #e5e7eb', scrollbarWidth:'none' }}>
           {statuses.map(s=>(
             <button key={s} onClick={()=>setStatusFilter(s)}
               style={{ flexShrink:0, padding:'0 16px', height:42, border:'none',
                 borderBottom:`2.5px solid ${statusFilter===s?'#E6007E':'transparent'}`,
-                background:'transparent', color:statusFilter===s?'#E6007E':'#9a9a96',
+                background:'transparent', color:statusFilter===s?'#E6007E':'#9ca3af',
                 fontSize:14, fontWeight:statusFilter===s?700:500, cursor:'pointer',
                 fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", whiteSpace:'nowrap' }}>
               {s.charAt(0).toUpperCase()+s.slice(1)}
@@ -340,25 +340,25 @@ export default function ClientsPage() {
         {showAdd && (
           <div style={{ margin:'12px 16px', background:'#fff', borderRadius:14, border:'2px solid #E6007E', padding:'16px' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-              <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:16, fontWeight:800, color:'#0a0a0a' }}>
+              <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:16, fontWeight:800, color:'#111' }}>
                 {editingId ? 'Edit Client' : 'New Client'}
               </span>
-              <button onClick={()=>{setShowAdd(false);setEditingId(null)}} style={{ background:'none', border:'none', cursor:'pointer', color:'#9a9a96' }}>
+              <button onClick={()=>{setShowAdd(false);setEditingId(null)}} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}>
                 <X size={18}/>
               </button>
             </div>
             {[{label:'Name *',key:'name',type:'text',placeholder:'Apex Dental'},{label:'Email',key:'email',type:'email',placeholder:'info@client.com'},{label:'Phone',key:'phone',type:'tel',placeholder:'(305) 555-0100'},{label:'Website',key:'website',type:'url',placeholder:'https://client.com'}].map(f=>(
               <div key={f.key} style={{ marginBottom:10 }}>
-                <label style={{ fontSize:13, fontWeight:700, color:'#0a0a0a', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>{f.label}</label>
+                <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={e=>setF(f.key,e.target.value)} placeholder={f.placeholder}
-                  style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #ececea', fontSize:16, outline:'none', color:'#0a0a0a', boxSizing:'border-box' }}
-                  onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#ececea'}/>
+                  style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #e5e7eb', fontSize:16, outline:'none', color:'#111', boxSizing:'border-box' }}
+                  onFocus={e=>e.target.style.borderColor='#E6007E'} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
               </div>
             ))}
             <div style={{ marginBottom:12 }}>
-              <label style={{ fontSize:13, fontWeight:700, color:'#0a0a0a', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>Status</label>
+              <label style={{ fontSize:13, fontWeight:700, color:'#111', display:'block', marginBottom:4, fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>Status</label>
               <select value={form.status} onChange={e=>setF('status',e.target.value)}
-                style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #ececea', fontSize:16, color:'#0a0a0a', background:'#fff' }}>
+                style={{ width:'100%', padding:'11px 13px', borderRadius:10, border:'1px solid #e5e7eb', fontSize:16, color:'#111', background:'#fff' }}>
                 <option value="active">Active</option><option value="prospect">Prospect</option>
                 <option value="paused">Paused</option><option value="inactive">Inactive</option>
               </select>
@@ -372,7 +372,7 @@ export default function ClientsPage() {
 
         {/* Client list */}
         {loading ? (
-          <div style={{ padding:40, textAlign:'center', color:'#9a9a96' }}>Loading…</div>
+          <div style={{ padding:40, textAlign:'center', color:'#9ca3af' }}>Loading…</div>
         ) : filtered.length === 0 ? (
           <MobileEmpty icon={Users} title="No clients found"
             body={search ? 'Try a different search' : 'Add your first client to get started'}
@@ -408,7 +408,7 @@ export default function ClientsPage() {
   })
 
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f4f4f5', overflow:'hidden' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f9fafb', overflow:'hidden' }}>
       <Sidebar/>
 
       <main style={{ flex:1, overflowY:'auto' }}>
@@ -489,8 +489,8 @@ export default function ClientsPage() {
                     <div style={{ marginTop:8 }}>
                       <div style={{ fontSize:13, color:'#9ca3af', marginBottom:6 }}>No results — fill in details manually below</div>
                       {bizDebug && (
-                        <div style={{ fontSize:11, fontFamily:'monospace', background:'#1a1a2e', color:'#a3e635', padding:'10px 14px', borderRadius:9, wordBreak:'break-all', lineHeight:1.8 }}>
-                          <div style={{ color:'#94a3b8', marginBottom:4, fontFamily:'sans-serif', fontSize:11, fontWeight:700 }}>DEBUG — API response:</div>
+                        <div style={{ fontSize:11, fontFamily:'monospace', background:'#f9fafb', color:'#374151', padding:'10px 14px', borderRadius:9, wordBreak:'break-all', lineHeight:1.8, border:'1px solid #e5e7eb' }}>
+                          <div style={{ color:'#6b7280', marginBottom:4, fontFamily:'sans-serif', fontSize:11, fontWeight:700 }}>DEBUG — API response:</div>
                           {JSON.stringify(bizDebug, null, 2)}
                         </div>
                       )}

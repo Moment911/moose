@@ -55,7 +55,7 @@ function SkeletonBar({ w = '100%', h = 14, r = 6, mb = 0 }) {
   return (
     <div style={{
       width: w, height: h, borderRadius: r, marginBottom: mb,
-      background: 'linear-gradient(90deg, #e8e8e6 25%, #f0f0ee 50%, #e8e8e6 75%)',
+      background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)',
       backgroundSize: '200% 100%',
       animation: 'shimmer 1.5s ease-in-out infinite',
     }} />
@@ -65,7 +65,7 @@ function SkeletonBar({ w = '100%', h = 14, r = 6, mb = 0 }) {
 function SkeletonCard({ children, style }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+      background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
       padding: '18px', ...style,
     }}>
       {children}
@@ -77,14 +77,14 @@ function SkeletonCard({ children, style }) {
 /* ── Extracted sub-components (must be outside DashboardPage to avoid #310) ── */
 function DashStatCard({ label, value, icon: Icon, accent = T, loading: isLoading }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: '18px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: 0.7, borderRadius: '14px 14px 0 0' }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>
             {isLoading ? <SkeletonBar w={48} h={28} /> : value}
           </div>
-          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
         </div>
         {Icon && (<div style={{ width: 38, height: 38, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={18} color={accent} /></div>)}
       </div>
@@ -94,9 +94,9 @@ function DashStatCard({ label, value, icon: Icon, accent = T, loading: isLoading
 
 function DashActionTile({ icon: Icon, label, to, bg, onClick }) {
   return (
-    <button onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '20px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: bg, color: '#fff', fontFamily: FH, fontSize: 13, fontWeight: 700, transition: 'all .18s ease', boxShadow: `0 4px 14px ${bg}30` }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${bg}40` }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 14px ${bg}30` }}>
+    <button onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '20px 12px', borderRadius: 14, border: '1px solid #e5e7eb', cursor: 'pointer', background: '#fff', color: bg, fontFamily: FH, fontSize: 13, fontWeight: 700, transition: 'all .18s ease', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = bg; e.currentTarget.style.boxShadow = `0 4px 16px ${bg}15` }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,.04)' }}>
       <Icon size={22} />{label}
     </button>
   )
@@ -105,12 +105,12 @@ function DashActionTile({ icon: Icon, label, to, bg, onClick }) {
 function DashLogRow({ log, showLevel = false }) {
   const dotColor = LOG_LEVEL_COLOR[log.level] || '#6b7280'
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 0', borderBottom: '1px solid #f2f2f0' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
       <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: dotColor, marginTop: 5 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         {showLevel && (<span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: dotColor + '15', color: dotColor, textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 8 }}>{log.level}</span>)}
         <span style={{ fontSize: 13, color: BLK, fontFamily: FB, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', maxWidth: '100%' }}>{log.message}</span>
-        <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>{timeAgo(log.created_at)}</div>
+        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{timeAgo(log.created_at)}</div>
       </div>
     </div>
   )
@@ -361,7 +361,7 @@ export default function DashboardPage() {
   const refreshBadge = (
       <div style={{
         display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
-        color: 'rgba(255,255,255,.35)', fontFamily: FB,
+        color: '#9ca3af', fontFamily: FB,
       }}>
         <RefreshCw size={11} />
         Auto-refresh {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -405,15 +405,15 @@ export default function DashboardPage() {
     return (
       <MobilePage padded={false}>
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 16px 0' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '16px 16px 0' }}>
           <div style={{
-            fontSize: 11, fontWeight: 700, color: '#999999',
+            fontSize: 11, fontWeight: 700, color: '#9ca3af',
             textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, fontFamily: FH,
           }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </div>
           <h1 style={{
-            fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#fff',
+            fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#111',
             margin: '0 0 2px', letterSpacing: '-.03em',
           }}>
             {greeting}
@@ -422,7 +422,7 @@ export default function DashboardPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             margin: '0 0 16px',
           }}>
-            <p style={{ fontSize: 13, color: '#999999', margin: 0, fontFamily: FB }}>
+            <p style={{ fontSize: 13, color: '#9ca3af', margin: 0, fontFamily: FB }}>
               {agencyStats.activeClients} clients &middot; {agencyStats.wpSites} WP sites
             </p>
             {refreshBadge}
@@ -431,10 +431,10 @@ export default function DashboardPage() {
 
         {/* ── Stats ───────────────────────────────────────────────────────── */}
         <MobileStatStrip stats={[
-          { label: 'Clients',  value: loading ? '—' : agencyStats.activeClients,    color: '#fff' },
+          { label: 'Clients',  value: loading ? '—' : agencyStats.activeClients,    color: '#111' },
           { label: 'Pages',    value: loading ? '—' : agencyStats.pagesGenerated,   color: T },
           { label: 'Reviews',  value: loading ? '—' : agencyStats.reviewsCollected, color: GRN },
-          { label: 'Tickets',  value: loading ? '—' : agencyStats.deskTickets,      color: agencyStats.deskTickets > 0 ? R : '#fff' },
+          { label: 'Tickets',  value: loading ? '—' : agencyStats.deskTickets,      color: agencyStats.deskTickets > 0 ? R : '#111' },
         ]} />
 
         {/* ── Quick Actions 2-column ──────────────────────────────────────── */}
@@ -541,15 +541,15 @@ export default function DashboardPage() {
   if (isMobile && showSuperDashboard) {
     return (
       <MobilePage padded={false}>
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 16px 0' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '16px 16px 0' }}>
           <div style={{
-            fontSize: 11, fontWeight: 700, color: '#999999',
+            fontSize: 11, fontWeight: 700, color: '#9ca3af',
             textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4, fontFamily: FH,
           }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </div>
           <h1 style={{
-            fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#fff',
+            fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#111',
             margin: '0 0 2px', letterSpacing: '-.03em',
           }}>
             Platform Overview
@@ -570,9 +570,9 @@ export default function DashboardPage() {
 
         <MobileStatStrip stats={[
           { label: 'Agencies', value: loading ? '—' : superStats.totalAgencies,  color: T },
-          { label: 'Clients',  value: loading ? '—' : superStats.totalClients,   color: '#fff' },
+          { label: 'Clients',  value: loading ? '—' : superStats.totalClients,   color: '#111' },
           { label: 'Pages',    value: loading ? '—' : superStats.totalPages,     color: GRN },
-          { label: 'Errors',   value: loading ? '—' : superStats.totalErrors24h, color: superStats.totalErrors24h > 0 ? R : '#fff' },
+          { label: 'Errors',   value: loading ? '—' : superStats.totalErrors24h, color: superStats.totalErrors24h > 0 ? R : '#111' },
         ]} />
 
         {/* Quick Actions */}
@@ -662,11 +662,11 @@ export default function DashboardPage() {
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* ── Dark Header ───────────────────────────────────────────────── */}
-          <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 18px', flexShrink: 0 }}>
+          <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '20px 32px 18px', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{
-                  fontSize: 11, fontWeight: 700, color: '#999999',
+                  fontSize: 11, fontWeight: 700, color: '#9ca3af',
                   textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
                 }}>
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -694,11 +694,11 @@ export default function DashboardPage() {
 
             {/* ── Platform Health Bar ────────────────────────────────────── */}
             <div style={{
-              background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+              background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
               padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 20,
             }}>
               <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, whiteSpace: 'nowrap' }}>Platform Health</div>
-              <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#ececea', overflow: 'hidden' }}>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden' }}>
                 <div style={{
                   width: `${qaHealth.health_score || 0}%`, height: '100%', borderRadius: 4,
                   background: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
@@ -748,11 +748,11 @@ export default function DashboardPage() {
 
               {/* Column 1: Agency Management */}
               <div style={{
-                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
                 overflow: 'hidden',
               }}>
                 <div style={{
-                  padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                  padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
@@ -770,13 +770,13 @@ export default function DashboardPage() {
                       {[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}
                     </div>
                   ) : agencyList.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '30px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>
+                    <div style={{ textAlign: 'center', padding: '30px 0', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
                       No agencies
                     </div>
                   ) : agencyList.slice(0, 8).map(a => (
                     <div key={a.id} style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px',
-                      borderBottom: '1px solid #f8f8f6',
+                      borderBottom: '1px solid #f9fafb',
                     }}>
                       <div style={{
                         width: 34, height: 34, borderRadius: 8, background: T + '12',
@@ -792,7 +792,7 @@ export default function DashboardPage() {
                         }}>
                           {a.brand_name || a.name}
                         </div>
-                        <div style={{ fontSize: 11, color: '#9a9a96' }}>
+                        <div style={{ fontSize: 11, color: '#9ca3af' }}>
                           {a.owner_email || a.slug} &middot; {a.plan || 'starter'} &middot; {a.client_count || 0} clients
                         </div>
                       </div>
@@ -812,9 +812,9 @@ export default function DashboardPage() {
               {/* Column 2: System Monitoring — Errors + Activity */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Recent Errors */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
                   <div style={{
-                    padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                    padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   }}>
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Recent Errors</div>
@@ -826,7 +826,7 @@ export default function DashboardPage() {
                     {loading ? (
                       <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
                     ) : recentErrors.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>
+                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
                         <Check size={20} color={GRN} style={{ marginBottom: 8 }} /><br />No recent errors
                       </div>
                     ) : recentErrors.slice(0, 5).map(log => <DashLogRow key={log.id} log={log} showLevel />)}
@@ -834,15 +834,15 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Activity Feed */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden', flex: 1 }}>
-                  <div style={{ padding: '14px 18px', borderBottom: '1px solid #f2f2f0' }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', flex: 1 }}>
+                  <div style={{ padding: '14px 18px', borderBottom: '1px solid #f3f4f6' }}>
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Activity Feed</div>
                   </div>
                   <div style={{ padding: '4px 18px 10px', maxHeight: 220, overflowY: 'auto' }}>
                     {loading ? (
                       <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
                     ) : activityFeed.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9a9a96', fontFamily: FB }}>No activity yet</div>
+                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>No activity yet</div>
                     ) : activityFeed.slice(0, 8).map(log => <DashLogRow key={log.id} log={log} showLevel />)}
                   </div>
                 </div>
@@ -851,7 +851,7 @@ export default function DashboardPage() {
               {/* Column 3: Communications + QA Summary */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Communications Status */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18 }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>
                     Communications (24h)
                   </div>
@@ -866,7 +866,7 @@ export default function DashboardPage() {
                         <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: s.color, lineHeight: 1 }}>
                           {loading ? '—' : s.value}
                         </div>
-                        <div style={{ fontSize: 10, color: '#9a9a96', marginTop: 4, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
                           {s.label}
                         </div>
                       </div>
@@ -875,7 +875,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* QA Summary */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18 }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18 }}>
                   <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
                   }}>
@@ -885,7 +885,7 @@ export default function DashboardPage() {
                     }}>Open Console</button>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#ececea', overflow: 'hidden' }}>
+                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden' }}>
                       <div style={{
                         width: `${qaHealth.health_score || 0}%`, height: '100%', borderRadius: 4,
                         background: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
@@ -900,17 +900,17 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>{qaHealth.pass_rate || 0}%</div>
-                      <div style={{ fontSize: 10, color: '#9a9a96', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Pass Rate</div>
+                      <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Pass Rate</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: qaHealth.open_errors > 0 ? R : GRN }}>{qaHealth.open_errors || 0}</div>
-                      <div style={{ fontSize: 10, color: '#9a9a96', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Open Errors</div>
+                      <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Open Errors</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Management Actions */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18 }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>
                     Quick Actions
                   </div>
@@ -958,11 +958,11 @@ export default function DashboardPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* ── Dark Header ─────────────────────────────────────────────────── */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 18px', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '20px 32px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{
-                fontSize: 11, fontWeight: 700, color: '#999999',
+                fontSize: 11, fontWeight: 700, color: '#9ca3af',
                 textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
               }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -1034,17 +1034,17 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
             {/* Recent Activity */}
             <div style={{
-              background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+              background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
               overflow: 'hidden',
             }}>
               <div style={{
-                padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
                   Recent Activity
                 </div>
-                <span style={{ fontSize: 11, color: '#9a9a96', fontFamily: FB }}>
+                <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB }}>
                   Last 10 events
                 </span>
               </div>
@@ -1061,9 +1061,9 @@ export default function DashboardPage() {
                 ) : recentActivity.length === 0 ? (
                   <div style={{
                     textAlign: 'center', padding: '40px 0', fontSize: 13,
-                    color: '#9a9a96', fontFamily: FB,
+                    color: '#9ca3af', fontFamily: FB,
                   }}>
-                    <Activity size={24} color="#d0d0cc" style={{ marginBottom: 8 }} />
+                    <Activity size={24} color="#d1d5db" style={{ marginBottom: 8 }} />
                     <br />No recent activity
                   </div>
                 ) : (
@@ -1078,11 +1078,11 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Client Spotlight */}
               <div style={{
-                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
                 overflow: 'hidden',
               }}>
                 <div style={{
-                  padding: '14px 18px', borderBottom: '1px solid #f2f2f0',
+                  padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                   <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
@@ -1109,7 +1109,7 @@ export default function DashboardPage() {
                   ) : spotlightClients.length === 0 ? (
                     <div style={{
                       textAlign: 'center', padding: '24px 0', fontSize: 13,
-                      color: '#9a9a96', fontFamily: FB,
+                      color: '#9ca3af', fontFamily: FB,
                     }}>
                       No active clients
                     </div>
@@ -1125,7 +1125,7 @@ export default function DashboardPage() {
                             display: 'flex', alignItems: 'center', gap: 12,
                             transition: 'background .12s',
                           }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#f8f8f6'}
+                          onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                           <div style={{
@@ -1143,7 +1143,7 @@ export default function DashboardPage() {
                             }}>
                               {cl.name}
                             </div>
-                            <div style={{ fontSize: 12, color: '#9a9a96', fontFamily: FB }}>
+                            <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
                               {cl.industry || 'General'}
                             </div>
                           </div>
@@ -1155,7 +1155,7 @@ export default function DashboardPage() {
                             }}>
                               {cl.status}
                             </span>
-                            <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 4 }}>
+                            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
                               {cl.pagesCount}p · {cl.reviewsCount}r
                             </div>
                           </div>
@@ -1169,7 +1169,7 @@ export default function DashboardPage() {
               {/* System Status (agency admins only) */}
               {!isClient && (
                 <div style={{
-                  background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                  background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
                   padding: '18px',
                 }}>
                   <div style={{
@@ -1183,8 +1183,8 @@ export default function DashboardPage() {
                     <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
                   </div>
                   <div style={{
-                    fontSize: 11, color: '#9a9a96', marginTop: 14, fontFamily: FB,
-                    borderTop: '1px solid #f2f2f0', paddingTop: 12,
+                    fontSize: 11, color: '#9ca3af', marginTop: 14, fontFamily: FB,
+                    borderTop: '1px solid #f3f4f6', paddingTop: 12,
                   }}>
                     Last checked {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
@@ -1290,7 +1290,7 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
         )}
 
         {/* Welcome header */}
-        <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '24px 32px', textAlign: 'center' }}>
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '24px 32px', textAlign: 'center' }}>
           <h1 style={{ fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
             {greeting}
           </h1>

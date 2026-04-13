@@ -5,7 +5,7 @@
 export const R   = '#E6007E'   // Koto Pink — primary accent
 export const T   = '#00C2CB'   // Koto Teal — secondary accent
 export const BLK = '#111111'   // Near-black for text
-export const GRY = '#F9F9F9'   // Light gray background
+export const GRY = '#f9fafb'   // Light gray background
 export const GRN = '#16a34a'   // Success green
 export const AMB = '#f59e0b'   // Warning amber
 export const W   = '#ffffff'   // White
