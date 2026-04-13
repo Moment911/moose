@@ -8,10 +8,8 @@ import {
   DollarSign, Hash, Calendar, Check, AlertTriangle
 } from 'lucide-react'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const W='#ffffff'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/phone'
 
@@ -37,7 +35,7 @@ const purposeColors = { voice:{c:'#1d4ed8',bg:'#dbeafe'}, sms:{c:'#059669',bg:'#
 const StatPill = ({ label, value, color }) => (
   <div style={{ display:'flex', alignItems:'center', gap:6, background:`${color}18`, padding:'3px 10px', borderRadius:999, fontSize:12 }}>
     <span style={{ fontWeight:700, color }}>{value}</span>
-    <span style={{ color:'#666' }}>{label}</span>
+    <span style={{ color:'#6b7280' }}>{label}</span>
   </div>
 )
 
@@ -53,10 +51,10 @@ const StatCard = ({ icon:Icon, label, value, color=T, sub }) => (
   <Card style={{ flex:1, minWidth:160 }}>
     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
       <div style={{ width:32, height:32, borderRadius:8, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}><Icon size={16} color={color} /></div>
-      <span style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
+      <span style={{ fontSize:11, fontWeight:600, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
     </div>
     <div style={{ fontSize:24, fontWeight:700, color:BLK, fontFamily:FH }}>{value}</div>
-    {sub && <div style={{ fontSize:11, color:'#888', marginTop:2 }}>{sub}</div>}
+    {sub && <div style={{ fontSize:11, color:'#6b7280', marginTop:2 }}>{sub}</div>}
   </Card>
 )
 
@@ -127,7 +125,7 @@ export default function PhoneNumbersPage() {
   const loadAll = async () => {
     setLoading(true)
     try {
-      const listParams = `action=list&agency_id=${aid}${isSuperAdmin ? '&super_admin=true' : ''}`
+      const listParams = `action=list&agency_id=${aid}`
       const [numsRes, statsRes, provRes] = await Promise.all([
         fetch(`${API}?${listParams}`).then(r => r.json()),
         fetch(`${API}?action=stats&agency_id=${aid}`).then(r => r.json()),
@@ -241,7 +239,7 @@ export default function PhoneNumbersPage() {
         {numbers.length === 0 && !loading ? (
           <Card style={{ textAlign:'center', padding:48 }}>
             <Phone size={40} color="#ccc" style={{ marginBottom:12 }} />
-            <div style={{ fontSize:16, fontWeight:600, color:'#666', fontFamily:FH, marginBottom:4 }}>No phone numbers yet</div>
+            <div style={{ fontSize:16, fontWeight:600, color:'#6b7280', fontFamily:FH, marginBottom:4 }}>No phone numbers yet</div>
             <div style={{ fontSize:13, color:'#999', marginBottom:16 }}>Buy your first number to get started.</div>
             <Btn onClick={()=>setTab('buy')}><Plus size={14} /> Buy Number</Btn>
           </Card>
@@ -251,7 +249,7 @@ export default function PhoneNumbersPage() {
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                   {['Phone Number','Friendly Name','Assigned To','Provider','Type','Purpose','Status','Cost/mo','Actions'].map(h => (
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
+                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -263,7 +261,7 @@ export default function PhoneNumbersPage() {
                   return (
                     <tr key={n.id} style={{ borderBottom:'1px solid #f3f4f6' }}>
                       <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{fmt(n.phone_number)}</td>
-                      <td style={{ padding:'10px 14px', color:'#555' }}>{n.friendly_name || '-'}</td>
+                      <td style={{ padding:'10px 14px', color:'#374151' }}>{n.friendly_name || '-'}</td>
                       <td style={{ padding:'10px 14px' }}>
                         <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
                           <div style={{ display:'flex', alignItems:'center', gap:4 }}>
@@ -285,12 +283,12 @@ export default function PhoneNumbersPage() {
                       <td style={{ padding:'10px 14px' }}><Badge label={n.type} color={tc.c} bg={tc.bg} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.purpose} color={pc.c} bg={pc.bg} /></td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.status} color={sc.c} bg={sc.bg} /></td>
-                      <td style={{ padding:'10px 14px', color:'#555' }}>${Number(n.monthly_cost||0).toFixed(2)}</td>
+                      <td style={{ padding:'10px 14px', color:'#374151' }}>${Number(n.monthly_cost||0).toFixed(2)}</td>
                       <td style={{ padding:'10px 14px' }}>
                         <div style={{ display:'flex', gap:6 }}>
                           {n.status !== 'released' && (
                             <>
-                              <button onClick={()=>{ setEditModal(n); setEditName(n.friendly_name||''); setEditPurpose(n.purpose||'voice') }} style={{ background:'none', border:'1px solid #e5e7eb', borderRadius:6, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:12, color:'#555' }}>
+                              <button onClick={()=>{ setEditModal(n); setEditName(n.friendly_name||''); setEditPurpose(n.purpose||'voice') }} style={{ background:'none', border:'1px solid #e5e7eb', borderRadius:6, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:12, color:'#374151' }}>
                                 <Edit2 size={12} /> Edit
                               </button>
                               <button onClick={()=>setReleaseConfirm(n)} style={{ background:'none', border:'1px solid #fee2e2', borderRadius:6, padding:'4px 8px', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:12, color:R }}>
@@ -331,13 +329,13 @@ export default function PhoneNumbersPage() {
             </div>
             <Badge label="RECOMMENDED" color={GRN} bg="#dcfce7" />
           </div>
-          <div style={{ fontSize:13, color:'#555', lineHeight:1.6, marginBottom:12 }}>
+          <div style={{ fontSize:13, color:'#374151', lineHeight:1.6, marginBottom:12 }}>
             Next-gen carrier with lower costs and no setup fees. Ideal for AI voice agents and local presence dialing.
           </div>
           <div style={{ display:'flex', gap:16, marginBottom:12 }}>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$1.00</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$2.00</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$0</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$1.00</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$2.00</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$0</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
             {['No setup fees', 'Local presence', 'Lower per-min rates', 'Number porting', 'SIP trunking'].map(f => (
@@ -358,13 +356,13 @@ export default function PhoneNumbersPage() {
             </div>
             <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:BLK }}>Twilio</div>
           </div>
-          <div style={{ fontSize:13, color:'#555', lineHeight:1.6, marginBottom:12 }}>
+          <div style={{ fontSize:13, color:'#374151', lineHeight:1.6, marginBottom:12 }}>
             Industry standard with worldwide coverage and rich programmable features. Higher cost but most established provider.
           </div>
           <div style={{ display:'flex', gap:16, marginBottom:12 }}>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$1.15</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$2.15</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:AMB }}>$1.00</div><div style={{ fontSize:10, color:'#888', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$1.15</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$2.15</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:AMB }}>$1.00</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
             {['Worldwide coverage', 'Rich SMS/MMS', 'Programmable voice', 'Established provider'].map(f => (
@@ -383,7 +381,7 @@ export default function PhoneNumbersPage() {
             </div>
             <div>
               <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, marginBottom:4 }}>Local Presence Dialing</div>
-              <div style={{ fontSize:13, color:'#555', lineHeight:1.6 }}>
+              <div style={{ fontSize:13, color:'#374151', lineHeight:1.6 }}>
                 Telnyx supports <strong>local presence</strong> — your AI voice agent can call from a number with the same area code as the person being called. This dramatically increases answer rates (up to 4x) because recipients see a local number, not a random out-of-state call. Numbers purchased from Telnyx automatically support this feature.
               </div>
             </div>
@@ -421,12 +419,12 @@ export default function PhoneNumbersPage() {
                   <div style={{ fontSize:15, fontWeight:700, color:BLK, fontFamily:FH }}>{fmt(n.phone_number)}</div>
                   <Badge label={n.provider || searchProvider} color={n.provider === 'telnyx' || searchProvider === 'telnyx' ? GRN : '#3b82f6'} bg={n.provider === 'telnyx' || searchProvider === 'telnyx' ? '#dcfce7' : '#dbeafe'} />
                 </div>
-                <div style={{ fontSize:12, color:'#888', marginTop:2 }}>
+                <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>
                   {[n.locality, n.region].filter(Boolean).join(', ') || 'US'}
                 </div>
                 <div style={{ fontSize:13, fontWeight:700, color:BLK, marginTop:4, fontFamily:FH }}>
                   ${(n.cost_monthly || (searchType === 'tollfree' ? 2.00 : 1.00)).toFixed(2)}/mo
-                  {(n.cost_setup || 0) > 0 && <span style={{ fontSize:11, color:'#888', fontWeight:500 }}> + ${n.cost_setup} setup</span>}
+                  {(n.cost_setup || 0) > 0 && <span style={{ fontSize:11, color:'#6b7280', fontWeight:500 }}> + ${n.cost_setup} setup</span>}
                 </div>
               </div>
               <Btn small onClick={()=>purchaseNumber(n)} disabled={buying === n.phone_number} bg={searchProvider === 'telnyx' ? GRN : R}>
@@ -440,7 +438,7 @@ export default function PhoneNumbersPage() {
       {!searching && available.length === 0 && (
         <Card style={{ textAlign:'center', padding:48 }}>
           <Search size={40} color="#ccc" style={{ marginBottom:12 }} />
-          <div style={{ fontSize:14, color:'#888', fontFamily:FH }}>Select a provider above, then search by area code</div>
+          <div style={{ fontSize:14, color:'#6b7280', fontFamily:FH }}>Select a provider above, then search by area code</div>
         </Card>
       )}
     </div>
@@ -465,7 +463,7 @@ export default function PhoneNumbersPage() {
         {activeNums.length === 0 ? (
           <Card style={{ textAlign:'center', padding:48 }}>
             <DollarSign size={40} color="#ccc" style={{ marginBottom:12 }} />
-            <div style={{ fontSize:14, color:'#888', fontFamily:FH }}>No active numbers to bill</div>
+            <div style={{ fontSize:14, color:'#6b7280', fontFamily:FH }}>No active numbers to bill</div>
           </Card>
         ) : (
           <Card style={{ padding:0, overflow:'hidden' }}>
@@ -473,7 +471,7 @@ export default function PhoneNumbersPage() {
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                   {['Phone Number','Type','Monthly Cost','Next Billing','Status'].map(h => (
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
+                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -486,8 +484,8 @@ export default function PhoneNumbersPage() {
                     <tr key={n.id} style={{ borderBottom:'1px solid #f3f4f6' }}>
                       <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{fmt(n.phone_number)}</td>
                       <td style={{ padding:'10px 14px' }}><Badge label={n.type} color={(typeColors[n.type]||typeColors.local).c} bg={(typeColors[n.type]||typeColors.local).bg} /></td>
-                      <td style={{ padding:'10px 14px', color:'#555' }}>${Number(n.monthly_cost||0).toFixed(2)}</td>
-                      <td style={{ padding:'10px 14px', color:'#555' }}>{nextBill.toLocaleDateString()}</td>
+                      <td style={{ padding:'10px 14px', color:'#374151' }}>${Number(n.monthly_cost||0).toFixed(2)}</td>
+                      <td style={{ padding:'10px 14px', color:'#374151' }}>{nextBill.toLocaleDateString()}</td>
                       <td style={{ padding:'10px 14px' }}><Badge label="active" color={W} bg={GRN} /></td>
                     </tr>
                   )
@@ -531,7 +529,7 @@ export default function PhoneNumbersPage() {
             </div>
             <div>
               <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:W, fontFamily:FH }}>Phone Numbers</h1>
-              <p style={{ margin:0, fontSize:11, color:'#888', fontFamily:FB }}>Manage provisioned numbers, purchase new ones, assign to agents</p>
+              <p style={{ margin:0, fontSize:11, color:'#6b7280', fontFamily:FB }}>Manage provisioned numbers, purchase new ones, assign to agents</p>
             </div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -586,7 +584,7 @@ export default function PhoneNumbersPage() {
             <AlertTriangle size={24} color={R} />
             <div>
               <div style={{ fontSize:14, fontWeight:600, color:BLK, fontFamily:FH }}>Are you sure?</div>
-              <div style={{ fontSize:13, color:'#666' }}>This will release <strong>{fmt(releaseConfirm.phone_number)}</strong> back to {releaseConfirm.provider === 'telnyx' ? 'Telnyx' : 'Twilio'}. This action cannot be undone.</div>
+              <div style={{ fontSize:13, color:'#6b7280' }}>This will release <strong>{fmt(releaseConfirm.phone_number)}</strong> back to {releaseConfirm.provider === 'telnyx' ? 'Telnyx' : 'Twilio'}. This action cannot be undone.</div>
             </div>
           </div>
           <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
