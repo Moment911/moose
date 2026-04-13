@@ -49,6 +49,7 @@ export function AuthProvider({ children }) {
   const [role, setRole]         = useState(BYPASS_AUTH ? 'owner' : null)
   const [agency, setAgency]     = useState(null)
   const [clientId, setClientId] = useState(null)
+  const [clientInfo, setClientInfo] = useState(null)
 
   // ── 3-Tier Role Booleans ───────────────────────────────────────────────────
   const [isSuperAdmin, setIsSuperAdmin]   = useState(false)
@@ -187,6 +188,10 @@ export function AuthProvider({ children }) {
         const { data: ag } = await supabase.from('agencies').select('*').eq('id', clientUser.agency_id).single()
         if (ag) setAgency(ag)
 
+        // Load client info (name, logo) for portal UI
+        const { data: ci } = await supabase.from('clients').select('name, logo_url, brand_kit').eq('id', clientUser.client_id).single()
+        if (ci) setClientInfo(ci)
+
         // Load this client's permissions
         loadClientPermissions(clientUser.client_id, clientUser.agency_id)
       } else {
@@ -315,7 +320,7 @@ export function AuthProvider({ children }) {
       can,
 
       // Client identity
-      clientId,
+      clientId, clientInfo,
 
       // Feature flags
       agencyFeatures,

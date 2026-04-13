@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Activity, BarChart2, BookOpen, Brain, CheckCircle, DollarSign, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, X, Zap
 } from 'lucide-react'
-import { supabase, getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
+import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
 import NotificationCenter from './NotificationCenter'
@@ -129,7 +129,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
 }
 
 export default function Sidebar() {
-  const { user, firstName, fullName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures, clientId } = useAuth()
+  const { user, firstName, fullName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures, clientInfo } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -141,16 +141,8 @@ export default function Sidebar() {
   const [newProjClient,setNewProjClient]= useState(null)
   const [projectsMap,  setProjectsMap]  = useState({})
   const [searchQuery, setSearchQuery]   = useState('')
-  const [clientInfo, setClientInfo]     = useState(null)
 
   useEffect(()=>{ loadClients() },[aid])
-
-  // Load client info (logo, company name) for client view
-  useEffect(() => {
-    if (!clientId || !(isClient || isPreviewingClient)) return
-    supabase.from('clients').select('name, logo_url').eq('id', clientId).single()
-      .then(({ data }) => { if (data) setClientInfo(data) })
-  }, [clientId, isClient, isPreviewingClient])
 
   async function loadClients() {
     const data = await getClients(aid)

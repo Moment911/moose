@@ -139,7 +139,7 @@ function DashStatusDot({ label, status }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient, clientId } = useAuth()
+  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient, clientId, clientInfo } = useAuth()
   const isMobile = useMobile()
 
   const showClientDashboard = isClient || isPreviewingClient
@@ -948,7 +948,7 @@ export default function DashboardPage() {
      CLIENT VIEW — minimal dashboard, just welcome + links to permitted tools
      ══════════════════════════════════════════════════════════════════════════ */
   if (showClientDashboard) {
-    return <ClientDashboard firstName={firstName} greeting={greeting} agency={agency} agencyName={agencyName} can={can} navigate={navigate} aid={aid} clientId={clientId} />
+    return <ClientDashboard firstName={firstName} greeting={greeting} agency={agency} agencyName={agencyName} can={can} navigate={navigate} aid={aid} clientId={clientId} clientInfo={clientInfo} />
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -1202,18 +1202,13 @@ export default function DashboardPage() {
 }
 
 // ── Client Dashboard — personalized greeting + pending items ─────────────
-function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigate, aid, clientId }) {
-  const [clientInfo, setClientInfo] = useState(null)
+function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigate, aid, clientId, clientInfo }) {
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (clientId) {
-      supabase.from('clients').select('name, logo_url').eq('id', clientId).single()
-        .then(({ data }) => { if (data) setClientInfo(data) })
-    }
     loadStats()
-  }, [aid, clientId])
+  }, [aid])
 
   async function loadStats() {
     setLoading(true)
