@@ -3,6 +3,32 @@ import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '../../../lib/apiAuth'
 import { buildFrontDeskPrompt, buildFrontDeskPromptForClient, type FrontDeskConfig } from '../../../lib/frontDeskPromptBuilder'
 
+// Retell tool: allows Jenny to send SMS links during calls
+const SEND_SMS_TOOL = {
+  type: 'end_call_tool_plan' as const,  // We'll use a custom webhook tool instead
+}
+// Custom function tool for sending SMS during a call
+const FRONT_DESK_TOOLS = [
+  {
+    type: 'custom',
+    name: 'send_sms',
+    description: 'Send an SMS text message to the caller with a link or information. Use this when the caller wants a link texted to them, such as a scheduling link, website page, or directions.',
+    parameters: {
+      type: 'object',
+      properties: {
+        phone_number: { type: 'string', description: 'The caller phone number to send the SMS to. Ask the caller for their cell number if you do not already have it.' },
+        message: { type: 'string', description: 'The full text message to send, including any URL. Keep it professional and concise.' },
+        link_type: { type: 'string', description: 'The type of link being sent, e.g. scheduling, directions, service_info, website, forms' },
+      },
+      required: ['phone_number', 'message'],
+    },
+    speak_during_execution: true,
+    speak_after_execution: true,
+    execution_message_description: 'Sending the text message now...',
+    url: (process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com') + '/api/front-desk/sms-tool',
+  },
+]
+
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -192,6 +218,10 @@ export async function POST(req: NextRequest) {
         transfer_announce_template: fields.transfer_announce_template ?? 'You have an incoming call from {caller}. Press 1 to connect.',
         transfer_number: fields.transfer_number || null,
         gmb_url: fields.gmb_url || null,
+        sms_post_call_enabled: fields.sms_post_call_enabled ?? false,
+        sms_post_call_template: fields.sms_post_call_template || null,
+        sms_missed_call_enabled: fields.sms_missed_call_enabled ?? false,
+        sms_missed_call_template: fields.sms_missed_call_template || null,
       }
 
       let result
@@ -834,6 +864,7 @@ If no useful learnings, return an empty array: []` }],
         body: JSON.stringify({
           general_prompt: prompt,
           begin_message: beginMsg,
+          general_tools: FRONT_DESK_TOOLS,
         }),
       })
       if (!llmRes.ok) {
@@ -959,7 +990,7 @@ If no useful learnings, return an empty array: []` }],
         const llmPatchRes = await fetch(`https://api.retellai.com/update-retell-llm/${llmId}`, {
           method: 'PATCH',
           headers: retellHeaders,
-          body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg }),
+          body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg, general_tools: FRONT_DESK_TOOLS }),
         })
         if (!llmPatchRes.ok) {
           const err = await llmPatchRes.text()
@@ -970,7 +1001,7 @@ If no useful learnings, return an empty array: []` }],
         const llmRes = await fetch('https://api.retellai.com/create-retell-llm', {
           method: 'POST',
           headers: retellHeaders,
-          body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg }),
+          body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg, general_tools: FRONT_DESK_TOOLS }),
         })
         if (!llmRes.ok) {
           const err = await llmRes.text()

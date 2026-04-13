@@ -234,6 +234,36 @@ export async function POST(req: NextRequest) {
               }
             } catch { /* non-fatal */ }
 
+            // Auto-create call record in koto_front_desk_calls with recording
+            try {
+              const agencyId_ = call.metadata?.agency_id || body.metadata?.agency_id
+              const callerPhone_ = call.from_number || ''
+              const callerName_ = call.caller_name || call.call_analysis?.custom_analysis_data?.caller_name || ''
+              const outcome_ = call.call_analysis?.custom_analysis_data?.call_outcome || call.disconnection_reason || 'completed'
+              const appointmentSet_ = call.call_analysis?.custom_analysis_data?.appointment_set === true || call.call_analysis?.call_successful === true
+              const durationSec = call.end_timestamp && call.start_timestamp
+                ? Math.round((new Date(call.end_timestamp).getTime() - new Date(call.start_timestamp).getTime()) / 1000) : 0
+
+              const { data: fdCfg } = await s.from('koto_front_desk_configs').select('id').eq('client_id', fdClientId).maybeSingle()
+
+              await s.from('koto_front_desk_calls').insert({
+                config_id: fdCfg?.id || null,
+                agency_id: agencyId_,
+                client_id: fdClientId,
+                retell_call_id: call.call_id || body.call_id || null,
+                caller_phone: callerPhone_,
+                caller_name: callerName_,
+                direction: 'inbound',
+                duration_seconds: durationSec,
+                outcome: appointmentSet_ ? 'appointment' : outcome_,
+                sentiment: call.call_analysis?.user_sentiment || 'neutral',
+                transcript: call.transcript || null,
+                ai_summary: call.call_analysis?.call_summary || null,
+                recording_url: call.recording_url || null,
+                ghl_synced: false,
+              })
+            } catch { /* non-fatal */ }
+
             // Push front desk caller to GHL as a contact
             try {
               const agencyId = call.metadata?.agency_id || body.metadata?.agency_id

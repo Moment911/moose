@@ -250,7 +250,38 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         </div>
       </div>
 
-      {/* CARD 8: Call Log */}
+      {/* CARD 8: SMS Settings */}
+      <div style={fdCard}>
+        {fdCardTitle(<span style={{ fontSize: 16 }}>💬</span>, 'SMS & Messaging')}
+        <div style={{ marginBottom: 14, padding: '12px 14px', background: fd.ghl_connected ? '#f0fdf4' : '#fffbeb', borderRadius: 10, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #fde68a' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: fd.ghl_connected ? GRN : AMB }}>
+            {fd.ghl_connected ? 'SMS via GoHighLevel — Connected' : 'SMS via Twilio (fallback)'}
+          </div>
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+            {fd.ghl_connected ? 'Jenny sends texts through your GHL account so conversations appear in your CRM.' : 'Connect GHL above for CRM-integrated messaging, or texts will send via Twilio.'}
+          </div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <label style={fdLabel}>Post-Call SMS (sent after every call)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <input type="checkbox" checked={fd.sms_post_call_enabled ?? false} onChange={e => fdUpdate('sms_post_call_enabled', e.target.checked)} style={{ accentColor: R, width: 16, height: 16 }} />
+            <span style={{ fontSize: 13, color: BLK }}>Send a follow-up text after each call</span>
+          </div>
+          <textarea value={fd.sms_post_call_template || 'Thanks for calling The Spine and Wellness Center! If you need anything, call us at {phone} or visit {website}'} onChange={e => fdUpdate('sms_post_call_template', e.target.value)} rows={3} placeholder="Post-call SMS template..." style={{ ...fdInput, resize: 'vertical' }}></textarea>
+          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Variables: {'{'}company{'}'}, {'{'}phone{'}'}, {'{'}website{'}'}, {'{'}caller_name{'}'}, {'{'}appointment_date{'}'}</div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <label style={fdLabel}>Missed Call SMS</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <input type="checkbox" checked={fd.sms_missed_call_enabled ?? false} onChange={e => fdUpdate('sms_missed_call_enabled', e.target.checked)} style={{ accentColor: R, width: 16, height: 16 }} />
+            <span style={{ fontSize: 13, color: BLK }}>Auto-text when a call is missed or goes to transfer</span>
+          </div>
+          <textarea value={fd.sms_missed_call_template || 'Hi! We missed your call at The Spine and Wellness Center. We\'ll call you back shortly, or you can schedule online: {scheduling_link}'} onChange={e => fdUpdate('sms_missed_call_template', e.target.value)} rows={3} placeholder="Missed call SMS template..." style={{ ...fdInput, resize: 'vertical' }}></textarea>
+        </div>
+        <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 4px' }}>Jenny can also text links during calls when callers ask about services. Links are pulled from the Sendable Links card above.</p>
+      </div>
+
+      {/* CARD 9: Call Log */}
       <div style={fdCard}>
         {fdCardTitle(<Activity size={16} color={T} />, 'Recent Calls (' + fdCalls.length + ')')}
         {fdCalls.length === 0
@@ -263,6 +294,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Caller</th>
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Duration</th>
                     <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Outcome</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Recording</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,6 +304,11 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
                       <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 600, color: BLK }}>{call.caller_name || call.caller_phone || 'Unknown'}</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 13 }}>{call.duration_seconds ? Math.floor(call.duration_seconds / 60) + ':' + String(call.duration_seconds % 60).padStart(2, '0') : '0:00'}</td>
                       <td style={{ padding: '10px 12px' }}><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: (call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN) + '15', color: call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN, textTransform: 'uppercase' }}>{call.outcome}</span></td>
+                      <td style={{ padding: '10px 12px' }}>
+                        {call.recording_url ? (
+                          <audio controls preload="none" style={{ height: 28, maxWidth: 180 }}><source src={call.recording_url} type="audio/wav" /></audio>
+                        ) : <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
