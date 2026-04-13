@@ -527,7 +527,7 @@ export default function ClientDetailPage() {
                 {options.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : type === 'textarea' ? (
-              <textarea value={editValue} onChange={e => setEditValue(e.target.value)} style={{ ...inp, flex: 1, height: 80, resize: 'vertical' }} />
+              <textarea value={editValue} onChange={e => setEditValue(e.target.value)} style={{ ...inp, flex: 1, height: 80, resize: 'vertical' }}></textarea>
             ) : (
               <input type={type} value={editValue} onChange={e => setEditValue(e.target.value)} style={{ ...inp, flex: 1 }} autoFocus
                 onKeyDown={e => { if (e.key === 'Enter') saveField(fieldName, editValue); if (e.key === 'Escape') cancelEdit() }} />
@@ -1700,7 +1700,7 @@ export default function ClientDetailPage() {
               <VisToggle field="description" />
             </div>
             <textarea defaultValue={bk.description || ''} id="bk-desc" rows={3}
-              style={{ ...inp, resize: 'vertical' }} placeholder="Business description…" />
+              style={{ ...inp, resize: 'vertical' }} placeholder="Business description…"></textarea>
             <button onClick={() => saveBrandKit({ description: document.getElementById('bk-desc')?.value })}
               style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', marginTop: 6 }}>Save</button>
           </div>

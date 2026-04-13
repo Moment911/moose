@@ -134,7 +134,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
                 <div><label style={fdLabel}>Transfer Announcement</label><input value={fd.transfer_announce_template || 'You have an incoming call. Press 1 to connect.'} onChange={e => fdUpdate('transfer_announce_template', e.target.value)} placeholder="Use {'{'}caller{'}'} for caller name" style={fdInput} /></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div><label style={fdLabel}>Voicemail Greeting</label><textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone..." style={{ ...fdInput, resize: 'vertical' }} /></div>
+                <div><label style={fdLabel}>Voicemail Greeting</label><textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone..." style={{ ...fdInput, resize: 'vertical' }}></textarea></div>
                 <div><label style={fdLabel}>Max Voicemail (sec)</label><input type="number" value={fd.voicemail_max_seconds || 120} onChange={e => fdUpdate('voicemail_max_seconds', parseInt(e.target.value) || 120)} style={{ ...fdInput, width: 100 }} /></div>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
                   <label style={fdLabel}>Services ({(fd.services || []).length})</label>
-                  <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={8} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }} />
+                  <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={8} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }}></textarea>
                 </div>
                 <div>
                   <label style={{ ...fdLabel, marginBottom: 8 }}>Insurance Accepted</label>
@@ -294,7 +294,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={fdLabel}>Additional Instructions & Directives</label>
-                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={12} placeholder={'Add custom instructions, directions, and notes for the AI receptionist.\nThese are injected directly into the LLM prompt.\n\nExamples:\n• Always ask if they are a new or existing patient\n• If they mention a car accident, offer a same-day appointment\n• We are closed for lunch from 1-2pm on Wednesdays\n• Dr. Cohen does not take new patients on Fridays\n• Ask for their date of birth to verify identity\n• If caller is rude, stay calm and offer to have a manager call back'} style={{ ...fdInput, resize: 'vertical', minHeight: 220 }} />
+                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={12} placeholder={'Add custom instructions, directions, and notes for the AI receptionist.\nThese are injected directly into the LLM prompt.\n\nExamples:\n• Always ask if they are a new or existing patient\n• If they mention a car accident, offer a same-day appointment\n• We are closed for lunch from 1-2pm on Wednesdays\n• Dr. Cohen does not take new patients on Fridays\n• Ask for their date of birth to verify identity\n• If caller is rude, stay calm and offer to have a manager call back'} style={{ ...fdInput, resize: 'vertical', minHeight: 220 }}></textarea>
               </div>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 {[{ key: 'hipaa_mode', label: 'HIPAA Mode' },{ key: 'transfer_enabled', label: 'Call Transfer' },{ key: 'sms_enabled', label: 'SMS Links' },{ key: 'recording_enabled', label: 'Recording' },{ key: 'voicemail_enabled', label: 'Voicemail' },{ key: 'allow_client_editing', label: 'Allow Client to Edit' }].map(t => (
