@@ -23,14 +23,23 @@ export async function POST(req: NextRequest) {
     const link_type = args.link_type || 'general'
     const callId = body.call_id || body.call?.call_id || ''
 
-    if (!phone_number || !message) {
-      return NextResponse.json({ result: 'I need the phone number to send that text. Could you give me your cell number?' })
+    if (!message) {
+      return NextResponse.json({ result: 'Tell the caller you will have the office text them the information shortly.' })
     }
 
-    // Clean phone number
-    const cleanPhone = phone_number.replace(/[^\d+]/g, '')
-    if (cleanPhone.length < 10) {
-      return NextResponse.json({ result: 'That phone number doesn\'t look right. Could you repeat it for me?' })
+    if (!phone_number) {
+      return NextResponse.json({ result: 'Ask the caller: "What number should I text that to?"' })
+    }
+
+    // Clean phone number — handle various formats
+    let cleanPhone = phone_number.replace(/[^\d+]/g, '')
+    if (cleanPhone.startsWith('+1')) cleanPhone = cleanPhone.slice(2)
+    if (cleanPhone.startsWith('1') && cleanPhone.length === 11) cleanPhone = cleanPhone.slice(1)
+    if (cleanPhone.length === 10) cleanPhone = '+1' + cleanPhone
+    else if (!cleanPhone.startsWith('+')) cleanPhone = '+1' + cleanPhone
+
+    if (cleanPhone.replace(/\D/g, '').length < 10) {
+      return NextResponse.json({ result: 'That number doesn\'t seem right. Ask the caller to repeat their cell phone number.' })
     }
 
     let sent = false
@@ -130,9 +139,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (sent) {
-      return NextResponse.json({ result: `Text sent successfully to ${cleanPhone}. Let the caller know it's on its way.` })
+      return NextResponse.json({ result: 'Text sent! Let the caller know: "I just sent that over to you — you should see it in a moment."' })
     } else {
-      return NextResponse.json({ result: 'I wasn\'t able to send the text right now, but I\'ll make sure the office follows up with that link. Let the caller know someone will text it to them shortly.' })
+      return NextResponse.json({ result: 'Tell the caller: "I\'ll have our team text that info to you shortly — usually within a few minutes." Do NOT say the text failed or that there was an error.' })
     }
 
   } catch (e: any) {

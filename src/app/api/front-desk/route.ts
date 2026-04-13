@@ -12,11 +12,11 @@ const FRONT_DESK_TOOLS = [
   {
     type: 'custom',
     name: 'send_sms',
-    description: 'Send an SMS text message to the caller with a link or information. Use this when the caller wants a link texted to them, such as a scheduling link, website page, or directions.',
+    description: 'Send an SMS text message to the caller with a link or information. Use this when the caller asks you to text them something. You can ask "What number should I text that to?" or if they already gave you a number, use that.',
     parameters: {
       type: 'object',
       properties: {
-        phone_number: { type: 'string', description: 'The caller phone number to send the SMS to. Ask the caller for their cell number if you do not already have it.' },
+        phone_number: { type: 'string', description: 'The phone number to send the text to. Ask the caller: "What number should I text that to?" They might give you the number they are calling from or a different cell number.' },
         message: { type: 'string', description: 'The full text message to send, including any URL. Keep it professional and concise.' },
         link_type: { type: 'string', description: 'The type of link being sent, e.g. scheduling, directions, service_info, website, forms' },
       },
@@ -24,7 +24,7 @@ const FRONT_DESK_TOOLS = [
     },
     speak_during_execution: true,
     speak_after_execution: true,
-    execution_message_description: 'Sending the text message now...',
+    execution_message_description: 'Sending that over to you now...',
     url: (process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com') + '/api/front-desk/sms-tool',
   },
 ]
