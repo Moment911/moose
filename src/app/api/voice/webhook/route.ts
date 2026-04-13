@@ -7,6 +7,7 @@ import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
 import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
 import { createVideoVoicemail } from '@/lib/heygenVideoEngine'
 import { createNotification } from '@/lib/notifications'
+import { syncLeadToGHL, syncCallToGHL, addGHLTags } from '@/lib/goHighLevelSync'
 
 function sb() {
   return createClient(
@@ -232,6 +233,43 @@ export async function POST(req: NextRequest) {
                   .eq('client_id', fdClientId)
               }
             } catch { /* non-fatal */ }
+
+            // Push front desk caller to GHL as a contact
+            try {
+              const agencyId = call.metadata?.agency_id || body.metadata?.agency_id
+              if (agencyId) {
+                const callerPhone = call.from_number || ''
+                const callerName = call.caller_name || call.call_analysis?.custom_analysis_data?.caller_name || ''
+                const outcome = call.call_analysis?.custom_analysis_data?.call_outcome || call.disconnection_reason || 'completed'
+                const appointmentSet = call.call_analysis?.custom_analysis_data?.appointment_set === true
+                  || call.call_analysis?.call_successful === true
+
+                const ghlContactId = await syncLeadToGHL(agencyId, {
+                  prospect_name: callerName,
+                  prospect_phone: callerPhone,
+                  prospect_company: '',
+                  lead_score: appointmentSet ? 90 : 50,
+                  industry_sic_code: '',
+                })
+
+                if (ghlContactId) {
+                  // Sync the call record
+                  await syncCallToGHL(agencyId, {
+                    direction: 'inbound',
+                    duration: call.end_timestamp && call.start_timestamp
+                      ? Math.round((new Date(call.end_timestamp).getTime() - new Date(call.start_timestamp).getTime()) / 1000)
+                      : 0,
+                    outcome,
+                    transcript: call.transcript || '',
+                  }, ghlContactId)
+
+                  // Tag the contact
+                  const tags = ['koto-front-desk', `client-${fdClientId}`]
+                  if (appointmentSet) tags.push('appointment-booked')
+                  await addGHLTags(agencyId, ghlContactId, tags)
+                }
+              }
+            } catch { /* GHL sync is non-fatal */ }
           }
         }
 
