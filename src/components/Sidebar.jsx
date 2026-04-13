@@ -283,6 +283,7 @@ export default function Sidebar() {
               <NavLink to="/discovery" startsWith icon={Brain} label="Discovery" badge="NEW" badgeColor={T} hidden={!match('Discovery') || !feat('discovery')}/>
               <NavLink to="/discovery/analytics" startsWith icon={BarChart2} label="Analytics" sub hidden={!match('Analytics') || !feat('discovery')}/>
               <NavLink to="/onboarding-dashboard" startsWith icon={CheckCircle} label="Onboarding" hidden={!match('Onboarding') || !feat('onboarding')}/>
+              <NavLink to="/front-desk" icon={PhoneIncoming} label="Front Desk" badge="AI" badgeColor={R} hidden={!match('Front Desk')}/>
               <NavLink to="/tasks" startsWith icon={CheckSquare} label="Tasks" hidden={!match('Tasks') || !feat('tasks')}/>
               <NavLink to="/desk" startsWith icon={Inbox} label="KotoDesk" hidden={!match('KotoDesk') || !feat('koto_desk')}/>
               <NavLink to="/desk/knowledge" startsWith icon={Brain} label="Q&A Knowledge" sub hidden={!match('Q&A Knowledge') || !feat('koto_desk')}/>
