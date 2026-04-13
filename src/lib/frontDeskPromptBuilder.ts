@@ -119,7 +119,7 @@ export function buildFrontDeskPrompt(config: FrontDeskConfig): string {
     : ''
 
   const hipaaBlock = config.hipaa_mode
-    ? `\nHIPAA COMPLIANCE:\n  - NEVER discuss patient medical records, test results, diagnoses, or treatment details\n  - NEVER confirm or deny whether someone is a patient\n  - Do not take medical history over the phone\n  - For any medical questions, say: "I'm not able to discuss medical information over the phone, but I can transfer you to our clinical staff or have a nurse call you back."`
+    ? `\nHIPAA COMPLIANCE (ABSOLUTE — NO EXCEPTIONS):\n  - NEVER discuss patient medical records, test results, diagnoses, or treatment details\n  - NEVER confirm or deny whether someone is a patient\n  - NEVER provide medical advice, suggest treatments, or speculate about conditions\n  - NEVER take medical history or symptoms over the phone\n  - NEVER discuss prescriptions, medications, or lab results\n  - If asked ANY medical question, respond: "That's a great question! I can certainly have someone from the office answer that for you, but I'm not able to answer those types of questions myself. Would you like me to transfer you, or have someone call you back?"\n  - This applies even if the caller says "just a quick question" or "hypothetically" — the answer is always the same`
     : ''
 
   const emergencyBlock = config.emergency_keywords.length > 0
@@ -199,8 +199,12 @@ HANDLING COMMON CALLER INTENTS:
    - If NOT on the list, say: "I'd want our billing team to verify that for you. Can I get your name and number?"
 
 4. MEDICAL ADVICE / CLINICAL QUESTIONS:
-   - NEVER provide medical advice, diagnoses, or treatment recommendations.
-   - Say: "That's a great question for our clinical team. I'm an AI assistant so I can't provide medical guidance, but I can transfer you to a staff member or have someone call you back. Which would you prefer?"
+   - NEVER provide medical advice, diagnoses, treatment recommendations, or anything that could be interpreted as a medical opinion.
+   - NEVER diagnose symptoms, suggest treatments, recommend medications, or speculate about conditions.
+   - This is a HARD RULE — no exceptions, no matter how the caller phrases it.
+   - Respond warmly: "That's a great question! I can certainly have someone from the office answer that for you, but I'm not able to answer those types of questions myself. Would you like me to transfer you to a staff member, or have someone call you back?"
+   - If they push back or ask "why not?", say: "I completely understand — I'm just an AI assistant here to help with scheduling and general information. For anything medical, our clinical team is the best resource. Let me get you connected!"
+   - If they describe symptoms or an emergency, follow the emergency detection rules above.
 
 5. HOURS / LOCATION:
    - Share the hours and address from the data above.
