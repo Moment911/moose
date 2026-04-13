@@ -66,6 +66,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ prompt })
     }
 
+    // ── Directives: list ──
+    if (action === 'get_directives') {
+      const client_id = searchParams.get('client_id')
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+      const status_filter = searchParams.get('status') || 'all'
+      let q = sb.from('koto_front_desk_directives').select('*').eq('client_id', client_id).order('priority', { ascending: false }).order('created_at', { ascending: false })
+      if (status_filter !== 'all') q = q.eq('status', status_filter)
+      const { data, error } = await q
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ directives: data || [] })
+    }
+
     // ── Get call log for a client ──
     if (action === 'get_calls') {
       const client_id = searchParams.get('client_id')
@@ -479,6 +491,100 @@ ${websiteText.slice(0, 20000)}` }],
     }
 
     // ── Client-facing: save editable fields only ──
+    // ── Directives: add ──
+    if (action === 'add_directive') {
+      const { client_id, directive, category } = body
+      if (!client_id || !directive) return NextResponse.json({ error: 'Missing client_id or directive' }, { status: 400 })
+      const { data: config } = await sb.from('koto_front_desk_configs').select('id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (!config) return NextResponse.json({ error: 'No front desk config' }, { status: 404 })
+      const { data, error } = await sb.from('koto_front_desk_directives').insert({
+        config_id: config.id, agency_id, client_id, directive, category: category || 'general', source: 'manual', status: 'active',
+      }).select().single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ directive: data })
+    }
+
+    // ── Directives: update status (approve/dismiss/archive) ──
+    if (action === 'update_directive') {
+      const { id, status: newStatus, directive: newText } = body
+      if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+      const update: Record<string, any> = {}
+      if (newStatus) update.status = newStatus
+      if (newText) update.directive = newText
+      const { error } = await sb.from('koto_front_desk_directives').update(update).eq('id', id).eq('agency_id', agency_id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Directives: delete ──
+    if (action === 'delete_directive') {
+      const { id } = body
+      if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+      await sb.from('koto_front_desk_directives').delete().eq('id', id).eq('agency_id', agency_id)
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── AI: analyze call and suggest directives ──
+    if (action === 'learn_from_call') {
+      const { client_id, call_id, transcript } = body
+      if (!client_id || !transcript) return NextResponse.json({ error: 'Missing client_id or transcript' }, { status: 400 })
+
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      if (!ANTHROPIC_KEY) return NextResponse.json({ error: 'Anthropic API key not configured' }, { status: 500 })
+
+      // Get existing directives to avoid duplicates
+      const { data: existing } = await sb.from('koto_front_desk_directives').select('directive').eq('client_id', client_id).eq('status', 'active')
+      const existingList = (existing || []).map(d => d.directive).join('\n')
+
+      const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1500,
+          messages: [{ role: 'user', content: `You are analyzing a front desk phone call transcript to extract learnings that would help the AI receptionist handle future calls better.
+
+EXISTING DIRECTIVES (do not duplicate these):
+${existingList || '(none yet)'}
+
+CALL TRANSCRIPT:
+${transcript.slice(0, 8000)}
+
+Based on this call, suggest 1-5 NEW directives the AI receptionist should follow in future calls. Focus on:
+- Questions callers asked that the AI didn't handle well
+- Information the AI should have known but didn't
+- Patterns in how callers phrase things
+- Scheduling preferences or special instructions revealed
+- Common objections or concerns
+
+Return ONLY a JSON array of objects with "directive" and "category" fields.
+Categories: greeting, scheduling, medical, objection, transfer, insurance, general
+Example: [{"directive": "When caller asks about parking, tell them there is free parking in the rear lot", "category": "general"}]
+If no useful learnings, return an empty array: []` }],
+        }),
+        signal: AbortSignal.timeout(20000),
+      })
+      const aiData = await aiRes.json()
+      const text = aiData.content?.[0]?.text || '[]'
+      const jsonMatch = text.match(/\[[\s\S]*\]/)
+      const suggestions = jsonMatch ? JSON.parse(jsonMatch[0]) : []
+
+      const { data: config } = await sb.from('koto_front_desk_configs').select('id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+
+      const inserted = []
+      for (const s of suggestions) {
+        if (!s.directive) continue
+        const { data } = await sb.from('koto_front_desk_directives').insert({
+          config_id: config?.id, agency_id, client_id,
+          directive: s.directive, category: s.category || 'general',
+          source: 'call_learned', source_call_id: call_id || null, status: 'pending',
+        }).select().single()
+        if (data) inserted.push(data)
+      }
+
+      return NextResponse.json({ suggestions: inserted, count: inserted.length })
+    }
+
     if (action === 'client_save') {
       const { client_id, ...fields } = body
       if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })

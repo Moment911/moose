@@ -132,6 +132,9 @@ export default function ClientDetailPage() {
   const [fdPromptPreview, setFdPromptPreview] = useState(null)
   const [fdCalls, setFdCalls] = useState([])
   const [fdCallsLoading, setFdCallsLoading] = useState(false)
+  const [fdDirectives, setFdDirectives] = useState([])
+  const [fdNewDirective, setFdNewDirective] = useState('')
+  const [fdNewCategory, setFdNewCategory] = useState('general')
   const [missingEmailTo, setMissingEmailTo] = useState('')
   const [missingEmailToName, setMissingEmailToName] = useState('')
   const [sendingMissingEmail, setSendingMissingEmail] = useState(false)
@@ -299,10 +302,11 @@ export default function ClientDetailPage() {
 
       // Load front desk config + calls + GHL status
       try {
-        const [fdRes, fdCallsRes, ghlRes] = await Promise.all([
+        const [fdRes, fdCallsRes, ghlRes, fdDirRes] = await Promise.all([
           fetch(`/api/front-desk?action=get&client_id=${clientId}&agency_id=${aid}`),
           fetch(`/api/front-desk?action=get_calls&client_id=${clientId}&agency_id=${aid}`),
           fetch(`/api/ghl?action=get_client_ghl&agency_id=${aid}&client_id=${clientId}`),
+          fetch(`/api/front-desk?action=get_directives&client_id=${clientId}&agency_id=${aid}`),
         ])
         const fdData = await fdRes.json()
         const ghlData = await ghlRes.json()
@@ -311,6 +315,8 @@ export default function ClientDetailPage() {
         }
         const fdCallsData = await fdCallsRes.json()
         setFdCalls(fdCallsData.calls || [])
+        const fdDirData = await fdDirRes.json()
+        setFdDirectives(fdDirData.directives || [])
       } catch {}
     } catch {
       toast.error('Failed to load client')
@@ -2256,6 +2262,75 @@ export default function ClientDetailPage() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* ═══ CARD 6b: Learned Directives ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<Brain size={16} color="#7c3aed" />, `Directives & Learnings (${fdDirectives.filter(d => d.status === 'active').length} active)`)}
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '-8px 0 12px' }}>Rules the AI follows on every call. Add your own or approve AI-suggested learnings from past calls.</p>
+
+              {/* Add new directive */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                <select value={fdNewCategory} onChange={e => setFdNewCategory(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, color: BLK, width: 130 }}>
+                  {['general','greeting','scheduling','medical','objection','transfer','insurance'].map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                </select>
+                <input value={fdNewDirective} onChange={e => setFdNewDirective(e.target.value)} placeholder="Add a new directive..." onKeyDown={async e => {
+                  if (e.key === 'Enter' && fdNewDirective.trim()) {
+                    const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add_directive', client_id: clientId, agency_id: aid, directive: fdNewDirective.trim(), category: fdNewCategory }) })
+                    const data = await res.json()
+                    if (data.directive) { setFdDirectives(prev => [data.directive, ...prev]); setFdNewDirective(''); toast.success('Directive added') }
+                  }
+                }} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: BLK }} />
+                <button onClick={async () => {
+                  if (!fdNewDirective.trim()) return
+                  const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add_directive', client_id: clientId, agency_id: aid, directive: fdNewDirective.trim(), category: fdNewCategory }) })
+                  const data = await res.json()
+                  if (data.directive) { setFdDirectives(prev => [data.directive, ...prev]); setFdNewDirective(''); toast.success('Directive added') }
+                }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', whiteSpace: 'nowrap' }}>Add</button>
+              </div>
+
+              {/* Pending (AI suggested) */}
+              {fdDirectives.filter(d => d.status === 'pending').length > 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: AMB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI Suggested — Review</div>
+                  {fdDirectives.filter(d => d.status === 'pending').map(d => (
+                    <div key={d.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', marginBottom: 4, borderRadius: 8, background: '#fffbeb', border: '1px solid #fde68a' }}>
+                      <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{d.directive}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280' }}>{d.category}</span>
+                      <button onClick={async () => {
+                        await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_directive', id: d.id, status: 'active', agency_id: aid }) })
+                        setFdDirectives(prev => prev.map(x => x.id === d.id ? { ...x, status: 'active' } : x))
+                        toast.success('Approved')
+                      }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: GRN, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Approve</button>
+                      <button onClick={async () => {
+                        await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_directive', id: d.id, status: 'dismissed', agency_id: aid }) })
+                        setFdDirectives(prev => prev.filter(x => x.id !== d.id))
+                      }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#9ca3af' }}>Dismiss</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Active directives */}
+              {fdDirectives.filter(d => d.status === 'active').length === 0 ? (
+                <div style={{ background: GRY, borderRadius: 8, padding: '16px', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>
+                  No directives yet. Add some above or they will be auto-suggested after calls.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {fdDirectives.filter(d => d.status === 'active').map(d => (
+                    <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: d.source === 'call_learned' ? '#7c3aed15' : '#f3f4f6', color: d.source === 'call_learned' ? '#7c3aed' : '#6b7280' }}>{d.category}</span>
+                      <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{d.directive}</span>
+                      {d.source === 'call_learned' && <span style={{ fontSize: 10, color: '#7c3aed' }}>AI learned</span>}
+                      <button onClick={async () => {
+                        await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete_directive', id: d.id, agency_id: aid }) })
+                        setFdDirectives(prev => prev.filter(x => x.id !== d.id))
+                      }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14, padding: '0 4px' }}>x</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* ═══ CARD 7: Integrations (GHL) ═══ */}

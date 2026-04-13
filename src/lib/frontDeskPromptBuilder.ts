@@ -260,5 +260,31 @@ export async function getFrontDeskConfig(clientId: string): Promise<FrontDeskCon
 export async function buildFrontDeskPromptForClient(clientId: string): Promise<string | null> {
   const config = await getFrontDeskConfig(clientId)
   if (!config) return null
-  return buildFrontDeskPrompt(config)
+
+  // Fetch active directives and inject them into the prompt
+  const s = sb()
+  const { data: directives } = await s.from('koto_front_desk_directives')
+    .select('directive, category')
+    .eq('client_id', clientId)
+    .eq('status', 'active')
+    .order('priority', { ascending: false })
+    .limit(50)
+
+  let prompt = buildFrontDeskPrompt(config)
+
+  if (directives && directives.length > 0) {
+    const grouped: Record<string, string[]> = {}
+    for (const d of directives) {
+      const cat = d.category || 'general'
+      if (!grouped[cat]) grouped[cat] = []
+      grouped[cat].push(d.directive)
+    }
+    const directiveBlock = Object.entries(grouped).map(([cat, items]) =>
+      `[${cat.toUpperCase()}]\n${items.map(i => `• ${i}`).join('\n')}`
+    ).join('\n\n')
+
+    prompt += `\n\nLEARNED DIRECTIVES (follow these carefully — they come from the business owner and past call experience):\n${directiveBlock}`
+  }
+
+  return prompt
 }
