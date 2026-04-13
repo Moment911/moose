@@ -851,7 +851,7 @@ If no useful learnings, return an empty array: []` }],
       const phoneRes = await fetch('https://api.retellai.com/create-phone-number', {
         method: 'POST',
         headers: retellHeaders,
-        body: JSON.stringify({ area_code }),
+        body: JSON.stringify({ area_code: parseInt(String(area_code), 10) || 954 }),
       })
       if (!phoneRes.ok) {
         const err = await phoneRes.text()
