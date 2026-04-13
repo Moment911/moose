@@ -6,7 +6,7 @@ import {
   Inbox, Brain, ArrowUpRight, Zap, Users,
   Clock, AlertCircle, Loader2, BarChart2, FileSignature, X,
   Globe, Shield, Phone, Sparkles, Activity, HardDrive,
-  DollarSign, Check, CheckCircle, RefreshCw, FileText
+  DollarSign, Check, CheckCircle, RefreshCw, FileText, CheckSquare
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ViewAsModal from '../components/ViewAsModal'
@@ -1254,27 +1254,27 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
 
   const tools = [
     can?.('view_pages') && {
-      icon: '🎨', title: 'KotoProof', desc: 'Review & approve designs',
+      Icon: FileSignature, title: 'KotoProof', desc: 'Review & approve designs',
       detail: stats.projects != null ? `${stats.projects || 0} project${(stats.projects||0) !== 1 ? 's' : ''}${stats.openAnnotations ? ` · ${stats.openAnnotations} open comment${stats.openAnnotations !== 1 ? 's' : ''}` : ''}` : null,
       to: '/proof', color: T,
     },
     can?.('view_tasks') && {
-      icon: '📋', title: 'Tasks', desc: 'Track project tasks & to-dos',
+      Icon: CheckSquare, title: 'Tasks', desc: 'Track project tasks & to-dos',
       detail: stats.openTasks != null ? `${stats.openTasks} open task${stats.openTasks !== 1 ? 's' : ''}` : null,
       to: '/tasks', color: '#f59e0b',
     },
     can?.('view_reviews') && {
-      icon: '⭐', title: 'Reviews', desc: 'Monitor your online reviews',
+      Icon: Star, title: 'Reviews', desc: 'Monitor your online reviews',
       detail: stats.reviews != null ? `${stats.reviews} review${stats.reviews !== 1 ? 's' : ''}` : null,
       to: '/reviews', color: '#7c3aed',
     },
     can?.('view_proposals') && {
-      icon: '📄', title: 'Proposals', desc: 'View proposals & estimates',
+      Icon: FileText, title: 'Proposals', desc: 'View proposals & estimates',
       detail: stats.proposals != null ? `${stats.proposals} proposal${stats.proposals !== 1 ? 's' : ''}` : null,
       to: '/proposals', color: '#3b82f6',
     },
     can?.('view_reports') && {
-      icon: '📊', title: 'Reports', desc: 'Performance & analytics',
+      Icon: BarChart2, title: 'Reports', desc: 'Performance & analytics',
       detail: stats.openTickets ? `${stats.openTickets} open ticket${stats.openTickets !== 1 ? 's' : ''}` : 'All caught up',
       to: '/perf', color: R,
     },
@@ -1324,7 +1324,9 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
                     }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = tool.color; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${tool.color}15` }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = tool.color + '20'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
-                    <div style={{ fontSize: 32, marginBottom: 12 }}>{tool.icon}</div>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: tool.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                      <tool.Icon size={22} color={tool.color} />
+                    </div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 4 }}>{tool.title}</div>
                     <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginBottom: 12 }}>{tool.desc}</div>
                     {tool.detail && (
