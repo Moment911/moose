@@ -305,6 +305,15 @@ export default function ClientDetailPage() {
       toast.error('Failed to load client')
     }
     setLoading(false)
+
+    // Auto-scroll to section if ?tab= is set (e.g. from Front Desk "Edit" button)
+    const tabParam = searchParams.get('tab')
+    if (tabParam && tabParam !== 'overview') {
+      setTimeout(() => {
+        const el = sectionRefs.current[tabParam]
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 300)
+    }
   }
 
   // Health scoring lives in src/lib/clientHealthScore.ts so it stays

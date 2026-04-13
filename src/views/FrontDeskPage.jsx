@@ -259,7 +259,7 @@ export default function FrontDeskPage() {
                       <Eye size={13} /> Preview Prompt
                     </button>
                     <button
-                      onClick={() => { window.location.href = `/client/${cfg.client_id}#front-desk` }}
+                      onClick={() => { window.location.href = `/client/${cfg.client_id}?tab=front-desk` }}
                       style={{
                         padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, fontFamily: FH, cursor: 'pointer',
                         display: 'inline-flex', alignItems: 'center', gap: 5, color: '#374151',
