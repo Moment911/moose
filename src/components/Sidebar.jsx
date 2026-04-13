@@ -147,10 +147,10 @@ export default function Sidebar() {
 
   // Load client info (logo, company name) for client view
   useEffect(() => {
-    if (!clientId || !showClientView) return
+    if (!clientId || !(isClient || isPreviewingClient)) return
     supabase.from('clients').select('name, logo_url').eq('id', clientId).single()
       .then(({ data }) => { if (data) setClientInfo(data) })
-  }, [clientId, showClientView])
+  }, [clientId, isClient, isPreviewingClient])
 
   async function loadClients() {
     const data = await getClients(aid)
