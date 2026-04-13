@@ -116,6 +116,7 @@ import VoiceTestConsolePage from '../views/VoiceTestConsolePage'
 import VoiceLiveMonitorPage from '../views/VoiceLiveMonitorPage'
 import AnsweringServicePage from '../views/AnsweringServicePage'
 import VoiceCloserPage from '../views/VoiceCloserPage'
+import FrontDeskPage from '../views/FrontDeskPage'
 import PhoneNumbersPage from '../views/PhoneNumbersPage'
 import CommandPalette from '../components/CommandPalette'
 import ClientPermissionsPage from '../views/ClientPermissionsPage'
@@ -365,6 +366,7 @@ function AppRoutes() {
           <Route path="/voice/test-console" element={<VoiceTestConsolePage />} />
           <Route path="/voice/live" element={<VoiceLiveMonitorPage />} />
           <Route path="/answering" element={<AnsweringServicePage />} />
+          <Route path="/front-desk" element={<FrontDeskPage />} />
           <Route path="/voice/closer" element={<VoiceCloserPage />} />
           <Route path="/kotoclose/dashboard" element={<VoiceCloserPage />} />
           <Route path="/kotoclose/calls" element={<VoiceCloserPage />} />

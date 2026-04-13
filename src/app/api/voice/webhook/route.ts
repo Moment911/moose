@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { enrichCallerData } from '@/lib/preCallIntelligence'
 import { buildRetellDynamicVars, fetchDiscoveryBrief } from '@/lib/dynamicPromptBuilder'
+import { buildFrontDeskPromptForClient } from '@/lib/frontDeskPromptBuilder'
 import { parseTranscriptIntoQA } from '@/lib/qaIntelligence'
 import { triggerFollowUpSequence } from '@/lib/followUpSequencer'
 import { createVideoVoicemail } from '@/lib/heygenVideoEngine'
@@ -74,13 +75,60 @@ export async function POST(req: NextRequest) {
               console.error('Discovery brief lookup failed (non-fatal):', e?.message)
             }
 
+            // Front desk prompt injection for inbound calls
+            let frontDeskClientId: string | null = null
+            try {
+              const direction = call.direction || call.call_type || ''
+              const inboundNumber = call.to_number || ''
+              if ((direction === 'inbound' || direction === 'inbound_phone_call') && inboundNumber) {
+                // Check koto_front_desk_configs by retell_phone_number
+                const { data: fdConfig } = await s.from('koto_front_desk_configs')
+                  .select('client_id')
+                  .eq('retell_phone_number', inboundNumber)
+                  .eq('status', 'active')
+                  .maybeSingle()
+                if (fdConfig?.client_id) {
+                  frontDeskClientId = fdConfig.client_id
+                } else {
+                  // Fallback: check koto_inbound_agents by phone_number
+                  const { data: inboundAgent } = await s.from('koto_inbound_agents')
+                    .select('client_id')
+                    .eq('phone_number', inboundNumber)
+                    .eq('status', 'active')
+                    .maybeSingle()
+                  if (inboundAgent?.client_id) {
+                    // Verify a front desk config exists for this client
+                    const { data: fdCheck } = await s.from('koto_front_desk_configs')
+                      .select('client_id')
+                      .eq('client_id', inboundAgent.client_id)
+                      .eq('status', 'active')
+                      .maybeSingle()
+                    if (fdCheck) frontDeskClientId = inboundAgent.client_id
+                  }
+                }
+
+                if (frontDeskClientId) {
+                  const fdPrompt = await buildFrontDeskPromptForClient(frontDeskClientId)
+                  if (fdPrompt) {
+                    ;(dynamicVars as any).front_desk_prompt = fdPrompt
+                    ;(dynamicVars as any).is_front_desk = 'true'
+                    ;(dynamicVars as any).front_desk_client_id = frontDeskClientId
+                  }
+                }
+              }
+            } catch (e: any) {
+              console.error('Front desk prompt lookup failed (non-fatal):', e?.message)
+            }
+
             // Push dynamic variables to Retell for this call
             const retellKey = process.env.RETELL_API_KEY
             if (retellKey && Object.keys(dynamicVars).length > 0) {
+              const patchMetadata: any = { pre_call_intel: preCallIntel, dynamic_vars: dynamicVars }
+              if (frontDeskClientId) patchMetadata.front_desk_client_id = frontDeskClientId
               fetch(`https://api.retellai.com/v2/calls/${callId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${retellKey}` },
-                body: JSON.stringify({ metadata: { pre_call_intel: preCallIntel, dynamic_vars: dynamicVars } }),
+                body: JSON.stringify({ metadata: patchMetadata }),
               }).catch(() => {}) // fire-and-forget
             }
           }
@@ -168,6 +216,24 @@ export async function POST(req: NextRequest) {
           recording_url: call.recording_url || '',
           transcript: call.transcript || '',
         }).eq('retell_call_id', callId)
+
+        // Increment front desk total_calls if this was a front desk call
+        {
+          const fdClientId = call.metadata?.front_desk_client_id || body.metadata?.front_desk_client_id
+          if (fdClientId) {
+            try {
+              const { data: fdRow } = await s.from('koto_front_desk_configs')
+                .select('total_calls')
+                .eq('client_id', fdClientId)
+                .maybeSingle()
+              if (fdRow != null) {
+                await s.from('koto_front_desk_configs')
+                  .update({ total_calls: (fdRow.total_calls || 0) + 1 })
+                  .eq('client_id', fdClientId)
+              }
+            } catch { /* non-fatal */ }
+          }
+        }
 
         // Notifications — fire after the core state updates
         {

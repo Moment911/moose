@@ -339,6 +339,7 @@ export default function Sidebar() {
               <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" badge="AI" badgeColor={R} hidden={!match('Voice Agent') || !feat('voice_agent')}/>
               <NavLink to="/voice/closer" icon={Target} label="Closer Dashboard" sub hidden={!match('Closer') || !feat('voice_agent')}/>
               <NavLink to="/answering" startsWith icon={PhoneIncoming} label="Answering Service" hidden={!match('Answering') || !feat('answering_service')}/>
+              <NavLink to="/front-desk" icon={PhoneIncoming} label="Front Desk" badge="AI" badgeColor={R} hidden={!match('Front Desk')}/>
               <NavLink to="/industry-agents" icon={Globe} label="Industry Agents" sub hidden={!match('Industry Agents') || !feat('industry_agents')}/>
               <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" sub hidden={!match('Video Voicemails') || !feat('video_voicemails')}/>
               <NavLink to="/avatars" icon={Users} label="AI Avatars" sub hidden={!match('AI Avatars') || !feat('ai_avatars')}/>

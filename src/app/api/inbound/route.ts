@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { resolveAgencyId } from '../../../lib/apiAuth'
 import { createClient } from '@supabase/supabase-js'
+import { buildFrontDeskPromptForClient } from '@/lib/frontDeskPromptBuilder'
 
 const RETELL_API_KEY = process.env.RETELL_API_KEY || ''
 const RETELL_BASE = 'https://api.retellai.com'
@@ -501,6 +502,20 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'agency_id and agent_name required' }, { status: 400 })
         }
 
+        // Check if this client has a front desk config — if so, use the rich prompt
+        let generalPrompt = greeting_script || `Hello, thank you for calling ${business_name || 'our office'}. How may I help you today?`
+        const { client_id } = body
+        if (client_id) {
+          try {
+            const frontDeskPrompt = await buildFrontDeskPromptForClient(client_id)
+            if (frontDeskPrompt) {
+              generalPrompt = frontDeskPrompt
+            }
+          } catch (e: any) {
+            console.error('[inbound create_agent] Front desk prompt lookup failed (non-fatal):', e?.message)
+          }
+        }
+
         // Create Retell agent
         const retellAgent = await retellFetch('/create-agent', 'POST', {
           agent_name,
@@ -511,7 +526,7 @@ export async function POST(request: NextRequest) {
           enable_backchannel: true,
           backchannel_frequency: 0.7,
           interruption_sensitivity: 0.8,
-          general_prompt: greeting_script || `Hello, thank you for calling ${business_name || 'our office'}. How may I help you today?`,
+          general_prompt: generalPrompt,
         })
 
         // Insert to DB
