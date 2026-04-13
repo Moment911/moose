@@ -757,7 +757,7 @@ export default function ClientDetailPage() {
     // In-progress with zero answers — show the banner + a "waiting for client" placeholder card
     if (totalAnswered === 0) {
       return (
-        <>
+        <span>
           {progressBanner}
           <div style={{
             ...card,
@@ -780,13 +780,13 @@ export default function ClientDetailPage() {
             </div>
           </div>
           {keyframes}
-        </>
+        </span>
       )
     }
 
     // Main card — has answers (either in progress with real data, or complete)
     return (
-      <>
+      <span>
         {progressBanner}
         <div style={{
           ...card,
@@ -871,7 +871,7 @@ export default function ClientDetailPage() {
           </div>
         </div>
         {keyframes}
-      </>
+      </span>
     )
   }
 
@@ -1221,7 +1221,7 @@ export default function ClientDetailPage() {
               onClick={copyOnboardingLink}
               style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: copySuccess ? GRN : T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
             >
-              {copySuccess ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy</>}
+              {copySuccess ? <span><Check size={12} /> Copied!</span> : <span><Copy size={12} /> Copy</span>}
             </button>
             <button
               onClick={() => window.open(onboardingLink, '_blank', 'noopener')}
@@ -1872,7 +1872,7 @@ export default function ClientDetailPage() {
                   } catch (e) { toast.error(e.message) }
                   setFdLoading(false)
                 }} disabled={fdLoading} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', opacity: fdLoading ? 0.5 : 1 }}>
-                  {fdLoading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Scanning...</> : <><Zap size={16} /> Scan & Build</>}
+                  {fdLoading ? <span><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Scanning...</span> : <span><Zap size={16} /> Scan & Build</span>}
                 </button>
               </div>
               <button onClick={fdSeedTsawc} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: '#9ca3af', cursor: 'pointer' }}>
@@ -1907,7 +1907,7 @@ export default function ClientDetailPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {fd.retell_phone_number ? (<>
+                  {fd.retell_phone_number ? (<span>
                     <button onClick={async () => {
                       setFdLoading(true)
                       try { const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_agent', client_id: clientId, agency_id: aid }) }); const data = await res.json(); if (data.error) throw new Error(data.error); toast.success('Agent synced') } catch (e) { toast.error(e.message) }
@@ -1918,7 +1918,7 @@ export default function ClientDetailPage() {
                       try { const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release_number', client_id: clientId, agency_id: aid }) }); const data = await res.json(); if (data.error) throw new Error(data.error); fdUpdate('retell_phone_number', null); fdUpdate('retell_agent_id', null); toast.success('Number released') } catch (e) { toast.error(e.message) }
                       setFdLoading(false)
                     }} disabled={fdLoading} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>Release</button>
-                  </>) : (
+                  </span>) : (
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <input id="fd-area-code" defaultValue="954" style={{ width: 60, padding: '8px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, textAlign: 'center', color: BLK }} />
                       <button onClick={async () => {
@@ -1981,11 +1981,11 @@ export default function ClientDetailPage() {
                   return (
                     <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
                       <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
-                      {h ? (<>
+                      {h ? (<span>
                         <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', marginBottom: 3, color: BLK }} />
                         <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', color: BLK }} />
                         <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 11, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 3, fontWeight: 600 }}>Closed</button>
-                      </>) : (
+                      </span>) : (
                         <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 12, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontWeight: 700 }}>+ Add</button>
                       )}
                     </div>
@@ -2062,11 +2062,11 @@ export default function ClientDetailPage() {
                     <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
                       <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 6 }}>{day.slice(0, 3)}</div>
                       {h ? (
-                        <>
+                        <span>
                           <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px', marginBottom: 4, color: BLK }} />
                           <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px', color: BLK }} />
                           <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 12, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, fontWeight: 600 }}>Set Closed</button>
-                        </>
+                        </span>
                       ) : (
                         <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 13, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0', fontWeight: 700 }}>+ Add Hours</button>
                       )}
@@ -2121,7 +2121,7 @@ export default function ClientDetailPage() {
                 const hasDirections = links.some(l => l.type === 'directions')
 
                 return (
-                  <>
+                  <span>
                     {links.length === 0 && (
                       <div style={{ background: GRY, borderRadius: 10, padding: '16px', textAlign: 'center', marginBottom: 10 }}>
                         <p style={{ fontSize: 13, color: '#9ca3af', margin: '0 0 10px' }}>No links configured yet. Add links the AI can send to callers.</p>
@@ -2150,7 +2150,7 @@ export default function ClientDetailPage() {
                         + Custom Link
                       </button>
                     </div>
-                  </>
+                  </span>
                 )
               })()}
             </div>
@@ -2192,7 +2192,7 @@ export default function ClientDetailPage() {
                 const clearAll = () => fdUpdate('insurance_accepted', accepted.filter(x => !CARRIERS.includes(x)))
                 const customOnes = accepted.filter(x => !CARRIERS.includes(x))
                 return (
-                  <>
+                  <span>
                     <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                       <button onClick={selectAll} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: T }}>Select All</button>
                       <button onClick={clearAll} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: '#9ca3af' }}>Clear All</button>
@@ -2229,7 +2229,7 @@ export default function ClientDetailPage() {
                         ))}
                       </div>
                     )}
-                  </>
+                  </span>
                 )
               })()}
             </div>
@@ -2841,7 +2841,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
                 fontSize: 12, fontWeight: 700, cursor: provisioning ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
-              {provisioning ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning…</> : <>📞 Provision Number & PIN</>}
+              {provisioning ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning…</> : <>📞 Provision Number & PIN</span>}
             </button>
             <button
               onClick={copyLink}
