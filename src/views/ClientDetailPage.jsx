@@ -2098,7 +2098,6 @@ export default function ClientDetailPage() {
                 )
               })()}
             </div>
-            </div>
 
             {/* ═══ CARD 5: Services & Insurance ═══ */}
             <div style={fdCard}>
