@@ -10,7 +10,7 @@ import {
   ArrowLeft, Trash2, ExternalLink, Phone, Mail, Globe, Building, FileText,
   Star, BarChart2, Activity, Brain, Copy, Check, Loader2, RefreshCw,
   ChevronRight, Shield, Zap, TrendingUp, Clock, Users, MessageSquare,
-  Search, Edit2, X, Key, Eye, EyeOff, Palette
+  Search, Edit2, X, Key, Eye, EyeOff, Palette, PhoneIncoming, Save, Settings
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -67,6 +67,7 @@ const SECTIONS = [
   { key: 'activity',     label: 'Activity',        icon: Activity  },
   { key: 'intelligence', label: 'Intelligence',    icon: Brain     },
   { key: 'brandkit',     label: 'Brand Kit',       icon: Palette   },
+  { key: 'front-desk',  label: 'Front Desk',      icon: PhoneIncoming },
 ]
 
 const INDUSTRIES = [
@@ -123,6 +124,12 @@ export default function ClientDetailPage() {
   const [liveFieldCount, setLiveFieldCount] = useState(0)
   const [flashingFields, setFlashingFields] = useState(() => new Set())
   const [showMissingEmailModal, setShowMissingEmailModal] = useState(false)
+
+  // ── Front desk state ─────────────────────────────────────────────
+  const [fdConfig, setFdConfig] = useState(null)
+  const [fdLoading, setFdLoading] = useState(false)
+  const [fdSaving, setFdSaving] = useState(false)
+  const [fdPromptPreview, setFdPromptPreview] = useState(null)
   const [missingEmailTo, setMissingEmailTo] = useState('')
   const [missingEmailToName, setMissingEmailToName] = useState('')
   const [sendingMissingEmail, setSendingMissingEmail] = useState(false)
@@ -287,6 +294,13 @@ export default function ClientDetailPage() {
       setInboundCalls(inboundRes.data || [])
       setTasks(tasksRes.data || [])
       setActivityLogs(logsRes.data || [])
+
+      // Load front desk config
+      try {
+        const fdRes = await fetch(`/api/front-desk?action=get&client_id=${clientId}`)
+        const fdData = await fdRes.json()
+        if (fdData.config) setFdConfig(fdData.config)
+      } catch {}
     } catch {
       toast.error('Failed to load client')
     }
@@ -1721,6 +1735,235 @@ export default function ClientDetailPage() {
     )
   }
 
+  // ── Front Desk Section ────────────────────────────────────────────────────
+  async function fdSave(cfg) {
+    setFdSaving(true)
+    try {
+      const res = await fetch('/api/front-desk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save', client_id: clientId, ...cfg }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setFdConfig(data.config)
+      toast.success('Front desk config saved')
+    } catch (e) { toast.error(e.message) }
+    setFdSaving(false)
+  }
+
+  async function fdSeedTsawc() {
+    setFdLoading(true)
+    try {
+      const res = await fetch('/api/front-desk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'seed_tsawc', client_id: clientId }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setFdConfig(data.config)
+      toast.success('TSAWC test data loaded')
+    } catch (e) { toast.error(e.message) }
+    setFdLoading(false)
+  }
+
+  async function fdPreviewPrompt() {
+    try {
+      const res = await fetch(`/api/front-desk?action=preview_prompt&client_id=${clientId}`)
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setFdPromptPreview(data.prompt)
+    } catch (e) { toast.error(e.message) }
+  }
+
+  function fdUpdate(field, value) {
+    setFdConfig(prev => ({ ...prev, [field]: value }))
+  }
+
+  function renderFrontDeskSection() {
+    const fd = fdConfig || {}
+    const hasConfig = !!fdConfig?.id
+    const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+    return (
+      <div ref={el => { sectionRefs.current['front-desk'] = el }}>
+        <div style={card}>
+          <div style={{ ...sectionTitle, justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><PhoneIncoming size={16} color={R} /> Virtual Front Desk</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {hasConfig && (
+                <button onClick={fdPreviewPrompt} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280', cursor: 'pointer' }}>Preview Prompt</button>
+              )}
+              <button onClick={() => fdSave(fdConfig)} disabled={fdSaving} style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: R, color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: fdSaving ? 0.5 : 1 }}>
+                {fdSaving ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={11} />} Save
+              </button>
+            </div>
+          </div>
+
+          {!hasConfig && (
+            <div style={{ textAlign: 'center', padding: '24px 0', marginBottom: 16 }}>
+              <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>No front desk configured yet.</p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                <button onClick={() => fdSave({ company_name: client?.name || '', phone: client?.phone || '', website: client?.website || '', industry: client?.industry || '', timezone: 'America/New_York', business_hours: {}, services: [], insurance_accepted: [], staff_directory: [], hipaa_mode: false, transfer_enabled: true, sms_enabled: true, status: 'draft' })} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Create Config</button>
+                <button onClick={fdSeedTsawc} disabled={fdLoading} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', cursor: 'pointer' }}>
+                  {fdLoading ? 'Loading...' : 'Seed TSAWC Test Data'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {hasConfig && (<>
+            {/* Status + basics */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={fieldLabel}>Status</label>
+                <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                </select>
+              </div>
+              <div>
+                <label style={fieldLabel}>Company Name</label>
+                <input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={fieldLabel}>Timezone</label>
+                <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                  {['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Phoenix','Pacific/Honolulu'].map(tz => <option key={tz} value={tz}>{tz.replace('America/', '').replace('Pacific/', '').replace(/_/g, ' ')}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={fieldLabel}>Phone</label>
+                <input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={fieldLabel}>Website</label>
+                <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={fieldLabel}>Address</label>
+                <input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+            </div>
+
+            {/* Business Hours */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={fieldLabel}>Business Hours</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginTop: 4 }}>
+                {DAYS.map(day => {
+                  const h = (fd.business_hours || {})[day]
+                  return (
+                    <div key={day} style={{ background: GRY, borderRadius: 8, padding: '8px 6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
+                      {h ? (
+                        <>
+                          <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 10, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2, marginBottom: 2 }} />
+                          <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 10, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2 }} />
+                          <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 9, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 2 }}>Closed</button>
+                        </>
+                      ) : (
+                        <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 10, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>+ Add</button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Scheduling */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={fieldLabel}>Scheduling Contact</label>
+                <input value={fd.scheduling_department_name || ''} onChange={e => fdUpdate('scheduling_department_name', e.target.value)} placeholder="e.g. Rachel" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={fieldLabel}>Scheduling Phone</label>
+                <input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={fieldLabel}>Online Scheduling URL</label>
+                <input value={fd.scheduling_link || ''} onChange={e => fdUpdate('scheduling_link', e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+              </div>
+            </div>
+
+            {/* Services */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={fieldLabel}>Services ({(fd.services || []).length})</label>
+              <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={4} placeholder="One service per line" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical' }} />
+            </div>
+
+            {/* Insurance */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={fieldLabel}>Insurance Accepted</label>
+              <textarea value={(fd.insurance_accepted || []).join('\n')} onChange={e => fdUpdate('insurance_accepted', e.target.value.split('\n').filter(s => s.trim()))} rows={3} placeholder="One per line, or 'Most major medical plans'" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical' }} />
+            </div>
+
+            {/* Custom greeting + instructions */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={fieldLabel}>Custom Greeting</label>
+                <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="{greeting}, it's a great day at {company}!" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>Use {'{greeting}'} and {'{company}'} as placeholders</div>
+              </div>
+              <div>
+                <label style={fieldLabel}>Additional Instructions</label>
+                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={2} placeholder="Any special instructions for the AI..." style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical' }} />
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+              {[
+                { key: 'hipaa_mode', label: 'HIPAA Mode' },
+                { key: 'transfer_enabled', label: 'Call Transfer' },
+                { key: 'sms_enabled', label: 'SMS Links' },
+                { key: 'recording_enabled', label: 'Recording' },
+                { key: 'voicemail_enabled', label: 'Voicemail' },
+              ].map(t => (
+                <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontFamily: FH, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R }} />
+                  {t.label}
+                </label>
+              ))}
+            </div>
+
+            {/* Metrics */}
+            {(fd.total_calls > 0 || fd.total_appointments > 0) && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {[
+                  { label: 'Total Calls', val: fd.total_calls || 0 },
+                  { label: 'Appointments', val: fd.total_appointments || 0 },
+                  { label: 'Transfers', val: fd.total_transfers || 0 },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign: 'center', padding: '12px 8px', background: GRY, borderRadius: 10 }}>
+                    <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: BLK }}>{s.val}</div>
+                    <div style={{ fontSize: 10, fontFamily: FH, color: '#9ca3af', marginTop: 2 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>)}
+        </div>
+
+        {/* Prompt Preview Modal */}
+        {fdPromptPreview && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
+            <div style={{ background: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '80vh', overflow: 'auto', padding: 24 }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>LLM System Prompt Preview</span>
+                <button onClick={() => setFdPromptPreview(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+              <pre style={{ fontSize: 11, fontFamily: 'monospace', whiteSpace: 'pre-wrap', background: '#f9fafb', padding: 16, borderRadius: 10, border: '1px solid #e5e7eb', color: '#374151', lineHeight: 1.6 }}>{fdPromptPreview}</pre>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   function renderIntelligenceSection() {
     const hs = healthScore || 0
     const hsColor = getHealthColor(hs)
@@ -1890,6 +2133,8 @@ export default function ClientDetailPage() {
             {renderIntelligenceSection()}
             <div style={{ height: 32 }} />
             {renderBrandKitSection()}
+            <div style={{ height: 32 }} />
+            {renderFrontDeskSection()}
             <div style={{ height: 40 }} />
           </div>
         </div>
