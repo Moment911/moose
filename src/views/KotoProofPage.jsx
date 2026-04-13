@@ -495,6 +495,63 @@ export default function KotoProofPage() {
                 </div>
               )}
 
+              {/* Thumbnail strip — drag to reorder, click to rename */}
+              {files.length > 0 && (
+                <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 12, marginBottom: 16, scrollbarWidth: 'thin' }}>
+                  {files.map((file, i) => {
+                    const isImg = file.type?.startsWith('image/')
+                    return (
+                      <div key={file.id} draggable
+                        onDragStart={e => { e.dataTransfer.setData('fileIdx', String(i)) }}
+                        onDragOver={e => e.preventDefault()}
+                        onDrop={async e => {
+                          e.preventDefault()
+                          const fromIdx = parseInt(e.dataTransfer.getData('fileIdx'))
+                          if (isNaN(fromIdx) || fromIdx === i) return
+                          const reordered = [...files]
+                          const [moved] = reordered.splice(fromIdx, 1)
+                          reordered.splice(i, 0, moved)
+                          setFiles(reordered)
+                          for (let j = 0; j < reordered.length; j++) {
+                            supabase.from('files').update({ sort_order: j }).eq('id', reordered[j].id).then(() => {})
+                          }
+                          toast.success('Reordered')
+                        }}
+                        style={{ flexShrink: 0, width: 100, cursor: 'grab', textAlign: 'center' }}
+                      >
+                        <div style={{ width: 100, height: 72, borderRadius: 8, overflow: 'hidden', border: '2px solid #e5e7eb', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}
+                          onClick={() => {
+                            const pid = projectId || project?.id
+                            if (pid && !file.type?.startsWith('video/')) navigate(`/project/${pid}/review/${file.id}`)
+                            else if (file.type?.startsWith('video/')) setVideoModal(file)
+                          }}
+                        >
+                          {isImg ? <img src={file.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FileTypeIcon type={file.type} size={24} />}
+                        </div>
+                        <div
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={async e => {
+                            const newName = e.currentTarget.textContent?.trim()
+                            if (newName && newName !== file.name) {
+                              await supabase.from('files').update({ name: newName }).eq('id', file.id)
+                              setFiles(prev => prev.map(f => f.id === file.id ? { ...f, name: newName } : f))
+                              toast.success('Renamed')
+                            }
+                          }}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur() } }}
+                          style={{ fontSize: 11, color: '#374151', fontWeight: 600, lineHeight: 1.2, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', padding: '2px 4px', borderRadius: 4, outline: 'none', border: '1px solid transparent' }}
+                          onFocus={e => { e.currentTarget.style.borderColor = '#E6007E'; e.currentTarget.style.whiteSpace = 'normal' }}
+                          onBlurCapture={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.whiteSpace = 'nowrap' }}
+                        >
+                          {file.name?.replace(/\.[^.]+$/, '')}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
               {files.map((file, fileIdx) => {
                 const versions = files.filter(f => f.parent_file_id === file.id || (file.parent_file_id && f.parent_file_id === file.parent_file_id && f.id !== file.id))
                 // Live annotation counts from the loaded allAnnotations (not stale comment_count)

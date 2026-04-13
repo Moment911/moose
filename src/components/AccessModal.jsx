@@ -82,16 +82,16 @@ export default function AccessModal({ project, onClose, onUpdate }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="card w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="card w-full max-w-md shadow-2xl" style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100" style={{ flexShrink: 0 }}>
           <h2 className="font-semibold text-gray-900">Access Settings</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-6 space-y-3">
+        <div className="p-5 space-y-3" style={{ overflowY: 'auto', flex: 1 }}
           {/* Access options */}
           {OPTIONS.map(opt => {
             const Icon = opt.icon

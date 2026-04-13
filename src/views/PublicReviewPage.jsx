@@ -10,6 +10,7 @@ import { differenceInDays, format as formatDate } from 'date-fns'
 import FAQSection, { CLIENT_FAQ } from '../components/FAQSection'
 import ClientOnboarding from '../components/ClientOnboarding'
 import FeedbackTemplates from '../components/FeedbackTemplates'
+import AnnotationToolbar from '../components/AnnotationToolbar'
 import SatisfactionSurvey from '../components/SatisfactionSurvey'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -451,6 +452,20 @@ export default function PublicReviewPage() {
         <span className="font-medium">How to leave feedback:</span>
         <span className="text-brand-100">1. Enter your name below &middot; 2. Click a tool and click on the design &middot; 3. Type your comment and hit Enter</span>
       </div>
+
+      {/* Annotation toolbar — same as internal review */}
+      {!roundsExhausted && (
+        <AnnotationToolbar
+          tool={tool}
+          setTool={setTool}
+          color={color || '#E6007E'}
+          setColor={setColor || (() => {})}
+          onUndo={() => {}}
+          onClearAll={() => {}}
+          annotationCount={annotations?.length || 0}
+          clientMode={true}
+        />
+      )}
 
       {roundsExhausted && (
         <div className="text-white text-sm text-center py-3 font-medium flex-shrink-0 flex items-center justify-center gap-4" style={{ background: 'linear-gradient(135deg, #E6007E, #dc2626)' }}>
