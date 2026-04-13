@@ -942,9 +942,11 @@ If no useful learnings, return an empty array: []` }],
         ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
         : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`
 
-      // Update the LLM prompt (if we have an llm_id stored)
-      if (cfg.retell_llm_id) {
-        const llmPatchRes = await fetch(`https://api.retellai.com/update-retell-llm/${cfg.retell_llm_id}`, {
+      // Update or create the LLM
+      let llmId = cfg.retell_llm_id
+      if (llmId) {
+        // Update existing LLM
+        const llmPatchRes = await fetch(`https://api.retellai.com/update-retell-llm/${llmId}`, {
           method: 'PATCH',
           headers: retellHeaders,
           body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg }),
@@ -953,13 +955,29 @@ If no useful learnings, return an empty array: []` }],
           const err = await llmPatchRes.text()
           return NextResponse.json({ error: `Failed to update Retell LLM: ${err}` }, { status: 500 })
         }
+      } else {
+        // No LLM exists (agent was created before LLM flow) — create one now
+        const llmRes = await fetch('https://api.retellai.com/create-retell-llm', {
+          method: 'POST',
+          headers: retellHeaders,
+          body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg }),
+        })
+        if (!llmRes.ok) {
+          const err = await llmRes.text()
+          return NextResponse.json({ error: `Failed to create Retell LLM: ${err}` }, { status: 500 })
+        }
+        const llmData = await llmRes.json()
+        llmId = llmData.llm_id
+        // Save the new LLM ID
+        await sb.from('koto_front_desk_configs').update({ retell_llm_id: llmId }).eq('client_id', client_id).eq('agency_id', agency_id)
       }
 
-      // Update agent settings (voice, transfer list, etc.)
+      // Update agent settings (voice, transfer list, LLM link)
       const patchRes = await fetch(`https://api.retellai.com/update-agent/${cfg.retell_agent_id}`, {
         method: 'PATCH',
         headers: retellHeaders,
         body: JSON.stringify({
+          response_engine: { type: 'retell-llm', llm_id: llmId },
           voice_id: cfg.voice_id || '11labs-Marissa',
           enable_backchannel: true,
           ...(cfg.scheduling_department_phone ? {
