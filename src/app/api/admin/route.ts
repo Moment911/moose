@@ -246,6 +246,66 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ user: { id: authUser.user?.id, email } })
   }
 
+  // ── Create client team member — auth user + koto_client_users + permissions ──
+  if (action === 'create_client_user') {
+    const { email, password, first_name, last_name, client_id, agency_id, role: memberRole } = body
+    if (!email || !password) return NextResponse.json({ error: 'email and password required' }, { status: 400 })
+    if (!client_id || !agency_id) return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+
+    // 1. Create auth user
+    const { data: authUser, error: authErr } = await s.auth.admin.createUser({
+      email, password, email_confirm: true,
+      user_metadata: { first_name: first_name || '', last_name: last_name || '' },
+    })
+    if (authErr) return NextResponse.json({ error: authErr.message }, { status: 500 })
+
+    // 2. Link to client
+    const { error: cuErr } = await s.from('koto_client_users').insert({
+      user_id: authUser.user!.id, client_id, agency_id, role: memberRole || 'viewer',
+    })
+    if (cuErr) return NextResponse.json({ error: 'User created but client link failed: ' + cuErr.message }, { status: 500 })
+
+    // 3. Ensure permissions row
+    await s.from('koto_client_permissions').upsert({
+      client_id, agency_id,
+      can_view_pages: true, can_view_reviews: true, can_view_reports: true,
+      can_view_tasks: true, can_edit_tasks: memberRole === 'owner', can_view_proposals: true,
+    }, { onConflict: 'client_id' })
+
+    return NextResponse.json({ user: { id: authUser.user?.id, email } })
+  }
+
+  // ── Remove client team member ────────────────────────────────────────────
+  if (action === 'remove_client_user') {
+    const { client_user_id } = body
+    if (!client_user_id) return NextResponse.json({ error: 'client_user_id required' }, { status: 400 })
+    const { error } = await s.from('koto_client_users').delete().eq('id', client_user_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // ── Update client team member role ───────────────────────────────────────
+  if (action === 'update_client_user_role') {
+    const { client_user_id, role: newRole } = body
+    if (!client_user_id || !newRole) return NextResponse.json({ error: 'client_user_id and role required' }, { status: 400 })
+    const { error } = await s.from('koto_client_users').update({ role: newRole }).eq('id', client_user_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // ── List client team members with emails ──────────────────────────────
+  if (action === 'list_client_users') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data: rows } = await s.from('koto_client_users').select('id, user_id, role, created_at')
+      .eq('client_id', client_id).order('created_at', { ascending: true })
+    if (!rows?.length) return NextResponse.json({ members: [] })
+    const { data: { users } } = await s.auth.admin.listUsers()
+    const userMap: Record<string, string> = {}
+    users?.forEach((u: any) => { userMap[u.id] = u.email })
+    return NextResponse.json({ members: rows.map(r => ({ ...r, email: userMap[r.user_id] || 'Unknown' })) })
+  }
+
   // ── Set/reset password for any user ───────────────────────────────────
   if (action === 'set_password') {
     const { user_id, email, new_password } = body

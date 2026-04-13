@@ -2150,20 +2150,11 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
 
   async function loadMembers() {
     setLoading(true)
-    const { data } = await supabase.from('koto_client_users').select('id, user_id, role, created_at')
-      .eq('client_id', clientId).order('created_at', { ascending: true })
-    if (data?.length) {
-      // Fetch emails from admin API
-      const res = await fetch('/api/admin', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'list_users' }),
-      }).then(r => r.json())
-      const userMap = {}
-      ;(res.users || []).forEach(u => { userMap[u.id] = u.email })
-      setMembers(data.map(m => ({ ...m, email: userMap[m.user_id] || 'Unknown' })))
-    } else {
-      setMembers([])
-    }
+    const res = await fetch('/api/admin', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list_client_users', client_id: clientId }),
+    }).then(r => r.json())
+    setMembers(res.members || [])
     setLoading(false)
   }
 
@@ -2174,21 +2165,13 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
     try {
       const res = await fetch('/api/admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create_user', email, password, first_name: clientName?.split(' ')[0] || '', last_name: clientName?.split(' ').slice(1).join(' ') || '' }),
+        body: JSON.stringify({
+          action: 'create_client_user', email, password,
+          first_name: clientName?.split(' ')[0] || '', last_name: clientName?.split(' ').slice(1).join(' ') || '',
+          client_id: clientId, agency_id: agencyId, role: memberRole,
+        }),
       }).then(r => r.json())
       if (res.error) { toast.error(res.error); setCreating(false); return }
-
-      const { error: cuErr } = await supabase.from('koto_client_users').insert({
-        user_id: res.user.id, client_id: clientId, agency_id: agencyId, role: memberRole,
-      })
-      if (cuErr) { toast.error('User created but link failed: ' + cuErr.message); setCreating(false); return }
-
-      // Ensure permissions row exists for this client
-      await supabase.from('koto_client_permissions').upsert({
-        client_id: clientId, agency_id: agencyId,
-        can_view_pages: true, can_view_reviews: true, can_view_reports: true,
-        can_view_tasks: true, can_edit_tasks: memberRole === 'owner', can_view_proposals: true,
-      }, { onConflict: 'client_id' })
 
       toast.success(`Team member added: ${email}`)
       setEmail(''); setPassword(''); setMemberRole('viewer'); setShowAdd(false)
@@ -2199,15 +2182,21 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
 
   async function handleRemove(member) {
     if (!confirm(`Remove ${member.email} from this client?`)) return
-    await supabase.from('koto_client_users').delete().eq('id', member.id)
-    toast.success(`Removed ${member.email}`)
-    loadMembers()
+    const res = await fetch('/api/admin', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'remove_client_user', client_user_id: member.id }),
+    }).then(r => r.json())
+    if (res.error) toast.error(res.error)
+    else { toast.success(`Removed ${member.email}`); loadMembers() }
   }
 
   async function handleRoleChange(member, newRole) {
-    await supabase.from('koto_client_users').update({ role: newRole }).eq('id', member.id)
-    toast.success(`${member.email} is now ${newRole}`)
-    loadMembers()
+    const res = await fetch('/api/admin', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_client_user_role', client_user_id: member.id, role: newRole }),
+    }).then(r => r.json())
+    if (res.error) toast.error(res.error)
+    else { toast.success(`${member.email} is now ${newRole}`); loadMembers() }
   }
 
   async function handleSetPassword(member) {
