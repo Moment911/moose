@@ -747,7 +747,7 @@ export default function FileReviewPage() {
                 </div>
               )}
 
-              {/* Pending pin comment popover — positioned in content coordinates */}
+              {/* Pending pin comment popover — counteracts zoom scale */}
               {pendingPin && (
                 <div style={{
                   position: 'absolute',
@@ -756,9 +756,11 @@ export default function FileReviewPage() {
                   zIndex: 100,
                   background: '#fff',
                   borderRadius: 10,
-                  padding: 12,
+                  padding: 14,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                  minWidth: 240,
+                  minWidth: 280,
+                  transform: `scale(${1 / zoom})`,
+                  transformOrigin: 'top left',
                 }}>
                   <textarea
                     placeholder="Add a comment…"
@@ -766,7 +768,7 @@ export default function FileReviewPage() {
                     rows={3}
                     value={pendingComment}
                     onChange={(e) => setPendingComment(e.target.value)}
-                    style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: 8, fontSize: 13, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, fontSize: 16, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   />
                   <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                     <button
