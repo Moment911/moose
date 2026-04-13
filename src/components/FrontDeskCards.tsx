@@ -6,7 +6,7 @@ import toast from "react-hot-toast"
 
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from "../lib/theme"
 
-export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInput, DAYS, fdUpdate, fdLoading, setFdLoading, clientId, aid, fdDirectives, setFdDirectives, fdNewDirective, setFdNewDirective, fdNewCategory, setFdNewCategory, fdCalls }) {
+export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInput, DAYS, fdUpdate, fdLoading, setFdLoading, clientId, aid, fdDirectives, setFdDirectives, fdNewDirective, setFdNewDirective, fdNewCategory, setFdNewCategory, fdCalls, fdSave, fdSaving }) {
 
   async function doFetch(action, extra = {}) {
     const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, client_id: clientId, agency_id: aid, ...extra }) })
@@ -123,10 +123,13 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
           <div><label style={fdLabel}>Transfer Timeout (sec)</label><input type="number" value={fd.transfer_timeout_seconds || 30} onChange={e => fdUpdate('transfer_timeout_seconds', parseInt(e.target.value) || 30)} style={{ ...fdInput, width: 100 }} /></div>
           <div><label style={fdLabel}>Transfer Announcement</label><input value={fd.transfer_announce_template || 'You have an incoming call. Press 1 to connect.'} onChange={e => fdUpdate('transfer_announce_template', e.target.value)} style={fdInput} /></div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
           <div><label style={fdLabel}>Voicemail Greeting</label><textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone..." style={{ ...fdInput, resize: 'vertical' }}></textarea></div>
           <div><label style={fdLabel}>Max Voicemail (sec)</label><input type="number" value={fd.voicemail_max_seconds || 120} onChange={e => fdUpdate('voicemail_max_seconds', parseInt(e.target.value) || 120)} style={{ ...fdInput, width: 100 }} /></div>
         </div>
+        <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Call routing saved & synced to agent') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', width: '100%', opacity: fdLoading ? 0.5 : 1 }}>
+          {fdLoading ? 'Saving & Syncing...' : 'Save & Sync Call Routing'}
+        </button>
       </div>
 
       {/* CARD 4: Sendable Links */}
@@ -210,7 +213,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <label style={{ ...fdLabel, marginBottom: 0 }}>Additional Instructions & Directives</label>
-            <button onClick={async () => { setFdLoading(true); try { const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Saved & synced to LLM') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: fdLoading ? 0.5 : 1 }}>
+            <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Saved & synced to LLM') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: fdLoading ? 0.5 : 1 }}>
               {fdLoading ? 'Saving...' : 'Save & Sync to LLM'}
             </button>
           </div>

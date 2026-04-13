@@ -189,6 +189,8 @@ export async function POST(req: NextRequest) {
         voicemail_max_seconds: fields.voicemail_max_seconds ?? 120,
         transfer_timeout_seconds: fields.transfer_timeout_seconds ?? 30,
         transfer_announce_template: fields.transfer_announce_template ?? 'You have an incoming call from {caller}. Press 1 to connect.',
+        transfer_number: fields.transfer_number || null,
+        gmb_url: fields.gmb_url || null,
       }
 
       let result

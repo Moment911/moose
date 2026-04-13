@@ -1885,7 +1885,7 @@ export default function ClientDetailPage() {
             </div>
           )}
 
-          {hasConfig && <FrontDeskCards fd={fd} fdCard={fdCard} fdCardTitle={fdCardTitle} fdLabel={fdLabel} fdInput={fdInput} DAYS={DAYS} fdUpdate={fdUpdate} fdLoading={fdLoading} setFdLoading={setFdLoading} clientId={clientId} aid={aid} fdDirectives={fdDirectives} setFdDirectives={setFdDirectives} fdNewDirective={fdNewDirective} setFdNewDirective={setFdNewDirective} fdNewCategory={fdNewCategory} setFdNewCategory={setFdNewCategory} fdCalls={fdCalls} />}
+          {hasConfig && <FrontDeskCards fd={fd} fdCard={fdCard} fdCardTitle={fdCardTitle} fdLabel={fdLabel} fdInput={fdInput} DAYS={DAYS} fdUpdate={fdUpdate} fdLoading={fdLoading} setFdLoading={setFdLoading} clientId={clientId} aid={aid} fdDirectives={fdDirectives} setFdDirectives={setFdDirectives} fdNewDirective={fdNewDirective} setFdNewDirective={setFdNewDirective} fdNewCategory={fdNewCategory} setFdNewCategory={setFdNewCategory} fdCalls={fdCalls} fdSave={() => fdSave(fdConfig)} fdSaving={fdSaving} />}
 
           {fdPromptPreview && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
