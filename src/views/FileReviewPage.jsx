@@ -26,7 +26,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut,
-  Smartphone, Tablet, Monitor, MonitorUp, CheckCircle,
+  Smartphone, Tablet, Monitor, MonitorUp, CheckCircle, PanelLeftClose, PanelLeftOpen, FileText, Image as ImageIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
@@ -72,6 +72,7 @@ export default function FileReviewPage() {
   const [selectedId, setSelectedId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [team, setTeam] = useState([])
+  const [thumbsOpen, setThumbsOpen] = useState(true)
 
   const [tool, setTool] = useState('select')
   const [color, setColor] = useState('#E6007E')
@@ -538,8 +539,58 @@ export default function FileReviewPage() {
           resize the inner HTML content properly with these controls.
           Re-enable when we implement a proper responsive preview. */}
 
-      {/* Main area — canvas + sidebar */}
+      {/* Main area — thumbs + canvas + sidebar */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
+
+        {/* Left thumbnail panel — collapsible */}
+        <div style={{ width: thumbsOpen ? 88 : 36, flexShrink: 0, background: '#151515', borderRight: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column', transition: 'width .2s ease', overflow: 'hidden' }}>
+          <button onClick={() => setThumbsOpen(!thumbsOpen)} style={{ width: '100%', padding: '8px 0', background: 'none', border: 'none', borderBottom: '1px solid #2a2a2a', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', flexShrink: 0 }} title={thumbsOpen ? 'Collapse' : 'Expand'}>
+            {thumbsOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+          </button>
+          {thumbsOpen && (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: 6, scrollbarWidth: 'thin' }}>
+              {allFiles.map((f, i) => {
+                const isActive = f.id === fileId
+                const isImg = f.type?.startsWith('image/')
+                return (
+                  <div key={f.id}
+                    draggable
+                    onDragStart={e => e.dataTransfer.setData('thumbIdx', String(i))}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={async e => {
+                      e.preventDefault()
+                      const fromIdx = parseInt(e.dataTransfer.getData('thumbIdx'))
+                      if (isNaN(fromIdx) || fromIdx === i) return
+                      const reordered = [...allFiles]
+                      const [moved] = reordered.splice(fromIdx, 1)
+                      reordered.splice(i, 0, moved)
+                      setAllFiles(reordered)
+                      for (let j = 0; j < reordered.length; j++) {
+                        supabase.from('files').update({ sort_order: j }).eq('id', reordered[j].id).then(() => {})
+                      }
+                    }}
+                    onClick={() => navigate(`/project/${projectId}/review/${f.id}`)}
+                    style={{
+                      cursor: 'pointer', borderRadius: 6, overflow: 'hidden',
+                      border: isActive ? '2px solid #E6007E' : '2px solid transparent',
+                      opacity: isActive ? 1 : 0.6, transition: 'all .15s',
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.opacity = '0.9' }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.opacity = '0.6' }}
+                  >
+                    <div style={{ width: 72, height: 52, background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isImg ? <img src={f.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FileText size={20} color="#555" />}
+                    </div>
+                    <div style={{ fontSize: 9, color: isActive ? '#fff' : '#888', fontWeight: 600, padding: '3px 4px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: '#1a1a1a' }}>
+                      {f.name?.replace(/\.[^.]+$/, '').slice(0, 12)}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Scrollable canvas container — minWidth:0 prevents flex overflow under sidebar */}
         <div
           ref={canvasContainerRef}
