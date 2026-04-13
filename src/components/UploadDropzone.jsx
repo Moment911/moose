@@ -16,6 +16,30 @@ const ACCEPTED = {
   'video/mp4': ['.mp4'],
   'video/quicktime': ['.mov'],
   'video/webm': ['.webm'],
+  'application/zip': ['.zip'],
+  'application/x-zip-compressed': ['.zip'],
+}
+
+const EXTRACTABLE_EXTS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'html', 'htm', 'mp4', 'mov', 'webm']
+
+async function extractZip(zipFile) {
+  const { BlobReader, BlobWriter, ZipReader } = await import('@zip.js/zip.js')
+  const reader = new ZipReader(new BlobReader(zipFile))
+  const entries = await reader.getEntries()
+  const extracted = []
+  for (const entry of entries) {
+    if (entry.directory) continue
+    const name = entry.filename.split('/').pop() || entry.filename
+    const ext = name.split('.').pop()?.toLowerCase() || ''
+    if (!EXTRACTABLE_EXTS.includes(ext)) continue
+    if (name.startsWith('.') || name.startsWith('__MACOSX')) continue
+    const blob = await entry.getData(new BlobWriter())
+    const file = new File([blob], name, { type: normalizeType({ name, type: '' }) })
+    Object.assign(file, { preview: URL.createObjectURL(file) })
+    extracted.push(file)
+  }
+  await reader.close()
+  return extracted
 }
 
 // Browsers sometimes hand us a File with an empty .type for HTML
@@ -46,8 +70,24 @@ export default function UploadDropzone({ projectId, onUploaded }) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState({})
 
-  const onDrop = useCallback(accepted => {
-    setFiles(prev => [...prev, ...accepted.map(f => Object.assign(f, { preview: URL.createObjectURL(f) }))])
+  const onDrop = useCallback(async (accepted) => {
+    const newFiles = []
+    for (const f of accepted) {
+      if (f.name.toLowerCase().endsWith('.zip')) {
+        toast.loading('Extracting ZIP...', { id: 'zip' })
+        try {
+          const extracted = await extractZip(f)
+          newFiles.push(...extracted)
+          toast.success(`Extracted ${extracted.length} files from ${f.name}`, { id: 'zip' })
+        } catch (e) {
+          toast.error('Failed to extract ZIP', { id: 'zip' })
+          console.error(e)
+        }
+      } else {
+        newFiles.push(Object.assign(f, { preview: URL.createObjectURL(f) }))
+      }
+    }
+    setFiles(prev => [...prev, ...newFiles])
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -121,7 +161,7 @@ export default function UploadDropzone({ projectId, onUploaded }) {
         <p className="font-medium text-gray-700 text-sm mb-1">
           {isDragActive ? 'Drop your files here' : 'Drag & drop files here'}
         </p>
-        <p className="text-sm text-gray-500">PNG, JPG, PDF, HTML · Up to 50MB each</p>
+        <p className="text-sm text-gray-500">PNG, JPG, PDF, HTML, ZIP · Up to 50MB each · ZIP files auto-extract</p>
         <button type="button" className="mt-3 btn-secondary text-sm py-1.5">Browse files</button>
       </div>
 
