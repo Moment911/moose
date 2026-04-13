@@ -320,7 +320,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   }
 
-  // ── List client team members with emails ──────────────────────────────
+  // ── Get client info (for portal UI — bypasses RLS) ──────────��─────────
+  if (action === 'get_client_info') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data } = await s.from('clients').select('name, logo_url, brand_kit').eq('id', client_id).single()
+    return NextResponse.json({ client: data || null })
+  }
+
+  // ── List client team members with emails ─────────────────��────────────
   if (action === 'list_client_users') {
     const { client_id } = body
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })

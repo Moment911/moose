@@ -188,9 +188,12 @@ export function AuthProvider({ children }) {
         const { data: ag } = await supabase.from('agencies').select('*').eq('id', clientUser.agency_id).single()
         if (ag) setAgency(ag)
 
-        // Load client info (name, logo) for portal UI
-        const { data: ci } = await supabase.from('clients').select('name, logo_url, brand_kit').eq('id', clientUser.client_id).single()
-        if (ci) setClientInfo(ci)
+        // Load client info (name, logo) via server API — bypasses RLS
+        fetch('/api/admin', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_client_info', client_id: clientUser.client_id }),
+        }).then(r => r.json()).then(res => { if (res.client) setClientInfo(res.client) })
+          .catch(() => {})
 
         // Load this client's permissions
         loadClientPermissions(clientUser.client_id, clientUser.agency_id)
