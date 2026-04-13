@@ -79,7 +79,7 @@ const INDUSTRIES = [
 export default function ClientDetailPage() {
   const { clientId } = useParams()
   const navigate = useNavigate()
-  const { agencyId, isSuperAdmin } = useAuth()
+  const { agencyId, isSuperAdmin, isImpersonating } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -1996,13 +1996,13 @@ export default function ClientDetailPage() {
 
   // ── Main render ───────────────────────────────────────────────────────────────
   return (
-    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY }}>
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, paddingTop: (isSuperAdmin || isImpersonating) ? 36 : 0 }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
         <div style={{ background: '#fff', flexShrink: 0, borderBottom: '1px solid #e5e7eb' }}>
-          <div style={{ padding: '16px 28px 0', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ padding: '12px 24px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
             <button onClick={() => navigate('/clients')}
               style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontFamily: FH, padding: 0 }}>
               <ArrowLeft size={16} /> Clients
@@ -2038,14 +2038,14 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Tab bar */}
-          <div style={{ display: 'flex', overflowX: 'auto', paddingLeft: 28, marginTop: 12, scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', overflowX: 'auto', paddingLeft: 24, marginTop: 6, scrollbarWidth: 'none' }}>
             {SECTIONS.map(sec => {
               const Ic = sec.icon
               const isActive = activeSection === sec.key
               return (
                 <button key={sec.key} onClick={() => scrollToSection(sec.key)}
-                  style={{ padding: '12px 18px', background: 'none', border: 'none', borderBottom: isActive ? `3px solid ${R}` : '3px solid transparent', color: isActive ? BLK : '#9ca3af', fontSize: 14, fontFamily: FH, fontWeight: isActive ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0, transition: 'all .15s' }}>
-                  <Ic size={15} /> {sec.label}
+                  style={{ padding: '10px 14px', background: 'none', border: 'none', borderBottom: isActive ? `3px solid ${R}` : '3px solid transparent', color: isActive ? BLK : '#9ca3af', fontSize: 13, fontFamily: FH, fontWeight: isActive ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, transition: 'all .15s', whiteSpace: 'nowrap' }}>
+                  <Ic size={14} /> {sec.label}
                 </button>
               )
             })}
