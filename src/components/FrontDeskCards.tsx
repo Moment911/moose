@@ -4,9 +4,7 @@ import { useState } from "react"
 import { Phone, Globe, ExternalLink, Activity, Brain, Settings, Loader2, Zap, X, Sparkles, Check } from "lucide-react"
 import toast from "react-hot-toast"
 
-const R = "#E6007E", T = "#00C2CB", BLK = "#111111", GRY = "#F9F9F9", GRN = "#16a34a", AMB = "#f59e0b"
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from "../lib/theme"
 
 export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInput, DAYS, fdUpdate, fdLoading, setFdLoading, clientId, aid, fdDirectives, setFdDirectives, fdNewDirective, setFdNewDirective, fdNewCategory, setFdNewCategory, fdCalls }) {
 

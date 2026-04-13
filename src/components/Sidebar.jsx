@@ -11,9 +11,7 @@ import NotificationCenter from './NotificationCenter'
 import DarkModeToggle from './DarkModeToggle'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E'
-const T  = '#00C2CB'
-const W  = '#ffffff'
+import { R, T, W } from '../lib/theme'
 
 function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, sub, hidden }) {
   const loc    = useLocation()
