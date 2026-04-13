@@ -551,16 +551,12 @@ export default function FileReviewPage() {
                 />
               )}
               {isPdf && (
-                <object
-                  data={`${file.url}#toolbar=0&zoom=page-width`}
-                  type="application/pdf"
-                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto', imageRendering: 'high-quality' }}>
-                  <iframe
-                    src={`${file.url}#toolbar=0&zoom=page-width`}
-                    title={file.name}
-                    style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none' }}
-                  />
-                </object>
+                <PdfCanvasRenderer
+                  url={file.url}
+                  width={contentWidth}
+                  pointerEvents={tool !== 'select' ? 'none' : 'auto'}
+                  onDimensionsChange={(w, h) => setPdfHeight(h)}
+                />
               )}
               {isHtml && (
                 htmlContent ? (
@@ -781,4 +777,77 @@ const zoomBtn = {
   display: 'flex',
   alignItems: 'center',
   gap: 4,
+}
+
+// ── PDF Canvas Renderer — renders PDF pages to canvas at device pixel ratio ──
+function PdfCanvasRenderer({ url, width, pointerEvents, onDimensionsChange }) {
+  const containerRef = useRef(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    if (!url || !containerRef.current) return
+    let cancelled = false
+
+    async function render() {
+      try {
+        const pdfjsLib = await import('pdfjs-dist')
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
+
+        const pdf = await pdfjsLib.getDocument(url).promise
+        if (cancelled) return
+
+        const container = containerRef.current
+        if (!container) return
+        container.innerHTML = ''
+
+        const dpr = window.devicePixelRatio || 2
+        let totalHeight = 0
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i)
+          if (cancelled) return
+
+          // Scale page to fit the desired CSS width
+          const viewport = page.getViewport({ scale: 1 })
+          const scale = (width / viewport.width) * dpr
+          const scaledViewport = page.getViewport({ scale })
+
+          const canvas = document.createElement('canvas')
+          canvas.width = scaledViewport.width
+          canvas.height = scaledViewport.height
+          canvas.style.width = width + 'px'
+          canvas.style.height = Math.round(scaledViewport.height / dpr) + 'px'
+          canvas.style.display = 'block'
+          if (i > 1) canvas.style.marginTop = '2px'
+
+          container.appendChild(canvas)
+
+          const ctx = canvas.getContext('2d')
+          await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise
+          totalHeight += Math.round(scaledViewport.height / dpr) + (i > 1 ? 2 : 0)
+        }
+
+        if (onDimensionsChange) onDimensionsChange(width, totalHeight)
+      } catch (e) {
+        console.error('PDF render error:', e)
+        setError(true)
+      }
+    }
+
+    render()
+    return () => { cancelled = true }
+  }, [url, width])
+
+  if (error) {
+    // Fallback to iframe
+    return (
+      <iframe
+        src={`${url}#toolbar=0`}
+        title="PDF"
+        style={{ display: 'block', width, height: 3000, border: 'none', pointerEvents }}
+      />
+    )
+  }
+
+  return <div ref={containerRef} style={{ pointerEvents, background: '#fff' }} />
 }
