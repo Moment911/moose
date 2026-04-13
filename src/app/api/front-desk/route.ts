@@ -72,6 +72,7 @@ export async function GET(req: NextRequest) {
         voicemail_enabled: data.voicemail_enabled ?? true,
         transfer_enabled: data.transfer_enabled ?? true,
         sms_enabled: data.sms_enabled ?? true,
+        transfer_number: data.transfer_number,
         sendable_links: data.sendable_links || [],
       }
 
@@ -843,6 +844,7 @@ If no useful learnings, return an empty array: []` }],
       const llm_id = llmData.llm_id
 
       // 2b. Create the Retell agent referencing the LLM
+      const webhookUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com') + '/api/voice/webhook'
       const agentRes = await fetch('https://api.retellai.com/create-agent', {
         method: 'POST',
         headers: retellHeaders,
@@ -850,6 +852,7 @@ If no useful learnings, return an empty array: []` }],
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
           voice_id: cfg.voice_id || '11labs-Marissa',
           response_engine: { type: 'retell-llm', llm_id },
+          webhook_url: webhookUrl,
           enable_backchannel: true,
           ...(() => {
             const tl: Record<string, any> = {}
@@ -879,11 +882,11 @@ If no useful learnings, return an empty array: []` }],
       const phoneData = await phoneRes.json()
       const phone_number = phoneData.phone_number
 
-      // 4. Link the phone number to the agent
+      // 4. Link the phone number to the agent for inbound calls
       const linkRes = await fetch(`https://api.retellai.com/update-phone-number/${phone_number}`, {
         method: 'PATCH',
         headers: retellHeaders,
-        body: JSON.stringify({ agent_id }),
+        body: JSON.stringify({ inbound_agent_id: agent_id }),
       })
       if (!linkRes.ok) {
         const err = await linkRes.text()
@@ -979,13 +982,15 @@ If no useful learnings, return an empty array: []` }],
         await sb.from('koto_front_desk_configs').update({ retell_llm_id: llmId }).eq('client_id', client_id).eq('agency_id', agency_id)
       }
 
-      // Update agent settings (voice, transfer list, LLM link)
+      // Update agent settings (voice, transfer list, LLM link, webhook)
+      const webhookUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com') + '/api/voice/webhook'
       const patchRes = await fetch(`https://api.retellai.com/update-agent/${cfg.retell_agent_id}`, {
         method: 'PATCH',
         headers: retellHeaders,
         body: JSON.stringify({
           response_engine: { type: 'retell-llm', llm_id: llmId },
           voice_id: cfg.voice_id || '11labs-Marissa',
+          webhook_url: webhookUrl,
           enable_backchannel: true,
           ...(() => {
             const tl: Record<string, any> = {}
@@ -995,6 +1000,15 @@ If no useful learnings, return an empty array: []` }],
           })(),
         }),
       })
+
+      // Also ensure the phone number is linked with inbound_agent_id
+      if (cfg.retell_phone_number) {
+        await fetch(`https://api.retellai.com/update-phone-number/${cfg.retell_phone_number}`, {
+          method: 'PATCH',
+          headers: retellHeaders,
+          body: JSON.stringify({ inbound_agent_id: cfg.retell_agent_id }),
+        }).catch(() => {})
+      }
       if (!patchRes.ok) {
         const err = await patchRes.text()
         return NextResponse.json({ error: `Failed to update Retell agent: ${err}` }, { status: 500 })
