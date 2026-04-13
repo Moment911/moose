@@ -36,48 +36,59 @@ export async function POST(req: NextRequest) {
     let sent = false
     let method = ''
 
-    // Try GHL first if configured (check by looking up the call's client)
+    // Try GHL first — find the client by call ID or by any active front desk config
     const s = sb()
-    let ghlSent = false
     try {
-      // Look up which client this call belongs to via metadata or call record
+      // Strategy 1: Look up via call metadata
+      let fdClientId: string | null = null
       if (callId) {
         const { data: voiceCall } = await s.from('koto_voice_calls').select('metadata').eq('retell_call_id', callId).maybeSingle()
-        const fdClientId = voiceCall?.metadata?.front_desk_client_id
-        if (fdClientId) {
-          const { data: ghlMapping } = await s.from('koto_ghl_client_mappings')
-            .select('access_token, ghl_location_id')
-            .eq('client_id', fdClientId)
-            .eq('status', 'active')
-            .maybeSingle()
+        fdClientId = voiceCall?.metadata?.front_desk_client_id || null
+      }
 
-          if (ghlMapping?.access_token) {
-            // Send via GHL
-            // First find or create contact by phone
-            const searchRes = await fetch(`https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${ghlMapping.ghl_location_id}&phone=${encodeURIComponent(cleanPhone)}`, {
-              headers: { 'Authorization': `Bearer ${ghlMapping.access_token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+      // Strategy 2: Find any active front desk config with a GHL connection
+      if (!fdClientId) {
+        const { data: activeFd } = await s.from('koto_front_desk_configs')
+          .select('client_id')
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle()
+        fdClientId = activeFd?.client_id || null
+      }
+
+      if (fdClientId) {
+        const { data: ghlMapping } = await s.from('koto_ghl_client_mappings')
+          .select('access_token, ghl_location_id')
+          .eq('client_id', fdClientId)
+          .eq('status', 'active')
+          .maybeSingle()
+
+        const ghlToken = ghlMapping?.access_token || process.env.GHL_CLIENT_ID || ''
+        if (ghlToken) {
+          // Find or create contact by phone in GHL
+          const searchRes = await fetch(`https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${(ghlMapping?.ghl_location_id || '')}&phone=${encodeURIComponent(cleanPhone)}`, {
+            headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+          })
+          const searchData = await searchRes.json()
+          let contactId = searchData?.contacts?.[0]?.id
+
+          if (!contactId) {
+            const createRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+              body: JSON.stringify({ locationId: (ghlMapping?.ghl_location_id || ''), phone: cleanPhone, source: 'Koto Front Desk' }),
             })
-            const searchData = await searchRes.json()
-            let contactId = searchData?.contacts?.[0]?.id
+            const createData = await createRes.json()
+            contactId = createData?.contact?.id
+          }
 
-            if (!contactId) {
-              // Create contact
-              const createRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${ghlMapping.access_token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
-                body: JSON.stringify({ locationId: ghlMapping.ghl_location_id, phone: cleanPhone, source: 'Koto Front Desk' }),
-              })
-              const createData = await createRes.json()
-              contactId = createData?.contact?.id
-            }
-
-            if (contactId) {
-              await fetch('https://services.leadconnectorhq.com/conversations/messages', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${ghlMapping.access_token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
-                body: JSON.stringify({ type: 'SMS', contactId, message, locationId: ghlMapping.ghl_location_id }),
-              })
-              ghlSent = true
+          if (contactId) {
+            const smsRes = await fetch('https://services.leadconnectorhq.com/conversations/messages', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+              body: JSON.stringify({ type: 'SMS', contactId, message, locationId: (ghlMapping?.ghl_location_id || '') }),
+            })
+            if (smsRes.ok) {
               sent = true
               method = 'ghl'
             }
