@@ -108,12 +108,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Log the SMS send
-    try {
-      await s.from('koto_front_desk_calls').update({
-        links_sent: s.rpc ? undefined : undefined, // TODO: append to links_sent jsonb
-      }).eq('retell_call_id', callId)
-    } catch {}
+    // Log the SMS send to the call record
+    if (sent && callId) {
+      try {
+        const { data: callRow } = await s.from('koto_front_desk_calls').select('links_sent').eq('retell_call_id', callId).maybeSingle()
+        const existing = Array.isArray(callRow?.links_sent) ? callRow.links_sent : []
+        existing.push({ type: link_type, message, phone: cleanPhone, method, sent_at: new Date().toISOString() })
+        await s.from('koto_front_desk_calls').update({ links_sent: existing }).eq('retell_call_id', callId)
+      } catch {}
+    }
 
     if (sent) {
       return NextResponse.json({ result: `Text sent successfully to ${cleanPhone}. Let the caller know it's on its way.` })
