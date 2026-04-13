@@ -591,7 +591,7 @@ export default function FileReviewPage() {
           )}
         </div>
 
-        {/* Scrollable canvas container — minWidth:0 prevents flex overflow under sidebar */}
+        {/* Scrollable canvas container */}
         <div
           ref={canvasContainerRef}
           style={{
@@ -600,14 +600,16 @@ export default function FileReviewPage() {
             overflow: 'auto',
             background: CANVAS_BG,
             padding: 24,
+            display: 'flex',
+            justifyContent: 'center',
           }}>
-          {/* Reserves scroll space at low/high zoom */}
+          {/* Reserves scroll space at low/high zoom — capped at reasonable max */}
           <div style={{
             width: scaledWidth,
             height: scaledHeight,
-            minWidth: '100%',
-            margin: '0 auto',
+            maxWidth: Math.max(scaledWidth, 1600),
             position: 'relative',
+            flexShrink: 0,
           }}>
             {/* Scaled content */}
             <div style={{
