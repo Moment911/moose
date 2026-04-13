@@ -38,6 +38,21 @@ async function getGHLHeaders(agencyId: string): Promise<{ headers: Record<string
   return { headers, integration: data }
 }
 
+// Resolve GHL location_id for a specific client — checks per-client mapping first,
+// falls back to agency default location.
+async function resolveLocationId(agencyId: string, clientId?: string): Promise<string | null> {
+  if (!clientId) return null
+  const supabase = getSupabase()
+  const { data: mapping } = await supabase
+    .from('koto_ghl_client_mappings')
+    .select('ghl_location_id')
+    .eq('client_id', clientId)
+    .eq('agency_id', agencyId)
+    .eq('status', 'active')
+    .maybeSingle()
+  return mapping?.ghl_location_id || null
+}
+
 async function logSync(agencyId: string, syncType: string, kotoId: string, ghlId: string, direction: string, status: string, error?: string) {
   const supabase = getSupabase()
   await supabase.from('koto_ghl_sync_log').insert({
@@ -53,12 +68,14 @@ async function logSync(agencyId: string, syncType: string, kotoId: string, ghlId
 
 // ── CONTACTS ─────────────────────────────────────────────────────────────────
 
-export async function syncLeadToGHL(agencyId: string, lead: any): Promise<string | null> {
+export async function syncLeadToGHL(agencyId: string, lead: any, clientId?: string): Promise<string | null> {
   const auth = await getGHLHeaders(agencyId)
   if (!auth) return null
 
   const { headers, integration } = auth
-  const locationId = integration.ghl_location_id
+  // Per-client location override → agency default
+  const clientLocation = clientId ? await resolveLocationId(agencyId, clientId) : null
+  const locationId = clientLocation || integration.ghl_location_id
 
   try {
     // Search for existing contact by phone

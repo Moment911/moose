@@ -24,6 +24,13 @@ export default function GHLIntegrationPage() {
   const [connecting, setConnecting] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [settings, setSettings] = useState({ sync_leads:true, sync_calls:true, sync_appointments:true, pipeline_id:'', appointment_stage_id:'', won_stage_id:'', lost_stage_id:'' })
+  const [clientMappings, setClientMappings] = useState([])
+  const [allClients, setAllClients] = useState([])
+  const [ghlLocations, setGhlLocations] = useState([])
+  const [assignClient, setAssignClient] = useState('')
+  const [assignLocation, setAssignLocation] = useState('')
+  const [assigning, setAssigning] = useState(false)
+  const [disconnecting, setDisconnecting] = useState(null)
 
   useEffect(() => { loadIntegration() }, [])
 
@@ -57,12 +64,51 @@ export default function GHLIntegrationPage() {
     setIntegration(null); toast.success('Disconnected')
   }
 
+  async function loadClientMappings() {
+    try {
+      const [mapRes, clientRes, locRes] = await Promise.all([
+        fetch(`${API}?action=get_client_mappings&agency_id=${agencyId}`).then(r => r.json()),
+        import('@supabase/supabase-js').then(({ createClient: c }) => c(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').from('clients').select('id, name, phone, industry').eq('agency_id', agencyId).order('name')),
+        fetch(`${API}?action=get_locations&agency_id=${agencyId}`).then(r => r.json()),
+      ])
+      setClientMappings(mapRes.mappings || [])
+      setAllClients(clientRes.data || [])
+      setGhlLocations(locRes.locations || [])
+    } catch {}
+  }
+
+  async function assignClientToLocation() {
+    if (!assignClient || !assignLocation) { toast.error('Select a client and location'); return }
+    setAssigning(true)
+    const locName = ghlLocations.find(l => l.id === assignLocation)?.name || ''
+    const res = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'assign_client', agency_id:agencyId, client_id:assignClient, ghl_location_id:assignLocation, ghl_location_name:locName }) })
+    const data = await res.json()
+    if (data.success) { toast.success('Client assigned to GHL location'); setAssignClient(''); setAssignLocation(''); loadClientMappings() }
+    else toast.error(data.error || 'Failed')
+    setAssigning(false)
+  }
+
+  async function disconnectClient(clientId) {
+    if (!confirm('Disconnect this client from GHL?')) return
+    setDisconnecting(clientId)
+    await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'disconnect_client', agency_id:agencyId, client_id:clientId }) })
+    toast.success('Client disconnected'); loadClientMappings()
+    setDisconnecting(null)
+  }
+
+  async function disconnectAgency() {
+    if (!confirm('Disconnect your entire agency from GHL? This will remove ALL client mappings and stop all syncing.')) return
+    await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'disconnect_agency', agency_id:agencyId }) })
+    setIntegration(null); setClientMappings([]); toast.success('Agency disconnected from GHL')
+  }
+
   async function saveSettings() {
     await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'update_settings', agency_id:agencyId, ...settings }) })
     toast.success('Settings saved'); loadIntegration()
   }
 
   const connected = integration?.status === 'active'
+  useEffect(() => { if (connected) loadClientMappings() }, [connected])
 
   if (loading) return (
     <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
@@ -260,6 +306,50 @@ export default function GHLIntegrationPage() {
                 ))}
               </div>
 
+              {/* Client → Location Assignment */}
+              <div style={{ background:W, borderRadius:12, padding:'20px 24px', border:'1px solid #e5e7eb', marginBottom:16 }}>
+                <h3 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:'0 0 4px' }}>Client Location Mapping</h3>
+                <p style={{ fontSize:12, color:'#9ca3af', margin:'0 0 14px', fontFamily:FB }}>Assign each client to a GHL sub-account. Clients without a mapping use the agency default.</p>
+
+                {/* Assign form */}
+                <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
+                  <select value={assignClient} onChange={e => setAssignClient(e.target.value)} style={{ flex:1, minWidth:160, padding:'8px 10px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, fontFamily:FB }}>
+                    <option value="">Select client...</option>
+                    {allClients.filter(c => !clientMappings.some(m => m.client_id === c.id && m.status === 'active')).map(c => (
+                      <option key={c.id} value={c.id}>{c.name || 'Unnamed'}{c.industry ? ` (${c.industry})` : ''}</option>
+                    ))}
+                  </select>
+                  <select value={assignLocation} onChange={e => setAssignLocation(e.target.value)} style={{ flex:1, minWidth:160, padding:'8px 10px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, fontFamily:FB }}>
+                    <option value="">Select GHL location...</option>
+                    {ghlLocations.map(l => (
+                      <option key={l.id} value={l.id}>{l.name || l.id}</option>
+                    ))}
+                  </select>
+                  <button onClick={assignClientToLocation} disabled={assigning} style={{ padding:'8px 16px', borderRadius:8, border:'none', background:R, color:W, fontSize:12, fontWeight:700, fontFamily:FB, cursor:'pointer', opacity:assigning?0.5:1 }}>
+                    {assigning ? 'Assigning...' : 'Assign'}
+                  </button>
+                </div>
+
+                {/* Current mappings */}
+                {clientMappings.filter(m => m.status === 'active').length === 0 ? (
+                  <div style={{ fontSize:13, color:'#9ca3af', textAlign:'center', padding:12, fontFamily:FB }}>No clients assigned yet</div>
+                ) : (
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {clientMappings.filter(m => m.status === 'active').map(m => (
+                      <div key={m.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', borderRadius:8, border:'1px solid #ececea', background:'#fafafa' }}>
+                        <div>
+                          <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}>{m.clients?.name || 'Unknown client'}</div>
+                          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>→ {m.ghl_location_name || m.ghl_location_id}</div>
+                        </div>
+                        <button onClick={() => disconnectClient(m.client_id)} disabled={disconnecting === m.client_id} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:11, fontWeight:600, fontFamily:FB, cursor:'pointer', color:R }}>
+                          {disconnecting === m.client_id ? '...' : 'Disconnect'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Settings */}
               <div style={{ background:W, borderRadius:12, padding:'20px 24px', border:'1px solid #e5e7eb', marginBottom:16 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
@@ -278,7 +368,7 @@ export default function GHLIntegrationPage() {
                 ))}
                 <div style={{ display:'flex', gap:8, marginTop:12 }}>
                   <button onClick={saveSettings} style={{ padding:'8px 16px', borderRadius:6, border:'none', background:R, color:W, fontSize:12, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>Save Settings</button>
-                  <button onClick={disconnect} style={{ padding:'8px 16px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer', color:R }}>Disconnect</button>
+                  <button onClick={disconnectAgency} style={{ padding:'8px 16px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer', color:R }}>Disconnect Agency</button>
                 </div>
               </div>
 
