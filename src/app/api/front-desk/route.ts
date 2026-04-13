@@ -65,6 +65,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ prompt })
     }
 
+    // ── Client-facing: get own config ──
+    if (action === 'client_get') {
+      const client_id = searchParams.get('client_id')
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+      const { data } = await sb.from('koto_front_desk_configs').select('*').eq('client_id', client_id).maybeSingle()
+      if (!data) return NextResponse.json({ config: null })
+      return NextResponse.json({ config: data, editable: data.allow_client_editing ?? false })
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
@@ -110,6 +119,7 @@ export async function POST(req: NextRequest) {
         transfer_enabled: fields.transfer_enabled ?? true,
         sms_enabled: fields.sms_enabled ?? true,
         recording_enabled: fields.recording_enabled ?? true,
+        allow_client_editing: fields.allow_client_editing ?? false,
         voice_id: fields.voice_id,
         voice_name: fields.voice_name || 'Nicole',
         status: fields.status || 'draft',
@@ -233,6 +243,25 @@ export async function POST(req: NextRequest) {
 
       if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 })
       return NextResponse.json({ config: result.data, seeded: true })
+    }
+
+    // ── Client-facing: save editable fields only ──
+    if (action === 'client_save') {
+      const { client_id, ...fields } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const { data: existing } = await sb.from('koto_front_desk_configs').select('id, allow_client_editing').eq('client_id', client_id).maybeSingle()
+      if (!existing) return NextResponse.json({ error: 'No front desk config found' }, { status: 404 })
+      if (!existing.allow_client_editing) return NextResponse.json({ error: 'Editing is not enabled for this account. Contact your agency to request changes.' }, { status: 403 })
+
+      // Clients can only edit safe fields — not status, HIPAA, recording, or agency settings
+      const update: Record<string, any> = {}
+      const safe = ['company_name', 'address', 'phone', 'website', 'business_hours', 'services', 'insurance_accepted', 'scheduling_link', 'scheduling_department_name', 'scheduling_department_phone', 'staff_directory', 'custom_greeting']
+      for (const k of safe) { if (fields[k] !== undefined) update[k] = fields[k] }
+
+      const { error } = await sb.from('koto_front_desk_configs').update(update).eq('id', existing.id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

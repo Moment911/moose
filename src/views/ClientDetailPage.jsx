@@ -1931,6 +1931,7 @@ export default function ClientDetailPage() {
                 { key: 'sms_enabled', label: 'SMS Links' },
                 { key: 'recording_enabled', label: 'Recording' },
                 { key: 'voicemail_enabled', label: 'Voicemail' },
+                { key: 'allow_client_editing', label: 'Allow Client to Edit' },
               ].map(t => (
                 <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontFamily: FH, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
                   <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R }} />

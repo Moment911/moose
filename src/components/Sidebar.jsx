@@ -240,6 +240,7 @@ export default function Sidebar() {
             <NavLink to="/page-builder" icon={Sparkles} label="Page Builder" hidden={!can?.('page_builder')}/>
             <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!can?.('scout')}/>
             <NavLink to="/voice" startsWith icon={Phone} label="Voice Agent" hidden={!can?.('voice_agent')}/>
+            <NavLink to="/my-front-desk" icon={PhoneIncoming} label="Front Desk" hidden={!can?.('front_desk')}/>
             <NavLink to="/agent" icon={Brain} label="AI CMO" hidden={!can?.('cmo_agent')}/>
             <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!can?.('view_billing')}/>
           </>)}
