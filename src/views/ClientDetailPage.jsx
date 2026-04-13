@@ -2403,7 +2403,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
                 fontSize: 12, fontWeight: 700, cursor: provisioning ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
-              {provisioning ? <><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning…</> : <>📞 Provision Number & PIN</span>}
+              {provisioning ? <span><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning...</span> : <span>📞 Provision Number and PIN</span>}
             </button>
             <button
               onClick={copyLink}
