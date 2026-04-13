@@ -194,7 +194,7 @@ export default function Sidebar() {
         {/* Logo — client view shows agency logo (or Koto default), agency view shows Koto */}
         <div style={{padding: showClientView ? '16px 16px 12px' : '20px 16px 14px', flexShrink:0, borderBottom:'1px solid #f3f4f6'}}>
           {showClientView ? (
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}} onClick={()=>navigate('/')}>
               {clientInfo?.logo_url && (
                 <img src={clientInfo.logo_url} alt={clientInfo.name || 'Client'} style={{height:40,maxWidth:160,objectFit:'contain',display:'block',marginBottom:4}}/>
               )}
@@ -240,6 +240,7 @@ export default function Sidebar() {
 
           {/* ══════ CLIENT VIEW — ONLY shows tools the agency explicitly enabled ══════ */}
           {showClientView && (<>
+            <NavLink to="/" exact icon={LayoutGrid} label="Dashboard"/>
             <NavLink to="/proof" startsWith icon={FileSignature} label="KotoProof" hidden={!can?.('view_pages')}/>
             <NavLink to="/tasks" startsWith icon={CheckSquare} label="My Tasks" hidden={!can?.('view_tasks')}/>
             <NavLink to="/reviews" startsWith icon={Star} label="Reviews" hidden={!can?.('view_reviews')}/>
