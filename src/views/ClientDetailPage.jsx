@@ -1881,7 +1881,8 @@ export default function ClientDetailPage() {
             </div>
           )}
 
-          {hasConfig && (<>
+          {hasConfig && (
+            <div>
 
             {/* ═══ CARD 1: Status + Phone Hero ═══ */}
             <div style={{ ...fdCard, background: fd.retell_phone_number ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)', border: fd.retell_phone_number ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
@@ -2326,7 +2327,8 @@ export default function ClientDetailPage() {
               )}
             </div>
 
-          </>)}
+            </div>
+          )}
 
           {/* Prompt Preview Modal */}
         {fdPromptPreview && (
