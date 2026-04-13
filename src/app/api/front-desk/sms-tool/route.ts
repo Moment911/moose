@@ -72,10 +72,11 @@ export async function POST(req: NextRequest) {
           .eq('status', 'active')
           .maybeSingle()
 
-        const ghlToken = ghlMapping?.access_token || process.env.GHL_CLIENT_ID || ''
+        const ghlToken = ghlMapping?.access_token || process.env.GHL_CLIENT_ID || process.env.NEXT_PUBLIC_GHL_CLIENT_ID || ''
+        const ghlLocationId = ghlMapping?.ghl_location_id || 'Xu2LSpn2q4nNtk3YMGOU'
         if (ghlToken) {
           // Find or create contact by phone in GHL
-          const searchRes = await fetch(`https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${(ghlMapping?.ghl_location_id || '')}&phone=${encodeURIComponent(cleanPhone)}`, {
+          const searchRes = await fetch(`https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${ghlLocationId}&phone=${encodeURIComponent(cleanPhone)}`, {
             headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
           })
           const searchData = await searchRes.json()
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
             const createRes = await fetch('https://services.leadconnectorhq.com/contacts/', {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
-              body: JSON.stringify({ locationId: (ghlMapping?.ghl_location_id || ''), phone: cleanPhone, source: 'Koto Front Desk' }),
+              body: JSON.stringify({ locationId: ghlLocationId, phone: cleanPhone, source: 'Koto Front Desk' }),
             })
             const createData = await createRes.json()
             contactId = createData?.contact?.id
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
             const smsRes = await fetch('https://services.leadconnectorhq.com/conversations/messages', {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
-              body: JSON.stringify({ type: 'SMS', contactId, message, locationId: (ghlMapping?.ghl_location_id || '') }),
+              body: JSON.stringify({ type: 'SMS', contactId, message, locationId: ghlLocationId }),
             })
             const smsData = await smsRes.json().catch(() => ({}))
             if (smsRes.ok) {
