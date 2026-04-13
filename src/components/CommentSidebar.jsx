@@ -8,13 +8,29 @@ const AVATAR_COLORS = ['#E6007E', '#59c6d0', '#185FA5', '#7C3ABF', '#3B6D11', '#
 function getInitials(name) { return (name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() }
 function getAvatarColor(name) { let hash = 0; for (const c of (name || '')) hash = c.charCodeAt(0) + ((hash << 5) - hash); return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] }
 
-export default function CommentSidebar({ annotations, selectedId, onSelect, replies = {}, onAddReply, authorName, onCreateTask, onUploadScreenshot, typingUser, onEditAnnotation, onDeleteAnnotation }) {
+export default function CommentSidebar({ annotations, selectedId, onSelect, replies = {}, onAddReply, authorName, onCreateTask, onUploadScreenshot, typingUser, onEditAnnotation, onDeleteAnnotation, team = [] }) {
   const [collapsed, setCollapsed] = useState({})
   const [filter, setFilter] = useState('all')
   const [replyingTo, setReplyingTo] = useState(null)
   const [replyText, setReplyText] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState('')
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [showMentions, setShowMentions] = useState(false)
+
+  function handleReplyChange(val) {
+    setReplyText(val)
+    const match = val.match(/@(\w*)$/)
+    if (match && team.length > 0) { setMentionQuery(match[1]); setShowMentions(true) }
+    else setShowMentions(false)
+  }
+
+  function insertMention(name) {
+    setReplyText(prev => prev.replace(/@\w*$/, `@${name} `))
+    setShowMentions(false)
+  }
+
+  const filteredMentions = team.filter(m => (m.name || m.email || '').toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 5)
 
   // Number ALL annotations sequentially (not just pins)
   const annIndex = (ann) => annotations.findIndex(a => a.id === ann.id) + 1
@@ -203,13 +219,29 @@ export default function CommentSidebar({ annotations, selectedId, onSelect, repl
                         </div>
 
                         {replyingTo === ann.id && (
-                          <div className="mt-2 flex gap-1.5" onClick={e => e.stopPropagation()}>
-                            <input className="flex-1 text-[13px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
-                              placeholder="Reply..." value={replyText} onChange={e => setReplyText(e.target.value)}
-                              onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') handleReplySubmit(ann.id); if (e.key === 'Escape') setReplyingTo(null) }}
-                              autoFocus />
-                            <button onClick={() => handleReplySubmit(ann.id)} disabled={!replyText.trim()}
-                              className="text-[13px] bg-brand-500 text-white px-2.5 py-1.5 rounded-lg disabled:opacity-40 transition-colors"><Send size={10} /></button>
+                          <div className="mt-2 relative" onClick={e => e.stopPropagation()}>
+                            <div className="flex gap-1.5">
+                              <input className="flex-1 text-[13px] border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-400"
+                                placeholder={team.length > 0 ? "Reply... (type @ to mention)" : "Reply..."} value={replyText} onChange={e => handleReplyChange(e.target.value)}
+                                onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter' && !showMentions) handleReplySubmit(ann.id); if (e.key === 'Escape') { setReplyingTo(null); setShowMentions(false) } }}
+                                autoFocus />
+                              <button onClick={() => handleReplySubmit(ann.id)} disabled={!replyText.trim()}
+                                className="text-[13px] bg-brand-500 text-white px-2.5 py-1.5 rounded-lg disabled:opacity-40 transition-colors"><Send size={10} /></button>
+                            </div>
+                            {showMentions && filteredMentions.length > 0 && (
+                              <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,.1)', marginBottom: 4, zIndex: 50, overflow: 'hidden' }}>
+                                {filteredMentions.map(m => (
+                                  <button key={m.id || m.email} onClick={() => insertMention(m.name || m.email)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: '#111', textAlign: 'left' }}
+                                    onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+                                    onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: getAvatarColor(m.name || m.email), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>{getInitials(m.name || m.email)}</div>
+                                    <span style={{ fontWeight: 600 }}>{m.name || m.email}</span>
+                                    {m.role && <span style={{ fontSize: 11, color: '#9ca3af' }}>{m.role}</span>}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase, getAnnotations, getFiles, createAnnotation, updateAnnotation, deleteAnnotation, logActivity, getRounds, fireWebhook } from '../lib/supabase'
+import { supabase, getAnnotations, getFiles, createAnnotation, updateAnnotation, deleteAnnotation, logActivity, getRounds, fireWebhook, getRepliesForAnnotations, createReply } from '../lib/supabase'
 import AnnotationCanvas from '../components/AnnotationCanvas'
 import CommentSidebar from '../components/CommentSidebar'
 import RoundSummaryModal from '../components/RoundSummaryModal'
@@ -92,6 +92,7 @@ export default function PublicReviewPage() {
   const [password, setPassword] = useState('')
   const [pwError, setPwError] = useState('')
   const [annotations, setAnnotations] = useState([])
+  const [replies, setReplies] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [activeBubble, setActiveBubble] = useState(null)
   const [bubblePos, setBubblePos] = useState({ x: 0, y: 0 })
@@ -192,8 +193,20 @@ export default function PublicReviewPage() {
 
   async function loadAnnotations(fileId) {
     const { data } = await getAnnotations(fileId)
-    // Unpack data jsonb into flat fields for canvas rendering
-    setAnnotations((data || []).map(a => ({ ...a, ...(a.data || {}) })))
+    const anns = (data || []).map(a => ({ ...a, ...(a.data || {}) }))
+    setAnnotations(anns)
+    // Load replies for all annotations
+    if (anns.length > 0) {
+      const replyMap = await getRepliesForAnnotations(anns.map(a => a.id))
+      setReplies(replyMap || {})
+    }
+  }
+
+  async function handleAddReply(annotationId, text) {
+    const reply = await createReply(annotationId, text, authorName || 'Client')
+    if (reply) {
+      setReplies(prev => ({ ...prev, [annotationId]: [...(prev[annotationId] || []), reply] }))
+    }
   }
 
   function handleImageLoad(e) { setImgDims({ width: e.target.offsetWidth, height: e.target.offsetHeight }) }
@@ -639,7 +652,7 @@ export default function PublicReviewPage() {
 
           {/* Scrollable comment list + FAQ */}
           <div className="flex-1 min-h-0 overflow-y-auto">
-            <CommentSidebar annotations={annotations} selectedId={selectedId} onSelect={handleSidebarSelect} />
+            <CommentSidebar annotations={annotations} selectedId={selectedId} onSelect={handleSidebarSelect} replies={replies} onAddReply={handleAddReply} />
             <div className="px-3 pb-3">
               <FAQSection items={CLIENT_FAQ} title="Help" compact />
             </div>

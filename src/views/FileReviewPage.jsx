@@ -26,7 +26,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut,
-  Smartphone, Tablet, Monitor, MonitorUp,
+  Smartphone, Tablet, Monitor, MonitorUp, CheckCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
@@ -71,6 +71,7 @@ export default function FileReviewPage() {
   const [replies, setReplies] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [team, setTeam] = useState([])
 
   const [tool, setTool] = useState('select')
   const [color, setColor] = useState('#E6007E')
@@ -146,6 +147,10 @@ export default function FileReviewPage() {
         } else {
           setReplies({})
         }
+
+        // Load team for @mentions
+        const { data: accessList } = await supabase.from('project_access').select('*').eq('project_id', projectId)
+        setTeam(accessList || [])
       } catch (e) {
         console.warn('[FileReviewPage load]', e)
         toast.error('Failed to load file')
@@ -153,6 +158,26 @@ export default function FileReviewPage() {
       setLoading(false)
     })()
   }, [projectId, fileId])
+
+  // Real-time annotation updates
+  useEffect(() => {
+    if (!fileId) return
+    const channel = supabase.channel(`annotations:${fileId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'annotations', filter: `file_id=eq.${fileId}` }, payload => {
+        setAnnotations(prev => {
+          if (prev.some(a => a.id === payload.new.id)) return prev
+          return [...prev, payload.new]
+        })
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'annotations', filter: `file_id=eq.${fileId}` }, payload => {
+        setAnnotations(prev => prev.map(a => a.id === payload.new.id ? { ...a, ...payload.new } : a))
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'annotations', filter: `file_id=eq.${fileId}` }, payload => {
+        setAnnotations(prev => prev.filter(a => a.id !== payload.old.id))
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [fileId])
 
   // ── Author name — auto-set from auth for agency users, prompt for others ──
   useEffect(() => {
@@ -457,6 +482,17 @@ export default function FileReviewPage() {
             style={{ background: TEAL, color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 5 }}>
             Submit Review ({annotations.filter(a => !a.resolved).length})
           </button>
+          <button
+            onClick={async () => {
+              try {
+                await supabase.from('files').update({ review_status: 'approved', approved_by: authorName, approved_at: new Date().toISOString() }).eq('id', fileId)
+                setFile(prev => prev ? { ...prev, review_status: 'approved', approved_by: authorName, approved_at: new Date().toISOString() } : prev)
+                toast.success('File approved!')
+              } catch (e) { toast.error('Failed to approve') }
+            }}
+            style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <CheckCircle size={14} /> Approve
+          </button>
         </div>
       </div>
 
@@ -711,6 +747,7 @@ export default function FileReviewPage() {
               if (data) setAnnotations((prev) => prev.map((a) => a.id === id ? { ...a, text } : a))
             }}
             onDeleteAnnotation={(id) => handleDelete(id)}
+            team={team}
           />
           {selectedId && (() => {
             const ann = annotations.find((a) => a.id === selectedId)
