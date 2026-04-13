@@ -28,10 +28,10 @@ export const getClients = (agencyId = null, includeDeleted = false) => {
   return agencyId ? q.eq('agency_id', agencyId) : q
 }
 
-export const createClient_ = async (name, email, agencyId = null) => {
+export const createClient_ = async (name, email, agencyId = null, website = null) => {
   const { data, error } = await supabase
     .from('clients')
-    .insert({ name, email, ...(agencyId ? { agency_id: agencyId } : {}) })
+    .insert({ name, email, ...(agencyId ? { agency_id: agencyId } : {}), ...(website ? { website } : {}) })
     .select()
     .single()
 
@@ -67,6 +67,21 @@ export const createClient_ = async (name, email, agencyId = null) => {
     // eslint-disable-next-line no-console
     console.warn('[createClient_] auto-provision failed:', e)
   })
+
+  // Fire and forget — scan website for brand info if URL provided.
+  if (data.website) {
+    fetch(`${appUrl}/api/client-scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: data.id,
+        website_url: data.website,
+        agency_id: agencyId || data.agency_id,
+      }),
+    }).catch((e) => {
+      console.warn('[createClient_] auto-scan failed:', e)
+    })
+  }
 
   return { data, error: null }
 }

@@ -236,6 +236,19 @@ export default function ClientsPage() {
             agency_id: agencyId,
           }),
         }).catch((e) => console.warn('[auto-provision] failed:', e?.message))
+
+        // Auto-scan website for brand info (logo, colors, description)
+        if (form.website?.trim()) {
+          fetch('/api/client-scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              client_id: newClient.id,
+              website_url: form.website.trim(),
+              agency_id: agencyId,
+            }),
+          }).catch((e) => console.warn('[auto-scan] failed:', e?.message))
+        }
       }
       // Update with extra fields
       if (form.phone || form.website || form.industry || form.status !== 'active') {
