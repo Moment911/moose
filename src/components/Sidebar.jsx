@@ -186,19 +186,17 @@ export default function Sidebar() {
         {/* Logo — client view shows agency logo (or Koto default), agency view shows Koto */}
         <div style={{padding: showClientView ? '16px 16px 12px' : '20px 16px 14px', flexShrink:0, borderBottom:'1px solid #f3f4f6'}}>
           {showClientView ? (
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}} onClick={()=>navigate('/')}>
-              {clientInfo?.logo_url && (
-                <img src={clientInfo.logo_url} alt={clientInfo.name || 'Client'} style={{height:40,maxWidth:160,objectFit:'contain',display:'block',marginBottom:4}}/>
-              )}
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,cursor:'pointer'}} onClick={()=>navigate('/')}>
               {authLoading ? (
                 <div style={{height:32}} />
               ) : agency?.brand_logo_url ? (
-                <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:24,maxWidth:120,objectFit:'contain',display:'block',opacity:0.7}}/>
+                <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
               ) : (
-                <img src="/koto_logo.svg" alt="Koto" style={{height:20,width:'auto',display:'block',opacity:0.7}}/>
+                <div style={{fontFamily:"'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",fontSize:18,fontWeight:800,color:'#111',letterSpacing:'-.03em'}}>{agency?.brand_name || agencyName || 'Agency'}</div>
               )}
-              <div style={{fontSize:10,color:'#9ca3af',fontWeight:600,letterSpacing:'.05em',textTransform:'uppercase'}}>
-                Client Portal
+              <div style={{display:'flex',alignItems:'center',gap:4,opacity:0.5}}>
+                <span style={{fontSize:9,color:'#9ca3af',fontWeight:600,letterSpacing:'.04em'}}>Powered by</span>
+                <img src="/koto_logo.svg" alt="Koto" style={{height:12,width:'auto',display:'block'}}/>
               </div>
             </div>
           ) : (
