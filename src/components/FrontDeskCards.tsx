@@ -13,6 +13,13 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
     return res.json()
   }
 
+  function fmtPhone(num) {
+    if (!num) return ''
+    const d = num.replace(/\D/g, '').replace(/^1/, '')
+    if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`
+    return num
+  }
+
   return (
     <div style={{ maxWidth: 900 }}>
 
@@ -43,7 +50,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
                 <option value="paused">Paused</option>
               </select>
               {fd.retell_phone_number
-                ? <div style={{ fontSize: 26, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.01em' }}>{fd.retell_phone_number}</div>
+                ? <div style={{ fontSize: 26, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.01em' }}>{fmtPhone(fd.retell_phone_number)}</div>
                 : <div style={{ fontSize: 16, color: '#6b7280' }}>No phone number assigned</div>
               }
             </div>
@@ -120,7 +127,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
                   {fdCalls.slice(0, 20).map(call => (
                     <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '10px 12px', fontSize: 12, color: '#6b7280' }}>{new Date(call.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                      <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 600, color: BLK }}>{call.caller_name || call.caller_phone || 'Unknown'}</td>
+                      <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 600, color: BLK }}>{call.caller_name || fmtPhone(call.caller_phone) || 'Unknown'}</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 13 }}>{call.duration_seconds ? Math.floor(call.duration_seconds / 60) + ':' + String(call.duration_seconds % 60).padStart(2, '0') : '0:00'}</td>
                       <td style={{ padding: '10px 12px' }}><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: (call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN) + '15', color: call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN, textTransform: 'uppercase' }}>{call.outcome}</span></td>
                       <td style={{ padding: '10px 12px' }}>
