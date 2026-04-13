@@ -168,6 +168,54 @@ export async function POST(req: NextRequest) {
       return Response.json({ success: true })
     }
 
+    // ── Connect client using Private Integration Token (no OAuth) ──
+    if (action === 'connect_client_direct') {
+      const { agency_id, client_id, location_id } = body
+      if (!client_id) return Response.json({ error: 'client_id required' }, { status: 400 })
+
+      const pitToken = process.env.GHL_CLIENT_ID || process.env.NEXT_PUBLIC_GHL_CLIENT_ID || ''
+      if (!pitToken) return Response.json({ error: 'GHL token not configured' }, { status: 500 })
+
+      // Test connection with the pit token
+      let locationName = 'GHL Location'
+      try {
+        const headers = { 'Authorization': `Bearer ${pitToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' }
+        if (location_id) {
+          const locRes = await fetch(`https://services.leadconnectorhq.com/locations/${location_id}`, { headers, signal: AbortSignal.timeout(10000) })
+          if (locRes.ok) {
+            const locData = await locRes.json()
+            locationName = locData.location?.name || locData.name || locationName
+          }
+        }
+      } catch {}
+
+      // Upsert client mapping
+      const { data: existing } = await s.from('koto_ghl_client_mappings').select('id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      const record = {
+        agency_id, client_id,
+        access_token: pitToken,
+        ghl_location_id: location_id || null,
+        ghl_location_name: locationName,
+        connection_type: 'private_integration',
+        status: 'active',
+        updated_at: new Date().toISOString(),
+      }
+
+      if (existing) {
+        await s.from('koto_ghl_client_mappings').update(record).eq('id', existing.id)
+      } else {
+        await s.from('koto_ghl_client_mappings').insert(record)
+      }
+
+      // Also upsert agency-level integration
+      const { data: agencyInt } = await s.from('koto_ghl_integrations').select('id').eq('agency_id', agency_id).maybeSingle()
+      if (!agencyInt) {
+        await s.from('koto_ghl_integrations').insert({ agency_id, ghl_api_key: pitToken, ghl_location_id: location_id || null, ghl_location_name: locationName, status: 'active', connection_type: 'private_integration' })
+      }
+
+      return Response.json({ success: true, location_name: locationName })
+    }
+
     // ── Disconnect a client from GHL ──
     if (action === 'disconnect_client') {
       const { agency_id, client_id } = body
