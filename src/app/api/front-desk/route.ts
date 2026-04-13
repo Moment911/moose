@@ -222,6 +222,10 @@ export async function POST(req: NextRequest) {
         sms_post_call_template: fields.sms_post_call_template || null,
         sms_missed_call_enabled: fields.sms_missed_call_enabled ?? false,
         sms_missed_call_template: fields.sms_missed_call_template || null,
+        ai_sms_enabled: fields.ai_sms_enabled ?? false,
+        ai_sms_hours: fields.ai_sms_hours || { start: '09:00', end: '19:00', timezone: 'America/New_York' },
+        ai_sms_escalation_keywords: fields.ai_sms_escalation_keywords || ['emergency', 'urgent', '911'],
+        ai_sms_auto_reply_delay_seconds: fields.ai_sms_auto_reply_delay_seconds ?? 30,
       }
 
       let result

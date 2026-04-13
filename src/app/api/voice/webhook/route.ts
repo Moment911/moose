@@ -300,6 +300,69 @@ export async function POST(req: NextRequest) {
                 }
               }
             } catch { /* GHL sync is non-fatal */ }
+
+            // Post-call auto-SMS via GHL
+            try {
+              const agencyId = call.metadata?.agency_id || body.metadata?.agency_id
+              const callerPhone = call.from_number || ''
+              if (agencyId && callerPhone) {
+                const { data: fdCfg } = await s.from('koto_front_desk_configs')
+                  .select('sms_post_call_enabled, sms_post_call_template, sms_missed_call_enabled, sms_missed_call_template, company_name, phone, website, scheduling_link')
+                  .eq('client_id', fdClientId).maybeSingle()
+
+                const durationSec = call.end_timestamp && call.start_timestamp
+                  ? Math.round((new Date(call.end_timestamp).getTime() - new Date(call.start_timestamp).getTime()) / 1000) : 0
+                const wasMissed = durationSec < 5 || call.disconnection_reason === 'no_answer'
+
+                let smsTemplate = ''
+                let smsType = ''
+                if (wasMissed && fdCfg?.sms_missed_call_enabled) {
+                  smsTemplate = fdCfg.sms_missed_call_template || 'Hi! We missed your call at {company}. Call us back at {phone} or schedule online: {scheduling_link}'
+                  smsType = 'missed_call'
+                } else if (!wasMissed && fdCfg?.sms_post_call_enabled) {
+                  smsTemplate = fdCfg.sms_post_call_template || 'Thanks for calling {company}! If you need anything, call us at {phone} or visit {website}'
+                  smsType = 'post_call'
+                }
+
+                if (smsTemplate) {
+                  const smsMsg = smsTemplate
+                    .replace(/\{company\}/g, fdCfg?.company_name || '')
+                    .replace(/\{phone\}/g, fdCfg?.phone || '')
+                    .replace(/\{website\}/g, fdCfg?.website || '')
+                    .replace(/\{scheduling_link\}/g, fdCfg?.scheduling_link || fdCfg?.website || '')
+                    .replace(/\{caller_name\}/g, call.caller_name || '')
+
+                  // Send via GHL if connected
+                  const { data: ghlMap } = await s.from('koto_ghl_client_mappings')
+                    .select('access_token, ghl_location_id')
+                    .eq('client_id', fdClientId).eq('status', 'active').maybeSingle()
+
+                  if (ghlMap?.access_token) {
+                    // Find or create contact
+                    const searchRes = await fetch(`https://services.leadconnectorhq.com/contacts/search/duplicate?locationId=${ghlMap.ghl_location_id}&phone=${encodeURIComponent(callerPhone)}`, {
+                      headers: { 'Authorization': `Bearer ${ghlMap.access_token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+                    })
+                    const searchData = await searchRes.json()
+                    const ghlCid = searchData?.contacts?.[0]?.id
+                    if (ghlCid) {
+                      await fetch('https://services.leadconnectorhq.com/conversations/messages', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${ghlMap.access_token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+                        body: JSON.stringify({ type: 'SMS', contactId: ghlCid, message: smsMsg, locationId: ghlMap.ghl_location_id }),
+                      })
+                    }
+                  }
+
+                  // Log the SMS
+                  await s.from('koto_front_desk_sms').insert({
+                    agency_id: agencyId, client_id: fdClientId,
+                    direction: 'outbound', to_number: callerPhone,
+                    message: smsMsg, message_type: smsType, ai_generated: false,
+                    status: 'sent', sent_via: 'ghl',
+                  }).catch(() => {})
+                }
+              }
+            } catch { /* post-call SMS is non-fatal */ }
           }
         }
 

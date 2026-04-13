@@ -278,7 +278,47 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
           </div>
           <textarea value={fd.sms_missed_call_template || 'Hi! We missed your call at The Spine and Wellness Center. We\'ll call you back shortly, or you can schedule online: {scheduling_link}'} onChange={e => fdUpdate('sms_missed_call_template', e.target.value)} rows={3} placeholder="Missed call SMS template..." style={{ ...fdInput, resize: 'vertical' }}></textarea>
         </div>
-        <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 4px' }}>Jenny can also text links during calls when callers ask about services. Links are pulled from the Sendable Links card above.</p>
+        <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 14px' }}>Jenny can also text links during calls when callers ask about services. Links are pulled from the Sendable Links card above.</p>
+
+        <div style={{ padding: '14px 16px', background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)', borderRadius: 10, border: '1px solid #ddd6fe', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK }}>AI Text Responder</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>Jenny responds to inbound texts via GHL using your Front Desk AI prompt</div>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <input type="checkbox" checked={fd.ai_sms_enabled ?? false} onChange={e => fdUpdate('ai_sms_enabled', e.target.checked)} style={{ accentColor: '#7c3aed', width: 18, height: 18 }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: fd.ai_sms_enabled ? '#7c3aed' : '#9ca3af' }}>{fd.ai_sms_enabled ? 'ON' : 'OFF'}</span>
+            </label>
+          </div>
+          {fd.ai_sms_enabled && (
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <label style={{ ...fdLabel, fontSize: 11 }}>Auto-Reply Start</label>
+                  <input type="time" value={(fd.ai_sms_hours || {}).start || '09:00'} onChange={e => fdUpdate('ai_sms_hours', { ...(fd.ai_sms_hours || {}), start: e.target.value })} style={{ ...fdInput, fontSize: 13 }} />
+                </div>
+                <div>
+                  <label style={{ ...fdLabel, fontSize: 11 }}>Auto-Reply End</label>
+                  <input type="time" value={(fd.ai_sms_hours || {}).end || '19:00'} onChange={e => fdUpdate('ai_sms_hours', { ...(fd.ai_sms_hours || {}), end: e.target.value })} style={{ ...fdInput, fontSize: 13 }} />
+                </div>
+                <div>
+                  <label style={{ ...fdLabel, fontSize: 11 }}>Reply Delay (sec)</label>
+                  <input type="number" value={fd.ai_sms_auto_reply_delay_seconds || 30} onChange={e => fdUpdate('ai_sms_auto_reply_delay_seconds', parseInt(e.target.value) || 30)} style={{ ...fdInput, fontSize: 13, width: 80 }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ ...fdLabel, fontSize: 11 }}>Escalation Keywords (comma-separated)</label>
+                <input value={(fd.ai_sms_escalation_keywords || ['emergency','urgent','911','severe pain']).join(', ')} onChange={e => fdUpdate('ai_sms_escalation_keywords', e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))} placeholder="emergency, urgent, 911, severe pain" style={{ ...fdInput, fontSize: 13 }} />
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>If a text contains these words, Jenny won't auto-reply — it gets flagged for human review.</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); toast.success('SMS settings saved') } catch (e) { toast.error((e as any).message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', width: '100%', opacity: fdLoading ? 0.5 : 1 }}>
+          {fdLoading ? 'Saving...' : 'Save SMS Settings'}
+        </button>
       </div>
 
       {/* CARD 9: Call Log */}
