@@ -832,7 +832,7 @@ If no useful learnings, return an empty array: []` }],
         headers: retellHeaders,
         body: JSON.stringify({
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
-          voice_id: cfg.voice_id || '11labs-Nicole',
+          voice_id: cfg.voice_id || '11labs-Marissa',
           response_engine: { type: 'retell-llm', llm_id },
           enable_backchannel: true,
           ...(cfg.scheduling_department_phone ? {
@@ -948,7 +948,7 @@ If no useful learnings, return an empty array: []` }],
         method: 'PATCH',
         headers: retellHeaders,
         body: JSON.stringify({
-          voice_id: cfg.voice_id || '11labs-Nicole',
+          voice_id: cfg.voice_id || '11labs-Marissa',
           enable_backchannel: true,
           ...(cfg.scheduling_department_phone ? {
             transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
