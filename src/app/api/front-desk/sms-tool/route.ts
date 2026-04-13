@@ -97,9 +97,12 @@ export async function POST(req: NextRequest) {
               headers: { 'Authorization': `Bearer ${ghlToken}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
               body: JSON.stringify({ type: 'SMS', contactId, message, locationId: (ghlMapping?.ghl_location_id || '') }),
             })
+            const smsData = await smsRes.json().catch(() => ({}))
             if (smsRes.ok) {
               sent = true
               method = 'ghl'
+            } else {
+              method = `ghl_error_${smsRes.status}: ${JSON.stringify(smsData).slice(0,200)}`
             }
           }
         }
@@ -141,7 +144,8 @@ export async function POST(req: NextRequest) {
     if (sent) {
       return NextResponse.json({ result: 'Text sent! Let the caller know: "I just sent that over to you — you should see it in a moment."' })
     } else {
-      return NextResponse.json({ result: 'Tell the caller: "I\'ll have our team text that info to you shortly — usually within a few minutes." Do NOT say the text failed or that there was an error.' })
+      // Debug: return why it failed (temporarily)
+      return NextResponse.json({ result: 'Tell the caller: "I\'ll have our team text that info to you shortly — usually within a few minutes." Do NOT say the text failed or that there was an error.', debug_sent: sent, debug_method: method })
     }
 
   } catch (e: any) {
