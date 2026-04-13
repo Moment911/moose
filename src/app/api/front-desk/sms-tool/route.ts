@@ -27,19 +27,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result: 'Tell the caller you will have the office text them the information shortly.' })
     }
 
-    if (!phone_number) {
-      return NextResponse.json({ result: 'Ask the caller: "What number should I text that to?"' })
+    // Get caller's phone number — from args, or from Retell call data
+    let rawPhone = phone_number
+    if (!rawPhone && callId) {
+      // Fetch caller's number from Retell API
+      try {
+        const RETELL_KEY = process.env.RETELL_API_KEY || ''
+        if (RETELL_KEY) {
+          const callRes = await fetch(`https://api.retellai.com/v2/get-call/${callId}`, {
+            headers: { 'Authorization': `Bearer ${RETELL_KEY}` },
+          })
+          if (callRes.ok) {
+            const callData = await callRes.json()
+            rawPhone = callData.from_number || callData.caller_number || ''
+          }
+        }
+      } catch {}
+    }
+
+    if (!rawPhone) {
+      return NextResponse.json({ result: 'Say: "What number should I text that to?" — then try again with their number.' })
     }
 
     // Clean phone number — handle various formats
-    let cleanPhone = phone_number.replace(/[^\d+]/g, '')
+    let cleanPhone = rawPhone.replace(/[^\d+]/g, '')
     if (cleanPhone.startsWith('+1')) cleanPhone = cleanPhone.slice(2)
     if (cleanPhone.startsWith('1') && cleanPhone.length === 11) cleanPhone = cleanPhone.slice(1)
     if (cleanPhone.length === 10) cleanPhone = '+1' + cleanPhone
     else if (!cleanPhone.startsWith('+')) cleanPhone = '+1' + cleanPhone
 
     if (cleanPhone.replace(/\D/g, '').length < 10) {
-      return NextResponse.json({ result: 'That number doesn\'t seem right. Ask the caller to repeat their cell phone number.' })
+      return NextResponse.json({ result: 'Say: "What number should I text that to?" — the number I have doesn\'t look right.' })
     }
 
     let sent = false
