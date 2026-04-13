@@ -44,6 +44,10 @@ export default function FrontDeskPage() {
   const [promptModal, setPromptModal] = useState(null)
   const [promptLoading, setPromptLoading] = useState(false)
   const [promptText, setPromptText] = useState('')
+  const [showClientPicker, setShowClientPicker] = useState(false)
+  const [clients, setClients] = useState([])
+  const [clientsLoading, setClientsLoading] = useState(false)
+  const [creating, setCreating] = useState(null)
 
   useEffect(() => { fetchConfigs() }, [agencyId])
 
@@ -106,6 +110,43 @@ export default function FrontDeskPage() {
     setPromptLoading(false)
   }
 
+  async function openClientPicker() {
+    setShowClientPicker(true)
+    if (clients.length > 0) return
+    setClientsLoading(true)
+    try {
+      const { createClient } = await import('@supabase/supabase-js')
+      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL || '', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '')
+      const { data } = await sb.from('clients').select('id, name, phone, website, industry').eq('agency_id', agencyId).order('name')
+      setClients(data || [])
+    } catch { toast.error('Failed to load clients') }
+    setClientsLoading(false)
+  }
+
+  async function createConfigForClient(cl) {
+    setCreating(cl.id)
+    try {
+      const res = await fetch('/api/front-desk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save', client_id: cl.id,
+          company_name: cl.name || '', phone: cl.phone || '', website: cl.website || '',
+          industry: cl.industry || '', timezone: 'America/New_York',
+          business_hours: {}, services: [], insurance_accepted: [], staff_directory: [],
+          hipaa_mode: false, transfer_enabled: true, sms_enabled: true, status: 'draft',
+        }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      toast.success(`Front desk created for ${cl.name}`)
+      setShowClientPicker(false)
+      fetchConfigs()
+    } catch (e) { toast.error(e.message) }
+    setCreating(null)
+  }
+
+  const configuredClientIds = new Set(configs.map(c => c.client_id))
+
   return (
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
       {!isMobile && <Sidebar />}
@@ -119,6 +160,9 @@ export default function FrontDeskPage() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: 13, color: '#9ca3af' }}>{configs.length} config{configs.length !== 1 ? 's' : ''}</span>
+              <button onClick={openClientPicker} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: 'none', background: R, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: FH }}>
+                <PhoneIncoming size={12} /> Configure Client
+              </button>
               <button onClick={fetchConfigs} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#F5F5F5', color: BLK, cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: FH }}>
                 <RefreshCw size={12} /> Refresh
               </button>
@@ -146,9 +190,12 @@ export default function FrontDeskPage() {
             <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: '48px 32px', textAlign: 'center' }}>
               <PhoneIncoming size={40} color="#d1d5db" style={{ marginBottom: 16 }} />
               <p style={{ fontFamily: FH, fontSize: 16, fontWeight: 600, color: BLK, margin: '0 0 8px' }}>No front desk agents configured yet.</p>
-              <p style={{ fontSize: 14, color: '#9ca3af', margin: 0, maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                Set up a virtual receptionist from any client's detail page.
+              <p style={{ fontSize: 14, color: '#9ca3af', margin: '0 0 16px', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
+                Pick a client to set up their virtual AI receptionist.
               </p>
+              <button onClick={openClientPicker} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <PhoneIncoming size={14} /> Configure a Client
+              </button>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(360px, 1fr))', gap: 16 }}>
@@ -253,6 +300,65 @@ export default function FrontDeskPage() {
                 <pre style={{ fontFamily: "'SF Mono','Fira Code',monospace", fontSize: 13, color: '#374151', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.6, margin: 0 }}>
                   {promptText}
                 </pre>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client Picker Modal */}
+      {showClientPicker && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setShowClientPicker(false)}>
+          <div style={{ background: '#fff', borderRadius: 16, maxWidth: 500, width: '100%', maxHeight: '70vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK }}>Select a Client</div>
+              <button onClick={() => setShowClientPicker(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                <X size={18} color="#9ca3af" />
+              </button>
+            </div>
+            <div style={{ padding: '12px 20px', overflowY: 'auto', flex: 1 }}>
+              {clientsLoading ? (
+                <div style={{ textAlign: 'center', padding: 32 }}>
+                  <Loader2 size={20} className="spin" color={R} />
+                  <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 8 }}>Loading clients...</p>
+                </div>
+              ) : clients.length === 0 ? (
+                <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: 24 }}>No clients found. Add clients first.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {clients.map(cl => {
+                    const alreadyConfigured = configuredClientIds.has(cl.id)
+                    return (
+                      <div key={cl.id} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 14px', borderRadius: 10, border: '1px solid #ececea',
+                        background: alreadyConfigured ? '#f9fafb' : '#fff',
+                        opacity: alreadyConfigured ? 0.6 : 1,
+                      }}>
+                        <div>
+                          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{cl.name || 'Unnamed'}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af' }}>
+                            {[cl.industry, cl.phone, cl.website].filter(Boolean).join(' · ') || 'No details'}
+                          </div>
+                        </div>
+                        {alreadyConfigured ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: GRN, fontFamily: FH }}>Configured</span>
+                        ) : (
+                          <button onClick={() => createConfigForClient(cl)} disabled={creating === cl.id} style={{
+                            padding: '5px 12px', borderRadius: 6, border: 'none', background: R, color: '#fff',
+                            fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            opacity: creating === cl.id ? 0.5 : 1,
+                          }}>
+                            {creating === cl.id ? <Loader2 size={11} className="spin" /> : <PhoneIncoming size={11} />} Set Up
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               )}
             </div>
           </div>
