@@ -18,9 +18,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileRow, MobileEmpty, MobileTabs, MobileSectionHeader } from '../../components/mobile/MobilePage'
 
-const RED = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLACK = '#0a0a0a'
+import { R as RED, T as TEAL } from '../../lib/theme'
 
 const SOURCE_CFG = {
   manual:       { label:'Manual',    color:'#374151', bg:'#f3f4f6',  icon:'✍️' },
@@ -137,7 +135,7 @@ function AskInterface({ agencyId }) {
                 Confidence: {Math.round((result.confidence||0.85)*100)}%
               </span>
             </div>
-            <p style={{fontSize:18,fontWeight:800,color:'#fff',lineHeight:1.55,margin:0}}>
+            <p style={{fontSize:18,fontWeight:800,color:'#111',lineHeight:1.55,margin:0}}>
               {result.short_answer}
             </p>
           </div>
@@ -371,11 +369,11 @@ function EntryModal({ entry, agencyId, onSave, onClose }) {
         maxHeight:'92vh',overflow:'auto',boxShadow:'0 32px 80px rgba(0,0,0,.25)'}}>
         <div style={{background: '#ffffff',borderRadius:'20px 20px 0 0',padding:'20px 26px',
           display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div style={{fontSize:17,fontWeight:900,color:'#fff'}}>
+          <div style={{fontSize:17,fontWeight:900,color:'#111'}}>
             {entry?.id ? 'Edit Entry' : 'Add Knowledge Entry'}
           </div>
-          <button onClick={onClose} style={{border:'none',background:'rgba(255,255,255,.1)',
-            color:'#fff',borderRadius:8,padding:'5px 10px',cursor:'pointer'}}>✕</button>
+          <button onClick={onClose} style={{border:'none',background:'#f3f4f6',
+            color:'#374151',borderRadius:8,padding:'5px 10px',cursor:'pointer'}}>✕</button>
         </div>
         <div style={{padding:'24px 26px',display:'flex',flexDirection:'column',gap:14}}>
           <div>

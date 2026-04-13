@@ -716,7 +716,7 @@ export default function QAIntelligencePage() {
             background: '#f9fafb', borderRadius: 14, padding: '12px 24px', display: 'flex',
             alignItems: 'center', gap: 16, zIndex: 9998, boxShadow: '0 8px 32px rgba(0,0,0,.3)',
           }}>
-            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: W }}>{selectedIds.size} selected</span>
+            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: '#111' }}>{selectedIds.size} selected</span>
             <select onChange={e => { if (e.target.value) bulkChangeType(e.target.value); e.target.value = '' }} style={{
               padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontFamily: FB, cursor: 'pointer',
             }}>

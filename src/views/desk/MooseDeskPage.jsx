@@ -14,9 +14,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobileSearch, MobileRow, MobileSectionHeader, MobileCard, MobileEmpty, MobileButton, MobileTabs, MobilePageHeader, MobileStatStrip } from '../../components/mobile/MobilePage'
 
-const RED = '#E6007E'
-const TEAL = '#00C2CB'
-const BLACK = '#0a0a0a'
+import { R as RED, T as TEAL } from '../../lib/theme'
 
 // SLA thresholds in hours per priority
 const SLA_HOURS = { urgent:2, high:8, normal:24, low:72 }
@@ -182,11 +180,11 @@ function NewTicketModal({ onClose, onCreated, agencyId, clients }) {
                 <Inbox size={18} color="#fff"/>
               </div>
               <div>
-                <div style={{fontSize:17,fontWeight:900,color:'#fff'}}>Submit a Request</div>
+                <div style={{fontSize:17,fontWeight:900,color:'#111'}}>Submit a Request</div>
                 <div style={{fontSize:13,color:'#999999'}}>AI will triage and route your ticket automatically</div>
               </div>
             </div>
-            <button onClick={onClose} style={{border:'none',background:'rgba(255,255,255,.1)',color:'#fff',borderRadius:8,padding:'5px 10px',cursor:'pointer'}}>✕</button>
+            <button onClick={onClose} style={{border:'none',background:'#f3f4f6',color:'#374151',borderRadius:8,padding:'5px 10px',cursor:'pointer'}}>✕</button>
           </div>
         </div>
         <div style={{padding:'24px 28px',display:'flex',flexDirection:'column',gap:14}}>
@@ -373,7 +371,7 @@ export default function KotoDeskPage() {
                 left={<div style={{width:8,height:8,borderRadius:'50%',flexShrink:0,marginTop:4,background:priColor(t.priority)}}/>}
                 title={t.subject}
                 subtitle={[t.status?.replace('_',' '), t.submitter_name, t.ai_category].filter(Boolean).join(' · ')}
-                badge={t.status==='new'?<span style={{fontSize:10,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#E6007E',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>NEW</span>:null}/>
+                badge={t.status==='new'?<span style={{fontSize:12,fontWeight:800,padding:'2px 7px',borderRadius:20,background:'#fef2f2',color:'#E6007E',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0}}>NEW</span>:null}/>
             ))}
           </MobileCard>
         )}

@@ -18,10 +18,7 @@ const SCOPES_BASIC = [
   'https://www.googleapis.com/auth/userinfo.profile',
 ].join(' ')
 
-const RED  = '#E6007E'
-const TEAL = '#00C2CB'
-const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB   = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, FH, FB } from '../../lib/theme'
 
 const SERVICES = [
   { key:'search_console', label:'Google Search Console', icon:Search,    color:'#4285F4', desc:'Keyword rankings, clicks, impressions', available:true },
@@ -322,7 +319,7 @@ export default function SEOConnectPage() {
             <div style={{ background: '#ffffff', borderRadius:14, padding:'24px',
               display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
               <div>
-                <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#fff',
+                <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#111',
                   marginBottom:4 }}>
                   {hasAnyConnection ? 'Update Google Connection' : 'Connect Google Account'}
                 </div>

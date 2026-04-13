@@ -8,17 +8,8 @@ import {
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
+import { R, T, BLK, GRY, W, GRN, AMB, FH, FB } from '../lib/theme'
 import toast from 'react-hot-toast'
-
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
 const API = '/api/voice'
 
@@ -214,19 +205,19 @@ function AppointmentCard({ appt, lead, onAction, expanded, onToggle }) {
             background: '#f9fafb', borderRadius: 10
           }}>
             <div>
-              <div style={{ fontSize: 10, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone</div>
+              <div style={{ fontSize: 12, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone</div>
               <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>{lead?.prospect_phone || appt.prospect_phone || '--'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</div>
+              <div style={{ fontSize: 12, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</div>
               <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>{lead?.prospect_email || appt.prospect_email || '--'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Company</div>
+              <div style={{ fontSize: 12, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Company</div>
               <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>{lead?.prospect_company || appt.prospect_company || '--'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Lead Score</div>
+              <div style={{ fontSize: 12, color: '#999', fontFamily: FB, textTransform: 'uppercase', letterSpacing: 0.5 }}>Lead Score</div>
               <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: scoreColor(score) }}>{score}/100</div>
             </div>
           </div>

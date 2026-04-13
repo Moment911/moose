@@ -12,19 +12,11 @@ import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
 /* ── Design tokens ──────────────────────────────────────────────────────────── */
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 const BRD = '#e5e7eb'
 const BRD_LT = '#f3f4f6'
 const GRY400 = '#9ca3af'
 const GRY700 = '#374151'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
 
 const STATUSES = [
   { key: 'todo', label: 'To Do', color: '#4b5563' },

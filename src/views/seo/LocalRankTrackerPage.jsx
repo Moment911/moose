@@ -14,11 +14,7 @@ import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileCard, MobileRow, MobileSectionHeader, MobileTabs } from '../../components/mobile/MobilePage'
 import toast from 'react-hot-toast'
 
-const RED  = '#E6007E'
-const TEAL = '#00C2CB'
-const BLK = '#111111'
-const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB   = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, FH, FB } from '../../lib/theme'
 
 function RankBadge({ rank, prev }) {
   if (!rank) return <span style={{ fontSize:13, color:'#9ca3af', fontFamily:FH }}>Not ranked</span>

@@ -11,9 +11,7 @@ import Sidebar from '../../components/Sidebar'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
-const RED = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLACK = '#0a0a0a'
+import { R as RED, T as TEAL } from '../../lib/theme'
 
 const SENT_COLOR = {positive:'#16a34a',neutral:'#6b7280',negative:'#f59e0b',frustrated:RED}
 const SENT_LABEL = {positive:'Positive 😊',neutral:'Neutral 😐',negative:'Negative 😞',frustrated:'Frustrated 😤'}

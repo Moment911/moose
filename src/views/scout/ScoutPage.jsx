@@ -26,10 +26,7 @@ import AIThinkingBox from '../../components/AIThinkingBox'
    DESIGN SYSTEM — Apple-grade enterprise design language
    Brand: #E6007E (accent), #00C2CB (teal), Proxima Nova / Raleway
    ═══════════════════════════════════════════════════════════════════════════════ */
-const ACCENT  = '#E6007E'
-const TEAL    = '#00C2CB'
-const FH      = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB      = "'Raleway','Helvetica Neue',sans-serif"
+import { R as ACCENT, T as TEAL, FH, FB } from '../../lib/theme'
 
 const CSS = `
   @keyframes spin { to { transform: rotate(360deg) } }
@@ -346,7 +343,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, onStartDiscovery,
         {/* Tech stack */}
         {pipelineDone && (techBadges.some(b=>b.present) || missingBadges.length > 0) && (
           <div style={{ marginBottom:10 }}>
-            <div style={{ fontSize:9, fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:5 }}>
+            <div style={{ fontSize:10, fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:5 }}>
               Tech Stack{lead.cms ? ` · ${lead.cms}` : ''}
             </div>
             <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
@@ -387,7 +384,7 @@ function LeadCard({ lead, mode, onSave, onAddClient, onReport, onStartDiscovery,
         {/* AI summary */}
         {expanded && lead.ai_summary && (
           <div style={{ background:'#f8fafc', borderRadius:10, padding:'12px', marginBottom:10, fontSize:12, color:'#475569', lineHeight:1.6 }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:9, fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>
+            <div style={{ fontSize:10, fontWeight:800, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:4 }}>
               {isCompetitor ? 'Competitive Intel' : isMarket ? 'Market Insight' : 'Opportunity Analysis'}
             </div>
             {lead.ai_summary}

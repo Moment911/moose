@@ -3,9 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, AlertTriangle, Loader2, Mail } from 'lucide-react'
 
-const TEAL = '#00C2CB'
-const BLK = '#111'
-const RED = '#E6007E'
+import { R as RED, T as TEAL, BLK } from '../lib/theme'
 const BG = '#F7F7F6'
 
 export default function GmailCallbackPage() {
