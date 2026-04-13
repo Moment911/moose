@@ -38,19 +38,45 @@ async function getGHLHeaders(agencyId: string): Promise<{ headers: Record<string
   return { headers, integration: data }
 }
 
-// Resolve GHL location_id for a specific client — checks per-client mapping first,
-// falls back to agency default location.
-async function resolveLocationId(agencyId: string, clientId?: string): Promise<string | null> {
+// Resolve GHL auth for a specific client — checks per-client OAuth first,
+// falls back to agency default.
+async function getClientGHLAuth(agencyId: string, clientId?: string): Promise<{ headers: Record<string, string>; locationId: string } | null> {
   if (!clientId) return null
   const supabase = getSupabase()
   const { data: mapping } = await supabase
     .from('koto_ghl_client_mappings')
-    .select('ghl_location_id')
+    .select('ghl_location_id, access_token, token_expires_at')
     .eq('client_id', clientId)
     .eq('agency_id', agencyId)
     .eq('status', 'active')
     .maybeSingle()
-  return mapping?.ghl_location_id || null
+  if (!mapping?.access_token) return null
+
+  // Check if token needs refresh (expire within 5 min)
+  if (mapping.token_expires_at && new Date(mapping.token_expires_at).getTime() < Date.now() + 300000) {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/ghl`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'refresh_client_token', agency_id: agencyId, client_id: clientId }),
+      })
+      // Re-fetch after refresh
+      const { data: refreshed } = await supabase.from('koto_ghl_client_mappings').select('access_token, ghl_location_id').eq('client_id', clientId).eq('agency_id', agencyId).maybeSingle()
+      if (refreshed?.access_token) {
+        return { headers: { 'Content-Type': 'application/json', 'Version': '2021-07-28', 'Authorization': `Bearer ${refreshed.access_token}` }, locationId: refreshed.ghl_location_id }
+      }
+    } catch {}
+  }
+
+  return {
+    headers: { 'Content-Type': 'application/json', 'Version': '2021-07-28', 'Authorization': `Bearer ${mapping.access_token}` },
+    locationId: mapping.ghl_location_id,
+  }
+}
+
+// Legacy helper — just returns location ID
+async function resolveLocationId(agencyId: string, clientId?: string): Promise<string | null> {
+  const auth = await getClientGHLAuth(agencyId, clientId)
+  return auth?.locationId || null
 }
 
 async function logSync(agencyId: string, syncType: string, kotoId: string, ghlId: string, direction: string, status: string, error?: string) {
@@ -69,13 +95,14 @@ async function logSync(agencyId: string, syncType: string, kotoId: string, ghlId
 // ── CONTACTS ─────────────────────────────────────────────────────────────────
 
 export async function syncLeadToGHL(agencyId: string, lead: any, clientId?: string): Promise<string | null> {
-  const auth = await getGHLHeaders(agencyId)
-  if (!auth) return null
+  // Try per-client OAuth first, then fall back to agency-level API key
+  const clientAuth = clientId ? await getClientGHLAuth(agencyId, clientId) : null
+  const agencyAuth = await getGHLHeaders(agencyId)
+  if (!clientAuth && !agencyAuth) return null
 
-  const { headers, integration } = auth
-  // Per-client location override → agency default
-  const clientLocation = clientId ? await resolveLocationId(agencyId, clientId) : null
-  const locationId = clientLocation || integration.ghl_location_id
+  const headers = clientAuth?.headers || agencyAuth!.headers
+  const locationId = clientAuth?.locationId || agencyAuth!.integration.ghl_location_id
+  const integration = agencyAuth?.integration || {}
 
   try {
     // Search for existing contact by phone

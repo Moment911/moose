@@ -297,14 +297,18 @@ export default function ClientDetailPage() {
       setTasks(tasksRes.data || [])
       setActivityLogs(logsRes.data || [])
 
-      // Load front desk config + calls
+      // Load front desk config + calls + GHL status
       try {
-        const [fdRes, fdCallsRes] = await Promise.all([
+        const [fdRes, fdCallsRes, ghlRes] = await Promise.all([
           fetch(`/api/front-desk?action=get&client_id=${clientId}&agency_id=${aid}`),
           fetch(`/api/front-desk?action=get_calls&client_id=${clientId}&agency_id=${aid}`),
+          fetch(`/api/ghl?action=get_client_ghl&agency_id=${aid}&client_id=${clientId}`),
         ])
         const fdData = await fdRes.json()
-        if (fdData.config) setFdConfig(fdData.config)
+        const ghlData = await ghlRes.json()
+        if (fdData.config) {
+          setFdConfig({ ...fdData.config, ghl_connected: ghlData.connected, ghl_location_id: ghlData.connection?.ghl_location_id })
+        }
         const fdCallsData = await fdCallsRes.json()
         setFdCalls(fdCallsData.calls || [])
       } catch {}
@@ -2189,6 +2193,41 @@ export default function ClientDetailPage() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* GHL Connection */}
+            <div style={{ marginBottom: 16, padding: '16px', background: fd.ghl_connected ? '#f0fdf4' : GRY, borderRadius: 12, border: `1px solid ${fd.ghl_connected ? '#bbf7d0' : '#e5e7eb'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <ExternalLink size={15} color={fd.ghl_connected ? GRN : '#9ca3af'} /> GoHighLevel
+                  </div>
+                  <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
+                    {fd.ghl_connected ? `Connected to location ${fd.ghl_location_id || ''}` : 'Connect this client\'s GHL sub-account for call syncing'}
+                  </div>
+                </div>
+                {fd.ghl_connected ? (
+                  <button onClick={async () => {
+                    if (!confirm('Disconnect this client from GHL?')) return
+                    await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) })
+                    fdUpdate('ghl_connected', false); fdUpdate('ghl_location_id', null)
+                    toast.success('GHL disconnected')
+                  }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>
+                    Disconnect
+                  </button>
+                ) : (
+                  <button onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/ghl?action=get_client_oauth_url&agency_id=${aid}&client_id=${clientId}`)
+                      const data = await res.json()
+                      if (data.error) throw new Error(data.error)
+                      window.open(data.url, '_blank', 'width=600,height=700')
+                    } catch (e) { toast.error(e.message) }
+                  }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <ExternalLink size={13} /> Connect to GHL
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Voicemail Settings */}

@@ -46,6 +46,31 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Get OAuth URL for per-client GHL connection
+    if (action === 'get_client_oauth_url') {
+      const clientId = searchParams.get('client_id')
+      if (!clientId) return Response.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const GHL_CLIENT_ID = process.env.GHL_CLIENT_ID
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+      if (!GHL_CLIENT_ID) return Response.json({ error: 'GHL_CLIENT_ID not configured' }, { status: 500 })
+
+      const redirectUri = `${appUrl}/api/integrations/ghl/callback`
+      const state = `${agencyId}:${clientId}`
+      const scopes = 'contacts.readonly contacts.write locations.readonly calendars.readonly calendars.write opportunities.readonly opportunities.write'
+      const url = `https://marketplace.leadconnectorhq.com/oauth/chooselocation?response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&client_id=${GHL_CLIENT_ID}&scope=${encodeURIComponent(scopes)}&state=${encodeURIComponent(state)}`
+
+      return Response.json({ url })
+    }
+
+    // Get per-client GHL connection status
+    if (action === 'get_client_ghl') {
+      const clientId = searchParams.get('client_id')
+      if (!clientId) return Response.json({ error: 'Missing client_id' }, { status: 400 })
+      const { data } = await s.from('koto_ghl_client_mappings').select('*').eq('client_id', clientId).eq('agency_id', agencyId).eq('status', 'active').maybeSingle()
+      return Response.json({ connection: data || null, connected: !!data?.access_token })
+    }
+
     // List all client → GHL location mappings
     if (action === 'get_client_mappings') {
       const { data } = await s.from('koto_ghl_client_mappings').select('*, clients:client_id(id, name, phone, industry)').eq('agency_id', agencyId).order('created_at', { ascending: false })
@@ -150,6 +175,37 @@ export async function POST(req: NextRequest) {
 
       await s.from('koto_ghl_client_mappings').update({ status: 'disconnected' }).eq('client_id', client_id).eq('agency_id', agency_id)
       await s.from('clients').update({ ghl_location_id: null, ghl_contact_id: null }).eq('id', client_id)
+
+      return Response.json({ success: true })
+    }
+
+    // ── Refresh per-client GHL token ──
+    if (action === 'refresh_client_token') {
+      const { client_id } = body
+      if (!client_id) return Response.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const { data: mapping } = await s.from('koto_ghl_client_mappings').select('*').eq('client_id', client_id).eq('agency_id', body.agency_id).eq('status', 'active').maybeSingle()
+      if (!mapping?.refresh_token) return Response.json({ error: 'No refresh token for this client' }, { status: 400 })
+
+      const res = await fetch('https://services.leadconnectorhq.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: mapping.refresh_token,
+          client_id: process.env.GHL_CLIENT_ID!,
+          client_secret: process.env.GHL_CLIENT_SECRET!,
+        }),
+      })
+      if (!res.ok) return Response.json({ error: 'Token refresh failed' }, { status: 502 })
+      const tokens = await res.json()
+
+      await s.from('koto_ghl_client_mappings').update({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq('id', mapping.id)
 
       return Response.json({ success: true })
     }
