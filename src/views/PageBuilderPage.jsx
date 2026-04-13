@@ -11,9 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
 /* ── Design tokens ────────────────────────────────────────────── */
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 /* ── 43 wildcard field definitions ────────────────────────────── */
 const WILDCARD_SECTIONS = [
@@ -182,12 +180,12 @@ function ModuleAccordion({ module, wildcardValues, onEditVariant, onSelectVarian
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{module.label}</div>
-          <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
+          <div style={{ fontSize: 12, color: '#374151', fontFamily: FB }}>
             {module.description} &middot; {module.variants.length} variant{module.variants.length !== 1 ? 's' : ''}
           </div>
         </div>
         <span style={{
-          fontSize: 11, fontWeight: 700, color: T, fontFamily: FH,
+          fontSize: 13, fontWeight: 700, color: T, fontFamily: FH,
           background: T + '15', padding: '3px 10px', borderRadius: 20,
         }}>
           {module.variants.length}
@@ -197,7 +195,7 @@ function ModuleAccordion({ module, wildcardValues, onEditVariant, onSelectVarian
           disabled={isRegenerating}
           style={{
             padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb',
-            background: '#fff', fontSize: 11, fontWeight: 600, cursor: isRegenerating ? 'not-allowed' : 'pointer',
+            background: '#fff', fontSize: 13, fontWeight: 600, cursor: isRegenerating ? 'not-allowed' : 'pointer',
             fontFamily: FH, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4,
             opacity: isRegenerating ? 0.5 : 1,
           }}
@@ -244,12 +242,12 @@ function ModuleAccordion({ module, wildcardValues, onEditVariant, onSelectVarian
                   </button>
                   <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: isSelected ? R : BLK, flex: 1 }}>
                     Variant {idx + 1}
-                    <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6, fontSize: 11 }}>
+                    <span style={{ fontWeight: 400, color: '#374151', marginLeft: 6, fontSize: 11 }}>
                       {variant.label}
                     </span>
                   </span>
                   <span style={{
-                    fontSize: 10, color: '#9ca3af', fontFamily: FH, fontWeight: 600,
+                    fontSize: 10, color: '#374151', fontFamily: FH, fontWeight: 600,
                     background: '#f3f4f6', padding: '2px 8px', borderRadius: 10,
                   }}>
                     {wc} words
@@ -258,7 +256,7 @@ function ModuleAccordion({ module, wildcardValues, onEditVariant, onSelectVarian
                     onClick={() => { setEditingId(isEditing ? null : variant.id); setEditContent(variant.content) }}
                     style={{
                       padding: '4px 10px', borderRadius: 7, border: '1px solid #e5e7eb',
-                      background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                      background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                       fontFamily: FH, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4,
                     }}
                   >
@@ -270,7 +268,7 @@ function ModuleAccordion({ module, wildcardValues, onEditVariant, onSelectVarian
                 {/* Inline editor */}
                 {isEditing && (
                   <div style={{ padding: '12px 14px', borderBottom: '1px solid #f3f4f6', background: '#fffbf5' }}>
-                    <div style={{ fontSize: 11, color: AMB, fontFamily: FH, fontWeight: 700, marginBottom: 6 }}>
+                    <div style={{ fontSize: 13, color: AMB, fontFamily: FH, fontWeight: 700, marginBottom: 6 }}>
                       <AlertCircle size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                       Editing raw HTML — use wildcards like {'{city}'}, {'{service}'}, etc.
                     </div>
@@ -348,7 +346,7 @@ function PreviewModal({ html, onClose }) {
             Full Page Preview
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FH }}>
+            <span style={{ fontSize: 12, color: '#374151', fontFamily: FH }}>
               {wordCount(html)} words
             </span>
             <button
@@ -394,14 +392,14 @@ function ResearchInsights({ data }) {
       {/* Content gaps */}
       {data.content_gaps?.length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
             Content Gaps
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {data.content_gaps.map((gap, i) => (
               <span key={i} style={{
                 padding: '4px 10px', borderRadius: 20, background: R + '10',
-                color: R, fontSize: 11, fontWeight: 600, fontFamily: FH,
+                color: R, fontSize: 13, fontWeight: 600, fontFamily: FH,
               }}>
                 {gap}
               </span>
@@ -413,7 +411,7 @@ function ResearchInsights({ data }) {
       {/* PAA Questions */}
       {data.paa_questions?.length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
             People Also Ask
           </div>
           <ul style={{ margin: 0, padding: '0 0 0 18px', fontSize: 12, fontFamily: FB, color: '#374151', lineHeight: 1.8 }}>
@@ -425,14 +423,14 @@ function ResearchInsights({ data }) {
       {/* Semantic keywords */}
       {data.semantic_keywords?.length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
             Semantic Keywords
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {data.semantic_keywords.map((kw, i) => (
               <span key={i} style={{
                 padding: '4px 10px', borderRadius: 20, background: T + '15',
-                color: T, fontSize: 11, fontWeight: 600, fontFamily: FH,
+                color: T, fontSize: 13, fontWeight: 600, fontFamily: FH,
               }}>
                 {kw}
               </span>
@@ -448,7 +446,7 @@ function ResearchInsights({ data }) {
             padding: '8px 14px', borderRadius: 10, background: '#f9fafb',
             border: '1px solid #e5e7eb',
           }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#374151', fontFamily: FH, textTransform: 'uppercase' }}>
               Target Words
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, color: BLK, fontFamily: FH }}>
@@ -461,7 +459,7 @@ function ResearchInsights({ data }) {
             padding: '8px 14px', borderRadius: 10, background: '#f9fafb',
             border: '1px solid #e5e7eb', flex: 1,
           }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#374151', fontFamily: FH, textTransform: 'uppercase' }}>
               Recommended Structure
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', fontFamily: FB, marginTop: 2 }}>
@@ -739,10 +737,10 @@ export default function PageBuilderPage() {
         }}>
           {/* Title */}
           <div>
-            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-.02em' }}>
+            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-.02em' }}>
               Page Builder
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', fontFamily: FB, marginTop: 2 }}>
+            <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 2 }}>
               Build once &middot; Swap wildcards &middot; Deploy to every city
             </div>
           </div>
@@ -756,21 +754,21 @@ export default function PageBuilderPage() {
                 <div key={step.n} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{
                     width: 28, height: 28, borderRadius: '50%',
-                    background: isCompleted ? GRN : isCurrent ? R : 'rgba(255,255,255,.1)',
+                    background: isCompleted ? GRN : isCurrent ? R : '#f3f4f6',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: FH,
+                    fontSize: 12, fontWeight: 800, color: isCompleted || isCurrent ? '#fff' : '#9ca3af', fontFamily: FH,
                     transition: 'background .3s',
                   }}>
                     {isCompleted ? <Check size={13} /> : step.n}
                   </div>
                   <span style={{
-                    fontSize: 12, color: isCurrent ? '#fff' : 'rgba(255,255,255,.5)',
+                    fontSize: 12, color: isCurrent ? '#111' : '#9ca3af',
                     fontFamily: FH, fontWeight: isCurrent ? 700 : 500,
                   }}>
                     {step.label}
                   </span>
                   {idx < STEPS.length - 1 && (
-                    <ChevronRight size={14} color="rgba(255,255,255,.2)" style={{ margin: '0 2px' }} />
+                    <ChevronRight size={14} color="#d1d5db" style={{ margin: '0 2px' }} />
                   )}
                 </div>
               )
@@ -780,16 +778,16 @@ export default function PageBuilderPage() {
           {/* Header actions */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{
-              fontSize: 12, color: '#999999', fontFamily: FH, fontWeight: 600,
-              background: 'rgba(255,255,255,.08)', padding: '4px 12px', borderRadius: 20,
+              fontSize: 13, color: '#6b7280', fontFamily: FH, fontWeight: 600,
+              background: '#f3f4f6', padding: '4px 12px', borderRadius: 20,
             }}>
               {totalWords} words
             </span>
             <button
               onClick={() => setShowPreview(true)}
               style={{
-                padding: '8px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,.15)',
-                background: 'transparent', color: '#fff', fontSize: 12, fontWeight: 700,
+                padding: '8px 16px', borderRadius: 9, border: '1px solid #e5e7eb',
+                background: '#fff', color: '#111', fontSize: 13, fontWeight: 700,
                 cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6,
               }}
             >
@@ -834,7 +832,7 @@ export default function PageBuilderPage() {
                 </div>
                 <button
                   onClick={() => setShowLeftPanel(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#374151', padding: 4 }}
                 >
                   <X size={14} />
                 </button>
@@ -843,7 +841,7 @@ export default function PageBuilderPage() {
               {/* Site selector */}
               <div style={{ padding: '14px 18px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{
-                  fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH,
+                  fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH,
                   textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
                 }}>
                   WordPress Site
@@ -873,13 +871,13 @@ export default function PageBuilderPage() {
                   }} />
                 </div>
                 {loadingSites && (
-                  <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ fontSize: 13, color: '#374151', fontFamily: FB, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> Loading sites...
                   </div>
                 )}
                 {sitemapPages.length > 0 && (
                   <div style={{
-                    fontSize: 11, color: GRN, fontFamily: FH, fontWeight: 600,
+                    fontSize: 13, color: GRN, fontFamily: FH, fontWeight: 600,
                     marginTop: 6, display: 'flex', alignItems: 'center', gap: 4,
                   }}>
                     <Check size={11} /> {sitemapPages.length} sitemap pages loaded
@@ -906,7 +904,7 @@ export default function PageBuilderPage() {
                     : <Sparkles size={15} />}
                   {researching ? 'Researching...' : 'Research & Generate All'}
                 </button>
-                <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB, textAlign: 'center', marginTop: 6 }}>
+                <div style={{ fontSize: 10, color: '#374151', fontFamily: FB, textAlign: 'center', marginTop: 6 }}>
                   AI analyzes your keyword, location, and competitors to generate optimized content
                 </div>
               </div>
@@ -916,7 +914,7 @@ export default function PageBuilderPage() {
                 {WILDCARD_SECTIONS.map(section => (
                   <div key={section.title} style={{ marginBottom: 16 }}>
                     <div style={{
-                      fontSize: 11, fontWeight: 700, color: T, fontFamily: FH,
+                      fontSize: 13, fontWeight: 700, color: T, fontFamily: FH,
                       textTransform: 'uppercase', letterSpacing: '.06em',
                       marginBottom: 8, paddingBottom: 6,
                       borderBottom: '1px solid #f3f4f6',
@@ -926,7 +924,7 @@ export default function PageBuilderPage() {
                     {section.fields.map(wc => (
                       <div key={wc.key} style={{ marginBottom: 8 }}>
                         <label style={{
-                          fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH,
+                          fontSize: 10, fontWeight: 700, color: '#374151', fontFamily: FH,
                           display: 'flex', alignItems: 'center', gap: 4,
                           marginBottom: 3, textTransform: 'uppercase', letterSpacing: '.05em',
                         }}>
@@ -986,13 +984,13 @@ export default function PageBuilderPage() {
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>
                   Content Modules
                 </div>
-                <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
+                <div style={{ fontSize: 12, color: '#374151', fontFamily: FB }}>
                   {modules.length} modules &middot; Expand each &middot; Select variant &middot; Edit if needed
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, fontFamily: FH,
+                  fontSize: 13, fontWeight: 700, fontFamily: FH,
                   color: totalWords >= 1500 ? GRN : totalWords >= 800 ? AMB : '#9ca3af',
                   background: totalWords >= 1500 ? GRN + '15' : totalWords >= 800 ? AMB + '15' : '#f3f4f6',
                   padding: '4px 10px', borderRadius: 20,
