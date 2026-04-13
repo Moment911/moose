@@ -482,8 +482,10 @@ export default function ClientDetailPage() {
 
   function scrollToSection(key) {
     setActiveSection(key)
-    const el = sectionRefs.current[key]
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // Update URL tab param without navigation
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', key)
+    window.history.replaceState({}, '', url.toString())
   }
 
   // ── Conditional returns AFTER all hooks ──────────────────────────────────────
@@ -1998,83 +2000,72 @@ export default function ClientDetailPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {/* Dark header */}
-        <div style={{ background: BLK, flexShrink: 0 }}>
-          <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Header */}
+        <div style={{ background: '#fff', flexShrink: 0, borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ padding: '16px 28px 0', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/clients')}
-              style={{ background: 'none', border: 'none', color: '#999999', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontFamily: FH, padding: 0 }}>
+              style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontFamily: FH, padding: 0 }}>
               <ArrowLeft size={16} /> Clients
             </button>
-            <span style={{ color: '#999999' }}>/</span>
-            <span style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: '#fff' }}>{client.name}</span>
+            <span style={{ color: '#d1d5db' }}>/</span>
+            <span style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>{client.name}</span>
             {client.industry && <span style={badge(T)}>{client.industry}</span>}
             <span style={badge(statusColor)}>{client.status || 'active'}</span>
             {hs > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: hsColor + '20', color: hsColor, fontFamily: FH }}>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: hsColor + '15', color: hsColor, fontFamily: FH }}>
                 Health {hs}
               </span>
             )}
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
               <button onClick={() => navigate(`/clients/${clientId}/report`)}
-                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <BarChart2 size={12} /> View Report
+                style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', color: BLK, fontSize: 13, fontFamily: FH, fontWeight: 600, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BarChart2 size={13} /> Report
               </button>
               <button onClick={scanAll} disabled={socialScanning}
-                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                {socialScanning ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
-                Scan All
+                style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', color: BLK, fontSize: 13, fontFamily: FH, fontWeight: 600, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {socialScanning ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} />}
+                Scan
               </button>
               <button onClick={generateInsights} disabled={loadingInsights}
-                style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', color: '#fff', fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Brain size={12} /> AI Insights
+                style={{ padding: '8px 14px', borderRadius: 8, border: 'none', color: '#fff', fontSize: 13, fontFamily: FH, fontWeight: 600, background: R, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Brain size={13} /> AI Insights
               </button>
               <button onClick={() => setShowDeleteModal(true)}
-                style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${R}60`, color: R, fontSize: 12, fontFamily: FH, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Trash2 size={12} /> Archive
+                style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', color: R, fontSize: 13, fontFamily: FH, fontWeight: 600, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Trash2 size={13} />
               </button>
             </div>
           </div>
 
           {/* Tab bar */}
-          <div style={{ display: 'flex', overflowX: 'auto', paddingLeft: 24, marginTop: 8, scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', overflowX: 'auto', paddingLeft: 28, marginTop: 12, scrollbarWidth: 'none' }}>
             {SECTIONS.map(sec => {
               const Ic = sec.icon
               const isActive = activeSection === sec.key
               return (
                 <button key={sec.key} onClick={() => scrollToSection(sec.key)}
-                  style={{ padding: '10px 16px', background: 'none', border: 'none', borderBottom: isActive ? `2px solid ${R}` : '2px solid transparent', color: isActive ? '#fff' : 'rgba(255,255,255,.5)', fontSize: 13, fontFamily: FH, fontWeight: isActive ? 700 : 400, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, transition: 'color .15s' }}>
-                  <Ic size={13} /> {sec.label}
+                  style={{ padding: '12px 18px', background: 'none', border: 'none', borderBottom: isActive ? `3px solid ${R}` : '3px solid transparent', color: isActive ? BLK : '#9ca3af', fontSize: 14, fontFamily: FH, fontWeight: isActive ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0, transition: 'all .15s' }}>
+                  <Ic size={15} /> {sec.label}
                 </button>
               )
             })}
           </div>
         </div>
 
-        {/* Scrollable content */}
+        {/* Scrollable content — only renders the active tab */}
         <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
           <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-            {renderOverviewSection()}
-            <div style={{ height: 32 }} />
-            {renderInfoSection()}
-            <div style={{ height: 32 }} />
-            {renderOnboardingSection()}
-            <div style={{ height: 32 }} />
-            {renderOnlineSection()}
-            <div style={{ height: 32 }} />
-            {renderSeoSection()}
-            <div style={{ height: 32 }} />
-            {renderReviewsSection()}
-            <div style={{ height: 32 }} />
-            {renderCallsSection()}
-            <div style={{ height: 32 }} />
-            {renderActivitySection()}
-            <div style={{ height: 32 }} />
-            {renderIntelligenceSection()}
-            <div style={{ height: 32 }} />
-            {renderBrandKitSection()}
-            <div style={{ height: 32 }} />
-            {renderFrontDeskSection()}
-            <div style={{ height: 40 }} />
+            {activeSection === 'overview' && renderOverviewSection()}
+            {activeSection === 'info' && renderInfoSection()}
+            {activeSection === 'onboarding' && renderOnboardingSection()}
+            {activeSection === 'online' && renderOnlineSection()}
+            {activeSection === 'seo' && renderSeoSection()}
+            {activeSection === 'reviews' && renderReviewsSection()}
+            {activeSection === 'calls' && renderCallsSection()}
+            {activeSection === 'activity' && renderActivitySection()}
+            {activeSection === 'intelligence' && renderIntelligenceSection()}
+            {activeSection === 'brandkit' && renderBrandKitSection()}
+            {activeSection === 'front-desk' && renderFrontDeskSection()}
           </div>
         </div>
       </div>
