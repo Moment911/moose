@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveAgencyId } from '../../../lib/apiAuth'
-import { buildFrontDeskPrompt, type FrontDeskConfig } from '../../../lib/frontDeskPromptBuilder'
+import { buildFrontDeskPrompt, buildFrontDeskPromptForClient, type FrontDeskConfig } from '../../../lib/frontDeskPromptBuilder'
 
 function getSupabase() {
   return createClient(
@@ -65,6 +65,40 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ prompt })
     }
 
+    // ── Get call log for a client ──
+    if (action === 'get_calls') {
+      const client_id = searchParams.get('client_id')
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+      const outcome = searchParams.get('outcome')
+      const date_from = searchParams.get('date_from')
+      const date_to = searchParams.get('date_to')
+
+      let query = sb.from('koto_front_desk_calls')
+        .select('id, config_id, retell_call_id, caller_phone, caller_name, direction, duration_seconds, outcome, transfer_to, transfer_accepted, sentiment, ai_summary, voicemail, voicemail_url, links_sent, ghl_synced, created_at')
+        .eq('client_id', client_id)
+        .eq('agency_id', agency_id)
+        .order('created_at', { ascending: false })
+        .limit(100)
+
+      if (outcome) query = query.eq('outcome', outcome)
+      if (date_from) query = query.gte('created_at', date_from)
+      if (date_to) query = query.lte('created_at', date_to)
+
+      const { data, error } = await query
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ calls: data || [] })
+    }
+
+    // ── Get single call with full details ──
+    if (action === 'get_call') {
+      const call_id = searchParams.get('call_id')
+      if (!call_id) return NextResponse.json({ error: 'Missing call_id' }, { status: 400 })
+      const { data, error } = await sb.from('koto_front_desk_calls').select('*').eq('id', call_id).eq('agency_id', agency_id).maybeSingle()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (!data) return NextResponse.json({ error: 'Call not found' }, { status: 404 })
+      return NextResponse.json({ call: data })
+    }
+
     // ── Client-facing: get own config ──
     if (action === 'client_get') {
       const client_id = searchParams.get('client_id')
@@ -124,6 +158,10 @@ export async function POST(req: NextRequest) {
         voice_id: fields.voice_id,
         voice_name: fields.voice_name || 'Nicole',
         status: fields.status || 'draft',
+        voicemail_greeting: fields.voicemail_greeting,
+        voicemail_max_seconds: fields.voicemail_max_seconds ?? 120,
+        transfer_timeout_seconds: fields.transfer_timeout_seconds ?? 30,
+        transfer_announce_template: fields.transfer_announce_template ?? 'You have an incoming call from {caller}. Press 1 to connect.',
       }
 
       let result
@@ -379,6 +417,66 @@ ${websiteText.slice(0, 20000)}` }],
       })
     }
 
+    // ── Log a call ──
+    if (action === 'log_call') {
+      const {
+        client_id, config_id, retell_call_id, caller_phone, caller_name,
+        direction, duration_seconds, outcome, transfer_to, transfer_accepted,
+        sentiment, transcript, ai_summary, recording_url,
+        voicemail, voicemail_url, voicemail_transcript,
+        links_sent, ghl_synced,
+      } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const { data, error } = await sb.from('koto_front_desk_calls').insert({
+        agency_id, client_id, config_id, retell_call_id, caller_phone, caller_name,
+        direction: direction || 'inbound',
+        duration_seconds: duration_seconds || 0,
+        outcome: outcome || 'answered',
+        transfer_to, transfer_accepted,
+        sentiment: sentiment || 'neutral',
+        transcript, ai_summary, recording_url,
+        voicemail: voicemail ?? false,
+        voicemail_url, voicemail_transcript,
+        links_sent: links_sent || [],
+        ghl_synced: ghl_synced ?? false,
+      }).select().single()
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+      // Increment counters on the config
+      if (config_id) {
+        const increments: Record<string, any> = { total_calls: 1 }
+        // We use raw rpc or manual increment; supabase-js doesn't have .increment()
+        // so we fetch current values and update
+        const { data: cfg } = await sb.from('koto_front_desk_configs').select('total_calls, total_appointments, total_transfers').eq('id', config_id).maybeSingle()
+        if (cfg) {
+          const updates: Record<string, any> = { total_calls: (cfg.total_calls || 0) + 1 }
+          if (outcome === 'appointment') updates.total_appointments = (cfg.total_appointments || 0) + 1
+          if (outcome === 'transferred') updates.total_transfers = (cfg.total_transfers || 0) + 1
+          await sb.from('koto_front_desk_configs').update(updates).eq('id', config_id)
+        }
+      }
+
+      return NextResponse.json({ call: data })
+    }
+
+    // ── Update voicemail / transfer settings ──
+    if (action === 'update_voicemail_settings') {
+      const { client_id, voicemail_greeting, voicemail_max_seconds, transfer_timeout_seconds, transfer_announce_template } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const update: Record<string, any> = {}
+      if (voicemail_greeting !== undefined) update.voicemail_greeting = voicemail_greeting
+      if (voicemail_max_seconds !== undefined) update.voicemail_max_seconds = voicemail_max_seconds
+      if (transfer_timeout_seconds !== undefined) update.transfer_timeout_seconds = transfer_timeout_seconds
+      if (transfer_announce_template !== undefined) update.transfer_announce_template = transfer_announce_template
+
+      const { error } = await sb.from('koto_front_desk_configs').update(update).eq('client_id', client_id).eq('agency_id', agency_id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+
     // ── Client-facing: save editable fields only ──
     if (action === 'client_save') {
       const { client_id, ...fields } = body
@@ -396,6 +494,150 @@ ${websiteText.slice(0, 20000)}` }],
       const { error } = await sb.from('koto_front_desk_configs').update(update).eq('id', existing.id)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ ok: true })
+    }
+
+    // ── Provision a Retell phone number + agent ──
+    if (action === 'provision_number') {
+      const { client_id, area_code = '954' } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const RETELL_KEY = process.env.RETELL_API_KEY || ''
+      if (!RETELL_KEY) return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
+      const retellHeaders = { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' }
+
+      // Fetch the config for this client
+      const { data: cfg } = await sb.from('koto_front_desk_configs').select('*').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (!cfg) return NextResponse.json({ error: 'No front desk config found for this client' }, { status: 404 })
+
+      // 1. Build the prompt
+      const prompt = await buildFrontDeskPromptForClient(client_id)
+      if (!prompt) return NextResponse.json({ error: 'Could not build prompt for client' }, { status: 500 })
+
+      // 2. Create the Retell agent
+      const agentRes = await fetch('https://api.retellai.com/create-agent', {
+        method: 'POST',
+        headers: retellHeaders,
+        body: JSON.stringify({
+          response_engine: { type: 'retell-llm', llm_id: '' },
+          agent_name: `Front Desk - ${cfg.company_name || client_id}`,
+          voice_id: cfg.voice_id || '11labs-Nicole',
+          enable_backchannel: true,
+          begin_message: cfg.custom_greeting
+            ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
+            : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`,
+          general_prompt: prompt,
+          ...(cfg.scheduling_department_phone ? {
+            transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
+          } : {}),
+        }),
+      })
+      if (!agentRes.ok) {
+        const err = await agentRes.text()
+        return NextResponse.json({ error: `Failed to create Retell agent: ${err}` }, { status: 500 })
+      }
+      const agentData = await agentRes.json()
+      const agent_id = agentData.agent_id
+
+      // 3. Provision the phone number
+      const phoneRes = await fetch('https://api.retellai.com/create-phone-number', {
+        method: 'POST',
+        headers: retellHeaders,
+        body: JSON.stringify({ area_code }),
+      })
+      if (!phoneRes.ok) {
+        const err = await phoneRes.text()
+        return NextResponse.json({ error: `Failed to provision phone number: ${err}` }, { status: 500 })
+      }
+      const phoneData = await phoneRes.json()
+      const phone_number = phoneData.phone_number
+
+      // 4. Link the phone number to the agent
+      const linkRes = await fetch(`https://api.retellai.com/update-phone-number/${phone_number}`, {
+        method: 'PATCH',
+        headers: retellHeaders,
+        body: JSON.stringify({ agent_id }),
+      })
+      if (!linkRes.ok) {
+        const err = await linkRes.text()
+        return NextResponse.json({ error: `Failed to link phone to agent: ${err}` }, { status: 500 })
+      }
+
+      // 5. Save to config
+      const { error: updateErr } = await sb.from('koto_front_desk_configs')
+        .update({ retell_agent_id: agent_id, retell_phone_number: phone_number })
+        .eq('client_id', client_id).eq('agency_id', agency_id)
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
+
+      return NextResponse.json({ phone_number, agent_id })
+    }
+
+    // ── Release a Retell phone number ──
+    if (action === 'release_number') {
+      const { client_id } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const RETELL_KEY = process.env.RETELL_API_KEY || ''
+      if (!RETELL_KEY) return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
+      const retellHeaders = { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' }
+
+      const { data: cfg } = await sb.from('koto_front_desk_configs').select('retell_phone_number, retell_agent_id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (!cfg?.retell_phone_number) return NextResponse.json({ error: 'No phone number provisioned for this client' }, { status: 404 })
+
+      // Delete the phone number from Retell
+      const delRes = await fetch(`https://api.retellai.com/delete-phone-number/${cfg.retell_phone_number}`, {
+        method: 'DELETE',
+        headers: retellHeaders,
+      })
+      if (!delRes.ok) {
+        const err = await delRes.text()
+        return NextResponse.json({ error: `Failed to release phone number: ${err}` }, { status: 500 })
+      }
+
+      // Clear from config
+      const { error: updateErr } = await sb.from('koto_front_desk_configs')
+        .update({ retell_phone_number: null, retell_agent_id: null })
+        .eq('client_id', client_id).eq('agency_id', agency_id)
+      if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
+
+      return NextResponse.json({ ok: true })
+    }
+
+    // ── Update / re-sync Retell agent config ──
+    if (action === 'update_agent') {
+      const { client_id } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const RETELL_KEY = process.env.RETELL_API_KEY || ''
+      if (!RETELL_KEY) return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
+      const retellHeaders = { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' }
+
+      const { data: cfg } = await sb.from('koto_front_desk_configs').select('*').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (!cfg?.retell_agent_id) return NextResponse.json({ error: 'No Retell agent found for this client' }, { status: 404 })
+
+      const prompt = await buildFrontDeskPromptForClient(client_id)
+      if (!prompt) return NextResponse.json({ error: 'Could not build prompt for client' }, { status: 500 })
+
+      const patchRes = await fetch(`https://api.retellai.com/update-agent/${cfg.retell_agent_id}`, {
+        method: 'PATCH',
+        headers: retellHeaders,
+        body: JSON.stringify({
+          voice_id: cfg.voice_id || '11labs-Nicole',
+          enable_backchannel: true,
+          begin_message: cfg.custom_greeting
+            ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
+            : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`,
+          general_prompt: prompt,
+          ...(cfg.scheduling_department_phone ? {
+            transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
+          } : {}),
+        }),
+      })
+      if (!patchRes.ok) {
+        const err = await patchRes.text()
+        return NextResponse.json({ error: `Failed to update Retell agent: ${err}` }, { status: 500 })
+      }
+
+      return NextResponse.json({ ok: true, agent_id: cfg.retell_agent_id })
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
