@@ -108,11 +108,14 @@ export default function FileReviewPage() {
   const isPdf = file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name || '')
   const isHtml = file?.type === 'text/html' || /\.html?$/i.test(file?.name || '')
   const isVideo = file?.type?.startsWith('video/')
+  const isWebsite = file?.type === 'text/x-url' || /\.url$/i.test(file?.name || '')
+  const isAdobe = /\.(psd|ai|eps|indd)$/i.test(file?.name || '')
+  const isDesignFile = /\.(sketch|xd|fig)$/i.test(file?.name || '')
 
   // ── Content dimensions (what the annotation canvas snaps to) ──
   const contentWidth = isImage
     ? imageDims.width || 1024
-    : isHtml
+    : isHtml || isWebsite
       ? iframeWidth
       : isPdf
         ? 1440
@@ -679,6 +682,28 @@ export default function FileReviewPage() {
                     Loading HTML preview…
                   </div>
                 )
+              )}
+              {isWebsite && (
+                <iframe
+                  src={file.url}
+                  title={file.name}
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}
+                />
+              )}
+              {(isAdobe || isDesignFile) && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: contentWidth, height: 400, background: '#f9fafb', borderRadius: 12, gap: 16 }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#E6007E15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FileText size={32} color="#E6007E" />
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>{file.name}</div>
+                  <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, textAlign: 'center' }}>
+                    This is a {isAdobe ? 'Adobe' : 'design'} file. Download it to open in the native application, or export it as PNG/PDF for visual review.
+                  </div>
+                  <a href={file.url} download={file.name} style={{ padding: '10px 20px', borderRadius: 10, background: '#111', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                    Download File
+                  </a>
+                </div>
               )}
               {isVideo && (
                 <video

@@ -16,10 +16,13 @@ import { supabase, getFiles, getActivity, deleteFile, deleteStorageFile, sendEma
 import { formatDistanceToNow, format } from 'date-fns'
 import toast from 'react-hot-toast'
 
-function FileTypeIcon({ type, size = 20 }) {
+function FileTypeIcon({ type, name, size = 20 }) {
   if (type?.startsWith('image/')) return <FileImage size={size} className="text-blue-500" />
   if (type === 'application/pdf') return <FileText size={size} className="text-red-500" />
   if (type?.startsWith('video/')) return <span className="text-purple-500" style={{ fontSize: size }}>&#9654;</span>
+  if (type === 'text/x-url') return <Globe size={size} className="text-teal-500" />
+  if (/\.(psd|ai|eps|indd)$/i.test(name || '')) return <FileText size={size} className="text-orange-500" />
+  if (/\.(sketch|xd|fig)$/i.test(name || '')) return <FileText size={size} className="text-violet-500" />
   return <Globe size={size} className="text-green-500" />
 }
 
