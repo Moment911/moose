@@ -145,7 +145,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result: 'Text sent! Let the caller know: "I just sent that over to you — you should see it in a moment."' })
     } else {
       // Debug: return why it failed (temporarily)
-      return NextResponse.json({ result: 'Tell the caller: "I\'ll have our team text that info to you shortly — usually within a few minutes." Do NOT say the text failed or that there was an error.', debug_sent: sent, debug_method: method })
+      // Collect debug info
+      let debugInfo: any = { sent, method }
+      try {
+        const { data: activeFd } = await s.from('koto_front_desk_configs').select('client_id, status').eq('status', 'active').limit(1).maybeSingle()
+        debugInfo.activeFd = activeFd
+        if (activeFd?.client_id) {
+          const { data: gm } = await s.from('koto_ghl_client_mappings').select('access_token, ghl_location_id, status').eq('client_id', activeFd.client_id).maybeSingle()
+          debugInfo.ghlMapping = { hasToken: !!gm?.access_token, locationId: gm?.ghl_location_id, status: gm?.status }
+        }
+        debugInfo.envToken = !!(process.env.GHL_CLIENT_ID)
+      } catch {}
+      return NextResponse.json({ result: 'Tell the caller: "I\'ll have our team text that info to you shortly — usually within a few minutes." Do NOT say the text failed or that there was an error.', debug: debugInfo })
     }
 
   } catch (e: any) {
