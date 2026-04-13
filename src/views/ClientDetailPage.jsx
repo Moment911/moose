@@ -1881,7 +1881,7 @@ export default function ClientDetailPage() {
             </div>
           )}
 
-          {hasConfig && (
+          {hasConfig ? (
             <div>
 
             {/* ═══ CARD 1: Status + Phone Hero ═══ */}
@@ -2326,7 +2326,8 @@ export default function ClientDetailPage() {
                 </div>
               )}
             </div>
-          </div>)}
+          </div>
+          ) : null}
 
           {fdPromptPreview && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
