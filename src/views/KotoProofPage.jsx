@@ -364,29 +364,20 @@ export default function KotoProofPage() {
           {/* FILES TAB */}
           {tab === 'files' && (
             <div className="space-y-3">
-              {/* Client Review Links — one per file */}
-              {files.length > 0 && files.some(f => f.public_token) && (
-                <div style={{ background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d060', marginBottom: 4, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid #bbf7d030' }}>
-                    <Globe2 size={14} style={{ color: '#16a34a' }} />
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111', flex: 1 }}>Client Review Links</div>
-                    <button onClick={() => {
-                      const links = files.filter(f => f.public_token).map(f => `${f.name}: ${window.location.origin}/review/${f.public_token}`).join('\n')
-                      navigator.clipboard.writeText(links); toast.success(`${files.filter(f=>f.public_token).length} links copied!`)
-                    }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#16a34a', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                      Copy All
-                    </button>
-                  </div>
-                  {files.filter(f => f.public_token).map(f => (
-                    <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 16px', fontSize: 12 }}>
-                      <span style={{ color: '#374151', fontWeight: 600, minWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                      <span style={{ color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>/review/{f.public_token}</span>
-                      <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/review/${f.public_token}`); toast.success('Copied!') }}
-                        style={{ padding: '2px 8px', borderRadius: 4, border: '1px solid #bbf7d0', background: '#fff', color: '#16a34a', fontSize: 10, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
-                        Copy
-                      </button>
+              {/* Client Review Link — one link for the whole project */}
+              {project?.public_token && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: '#f0fdf4', borderRadius: 12, border: '1px solid #bbf7d060', marginBottom: 4 }}>
+                  <Globe2 size={16} style={{ color: '#16a34a', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>Client Review Link</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {window.location.origin}/proof-review/{project.public_token}
                     </div>
-                  ))}
+                  </div>
+                  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/proof-review/${project.public_token}`); toast.success('Link copied!') }}
+                    style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Copy Link
+                  </button>
                 </div>
               )}
 

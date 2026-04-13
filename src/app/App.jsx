@@ -39,6 +39,7 @@ import ListsPage from '../views/ListsPage'
 import EmailDesignerPage from '../views/EmailDesignerPage'
 import AutomationsPage from '../views/AutomationsPage'
 import PublicReviewPage from '../views/PublicReviewPage'
+import ProjectReviewPage from '../views/ProjectReviewPage'
 // ReviewPage stub removed — was never linked from UI
 import ClientDashboardPage from '../views/ClientDashboardPage'
 import ClientAuthPage from '../views/ClientAuthPage'
@@ -244,6 +245,7 @@ export default function App() {
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/review/:token" element={<PublicReviewPage />} />
+          <Route path="/proof-review/:token" element={<ProjectReviewPage />} />
           <Route path="/r/:token" element={<PublicReportPage />} />
           <Route path="/p/:token" element={<ProposalPublicPage />} />
           <Route path="/proposals/view/:token" element={<ProposalPublicViewPage />} />
