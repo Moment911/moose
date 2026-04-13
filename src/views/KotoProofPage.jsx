@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage, FileText, Globe, Plus, Trash2, Clock, MessageSquare, Activity,
          ChevronLeft, Settings, Send, Globe2, Lock, KeyRound, ChevronDown, ChevronUp,
-         Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch, GitCompare } from 'lucide-react'
+         Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch, GitCompare, Grid3X3 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import UploadDropzone from '../components/UploadDropzone'
@@ -331,7 +331,7 @@ export default function KotoProofPage() {
               {!isClient && <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={12} /> Access</button>}
               <button onClick={handleSendEmail} disabled={emailSending || totalOpen === 0} className="btn-secondary text-sm"><Send size={12} />{emailSending ? '…' : 'Email'}</button>
               <button onClick={() => setShowAISummary(true)} disabled={allAnnotations.length === 0} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Wand2 size={12} /> AI</button>
-              <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><PenLine size={12} /> Canvas</button>
+              <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm"><Grid3X3 size={12} /> Canvas</button>
               <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={12} /> Email</button>
               <button onClick={() => navigate(`/esign/${resolvedProjectId}`)} className="btn-secondary text-sm" style={{ borderColor: '#7c3aed', color: '#7c3aed' }}><Pen size={12} /> Sign</button>
             </div>
@@ -471,7 +471,7 @@ export default function KotoProofPage() {
               {files.length === 0 && canvases.length === 0 && emails.length === 0 && !showUpload && (
                 <div className="text-center py-12"><FileImage size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-700 text-sm mb-4">Get started by creating something.</p>
                   <div className="flex items-center justify-center gap-3">
-                    <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary"><PenLine size={15} /> Design Canvas</button>
+                    <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary"><Grid3X3 size={15} /> Canvas</button>
                     <button onClick={() => navigate(`/project/${resolvedProjectId}/email`)} className="btn-secondary" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Mail size={15} /> Email Designer</button>
                     <button onClick={() => setShowUpload(true)} className="btn-primary"><Plus size={15} /> Upload File</button>
                   </div>

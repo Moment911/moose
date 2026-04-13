@@ -136,6 +136,7 @@ import BillingAdminPage from '../views/BillingAdminPage'
 import StripeDashboardPage from '../views/StripeDashboardPage'
 import InvoiceBuilderPage from '../views/InvoiceBuilderPage'
 import KotoProofPage from '../views/KotoProofPage'
+import ProofCanvasPage from '../views/ProofCanvasPage'
 import FileReviewPage from '../views/FileReviewPage'
 import ProofListPage from '../views/ProofListPage'
 import TokenUsagePage from '../views/TokenUsagePage'
@@ -356,7 +357,7 @@ function AppRoutes() {
           <Route path="/client-auth" element={<ClientAuthPage />} />
           <Route path="/wireframe" element={<WireframePage />} />
           <Route path="/wireframe/:projectId" element={<WireframePage />} />
-          <Route path="/project/:projectId/canvas" element={<WireframePage />} />
+          <Route path="/project/:projectId/canvas" element={<ProofCanvasPage />} />
           <Route path="/project/:projectId/canvas/:canvasId" element={<WireframePage />} />
           <Route path="/esign/:projectId" element={<ESignaturePage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
