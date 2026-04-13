@@ -91,7 +91,7 @@ export default function AccessModal({ project, onClose, onUpdate }) {
           </button>
         </div>
 
-        <div className="p-5 space-y-3" style={{ overflowY: 'auto', flex: 1 }}
+        <div className="p-5 space-y-3" style={{ overflowY: 'auto', flex: 1 }}>
           {/* Access options */}
           {OPTIONS.map(opt => {
             const Icon = opt.icon
