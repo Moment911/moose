@@ -90,7 +90,7 @@ export function buildFrontDeskPrompt(config: FrontDeskConfig): string {
 
   const openingLine = config.custom_greeting
     ? config.custom_greeting.replace(/\{greeting\}/gi, greeting).replace(/\{company\}/gi, companyName)
-    : `${greeting}, it's a great day at ${companyName}! How can I help you?`
+    : `${greeting}, thank you for calling ${companyName}! My name is Jenny, I'm the AI front desk assistant. How can I help you today?`
 
   const servicesBlock = config.services.length > 0
     ? `SERVICES WE OFFER:\n${config.services.map(s => `  - ${s}`).join('\n')}`

@@ -1887,8 +1887,26 @@ export default function ClientDetailPage() {
             </div>
           )}
 
-          {hasConfig
-            ? <div>
+          {hasConfig && renderFrontDeskCards(fd, fdCard, fdCardTitle, fdLabel, fdInput, DAYS)}
+
+          {fdPromptPreview && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
+            <div style={{ background: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '80vh', overflow: 'auto', padding: 24 }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>LLM System Prompt Preview</span>
+                <button onClick={() => setFdPromptPreview(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+              <pre style={{ fontSize: 11, fontFamily: 'monospace', whiteSpace: 'pre-wrap', background: '#f9fafb', padding: 16, borderRadius: 10, border: '1px solid #e5e7eb', color: '#374151', lineHeight: 1.6 }}>{fdPromptPreview}</pre>
+            </div>
+          </div>
+          )}
+      </div>
+    )
+  }
+
+  function renderFrontDeskCards(fd, fdCard, fdCardTitle, fdLabel, fdInput, DAYS) {
+    return (
+      <div>
 
             {/* ═══ CARD 1: Status + Phone Hero ═══ */}
             <div style={{ ...fdCard, background: fd.retell_phone_number ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)', border: fd.retell_phone_number ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
@@ -2400,21 +2418,6 @@ export default function ClientDetailPage() {
               )}
             </div>
           </div>
-            : null
-          }
-
-          {fdPromptPreview && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
-            <div style={{ background: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '80vh', overflow: 'auto', padding: 24 }} onClick={e => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>LLM System Prompt Preview</span>
-                <button onClick={() => setFdPromptPreview(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
-              </div>
-              <pre style={{ fontSize: 11, fontFamily: 'monospace', whiteSpace: 'pre-wrap', background: '#f9fafb', padding: 16, borderRadius: 10, border: '1px solid #e5e7eb', color: '#374151', lineHeight: 1.6 }}>{fdPromptPreview}</pre>
-            </div>
-          </div>
-        )}
-      </div>
     )
   }
 
