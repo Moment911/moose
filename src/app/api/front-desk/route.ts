@@ -813,7 +813,7 @@ If no useful learnings, return an empty array: []` }],
         body: JSON.stringify({
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
           voice_id: cfg.voice_id || '11labs-Nicole',
-          response_engine: { type: 'retell-llm' },
+          response_engine: { type: 'retell-llm', llm_id: null },
           enable_backchannel: true,
           begin_message: cfg.custom_greeting
             ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
