@@ -368,6 +368,8 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
   const [organizing, setOrganizing] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editText, setEditText] = useState('')
+  const [bulkSelected, setBulkSelected] = useState({})
+  const [rewriting, setRewriting] = useState(false)
 
   async function generateAI() {
     setGenerating(true)
@@ -437,9 +439,39 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
     toast.success('Saved')
   }
 
+  async function bulkDelete() {
+    const ids = Object.keys(bulkSelected).filter(id => bulkSelected[id])
+    if (ids.length === 0) return
+    if (!confirm('Delete ' + ids.length + ' directive(s)?')) return
+    for (const id of ids) { await doFetch('delete_directive', { id }) }
+    setFdDirectives(prev => prev.filter(d => !ids.includes(d.id)))
+    setBulkSelected({})
+    toast.success(ids.length + ' deleted')
+  }
+
+  async function rewriteFlow() {
+    setRewriting(true)
+    try {
+      const d = await doFetch('organize_directives')
+      if (d.directives) {
+        setFdDirectives(d.directives)
+        if (d.custom_instructions !== undefined && fdUpdate) {
+          fdUpdate('custom_instructions', d.custom_instructions)
+        }
+        setBulkSelected({})
+        toast.success('Directives & instructions rewritten' + (d.prompt_updated ? ' — LLM updated' : ''))
+      } else {
+        toast.error('Rewrite failed')
+      }
+    } catch (e) { toast.error((e as any).message) }
+    setRewriting(false)
+  }
+
   const toggleAll = (on) => { const s = {}; aiSuggestions.forEach((_, i) => { s[i] = on }); setSelected(s) }
   const selectedCount = Object.values(selected).filter(Boolean).length
   const activeDirectives = fdDirectives.filter(d => d.status === 'active')
+  const bulkCount = Object.values(bulkSelected).filter(Boolean).length
+  const toggleBulkAll = (on) => { const s = {}; activeDirectives.forEach(d => { s[d.id] = on }); setBulkSelected(s) }
 
   return (
     <div style={fdCard}>
@@ -511,22 +543,37 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
         <button onClick={async () => { if (!fdNewDirective.trim()) return; const d = await doFetch('add_directive', { directive: fdNewDirective.trim(), category: fdNewCategory }); if (d.directive) { setFdDirectives(prev => [d.directive, ...prev]); setFdNewDirective(''); toast.success('Added') } }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Add</button>
       </div>
 
-      {/* Active directives */}
+      {/* Active directives with bulk select */}
       {activeDirectives.length === 0
         ? <div style={{ background: GRY, borderRadius: 8, padding: 16, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No directives yet. Generate with AI or add manually above.</div>
-        : <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {activeDirectives.map(d => (
-              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid ' + (editingId === d.id ? '#7c3aed' : '#e5e7eb'), background: editingId === d.id ? '#faf5ff' : '#fff' }}>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: (CAT_COLORS[d.category] || '#6b7280') + '15', color: CAT_COLORS[d.category] || '#6b7280' }}>{d.category}</span>
-                {editingId === d.id ? (
-                  <input value={editText} onChange={e => setEditText(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={e => { if (e.key === 'Enter') saveEdit(d.id); if (e.key === 'Escape') { setEditingId(null); setEditText('') } }} autoFocus style={{ flex: 1, padding: '4px 8px', borderRadius: 6, border: '1px solid #7c3aed', fontSize: 13, color: BLK, outline: 'none' }} />
-                ) : (
-                  <span onClick={() => { setEditingId(d.id); setEditText(d.directive) }} style={{ fontSize: 13, color: BLK, flex: 1, cursor: 'pointer', borderBottom: '1px dashed transparent' }} onMouseEnter={e => (e.currentTarget.style.borderBottomColor = '#d1d5db')} onMouseLeave={e => (e.currentTarget.style.borderBottomColor = 'transparent')}>{d.directive}</span>
-                )}
-                {d.source === 'ai_suggested' && <span style={{ fontSize: 9, color: '#7c3aed' }}>AI</span>}
-                <button onClick={async () => { await doFetch('delete_directive', { id: d.id }); setFdDirectives(prev => prev.filter(x => x.id !== d.id)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14 }}>x</button>
-              </div>
-            ))}
+        : <div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8, padding: '6px 0' }}>
+              <button onClick={() => toggleBulkAll(bulkCount < activeDirectives.length)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>{bulkCount === activeDirectives.length ? 'Deselect All' : 'Select All'}</button>
+              {bulkCount > 0 && (
+                <span>
+                  <button onClick={bulkDelete} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: R }}>Delete {bulkCount}</button>
+                </span>
+              )}
+              <div style={{ flex: 1 }}></div>
+              <button onClick={rewriteFlow} disabled={rewriting} style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid #ddd6fe', background: '#fff', color: '#7c3aed', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: rewriting ? 0.5 : 1 }}>
+                {rewriting ? <span><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Rewriting...</span> : <span><Sparkles size={12} /> Rewrite & Flow</span>}
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {activeDirectives.map(d => (
+                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid ' + (editingId === d.id ? '#7c3aed' : bulkSelected[d.id] ? R : '#e5e7eb'), background: editingId === d.id ? '#faf5ff' : bulkSelected[d.id] ? R + '05' : '#fff' }}>
+                  <input type="checkbox" checked={!!bulkSelected[d.id]} onChange={() => setBulkSelected(prev => ({ ...prev, [d.id]: !prev[d.id] }))} style={{ accentColor: R, width: 15, height: 15, flexShrink: 0, cursor: 'pointer' }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: (CAT_COLORS[d.category] || '#6b7280') + '15', color: CAT_COLORS[d.category] || '#6b7280' }}>{d.category}</span>
+                  {editingId === d.id ? (
+                    <input value={editText} onChange={e => setEditText(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={e => { if (e.key === 'Enter') saveEdit(d.id); if (e.key === 'Escape') { setEditingId(null); setEditText('') } }} autoFocus style={{ flex: 1, padding: '4px 8px', borderRadius: 6, border: '1px solid #7c3aed', fontSize: 13, color: BLK, outline: 'none' }} />
+                  ) : (
+                    <span onClick={() => { setEditingId(d.id); setEditText(d.directive) }} style={{ fontSize: 13, color: BLK, flex: 1, cursor: 'pointer', borderBottom: '1px dashed transparent' }} onMouseEnter={e => (e.currentTarget.style.borderBottomColor = '#d1d5db')} onMouseLeave={e => (e.currentTarget.style.borderBottomColor = 'transparent')}>{d.directive}</span>
+                  )}
+                  {d.source === 'ai_suggested' && <span style={{ fontSize: 9, color: '#7c3aed' }}>AI</span>}
+                  <button onClick={async () => { await doFetch('delete_directive', { id: d.id }); setFdDirectives(prev => prev.filter(x => x.id !== d.id)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14 }}>x</button>
+                </div>
+              ))}
+            </div>
           </div>
       }
     </div>
