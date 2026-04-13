@@ -45,9 +45,9 @@ import CommentSidebar from '../components/CommentSidebar'
 import { KotoProofOnboarding, KotoProofHelp } from '../components/proof/KotoProofTutorial'
 import { useAuth } from '../hooks/useAuth'
 
-const BG = '#111'
-const PANEL = '#1a1a1a'
-const CANVAS_BG = '#1a1a1a'
+const BG = '#f3f4f6'
+const PANEL = '#ffffff'
+const CANVAS_BG = '#e5e7eb'
 const TEAL = '#00C2CB'
 
 const ZOOM_LEVELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5]
@@ -423,43 +423,58 @@ export default function FileReviewPage() {
     <>
     <div style={{ height: '100vh', background: BG, display: 'flex', flexDirection: 'column', fontFamily: '-apple-system,sans-serif', overflow: 'hidden' }}>
       {/* Top bar */}
-      <div style={{ height: 52, background: PANEL, borderBottom: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
+      <div style={{ height: 52, background: PANEL, borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
         <button
           onClick={() => navigate(`/project/${projectId}`)}
-          style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '6px 8px', borderRadius: 6 }}>
+          style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, padding: '6px 8px', borderRadius: 6 }}>
           <ArrowLeft size={16} /> Back
         </button>
 
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minWidth: 0 }}>
-          <div style={{ color: '#9ca3af', fontSize: 12, flexShrink: 0 }}>{project?.clients?.name} · {project?.name}</div>
-          <div style={{ color: '#9ca3af' }}>/</div>
-          <div style={{ color: '#fff', fontSize: 14, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
+          <div style={{ color: '#6b7280', fontSize: 13, flexShrink: 0 }}>{project?.clients?.name} · {project?.name}</div>
+          <div style={{ color: '#d1d5db' }}>/</div>
+          <div
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={async e => {
+              const newName = e.currentTarget.textContent?.trim()
+              if (newName && newName !== file.name) {
+                await supabase.from('files').update({ name: newName }).eq('id', file.id)
+                setFile(prev => prev ? { ...prev, name: newName } : prev)
+                toast.success('Renamed')
+              }
+            }}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur() } }}
+            style={{ color: '#111', fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text', padding: '2px 6px', borderRadius: 6, border: '1px solid transparent', outline: 'none', maxWidth: 300 }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#E6007E'; e.currentTarget.style.background = '#fdf2f8' }}
+            onBlurCapture={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
+          >{file.name}</div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button
             disabled={!prevFile}
             onClick={() => prevFile && navigate(`/project/${projectId}/review/${prevFile.id}`)}
-            style={{ background: prevFile ? '#2a2a2a' : '#1f1f1f', color: prevFile ? '#fff' : '#555', border: 'none', padding: '7px 12px', borderRadius: 7, cursor: prevFile ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
+            style={{ background: prevFile ? '#f3f4f6' : '#f9fafb', color: prevFile ? '#111' : '#d1d5db', border: '1px solid #e5e7eb', padding: '7px 12px', borderRadius: 7, cursor: prevFile ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
             <ChevronLeft size={14} /> Prev
           </button>
-          <div style={{ color: '#9ca3af', fontSize: 12, padding: '0 6px' }}>
+          <div style={{ color: '#6b7280', fontSize: 12, padding: '0 6px', fontWeight: 600 }}>
             {currentIndex + 1} of {allFiles.length}
           </div>
           <button
             disabled={!nextFile}
             onClick={() => nextFile && navigate(`/project/${projectId}/review/${nextFile.id}`)}
-            style={{ background: nextFile ? '#2a2a2a' : '#1f1f1f', color: nextFile ? '#fff' : '#555', border: 'none', padding: '7px 12px', borderRadius: 7, cursor: nextFile ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
+            style={{ background: nextFile ? '#f3f4f6' : '#f9fafb', color: nextFile ? '#111' : '#d1d5db', border: '1px solid #e5e7eb', padding: '7px 12px', borderRadius: 7, cursor: nextFile ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
             Next <ChevronRight size={14} />
           </button>
-          <a href={file.url} download={file.name} style={{ marginLeft: 6, background: '#2a2a2a', color: '#fff', padding: '7px 10px', borderRadius: 7, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
+          <a href={file.url} download={file.name} style={{ marginLeft: 6, background: '#f3f4f6', color: '#111', padding: '7px 10px', borderRadius: 7, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, border: '1px solid #e5e7eb' }}>
             <Download size={14} />
           </a>
-          <button onClick={() => setShowHelp(true)} style={{ background: '#2a2a2a', color: '#9ca3af', border: 'none', padding: '7px 10px', borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 800, marginLeft: 4 }} title="Help & Shortcuts">?</button>
-          <div style={{ width: 1, height: 20, background: '#333', margin: '0 4px' }} />
+          <button onClick={() => setShowHelp(true)} style={{ background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb', padding: '7px 10px', borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 800, marginLeft: 4 }} title="Help & Shortcuts">?</button>
+          <div style={{ width: 1, height: 20, background: '#e5e7eb', margin: '0 4px' }} />
           <button
             onClick={() => { toast.success('All changes saved'); navigate(`/project/${projectId}`) }}
-            style={{ background: '#2a2a2a', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ background: '#111', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
             Save & Close
           </button>
           <button
@@ -503,7 +518,7 @@ export default function FileReviewPage() {
 
       {/* Annotation toolbar — hidden for video */}
       {!isVideo && (
-        <div style={{ background: PANEL, borderBottom: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ background: PANEL, borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           <div style={{ flex: 1 }}>
             <AnnotationToolbar
               tool={tool}
@@ -547,8 +562,8 @@ export default function FileReviewPage() {
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
 
         {/* Left thumbnail panel — collapsible */}
-        <div style={{ width: thumbsOpen ? 88 : 36, flexShrink: 0, background: '#151515', borderRight: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column', transition: 'width .2s ease', overflow: 'hidden' }}>
-          <button onClick={() => setThumbsOpen(!thumbsOpen)} style={{ width: '100%', padding: '8px 0', background: 'none', border: 'none', borderBottom: '1px solid #2a2a2a', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', flexShrink: 0 }} title={thumbsOpen ? 'Collapse' : 'Expand'}>
+        <div style={{ width: thumbsOpen ? 100 : 36, flexShrink: 0, background: '#fff', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', transition: 'width .1s ease', overflow: 'hidden' }}>
+          <button onClick={() => setThumbsOpen(!thumbsOpen)} style={{ width: '100%', padding: '8px 0', background: 'none', border: 'none', borderBottom: '1px solid #e5e7eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexShrink: 0 }} title={thumbsOpen ? 'Collapse' : 'Expand'}>
             {thumbsOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
           </button>
           {thumbsOpen && (
@@ -582,10 +597,10 @@ export default function FileReviewPage() {
                     onMouseEnter={e => { if (!isActive) e.currentTarget.style.opacity = '0.9' }}
                     onMouseLeave={e => { if (!isActive) e.currentTarget.style.opacity = '0.6' }}
                   >
-                    <div style={{ width: 72, height: 52, background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {isImg ? <img src={f.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FileText size={20} color="#555" />}
+                    <div style={{ width: 84, height: 60, background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isImg ? <img src={f.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FileText size={20} color="#9ca3af" />}
                     </div>
-                    <div style={{ fontSize: 9, color: isActive ? '#fff' : '#888', fontWeight: 600, padding: '3px 4px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: '#1a1a1a' }}>
+                    <div style={{ fontSize: 10, color: isActive ? '#111' : '#6b7280', fontWeight: 600, padding: '4px 4px', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: '#fff' }}>
                       {f.name?.replace(/\.[^.]+$/, '').slice(0, 12)}
                     </div>
                   </div>
@@ -795,7 +810,7 @@ export default function FileReviewPage() {
         })()}
 
         {/* Comment sidebar */}
-        <div style={{ width: 320, background: '#fff', borderLeft: '1px solid #2a2a2a', flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ width: 320, background: '#fff', borderLeft: '1px solid #e5e7eb', flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <CommentSidebar
             annotations={annotations}
             selectedId={selectedId}
@@ -871,7 +886,7 @@ export default function FileReviewPage() {
 
 const zoomBtn = {
   background: 'transparent',
-  color: '#bbb',
+  color: '#6b7280',
   border: 'none',
   padding: '8px 12px',
   borderRadius: 8,

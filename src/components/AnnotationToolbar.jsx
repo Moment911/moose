@@ -18,7 +18,7 @@ const CLIENT_TOOLS = ['select', 'pin', 'arrow', 'circle', 'rect']
 export default function AnnotationToolbar({ tool, setTool, color, setColor, onUndo, onClearAll, annotationCount, clientMode = false }) {
   const visibleTools = clientMode ? TOOLS.filter(t => CLIENT_TOOLS.includes(t.key)) : TOOLS
   return (
-    <div style={{ background: '#1a1a1a', borderBottom: '1px solid #333', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+    <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {visibleTools.map(t => {
           const Icon = t.icon
@@ -38,11 +38,11 @@ export default function AnnotationToolbar({ tool, setTool, color, setColor, onUn
         })}
       </div>
 
-      <div style={{ width: 1, height: 24, background: '#333' }} />
+      <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />
 
       <ColorPicker mode="inline" value={color} onChange={setColor} />
 
-      <div style={{ width: 1, height: 24, background: '#333' }} />
+      <div style={{ width: 1, height: 24, background: '#e5e7eb' }} />
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button title="Undo last (Ctrl+Z)" onClick={onUndo} disabled={!annotationCount}
@@ -56,7 +56,7 @@ export default function AnnotationToolbar({ tool, setTool, color, setColor, onUn
       </div>
 
       <div style={{ marginLeft: 'auto', fontSize: 13, color: '#666', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ background: '#2a2a2a', color: '#999', padding: '4px 10px', borderRadius: 6, fontWeight: 700, fontSize: 12 }}>V = scroll · C/A/O/R/F = draw · G = approve · H = link</span>
+        <span style={{ background: '#f3f4f6', color: '#9ca3af', padding: '4px 10px', borderRadius: 6, fontWeight: 600, fontSize: 11 }}>V = scroll · C/A/O/R/F = draw · G = approve · H = link</span>
       </div>
     </div>
   )
