@@ -129,7 +129,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
 }
 
 export default function Sidebar() {
-  const { user, firstName, agencyId, agencyName, agency, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures } = useAuth()
+  const { user, firstName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -187,7 +187,9 @@ export default function Sidebar() {
         <div style={{padding: showClientView ? '16px 16px 12px' : '20px 16px 14px', flexShrink:0, borderBottom:'1px solid #f3f4f6'}}>
           {showClientView ? (
             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-              {agency?.brand_logo_url ? (
+              {authLoading ? (
+                <div style={{height:32}} />
+              ) : agency?.brand_logo_url ? (
                 <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
               ) : (
                 <img src="/koto_logo.svg" alt="Koto" style={{height:24,width:'auto',display:'block'}}/>

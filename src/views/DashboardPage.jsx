@@ -139,7 +139,7 @@ function DashStatusDot({ label, status }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient } = useAuth()
+  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient, clientId } = useAuth()
   const isMobile = useMobile()
 
   const showClientDashboard = isClient || isPreviewingClient
@@ -948,7 +948,7 @@ export default function DashboardPage() {
      CLIENT VIEW — minimal dashboard, just welcome + links to permitted tools
      ══════════════════════════════════════════════════════════════════════════ */
   if (showClientDashboard) {
-    return <ClientDashboard firstName={firstName} greeting={greeting} agency={agency} agencyName={agencyName} can={can} navigate={navigate} aid={aid} />
+    return <ClientDashboard firstName={firstName} greeting={greeting} agency={agency} agencyName={agencyName} can={can} navigate={navigate} aid={aid} clientId={clientId} />
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -1202,13 +1202,20 @@ export default function DashboardPage() {
 }
 
 // ── Client Dashboard — personalized greeting + pending items ─────────────
-function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigate, aid }) {
+function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigate, aid, clientId }) {
   const [pendingItems, setPendingItems] = useState([])
   const [loadingItems, setLoadingItems] = useState(true)
+  const [clientLogo, setClientLogo] = useState(null)
 
   useEffect(() => {
     loadPendingItems()
   }, [aid])
+
+  useEffect(() => {
+    if (!clientId) return
+    supabase.from('clients').select('logo_url').eq('id', clientId).single()
+      .then(({ data }) => { if (data?.logo_url) setClientLogo(data.logo_url) })
+  }, [clientId])
 
   async function loadPendingItems() {
     setLoadingItems(true)
@@ -1274,19 +1281,26 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Header with greeting */}
+        {/* Header with greeting + client logo */}
         <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '24px 32px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH }}>
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH }}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </div>
+              <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
+                {greeting}
+              </h1>
+              {agencyName && (
+                <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4, fontFamily: FB }}>
+                  Powered by {agencyName}
+                </p>
+              )}
+            </div>
+            {clientLogo && (
+              <img src={clientLogo} alt="Your logo" style={{ height: 48, maxWidth: 160, objectFit: 'contain', borderRadius: 8 }} />
+            )}
           </div>
-          <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
-            {greeting}
-          </h1>
-          {agencyName && (
-            <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4, fontFamily: FB }}>
-              Powered by {agencyName}
-            </p>
-          )}
         </div>
 
         {/* Pending items */}

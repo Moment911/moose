@@ -982,9 +982,9 @@ export default function ClientDetailPage() {
           </div>
         </div>
 
-        {/* Client Login */}
+        {/* Client Team & Logins */}
         <div style={card}>
-          <div style={sectionTitle}><Key size={16} color={T} /> Client Portal Login</div>
+          <div style={sectionTitle}><Users size={16} color={T} /> Client Team</div>
           <ClientLoginSection clientId={clientId} clientName={client?.name} clientEmail={client?.email} agencyId={agencyId} />
         </div>
 
@@ -2129,130 +2129,193 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
   )
 }
 
-// ── Client Login Section — create/manage client portal login ─────────────
+// ── Client Team Section — manage multiple team member logins ─────────────
 function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
-  const [email, setEmail] = useState(clientEmail || '')
+  const [members, setMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [memberRole, setMemberRole] = useState('viewer')
   const [showPw, setShowPw] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [existingUser, setExistingUser] = useState(null)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // Check if a login already exists for this client
-    supabase.from('koto_client_users').select('id, user_id').eq('client_id', clientId).maybeSingle()
-      .then(({ data }) => {
-        if (data) setExistingUser(data)
-        setLoading(false)
-      })
-  }, [clientId])
+  const ROLES = [
+    { value: 'owner', label: 'Owner', desc: 'Full access + manage team' },
+    { value: 'reviewer', label: 'Reviewer', desc: 'Review & approve designs' },
+    { value: 'viewer', label: 'Viewer', desc: 'View-only access' },
+  ]
 
-  async function handleCreate() {
+  useEffect(() => { loadMembers() }, [clientId])
+
+  async function loadMembers() {
+    setLoading(true)
+    const { data } = await supabase.from('koto_client_users').select('id, user_id, role, created_at')
+      .eq('client_id', clientId).order('created_at', { ascending: true })
+    if (data?.length) {
+      // Fetch emails from admin API
+      const res = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list_users' }),
+      }).then(r => r.json())
+      const userMap = {}
+      ;(res.users || []).forEach(u => { userMap[u.id] = u.email })
+      setMembers(data.map(m => ({ ...m, email: userMap[m.user_id] || 'Unknown' })))
+    } else {
+      setMembers([])
+    }
+    setLoading(false)
+  }
+
+  async function handleAdd() {
     if (!email || !password) { toast.error('Email and password required'); return }
     if (password.length < 6) { toast.error('Password must be at least 6 characters'); return }
     setCreating(true)
     try {
-      // 1. Create auth user
       const res = await fetch('/api/admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'create_user', email, password, first_name: clientName?.split(' ')[0] || '', last_name: clientName?.split(' ').slice(1).join(' ') || '' }),
       }).then(r => r.json())
       if (res.error) { toast.error(res.error); setCreating(false); return }
 
-      // 2. Create koto_client_users row
       const { error: cuErr } = await supabase.from('koto_client_users').insert({
-        user_id: res.user.id, client_id: clientId, agency_id: agencyId, role: 'viewer',
+        user_id: res.user.id, client_id: clientId, agency_id: agencyId, role: memberRole,
       })
-      if (cuErr) { toast.error('User created but client link failed: ' + cuErr.message); setCreating(false); return }
+      if (cuErr) { toast.error('User created but link failed: ' + cuErr.message); setCreating(false); return }
 
-      // 3. Create default permissions
+      // Ensure permissions row exists for this client
       await supabase.from('koto_client_permissions').upsert({
         client_id: clientId, agency_id: agencyId,
         can_view_pages: true, can_view_reviews: true, can_view_reports: true,
-        can_view_tasks: true, can_edit_tasks: false, can_view_proposals: true,
+        can_view_tasks: true, can_edit_tasks: memberRole === 'owner', can_view_proposals: true,
       }, { onConflict: 'client_id' })
 
-      setExistingUser({ user_id: res.user.id })
-      toast.success(`Login created for ${email}`)
+      toast.success(`Team member added: ${email}`)
+      setEmail(''); setPassword(''); setMemberRole('viewer'); setShowAdd(false)
+      loadMembers()
     } catch (e) { toast.error(e.message) }
     setCreating(false)
   }
 
-  async function handleResetPassword() {
+  async function handleRemove(member) {
+    if (!confirm(`Remove ${member.email} from this client?`)) return
+    await supabase.from('koto_client_users').delete().eq('id', member.id)
+    toast.success(`Removed ${member.email}`)
+    loadMembers()
+  }
+
+  async function handleRoleChange(member, newRole) {
+    await supabase.from('koto_client_users').update({ role: newRole }).eq('id', member.id)
+    toast.success(`${member.email} is now ${newRole}`)
+    loadMembers()
+  }
+
+  async function handleSetPassword(member) {
     const newPw = prompt('Enter new password (min 6 characters):')
     if (!newPw || newPw.length < 6) { if (newPw) toast.error('Password must be 6+ characters'); return }
     const res = await fetch('/api/admin', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'set_password', user_id: existingUser.user_id, new_password: newPw }),
+      body: JSON.stringify({ action: 'set_password', user_id: member.user_id, new_password: newPw }),
     }).then(r => r.json())
     if (res.error) toast.error(res.error)
     else toast.success('Password updated')
   }
 
-  async function handleSendReset() {
-    if (!email) { toast.error('No email on file'); return }
+  async function handleSendReset(member) {
     const res = await fetch('/api/admin', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'send_password_reset', email }),
+      body: JSON.stringify({ action: 'send_password_reset', email: member.email }),
     }).then(r => r.json())
     if (res.error) toast.error(res.error)
     else toast.success(res.message || 'Reset email sent')
   }
 
-  if (loading) return <div style={{ fontSize: 13, color: '#9ca3af' }}>Checking login…</div>
+  if (loading) return <div style={{ fontSize: 13, color: '#9ca3af' }}>Loading team…</div>
 
-  if (existingUser) {
-    return (
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a' }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>Login active</span>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>· {email || clientEmail || 'email on file'}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={handleResetPassword}
-            style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Key size={11} /> Set Password
-          </button>
-          <button onClick={handleSendReset}
-            style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Mail size={11} /> Send Reset Email
-          </button>
-          <button onClick={() => { navigator.clipboard.writeText('https://hellokoto.com/login'); toast.success('Login URL copied') }}
-            style={{ padding: '7px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Copy size={11} /> Copy Login URL
-          </button>
-        </div>
-      </div>
-    )
-  }
+  const btnStyle = { padding: '5px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }
 
   return (
     <div>
-      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
-        Create a login so {clientName || 'this client'} can access their portal at hellokoto.com/login
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Email</label>
-          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="client@company.com"
-            style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+      {/* Member list */}
+      {members.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          {members.map(m => (
+            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: T + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Users size={13} color={T} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
+                <div style={{ fontSize: 11, color: '#9ca3af' }}>Added {new Date(m.created_at).toLocaleDateString()}</div>
+              </div>
+              <select value={m.role} onChange={e => handleRoleChange(m, e.target.value)}
+                style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+                {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+              </select>
+              <button onClick={() => handleSetPassword(m)} style={btnStyle} title="Set password"><Key size={11} /></button>
+              <button onClick={() => handleSendReset(m)} style={btnStyle} title="Send reset email"><Mail size={11} /></button>
+              <button onClick={() => handleRemove(m)} style={{ ...btnStyle, border: '1px solid #fecaca', color: '#dc2626' }} title="Remove"><Trash2 size={11} /></button>
+            </div>
+          ))}
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Password</label>
-          <div style={{ position: 'relative' }}>
-            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters"
-              style={{ width: '100%', padding: '8px 32px 8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
-            <button onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}>
-              {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+      )}
+
+      {/* Add member form */}
+      {showAdd ? (
+        <div style={{ background: '#f9fafb', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 12 }}>Add Team Member</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Email</label>
+              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="team@company.com"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 chars"
+                  style={{ width: '100%', padding: '8px 32px 8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                <button onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}>
+                  {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Role</label>
+              <select value={memberRole} onChange={e => setMemberRole(e.target.value)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
+                {ROLES.map(r => <option key={r.value} value={r.value}>{r.label} — {r.desc}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={handleAdd} disabled={creating || !email || !password}
+              style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: email && password ? T : '#e5e7eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: email && password ? 'pointer' : 'not-allowed' }}>
+              {creating ? 'Adding…' : 'Add Member'}
+            </button>
+            <button onClick={() => { setShowAdd(false); setEmail(''); setPassword('') }}
+              style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              Cancel
             </button>
           </div>
         </div>
-      </div>
-      <button onClick={handleCreate} disabled={creating || !email || !password}
-        style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: email && password ? T : '#e5e7eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: email && password ? 'pointer' : 'not-allowed' }}>
-        {creating ? 'Creating…' : 'Create Client Login'}
-      </button>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => { setShowAdd(true); if (!email && clientEmail) setEmail(clientEmail) }}
+            style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Users size={13} /> Add Team Member
+          </button>
+          {members.length > 0 && (
+            <button onClick={() => { navigator.clipboard.writeText('https://hellokoto.com/login'); toast.success('Login URL copied') }}
+              style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Copy size={11} /> Copy Login URL
+            </button>
+          )}
+          {members.length === 0 && (
+            <span style={{ fontSize: 13, color: '#9ca3af' }}>No team members yet — add one to enable portal login</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
