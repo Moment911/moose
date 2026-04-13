@@ -261,7 +261,7 @@ export default function Sidebar() {
               </div>
               <div style={{ overflowY: 'auto', flex: 1 }}>
                 {/* Koto Admin option */}
-                <button onClick={() => { stopImpersonating(); setWsOpen(false); setWsSearch(''); navigate('/') }}
+                <button onClick={() => { stopImpersonating(); setWsOpen(false); setWsSearch(''); window.location.href = '/dashboard' }}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: !isImpersonating ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                   onMouseLeave={e => e.currentTarget.style.background = !isImpersonating ? '#f9fafb' : '#fff'}>
@@ -277,7 +277,7 @@ export default function Sidebar() {
                 {wsAgencies.filter(a => !wsSearch || (a.name || a.brand_name || '').toLowerCase().includes(wsSearch.toLowerCase())).map(a => {
                   const isActive = agencyId === a.id
                   return (
-                    <button key={a.id} onClick={() => { impersonateAgency(a); setWsOpen(false); setWsSearch(''); navigate('/clients') }}
+                    <button key={a.id} onClick={() => { impersonateAgency(a); setWsOpen(false); setWsSearch(''); window.location.href = '/clients' }}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: isActive ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                       onMouseLeave={e => e.currentTarget.style.background = isActive ? '#f9fafb' : '#fff'}>
