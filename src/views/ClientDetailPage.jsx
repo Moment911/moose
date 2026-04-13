@@ -284,12 +284,12 @@ export default function ClientDetailPage() {
         setHealthScore(health.total)
       }
       const [pagesRes, sitesRes, callsRes, inboundRes, tasksRes, logsRes] = await Promise.all([
-        supabase.from('koto_wp_pages').select('id,title,status,created_at').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20),
+        supabase.from('koto_wp_pages').select('id,title,status,created_at').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
         supabase.from('koto_wp_sites').select('id,site_url,connected').eq('client_id', clientId).limit(5),
-        supabase.from('voice_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20),
-        supabase.from('inbound_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20),
-        supabase.from('tasks').select('*').eq('client_id', clientId).eq('status', 'open').limit(10),
-        supabase.from('koto_system_logs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20),
+        supabase.from('koto_voice_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('koto_front_desk_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('tasks').select('*').eq('client_id', clientId).eq('status', 'open').limit(10).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('koto_system_logs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
       ])
       setPages(pagesRes.data || [])
       setWpSites(sitesRes.data || [])
