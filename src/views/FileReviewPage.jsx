@@ -13,7 +13,7 @@
 // The naive approach — fixed 900px iframe — breaks for long
 // landing pages, full website designs, and email blasts that
 // are 3-8k pixels tall. This page instead gives reviewers
-// explicit width + height controls, defaults HTML to 1280×2400
+// explicit width + height controls, defaults HTML to 1280×5000
 // (desktop landing-page sized), and keeps the outer container
 // scrollable so annotations at y=5000 stay reachable.
 //
@@ -83,7 +83,7 @@ export default function FileReviewPage() {
   // HTML/PDF dimensions — user controllable so tall pages and
   // responsive breakpoints both work.
   const [iframeWidth, setIframeWidth] = useState(1280)
-  const [iframeHeight, setIframeHeight] = useState(2400)
+  const [iframeHeight, setIframeHeight] = useState(5000)
   const [pdfHeight, setPdfHeight] = useState(3000)
 
   const [authorName, setAuthorName] = useState('')
