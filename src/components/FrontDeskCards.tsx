@@ -203,8 +203,9 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         {fdCardTitle(<Settings size={16} color="#6b7280" />, 'AI Personality & Settings')}
         <VoicePicker fd={fd} fdUpdate={fdUpdate} fdLabel={fdLabel} doFetch={doFetch} />
         <div style={{ marginBottom: 14 }}>
-          <label style={fdLabel}>Custom Greeting</label>
-          <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Hello, thanks for calling Our Office!" style={fdInput} />
+          <label style={fdLabel}>Custom Greeting (optional override)</label>
+          <p style={{ fontSize: 12, color: '#9ca3af', margin: '-2px 0 6px' }}>Default: "Good morning/afternoon/evening, thank you for calling {fd.company_name || 'your company'}! My name is Jenny..." — only fill this in to replace it.</p>
+          <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Leave blank to use default Jenny greeting" style={fdInput} />
         </div>
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
