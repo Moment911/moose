@@ -2150,11 +2150,16 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
 
   async function loadMembers() {
     setLoading(true)
-    const res = await fetch('/api/admin', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'list_client_users', client_id: clientId }),
-    }).then(r => r.json())
-    setMembers(res.members || [])
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list_client_users', client_id: clientId }),
+      }).then(r => r.json())
+      setMembers(res.members || [])
+    } catch (e) {
+      console.error('[ClientTeam] loadMembers failed:', e)
+      setMembers([])
+    }
     setLoading(false)
   }
 

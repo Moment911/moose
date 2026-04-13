@@ -265,11 +265,12 @@ export async function POST(req: NextRequest) {
     })
     if (cuErr) return NextResponse.json({ error: 'User created but client link failed: ' + cuErr.message }, { status: 500 })
 
-    // 3. Ensure permissions row
+    // 3. Ensure permissions row — default: only KotoProof (dashboard is always visible)
     await s.from('koto_client_permissions').upsert({
       client_id, agency_id,
-      can_view_pages: true, can_view_reviews: true, can_view_reports: true,
-      can_view_tasks: true, can_edit_tasks: memberRole === 'owner', can_view_proposals: true,
+      can_view_pages: true,
+      can_view_reviews: false, can_view_reports: false,
+      can_view_tasks: false, can_edit_tasks: false, can_view_proposals: false,
     }, { onConflict: 'client_id' })
 
     return NextResponse.json({ user: { id: authUser.user?.id, email } })
@@ -289,6 +290,17 @@ export async function POST(req: NextRequest) {
     const { client_user_id, role: newRole } = body
     if (!client_user_id || !newRole) return NextResponse.json({ error: 'client_user_id and role required' }, { status: 400 })
     const { error } = await s.from('koto_client_users').update({ role: newRole }).eq('id', client_user_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // ── Update client permissions ─────────────────────────────────────────
+  if (action === 'update_client_permissions') {
+    const { client_id, agency_id, permissions } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { error } = await s.from('koto_client_permissions').upsert({
+      client_id, agency_id, ...permissions,
+    }, { onConflict: 'client_id' })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
   }
