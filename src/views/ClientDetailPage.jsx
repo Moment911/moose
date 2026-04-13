@@ -1872,7 +1872,7 @@ export default function ClientDetailPage() {
                   } catch (e) { toast.error(e.message) }
                   setFdLoading(false)
                 }} disabled={fdLoading} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', opacity: fdLoading ? 0.5 : 1 }}>
-                  {fdLoading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Scanning...</> : <><Zap size={16} /> Scan &amp; Build</>}
+                  {fdLoading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Scanning...</> : <><Zap size={16} /> Scan & Build</>}
                 </button>
               </div>
               <button onClick={fdSeedTsawc} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: '#9ca3af', cursor: 'pointer' }}>
@@ -2328,7 +2328,7 @@ export default function ClientDetailPage() {
 
           </>)}
 
-        {/* Prompt Preview Modal */}
+          {/* Prompt Preview Modal */}
         {fdPromptPreview && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setFdPromptPreview(null)}>
             <div style={{ background: '#fff', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '80vh', overflow: 'auto', padding: 24 }} onClick={e => e.stopPropagation()}>
