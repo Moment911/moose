@@ -5,6 +5,7 @@ import { FileImage, FileText, Globe, Plus, Trash2, Clock, MessageSquare, Activit
          ChevronLeft, Settings, Send, Globe2, Lock, KeyRound, ChevronDown, ChevronUp,
          Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import { useAuth } from '../hooks/useAuth'
 import UploadDropzone from '../components/UploadDropzone'
 import AccessModal from '../components/AccessModal'
 import AISummaryModal from '../components/proof/KotoProofAISummary'
@@ -35,6 +36,7 @@ const ROLE_STYLES = {
 export default function KotoProofPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const { isClient } = useAuth()
   const [project, setProject] = useState(null)
   // Fallback: some routes (e.g. bare /proof) have no :projectId param,
   // so URL construction in navigate() was producing /project/undefined/...
@@ -320,8 +322,8 @@ export default function KotoProofPage() {
               {team.length > 0 && <span className="text-sm bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium flex items-center gap-1"><Users size={10} />{team.length} member{team.length !== 1 ? 's' : ''}</span>}
             </div>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-sm"><Plus size={12} /> Upload</button>
-              <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={12} /> Access</button>
+              {!isClient && <button onClick={() => setShowUpload(v => !v)} className="btn-primary text-sm"><Plus size={12} /> Upload</button>}
+              {!isClient && <button onClick={() => setShowAccess(true)} className="btn-secondary text-sm"><Settings size={12} /> Access</button>}
               <button onClick={handleSendEmail} disabled={emailSending || totalOpen === 0} className="btn-secondary text-sm"><Send size={12} />{emailSending ? '…' : 'Email'}</button>
               <button onClick={() => setShowAISummary(true)} disabled={allAnnotations.length === 0} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><Wand2 size={12} /> AI</button>
               <button onClick={() => navigate(`/project/${resolvedProjectId}/canvas`)} className="btn-secondary text-sm" style={{ borderColor: '#E6007E', color: '#E6007E' }}><PenLine size={12} /> Canvas</button>
@@ -336,10 +338,10 @@ export default function KotoProofPage() {
           <div className="flex gap-6">
             {[
               { key: 'files', label: `Files (${files.length})` },
-              { key: 'tasks', label: 'Tasks', link: `/project/${resolvedProjectId}/tasks` },
+              ...(!isClient ? [{ key: 'tasks', label: 'Tasks', link: `/project/${resolvedProjectId}/tasks` }] : []),
               { key: 'team', label: `Team (${team.length})` },
               { key: 'rounds', label: `Rounds (${rounds.length})` },
-              { key: 'integrations', label: 'Integrations' },
+              ...(!isClient ? [{ key: 'integrations', label: 'Integrations' }] : []),
               { key: 'activity', label: `Activity (${activity.length})` },
             ].map(t => (
               <button key={t.key} onClick={() => t.link ? navigate(t.link) : setTab(t.key)}

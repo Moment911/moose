@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Activity, BarChart2, BookOpen, Brain, CheckCircle, DollarSign, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, X, Zap
 } from 'lucide-react'
-import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
+import { supabase, getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
 import NewProjectModal from './NewProjectModal'
 import NotificationCenter from './NotificationCenter'
@@ -129,7 +129,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
 }
 
 export default function Sidebar() {
-  const { user, firstName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures } = useAuth()
+  const { user, firstName, fullName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures, clientId } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -141,8 +141,16 @@ export default function Sidebar() {
   const [newProjClient,setNewProjClient]= useState(null)
   const [projectsMap,  setProjectsMap]  = useState({})
   const [searchQuery, setSearchQuery]   = useState('')
+  const [clientInfo, setClientInfo]     = useState(null)
 
   useEffect(()=>{ loadClients() },[aid])
+
+  // Load client info (logo, company name) for client view
+  useEffect(() => {
+    if (!clientId || !showClientView) return
+    supabase.from('clients').select('name, logo_url').eq('id', clientId).single()
+      .then(({ data }) => { if (data) setClientInfo(data) })
+  }, [clientId, showClientView])
 
   async function loadClients() {
     const data = await getClients(aid)
@@ -187,12 +195,15 @@ export default function Sidebar() {
         <div style={{padding: showClientView ? '16px 16px 12px' : '20px 16px 14px', flexShrink:0, borderBottom:'1px solid #f3f4f6'}}>
           {showClientView ? (
             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+              {clientInfo?.logo_url && (
+                <img src={clientInfo.logo_url} alt={clientInfo.name || 'Client'} style={{height:40,maxWidth:160,objectFit:'contain',display:'block',marginBottom:4}}/>
+              )}
               {authLoading ? (
                 <div style={{height:32}} />
               ) : agency?.brand_logo_url ? (
-                <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
+                <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:24,maxWidth:120,objectFit:'contain',display:'block',opacity:0.7}}/>
               ) : (
-                <img src="/koto_logo.svg" alt="Koto" style={{height:24,width:'auto',display:'block'}}/>
+                <img src="/koto_logo.svg" alt="Koto" style={{height:20,width:'auto',display:'block',opacity:0.7}}/>
               )}
               <div style={{fontSize:10,color:'#9ca3af',fontWeight:600,letterSpacing:'.05em',textTransform:'uppercase'}}>
                 Client Portal
@@ -391,9 +402,9 @@ export default function Sidebar() {
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:13,fontWeight:700,color:'#111',
                 overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                {firstName||user?.email?.split('@')[0]||'Agent'}
+                {showClientView ? (fullName || firstName || user?.email?.split('@')[0] || 'Client') : (firstName||user?.email?.split('@')[0]||'Agent')}
               </div>
-              <div style={{fontSize:13,color:'#9ca3af'}}>{showClientView ? (agency?.brand_name || 'Client') : isSuperAdmin && !isImpersonating ? 'Koto Admin' : (agencyName || 'Agency')}</div>
+              <div style={{fontSize:13,color:'#9ca3af'}}>{showClientView ? (clientInfo?.name || agency?.brand_name || 'Client') : isSuperAdmin && !isImpersonating ? 'Koto Admin' : (agencyName || 'Agency')}</div>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:4}}>
               <NotificationCenter/>

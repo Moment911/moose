@@ -24,7 +24,7 @@ const PINK = '#E6007E'
 
 export default function ProofListPage() {
   const navigate = useNavigate()
-  const { agencyId } = useAuth()
+  const { agencyId, isClient } = useAuth()
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -93,11 +93,13 @@ export default function ProofListPage() {
                 All design review projects across your clients
               </div>
             </div>
-            <button
-              onClick={openCreateModal}
-              style={{ padding: '10px 18px', borderRadius: 10, background: TEAL, color: '#fff', border: 'none', fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Plus size={14} /> New Project
-            </button>
+            {!isClient && (
+              <button
+                onClick={openCreateModal}
+                style={{ padding: '10px 18px', borderRadius: 10, background: TEAL, color: '#fff', border: 'none', fontSize: 14, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={14} /> New Project
+              </button>
+            )}
           </div>
         </div>
 
