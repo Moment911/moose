@@ -18,7 +18,7 @@ import MessagesPage from '../views/MessagesPage'
 import TasksPage from '../views/TasksPage'
 import TaskDetailPage from '../views/TaskDetailPage'
 import CalendarPage from '../views/CalendarPage'
-import MarketingPage from '../views/MarketingPage'
+// MarketingPage removed — was imported but never routed
 import CampaignsPage from '../views/CampaignsPage'
 import CampaignBuilderPage from '../views/CampaignBuilderPage'
 import RevenuePage from '../views/RevenuePage'
@@ -51,7 +51,7 @@ import ScoutPage from '../views/scout/ScoutPage'
 import ScoutHistoryPage from '../views/scout/ScoutHistoryPage'
 import KotoDeskPage from '../views/desk/MooseDeskPage'
 import DeskTicketPage from '../views/desk/DeskTicketPage'
-import DeskSettingsPage from '../views/desk/DeskSettingsPage'
+// DeskSettingsPage removed — /desk/settings routes to AgencySettingsPage
 import DeskAnalyticsPage from '../views/desk/DeskAnalyticsPage'
 import QAKnowledgePage from '../views/desk/QAKnowledgePage'
 import DeskReportsPage from '../views/desk/DeskReportsPage'
@@ -62,7 +62,7 @@ import ScoutLeadsPage from '../views/scout/ScoutLeadsPage'
 import ScoutSavedPage from '../views/scout/ScoutSavedPage'
 import CompanyProfilePage from '../views/scout/CompanyProfilePage'
 import ScoutReportsPage from '../views/scout/ScoutReportsPage'
-import ScoutSettingsPage from '../views/scout/ScoutSettingsPage'
+// ScoutSettingsPage removed — /scout/settings routes to SettingsPage
 import SEOHubPage from '../views/seo/SEOHubPage'
 import LocalRankTrackerPage from '../views/seo/LocalRankTrackerPage'
 import SEOAuditPage from '../views/seo/SEOAuditPage'
@@ -76,7 +76,7 @@ import AIVisibilityPage from '../views/seo/AIVisibilityPage'
 import WhiteLabelReportPage from '../views/seo/WhiteLabelReportPage'
 import CompetitorIntelPage from '../views/seo/CompetitorIntelPage'
 import CitationTrackerPage from '../views/seo/CitationTrackerPage'
-import SEOPluginPage from '../views/seo/SEOPluginPage'
+// SEOPluginPage removed — /seo/plugin routes to WordPressControlPage
 import SEOConnectPage from '../views/seo/SEOConnectPage'
 import SettingsPage from '../views/SettingsPage'
 import ClientDetailPage from '../views/ClientDetailPage'
@@ -90,14 +90,14 @@ import DbSetupPage from '../views/DbSetupPage'
 import BillingPage from '../views/BillingPage'
 import AgentPage from '../views/AgentPage'
 import ClientPortalPage from '../views/ClientPortalPage'
-import AgencySetupPage from '../views/AgencySetupPage'
+// AgencySetupPage removed — never routed
 import AccountAccessPage from '../views/AccountAccessPage'
 import ClientAccessFormPage from '../views/ClientAccessFormPage'
 import ClientPersonaPage from '../views/ClientPersonaPage'
-import PaymentsPage from '../views/PaymentsPage'
-import AIAgentsPage from '../views/AIAgentsPage'
-import ReportingPage from '../views/ReportingPage'
-import SocialPlannerPage from '../views/SocialPlannerPage'
+// PaymentsPage removed — never routed
+// AIAgentsPage removed — never routed, all mock data
+// ReportingPage removed — never routed
+// SocialPlannerPage removed — never routed, 100% hardcoded demo data
 import ReviewsPage from '../views/ReviewsPage'
 import ReviewCampaignsPage from '../views/ReviewCampaignsPage'
 import OnboardingDashboardPage from '../views/OnboardingDashboardPage'
@@ -108,7 +108,7 @@ import PageBuilderPage from '../views/PageBuilderPage'
 import WordPressControlPage from '../views/WordPressControlPage'
 import StatusPage from '../views/StatusPage'
 import DebugConsolePage from '../views/DebugConsolePage'
-import HelpCenterPage from '../views/HelpCenterPage'
+// HelpCenterPage removed — /help routes to HelpPage instead
 import UptimeMonitorPage from '../views/UptimeMonitorPage'
 import PublicUptimePage from '../views/PublicUptimePage'
 import VoiceAgentPage from '../views/VoiceAgentPage'
@@ -164,7 +164,7 @@ import EmailTrackingPage from '../views/EmailTrackingPage'
 import EmailTrackingGmailHelperPage from '../views/EmailTrackingGmailHelperPage'
 import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
-import HelpAssistant from '../components/HelpAssistant'
+// HelpAssistant removed — floating button was disabled per user request
 
 // Global error handler — reports to /api/errors
 function setupErrorTracking() {
