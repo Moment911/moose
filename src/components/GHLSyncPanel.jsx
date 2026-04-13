@@ -7,13 +7,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
-const BLK = '#111111'
-const TEAL  = '#00C2CB'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../lib/theme'
 
 const DIRECTION_CFG = {
   pull: { label: 'GHL → Koto', icon: ArrowDownToLine, color: TEAL,  desc: 'Import all GHL contacts as Koto clients' },

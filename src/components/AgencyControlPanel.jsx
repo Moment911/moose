@@ -6,12 +6,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLK = '#111111'
+import { R as RED, T as TEAL, BLK, FH, FB } from '../lib/theme'
 const PURPLE = '#7c3aed'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
 
 export default function AgencyControlPanel() {
   const { agencyId, isPreviewingClient, clientPreview, previewAsClient, stopClientPreview, isImpersonating, impersonatedAgency } = useAuth()
