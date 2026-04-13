@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const tokenRes = await fetch('https://services.leadconnectorhq.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ grant_type: 'authorization_code', code: code!, client_id: process.env.GHL_CLIENT_ID!, client_secret: process.env.GHL_CLIENT_SECRET!, redirect_uri: `${appUrl}/api/integrations/ghl/callback` }),
+      body: new URLSearchParams({ grant_type: 'authorization_code', code: code!, client_id: (process.env.GHL_CLIENT_ID || process.env.NEXT_PUBLIC_GHL_CLIENT_ID)!, client_secret: process.env.GHL_CLIENT_SECRET!, redirect_uri: `${appUrl}/api/integrations/ghl/callback` }),
     })
     if (!tokenRes.ok) throw new Error('Token exchange failed')
     const tokens = await tokenRes.json()

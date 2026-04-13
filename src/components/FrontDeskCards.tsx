@@ -216,7 +216,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       </div>
 
       {/* CARD 6b: Directives */}
-      <DirectivesCard fd={fd} fdCard={fdCard} fdCardTitle={fdCardTitle} fdLabel={fdLabel} doFetch={doFetch} fdDirectives={fdDirectives} setFdDirectives={setFdDirectives} fdNewDirective={fdNewDirective} setFdNewDirective={setFdNewDirective} fdNewCategory={fdNewCategory} setFdNewCategory={setFdNewCategory} clientId={clientId} aid={aid} />
+      <DirectivesCard fd={fd} fdCard={fdCard} fdCardTitle={fdCardTitle} fdLabel={fdLabel} doFetch={doFetch} fdDirectives={fdDirectives} setFdDirectives={setFdDirectives} fdNewDirective={fdNewDirective} setFdNewDirective={setFdNewDirective} fdNewCategory={fdNewCategory} setFdNewCategory={setFdNewCategory} clientId={clientId} aid={aid} fdUpdate={fdUpdate} />
 
       {/* CARD 7: GHL */}
       <div style={{ ...fdCard, background: fd.ghl_connected ? '#f0fdf4' : undefined, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
@@ -274,23 +274,34 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
 const CATEGORIES = ['general','greeting','scheduling','medical','objection','transfer','insurance']
 const CAT_COLORS = { greeting: '#7c3aed', scheduling: T, medical: R, objection: AMB, transfer: '#6366f1', insurance: '#0891b2', general: '#6b7280' }
 
-function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirectives, setFdDirectives, fdNewDirective, setFdNewDirective, fdNewCategory, setFdNewCategory, clientId, aid }) {
+function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirectives, setFdDirectives, fdNewDirective, setFdNewDirective, fdNewCategory, setFdNewCategory, clientId, aid, fdUpdate }) {
   const [aiSuggestions, setAiSuggestions] = useState([])
   const [selected, setSelected] = useState({})
   const [generating, setGenerating] = useState(false)
   const [applying, setApplying] = useState(false)
+  const [organizing, setOrganizing] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editText, setEditText] = useState('')
 
   async function generateAI() {
     setGenerating(true)
-    setAiSuggestions([])
-    setSelected({})
     try {
       const d = await doFetch('generate_directives', { industry: fd.industry, services: fd.services, company_name: fd.company_name })
       if (d.suggestions?.length) {
-        setAiSuggestions(d.suggestions)
-        const sel = {}
-        d.suggestions.forEach((s, i) => { sel[i] = s.priority >= 2 })
-        setSelected(sel)
+        // Append new suggestions to existing ones (de-dup by directive text)
+        setAiSuggestions(prev => {
+          const existingTexts = new Set(prev.map(s => s.directive))
+          const novel = d.suggestions.filter(s => !existingTexts.has(s.directive))
+          const merged = [...prev, ...novel]
+          // Update selected: auto-select new high-priority ones
+          setSelected(prevSel => {
+            const sel = { ...prevSel }
+            const offset = prev.length
+            novel.forEach((s, i) => { sel[offset + i] = s.priority >= 2 })
+            return sel
+          })
+          return merged
+        })
       } else {
         toast.error('No suggestions generated')
       }
@@ -314,23 +325,57 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
     setApplying(false)
   }
 
+  async function organizeAll() {
+    setOrganizing(true)
+    try {
+      const d = await doFetch('organize_directives')
+      if (d.directives) {
+        setFdDirectives(d.directives)
+        if (d.custom_instructions !== undefined && fdUpdate) {
+          fdUpdate('custom_instructions', d.custom_instructions)
+        }
+        toast.success('Directives reorganized' + (d.prompt_updated ? ' — LLM prompt updated' : ''))
+      } else {
+        toast.error('Organize failed')
+      }
+    } catch (e) { toast.error((e as any).message) }
+    setOrganizing(false)
+  }
+
+  async function saveEdit(id) {
+    if (!editText.trim()) return
+    await doFetch('update_directive', { id, directive: editText.trim() })
+    setFdDirectives(prev => prev.map(d => d.id === id ? { ...d, directive: editText.trim() } : d))
+    setEditingId(null)
+    setEditText('')
+    toast.success('Saved')
+  }
+
   const toggleAll = (on) => { const s = {}; aiSuggestions.forEach((_, i) => { s[i] = on }); setSelected(s) }
   const selectedCount = Object.values(selected).filter(Boolean).length
+  const activeDirectives = fdDirectives.filter(d => d.status === 'active')
 
   return (
     <div style={fdCard}>
-      {fdCardTitle(<Brain size={16} color="#7c3aed" />, 'Directives & Learnings (' + fdDirectives.filter(d => d.status === 'active').length + ' active)')}
+      {fdCardTitle(<Brain size={16} color="#7c3aed" />, 'Directives & Learnings (' + activeDirectives.length + ' active)')}
 
-      {/* AI Generate button */}
+      {/* AI Generate + Organize buttons */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: '14px 16px', background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)', borderRadius: 10, border: '1px solid #ddd6fe', alignItems: 'center' }}>
         <Sparkles size={18} color="#7c3aed" />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK }}>AI Directive Generator</div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Generate smart directives based on {fd.industry || 'this'} industry</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>{aiSuggestions.length > 0 ? 'Click again for more suggestions' : 'Generate smart directives based on ' + (fd.industry || 'this') + ' industry'}</div>
         </div>
-        <button onClick={generateAI} disabled={generating} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: generating ? 0.5 : 1, whiteSpace: 'nowrap' }}>
-          {generating ? <span><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Generating...</span> : <span><Sparkles size={13} /> Generate Directives</span>}
-        </button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {activeDirectives.length > 0 && (
+            <button onClick={organizeAll} disabled={organizing} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd6fe', background: '#fff', color: '#7c3aed', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: organizing ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+              {organizing ? <span><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Organizing...</span> : <span><Zap size={13} /> Organize</span>}
+            </button>
+          )}
+          <button onClick={generateAI} disabled={generating} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: generating ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+            {generating ? <span><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Generating...</span> : <span><Sparkles size={13} /> {aiSuggestions.length > 0 ? 'Generate More' : 'Generate Directives'}</span>}
+          </button>
+        </div>
       </div>
 
       {/* AI Suggestions (when generated) */}
@@ -381,13 +426,17 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
       </div>
 
       {/* Active directives */}
-      {fdDirectives.filter(d => d.status === 'active').length === 0
+      {activeDirectives.length === 0
         ? <div style={{ background: GRY, borderRadius: 8, padding: 16, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No directives yet. Generate with AI or add manually above.</div>
         : <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {fdDirectives.filter(d => d.status === 'active').map(d => (
-              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+            {activeDirectives.map(d => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid ' + (editingId === d.id ? '#7c3aed' : '#e5e7eb'), background: editingId === d.id ? '#faf5ff' : '#fff' }}>
                 <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: (CAT_COLORS[d.category] || '#6b7280') + '15', color: CAT_COLORS[d.category] || '#6b7280' }}>{d.category}</span>
-                <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{d.directive}</span>
+                {editingId === d.id ? (
+                  <input value={editText} onChange={e => setEditText(e.target.value)} onBlur={() => saveEdit(d.id)} onKeyDown={e => { if (e.key === 'Enter') saveEdit(d.id); if (e.key === 'Escape') { setEditingId(null); setEditText('') } }} autoFocus style={{ flex: 1, padding: '4px 8px', borderRadius: 6, border: '1px solid #7c3aed', fontSize: 13, color: BLK, outline: 'none' }} />
+                ) : (
+                  <span onClick={() => { setEditingId(d.id); setEditText(d.directive) }} style={{ fontSize: 13, color: BLK, flex: 1, cursor: 'pointer', borderBottom: '1px dashed transparent' }} onMouseEnter={e => (e.currentTarget.style.borderBottomColor = '#d1d5db')} onMouseLeave={e => (e.currentTarget.style.borderBottomColor = 'transparent')}>{d.directive}</span>
+                )}
                 {d.source === 'ai_suggested' && <span style={{ fontSize: 9, color: '#7c3aed' }}>AI</span>}
                 <button onClick={async () => { await doFetch('delete_directive', { id: d.id }); setFdDirectives(prev => prev.filter(x => x.id !== d.id)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14 }}>x</button>
               </div>

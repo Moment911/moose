@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       const clientId = searchParams.get('client_id')
       if (!clientId) return Response.json({ error: 'Missing client_id' }, { status: 400 })
 
-      const GHL_CLIENT_ID = process.env.GHL_CLIENT_ID
+      const GHL_CLIENT_ID = process.env.GHL_CLIENT_ID || process.env.NEXT_PUBLIC_GHL_CLIENT_ID
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
       if (!GHL_CLIENT_ID) return Response.json({ error: 'GHL_CLIENT_ID not configured' }, { status: 500 })
 
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
         body: new URLSearchParams({
           grant_type: 'refresh_token',
           refresh_token: mapping.refresh_token,
-          client_id: process.env.GHL_CLIENT_ID!,
+          client_id: (process.env.GHL_CLIENT_ID || process.env.NEXT_PUBLIC_GHL_CLIENT_ID)!,
           client_secret: process.env.GHL_CLIENT_SECRET!,
         }),
       })

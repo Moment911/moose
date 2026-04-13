@@ -613,6 +613,95 @@ Priority 3 = critical (safety/compliance), 2 = important, 1 = nice to have.` }],
       return NextResponse.json({ ok: true })
     }
 
+    // ── Organize directives + custom_instructions via AI ──
+    if (action === 'organize_directives') {
+      const { client_id } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      if (!ANTHROPIC_KEY) return NextResponse.json({ error: 'Anthropic API key not configured' }, { status: 500 })
+
+      // Fetch current directives + custom_instructions
+      const { data: directives } = await sb.from('koto_front_desk_directives').select('*').eq('client_id', client_id).eq('status', 'active').order('priority', { ascending: false })
+      const { data: cfg } = await sb.from('koto_front_desk_configs').select('custom_instructions, retell_agent_id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (!cfg) return NextResponse.json({ error: 'No front desk config' }, { status: 404 })
+
+      const directiveList = (directives || []).map(d => `[${d.category}] ${d.directive}`).join('\n')
+
+      const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 4000,
+          messages: [{ role: 'user', content: `You are reorganizing the AI virtual receptionist directives and additional instructions for a business. Your goal is to:
+1. Remove duplicates and merge similar directives
+2. Improve clarity and specificity
+3. Re-categorize any mis-categorized directives
+4. Rewrite the custom_instructions to be clean, organized, and non-redundant with the directives
+5. Set priorities: 3=critical (safety/compliance), 2=important, 1=nice-to-have
+
+CURRENT DIRECTIVES:
+${directiveList || '(none)'}
+
+CURRENT ADDITIONAL INSTRUCTIONS:
+${cfg.custom_instructions || '(none)'}
+
+Return ONLY valid JSON with this structure:
+{
+  "directives": [{"directive": "...", "category": "greeting|scheduling|medical|insurance|transfer|objection|general", "priority": 1-3}],
+  "custom_instructions": "reorganized additional instructions text"
+}` }],
+        }),
+        signal: AbortSignal.timeout(30000),
+      })
+      const aiData = await aiRes.json()
+      const text = aiData.content?.[0]?.text || '{}'
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      let result: any = {}
+      try { result = jsonMatch ? JSON.parse(jsonMatch[0]) : {} } catch { result = {} }
+
+      if (!result.directives) return NextResponse.json({ error: 'AI returned invalid response' }, { status: 500 })
+
+      // Delete all current active directives for this client, re-insert organized ones
+      await sb.from('koto_front_desk_directives').delete().eq('client_id', client_id).eq('status', 'active')
+
+      const { data: config } = await sb.from('koto_front_desk_configs').select('id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      const inserted: any[] = []
+      for (const d of result.directives) {
+        const { data } = await sb.from('koto_front_desk_directives').insert({
+          config_id: config!.id, agency_id, client_id,
+          directive: d.directive, category: d.category || 'general',
+          source: 'ai_suggested', status: 'active', priority: d.priority || 1,
+        }).select().single()
+        if (data) inserted.push(data)
+      }
+
+      // Update custom_instructions
+      if (result.custom_instructions !== undefined) {
+        await sb.from('koto_front_desk_configs').update({ custom_instructions: result.custom_instructions }).eq('client_id', client_id).eq('agency_id', agency_id)
+      }
+
+      // Rebuild Retell agent prompt
+      let prompt_updated = false
+      if (cfg.retell_agent_id) {
+        try {
+          const prompt = await buildFrontDeskPromptForClient(client_id)
+          if (prompt) {
+            const RETELL_KEY = process.env.RETELL_API_KEY || ''
+            await fetch(`https://api.retellai.com/update-agent/${cfg.retell_agent_id}`, {
+              method: 'PATCH',
+              headers: { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ general_prompt: prompt }),
+            })
+            prompt_updated = true
+          }
+        } catch {}
+      }
+
+      return NextResponse.json({ directives: inserted, custom_instructions: result.custom_instructions || '', prompt_updated })
+    }
+
     // ── Directives: delete ──
     if (action === 'delete_directive') {
       const { id } = body
@@ -724,6 +813,7 @@ If no useful learnings, return an empty array: []` }],
         body: JSON.stringify({
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
           voice_id: cfg.voice_id || '11labs-Nicole',
+          response_engine: { type: 'retell-llm' },
           enable_backchannel: true,
           begin_message: cfg.custom_greeting
             ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')

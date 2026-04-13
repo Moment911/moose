@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       body: new URLSearchParams({
         grant_type:    'refresh_token',
         refresh_token: integration.refresh_token,
-        client_id:     process.env.GHL_CLIENT_ID!,
+        client_id:     (process.env.GHL_CLIENT_ID || process.env.NEXT_PUBLIC_GHL_CLIENT_ID)!,
         client_secret: process.env.GHL_CLIENT_SECRET!,
       }),
     })
