@@ -2240,16 +2240,14 @@ export default function ClientDetailPage() {
             {/* ═══ CARD 6: AI Personality ═══ */}
             <div style={fdCard}>
               {fdCardTitle(<Settings size={16} color="#6b7280" />, 'AI Personality & Settings')}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                <div>
-                  <label style={fdLabel}>Custom Greeting</label>
-                  <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Hello, it's a great day at Our Office!" style={fdInput} />
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>Use {'{greeting}'} and {'{company}'}</div>
-                </div>
-                <div>
-                  <label style={fdLabel}>Additional Instructions</label>
-                  <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={3} placeholder="Special instructions for the AI..." style={{ ...fdInput, resize: 'vertical' }} />
-                </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={fdLabel}>Custom Greeting</label>
+                <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Hello, it's a great day at Our Office!" style={fdInput} />
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>Use {'{greeting}'} and {'{company}'} as placeholders</div>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={fdLabel}>Additional Instructions & Directives</label>
+                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={12} placeholder={'Add custom instructions, directions, and notes for the AI receptionist.\nThese are injected directly into the LLM prompt.\n\nExamples:\n• Always ask if they are a new or existing patient\n• If they mention a car accident, offer a same-day appointment\n• We are closed for lunch from 1-2pm on Wednesdays\n• Dr. Cohen does not take new patients on Fridays\n• Ask for their date of birth to verify identity\n• If caller is rude, stay calm and offer to have a manager call back'} style={{ ...fdInput, resize: 'vertical', minHeight: 220 }} />
               </div>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 {[{ key: 'hipaa_mode', label: 'HIPAA Mode' },{ key: 'transfer_enabled', label: 'Call Transfer' },{ key: 'sms_enabled', label: 'SMS Links' },{ key: 'recording_enabled', label: 'Recording' },{ key: 'voicemail_enabled', label: 'Voicemail' },{ key: 'allow_client_editing', label: 'Allow Client to Edit' }].map(t => (
