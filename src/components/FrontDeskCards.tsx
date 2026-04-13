@@ -16,6 +16,19 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
   return (
     <div style={{ maxWidth: 900 }}>
 
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* SECTION 1: Phone & Calls */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div style={{ marginTop: 0, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Phone size={18} color={R} /></div>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.02em' }}>Phone & Calls</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 1 }}>Manage your number, call routing, and call history</div>
+          </div>
+        </div>
+      </div>
+
       {/* CARD 1: Status + Phone */}
       <div style={{ ...fdCard, background: fd.retell_phone_number ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)', border: fd.retell_phone_number ? '2px solid #bbf7d0' : '1px solid #e5e7eb' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
@@ -61,54 +74,6 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         </div>
       </div>
 
-      {/* CARD 2: Business Info */}
-      <div style={fdCard}>
-        {fdCardTitle(<Globe size={16} color={T} />, 'Business Information')}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: '10px 12px', background: '#f9fafb', borderRadius: 8, alignItems: 'center' }}>
-          <Zap size={14} color={T} />
-          <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} placeholder="Website URL" style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
-          <input value={fd.gmb_url || ''} onChange={e => fdUpdate('gmb_url', e.target.value)} placeholder="GMB URL (optional)" style={{ width: 180, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-          <div><label style={fdLabel}>Company Name</label><input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={fdInput} /></div>
-          <div><label style={fdLabel}>Industry</label><input value={fd.industry || ''} onChange={e => fdUpdate('industry', e.target.value)} style={fdInput} /></div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-          <div><label style={fdLabel}>Phone</label><input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={fdInput} /></div>
-          <div><label style={fdLabel}>Address</label><input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={fdInput} /></div>
-          <div><label style={fdLabel}>Timezone</label>
-            <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={fdInput}>
-              <option value="America/New_York">New York</option>
-              <option value="America/Chicago">Chicago</option>
-              <option value="America/Denver">Denver</option>
-              <option value="America/Los_Angeles">Los Angeles</option>
-              <option value="America/Phoenix">Phoenix</option>
-              <option value="Pacific/Honolulu">Honolulu</option>
-            </select>
-          </div>
-        </div>
-        <label style={fdLabel}>Business Hours</label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
-          {DAYS.map(day => {
-            const h = (fd.business_hours || {})[day]
-            return (
-              <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
-                <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
-                {h ? (
-                  <div>
-                    <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', marginBottom: 3, color: BLK }} />
-                    <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', color: BLK }} />
-                    <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 11, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 3, fontWeight: 600 }}>Closed</button>
-                  </div>
-                ) : (
-                  <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 12, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontWeight: 700 }}>+ Add</button>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
       {/* CARD 3: Call Routing */}
       <div style={fdCard}>
         {fdCardTitle(<Phone size={16} color={R} />, 'Call Routing & Transfer')}
@@ -135,71 +100,51 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         </button>
       </div>
 
-      {/* CARD 4: Sendable Links */}
+      {/* CARD 9: Call Log */}
       <div style={fdCard}>
-        {fdCardTitle(<span style={{ fontSize: 16 }}>📲</span>, 'Sendable Links')}
-        <p style={{ fontSize: 13, color: '#6b7280', margin: '-8px 0 12px' }}>Links the AI can text or email to callers.</p>
-        {(() => {
-          const links = fd.sendable_links || []
-          const TYPES = [
-            { type: 'schedule', label: 'Schedule Appointment', icon: '📅' },
-            { type: 'directions', label: 'Get Directions', icon: '📍' },
-            { type: 'new_patient', label: 'New Patient Forms', icon: '📋' },
-            { type: 'portal', label: 'Patient Portal', icon: '🔐' },
-            { type: 'reviews', label: 'Leave a Review', icon: '⭐' },
-            { type: 'website', label: 'Our Website', icon: '🌐' },
-            { type: 'payment', label: 'Make a Payment', icon: '💳' },
-          ]
-          const updateLink = (i, f, v) => { const u = [...links]; u[i] = { ...u[i], [f]: v }; fdUpdate('sendable_links', u) }
-          const removeLink = (i) => fdUpdate('sendable_links', links.filter((_, j) => j !== i))
-          const addLink = (p) => fdUpdate('sendable_links', [...links, { type: p?.type || 'custom', label: p?.label || '', url: '', enabled: true }])
-          const toggleLink = (i) => { const u = [...links]; u[i] = { ...u[i], enabled: !u[i].enabled }; fdUpdate('sendable_links', u) }
-          return (
-            <div>
-              {links.map((link, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, padding: '10px 12px', background: link.enabled ? '#fff' : '#f9fafb', borderRadius: 10, border: '1px solid ' + (link.enabled ? '#d1d5db' : '#e5e7eb') }}>
-                  <button onClick={() => toggleLink(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, opacity: link.enabled ? 1 : 0.4, padding: 0 }}>{TYPES.find(d => d.type === link.type)?.icon || '🔗'}</button>
-                  <input value={link.label || ''} onChange={e => updateLink(i, 'label', e.target.value)} placeholder="Link name" style={{ width: 160, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK, fontWeight: 600 }} />
-                  <input value={link.url || ''} onChange={e => updateLink(i, 'url', e.target.value)} placeholder="https://..." style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
-                  <button onClick={() => removeLink(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 16 }}>x</button>
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-                {TYPES.filter(d => !links.some(l => l.type === d.type)).map(d => (
-                  <button key={d.type} onClick={() => addLink(d)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#374151' }}>{d.icon} + {d.label}</button>
-                ))}
-                <button onClick={() => addLink(null)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px dashed #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#9ca3af' }}>+ Custom</button>
-              </div>
+        {fdCardTitle(<Activity size={16} color={T} />, 'Recent Calls (' + fdCalls.length + ')')}
+        {fdCalls.length === 0
+          ? <div style={{ background: GRY, borderRadius: 10, padding: 20, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No calls yet.</div>
+          : <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Time</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Caller</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Duration</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Outcome</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Recording</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fdCalls.slice(0, 20).map(call => (
+                    <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '10px 12px', fontSize: 12, color: '#6b7280' }}>{new Date(call.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 600, color: BLK }}>{call.caller_name || call.caller_phone || 'Unknown'}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 13 }}>{call.duration_seconds ? Math.floor(call.duration_seconds / 60) + ':' + String(call.duration_seconds % 60).padStart(2, '0') : '0:00'}</td>
+                      <td style={{ padding: '10px 12px' }}><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: (call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN) + '15', color: call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN, textTransform: 'uppercase' }}>{call.outcome}</span></td>
+                      <td style={{ padding: '10px 12px' }}>
+                        {call.recording_url ? (
+                          <audio controls preload="none" style={{ height: 28, maxWidth: 180 }}><source src={call.recording_url} type="audio/wav" /></audio>
+                        ) : <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )
-        })()}
+        }
       </div>
 
-      {/* CARD 5: Services & Insurance */}
-      <div style={fdCard}>
-        {fdCardTitle(<span style={{ fontSize: 16 }}>🏥</span>, 'Services & Insurance')}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* SECTION 2: AI Receptionist */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div style={{ marginTop: 32, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Brain size={18} color={R} /></div>
           <div>
-            <label style={fdLabel}>Services ({(fd.services || []).length})</label>
-            <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={8} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }}></textarea>
-          </div>
-          <div>
-            <label style={{ ...fdLabel, marginBottom: 8 }}>Insurance Accepted</label>
-            {(() => {
-              const CARRIERS = ['Aetna','Anthem / BCBS','Blue Cross Blue Shield','Cigna','UnitedHealthcare','Humana','Kaiser Permanente','Medicare','Medicaid','Tricare','Workers Compensation','PIP','Most Major Medical Plans']
-              const accepted = fd.insurance_accepted || []
-              const toggle = (c) => accepted.includes(c) ? fdUpdate('insurance_accepted', accepted.filter(x => x !== c)) : fdUpdate('insurance_accepted', [...accepted, c])
-              return (
-                <div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-                    {CARRIERS.map(c => (
-                      <button key={c} onClick={() => toggle(c)} style={{ padding: '4px 10px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 600, fontFamily: FB, cursor: 'pointer', background: accepted.includes(c) ? R + '15' : '#f3f4f6', color: accepted.includes(c) ? R : '#6b7280' }}>{accepted.includes(c) ? '✓ ' : ''}{c}</button>
-                    ))}
-                  </div>
-                  <input placeholder="Add custom carrier, press Enter" onKeyDown={e => { if (e.key === 'Enter' && (e.target as any).value.trim()) { fdUpdate('insurance_accepted', [...accepted, (e.target as any).value.trim()]); (e.target as any).value = '' } }} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB }} />
-                </div>
-              )
-            })()}
+            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.02em' }}>AI Receptionist</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 1 }}>Configure Jenny's voice, personality, instructions, and directives</div>
           </div>
         </div>
       </div>
@@ -234,22 +179,16 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       {/* CARD 6b: Directives */}
       <DirectivesCard fd={fd} fdCard={fdCard} fdCardTitle={fdCardTitle} fdLabel={fdLabel} doFetch={doFetch} fdDirectives={fdDirectives} setFdDirectives={setFdDirectives} fdNewDirective={fdNewDirective} setFdNewDirective={setFdNewDirective} fdNewCategory={fdNewCategory} setFdNewCategory={setFdNewCategory} clientId={clientId} aid={aid} fdUpdate={fdUpdate} />
 
-      {/* CARD 7: GHL */}
-      <div style={{ ...fdCard, background: fd.ghl_connected ? '#f0fdf4' : undefined, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: fd.ghl_connected ? GRN + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ExternalLink size={22} color={fd.ghl_connected ? GRN : '#9ca3af'} />
-            </div>
-            <div>
-              <div style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>GoHighLevel</div>
-              <div style={{ fontSize: 14, color: '#6b7280' }}>{fd.ghl_connected ? 'Connected — calls & SMS sync to CRM' : 'Connect for call & SMS syncing'}</div>
-            </div>
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* SECTION 3: Messaging & Integrations */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div style={{ marginTop: 32, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 18 }}>💬</span></div>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.02em' }}>Messaging & Integrations</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 1 }}>SMS, sendable links, and CRM connection</div>
           </div>
-          {fd.ghl_connected
-            ? <button onClick={async () => { if (!confirm('Disconnect?')) return; await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) }); fdUpdate('ghl_connected', false); toast.success('Disconnected') }} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, color: R, cursor: 'pointer' }}>Disconnect</button>
-            : <button onClick={async () => { try { const res = await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'connect_client_direct', agency_id: aid, client_id: clientId }) }); const d = await res.json(); if (d.error) throw new Error(d.error); fdUpdate('ghl_connected', true); toast.success('Connected to GHL' + (d.location_name ? ' — ' + d.location_name : '')) } catch (e) { toast.error((e as any).message) } }} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Connect</button>
-          }
         </div>
       </div>
 
@@ -324,40 +263,153 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         </button>
       </div>
 
-      {/* CARD 9: Call Log */}
+      {/* CARD 4: Sendable Links */}
       <div style={fdCard}>
-        {fdCardTitle(<Activity size={16} color={T} />, 'Recent Calls (' + fdCalls.length + ')')}
-        {fdCalls.length === 0
-          ? <div style={{ background: GRY, borderRadius: 10, padding: 20, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No calls yet.</div>
-          : <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Time</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Caller</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Duration</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Outcome</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: 11, fontFamily: FH, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Recording</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fdCalls.slice(0, 20).map(call => (
-                    <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '10px 12px', fontSize: 12, color: '#6b7280' }}>{new Date(call.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                      <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 600, color: BLK }}>{call.caller_name || call.caller_phone || 'Unknown'}</td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 13 }}>{call.duration_seconds ? Math.floor(call.duration_seconds / 60) + ':' + String(call.duration_seconds % 60).padStart(2, '0') : '0:00'}</td>
-                      <td style={{ padding: '10px 12px' }}><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: (call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN) + '15', color: call.outcome === 'appointment' ? '#7c3aed' : call.outcome === 'transferred' ? T : GRN, textTransform: 'uppercase' }}>{call.outcome}</span></td>
-                      <td style={{ padding: '10px 12px' }}>
-                        {call.recording_url ? (
-                          <audio controls preload="none" style={{ height: 28, maxWidth: 180 }}><source src={call.recording_url} type="audio/wav" /></audio>
-                        ) : <span style={{ fontSize: 11, color: '#d1d5db' }}>—</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {fdCardTitle(<span style={{ fontSize: 16 }}>📲</span>, 'Sendable Links')}
+        <p style={{ fontSize: 13, color: '#6b7280', margin: '-8px 0 12px' }}>Links the AI can text or email to callers.</p>
+        {(() => {
+          const links = fd.sendable_links || []
+          const TYPES = [
+            { type: 'schedule', label: 'Schedule Appointment', icon: '📅' },
+            { type: 'directions', label: 'Get Directions', icon: '📍' },
+            { type: 'new_patient', label: 'New Patient Forms', icon: '📋' },
+            { type: 'portal', label: 'Patient Portal', icon: '🔐' },
+            { type: 'reviews', label: 'Leave a Review', icon: '⭐' },
+            { type: 'website', label: 'Our Website', icon: '🌐' },
+            { type: 'payment', label: 'Make a Payment', icon: '💳' },
+          ]
+          const updateLink = (i, f, v) => { const u = [...links]; u[i] = { ...u[i], [f]: v }; fdUpdate('sendable_links', u) }
+          const removeLink = (i) => fdUpdate('sendable_links', links.filter((_, j) => j !== i))
+          const addLink = (p) => fdUpdate('sendable_links', [...links, { type: p?.type || 'custom', label: p?.label || '', url: '', enabled: true }])
+          const toggleLink = (i) => { const u = [...links]; u[i] = { ...u[i], enabled: !u[i].enabled }; fdUpdate('sendable_links', u) }
+          return (
+            <div>
+              {links.map((link, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, padding: '10px 12px', background: link.enabled ? '#fff' : '#f9fafb', borderRadius: 10, border: '1px solid ' + (link.enabled ? '#d1d5db' : '#e5e7eb') }}>
+                  <button onClick={() => toggleLink(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, opacity: link.enabled ? 1 : 0.4, padding: 0 }}>{TYPES.find(d => d.type === link.type)?.icon || '🔗'}</button>
+                  <input value={link.label || ''} onChange={e => updateLink(i, 'label', e.target.value)} placeholder="Link name" style={{ width: 160, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK, fontWeight: 600 }} />
+                  <input value={link.url || ''} onChange={e => updateLink(i, 'url', e.target.value)} placeholder="https://..." style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
+                  <button onClick={() => removeLink(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 16 }}>x</button>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                {TYPES.filter(d => !links.some(l => l.type === d.type)).map(d => (
+                  <button key={d.type} onClick={() => addLink(d)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#374151' }}>{d.icon} + {d.label}</button>
+                ))}
+                <button onClick={() => addLink(null)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px dashed #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#9ca3af' }}>+ Custom</button>
+              </div>
             </div>
-        }
+          )
+        })()}
+      </div>
+
+      {/* CARD 7: GHL */}
+      <div style={{ ...fdCard, background: fd.ghl_connected ? '#f0fdf4' : undefined, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: fd.ghl_connected ? GRN + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ExternalLink size={22} color={fd.ghl_connected ? GRN : '#9ca3af'} />
+            </div>
+            <div>
+              <div style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>GoHighLevel</div>
+              <div style={{ fontSize: 14, color: '#6b7280' }}>{fd.ghl_connected ? 'Connected — calls & SMS sync to CRM' : 'Connect for call & SMS syncing'}</div>
+            </div>
+          </div>
+          {fd.ghl_connected
+            ? <button onClick={async () => { if (!confirm('Disconnect?')) return; await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) }); fdUpdate('ghl_connected', false); toast.success('Disconnected') }} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, color: R, cursor: 'pointer' }}>Disconnect</button>
+            : <button onClick={async () => { try { const res = await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'connect_client_direct', agency_id: aid, client_id: clientId }) }); const d = await res.json(); if (d.error) throw new Error(d.error); fdUpdate('ghl_connected', true); toast.success('Connected to GHL' + (d.location_name ? ' — ' + d.location_name : '')) } catch (e) { toast.error((e as any).message) } }} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Connect</button>
+          }
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      {/* SECTION 4: Business Profile */}
+      {/* ═══════════════════════════════════════════════════════════════ */}
+      <div style={{ marginTop: 32, marginBottom: 16, paddingBottom: 10, borderBottom: '2px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Globe size={18} color={R} /></div>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.02em' }}>Business Profile</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginTop: 1 }}>Business info, hours, services, and insurance</div>
+          </div>
+        </div>
+      </div>
+
+      {/* CARD 2: Business Info */}
+      <div style={fdCard}>
+        {fdCardTitle(<Globe size={16} color={T} />, 'Business Information')}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: '10px 12px', background: '#f9fafb', borderRadius: 8, alignItems: 'center' }}>
+          <Zap size={14} color={T} />
+          <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} placeholder="Website URL" style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
+          <input value={fd.gmb_url || ''} onChange={e => fdUpdate('gmb_url', e.target.value)} placeholder="GMB URL (optional)" style={{ width: 180, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div><label style={fdLabel}>Company Name</label><input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={fdInput} /></div>
+          <div><label style={fdLabel}>Industry</label><input value={fd.industry || ''} onChange={e => fdUpdate('industry', e.target.value)} style={fdInput} /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div><label style={fdLabel}>Phone</label><input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={fdInput} /></div>
+          <div><label style={fdLabel}>Address</label><input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={fdInput} /></div>
+          <div><label style={fdLabel}>Timezone</label>
+            <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={fdInput}>
+              <option value="America/New_York">New York</option>
+              <option value="America/Chicago">Chicago</option>
+              <option value="America/Denver">Denver</option>
+              <option value="America/Los_Angeles">Los Angeles</option>
+              <option value="America/Phoenix">Phoenix</option>
+              <option value="Pacific/Honolulu">Honolulu</option>
+            </select>
+          </div>
+        </div>
+        <label style={fdLabel}>Business Hours</label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+          {DAYS.map(day => {
+            const h = (fd.business_hours || {})[day]
+            return (
+              <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+                <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
+                {h ? (
+                  <div>
+                    <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', marginBottom: 3, color: BLK }} />
+                    <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', color: BLK }} />
+                    <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 11, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 3, fontWeight: 600 }}>Closed</button>
+                  </div>
+                ) : (
+                  <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 12, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontWeight: 700 }}>+ Add</button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* CARD 5: Services & Insurance */}
+      <div style={fdCard}>
+        {fdCardTitle(<span style={{ fontSize: 16 }}>🏥</span>, 'Services & Insurance')}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <label style={fdLabel}>Services ({(fd.services || []).length})</label>
+            <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={8} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }}></textarea>
+          </div>
+          <div>
+            <label style={{ ...fdLabel, marginBottom: 8 }}>Insurance Accepted</label>
+            {(() => {
+              const CARRIERS = ['Aetna','Anthem / BCBS','Blue Cross Blue Shield','Cigna','UnitedHealthcare','Humana','Kaiser Permanente','Medicare','Medicaid','Tricare','Workers Compensation','PIP','Most Major Medical Plans']
+              const accepted = fd.insurance_accepted || []
+              const toggle = (c) => accepted.includes(c) ? fdUpdate('insurance_accepted', accepted.filter(x => x !== c)) : fdUpdate('insurance_accepted', [...accepted, c])
+              return (
+                <div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                    {CARRIERS.map(c => (
+                      <button key={c} onClick={() => toggle(c)} style={{ padding: '4px 10px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 600, fontFamily: FB, cursor: 'pointer', background: accepted.includes(c) ? R + '15' : '#f3f4f6', color: accepted.includes(c) ? R : '#6b7280' }}>{accepted.includes(c) ? '✓ ' : ''}{c}</button>
+                    ))}
+                  </div>
+                  <input placeholder="Add custom carrier, press Enter" onKeyDown={e => { if (e.key === 'Enter' && (e.target as any).value.trim()) { fdUpdate('insurance_accepted', [...accepted, (e.target as any).value.trim()]); (e.target as any).value = '' } }} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB }} />
+                </div>
+              )
+            })()}
+          </div>
+        </div>
       </div>
 
     </div>
