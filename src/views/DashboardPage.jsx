@@ -131,7 +131,7 @@ function DashStatusDot({ label, status }) {
    ══════════════════════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient, clientId, clientInfo } = useAuth()
+  const { user, firstName, agencyId, agencyName, role, isOwner, agency, isSuperAdmin, isAgencyAdmin: isAgAdmin, can, isImpersonating, isClient, isPreviewingClient, clientId, clientInfo, impersonateAgency } = useAuth()
   const isMobile = useMobile()
 
   const showClientDashboard = isClient || isPreviewingClient
@@ -329,7 +329,7 @@ export default function DashboardPage() {
       supabase.from('koto_system_logs')
         .select('id, level, message, created_at')
         .order('created_at', { ascending: false }).limit(15),
-      fetch('/api/admin?action=list_agencies').then(r => r.json()).catch(() => []),
+      fetch('/api/admin?action=list_agencies').then(r => r.json()).catch(() => null),
       fetch('/api/qa?action=comms_stats').then(r => r.json()).catch(() => ({ emails24h: 0, sms24h: 0, failed24h: 0, total24h: 0 })),
       fetch('/api/qa?action=health_score').then(r => r.json()).catch(() => ({ health_score: 0, pass_rate: 0, open_errors: 0 })),
     ])
@@ -349,7 +349,13 @@ export default function DashboardPage() {
     setActivityFeed(feed || [])
     setCommsStats(commsStatsRes || { emails24h: 0, sms24h: 0, failed24h: 0, total24h: 0 })
     setQaHealth(qaHealthRes || { health_score: 0, pass_rate: 0, open_errors: 0 })
-    if (agencies) setAgencyList(agencies)
+    if (agencies && Array.isArray(agencies) && agencies.length > 0) {
+      setAgencyList(agencies)
+    } else {
+      // Fallback: load directly from Supabase
+      const { data: fallbackAgencies } = await supabase.from('agencies').select('id, name, brand_name, logo_url, status, slug, plan').order('name')
+      if (fallbackAgencies) setAgencyList(fallbackAgencies)
+    }
   }
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -774,37 +780,34 @@ export default function DashboardPage() {
                       No agencies
                     </div>
                   ) : agencyList.slice(0, 8).map(a => (
-                    <div key={a.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px',
-                      borderBottom: '1px solid #f9fafb',
-                    }}>
+                    <button key={a.id} onClick={() => { impersonateAgency(a); navigate('/clients') }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 10px',
+                        borderBottom: '1px solid #f3f4f6', border: 'none', background: '#fff',
+                        cursor: 'pointer', textAlign: 'left',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                       <div style={{
-                        width: 34, height: 34, borderRadius: 8, background: T + '12',
+                        width: 36, height: 36, borderRadius: 8, background: R + '12',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: FH, fontSize: 13, fontWeight: 800, color: T,
+                        fontFamily: FH, fontSize: 14, fontWeight: 800, color: R, flexShrink: 0,
                       }}>
                         {(a.brand_name || a.name || '?')[0].toUpperCase()}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
-                          fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK,
+                          fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {a.brand_name || a.name}
                         </div>
-                        <div style={{ fontSize: 11, color: '#9ca3af' }}>
-                          {a.owner_email || a.slug} &middot; {a.plan || 'starter'} &middot; {a.client_count || 0} clients
+                        <div style={{ fontSize: 12, color: '#6b7280' }}>
+                          {a.client_count || 0} clients &middot; {a.plan || 'starter'}
                         </div>
                       </div>
-                      <span style={{
-                        fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
-                        background: a.status === 'active' ? GRN + '15' : '#F9F9F9',
-                        color: a.status === 'active' ? GRN : '#6b7280',
-                        textTransform: 'uppercase',
-                      }}>
-                        {a.status || 'active'}
-                      </span>
-                    </div>
+                      <ChevronRight size={16} color="#d1d5db" />
+                    </button>
                   ))}
                 </div>
               </div>
