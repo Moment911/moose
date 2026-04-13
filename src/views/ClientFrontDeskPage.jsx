@@ -208,10 +208,53 @@ export default function ClientFrontDeskPage() {
 
               {/* Insurance */}
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 20, marginBottom: 16 }}>
-                <h3 style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, margin: '0 0 14px' }}>Insurance Accepted</h3>
-                <textarea value={(fd.insurance_accepted || []).join('\n')} onChange={e => update('insurance_accepted', e.target.value.split('\n').filter(s => s.trim()))}
-                  disabled={!editable} rows={3} placeholder="One per line"
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical', background: editable ? '#fff' : '#f9fafb' }} />
+                <h3 style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, margin: '0 0 14px' }}>Insurance Accepted ({(fd.insurance_accepted || []).length})</h3>
+                {(() => {
+                  const CARRIERS = [
+                    'Aetna', 'Anthem / Blue Cross Blue Shield', 'Blue Cross Blue Shield', 'Cigna', 'UnitedHealthcare',
+                    'Humana', 'Kaiser Permanente', 'Molina Healthcare', 'Centene / Ambetter', 'Medicare',
+                    'Medicaid', 'Tricare', 'Workers Compensation', 'Personal Injury Protection (PIP)',
+                    'Oscar Health', 'Bright Health', 'Devoted Health', 'Clover Health',
+                    'Most Major Medical Plans',
+                  ]
+                  const accepted = fd.insurance_accepted || []
+                  const toggleCarrier = (c) => {
+                    if (!editable) return
+                    if (accepted.includes(c)) update('insurance_accepted', accepted.filter(x => x !== c))
+                    else update('insurance_accepted', [...accepted, c])
+                  }
+                  const customOnes = accepted.filter(x => !CARRIERS.includes(x))
+                  return (
+                    <>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: customOnes.length > 0 || editable ? 8 : 0 }}>
+                        {CARRIERS.map(c => {
+                          const on = accepted.includes(c)
+                          return (
+                            <button key={c} onClick={() => toggleCarrier(c)} disabled={!editable} style={{
+                              padding: '4px 10px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 600, fontFamily: FB, cursor: editable ? 'pointer' : 'default',
+                              background: on ? R + '15' : '#f3f4f6', color: on ? R : '#6b7280', opacity: !editable && !on ? 0.4 : 1,
+                            }}>{on ? '✓ ' : ''}{c}</button>
+                          )
+                        })}
+                      </div>
+                      {editable && (
+                        <input placeholder="Add custom carrier and press Enter..." onKeyDown={e => {
+                          if (e.key === 'Enter' && e.target.value.trim()) { update('insurance_accepted', [...accepted, e.target.value.trim()]); e.target.value = '' }
+                        }} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, marginBottom: customOnes.length > 0 ? 6 : 0 }} />
+                      )}
+                      {customOnes.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {customOnes.map(c => (
+                            <span key={c} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 20, background: T + '15', color: T, fontSize: 11, fontWeight: 600 }}>
+                              {c}
+                              {editable && <button onClick={() => update('insurance_accepted', accepted.filter(x => x !== c))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
 
               {/* Custom Greeting */}

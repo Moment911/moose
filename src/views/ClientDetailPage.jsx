@@ -1906,8 +1906,70 @@ export default function ClientDetailPage() {
 
             {/* Insurance */}
             <div style={{ marginBottom: 16 }}>
-              <label style={fieldLabel}>Insurance Accepted</label>
-              <textarea value={(fd.insurance_accepted || []).join('\n')} onChange={e => fdUpdate('insurance_accepted', e.target.value.split('\n').filter(s => s.trim()))} rows={3} placeholder="One per line, or 'Most major medical plans'" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical' }} />
+              <label style={{ ...fieldLabel, marginBottom: 8 }}>Insurance Accepted</label>
+              {(() => {
+                const CARRIERS = [
+                  'Aetna', 'Anthem / Blue Cross Blue Shield', 'Blue Cross Blue Shield', 'Cigna', 'UnitedHealthcare',
+                  'Humana', 'Kaiser Permanente', 'Molina Healthcare', 'Centene / Ambetter', 'Medicare',
+                  'Medicaid', 'Tricare', 'Workers Compensation', 'Personal Injury Protection (PIP)',
+                  'Oscar Health', 'Bright Health', 'Devoted Health', 'Clover Health',
+                  'Meritain Health', 'AvMed', 'Florida Blue', 'Health First',
+                  'Oxford Health Plans', 'Empire BCBS', 'Horizon BCBS',
+                  'Harvard Pilgrim', 'Tufts Health Plan', 'Priority Health',
+                  'Geisinger Health Plan', 'UPMC Health Plan', 'Highmark',
+                  'Carefirst BCBS', 'Independence Blue Cross', 'Premera Blue Cross',
+                  'Regence', 'SelectHealth', 'Deseret Mutual', 'CHIP',
+                  'Most Major Medical Plans',
+                ]
+                const accepted = fd.insurance_accepted || []
+                const toggleCarrier = (c) => {
+                  if (accepted.includes(c)) fdUpdate('insurance_accepted', accepted.filter(x => x !== c))
+                  else fdUpdate('insurance_accepted', [...accepted, c])
+                }
+                const selectAll = () => fdUpdate('insurance_accepted', [...new Set([...accepted, ...CARRIERS])])
+                const clearAll = () => fdUpdate('insurance_accepted', accepted.filter(x => !CARRIERS.includes(x)))
+                const customOnes = accepted.filter(x => !CARRIERS.includes(x))
+                return (
+                  <>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                      <button onClick={selectAll} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: T }}>Select All</button>
+                      <button onClick={clearAll} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', color: '#9ca3af' }}>Clear All</button>
+                      <span style={{ fontSize: 11, color: '#9ca3af', alignSelf: 'center', marginLeft: 4 }}>{accepted.length} selected</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                      {CARRIERS.map(c => {
+                        const on = accepted.includes(c)
+                        return (
+                          <button key={c} onClick={() => toggleCarrier(c)} style={{
+                            padding: '4px 10px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 600, fontFamily: FB, cursor: 'pointer',
+                            background: on ? R + '15' : '#f3f4f6', color: on ? R : '#6b7280',
+                          }}>{on ? '✓ ' : ''}{c}</button>
+                        )
+                      })}
+                    </div>
+                    <input
+                      placeholder="Add custom carrier and press Enter..."
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && e.target.value.trim()) {
+                          fdUpdate('insurance_accepted', [...accepted, e.target.value.trim()])
+                          e.target.value = ''
+                        }
+                      }}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, marginBottom: customOnes.length > 0 ? 6 : 0 }}
+                    />
+                    {customOnes.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {customOnes.map(c => (
+                          <span key={c} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 20, background: T + '15', color: T, fontSize: 11, fontWeight: 600 }}>
+                            {c}
+                            <button onClick={() => fdUpdate('insurance_accepted', accepted.filter(x => x !== c))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
             </div>
 
             {/* Custom greeting + instructions */}
