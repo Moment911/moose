@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       direction: 'inbound', from_number: fromNumber, to_number: '',
       message: messageText, message_type: needsEscalation ? 'escalation' : 'general',
       ghl_contact_id: contactId, status: 'received', sent_via: 'ghl',
-    }).catch(() => {})
+    })
 
     if (needsEscalation) {
       // Don't AI-respond to escalation — just notify agency
@@ -190,7 +190,7 @@ Respond as Jenny via text message. Keep it under 160 characters if possible.`
       direction: 'outbound', from_number: '', to_number: fromNumber,
       message: reply, message_type: 'ai_response', ai_generated: true,
       ghl_contact_id: contactId, status: 'sent', sent_via: 'ghl',
-    }).catch(() => {})
+    })
 
     // Log token usage
     try {
