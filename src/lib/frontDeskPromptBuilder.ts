@@ -33,6 +33,7 @@ export interface FrontDeskConfig {
   voicemail_enabled: boolean
   transfer_enabled: boolean
   sms_enabled: boolean
+  sendable_links: { type: string; label: string; url: string; enabled: boolean }[]
 }
 
 // ── Time-of-day greeting ─────────────────────────────────────────────────────
@@ -154,6 +155,15 @@ ${emergencyBlock}
 
 ${hipaaBlock}
 
+${(() => {
+    const active = (config.sendable_links || []).filter(l => l.enabled !== false && l.url)
+    if (active.length === 0) return ''
+    return `LINKS YOU CAN SEND VIA SMS OR EMAIL:
+When a caller wants one of these, ask for their cell phone number (for text) or email address, then send the link.
+${active.map(l => `  - "${l.label}": ${l.url}`).join('\n')}
+Only send links from this list. If the caller asks for something not listed, say you'll have the office follow up with that information.`
+  })()}
+
 HANDLING COMMON CALLER INTENTS:
 
 1. APPOINTMENT SCHEDULING:
@@ -229,6 +239,7 @@ export async function getFrontDeskConfig(clientId: string): Promise<FrontDeskCon
     voicemail_enabled: data.voicemail_enabled ?? true,
     transfer_enabled: data.transfer_enabled ?? true,
     sms_enabled: data.sms_enabled ?? true,
+    sendable_links: data.sendable_links || [],
   }
 }
 

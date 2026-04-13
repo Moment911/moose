@@ -1951,6 +1951,69 @@ export default function ClientDetailPage() {
               </div>
             </div>
 
+            {/* Sendable Links */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ ...fdLabel, marginBottom: 8 }}>Sendable Links (SMS / Email)</label>
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 10px' }}>Links the AI receptionist can text or email to callers during a conversation.</p>
+              {(() => {
+                const links = fd.sendable_links || []
+                const DEFAULT_TYPES = [
+                  { type: 'schedule', label: 'Schedule Appointment', icon: '📅', placeholder: 'https://calendly.com/...' },
+                  { type: 'directions', label: 'Get Directions', icon: '📍', placeholder: 'https://maps.google.com/...' },
+                  { type: 'new_patient', label: 'New Patient Forms', icon: '📋', placeholder: 'https://...' },
+                  { type: 'portal', label: 'Patient / Client Portal', icon: '🔐', placeholder: 'https://...' },
+                  { type: 'reviews', label: 'Leave a Review', icon: '⭐', placeholder: 'https://g.page/...' },
+                  { type: 'website', label: 'Our Website', icon: '🌐', placeholder: 'https://...' },
+                  { type: 'payment', label: 'Make a Payment', icon: '💳', placeholder: 'https://...' },
+                ]
+                const updateLink = (idx, field, val) => {
+                  const updated = [...links]
+                  updated[idx] = { ...updated[idx], [field]: val }
+                  fdUpdate('sendable_links', updated)
+                }
+                const removeLink = (idx) => fdUpdate('sendable_links', links.filter((_, i) => i !== idx))
+                const addLink = (preset) => fdUpdate('sendable_links', [...links, { type: preset?.type || 'custom', label: preset?.label || '', url: '', enabled: true }])
+                const toggleLink = (idx) => { const updated = [...links]; updated[idx] = { ...updated[idx], enabled: !updated[idx].enabled }; fdUpdate('sendable_links', updated) }
+
+                // Pre-populate scheduling link if not already in sendable_links
+                const hasSchedule = links.some(l => l.type === 'schedule')
+                const hasDirections = links.some(l => l.type === 'directions')
+
+                return (
+                  <>
+                    {links.length === 0 && (
+                      <div style={{ background: GRY, borderRadius: 10, padding: '16px', textAlign: 'center', marginBottom: 10 }}>
+                        <p style={{ fontSize: 13, color: '#9ca3af', margin: '0 0 10px' }}>No links configured yet. Add links the AI can send to callers.</p>
+                      </div>
+                    )}
+                    {links.map((link, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, padding: '10px 12px', background: link.enabled ? '#fff' : '#f9fafb', borderRadius: 10, border: `1px solid ${link.enabled ? '#d1d5db' : '#e5e7eb'}` }}>
+                        <button onClick={() => toggleLink(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, opacity: link.enabled ? 1 : 0.4, padding: 0, lineHeight: 1 }}>
+                          {DEFAULT_TYPES.find(d => d.type === link.type)?.icon || '🔗'}
+                        </button>
+                        <input value={link.label || ''} onChange={e => updateLink(idx, 'label', e.target.value)} placeholder="Link name" style={{ width: 160, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK, fontWeight: 600 }} />
+                        <input value={link.url || ''} onChange={e => updateLink(idx, 'url', e.target.value)} placeholder="https://..." style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                          <input type="checkbox" checked={link.enabled !== false} onChange={() => toggleLink(idx)} style={{ accentColor: R }} /> Active
+                        </label>
+                        <button onClick={() => removeLink(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 16, padding: '0 4px' }}>×</button>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                      {DEFAULT_TYPES.filter(d => !links.some(l => l.type === d.type)).map(d => (
+                        <button key={d.type} onClick={() => addLink(d)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {d.icon} + {d.label}
+                        </button>
+                      ))}
+                      <button onClick={() => addLink()} style={{ padding: '5px 12px', borderRadius: 20, border: '1px dashed #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#9ca3af' }}>
+                        + Custom Link
+                      </button>
+                    </div>
+                  </>
+                )
+              })()}
+            </div>
+
             {/* Services */}
             <div style={{ marginBottom: 16 }}>
               <label style={fdLabel}>Services ({(fd.services || []).length})</label>

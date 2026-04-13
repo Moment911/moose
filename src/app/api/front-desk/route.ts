@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
         sms_enabled: fields.sms_enabled ?? true,
         recording_enabled: fields.recording_enabled ?? true,
         allow_client_editing: fields.allow_client_editing ?? false,
+        sendable_links: fields.sendable_links || [],
         voice_id: fields.voice_id,
         voice_name: fields.voice_name || 'Nicole',
         status: fields.status || 'draft',
