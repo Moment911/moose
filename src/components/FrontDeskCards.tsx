@@ -270,33 +270,33 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
   )
 }
 
-const CURATED_VOICES = [
-  { id: '11labs-Marissa', name: 'Marissa', desc: 'Warm & friendly', gender: 'F' },
-  { id: '11labs-Myra', name: 'Myra', desc: 'Professional & calm', gender: 'F' },
-  { id: '11labs-Paola', name: 'Paola', desc: 'Bright & upbeat', gender: 'F' },
-  { id: '11labs-Karina', name: 'Karina', desc: 'Soft & natural', gender: 'F' },
-  { id: '11labs-Adrian', name: 'Adrian', desc: 'Confident & clear', gender: 'M' },
-  { id: '11labs-Nathan', name: 'Nathan', desc: 'Warm & approachable', gender: 'M' },
-  { id: '11labs-Ryan', name: 'Ryan', desc: 'Energetic & natural', gender: 'M' },
-  { id: '11labs-Josh', name: 'Josh', desc: 'Calm & reassuring', gender: 'M' },
-]
+// Curated voice names to show — actual IDs loaded from Retell API
+const CURATED_NAMES = ['Marissa','Myra','Paola','Karina','Adrian','Nathan','Ryan','Josh']
 
 function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
-  const [previews, setPreviews] = useState({})
+  const [voices, setVoices] = useState([])
   const [playing, setPlaying] = useState(null)
+  const [loadingVoices, setLoadingVoices] = useState(true)
   const audioRef = useRef(null)
 
-  // Fetch preview URLs from Retell on first render
+  // Fetch voices from Retell API — get real IDs and preview URLs
   useEffect(() => {
     fetch('/api/front-desk?action=list_voices').then(r => r.json()).then(d => {
       if (d.voices) {
-        const map = {}
-        for (const v of d.voices) {
-          if (v.preview_audio_url) map[v.voice_id] = v.preview_audio_url
+        // Filter to curated names, or show first 8 female + male if none match
+        const curated = d.voices.filter(v => CURATED_NAMES.some(n => (v.voice_name || '').toLowerCase() === n.toLowerCase()))
+        if (curated.length > 0) {
+          setVoices(curated)
+        } else {
+          // Fallback: pick 4 female + 4 male with previews
+          const withPreview = d.voices.filter(v => v.preview_audio_url)
+          const females = withPreview.filter(v => v.gender === 'female').slice(0, 4)
+          const males = withPreview.filter(v => v.gender === 'male').slice(0, 4)
+          setVoices([...females, ...males])
         }
-        setPreviews(map)
       }
-    }).catch(() => {})
+      setLoadingVoices(false)
+    }).catch(() => setLoadingVoices(false))
   }, [])
 
   function togglePreview(voiceId) {
@@ -305,7 +305,8 @@ function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
       setPlaying(null)
       return
     }
-    const url = previews[voiceId]
+    const voice = voices.find(v => v.voice_id === voiceId)
+    const url = voice?.preview_audio_url
     if (!url) { toast.error('No preview available'); return }
     if (audioRef.current) { audioRef.current.pause() }
     const audio = new Audio(url)
@@ -315,31 +316,33 @@ function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
     setPlaying(voiceId)
   }
 
+  if (loadingVoices) return <div style={{ marginBottom: 14 }}><label style={fdLabel}>Voice</label><div style={{ fontSize: 13, color: '#9ca3af', padding: 8 }}>Loading voices...</div></div>
+
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={fdLabel}>Voice</label>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {CURATED_VOICES.map(v => {
-          const selected = (fd.voice_id || '11labs-Marissa') === v.id
-          const hasPreview = !!previews[v.id]
+        {voices.map(v => {
+          const selected = fd.voice_id === v.voice_id
+          const hasPreview = !!v.preview_audio_url
           return (
-            <div key={v.id} style={{
+            <div key={v.voice_id} style={{
               padding: '8px 14px', borderRadius: 10,
               border: selected ? '2px solid ' + R : '1px solid #e5e7eb',
               background: selected ? R + '08' : '#fff',
               textAlign: 'left', minWidth: 130, display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <button onClick={() => togglePreview(v.id)} disabled={!hasPreview} style={{
+              <button onClick={() => togglePreview(v.voice_id)} disabled={!hasPreview} style={{
                 width: 28, height: 28, borderRadius: '50%', border: 'none', flexShrink: 0,
-                background: playing === v.id ? R + '15' : '#f3f4f6',
+                background: playing === v.voice_id ? R + '15' : '#f3f4f6',
                 cursor: hasPreview ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 opacity: hasPreview ? 1 : 0.3,
               }}>
-                {playing === v.id ? <Square size={10} color={R} fill={R} /> : <Play size={11} color="#374151" fill="#374151" />}
+                {playing === v.voice_id ? <Square size={10} color={R} fill={R} /> : <Play size={11} color="#374151" fill="#374151" />}
               </button>
-              <button onClick={() => fdUpdate('voice_id', v.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{v.name}</div>
-                <div style={{ fontSize: 11, color: '#6b7280' }}>{v.desc} · {v.gender === 'F' ? 'Female' : 'Male'}</div>
+              <button onClick={() => fdUpdate('voice_id', v.voice_id)} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{v.voice_name || v.voice_id}</div>
+                <div style={{ fontSize: 11, color: '#6b7280' }}>{v.accent || v.provider || ''}{v.gender ? ' · ' + (v.gender === 'female' ? 'Female' : 'Male') : ''}</div>
               </button>
             </div>
           )
