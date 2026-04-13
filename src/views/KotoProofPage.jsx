@@ -3,12 +3,13 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage, FileText, Globe, Plus, Trash2, Clock, MessageSquare, Activity,
          ChevronLeft, Settings, Send, Globe2, Lock, KeyRound, ChevronDown, ChevronUp,
-         Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch } from 'lucide-react'
+         Users, UserPlus, Shield, Eye, Edit2, Mail, MoreHorizontal, Copy, Check, PenLine, Palette, Download, Wand2, Pen, X, Upload, GitBranch, GitCompare } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import UploadDropzone from '../components/UploadDropzone'
 import AccessModal from '../components/AccessModal'
 import AISummaryModal from '../components/proof/KotoProofAISummary'
+import VersionCompare from '../components/VersionCompare'
 import { supabase, getFiles, getActivity, deleteFile, deleteStorageFile, sendEmailSummary, updateProject, getRounds, updateRound, logActivity,
          getProjectAccess, addProjectAccess, updateProjectAccess, deleteProjectAccess, getWireframes, deleteWireframeRecord, getEmailDesigns, deleteEmailDesign,
          getProjectAnnotations, getSignaturesForProject, uploadFile, createFile } from '../lib/supabase'
@@ -69,6 +70,7 @@ export default function KotoProofPage() {
   const versionInputRef = useRef(null)
   const [allAnnotations, setAllAnnotations] = useState([])
   const [signatures, setSignatures] = useState({})
+  const [compareFiles, setCompareFiles] = useState(null)
 
   useEffect(() => { loadAll() }, [projectId])
 
@@ -519,7 +521,7 @@ export default function KotoProofPage() {
                         }}
                         style={{ flexShrink: 0, width: 100, cursor: 'grab', textAlign: 'center' }}
                       >
-                        <div style={{ width: 100, height: 72, borderRadius: 8, overflow: 'hidden', border: '2px solid #e5e7eb', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}
+                        <div style={{ width: 100, height: 72, borderRadius: 8, overflow: 'hidden', border: '2px solid #e5e7eb', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4, position: 'relative' }}
                           onClick={() => {
                             const pid = projectId || project?.id
                             if (pid && !file.type?.startsWith('video/')) navigate(`/project/${pid}/review/${file.id}`)
@@ -527,6 +529,14 @@ export default function KotoProofPage() {
                           }}
                         >
                           {isImg ? <img src={file.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FileTypeIcon type={file.type} size={24} />}
+                          {/* Review status dot */}
+                          <div style={{
+                            position: 'absolute', top: 4, right: 4, width: 10, height: 10, borderRadius: '50%', border: '2px solid #fff',
+                            background: file.review_status === 'approved' ? '#16a34a'
+                              : file.review_status === 'changes_requested' ? '#dc2626'
+                              : file.review_status === 'final' ? '#2563eb'
+                              : '#f59e0b',
+                          }} title={file.review_status || 'needs_review'} />
                         </div>
                         <div
                           contentEditable
@@ -602,6 +612,48 @@ export default function KotoProofPage() {
                           : 'bg-gray-100 text-gray-600'
                         return <span className={`text-[11px] px-1.5 py-0.5 rounded font-semibold ${cls}`}>{label}</span>
                       })()}
+                      {/* Review status dropdown */}
+                      <select
+                        value={file.review_status || 'needs_review'}
+                        onClick={e => e.stopPropagation()}
+                        onChange={async e => {
+                          e.stopPropagation()
+                          const newVal = e.target.value
+                          await supabase.from('files').update({ review_status: newVal }).eq('id', file.id)
+                          setFiles(prev => prev.map(f => f.id === file.id ? { ...f, review_status: newVal } : f))
+                          toast.success(`Status: ${newVal.replace('_', ' ')}`)
+                        }}
+                        className="text-[11px] px-1.5 py-0.5 rounded font-semibold border-0 cursor-pointer"
+                        style={{
+                          background: file.review_status === 'approved' ? '#f0fdf4' : file.review_status === 'changes_requested' ? '#fef2f2' : file.review_status === 'final' ? '#eff6ff' : '#fffbeb',
+                          color: file.review_status === 'approved' ? '#15803d' : file.review_status === 'changes_requested' ? '#dc2626' : file.review_status === 'final' ? '#1d4ed8' : '#b45309',
+                        }}
+                      >
+                        <option value="needs_review">Needs Review</option>
+                        <option value="changes_requested">Changes Requested</option>
+                        <option value="approved">Approved</option>
+                        <option value="final">Final</option>
+                      </select>
+                      {/* Compare versions button */}
+                      {files.filter(f => f.parent_file_id === file.id || (file.parent_file_id && f.parent_file_id === file.parent_file_id)).length > 0 && (
+                        <button
+                          onClick={e => {
+                            e.stopPropagation()
+                            const rootId = file.parent_file_id || file.id
+                            const allVersions = files.filter(f => f.id === rootId || f.parent_file_id === rootId).sort((a, b) => (a.version_number || 1) - (b.version_number || 1))
+                            const currentIdx = allVersions.findIndex(f => f.id === file.id)
+                            const prevVersion = currentIdx > 0 ? allVersions[currentIdx - 1] : allVersions[0]
+                            if (prevVersion && prevVersion.id !== file.id) {
+                              setCompareFiles({ a: prevVersion, b: file })
+                            } else if (allVersions.length >= 2) {
+                              setCompareFiles({ a: allVersions[allVersions.length - 2], b: allVersions[allVersions.length - 1] })
+                            }
+                          }}
+                          className="text-[11px] px-1.5 py-0.5 rounded font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 flex items-center gap-0.5"
+                        >
+                          <GitCompare size={8} /> Compare
+                        </button>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 mt-1">
                       <span className="text-sm text-gray-700">{file.size ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : ''}</span>
@@ -859,6 +911,7 @@ export default function KotoProofPage() {
           </div>
         </div>
       )}
+      {compareFiles && <VersionCompare fileA={compareFiles.a} fileB={compareFiles.b} onClose={() => setCompareFiles(null)} />}
     </div>
   )
 }
