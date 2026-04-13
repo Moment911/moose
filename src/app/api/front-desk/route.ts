@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
         voicemail_enabled: data.voicemail_enabled ?? true,
         transfer_enabled: data.transfer_enabled ?? true,
         sms_enabled: data.sms_enabled ?? true,
+        sendable_links: data.sendable_links || [],
       }
 
       const prompt = buildFrontDeskPrompt(config)
