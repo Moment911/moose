@@ -42,6 +42,7 @@ import {
 import AnnotationCanvas from '../components/AnnotationCanvas'
 import AnnotationToolbar from '../components/AnnotationToolbar'
 import CommentSidebar from '../components/CommentSidebar'
+import { KotoProofOnboarding, KotoProofHelp } from '../components/proof/KotoProofTutorial'
 import { useAuth } from '../hooks/useAuth'
 
 const BG = '#111'
@@ -73,6 +74,7 @@ export default function FileReviewPage() {
   const [loading, setLoading] = useState(true)
   const [team, setTeam] = useState([])
   const [thumbsOpen, setThumbsOpen] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
 
   const [tool, setTool] = useState('select')
   const [color, setColor] = useState('#E6007E')
@@ -418,6 +420,7 @@ export default function FileReviewPage() {
   const scaledHeight = contentHeight * zoom
 
   return (
+    <>
     <div style={{ height: '100vh', background: BG, display: 'flex', flexDirection: 'column', fontFamily: '-apple-system,sans-serif', overflow: 'hidden' }}>
       {/* Top bar */}
       <div style={{ height: 52, background: PANEL, borderBottom: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12, flexShrink: 0 }}>
@@ -452,6 +455,7 @@ export default function FileReviewPage() {
           <a href={file.url} download={file.name} style={{ marginLeft: 6, background: '#2a2a2a', color: '#fff', padding: '7px 10px', borderRadius: 7, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
             <Download size={14} />
           </a>
+          <button onClick={() => setShowHelp(true)} style={{ background: '#2a2a2a', color: '#9ca3af', border: 'none', padding: '7px 10px', borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 800, marginLeft: 4 }} title="Help & Shortcuts">?</button>
           <div style={{ width: 1, height: 20, background: '#333', margin: '0 4px' }} />
           <button
             onClick={() => { toast.success('All changes saved'); navigate(`/project/${projectId}`) }}
@@ -854,6 +858,12 @@ export default function FileReviewPage() {
         </div>
       )}
     </div>
+      {/* Tutorial overlay — shows once for new users */}
+      <KotoProofOnboarding />
+
+      {/* Help panel */}
+      {showHelp && <KotoProofHelp onClose={() => setShowHelp(false)} />}
+    </>
   )
 }
 
