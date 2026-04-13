@@ -54,9 +54,63 @@ async function proxyToPlugin(site: any, endpoint: string, method = 'POST', body:
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
+  const action = searchParams.get('action')
   const agency_id = resolveAgencyId(req, searchParams)
-  const site_id = searchParams.get('site_id')
   const sb = getSupabase()
+
+  // Plugin welcome page — returns HTML content for the WP plugin dashboard
+  if (action === 'plugin_welcome') {
+    const { data: content } = await sb.from('koto_platform_settings').select('value').eq('key', 'plugin_welcome_html').maybeSingle()
+    if (content?.value) {
+      return NextResponse.json({ html: content.value, source: 'custom' })
+    }
+    // Default welcome content
+    const defaultHtml = `
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;">
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:#E6007E;border-radius:14px;margin-bottom:12px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
+    <h1 style="margin:0;font-size:24px;font-weight:800;color:#111;">Welcome to HelloKoto</h1>
+    <p style="color:#6b7280;font-size:14px;margin:6px 0 0;">Your AI-powered marketing platform</p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:20px;margin-bottom:6px;">📞</div>
+      <strong style="font-size:13px;color:#111;">AI Front Desk</strong>
+      <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Virtual receptionist that answers calls, books appointments, and transfers to your team.</p>
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:20px;margin-bottom:6px;">📈</div>
+      <strong style="font-size:13px;color:#111;">SEO & Content</strong>
+      <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">AI-generated pages, rank tracking, sitemap management, and monthly reporting.</p>
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:20px;margin-bottom:6px;">⭐</div>
+      <strong style="font-size:13px;color:#111;">Review Management</strong>
+      <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Automated review campaigns, monitoring, and response management across platforms.</p>
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+      <div style="font-size:20px;margin-bottom:6px;">🎯</div>
+      <strong style="font-size:13px;color:#111;">Scout Intelligence</strong>
+      <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">AI-powered lead research, prospect reports, and competitive analysis.</p>
+    </div>
+  </div>
+  <div style="text-align:center;">
+    <a href="https://hellokoto.com" target="_blank" style="display:inline-block;background:#E6007E;color:#fff;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">Visit hellokoto.com →</a>
+  </div>
+  <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:16px;">Powered by Koto · AI Marketing Platform for Agencies</p>
+</div>`
+    return NextResponse.json({ html: defaultHtml, source: 'default' })
+  }
+
+  // Plugin welcome content editor — save custom HTML
+  if (action === 'get_welcome_content') {
+    const { data } = await sb.from('koto_platform_settings').select('value').eq('key', 'plugin_welcome_html').maybeSingle()
+    return NextResponse.json({ html: data?.value || '' })
+  }
+
+  const site_id = searchParams.get('site_id')
   if (site_id) {
     const [{ data: site }, { data: commands }, { data: pages }, { data: rankings }] = await Promise.all([
       sb.from('koto_wp_sites').select('*').eq('id', site_id).single(),
@@ -79,6 +133,71 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { action, agency_id, site_id } = body
     const sb = getSupabase()
+
+    // Save plugin welcome page content (with AI design)
+    if (action === 'save_welcome_content') {
+      const { html } = body
+      await sb.from('koto_platform_settings').upsert({ key: 'plugin_welcome_html', value: html, updated_at: new Date().toISOString() }, { onConflict: 'key' })
+      return NextResponse.json({ ok: true })
+    }
+
+    // AI-design the welcome page
+    if (action === 'design_welcome') {
+      const { prompt: userPrompt, current_html } = body
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      if (!ANTHROPIC_KEY) return NextResponse.json({ error: 'Anthropic API key not configured' }, { status: 500 })
+
+      const systemPrompt = `You are a world-class HTML/CSS designer. You create beautiful, modern HTML layouts for a WordPress plugin welcome page.
+
+The brand is "HelloKoto" — an AI-powered marketing platform for agencies. Brand color is #E6007E (pink/magenta). Secondary color is #00C2CB (teal).
+
+Rules:
+- Output ONLY the HTML. No markdown, no code fences, no explanation.
+- Use inline styles only (no external CSS, no <style> tags).
+- Use system fonts: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+- Max width 600px, clean whitespace, rounded corners, modern card-based layout
+- Include the HelloKoto lightning bolt logo icon (pink square with white SVG lightning)
+- Make it look premium and professional
+- Keep content concise and punchy
+- Include a "Visit hellokoto.com" CTA button
+- Include "Powered by Koto" footer`
+
+      const messages = [
+        { role: 'user', content: current_html
+          ? `Here is the current welcome page HTML:\n\n${current_html}\n\nThe user wants these changes: ${userPrompt}\n\nReturn the complete updated HTML.`
+          : `Create a beautiful welcome page for the HelloKoto WordPress plugin. ${userPrompt}\n\nReturn only the HTML.`
+        }
+      ]
+
+      const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: systemPrompt, messages }),
+        signal: AbortSignal.timeout(30000),
+      })
+      const aiData = await aiRes.json()
+      const html = aiData.content?.[0]?.text || ''
+
+      // Strip any markdown code fences if present
+      const cleaned = html.replace(/^```html?\n?/i, '').replace(/\n?```$/i, '').trim()
+
+      return NextResponse.json({ html: cleaned })
+    }
+
+    // Register site (alternative endpoint for plugin compatibility)
+    if (action === 'register') {
+      const { site_url, site_name, wp_version, plugin_version, client_id } = body
+      const apiKey = req.headers.get('x-koto-key') || req.headers.get('authorization')?.replace('Bearer ', '') || ''
+      if (!site_url) return NextResponse.json({ error: 'site_url required' }, { status: 400 })
+
+      const cleanUrl = site_url.replace(/\/$/, '')
+      const { data: existing } = await sb.from('koto_wp_sites').select('id, agency_id').or(`site_url.eq.${cleanUrl},api_key.eq.${apiKey}`).maybeSingle()
+      if (existing) {
+        await sb.from('koto_wp_sites').update({ site_name, wp_version, plugin_version, connected: true, last_ping: new Date().toISOString(), ...(client_id ? { client_id } : {}) }).eq('id', existing.id)
+        return NextResponse.json({ success: true, site_id: existing.id, agency_id: existing.agency_id })
+      }
+      return NextResponse.json({ success: false, error: 'Site not found. Add the site in your Koto dashboard first.' }, { status: 404 })
+    }
 
     if (action === 'connect') {
       const { site_url, api_key, client_id, site_name } = body
