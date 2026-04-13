@@ -31,7 +31,7 @@ export function getFullName(user) {
 export function getGreeting(name) {
   const h = new Date().getHours()
   const time = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
-  return name ? `${time}, ${name}` : time
+  return name ? `${time}, ${name} 😊` : time
 }
 
 export function getInitials(user) {

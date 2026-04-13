@@ -318,6 +318,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ members: rows.map(r => ({ ...r, email: userMap[r.user_id] || 'Unknown' })) })
   }
 
+  // ── Update user metadata (name, etc.) ──────────────────────��──────────
+  if (action === 'set_user_metadata') {
+    const { user_id, metadata } = body
+    if (!user_id || !metadata) return NextResponse.json({ error: 'user_id and metadata required' }, { status: 400 })
+    const { error } = await s.auth.admin.updateUserById(user_id, { user_metadata: metadata })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
   // ── Set/reset password for any user ───────────────────────────────────
   if (action === 'set_password') {
     const { user_id, email, new_password } = body

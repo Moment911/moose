@@ -2136,6 +2136,8 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
   const [showAdd, setShowAdd] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [memberRole, setMemberRole] = useState('viewer')
   const [showPw, setShowPw] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -2172,14 +2174,14 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'create_client_user', email, password,
-          first_name: clientName?.split(' ')[0] || '', last_name: clientName?.split(' ').slice(1).join(' ') || '',
+          first_name: firstName, last_name: lastName,
           client_id: clientId, agency_id: agencyId, role: memberRole,
         }),
       }).then(r => r.json())
       if (res.error) { toast.error(res.error); setCreating(false); return }
 
       toast.success(`Team member added: ${email}`)
-      setEmail(''); setPassword(''); setMemberRole('viewer'); setShowAdd(false)
+      setEmail(''); setPassword(''); setFirstName(''); setLastName(''); setMemberRole('viewer'); setShowAdd(false)
       loadMembers()
     } catch (e) { toast.error(e.message) }
     setCreating(false)
@@ -2258,6 +2260,18 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
       {showAdd ? (
         <div style={{ background: '#f9fafb', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#111', marginBottom: 12 }}>Add Team Member</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>First Name</label>
+              <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Jared"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Last Name</label>
+              <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Cohen"
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Email</label>
@@ -2287,7 +2301,7 @@ function ClientLoginSection({ clientId, clientName, clientEmail, agencyId }) {
               style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: email && password ? T : '#e5e7eb', color: '#fff', fontSize: 13, fontWeight: 700, cursor: email && password ? 'pointer' : 'not-allowed' }}>
               {creating ? 'Adding…' : 'Add Member'}
             </button>
-            <button onClick={() => { setShowAdd(false); setEmail(''); setPassword('') }}
+            <button onClick={() => { setShowAdd(false); setEmail(''); setPassword(''); setFirstName(''); setLastName('') }}
               style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               Cancel
             </button>
