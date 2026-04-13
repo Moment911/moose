@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import {
   Phone, PhoneIncoming, Play, Pause, Eye, Edit2, Loader2, RefreshCw,
-  Calendar, Users, ArrowRightLeft, Settings, X, Clock, Briefcase
+  Calendar, Users, ArrowRightLeft, Settings, X, Clock, Briefcase, Zap
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
@@ -48,6 +48,7 @@ export default function FrontDeskPage() {
   const [clients, setClients] = useState([])
   const [clientsLoading, setClientsLoading] = useState(false)
   const [creating, setCreating] = useState(null)
+  const [scanning, setScanning] = useState(null)
 
   useEffect(() => { fetchConfigs() }, [agencyId])
 
@@ -143,6 +144,22 @@ export default function FrontDeskPage() {
       fetchConfigs()
     } catch (e) { toast.error(e.message) }
     setCreating(null)
+  }
+
+  async function aiScan(cfg) {
+    setScanning(cfg.client_id)
+    try {
+      const res = await fetch('/api/front-desk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ai_scan', client_id: cfg.client_id, agency_id: agencyId, website: cfg.website, business_name: cfg.company_name }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      const sources = [data.sources?.website && 'website', data.sources?.gmb && 'GMB'].filter(Boolean).join(' + ')
+      toast.success(`Scanned ${sources} — found ${data.fields_found.length} fields`)
+      fetchConfigs()
+    } catch (e) { toast.error(e.message) }
+    setScanning(null)
   }
 
   const configuredClientIds = new Set(configs.map(c => c.client_id))
@@ -248,6 +265,16 @@ export default function FrontDeskPage() {
                     >
                       {toggling === cfg.client_id ? <Loader2 size={13} className="spin" /> : cfg.status === 'active' ? <Pause size={13} /> : <Play size={13} />}
                       {cfg.status === 'active' ? 'Pause' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => aiScan(cfg)}
+                      disabled={scanning === cfg.client_id}
+                      style={{
+                        padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, fontFamily: FH, cursor: 'pointer',
+                        display: 'inline-flex', alignItems: 'center', gap: 5, color: T, opacity: scanning === cfg.client_id ? 0.5 : 1,
+                      }}
+                    >
+                      {scanning === cfg.client_id ? <Loader2 size={13} className="spin" /> : <Zap size={13} />} AI Scan
                     </button>
                     <button
                       onClick={() => previewPrompt(cfg)}

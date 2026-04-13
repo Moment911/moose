@@ -1760,6 +1760,26 @@ export default function ClientDetailPage() {
     setFdSaving(false)
   }
 
+  async function fdAiScan() {
+    setFdLoading(true)
+    try {
+      const res = await fetch('/api/front-desk', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ai_scan', client_id: clientId, agency_id: aid, website: fdConfig?.website || client?.website, business_name: fdConfig?.company_name || client?.name }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      if (data.results) {
+        setFdConfig(prev => ({ ...prev, ...data.results }))
+        const sources = [data.sources?.website && 'website', data.sources?.gmb && 'Google Business'].filter(Boolean).join(' + ')
+        toast.success(`Scanned ${sources} — found ${data.fields_found.length} fields`)
+      } else {
+        toast.error('No data found')
+      }
+    } catch (e) { toast.error(e.message) }
+    setFdLoading(false)
+  }
+
   async function fdSeedTsawc() {
     setFdLoading(true)
     try {
@@ -1799,9 +1819,12 @@ export default function ClientDetailPage() {
           <div style={{ ...sectionTitle, justifyContent: 'space-between' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><PhoneIncoming size={16} color={R} /> Virtual Front Desk</span>
             <div style={{ display: 'flex', gap: 6 }}>
-              {hasConfig && (
+              {hasConfig && (<>
+                <button onClick={fdAiScan} disabled={fdLoading} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, color: T, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: fdLoading ? 0.5 : 1 }}>
+                  {fdLoading ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={11} />} AI Scan
+                </button>
                 <button onClick={fdPreviewPrompt} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280', cursor: 'pointer' }}>Preview Prompt</button>
-              )}
+              </>)}
               <button onClick={() => fdSave(fdConfig)} disabled={fdSaving} style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: R, color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: fdSaving ? 0.5 : 1 }}>
                 {fdSaving ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={11} />} Save
               </button>

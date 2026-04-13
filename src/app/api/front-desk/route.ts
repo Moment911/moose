@@ -245,6 +245,139 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ config: result.data, seeded: true })
     }
 
+    // ── AI Scan: scrape website + GMB and auto-populate fields ──
+    if (action === 'ai_scan') {
+      const { client_id, website, business_name } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+      if (!website && !business_name) return NextResponse.json({ error: 'Need website or business_name to scan' }, { status: 400 })
+
+      const results: Record<string, any> = {}
+
+      // 1. Scrape the website
+      let websiteText = ''
+      if (website) {
+        try {
+          const url = website.startsWith('http') ? website : `https://${website}`
+          const pages = [url, `${url}/services`, `${url}/about`, `${url}/contact`, `${url}/insurance`]
+          const fetches = await Promise.allSettled(pages.map(async (p) => {
+            const r = await fetch(p, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'KotoBot/1.0' } })
+            if (!r.ok) return ''
+            const html = await r.text()
+            // Strip HTML tags, scripts, styles
+            return html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 8000)
+          }))
+          websiteText = fetches.filter(f => f.status === 'fulfilled').map(f => (f as any).value).filter(Boolean).join('\n\n---PAGE---\n\n').slice(0, 30000)
+        } catch {}
+      }
+
+      // 2. Google Places lookup
+      let placesData: any = null
+      const PLACES_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || ''
+      if (PLACES_KEY && (business_name || website)) {
+        try {
+          const query = business_name || website.replace(/https?:\/\/(www\.)?/, '').replace(/\/$/, '')
+          const placesRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': PLACES_KEY, 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.regularOpeningHours,places.types,places.internationalPhoneNumber,places.websiteUri' },
+            body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
+            signal: AbortSignal.timeout(8000),
+          })
+          const pd = await placesRes.json()
+          placesData = pd.places?.[0] || null
+        } catch {}
+      }
+
+      // 3. Build GMB hours if available
+      if (placesData?.regularOpeningHours?.periods) {
+        const dayMap: Record<number, string> = { 0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday' }
+        const hours: Record<string, any> = {}
+        for (const p of placesData.regularOpeningHours.periods) {
+          const day = dayMap[p.open?.day]
+          if (day) {
+            const openH = String(p.open.hour || 0).padStart(2, '0')
+            const openM = String(p.open.minute || 0).padStart(2, '0')
+            const closeH = String(p.close?.hour || 17).padStart(2, '0')
+            const closeM = String(p.close?.minute || 0).padStart(2, '0')
+            hours[day] = { open: `${openH}:${openM}`, close: `${closeH}:${closeM}` }
+          }
+        }
+        // Fill in closed days
+        for (const d of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+          if (!hours[d]) hours[d] = null
+        }
+        results.business_hours = hours
+      }
+
+      if (placesData?.formattedAddress) results.address = placesData.formattedAddress
+      if (placesData?.internationalPhoneNumber) results.phone = placesData.internationalPhoneNumber
+      if (placesData?.displayName?.text) results.company_name = placesData.displayName.text
+
+      // 4. Use Claude to extract structured data from website text
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      if (ANTHROPIC_KEY && websiteText.length > 100) {
+        try {
+          const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 2000,
+              messages: [{ role: 'user', content: `Extract structured business information from this website content. Return ONLY valid JSON with these fields (omit any field you can't find):
+
+{
+  "company_name": "exact business name",
+  "industry": "brief industry description",
+  "address": "full address",
+  "phone": "phone number",
+  "services": ["service 1", "service 2", ...],
+  "insurance_accepted": ["insurance 1", ...],
+  "scheduling_link": "URL for online scheduling if found",
+  "staff_names": [{"name": "Name", "role": "Role"}],
+  "business_description": "2-3 sentence description of what this business does",
+  "custom_instructions": "any special notes a receptionist should know (specialties, same-day appointments, etc.)"
+}
+
+Website content:
+${websiteText.slice(0, 20000)}` }],
+            }),
+            signal: AbortSignal.timeout(30000),
+          })
+          const aiData = await aiRes.json()
+          const text = aiData.content?.[0]?.text || ''
+          // Extract JSON from response
+          const jsonMatch = text.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0])
+            if (parsed.company_name && !results.company_name) results.company_name = parsed.company_name
+            if (parsed.industry) results.industry = parsed.industry
+            if (parsed.address && !results.address) results.address = parsed.address
+            if (parsed.phone && !results.phone) results.phone = parsed.phone
+            if (parsed.services?.length) results.services = parsed.services
+            if (parsed.insurance_accepted?.length) results.insurance_accepted = parsed.insurance_accepted
+            if (parsed.scheduling_link) results.scheduling_link = parsed.scheduling_link
+            if (parsed.staff_names?.length) results.staff_directory = parsed.staff_names
+            if (parsed.custom_instructions) results.custom_instructions = parsed.custom_instructions
+            if (parsed.business_description) {
+              results.custom_instructions = [parsed.business_description, parsed.custom_instructions].filter(Boolean).join('\n\n')
+            }
+          }
+        } catch {}
+      }
+
+      // 5. Save to config if it exists, or return for preview
+      const { data: existing } = await sb.from('koto_front_desk_configs').select('id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (existing && Object.keys(results).length > 0) {
+        await sb.from('koto_front_desk_configs').update({ ...results, website: website || undefined }).eq('id', existing.id)
+      }
+
+      return NextResponse.json({
+        scanned: true,
+        fields_found: Object.keys(results),
+        results,
+        sources: { website: !!websiteText, gmb: !!placesData },
+      })
+    }
+
     // ── Client-facing: save editable fields only ──
     if (action === 'client_save') {
       const { client_id, ...fields } = body
