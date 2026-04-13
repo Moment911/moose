@@ -1812,6 +1812,8 @@ export default function ClientDetailPage() {
     const fd = fdConfig || {}
     const hasConfig = !!fdConfig?.id
     const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    const fdLabel = { fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH, display: 'block', marginBottom: 5 }
+    const fdInput = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, fontFamily: FB, color: BLK, outline: 'none' }
 
     return (
       <div ref={el => { sectionRefs.current['front-desk'] = el }}>
@@ -1847,20 +1849,20 @@ export default function ClientDetailPage() {
             {/* Status + basics */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
-                <label style={fieldLabel}>Status</label>
-                <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                <label style={fdLabel}>Status</label>
+                <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ ...fdInput }}>
                   <option value="draft">Draft</option>
                   <option value="active">Active</option>
                   <option value="paused">Paused</option>
                 </select>
               </div>
               <div>
-                <label style={fieldLabel}>Company Name</label>
-                <input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Company Name</label>
+                <input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={fdInput} />
               </div>
               <div>
-                <label style={fieldLabel}>Timezone</label>
-                <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}>
+                <label style={fdLabel}>Timezone</label>
+                <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={{ ...fdInput }}>
                   {['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Phoenix','Pacific/Honolulu'].map(tz => <option key={tz} value={tz}>{tz.replace('America/', '').replace('Pacific/', '').replace(/_/g, ' ')}</option>)}
                 </select>
               </div>
@@ -1868,36 +1870,36 @@ export default function ClientDetailPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
-                <label style={fieldLabel}>Phone</label>
-                <input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Phone</label>
+                <input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={fdInput} />
               </div>
               <div>
-                <label style={fieldLabel}>Website</label>
-                <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Website</label>
+                <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} style={fdInput} />
               </div>
               <div>
-                <label style={fieldLabel}>Address</label>
-                <input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Address</label>
+                <input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={fdInput} />
               </div>
             </div>
 
             {/* Business Hours */}
             <div style={{ marginBottom: 16 }}>
-              <label style={fieldLabel}>Business Hours</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginTop: 4 }}>
+              <label style={fdLabel}>Business Hours</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginTop: 4 }}>
                 {DAYS.map(day => {
                   const h = (fd.business_hours || {})[day]
                   return (
-                    <div key={day} style={{ background: GRY, borderRadius: 8, padding: '8px 6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
+                    <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 6 }}>{day.slice(0, 3)}</div>
                       {h ? (
                         <>
-                          <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 10, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2, marginBottom: 2 }} />
-                          <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 10, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2 }} />
-                          <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 9, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 2 }}>Closed</button>
+                          <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px', marginBottom: 4, color: BLK }} />
+                          <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px', color: BLK }} />
+                          <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 12, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, fontWeight: 600 }}>Set Closed</button>
                         </>
                       ) : (
-                        <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 10, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>+ Add</button>
+                        <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 13, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0', fontWeight: 700 }}>+ Add Hours</button>
                       )}
                     </div>
                   )
@@ -1908,28 +1910,28 @@ export default function ClientDetailPage() {
             {/* Scheduling */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
-                <label style={fieldLabel}>Scheduling Contact</label>
-                <input value={fd.scheduling_department_name || ''} onChange={e => fdUpdate('scheduling_department_name', e.target.value)} placeholder="e.g. Rachel" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Scheduling Contact</label>
+                <input value={fd.scheduling_department_name || ''} onChange={e => fdUpdate('scheduling_department_name', e.target.value)} placeholder="e.g. Rachel" style={fdInput} />
               </div>
               <div>
-                <label style={fieldLabel}>Scheduling Phone</label>
-                <input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Scheduling Phone</label>
+                <input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} style={fdInput} />
               </div>
               <div>
-                <label style={fieldLabel}>Online Scheduling URL</label>
-                <input value={fd.scheduling_link || ''} onChange={e => fdUpdate('scheduling_link', e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }} />
+                <label style={fdLabel}>Online Scheduling URL</label>
+                <input value={fd.scheduling_link || ''} onChange={e => fdUpdate('scheduling_link', e.target.value)} placeholder="https://..." style={fdInput} />
               </div>
             </div>
 
             {/* Services */}
             <div style={{ marginBottom: 16 }}>
-              <label style={fieldLabel}>Services ({(fd.services || []).length})</label>
-              <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={4} placeholder="One service per line" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical' }} />
+              <label style={fdLabel}>Services ({(fd.services || []).length})</label>
+              <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={5} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }} />
             </div>
 
             {/* Insurance */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ ...fieldLabel, marginBottom: 8 }}>Insurance Accepted</label>
+              <label style={{ ...fdLabel, marginBottom: 8 }}>Insurance Accepted</label>
               {(() => {
                 const CARRIERS = [
                   'Aetna', 'Anthem / Blue Cross Blue Shield', 'Blue Cross Blue Shield', 'Cigna', 'UnitedHealthcare',
@@ -1998,18 +2000,18 @@ export default function ClientDetailPage() {
             {/* Custom greeting + instructions */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
-                <label style={fieldLabel}>Custom Greeting</label>
-                <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="{greeting}, it's a great day at {company}!" style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
-                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>Use {'{greeting}'} and {'{company}'} as placeholders</div>
+                <label style={fdLabel}>Custom Greeting</label>
+                <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="{greeting}, it's a great day at {company}!" style={fdInput} />
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Use {'{greeting}'} and {'{company}'} as placeholders</div>
               </div>
               <div>
-                <label style={fieldLabel}>Additional Instructions</label>
-                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={2} placeholder="Any special instructions for the AI..." style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, resize: 'vertical' }} />
+                <label style={fdLabel}>Additional Instructions</label>
+                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={3} placeholder="Any special instructions for the AI..." style={{ ...fdInput, resize: 'vertical' }} />
               </div>
             </div>
 
             {/* Toggles */}
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 16 }}>
               {[
                 { key: 'hipaa_mode', label: 'HIPAA Mode' },
                 { key: 'transfer_enabled', label: 'Call Transfer' },
@@ -2018,8 +2020,8 @@ export default function ClientDetailPage() {
                 { key: 'voicemail_enabled', label: 'Voicemail' },
                 { key: 'allow_client_editing', label: 'Allow Client to Edit' },
               ].map(t => (
-                <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontFamily: FH, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R }} />
+                <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontFamily: FH, fontWeight: 600, color: BLK, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R, width: 18, height: 18 }} />
                   {t.label}
                 </label>
               ))}
