@@ -21,22 +21,22 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
     : loc.pathname === to
 
   return (
-    <Link to={to} style={{
-      display:'flex', alignItems:'center', gap:10,
-      padding: sub ? '7px 12px 7px 40px' : '9px 12px',
-      borderRadius:10, textDecoration:'none',
-      marginBottom:2,
+    <Link to={to} onClick={e => { e.stopPropagation() }} style={{
+      display:'flex', alignItems:'center', gap:8,
+      padding: sub ? '4px 10px 4px 34px' : '6px 10px',
+      borderRadius:8, textDecoration:'none',
+      marginBottom:1,
       background: active ? R + '10' : 'transparent',
       borderLeft: active ? `3px solid ${R}` : '3px solid transparent',
       color: active ? R : sub ? '#6b7280' : '#111',
-      fontSize: sub ? 13 : 14,
+      fontSize: sub ? 12 : 13,
       fontWeight: active ? 700 : sub ? 500 : 600,
       transition:'all .12s ease',
     }}
       onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='rgba(0,0,0,.03)'}}}
       onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent'}}}>
-      <Icon size={sub?14:16} style={{flexShrink:0,color:active?R:sub?'#9ca3af':'#374151'}}/>
-      <span style={{flex:1,lineHeight:1.3}}>{label}</span>
+      <Icon size={sub?13:14} style={{flexShrink:0,color:active?R:sub?'#9ca3af':'#374151'}}/>
+      <span style={{flex:1,lineHeight:1.2}}>{label}</span>
       {badge && (
         <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:20,
           background:badgeColor||T,color:'#fff',letterSpacing:'.04em',lineHeight:1.4}}>
@@ -93,12 +93,12 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
   }, [storageKey])
 
   return (
-    <div style={{ marginBottom: 4, marginTop: 6 }}>
+    <div style={{ marginBottom: 2, marginTop: 4 }}>
       <button
         onClick={toggle}
         style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          width: '100%', padding: '6px 12px', border: 'none', background: 'none',
+          display: 'flex', alignItems: 'center', gap: 6,
+          width: '100%', padding: '4px 10px', border: 'none', background: 'none',
           cursor: 'pointer', textAlign: 'left',
           fontSize: 10, fontWeight: 800, color: hasActiveChild ? R : '#9ca3af',
           textTransform: 'uppercase', letterSpacing: '.1em',
@@ -108,14 +108,14 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
         onMouseLeave={e => e.currentTarget.style.color = hasActiveChild ? R : '#9ca3af'}
       >
         <span style={{ flex: 1 }}>{label}</span>
-        <ChevronDown size={10} style={{
+        <ChevronDown size={9} style={{
           transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
           transition: 'transform .15s',
           opacity: 0.4,
         }} />
       </button>
       {(open || forceOpen) && (
-        <div style={{ overflow: 'hidden', padding: '2px 4px' }}>
+        <div style={{ overflow: 'hidden', padding: '1px 3px' }}>
           {children}
         </div>
       )}
