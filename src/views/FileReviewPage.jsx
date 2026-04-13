@@ -111,7 +111,7 @@ export default function FileReviewPage() {
     : isHtml
       ? iframeWidth
       : isPdf
-        ? 900
+        ? 1440
         : 1024
   const contentHeight = isImage
     ? imageDims.height || 768
@@ -552,11 +552,11 @@ export default function FileReviewPage() {
               )}
               {isPdf && (
                 <object
-                  data={`${file.url}#toolbar=0`}
+                  data={`${file.url}#toolbar=0&zoom=page-width`}
                   type="application/pdf"
-                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto' }}>
+                  style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none', pointerEvents: tool !== 'select' ? 'none' : 'auto', imageRendering: 'high-quality' }}>
                   <iframe
-                    src={`${file.url}#toolbar=0`}
+                    src={`${file.url}#toolbar=0&zoom=page-width`}
                     title={file.name}
                     style={{ display: 'block', width: contentWidth, height: contentHeight, border: 'none' }}
                   />
