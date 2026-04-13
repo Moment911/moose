@@ -245,7 +245,7 @@ export default function FileReviewPage() {
   useEffect(() => {
     function handleKey(e) {
       if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA') return
-      const map = { v: 'select', c: 'pin', a: 'arrow', o: 'circle', r: 'rect', f: 'freehand' }
+      const map = { v: 'select', c: 'pin', a: 'arrow', o: 'circle', r: 'rect', f: 'freehand', m: 'measure', g: 'approve', h: 'hotspot' }
       const next = map[e.key.toLowerCase()]
       if (next) setTool(next)
       if (e.key === 'Escape') { setTool('select'); setPendingPin(null) }
@@ -814,7 +814,20 @@ export default function FileReviewPage() {
           <CommentSidebar
             annotations={annotations}
             selectedId={selectedId}
-            onSelect={(a) => setSelectedId(a.id)}
+            onSelect={(a) => {
+              setSelectedId(a.id)
+              // Zoom to annotation — scroll the canvas to center on it
+              if (canvasContainerRef.current && (a.x || a.cx)) {
+                const container = canvasContainerRef.current
+                const annX = (a.x || a.cx || 0) * zoom
+                const annY = (a.y || a.cy || 0) * zoom
+                container.scrollTo({
+                  left: annX - container.clientWidth / 2 + 24,
+                  top: annY - container.clientHeight / 2 + 24,
+                  behavior: 'smooth',
+                })
+              }
+            }}
             replies={replies}
             onAddReply={handleAddReply}
             authorName={authorName}

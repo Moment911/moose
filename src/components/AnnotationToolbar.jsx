@@ -1,5 +1,5 @@
 "use client";
-import { MousePointer2, Pin, ArrowUpRight, Circle, Square, PenLine, Undo2, Trash2, Link, CheckCircle } from 'lucide-react'
+import { MousePointer2, Pin, ArrowUpRight, Circle, Square, PenLine, Undo2, Trash2, Link, CheckCircle, Ruler } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 
 const TOOLS = [
@@ -9,6 +9,7 @@ const TOOLS = [
   { key: 'circle', icon: Circle, label: 'Circle (O)' },
   { key: 'rect', icon: Square, label: 'Rectangle (R)' },
   { key: 'freehand', icon: PenLine, label: 'Freehand (F)' },
+  { key: 'measure', icon: Ruler, label: 'Measure (M)', color: '#6366f1' },
   { key: 'hotspot', icon: Link, label: 'Link hotspot (H)' },
   { key: 'approve', icon: CheckCircle, label: 'Approve stamp (G)', color: '#22c55e' },
 ]

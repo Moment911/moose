@@ -11,6 +11,7 @@ const TOOL_CURSOR = {
   rect: 'crosshair',
   freehand: 'crosshair',
   approve: 'crosshair',
+  measure: 'crosshair',
 }
 
 export default function AnnotationCanvas({
@@ -54,6 +55,10 @@ export default function AnnotationCanvas({
       onApprove?.({ type: 'approve', x: pos.x, y: pos.y, color: '#22c55e' })
       return
     }
+    if (tool === 'measure') {
+      setDrawing({ type: 'measure', start: pos, end: pos, color: '#6366f1', points: [pos] })
+      return
+    }
     setDrawing({ type: tool, start: pos, end: pos, color, points: [pos] })
   }
 
@@ -70,6 +75,10 @@ export default function AnnotationCanvas({
     if (!drawing) return
     const pos = getPos(e)
     const { start, end, type, color, points } = { ...drawing, end: pos }
+
+    // Measurement tool — don't save, just clear (measurement was visible while dragging)
+    if (type === 'measure') { setDrawing(null); return }
+
     const dx = Math.abs(end.x - start.x)
     const dy = Math.abs(end.y - start.y)
     if (dx < 5 && dy < 5 && type !== 'freehand') { setDrawing(null); return }
@@ -136,6 +145,27 @@ export default function AnnotationCanvas({
         width={Math.abs(end.x - start.x)} height={Math.abs(end.y - start.y)}
         {...commonStroke} rx={4} strokeDasharray="6,4" />
     }
+    if (type === 'measure') {
+      const dist = Math.round(Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)))
+      const midX = (start.x + end.x) / 2
+      const midY = (start.y + end.y) / 2
+      const dx = Math.abs(end.x - start.x)
+      const dy = Math.abs(end.y - start.y)
+      return (
+        <g>
+          <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} stroke="#6366f1" strokeWidth={2} strokeDasharray="6,3" />
+          {/* Endpoints */}
+          <circle cx={start.x} cy={start.y} r={4} fill="#6366f1" />
+          <circle cx={end.x} cy={end.y} r={4} fill="#6366f1" />
+          {/* Distance label */}
+          <rect x={midX - 32} y={midY - 12} width={64} height={24} rx={6} fill="#6366f1" />
+          <text x={midX} y={midY + 4} textAnchor="middle" fill="#fff" fontSize={11} fontWeight="700">{dist}px</text>
+          {/* Dimension labels */}
+          {dx > 30 && <text x={midX} y={Math.max(start.y, end.y) + 16} textAnchor="middle" fill="#6366f1" fontSize={10} fontWeight="600">w: {Math.round(dx)}</text>}
+          {dy > 30 && <text x={Math.max(start.x, end.x) + 12} y={midY + 4} fill="#6366f1" fontSize={10} fontWeight="600">h: {Math.round(dy)}</text>}
+        </g>
+      )
+    }
     if (type === 'freehand' && points?.length > 1) {
       const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
       return <path d={d} {...commonStroke} />
@@ -146,8 +176,10 @@ export default function AnnotationCanvas({
   function renderAnnotation(ann, idx) {
     const isSelected = ann.id === selectedId
     const isHovered = ann.id === hovered
-    // Agency annotations = purple, client = teal, fallback to original color
-    const c = ann.source === 'agency' ? '#7c3aed' : ann.source === 'client' ? '#00C2CB' : (ann.color || COLORS[0])
+    // Status-based colors: resolved = green, in-progress = amber, open = red/original
+    const isResolved = ann.resolved || ann.status === 'completed'
+    const isInProgress = ann.status === 'in_progress' || ann.status === 'updated'
+    const c = isResolved ? '#16a34a' : isInProgress ? '#f59e0b' : ann.source === 'agency' ? '#7c3aed' : ann.source === 'client' ? '#E6007E' : (ann.color || COLORS[0])
     const strokeW = isSelected ? 3 : 2.5
     const opacity = isSelected ? 1 : isHovered ? 0.9 : 0.75
 
