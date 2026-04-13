@@ -359,7 +359,7 @@ export async function POST(req: NextRequest) {
                     direction: 'outbound', to_number: callerPhone,
                     message: smsMsg, message_type: smsType, ai_generated: false,
                     status: 'sent', sent_via: 'ghl',
-                  }).catch(() => {})
+                  })
                 }
               }
             } catch { /* post-call SMS is non-fatal */ }

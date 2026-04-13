@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         direction: 'inbound', from_number: fromNumber, to_number: '',
         message: messageText, message_type: 'general', ghl_contact_id: contactId,
         status: 'received', sent_via: 'ghl',
-      }).catch(() => {})
+      })
       return NextResponse.json({ ok: true })
     }
 
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
         direction: 'outbound', from_number: '', to_number: fromNumber,
         message: afterHoursMsg, message_type: 'ai_response', ai_generated: true,
         ghl_contact_id: contactId, status: 'sent', sent_via: 'ghl',
-      }).catch(() => {})
+      })
       return NextResponse.json({ ok: true, after_hours: true })
     }
 
