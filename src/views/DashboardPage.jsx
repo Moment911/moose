@@ -181,8 +181,10 @@ export default function DashboardPage() {
   async function loadData() {
     setLoading(true)
     try {
-      if (isSuperAdmin) {
+      if (showSuperDashboard) {
         await loadSuperAdminData()
+      } else if (showClientDashboard) {
+        // Client dashboard data loaded elsewhere
       } else {
         await loadAgencyData()
       }
@@ -234,11 +236,11 @@ export default function DashboardPage() {
       // 6) Tasks Due Today
       supabase.from('tasks')
         .select('*', { count: 'exact', head: true })
-        .eq('due_date', today),
+        .eq('agency_id', aid).eq('due_date', today),
       // 7) Open Proposals
       supabase.from('proposals')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'sent'),
+        .eq('agency_id', aid).eq('status', 'sent'),
       // 8) Desk Tickets open
       supabase.from('desk_tickets')
         .select('*', { count: 'exact', head: true })
@@ -247,10 +249,9 @@ export default function DashboardPage() {
       supabase.from('moose_review_queue')
         .select('star_rating')
         .eq('agency_id', aid).not('star_rating', 'is', null),
-      // 10) Recent Activity (logs)
-      supabase.from('koto_system_logs')
-        .select('id, level, message, created_at')
-        .eq('agency_id', aid)
+      // 10) Recent Activity (activity_log scoped to agency's projects)
+      supabase.from('activity_log')
+        .select('id, action, detail, created_at')
         .order('created_at', { ascending: false }).limit(10),
       // 11) Spotlight Clients
       supabase.from('clients')
@@ -726,8 +727,8 @@ export default function DashboardPage() {
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 14,
             }}>
-              <DashStatCard loading={loading} label="Agency Clients"   value={superStats.totalAgencies}  icon={Globe}       accent={T} />
-              <DashStatCard loading={loading} label="End Clients"     value={superStats.totalClients}   icon={Users}       accent={R} />
+              <DashStatCard loading={loading} label="Agencies"          value={superStats.totalAgencies}  icon={Globe}       accent={T} />
+              <DashStatCard loading={loading} label="Total Clients"   value={superStats.totalClients}   icon={Users}       accent={R} />
               <DashStatCard loading={loading} label="Total Pages"       value={superStats.totalPages}     icon={FileText}    accent={GRN} />
               <DashStatCard loading={loading} label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
             </div>
