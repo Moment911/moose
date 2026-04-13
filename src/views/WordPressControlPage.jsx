@@ -201,24 +201,24 @@ export default function WordPressControlPage(){
                   <div style={{display:'flex',alignItems:'center',gap:10}}>
                     <Dot on={selected.connected}/>
                     <div>
-                      <div style={{fontFamily:FH,fontSize:17,fontWeight:800,color:'#fff',letterSpacing:'-.02em'}}>{selected.site_name}</div>
+                      <div style={{fontFamily:FH,fontSize:17,fontWeight:800,color:'#111',letterSpacing:'-.02em'}}>{selected.site_name}</div>
                       <a href={selected.site_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:'#999999',fontFamily:FB,display:'flex',alignItems:'center',gap:4,textDecoration:'none'}}>{selected.site_url} <ExternalLink size={9}/></a>
                     </div>
                   </div>
                   <div style={{display:'flex',gap:8,alignItems:'center'}}>
                     {[{label:'pages',value:selected.pages_count||0,color:T},{label:'generated',value:selected.pages_generated||0,color:R}].map(s=>(
-                      <div key={s.label} style={{textAlign:'center',padding:'0 10px',borderLeft:'1px solid rgba(255,255,255,.08)'}}>
+                      <div key={s.label} style={{textAlign:'center',padding:'0 10px',borderLeft:'1px solid #e5e7eb'}}>
                         <div style={{fontFamily:FH,fontSize:17,fontWeight:900,color:s.color}}>{s.value}</div>
-                        <div style={{fontSize:9,color:'#999999',fontFamily:FB,textTransform:'uppercase',letterSpacing:'.05em'}}>{s.label}</div>
+                        <div style={{fontSize:12,color:'#999999',fontFamily:FB,textTransform:'uppercase',letterSpacing:'.05em'}}>{s.label}</div>
                       </div>
                     ))}
-                    <button onClick={()=>deleteSite(selected.id)} style={{padding:'7px 9px',borderRadius:8,border:'1px solid rgba(255,255,255,.1)',background:'transparent',color:'#999999',cursor:'pointer',marginLeft:4}}><Trash2 size={12}/></button>
+                    <button onClick={()=>deleteSite(selected.id)} style={{padding:'7px 9px',borderRadius:8,border:'1px solid #e5e7eb',background:'transparent',color:'#999999',cursor:'pointer',marginLeft:4}}><Trash2 size={12}/></button>
                   </div>
                 </div>
                 <div style={{display:'flex',gap:2}}>
                   {TABS.map(t=>{const Icon=t.icon;const active=tab===t.key;return(
-                    <button key={t.key} onClick={()=>setTab(t.key)} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',borderRadius:'8px 8px 0 0',border:'none',background:active?GRY:'transparent',color:active?BLK:'rgba(255,255,255,.4)',fontSize:12,fontWeight:active?700:500,cursor:'pointer',fontFamily:FH}}>
-                      <Icon size={12}/>{t.label}{t.badge>0&&<span style={{fontSize:9,fontWeight:800,padding:'1px 5px',borderRadius:10,background:active?R:'rgba(255,255,255,.15)',color:active?'#fff':'rgba(255,255,255,.5)'}}>{t.badge}</span>}
+                    <button key={t.key} onClick={()=>setTab(t.key)} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',borderRadius:'8px 8px 0 0',border:'none',background:active?GRY:'transparent',color:active?BLK:'#9ca3af',fontSize:12,fontWeight:active?700:500,cursor:'pointer',fontFamily:FH}}>
+                      <Icon size={12}/>{t.label}{t.badge>0&&<span style={{fontSize:12,fontWeight:800,padding:'1px 5px',borderRadius:10,background:active?R:'#f3f4f6',color:active?'#fff':'#6b7280'}}>{t.badge}</span>}
                     </button>
                   )})}
                 </div>

@@ -179,7 +179,7 @@ export default function ReviewCampaignsPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 28px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
             <div>
-              <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
+              <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#111', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Star size={18} color={AMBER} fill={AMBER}/> Review Campaigns
               </div>
               <div style={{ fontSize:12, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
@@ -206,7 +206,7 @@ export default function ReviewCampaignsPage() {
               const active = activeTab === tab.key
               return (
                 <button key={tab.key} onClick={()=>setActiveTab(tab.key)}
-                  style={{ display:'flex', alignItems:'center', gap:5, padding:'9px 14px', borderRadius:'8px 8px 0 0', border:'none', background:active?'#F9F9F9':'transparent', color:active?BLK:'rgba(255,255,255,.45)', fontSize:12, fontWeight:active?700:500, cursor:'pointer', fontFamily:FH }}>
+                  style={{ display:'flex', alignItems:'center', gap:5, padding:'9px 14px', borderRadius:'8px 8px 0 0', border:'none', background:active?'#F9F9F9':'transparent', color:active?RED:'#6b7280', fontSize:12, fontWeight:active?700:500, cursor:'pointer', fontFamily:FH }}>
                   <Icon size={12}/> {tab.label}
                 </button>
               )

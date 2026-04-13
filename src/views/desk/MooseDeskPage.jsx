@@ -402,7 +402,7 @@ export default function KotoDeskPage() {
                 <div style={{width:34,height:34,borderRadius:10,background:RED,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Inbox size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>KotoDesk</h1>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#111',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>KotoDesk</h1>
                 <span style={{fontSize:13,fontWeight:800,color:TEAL,background:TEAL+'20',padding:'2px 8px',borderRadius:20,border:'1px solid '+TEAL+'40'}}>AI-Powered</span>
               </div>
               <p style={{fontSize:14,color:'#999999',margin:0}}>
@@ -412,14 +412,14 @@ export default function KotoDeskPage() {
             <div style={{display:'flex',gap:8}}>
               <button onClick={()=>navigate('/agency-settings?section=desk')}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
-                  border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-                  color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                  border:'1px solid #e5e7eb',background:'#fff',
+                  color:'#374151',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <Settings size={13}/> Setup
               </button>
               <button onClick={()=>navigate('/desk/reports')}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,
-                  border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-                  color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                  border:'1px solid #e5e7eb',background:'#fff',
+                  color:'#374151',fontSize:13,fontWeight:700,cursor:'pointer'}}>
                 <BarChart2 size={13}/> Analytics
               </button>
               <button onClick={()=>setShowNew(true)}
@@ -439,7 +439,7 @@ export default function KotoDeskPage() {
               {label:'Total cost',value:stats.totalCost?'$'+stats.totalCost.toFixed(2):'$0.00'},
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
-                <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#fff',lineHeight:1}}>{s.value}</div>
+                <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#111',lineHeight:1}}>{s.value}</div>
                 <div style={{fontSize:13,color:'#999999',marginTop:3}}>{s.label}</div>
               </div>
             ))}
@@ -449,13 +449,13 @@ export default function KotoDeskPage() {
               <button key={t.key} onClick={()=>setTab(t.key)}
                 style={{display:'flex',alignItems:'center',gap:6,padding:'11px 18px',border:'none',
                   borderBottom:'2.5px solid '+(tab===t.key?RED:'transparent'),background:'transparent',
-                  color:tab===t.key?'#fff':'rgba(255,255,255,.4)',
+                  color:tab===t.key?'#111':'#9ca3af',
                   fontSize:14,fontWeight:tab===t.key?800:600,cursor:'pointer',transition:'all .15s'}}>
                 {t.label}
                 {(t.count||0) > 0 && (
                   <span style={{fontSize:13,fontWeight:800,padding:'1px 6px',borderRadius:20,
-                    background:tab===t.key?RED+'40':'rgba(255,255,255,.1)',
-                    color:tab===t.key?'#fff':'rgba(255,255,255,.5)'}}>{t.count}</span>
+                    background:tab===t.key?RED+'20':'#f3f4f6',
+                    color:tab===t.key?RED:'#6b7280'}}>{t.count}</span>
                 )}
               </button>
             ))}

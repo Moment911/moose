@@ -331,17 +331,17 @@ export default function DeskReportsPage() {
           display:'flex',alignItems:'center',gap:14}}>
           <button onClick={()=>navigate('/desk')}
             style={{display:'flex',alignItems:'center',gap:5,padding:'7px 12px',borderRadius:9,
-              border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',
-              color:'#999999',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+              border:'1px solid #e5e7eb',background:'#fff',
+              color:'#374151',fontSize:13,fontWeight:700,cursor:'pointer'}}>
             <ChevronLeft size={14}/> Back
           </button>
-          <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0}}>Desk Reports</h1>
+          <h1 style={{fontFamily:"var(--font-display)",fontSize:20,fontWeight:800,color:'#111',letterSpacing:'-.02em',margin:0}}>Desk Reports</h1>
           <div style={{marginLeft:'auto',display:'flex',gap:6}}>
             {RANGES.map(r=>(
               <button key={r.key} onClick={()=>setRange(r.key)}
                 style={{padding:'6px 14px',borderRadius:20,border:'none',cursor:'pointer',
-                  background:range===r.key?RED:'rgba(255,255,255,.1)',
-                  color:range===r.key?'#fff':'rgba(255,255,255,.6)',
+                  background:range===r.key?RED:'#f3f4f6',
+                  color:range===r.key?'#fff':'#374151',
                   fontSize:13,fontWeight:700}}>
                 {r.label}
               </button>

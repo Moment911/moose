@@ -610,7 +610,7 @@ export default function QAKnowledgePage() {
                   display:'flex',alignItems:'center',justifyContent:'center'}}>
                   <Brain size={17} color="#fff"/>
                 </div>
-                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>
+                <h1 style={{fontFamily:"var(--font-display)",fontSize:22,fontWeight:800,color:'#111',letterSpacing:'-.02em',margin:0,letterSpacing:-0.3}}>
                   Q&A Knowledge Base
                 </h1>
                 <span style={{fontSize:13,fontWeight:800,color:TEAL,background:TEAL+'20',
@@ -640,7 +640,7 @@ export default function QAKnowledgePage() {
               {label:'Pending tickets',value:tickets.length, alert:tickets.length>0},
             ].map(s=>(
               <div key={s.label} style={{padding:'10px 0'}}>
-                <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#fff',lineHeight:1}}>{s.value}</div>
+                <div style={{fontSize:20,fontWeight:900,color:s.alert?RED:'#111',lineHeight:1}}>{s.value}</div>
                 <div style={{fontSize:13,color:'#999999',marginTop:3}}>{s.label}</div>
               </div>
             ))}
@@ -652,14 +652,14 @@ export default function QAKnowledgePage() {
               <button key={t.key} onClick={()=>setTab(t.key)}
                 style={{display:'flex',alignItems:'center',gap:7,padding:'11px 20px',
                   border:'none',borderBottom:'2.5px solid '+(tab===t.key?RED:'transparent'),
-                  background:'transparent',color:tab===t.key?'#fff':'rgba(255,255,255,.4)',
+                  background:'transparent',color:tab===t.key?'#111':'#9ca3af',
                   fontSize:14,fontWeight:tab===t.key?800:600,cursor:'pointer',transition:'all .15s'}}>
                 <t.icon size={14}/>
                 {t.label}
                 {(t.count||0) > 0 && (
                   <span style={{fontSize:13,fontWeight:800,padding:'1px 6px',borderRadius:20,
-                    background:t.alert&&tab!==t.key?RED+'90':tab===t.key?RED+'40':'rgba(255,255,255,.1)',
-                    color:'#fff'}}>{t.count}</span>
+                    background:t.alert&&tab!==t.key?RED+'20':tab===t.key?RED+'20':'#f3f4f6',
+                    color:t.alert&&tab!==t.key?RED:tab===t.key?RED:'#6b7280'}}>{t.count}</span>
                 )}
               </button>
             ))}

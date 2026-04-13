@@ -1,5 +1,5 @@
 "use client";
-import { MousePointer2, Pin, ArrowUpRight, Circle, Square, PenLine, Undo2, Trash2, Link, CheckCircle, Ruler } from 'lucide-react'
+import { MousePointer2, Pin, ArrowUpRight, Circle, Square, PenLine, Undo2, Trash2, Link, CheckCircle, Ruler, Type, Highlighter } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 
 const TOOLS = [
@@ -11,6 +11,8 @@ const TOOLS = [
   { key: 'freehand', icon: PenLine, label: 'Freehand (F)' },
   { key: 'measure', icon: Ruler, label: 'Measure (M)', color: '#6366f1' },
   { key: 'hotspot', icon: Link, label: 'Link hotspot (H)' },
+  { key: 'text', icon: Type, label: 'Text annotation (T)', color: '#374151' },
+  { key: 'highlight', icon: Highlighter, label: 'Highlight area (Y)', color: '#fbbf24' },
   { key: 'approve', icon: CheckCircle, label: 'Approve stamp (G)', color: '#22c55e' },
 ]
 
@@ -57,7 +59,7 @@ export default function AnnotationToolbar({ tool, setTool, color, setColor, onUn
       </div>
 
       <div style={{ marginLeft: 'auto', fontSize: 13, color: '#666', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ background: '#f3f4f6', color: '#9ca3af', padding: '4px 10px', borderRadius: 6, fontWeight: 600, fontSize: 11 }}>V = scroll · C/A/O/R/F = draw · G = approve · H = link</span>
+        <span style={{ background: '#f3f4f6', color: '#9ca3af', padding: '4px 10px', borderRadius: 6, fontWeight: 600, fontSize: 11 }}>V = scroll · C/A/O/R/F = draw · T = text · Y = highlight · G = approve · H = link</span>
       </div>
     </div>
   )

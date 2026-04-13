@@ -462,8 +462,8 @@ export default function LocalRankTrackerPage() {
             </div>
             {/* Client selector */}
             <select value={clientId} onChange={e=>setClientId(e.target.value)}
-              style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)',
-                background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH, minWidth:200 }}>
+              style={{ padding:'9px 14px', borderRadius:10, border:'1px solid #e5e7eb',
+                background:'#fff', color:'#111', fontSize:14, fontFamily:FH, minWidth:200 }}>
               <option value="">All clients</option>
               {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
             </select>
@@ -475,7 +475,7 @@ export default function LocalRankTrackerPage() {
               <button key={t.key} onClick={()=>setTab(t.key)}
                 style={{ padding:'12px 20px', border:'none', background:'transparent',
                   borderBottom:`2.5px solid ${tab===t.key?RED:'transparent'}`,
-                  color:tab===t.key?'#fff':'rgba(255,255,255,.35)', fontSize:13, fontWeight:tab===t.key?700:500,
+                  color:tab===t.key?'#111':'#9ca3af', fontSize:13, fontWeight:tab===t.key?700:500,
                   cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontFamily:FH }}>
                 <t.icon size={13}/> {t.label}
                 {t.key==='history'&&history.length>0&&<span style={{fontSize:10,background:RED,color:'#fff',padding:'1px 5px',borderRadius:20,marginLeft:2}}>{history.length}</span>}

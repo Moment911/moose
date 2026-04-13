@@ -152,7 +152,7 @@ export default function MonthlyReportPage() {
               }}
             />
               <input type="month" value={month} onChange={e => setMonth(e.target.value)}
-                style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH }}/>
+                style={{ padding:'9px 14px', borderRadius:10, border:'1px solid #e5e7eb', background:'#fff', color:'#111', fontSize:14, fontFamily:FH }}/>
               <button onClick={generateReport} disabled={loading || !clientId}
                 style={{ padding:'9px 22px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:7, boxShadow:`0 3px 12px ${RED}40` }}>
                 {loading ? <Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/> : <Sparkles size={14}/>}
@@ -166,7 +166,7 @@ export default function MonthlyReportPage() {
             <div style={{ display:'flex', gap:8, overflowX:'auto' }}>
               {history.map(h => (
                 <button key={h.id} onClick={() => loadExisting(h)}
-                  style={{ padding:'5px 14px', borderRadius:20, border:'1px solid rgba(255,255,255,.12)', background:'rgba(255,255,255,.07)', color:'#999999', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap', flexShrink:0 }}>
+                  style={{ padding:'5px 14px', borderRadius:20, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap', flexShrink:0 }}>
                   {new Date(h.month + '-02').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </button>
               ))}

@@ -28,7 +28,9 @@ import {
   ArrowLeft, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut,
   Smartphone, Tablet, Monitor, MonitorUp, CheckCircle, PanelLeftClose, PanelLeftOpen, FileText, Image as ImageIcon,
 } from 'lucide-react'
+import { differenceInDays } from 'date-fns'
 import toast from 'react-hot-toast'
+import ApprovalModal from '../components/proof/ApprovalModal'
 import {
   supabase,
   getFiles,
@@ -75,6 +77,7 @@ export default function FileReviewPage() {
   const [team, setTeam] = useState([])
   const [thumbsOpen, setThumbsOpen] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
+  const [showApproval, setShowApproval] = useState(false)
 
   const [tool, setTool] = useState('select')
   const [color, setColor] = useState('#E6007E')
@@ -248,7 +251,7 @@ export default function FileReviewPage() {
   useEffect(() => {
     function handleKey(e) {
       if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA') return
-      const map = { v: 'select', c: 'pin', a: 'arrow', o: 'circle', r: 'rect', f: 'freehand', m: 'measure', g: 'approve', h: 'hotspot' }
+      const map = { v: 'select', c: 'pin', a: 'arrow', o: 'circle', r: 'rect', f: 'freehand', m: 'measure', g: 'approve', h: 'hotspot', t: 'text', y: 'highlight' }
       const next = map[e.key.toLowerCase()]
       if (next) setTool(next)
       if (e.key === 'Escape') { setTool('select'); setPendingPin(null) }
@@ -452,6 +455,20 @@ export default function FileReviewPage() {
             onFocus={e => { e.currentTarget.style.borderColor = '#E6007E'; e.currentTarget.style.background = '#fdf2f8' }}
             onBlurCapture={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent' }}
           >{file.name}</div>
+
+          {project?.due_date && (() => {
+            const days = differenceInDays(new Date(project.due_date), new Date())
+            let bg = '#e5e7eb', textColor = '#374151', label = ''
+            if (days < 0) { bg = '#fecaca'; textColor = '#dc2626'; label = `Overdue by ${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''}` }
+            else if (days === 0) { bg = '#fecaca'; textColor = '#dc2626'; label = 'Due today' }
+            else if (days <= 3) { bg = '#fef3c7'; textColor = '#d97706'; label = `${days} day${days !== 1 ? 's' : ''} left` }
+            else { bg = '#f3f4f6'; textColor = '#6b7280'; label = `${days} days left` }
+            return (
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: bg, color: textColor, flexShrink: 0 }}>
+                {label}
+              </span>
+            )
+          })()}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -506,13 +523,7 @@ export default function FileReviewPage() {
             Submit Review ({annotations.filter(a => !a.resolved).length})
           </button>
           <button
-            onClick={async () => {
-              try {
-                await supabase.from('files').update({ review_status: 'approved', approved_by: authorName, approved_at: new Date().toISOString() }).eq('id', fileId)
-                setFile(prev => prev ? { ...prev, review_status: 'approved', approved_by: authorName, approved_at: new Date().toISOString() } : prev)
-                toast.success('File approved!')
-              } catch (e) { toast.error('Failed to approve') }
-            }}
+            onClick={() => setShowApproval(true)}
             style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 5 }}>
             <CheckCircle size={14} /> Approve
           </button>
@@ -918,6 +929,19 @@ export default function FileReviewPage() {
 
       {/* Help panel */}
       {showHelp && <KotoProofHelp onClose={() => setShowHelp(false)} />}
+
+      {/* Approval modal */}
+      {showApproval && (
+        <ApprovalModal
+          projectId={projectId}
+          fileId={fileId}
+          authorName={authorName}
+          onApproved={(updates) => {
+            setFile(prev => prev ? { ...prev, ...updates } : prev)
+          }}
+          onClose={() => setShowApproval(false)}
+        />
+      )}
     </>
   )
 }

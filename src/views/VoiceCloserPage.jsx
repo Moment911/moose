@@ -460,7 +460,7 @@ export default function VoiceCloserPage() {
               <Target size={18} color={W} />
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: W, fontFamily: FH }}>Closer Dashboard</h1>
+              <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#111', fontFamily: FH }}>Closer Dashboard</h1>
               <p style={{ margin: 0, fontSize: 11, color: '#888', fontFamily: FB }}>{fmtDate(today)}</p>
             </div>
           </div>

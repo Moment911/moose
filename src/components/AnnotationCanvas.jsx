@@ -12,6 +12,8 @@ const TOOL_CURSOR = {
   freehand: 'crosshair',
   approve: 'crosshair',
   measure: 'crosshair',
+  text: 'crosshair',
+  highlight: 'crosshair',
 }
 
 export default function AnnotationCanvas({
@@ -53,6 +55,10 @@ export default function AnnotationCanvas({
     }
     if (tool === 'approve') {
       onApprove?.({ type: 'approve', x: pos.x, y: pos.y, color: '#22c55e' })
+      return
+    }
+    if (tool === 'text') {
+      onPinPlace({ type: 'text', x: pos.x, y: pos.y, color })
       return
     }
     if (tool === 'measure') {
@@ -110,6 +116,14 @@ export default function AnnotationCanvas({
         w: Math.abs(end.x - start.x), h: Math.abs(end.y - start.y), color
       }
     }
+    if (type === 'highlight') {
+      return {
+        type: 'highlight',
+        x: Math.min(start.x, end.x), y: Math.min(start.y, end.y),
+        w: Math.abs(end.x - start.x), h: Math.abs(end.y - start.y),
+        color: '#fbbf24'
+      }
+    }
     if (type === 'freehand') {
       const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
       return { type: 'freehand', d, color }
@@ -144,6 +158,11 @@ export default function AnnotationCanvas({
       return <rect x={Math.min(start.x, end.x)} y={Math.min(start.y, end.y)}
         width={Math.abs(end.x - start.x)} height={Math.abs(end.y - start.y)}
         {...commonStroke} rx={4} strokeDasharray="6,4" />
+    }
+    if (type === 'highlight') {
+      return <rect x={Math.min(start.x, end.x)} y={Math.min(start.y, end.y)}
+        width={Math.abs(end.x - start.x)} height={Math.abs(end.y - start.y)}
+        fill="rgba(251,191,36,0.2)" stroke="#fbbf24" strokeWidth={1.5} rx={3} strokeDasharray="6,4" />
     }
     if (type === 'measure') {
       const dist = Math.round(Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)))
@@ -234,8 +253,29 @@ export default function AnnotationCanvas({
       )
     }
 
+    if (ann.type === 'highlight') {
+      return (
+        <g key={ann.id} {...commonProps} opacity={opacity}>
+          <rect x={ann.x} y={ann.y} width={ann.w} height={ann.h} rx={3}
+            fill="rgba(251,191,36,0.2)" stroke="#fbbf24" strokeWidth={isSelected ? 2.5 : 1.5}
+            filter={isSelected ? 'drop-shadow(0 0 4px rgba(251,191,36,0.5))' : ''} />
+        </g>
+      )
+    }
+
     // Sequential number across ALL annotation types
     const annNum = annotations.findIndex(a => a.id === ann.id) + 1
+
+    if (ann.type === 'text') {
+      return (
+        <g key={ann.id} {...commonProps} transform={`translate(${ann.x}, ${ann.y})`}>
+          <circle cx={0} cy={0} r={isSelected ? 14 : 12} fill={c} opacity={opacity}
+            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.15)'} strokeWidth={isSelected ? 2 : 1}
+            filter={isSelected ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.2))'} />
+          <text x={0} y={5} textAnchor="middle" fill="white" fontSize={13} fontWeight="800" fontFamily="serif">T</text>
+        </g>
+      )
+    }
 
     if (ann.type === 'pin') {
       return (
