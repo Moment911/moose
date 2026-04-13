@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client"
-import { useState } from "react"
-import { Phone, Globe, ExternalLink, Activity, Brain, Settings, Loader2, Zap, X, Sparkles, Check } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Phone, Globe, ExternalLink, Activity, Brain, Settings, Loader2, Zap, X, Sparkles, Check, Play, Square } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from "../lib/theme"
@@ -196,31 +196,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       {/* CARD 6: AI Personality */}
       <div style={fdCard}>
         {fdCardTitle(<Settings size={16} color="#6b7280" />, 'AI Personality & Settings')}
-        <div style={{ marginBottom: 14 }}>
-          <label style={fdLabel}>Voice</label>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {[
-              { id: '11labs-Marissa', name: 'Marissa', desc: 'Warm & friendly', gender: 'F' },
-              { id: '11labs-Myra', name: 'Myra', desc: 'Professional & calm', gender: 'F' },
-              { id: '11labs-Paola', name: 'Paola', desc: 'Bright & upbeat', gender: 'F' },
-              { id: '11labs-Karina', name: 'Karina', desc: 'Soft & natural', gender: 'F' },
-              { id: '11labs-Adrian', name: 'Adrian', desc: 'Confident & clear', gender: 'M' },
-              { id: '11labs-Nathan', name: 'Nathan', desc: 'Warm & approachable', gender: 'M' },
-              { id: '11labs-Ryan', name: 'Ryan', desc: 'Energetic & natural', gender: 'M' },
-              { id: '11labs-Josh', name: 'Josh', desc: 'Calm & reassuring', gender: 'M' },
-            ].map(v => (
-              <button key={v.id} onClick={() => fdUpdate('voice_id', v.id)} style={{
-                padding: '8px 14px', borderRadius: 10,
-                border: (fd.voice_id || '11labs-Marissa') === v.id ? '2px solid ' + R : '1px solid #e5e7eb',
-                background: (fd.voice_id || '11labs-Marissa') === v.id ? R + '08' : '#fff',
-                cursor: 'pointer', textAlign: 'left', minWidth: 130,
-              }}>
-                <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{v.name}</div>
-                <div style={{ fontSize: 11, color: '#6b7280' }}>{v.desc} · {v.gender === 'F' ? 'Female' : 'Male'}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+        <VoicePicker fd={fd} fdUpdate={fdUpdate} fdLabel={fdLabel} doFetch={doFetch} />
         <div style={{ marginBottom: 14 }}>
           <label style={fdLabel}>Custom Greeting</label>
           <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Hello, thanks for calling Our Office!" style={fdInput} />
@@ -290,6 +266,85 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         }
       </div>
 
+    </div>
+  )
+}
+
+const CURATED_VOICES = [
+  { id: '11labs-Marissa', name: 'Marissa', desc: 'Warm & friendly', gender: 'F' },
+  { id: '11labs-Myra', name: 'Myra', desc: 'Professional & calm', gender: 'F' },
+  { id: '11labs-Paola', name: 'Paola', desc: 'Bright & upbeat', gender: 'F' },
+  { id: '11labs-Karina', name: 'Karina', desc: 'Soft & natural', gender: 'F' },
+  { id: '11labs-Adrian', name: 'Adrian', desc: 'Confident & clear', gender: 'M' },
+  { id: '11labs-Nathan', name: 'Nathan', desc: 'Warm & approachable', gender: 'M' },
+  { id: '11labs-Ryan', name: 'Ryan', desc: 'Energetic & natural', gender: 'M' },
+  { id: '11labs-Josh', name: 'Josh', desc: 'Calm & reassuring', gender: 'M' },
+]
+
+function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
+  const [previews, setPreviews] = useState({})
+  const [playing, setPlaying] = useState(null)
+  const audioRef = useRef(null)
+
+  // Fetch preview URLs from Retell on first render
+  useEffect(() => {
+    fetch('/api/front-desk?action=list_voices').then(r => r.json()).then(d => {
+      if (d.voices) {
+        const map = {}
+        for (const v of d.voices) {
+          if (v.preview_audio_url) map[v.voice_id] = v.preview_audio_url
+        }
+        setPreviews(map)
+      }
+    }).catch(() => {})
+  }, [])
+
+  function togglePreview(voiceId) {
+    if (playing === voiceId) {
+      audioRef.current?.pause()
+      setPlaying(null)
+      return
+    }
+    const url = previews[voiceId]
+    if (!url) { toast.error('No preview available'); return }
+    if (audioRef.current) { audioRef.current.pause() }
+    const audio = new Audio(url)
+    audio.onended = () => setPlaying(null)
+    audio.play().catch(() => toast.error('Could not play audio'))
+    audioRef.current = audio
+    setPlaying(voiceId)
+  }
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={fdLabel}>Voice</label>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {CURATED_VOICES.map(v => {
+          const selected = (fd.voice_id || '11labs-Marissa') === v.id
+          const hasPreview = !!previews[v.id]
+          return (
+            <div key={v.id} style={{
+              padding: '8px 14px', borderRadius: 10,
+              border: selected ? '2px solid ' + R : '1px solid #e5e7eb',
+              background: selected ? R + '08' : '#fff',
+              textAlign: 'left', minWidth: 130, display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <button onClick={() => togglePreview(v.id)} disabled={!hasPreview} style={{
+                width: 28, height: 28, borderRadius: '50%', border: 'none', flexShrink: 0,
+                background: playing === v.id ? R + '15' : '#f3f4f6',
+                cursor: hasPreview ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: hasPreview ? 1 : 0.3,
+              }}>
+                {playing === v.id ? <Square size={10} color={R} fill={R} /> : <Play size={11} color="#374151" fill="#374151" />}
+              </button>
+              <button onClick={() => fdUpdate('voice_id', v.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{v.name}</div>
+                <div style={{ fontSize: 11, color: '#6b7280' }}>{v.desc} · {v.gender === 'F' ? 'Female' : 'Male'}</div>
+              </button>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
