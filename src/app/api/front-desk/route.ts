@@ -15,6 +15,19 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const action = searchParams.get('action') || 'list'
+
+    // list_voices doesn't need agency auth — it's a global Retell lookup
+    if (action === 'list_voices') {
+      const RETELL_KEY = process.env.RETELL_API_KEY || ''
+      if (!RETELL_KEY) return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
+      const res = await fetch('https://api.retellai.com/list-voices', {
+        headers: { 'Authorization': `Bearer ${RETELL_KEY}` },
+      })
+      if (!res.ok) return NextResponse.json({ error: 'Failed to fetch voices' }, { status: 502 })
+      const voices = await res.json()
+      return NextResponse.json({ voices })
+    }
+
     const agency_id = resolveAgencyId(req, searchParams)
     if (!agency_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const sb = getSupabase()
@@ -66,17 +79,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ prompt })
     }
 
-    // ── List available voices from Retell ──
-    if (action === 'list_voices') {
-      const RETELL_KEY = process.env.RETELL_API_KEY || ''
-      if (!RETELL_KEY) return NextResponse.json({ error: 'RETELL_API_KEY not configured' }, { status: 500 })
-      const res = await fetch('https://api.retellai.com/list-voices', {
-        headers: { 'Authorization': `Bearer ${RETELL_KEY}` },
-      })
-      if (!res.ok) return NextResponse.json({ error: 'Failed to fetch voices' }, { status: 502 })
-      const voices = await res.json()
-      return NextResponse.json({ voices })
-    }
 
     // ── Directives: list ──
     if (action === 'get_directives') {
