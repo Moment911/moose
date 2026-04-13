@@ -23,25 +23,23 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
   return (
     <Link to={to} style={{
       display:'flex', alignItems:'center', gap:10,
-      padding: sub ? '5px 12px 5px 36px' : '7px 14px',
-      borderRadius:8, textDecoration:'none',
-      background: active ? R : 'transparent',
-      color: active ? '#fff' : sub ? '#6b7280' : '#111',
-      fontSize: sub ? 12 : 13,
-      fontWeight: sub ? 500 : 600,
-      textTransform: sub ? 'none' : 'uppercase',
-      letterSpacing: sub ? 'normal' : '.03em',
+      padding: sub ? '7px 12px 7px 40px' : '9px 12px',
+      borderRadius:10, textDecoration:'none',
+      marginBottom:2,
+      background: active ? R + '10' : 'transparent',
+      borderLeft: active ? `3px solid ${R}` : '3px solid transparent',
+      color: active ? R : sub ? '#6b7280' : '#111',
+      fontSize: sub ? 13 : 14,
+      fontWeight: active ? 700 : sub ? 500 : 600,
       transition:'all .12s ease',
-      position:'relative',
-      margin:'1px 0',
     }}
-      onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='rgba(0,0,0,.04)';e.currentTarget.style.color=sub?'#374151':'#111'}}}
-      onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color=sub?'#6b7280':'#111'}}}>
-      <Icon size={sub?13:14} style={{flexShrink:0,color:active?'#fff':sub?'#9ca3af':'#374151',opacity:1}}/>
-      <span style={{flex:1,lineHeight:1.2}}>{label}</span>
+      onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='rgba(0,0,0,.03)'}}}
+      onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent'}}}>
+      <Icon size={sub?14:16} style={{flexShrink:0,color:active?R:sub?'#9ca3af':'#374151'}}/>
+      <span style={{flex:1,lineHeight:1.3}}>{label}</span>
       {badge && (
-        <span style={{fontSize:13,fontWeight:800,padding:'2px 6px',borderRadius:20,
-          background:badgeColor||T,color:'#fff',letterSpacing:'.07em',lineHeight:1.4}}>
+        <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:20,
+          background:badgeColor||T,color:'#fff',letterSpacing:'.04em',lineHeight:1.4}}>
           {badge}
         </span>
       )}
@@ -95,30 +93,29 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
   }, [storageKey])
 
   return (
-    <div style={{ marginBottom: 2 }}>
+    <div style={{ marginBottom: 4, marginTop: 6 }}>
       <button
         onClick={toggle}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          width: '100%', padding: '10px 14px 4px', border: 'none', background: 'none',
+          width: '100%', padding: '6px 12px', border: 'none', background: 'none',
           cursor: 'pointer', textAlign: 'left',
-          fontSize: 11, fontWeight: 800, color: hasActiveChild ? R : '#9ca3af',
+          fontSize: 10, fontWeight: 800, color: hasActiveChild ? R : '#9ca3af',
           textTransform: 'uppercase', letterSpacing: '.1em',
           transition: 'color .15s',
         }}
         onMouseEnter={e => e.currentTarget.style.color = '#374151'}
         onMouseLeave={e => e.currentTarget.style.color = hasActiveChild ? R : '#9ca3af'}
       >
-        {SIcon && <SIcon size={11} style={{ opacity: 0.7 }} />}
         <span style={{ flex: 1 }}>{label}</span>
-        <ChevronDown size={11} style={{
+        <ChevronDown size={10} style={{
           transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
           transition: 'transform .15s',
-          opacity: 0.5,
+          opacity: 0.4,
         }} />
       </button>
       {(open || forceOpen) && (
-        <div style={{ overflow: 'hidden' }}>
+        <div style={{ overflow: 'hidden', padding: '2px 4px' }}>
           {children}
         </div>
       )}
