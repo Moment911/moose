@@ -189,8 +189,8 @@ export default function Sidebar() {
             <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,cursor:'pointer'}} onClick={()=>navigate('/')}>
               {authLoading ? (
                 <div style={{height:32}} />
-              ) : agency?.brand_logo_url ? (
-                <img src={agency.brand_logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
+              ) : (agency?.brand_logo_url || agency?.logo_url) ? (
+                <img src={agency.brand_logo_url || agency.logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
               ) : (
                 <div style={{fontFamily:"'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",fontSize:18,fontWeight:800,color:'#111',letterSpacing:'-.03em'}}>{agency?.brand_name || agencyName || 'Agency'}</div>
               )}
