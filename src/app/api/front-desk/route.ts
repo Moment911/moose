@@ -570,14 +570,14 @@ Priority 3 = critical (safety/compliance), 2 = important, 1 = nice to have.` }],
         if (data) inserted.push(data)
       }
 
-      // Rebuild the Retell agent prompt if one exists
-      const { data: fdConfig } = await sb.from('koto_front_desk_configs').select('retell_agent_id').eq('client_id', client_id).maybeSingle()
-      if (fdConfig?.retell_agent_id) {
+      // Rebuild the Retell LLM prompt if one exists
+      const { data: fdConfig } = await sb.from('koto_front_desk_configs').select('retell_agent_id, retell_llm_id').eq('client_id', client_id).maybeSingle()
+      if (fdConfig?.retell_llm_id) {
         try {
           const prompt = await buildFrontDeskPromptForClient(client_id)
           if (prompt) {
             const RETELL_KEY = process.env.RETELL_API_KEY || ''
-            await fetch(`https://api.retellai.com/update-agent/${fdConfig.retell_agent_id}`, {
+            await fetch(`https://api.retellai.com/update-retell-llm/${fdConfig.retell_llm_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ general_prompt: prompt }),
@@ -586,7 +586,7 @@ Priority 3 = critical (safety/compliance), 2 = important, 1 = nice to have.` }],
         } catch {}
       }
 
-      return NextResponse.json({ inserted, count: inserted.length, prompt_updated: !!fdConfig?.retell_agent_id })
+      return NextResponse.json({ inserted, count: inserted.length, prompt_updated: !!fdConfig?.retell_llm_id })
     }
 
     if (action === 'add_directive') {
@@ -623,7 +623,7 @@ Priority 3 = critical (safety/compliance), 2 = important, 1 = nice to have.` }],
 
       // Fetch current directives + custom_instructions
       const { data: directives } = await sb.from('koto_front_desk_directives').select('*').eq('client_id', client_id).eq('status', 'active').order('priority', { ascending: false })
-      const { data: cfg } = await sb.from('koto_front_desk_configs').select('custom_instructions, retell_agent_id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      const { data: cfg } = await sb.from('koto_front_desk_configs').select('custom_instructions, retell_agent_id, retell_llm_id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
       if (!cfg) return NextResponse.json({ error: 'No front desk config' }, { status: 404 })
 
       const directiveList = (directives || []).map(d => `[${d.category}] ${d.directive}`).join('\n')
@@ -682,14 +682,14 @@ Return ONLY valid JSON with this structure:
         await sb.from('koto_front_desk_configs').update({ custom_instructions: result.custom_instructions }).eq('client_id', client_id).eq('agency_id', agency_id)
       }
 
-      // Rebuild Retell agent prompt
+      // Rebuild Retell LLM prompt
       let prompt_updated = false
-      if (cfg.retell_agent_id) {
+      if (cfg.retell_llm_id) {
         try {
           const prompt = await buildFrontDeskPromptForClient(client_id)
           if (prompt) {
             const RETELL_KEY = process.env.RETELL_API_KEY || ''
-            await fetch(`https://api.retellai.com/update-agent/${cfg.retell_agent_id}`, {
+            await fetch(`https://api.retellai.com/update-retell-llm/${cfg.retell_llm_id}`, {
               method: 'PATCH',
               headers: { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ general_prompt: prompt }),
@@ -806,19 +806,35 @@ If no useful learnings, return an empty array: []` }],
       const prompt = await buildFrontDeskPromptForClient(client_id)
       if (!prompt) return NextResponse.json({ error: 'Could not build prompt for client' }, { status: 500 })
 
-      // 2. Create the Retell agent
+      // 2a. Create a Retell LLM with the prompt
+      const beginMsg = cfg.custom_greeting
+        ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
+        : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`
+
+      const llmRes = await fetch('https://api.retellai.com/create-retell-llm', {
+        method: 'POST',
+        headers: retellHeaders,
+        body: JSON.stringify({
+          general_prompt: prompt,
+          begin_message: beginMsg,
+        }),
+      })
+      if (!llmRes.ok) {
+        const err = await llmRes.text()
+        return NextResponse.json({ error: `Failed to create Retell LLM: ${err}` }, { status: 500 })
+      }
+      const llmData = await llmRes.json()
+      const llm_id = llmData.llm_id
+
+      // 2b. Create the Retell agent referencing the LLM
       const agentRes = await fetch('https://api.retellai.com/create-agent', {
         method: 'POST',
         headers: retellHeaders,
         body: JSON.stringify({
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
           voice_id: cfg.voice_id || '11labs-Nicole',
-          response_engine: { type: 'retell-llm', llm_id: null },
+          response_engine: { type: 'retell-llm', llm_id },
           enable_backchannel: true,
-          begin_message: cfg.custom_greeting
-            ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
-            : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`,
-          general_prompt: prompt,
           ...(cfg.scheduling_department_phone ? {
             transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
           } : {}),
@@ -857,7 +873,7 @@ If no useful learnings, return an empty array: []` }],
 
       // 5. Save to config
       const { error: updateErr } = await sb.from('koto_front_desk_configs')
-        .update({ retell_agent_id: agent_id, retell_phone_number: phone_number })
+        .update({ retell_agent_id: agent_id, retell_phone_number: phone_number, retell_llm_id: llm_id })
         .eq('client_id', client_id).eq('agency_id', agency_id)
       if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
@@ -910,16 +926,30 @@ If no useful learnings, return an empty array: []` }],
       const prompt = await buildFrontDeskPromptForClient(client_id)
       if (!prompt) return NextResponse.json({ error: 'Could not build prompt for client' }, { status: 500 })
 
+      const beginMsg = cfg.custom_greeting
+        ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
+        : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`
+
+      // Update the LLM prompt (if we have an llm_id stored)
+      if (cfg.retell_llm_id) {
+        const llmPatchRes = await fetch(`https://api.retellai.com/update-retell-llm/${cfg.retell_llm_id}`, {
+          method: 'PATCH',
+          headers: retellHeaders,
+          body: JSON.stringify({ general_prompt: prompt, begin_message: beginMsg }),
+        })
+        if (!llmPatchRes.ok) {
+          const err = await llmPatchRes.text()
+          return NextResponse.json({ error: `Failed to update Retell LLM: ${err}` }, { status: 500 })
+        }
+      }
+
+      // Update agent settings (voice, transfer list, etc.)
       const patchRes = await fetch(`https://api.retellai.com/update-agent/${cfg.retell_agent_id}`, {
         method: 'PATCH',
         headers: retellHeaders,
         body: JSON.stringify({
           voice_id: cfg.voice_id || '11labs-Nicole',
           enable_backchannel: true,
-          begin_message: cfg.custom_greeting
-            ? cfg.custom_greeting.replace(/\{greeting\}/gi, 'Hello').replace(/\{company\}/gi, cfg.company_name || 'our office')
-            : `Hello, it's a great day at ${cfg.company_name || 'our office'}! How can I help you?`,
-          general_prompt: prompt,
           ...(cfg.scheduling_department_phone ? {
             transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
           } : {}),
