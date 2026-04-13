@@ -476,7 +476,7 @@ export default function FileReviewPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '0 16px', flexShrink: 0 }}>
             <button onClick={() => handleZoom(Math.max(0.25, zoom - 0.25))} style={zoomBtn} title="Zoom out (−)">
-              <ZoomOut size={14} />
+              <ZoomOut size={18} />
             </button>
             {ZOOM_LEVELS.map((level) => (
               <button
@@ -492,7 +492,7 @@ export default function FileReviewPage() {
               </button>
             ))}
             <button onClick={() => handleZoom(Math.min(3, zoom + 0.25))} style={zoomBtn} title="Zoom in (+)">
-              <ZoomIn size={14} />
+              <ZoomIn size={18} />
             </button>
           </div>
         </div>
@@ -771,13 +771,13 @@ export default function FileReviewPage() {
 
 const zoomBtn = {
   background: 'transparent',
-  color: '#9ca3af',
+  color: '#bbb',
   border: 'none',
-  padding: '5px 9px',
-  borderRadius: 6,
+  padding: '8px 12px',
+  borderRadius: 8,
   cursor: 'pointer',
-  fontSize: 11,
-  fontWeight: 600,
+  fontSize: 13,
+  fontWeight: 700,
   display: 'flex',
   alignItems: 'center',
   gap: 4,

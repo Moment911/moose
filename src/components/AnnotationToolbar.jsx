@@ -18,44 +18,45 @@ const CLIENT_TOOLS = ['select', 'pin', 'arrow', 'circle', 'rect']
 export default function AnnotationToolbar({ tool, setTool, color, setColor, onUndo, onClearAll, annotationCount, clientMode = false }) {
   const visibleTools = clientMode ? TOOLS.filter(t => CLIENT_TOOLS.includes(t.key)) : TOOLS
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3 flex-shrink-0">
-      <div className="flex items-center gap-1">
+    <div style={{ background: '#1a1a1a', borderBottom: '1px solid #333', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {visibleTools.map(t => {
           const Icon = t.icon
           const isActive = tool === t.key
           return (
             <button key={t.key} title={t.label} onClick={() => setTool(t.key)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                isActive
-                  ? t.color ? 'bg-green-50 text-green-600 ring-1 ring-green-300' : 'bg-brand-50 text-brand-600 ring-1 ring-brand-300'
-                  : t.color ? 'text-green-500 hover:bg-green-50 hover:text-green-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
-              }`}>
-              <Icon size={15} />
+              style={{
+                width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: 'none', cursor: 'pointer', transition: 'all .15s',
+                background: isActive ? (t.color || '#E6007E') + '20' : 'transparent',
+                color: isActive ? (t.color || '#E6007E') : '#9ca3af',
+                outline: isActive ? `2px solid ${t.color || '#E6007E'}40` : 'none',
+              }}>
+              <Icon size={20} />
             </button>
           )
         })}
       </div>
 
-      <div className="w-px h-5 bg-gray-200" />
+      <div style={{ width: 1, height: 24, background: '#333' }} />
 
-      {/* Full color picker */}
       <ColorPicker mode="inline" value={color} onChange={setColor} />
 
-      <div className="w-px h-5 bg-gray-200" />
+      <div style={{ width: 1, height: 24, background: '#333' }} />
 
-      <div className="flex items-center gap-1">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button title="Undo last (Ctrl+Z)" onClick={onUndo} disabled={!annotationCount}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30 transition-colors">
-          <Undo2 size={14} />
+          style={{ width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', background: 'transparent', color: annotationCount ? '#9ca3af' : '#444', opacity: annotationCount ? 1 : 0.4 }}>
+          <Undo2 size={18} />
         </button>
         <button title="Clear all annotations" onClick={onClearAll} disabled={!annotationCount}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-30 transition-colors">
-          <Trash2 size={14} />
+          style={{ width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', background: 'transparent', color: annotationCount ? '#ef4444' : '#444', opacity: annotationCount ? 1 : 0.4 }}>
+          <Trash2 size={18} />
         </button>
       </div>
 
-      <div className="ml-auto text-[13px] text-gray-400 hidden lg:flex items-center gap-3">
-        <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-medium">V = scroll &middot; C/A/O/R/F = draw &middot; G = approve &middot; H = link</span>
+      <div style={{ marginLeft: 'auto', fontSize: 13, color: '#666', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ background: '#2a2a2a', color: '#999', padding: '4px 10px', borderRadius: 6, fontWeight: 700, fontSize: 12 }}>V = scroll · C/A/O/R/F = draw · G = approve · H = link</span>
       </div>
     </div>
   )
