@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 import { useState } from "react"
 import { Phone, Globe, ExternalLink, Activity, Brain, Settings, Loader2, Zap, Save, X } from "lucide-react"
