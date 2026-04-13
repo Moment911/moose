@@ -526,15 +526,19 @@ export default function DashboardPage() {
           </>
         )}
 
-        {/* ── System Status ───────────────────────────────────────────────── */}
-        <MobileSectionHeader title="System Status" />
-        <MobileCard style={{ margin: '0 16px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0' }}>
-            <DashStatusDot label="Database"  status={systemHealth.database} />
-            <DashStatusDot label="App"       status={systemHealth.app} />
-            <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
-          </div>
-        </MobileCard>
+        {/* ── System Status (agency admins only) ────────────────────────── */}
+        {!isClient && (
+          <>
+            <MobileSectionHeader title="System Status" />
+            <MobileCard style={{ margin: '0 16px 24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0' }}>
+                <DashStatusDot label="Database"  status={systemHealth.database} />
+                <DashStatusDot label="App"       status={systemHealth.app} />
+                <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
+              </div>
+            </MobileCard>
+          </>
+        )}
       </MobilePage>
     )
   }
@@ -1170,28 +1174,30 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* System Status */}
-              <div style={{
-                background: '#fff', borderRadius: 14, border: '1px solid #ececea',
-                padding: '18px',
-              }}>
+              {/* System Status (agency admins only) */}
+              {!isClient && (
                 <div style={{
-                  fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 16,
+                  background: '#fff', borderRadius: 14, border: '1px solid #ececea',
+                  padding: '18px',
                 }}>
-                  System Status
+                  <div style={{
+                    fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 16,
+                  }}>
+                    System Status
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <DashStatusDot label="Database"  status={systemHealth.database} />
+                    <DashStatusDot label="App"       status={systemHealth.app} />
+                    <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
+                  </div>
+                  <div style={{
+                    fontSize: 11, color: '#9a9a96', marginTop: 14, fontFamily: FB,
+                    borderTop: '1px solid #f2f2f0', paddingTop: 12,
+                  }}>
+                    Last checked {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <DashStatusDot label="Database"  status={systemHealth.database} />
-                  <DashStatusDot label="App"       status={systemHealth.app} />
-                  <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
-                </div>
-                <div style={{
-                  fontSize: 11, color: '#9a9a96', marginTop: 14, fontFamily: FB,
-                  borderTop: '1px solid #f2f2f0', paddingTop: 12,
-                }}>
-                  Last checked {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
