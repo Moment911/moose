@@ -1,6 +1,7 @@
 // @ts-nocheck
 "use client"
-import { Phone, Globe, ExternalLink, Activity, Brain, Settings, Loader2, Zap, X } from "lucide-react"
+import { useState } from "react"
+import { Phone, Globe, ExternalLink, Activity, Brain, Settings, Loader2, Zap, X, Sparkles, Check } from "lucide-react"
 import toast from "react-hot-toast"
 
 const R = "#E6007E", T = "#00C2CB", BLK = "#111111", GRY = "#F9F9F9", GRN = "#16a34a", AMB = "#f59e0b"
@@ -215,49 +216,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       </div>
 
       {/* CARD 6b: Directives */}
-      <div style={fdCard}>
-        {fdCardTitle(<Brain size={16} color="#7c3aed" />, 'Directives & Learnings (' + fdDirectives.filter(d => d.status === 'active').length + ' active)')}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <select value={fdNewCategory} onChange={e => setFdNewCategory(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, color: BLK, width: 130 }}>
-            <option value="general">General</option>
-            <option value="greeting">Greeting</option>
-            <option value="scheduling">Scheduling</option>
-            <option value="medical">Medical</option>
-            <option value="objection">Objection</option>
-            <option value="transfer">Transfer</option>
-            <option value="insurance">Insurance</option>
-          </select>
-          <input value={fdNewDirective} onChange={e => setFdNewDirective(e.target.value)} placeholder="Add a new directive..." style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: BLK }} onKeyDown={async e => {
-            if (e.key === 'Enter' && fdNewDirective.trim()) { const d = await doFetch('add_directive', { directive: fdNewDirective.trim(), category: fdNewCategory }); if (d.directive) { setFdDirectives(prev => [d.directive, ...prev]); setFdNewDirective(''); toast.success('Added') } }
-          }} />
-          <button onClick={async () => { if (!fdNewDirective.trim()) return; const d = await doFetch('add_directive', { directive: fdNewDirective.trim(), category: fdNewCategory }); if (d.directive) { setFdDirectives(prev => [d.directive, ...prev]); setFdNewDirective(''); toast.success('Added') } }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Add</button>
-        </div>
-        {fdDirectives.filter(d => d.status === 'pending').length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: AMB, textTransform: 'uppercase', marginBottom: 6 }}>AI Suggested</div>
-            {fdDirectives.filter(d => d.status === 'pending').map(d => (
-              <div key={d.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', marginBottom: 4, borderRadius: 8, background: '#fffbeb', border: '1px solid #fde68a' }}>
-                <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{d.directive}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280' }}>{d.category}</span>
-                <button onClick={async () => { await doFetch('update_directive', { id: d.id, status: 'active' }); setFdDirectives(prev => prev.map(x => x.id === d.id ? { ...x, status: 'active' } : x)); toast.success('Approved') }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: GRN, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Approve</button>
-                <button onClick={async () => { await doFetch('update_directive', { id: d.id, status: 'dismissed' }); setFdDirectives(prev => prev.filter(x => x.id !== d.id)) }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, color: '#9ca3af', cursor: 'pointer' }}>Dismiss</button>
-              </div>
-            ))}
-          </div>
-        )}
-        {fdDirectives.filter(d => d.status === 'active').length === 0
-          ? <div style={{ background: GRY, borderRadius: 8, padding: 16, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No directives yet. Add some above.</div>
-          : <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {fdDirectives.filter(d => d.status === 'active').map(d => (
-                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: d.source === 'call_learned' ? '#7c3aed15' : '#f3f4f6', color: d.source === 'call_learned' ? '#7c3aed' : '#6b7280' }}>{d.category}</span>
-                  <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{d.directive}</span>
-                  <button onClick={async () => { await doFetch('delete_directive', { id: d.id }); setFdDirectives(prev => prev.filter(x => x.id !== d.id)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14 }}>x</button>
-                </div>
-              ))}
-            </div>
-        }
-      </div>
+      <DirectivesCard fd={fd} fdCard={fdCard} fdCardTitle={fdCardTitle} fdLabel={fdLabel} doFetch={doFetch} fdDirectives={fdDirectives} setFdDirectives={setFdDirectives} fdNewDirective={fdNewDirective} setFdNewDirective={setFdNewDirective} fdNewCategory={fdNewCategory} setFdNewCategory={setFdNewCategory} clientId={clientId} aid={aid} />
 
       {/* CARD 7: GHL */}
       <div style={{ ...fdCard, background: fd.ghl_connected ? '#f0fdf4' : undefined, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
@@ -308,6 +267,133 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         }
       </div>
 
+    </div>
+  )
+}
+
+const CATEGORIES = ['general','greeting','scheduling','medical','objection','transfer','insurance']
+const CAT_COLORS = { greeting: '#7c3aed', scheduling: T, medical: R, objection: AMB, transfer: '#6366f1', insurance: '#0891b2', general: '#6b7280' }
+
+function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirectives, setFdDirectives, fdNewDirective, setFdNewDirective, fdNewCategory, setFdNewCategory, clientId, aid }) {
+  const [aiSuggestions, setAiSuggestions] = useState([])
+  const [selected, setSelected] = useState({})
+  const [generating, setGenerating] = useState(false)
+  const [applying, setApplying] = useState(false)
+
+  async function generateAI() {
+    setGenerating(true)
+    setAiSuggestions([])
+    setSelected({})
+    try {
+      const d = await doFetch('generate_directives', { industry: fd.industry, services: fd.services, company_name: fd.company_name })
+      if (d.suggestions?.length) {
+        setAiSuggestions(d.suggestions)
+        const sel = {}
+        d.suggestions.forEach((s, i) => { sel[i] = s.priority >= 2 })
+        setSelected(sel)
+      } else {
+        toast.error('No suggestions generated')
+      }
+    } catch (e) { toast.error((e as any).message) }
+    setGenerating(false)
+  }
+
+  async function applySelected() {
+    const toApply = aiSuggestions.filter((_, i) => selected[i])
+    if (toApply.length === 0) { toast.error('Select at least one directive'); return }
+    setApplying(true)
+    try {
+      const d = await doFetch('apply_directives', { directives: toApply })
+      if (d.inserted) {
+        setFdDirectives(prev => [...d.inserted, ...prev])
+        setAiSuggestions([])
+        setSelected({})
+        toast.success(d.count + ' directives applied' + (d.prompt_updated ? ' — LLM prompt updated' : ''))
+      }
+    } catch (e) { toast.error((e as any).message) }
+    setApplying(false)
+  }
+
+  const toggleAll = (on) => { const s = {}; aiSuggestions.forEach((_, i) => { s[i] = on }); setSelected(s) }
+  const selectedCount = Object.values(selected).filter(Boolean).length
+
+  return (
+    <div style={fdCard}>
+      {fdCardTitle(<Brain size={16} color="#7c3aed" />, 'Directives & Learnings (' + fdDirectives.filter(d => d.status === 'active').length + ' active)')}
+
+      {/* AI Generate button */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: '14px 16px', background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)', borderRadius: 10, border: '1px solid #ddd6fe', alignItems: 'center' }}>
+        <Sparkles size={18} color="#7c3aed" />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK }}>AI Directive Generator</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>Generate smart directives based on {fd.industry || 'this'} industry</div>
+        </div>
+        <button onClick={generateAI} disabled={generating} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: generating ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+          {generating ? <span><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Generating...</span> : <span><Sparkles size={13} /> Generate Directives</span>}
+        </button>
+      </div>
+
+      {/* AI Suggestions (when generated) */}
+      {aiSuggestions.length > 0 && (
+        <div style={{ marginBottom: 14, padding: '14px 16px', background: '#fffbeb', borderRadius: 10, border: '1px solid #fde68a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: AMB }}>AI Recommendations ({aiSuggestions.length})</div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => toggleAll(true)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>Select All</button>
+              <button onClick={() => toggleAll(false)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#9ca3af' }}>Clear</button>
+            </div>
+          </div>
+          {CATEGORIES.map(cat => {
+            const items = aiSuggestions.map((s, i) => ({ ...s, idx: i })).filter(s => s.category === cat)
+            if (items.length === 0) return null
+            return (
+              <div key={cat} style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, fontFamily: FH, color: CAT_COLORS[cat] || '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{cat}</div>
+                {items.map(s => (
+                  <label key={s.idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0', cursor: 'pointer', borderBottom: '1px solid #fef3c7' }}>
+                    <input type="checkbox" checked={!!selected[s.idx]} onChange={() => setSelected(prev => ({ ...prev, [s.idx]: !prev[s.idx] }))} style={{ accentColor: '#7c3aed', marginTop: 2, width: 16, height: 16, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{s.directive}</span>
+                    {s.priority >= 3 && <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 10, background: R + '15', color: R }}>Critical</span>}
+                    {s.priority === 2 && <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 10, background: AMB + '15', color: AMB }}>Important</span>}
+                  </label>
+                ))}
+              </div>
+            )
+          })}
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <button onClick={applySelected} disabled={applying || selectedCount === 0} style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: applying ? 0.5 : 1 }}>
+              {applying ? <span><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Applying...</span> : <span><Check size={14} /> Apply {selectedCount} Directives & Rebuild LLM</span>}
+            </button>
+            <button onClick={() => { setAiSuggestions([]); setSelected({}) }} style={{ padding: '10px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#9ca3af' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual add */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+        <select value={fdNewCategory} onChange={e => setFdNewCategory(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, color: BLK, width: 130 }}>
+          {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+        </select>
+        <input value={fdNewDirective} onChange={e => setFdNewDirective(e.target.value)} placeholder="Add a custom directive..." style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, color: BLK }} onKeyDown={async e => {
+          if (e.key === 'Enter' && fdNewDirective.trim()) { const d = await doFetch('add_directive', { directive: fdNewDirective.trim(), category: fdNewCategory }); if (d.directive) { setFdDirectives(prev => [d.directive, ...prev]); setFdNewDirective(''); toast.success('Added') } }
+        }} />
+        <button onClick={async () => { if (!fdNewDirective.trim()) return; const d = await doFetch('add_directive', { directive: fdNewDirective.trim(), category: fdNewCategory }); if (d.directive) { setFdDirectives(prev => [d.directive, ...prev]); setFdNewDirective(''); toast.success('Added') } }} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Add</button>
+      </div>
+
+      {/* Active directives */}
+      {fdDirectives.filter(d => d.status === 'active').length === 0
+        ? <div style={{ background: GRY, borderRadius: 8, padding: 16, textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No directives yet. Generate with AI or add manually above.</div>
+        : <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {fdDirectives.filter(d => d.status === 'active').map(d => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: (CAT_COLORS[d.category] || '#6b7280') + '15', color: CAT_COLORS[d.category] || '#6b7280' }}>{d.category}</span>
+                <span style={{ fontSize: 13, color: BLK, flex: 1 }}>{d.directive}</span>
+                {d.source === 'ai_suggested' && <span style={{ fontSize: 9, color: '#7c3aed' }}>AI</span>}
+                <button onClick={async () => { await doFetch('delete_directive', { id: d.id }); setFdDirectives(prev => prev.filter(x => x.id !== d.id)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d1d5db', fontSize: 14 }}>x</button>
+              </div>
+            ))}
+          </div>
+      }
     </div>
   )
 }

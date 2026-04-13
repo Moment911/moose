@@ -492,6 +492,103 @@ ${websiteText.slice(0, 20000)}` }],
 
     // ── Client-facing: save editable fields only ──
     // ── Directives: add ──
+    // ── AI: generate industry-specific directive recommendations ──
+    if (action === 'generate_directives') {
+      const { client_id, industry, services, company_name } = body
+      if (!client_id) return NextResponse.json({ error: 'Missing client_id' }, { status: 400 })
+
+      const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || ''
+      if (!ANTHROPIC_KEY) return NextResponse.json({ error: 'Anthropic API key not configured' }, { status: 500 })
+
+      // Get existing directives to avoid duplicates
+      const { data: existing } = await sb.from('koto_front_desk_directives').select('directive').eq('client_id', client_id)
+      const existingText = (existing || []).map(d => d.directive).join('\n')
+
+      const serviceList = (services || []).join(', ')
+
+      const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 3000,
+          messages: [{ role: 'user', content: `You are an expert at building AI virtual receptionist scripts for businesses. Generate 15-25 specific, actionable directives for an AI front desk assistant.
+
+BUSINESS: ${company_name || 'Unknown'}
+INDUSTRY: ${industry || 'General'}
+SERVICES: ${serviceList || 'Not specified'}
+
+EXISTING DIRECTIVES (do not duplicate):
+${existingText || '(none)'}
+
+Generate directives across these categories:
+- greeting: How to greet and handle initial contact
+- scheduling: Appointment booking rules, availability, prep instructions
+- medical: HIPAA compliance, what NOT to discuss (if healthcare)
+- insurance: How to handle insurance questions
+- transfer: When and how to transfer calls
+- objection: How to handle difficult callers, complaints, pushback
+- general: Business-specific knowledge, parking, location tips, policies
+
+Each directive should be specific and actionable — not generic. Tailor them to the industry.
+
+For healthcare/medical/dental/chiro: Include HIPAA-specific directives about never diagnosing, never suggesting treatments, never confirming patient status.
+
+For service businesses (HVAC, plumbing, etc): Include emergency dispatch rules, service area questions, estimate handling.
+
+For legal: Include confidentiality rules, no legal advice, intake procedures.
+
+Return ONLY a JSON array. Each item: {"directive": "...", "category": "...", "priority": 1-3}
+Priority 3 = critical (safety/compliance), 2 = important, 1 = nice to have.` }],
+        }),
+        signal: AbortSignal.timeout(30000),
+      })
+      const aiData = await aiRes.json()
+      const text = aiData.content?.[0]?.text || '[]'
+      const jsonMatch = text.match(/\[[\s\S]*\]/)
+      let suggestions = []
+      try { suggestions = jsonMatch ? JSON.parse(jsonMatch[0]) : [] } catch { suggestions = [] }
+
+      return NextResponse.json({ suggestions })
+    }
+
+    // ── Apply selected directives (bulk insert + rebuild prompt) ──
+    if (action === 'apply_directives') {
+      const { client_id, directives: newDirectives } = body
+      if (!client_id || !newDirectives?.length) return NextResponse.json({ error: 'Missing client_id or directives' }, { status: 400 })
+
+      const { data: config } = await sb.from('koto_front_desk_configs').select('id').eq('client_id', client_id).eq('agency_id', agency_id).maybeSingle()
+      if (!config) return NextResponse.json({ error: 'No front desk config' }, { status: 404 })
+
+      const inserted = []
+      for (const d of newDirectives) {
+        const { data } = await sb.from('koto_front_desk_directives').insert({
+          config_id: config.id, agency_id, client_id,
+          directive: d.directive, category: d.category || 'general',
+          source: 'ai_suggested', status: 'active', priority: d.priority || 1,
+        }).select().single()
+        if (data) inserted.push(data)
+      }
+
+      // Rebuild the Retell agent prompt if one exists
+      const { data: fdConfig } = await sb.from('koto_front_desk_configs').select('retell_agent_id').eq('client_id', client_id).maybeSingle()
+      if (fdConfig?.retell_agent_id) {
+        try {
+          const prompt = await buildFrontDeskPromptForClient(client_id)
+          if (prompt) {
+            const RETELL_KEY = process.env.RETELL_API_KEY || ''
+            await fetch(`https://api.retellai.com/update-agent/${fdConfig.retell_agent_id}`, {
+              method: 'PATCH',
+              headers: { 'Authorization': `Bearer ${RETELL_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ general_prompt: prompt }),
+            })
+          }
+        } catch {}
+      }
+
+      return NextResponse.json({ inserted, count: inserted.length, prompt_updated: !!fdConfig?.retell_agent_id })
+    }
+
     if (action === 'add_directive') {
       const { client_id, directive, category } = body
       if (!client_id || !directive) return NextResponse.json({ error: 'Missing client_id or directive' }, { status: 400 })
@@ -625,7 +722,6 @@ If no useful learnings, return an empty array: []` }],
         method: 'POST',
         headers: retellHeaders,
         body: JSON.stringify({
-          response_engine: { type: 'retell-llm', llm_id: null },
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
           voice_id: cfg.voice_id || '11labs-Nicole',
           enable_backchannel: true,
