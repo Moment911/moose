@@ -182,7 +182,7 @@ Respond as Jenny via text message. Keep it under 160 characters if possible.`
     if (!reply) return NextResponse.json({ ok: true })
 
     // Send via GHL
-    await sendGHLReply(accessToken, locationId, contactId, reply)
+    const ghlResult = await sendGHLReply(accessToken, locationId, contactId, reply)
 
     // Log outbound
     await s.from('koto_front_desk_sms').insert({
@@ -201,7 +201,7 @@ Respond as Jenny via text message. Keep it under 160 characters if possible.`
       })
     } catch {}
 
-    return NextResponse.json({ ok: true, replied: true })
+    return NextResponse.json({ ok: true, replied: true, ghl_send: ghlResult, ai_reply: reply.slice(0, 100) })
 
   } catch (e: any) {
     console.error('[GHL SMS webhook error]', e?.message)
@@ -211,12 +211,18 @@ Respond as Jenny via text message. Keep it under 160 characters if possible.`
 
 // Send SMS reply via GHL Conversations API
 async function sendGHLReply(token: string, locationId: string, contactId: string, message: string) {
-  if (!contactId) return
-  await fetch('https://services.leadconnectorhq.com/conversations/messages', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
-    body: JSON.stringify({ type: 'SMS', contactId, message, locationId }),
-  })
+  if (!contactId) return { error: 'no_contact_id' }
+  try {
+    const res = await fetch('https://services.leadconnectorhq.com/conversations/messages', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Version': '2021-07-28' },
+      body: JSON.stringify({ type: 'SMS', contactId, message, locationId }),
+    })
+    const data = await res.json().catch(() => ({}))
+    return { status: res.status, ok: res.ok, data }
+  } catch (e: any) {
+    return { error: e.message }
+  }
 }
 
 export async function GET() {
