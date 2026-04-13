@@ -23,21 +23,21 @@ function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, 
   return (
     <Link to={to} style={{
       display:'flex', alignItems:'center', gap:10,
-      padding: sub ? '5px 12px 5px 36px' : '6px 14px',
+      padding: sub ? '5px 12px 5px 36px' : '7px 14px',
       borderRadius:8, textDecoration:'none',
-      background: active ? 'rgba(234,39,41,.08)' : 'transparent',
-      color: active ? R : '#374151',
-      fontSize: sub ? 13 : 15,
-      fontWeight: active ? 700 : 400,
-      letterSpacing: active ? '-.01em' : 'normal',
+      background: active ? R : 'transparent',
+      color: active ? '#fff' : sub ? '#6b7280' : '#111',
+      fontSize: sub ? 12 : 13,
+      fontWeight: sub ? 500 : 600,
+      textTransform: sub ? 'none' : 'uppercase',
+      letterSpacing: sub ? 'normal' : '.03em',
       transition:'all .12s ease',
       position:'relative',
       margin:'1px 0',
     }}
-      onMouseEnter={e=>{ if(!active){e.currentTarget.style.color='#111';e.currentTarget.style.background='rgba(0,0,0,.04)'}}}
-      onMouseLeave={e=>{ if(!active){e.currentTarget.style.color='#374151';e.currentTarget.style.background='transparent'}}}>
-      {active && <span style={{position:'absolute',left:0,top:'50%',transform:'translateY(-50%)',width:3,height:18,background:R,borderRadius:'0 3px 3px 0'}}/>}
-      <Icon size={sub?13:14} style={{flexShrink:0,color:active?R:'inherit',opacity:active?1:.65}}/>
+      onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='rgba(0,0,0,.04)';e.currentTarget.style.color=sub?'#374151':'#111'}}}
+      onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color=sub?'#6b7280':'#111'}}}>
+      <Icon size={sub?13:14} style={{flexShrink:0,color:active?'#fff':sub?'#9ca3af':'#374151',opacity:1}}/>
       <span style={{flex:1,lineHeight:1.2}}>{label}</span>
       {badge && (
         <span style={{fontSize:13,fontWeight:800,padding:'2px 6px',borderRadius:20,
