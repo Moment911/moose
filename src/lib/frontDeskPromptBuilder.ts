@@ -33,6 +33,7 @@ export interface FrontDeskConfig {
   voicemail_enabled: boolean
   transfer_enabled: boolean
   sms_enabled: boolean
+  transfer_number?: string
   sendable_links: { type: string; label: string; url: string; enabled: boolean }[]
 }
 
@@ -166,10 +167,12 @@ Only send links from this list. If the caller asks for something not listed, say
   })()}
 
 TRANSFERRING CALLS:
-When the caller wants to speak to a real person:
-- Say: "Let me connect you right now — one moment please."
-- Transfer the call to the configured number.
-- If the transfer is not answered within 30 seconds, come back and say: "I'm sorry, it looks like they're unavailable right now. Would you like to leave a voicemail, or should I have them call you back?"
+When the caller wants to speak to a real person, talk to someone, speak to the office, or asks for a manager/agent:
+${config.transfer_number
+  ? `- Say: "Let me connect you right now — one moment please."
+- Transfer the call to ${config.transfer_number}.
+- If the transfer is not answered within 30 seconds, come back and say: "I'm sorry, it looks like they're unavailable right now. Would you like to leave a voicemail, or should I have them call you back?"`
+  : `- Say: "I'd be happy to have someone call you back. Can I get your name and a good number to reach you?"`}
 
 VOICEMAIL:
 If the caller wants to leave a voicemail:
@@ -256,6 +259,7 @@ export async function getFrontDeskConfig(clientId: string): Promise<FrontDeskCon
     voicemail_enabled: data.voicemail_enabled ?? true,
     transfer_enabled: data.transfer_enabled ?? true,
     sms_enabled: data.sms_enabled ?? true,
+    transfer_number: data.transfer_number,
     sendable_links: data.sendable_links || [],
   }
 }

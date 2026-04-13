@@ -109,9 +109,14 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       {/* CARD 3: Call Routing */}
       <div style={fdCard}>
         {fdCardTitle(<Phone size={16} color={R} />, 'Call Routing & Transfer')}
+        <div style={{ marginBottom: 14, padding: '14px 16px', background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)', borderRadius: 10, border: '1px solid #fbcfe8' }}>
+          <label style={{ ...fdLabel, color: R }}>Main Transfer Number</label>
+          <p style={{ fontSize: 12, color: '#6b7280', margin: '-2px 0 8px' }}>When a caller says "speak to a person" or "talk to someone", Jenny will transfer here.</p>
+          <input value={fd.transfer_number || ''} onChange={e => fdUpdate('transfer_number', e.target.value)} placeholder="+1 (555) 123-4567" style={{ ...fdInput, fontSize: 16, fontWeight: 700, letterSpacing: '.02em' }} />
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
           <div><label style={fdLabel}>Scheduling Contact</label><input value={fd.scheduling_department_name || ''} onChange={e => fdUpdate('scheduling_department_name', e.target.value)} placeholder="e.g. Rachel" style={fdInput} /></div>
-          <div><label style={fdLabel}>Transfer Phone</label><input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} style={fdInput} /></div>
+          <div><label style={fdLabel}>Scheduling Phone</label><input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} placeholder="If different from main" style={fdInput} /></div>
           <div><label style={fdLabel}>Online Scheduling URL</label><input value={fd.scheduling_link || ''} onChange={e => fdUpdate('scheduling_link', e.target.value)} style={fdInput} /></div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>

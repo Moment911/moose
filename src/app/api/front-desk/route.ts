@@ -849,9 +849,12 @@ If no useful learnings, return an empty array: []` }],
           voice_id: cfg.voice_id || '11labs-Marissa',
           response_engine: { type: 'retell-llm', llm_id },
           enable_backchannel: true,
-          ...(cfg.scheduling_department_phone ? {
-            transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
-          } : {}),
+          ...(() => {
+            const tl: Record<string, any> = {}
+            if (cfg.transfer_number) tl.main = { transfer_to: cfg.transfer_number, description: 'Transfer to main office / speak to a person' }
+            if (cfg.scheduling_department_phone) tl.scheduling = { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' }
+            return Object.keys(tl).length > 0 ? { transfer_list: tl } : {}
+          })(),
         }),
       })
       if (!agentRes.ok) {
@@ -982,9 +985,12 @@ If no useful learnings, return an empty array: []` }],
           response_engine: { type: 'retell-llm', llm_id: llmId },
           voice_id: cfg.voice_id || '11labs-Marissa',
           enable_backchannel: true,
-          ...(cfg.scheduling_department_phone ? {
-            transfer_list: { scheduling: { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' } }
-          } : {}),
+          ...(() => {
+            const tl: Record<string, any> = {}
+            if (cfg.transfer_number) tl.main = { transfer_to: cfg.transfer_number, description: 'Transfer to main office / speak to a person' }
+            if (cfg.scheduling_department_phone) tl.scheduling = { transfer_to: cfg.scheduling_department_phone, description: 'Transfer to scheduling department' }
+            return Object.keys(tl).length > 0 ? { transfer_list: tl } : {}
+          })(),
         }),
       })
       if (!patchRes.ok) {
