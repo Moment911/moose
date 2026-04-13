@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
-  Activity, BarChart2, BookOpen, Brain, CheckCircle, DollarSign, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, X, Zap
+  Activity, ArrowLeft, BarChart2, BookOpen, Brain, CheckCircle, DollarSign, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, X, Zap
 } from 'lucide-react'
 import { getClients, getProjects, signOut, createClient_, deleteClient, updateProject, deleteProject } from '../lib/supabase'
 import { useAuth, getGreeting } from '../hooks/useAuth'
@@ -179,6 +179,9 @@ export default function Sidebar() {
   // show the restricted client view with only permitted items.
   const showClientView = isClient || isPreviewingClient
 
+  // Detect if we're inside a client detail page
+  const isInClientDetail = path.startsWith('/clients/') && path.split('/').length >= 3 && path.split('/')[2]?.length > 10
+
   // Search filter — matches label text, case insensitive
   const sq = searchQuery.toLowerCase().trim()
   const match = (label) => !sq || label.toLowerCase().includes(sq)
@@ -341,8 +344,29 @@ export default function Sidebar() {
             <NavLink to="/billing" icon={CreditCard} label="Billing" hidden={!can?.('view_billing')}/>
           </>)}
 
+          {/* ══════ CLIENT DETAIL VIEW — simplified nav when inside a client ══════ */}
+          {!showClientView && isInClientDetail && (<>
+            <div style={{ padding: '8px 10px 4px' }}>
+              <NavLink to="/clients" icon={ArrowLeft} label="All Clients" />
+            </div>
+            <div style={{ padding: '2px 10px 8px', borderBottom: '1px solid #f3f4f6', marginBottom: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#111', padding: '4px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {clients.find(c => path.includes(c.id))?.name || 'Client'}
+              </div>
+            </div>
+            <Section id="client-tools" label="Client Tools" defaultOpen currentPath={path} forceOpen>
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=overview'} icon={LayoutGrid} label="Overview" />
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=front-desk'} icon={PhoneIncoming} label="Front Desk" />
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=onboarding'} icon={CheckCircle} label="Onboarding" />
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=online'} icon={Globe} label="Online Presence" />
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=reviews'} icon={Star} label="Reviews" />
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=calls'} icon={Phone} label="Calls" />
+              <NavLink to={path.split('/').slice(0, 3).join('/') + '?tab=intelligence'} icon={Brain} label="Intelligence" />
+            </Section>
+          </>)}
+
           {/* ══════ AGENCY VIEW (standard tools) ══════ */}
-          {!showClientView && (<>
+          {!showClientView && !isInClientDetail && (<>
 
             {/* SUPER ADMIN: Platform + Testing section */}
             {isSuperAdmin && !isImpersonating && (
