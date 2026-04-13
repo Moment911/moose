@@ -207,7 +207,12 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
           <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Hello, thanks for calling Our Office!" style={fdInput} />
         </div>
         <div style={{ marginBottom: 14 }}>
-          <label style={fdLabel}>Additional Instructions & Directives</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <label style={{ ...fdLabel, marginBottom: 0 }}>Additional Instructions & Directives</label>
+            <button onClick={async () => { setFdLoading(true); try { const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Saved & synced to LLM') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: fdLoading ? 0.5 : 1 }}>
+              {fdLoading ? 'Saving...' : 'Save & Sync to LLM'}
+            </button>
+          </div>
           <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={12} placeholder="Add instructions for the AI receptionist..." style={{ ...fdInput, resize: 'vertical', minHeight: 220 }}></textarea>
         </div>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -275,11 +280,17 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
   )
 }
 
-// Curated voice names to show — actual IDs loaded from Retell API
+// Fallback voices if API fails
+const FALLBACK_VOICES = [
+  { voice_id: '11labs-Marissa', voice_name: 'Marissa', gender: 'female', accent: 'American', preview_audio_url: '' },
+  { voice_id: '11labs-Myra', voice_name: 'Myra', gender: 'female', accent: 'American', preview_audio_url: '' },
+  { voice_id: '11labs-Adrian', voice_name: 'Adrian', gender: 'male', accent: 'American', preview_audio_url: '' },
+  { voice_id: '11labs-Nathan', voice_name: 'Nathan', gender: 'male', accent: 'American', preview_audio_url: '' },
+]
 const CURATED_NAMES = ['Marissa','Myra','Paola','Karina','Adrian','Nathan','Ryan','Josh']
 
 function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
-  const [voices, setVoices] = useState([])
+  const [voices, setVoices] = useState(FALLBACK_VOICES)
   const [playing, setPlaying] = useState(null)
   const [loadingVoices, setLoadingVoices] = useState(true)
   const audioRef = useRef(null)
@@ -287,7 +298,7 @@ function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
   // Fetch voices from Retell API — get real IDs and preview URLs
   useEffect(() => {
     fetch('/api/front-desk?action=list_voices').then(r => r.json()).then(d => {
-      if (d.voices) {
+      if (d.voices && d.voices.length > 0) {
         // Filter to curated names, or show first 8 female + male if none match
         const curated = d.voices.filter(v => CURATED_NAMES.some(n => (v.voice_name || '').toLowerCase() === n.toLowerCase()))
         if (curated.length > 0) {
@@ -297,7 +308,8 @@ function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
           const withPreview = d.voices.filter(v => v.preview_audio_url)
           const females = withPreview.filter(v => v.gender === 'female').slice(0, 4)
           const males = withPreview.filter(v => v.gender === 'male').slice(0, 4)
-          setVoices([...females, ...males])
+          const picked = [...females, ...males]
+          if (picked.length > 0) setVoices(picked)
         }
       }
       setLoadingVoices(false)
@@ -321,7 +333,7 @@ function VoicePicker({ fd, fdUpdate, fdLabel, doFetch }) {
     setPlaying(voiceId)
   }
 
-  if (loadingVoices) return <div style={{ marginBottom: 14 }}><label style={fdLabel}>Voice</label><div style={{ fontSize: 13, color: '#9ca3af', padding: 8 }}>Loading voices...</div></div>
+  // No loading gate — fallback voices render immediately, API replaces them
 
   return (
     <div style={{ marginBottom: 14 }}>
@@ -467,6 +479,18 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
     setRewriting(false)
   }
 
+  function addSelectedToInstructions() {
+    const ids = Object.keys(bulkSelected).filter(id => bulkSelected[id])
+    if (ids.length === 0) { toast.error('Select directives first'); return }
+    const selected = activeDirectives.filter(d => ids.includes(d.id))
+    const text = selected.map(d => `• ${d.directive}`).join('\n')
+    const current = fd.custom_instructions || ''
+    const updated = current ? current.trim() + '\n\n' + text : text
+    if (fdUpdate) fdUpdate('custom_instructions', updated)
+    setBulkSelected({})
+    toast.success(ids.length + ' directives added to instructions')
+  }
+
   const toggleAll = (on) => { const s = {}; aiSuggestions.forEach((_, i) => { s[i] = on }); setSelected(s) }
   const selectedCount = Object.values(selected).filter(Boolean).length
   const activeDirectives = fdDirectives.filter(d => d.status === 'active')
@@ -550,7 +574,8 @@ function DirectivesCard({ fd, fdCard, fdCardTitle, fdLabel, doFetch, fdDirective
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8, padding: '6px 0' }}>
               <button onClick={() => toggleBulkAll(bulkCount < activeDirectives.length)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>{bulkCount === activeDirectives.length ? 'Deselect All' : 'Select All'}</button>
               {bulkCount > 0 && (
-                <span>
+                <span style={{ display: 'flex', gap: 4 }}>
+                  <button onClick={addSelectedToInstructions} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #ddd6fe', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: '#7c3aed' }}>Add {bulkCount} to Instructions</button>
                   <button onClick={bulkDelete} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #fecaca', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: R }}>Delete {bulkCount}</button>
                 </span>
               )}
