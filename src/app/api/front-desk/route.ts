@@ -519,7 +519,7 @@ ${websiteText.slice(0, 20000)}` }],
         method: 'POST',
         headers: retellHeaders,
         body: JSON.stringify({
-          response_engine: { type: 'retell-llm', llm_id: '' },
+          response_engine: { type: 'retell-llm', llm_id: null },
           agent_name: `Front Desk - ${cfg.company_name || client_id}`,
           voice_id: cfg.voice_id || '11labs-Nicole',
           enable_backchannel: true,
