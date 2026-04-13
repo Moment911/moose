@@ -16,12 +16,21 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
 
+    // Log the raw payload for debugging
+    const s_log = sb()
+    try {
+      await s_log.from('koto_system_logs').insert({
+        level: 'debug', source: 'sms-tool', message: 'Retell tool payload',
+        metadata: { body: JSON.stringify(body).slice(0, 2000) },
+      })
+    } catch {}
+
     // Retell sends tool calls in this format
     const args = body.args || body.arguments || body
     const phone_number = args.phone_number || ''
     const message = args.message || ''
     const link_type = args.link_type || 'general'
-    const callId = body.call_id || body.call?.call_id || ''
+    const callId = body.call_id || body.call?.call_id || body.callId || ''
 
     if (!message) {
       return NextResponse.json({ result: 'Tell the caller you will have the office text them the information shortly.' })
