@@ -23,11 +23,11 @@ function fmt(num) {
 
 /* ── tiny reusable pieces ── */
 const Badge = ({ label, color, bg }) => (
-  <span style={{ fontSize:11, fontWeight:700, color, background:bg, padding:'2px 10px', borderRadius:999, textTransform:'uppercase', letterSpacing:.5 }}>{label}</span>
+  <span style={{ fontSize:12, fontWeight:700, color, background:bg, padding:'2px 10px', borderRadius:999, textTransform:'uppercase', letterSpacing:.5 }}>{label}</span>
 )
 
-const statusColors = { active:{c:W,bg:GRN}, suspended:{c:BLK,bg:AMB}, released:{c:'#555',bg:'#e5e7eb'}, pending:{c:'#555',bg:'#e5e7eb'} }
-const statusColor = s => statusColors[s] || { c:'#555', bg:'#e5e7eb' }
+const statusColors = { active:{c:W,bg:GRN}, suspended:{c:BLK,bg:AMB}, released:{c:'#374151',bg:'#e5e7eb'}, pending:{c:'#374151',bg:'#e5e7eb'} }
+const statusColor = s => statusColors[s] || { c:'#374151', bg:'#e5e7eb' }
 
 const typeColors = { local:{c:'#1d4ed8',bg:'#dbeafe'}, tollfree:{c:'#7c3aed',bg:'#ede9fe'}, mobile:{c:'#0891b2',bg:'#cffafe'} }
 const purposeColors = { voice:{c:'#1d4ed8',bg:'#dbeafe'}, sms:{c:'#059669',bg:'#d1fae5'}, both:{c:'#7c3aed',bg:'#ede9fe'}, answering:{c:R,bg:'#fee2e2'}, outbound:{c:'#b45309',bg:'#fef3c7'} }
@@ -51,10 +51,10 @@ const StatCard = ({ icon:Icon, label, value, color=T, sub }) => (
   <Card style={{ flex:1, minWidth:160 }}>
     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
       <div style={{ width:32, height:32, borderRadius:8, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}><Icon size={16} color={color} /></div>
-      <span style={{ fontSize:11, fontWeight:600, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
+      <span style={{ fontSize:12, fontWeight:600, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
     </div>
     <div style={{ fontSize:24, fontWeight:700, color:BLK, fontFamily:FH }}>{value}</div>
-    {sub && <div style={{ fontSize:11, color:'#6b7280', marginTop:2 }}>{sub}</div>}
+    {sub && <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>{sub}</div>}
   </Card>
 )
 
@@ -240,7 +240,7 @@ export default function PhoneNumbersPage() {
           <Card style={{ textAlign:'center', padding:48 }}>
             <Phone size={40} color="#ccc" style={{ marginBottom:12 }} />
             <div style={{ fontSize:16, fontWeight:600, color:'#6b7280', fontFamily:FH, marginBottom:4 }}>No phone numbers yet</div>
-            <div style={{ fontSize:13, color:'#999', marginBottom:16 }}>Buy your first number to get started.</div>
+            <div style={{ fontSize:13, color:'#6b7280', marginBottom:16 }}>Buy your first number to get started.</div>
             <Btn onClick={()=>setTab('buy')}><Plus size={14} /> Buy Number</Btn>
           </Card>
         ) : (
@@ -249,7 +249,7 @@ export default function PhoneNumbersPage() {
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                   {['Phone Number','Friendly Name','Assigned To','Provider','Type','Purpose','Status','Cost/mo','Actions'].map(h => (
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
+                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -274,7 +274,7 @@ export default function PhoneNumbersPage() {
                                   : 'Koto Platform'}
                             </span>
                           </div>
-                          <span style={{ fontSize:10, color:'#999', fontFamily:FH, fontWeight:600, textTransform:'uppercase', letterSpacing:'.04em' }}>
+                          <span style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600, textTransform:'uppercase', letterSpacing:'.04em' }}>
                             {n.client_id ? 'Client' : n.agency_id ? 'Agency' : 'Platform'}
                           </span>
                         </div>
@@ -333,13 +333,13 @@ export default function PhoneNumbersPage() {
             Next-gen carrier with lower costs and no setup fees. Ideal for AI voice agents and local presence dialing.
           </div>
           <div style={{ display:'flex', gap:16, marginBottom:12 }}>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$1.00</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$2.00</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$0</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$1.00</div><div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$2.00</div><div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:GRN }}>$0</div><div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
             {['No setup fees', 'Local presence', 'Lower per-min rates', 'Number porting', 'SIP trunking'].map(f => (
-              <span key={f} style={{ fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#dcfce7', color:GRN }}>{f}</span>
+              <span key={f} style={{ fontSize:12, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#dcfce7', color:GRN }}>{f}</span>
             ))}
           </div>
         </div>
@@ -360,13 +360,13 @@ export default function PhoneNumbersPage() {
             Industry standard with worldwide coverage and rich programmable features. Higher cost but most established provider.
           </div>
           <div style={{ display:'flex', gap:16, marginBottom:12 }}>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$1.15</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$2.15</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
-            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:AMB }}>$1.00</div><div style={{ fontSize:10, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$1.15</div><div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>LOCAL/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#3b82f6' }}>$2.15</div><div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>TOLL-FREE/MO</div></div>
+            <div><div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:AMB }}>$1.00</div><div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600 }}>SETUP FEE</div></div>
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
             {['Worldwide coverage', 'Rich SMS/MMS', 'Programmable voice', 'Established provider'].map(f => (
-              <span key={f} style={{ fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#dbeafe', color:'#3b82f6' }}>{f}</span>
+              <span key={f} style={{ fontSize:12, fontWeight:700, padding:'3px 8px', borderRadius:6, background:'#dbeafe', color:'#3b82f6' }}>{f}</span>
             ))}
           </div>
         </div>
@@ -424,7 +424,7 @@ export default function PhoneNumbersPage() {
                 </div>
                 <div style={{ fontSize:13, fontWeight:700, color:BLK, marginTop:4, fontFamily:FH }}>
                   ${(n.cost_monthly || (searchType === 'tollfree' ? 2.00 : 1.00)).toFixed(2)}/mo
-                  {(n.cost_setup || 0) > 0 && <span style={{ fontSize:11, color:'#6b7280', fontWeight:500 }}> + ${n.cost_setup} setup</span>}
+                  {(n.cost_setup || 0) > 0 && <span style={{ fontSize:12, color:'#6b7280', fontWeight:500 }}> + ${n.cost_setup} setup</span>}
                 </div>
               </div>
               <Btn small onClick={()=>purchaseNumber(n)} disabled={buying === n.phone_number} bg={searchProvider === 'telnyx' ? GRN : R}>
@@ -471,7 +471,7 @@ export default function PhoneNumbersPage() {
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                   {['Phone Number','Type','Monthly Cost','Next Billing','Status'].map(h => (
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
+                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.04em', fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -529,7 +529,7 @@ export default function PhoneNumbersPage() {
             </div>
             <div>
               <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:W, fontFamily:FH }}>Phone Numbers</h1>
-              <p style={{ margin:0, fontSize:11, color:'#6b7280', fontFamily:FB }}>Manage provisioned numbers, purchase new ones, assign to agents</p>
+              <p style={{ margin:0, fontSize:12, color:'#6b7280', fontFamily:FB }}>Manage provisioned numbers, purchase new ones, assign to agents</p>
             </div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>

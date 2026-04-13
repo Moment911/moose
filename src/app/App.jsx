@@ -29,6 +29,7 @@ import AdminPortalPage from '../views/AdminPortalPage'
 import MasterAdminPage from '../views/MasterAdminPage'
 import KotoSuperAdminPage from '../views/KotoSuperAdminPage'
 import RequireAuth from '../components/RequireAuth'
+import RequireAgency from '../components/RequireAgency'
 import ImpersonationBar from '../components/ImpersonationBar'
 import AgencyControlPanel from '../components/AgencyControlPanel'
 import BrandGuidelinesPage from '../views/BrandGuidelinesPage'
@@ -268,8 +269,9 @@ export default function App() {
             <ImpersonationBar/>
             <AgencyControlPanel/>
             <RequireAuth>
+            <RequireAgency>
             <AppRoutes />
-            {/* HelpAssistant floating button removed per user request */}
+            </RequireAgency>
             </RequireAuth>
             {/* DialPad removed from always-on — now only loads when navigating to /voice */}
             </MobileShell>
