@@ -10,7 +10,7 @@ import {
   ArrowLeft, Trash2, ExternalLink, Phone, Mail, Globe, Building, FileText,
   Star, BarChart2, Activity, Brain, Copy, Check, Loader2, RefreshCw,
   ChevronRight, Shield, Zap, TrendingUp, Clock, Users, MessageSquare,
-  Search, Edit2, X, Key, Eye, EyeOff
+  Search, Edit2, X, Key, Eye, EyeOff, Palette
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -66,6 +66,7 @@ const SECTIONS = [
   { key: 'calls',        label: 'Calls',           icon: Phone     },
   { key: 'activity',     label: 'Activity',        icon: Activity  },
   { key: 'intelligence', label: 'Intelligence',    icon: Brain     },
+  { key: 'brandkit',     label: 'Brand Kit',       icon: Palette   },
 ]
 
 const INDUSTRIES = [
@@ -1545,6 +1546,181 @@ export default function ClientDetailPage() {
     )
   }
 
+  function renderBrandKitSection() {
+    const bk = client?.brand_kit || {}
+    const scanning = bk.scan_status === 'pending'
+    const vis = bk.portal_visibility || {}
+
+    async function triggerScan() {
+      if (!client?.website) { toast.error('Add a website URL first'); return }
+      toast.loading('Scanning website…', { id: 'scan' })
+      try {
+        const res = await fetch('/api/client-scan', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ client_id: clientId, website_url: client.website, agency_id: agencyId }),
+        }).then(r => r.json())
+        if (res.error) { toast.error(res.error, { id: 'scan' }); return }
+        toast.success('Scan complete — refreshing…', { id: 'scan' })
+        // Reload client data
+        const { data } = await supabase.from('clients').select('*').eq('id', clientId).single()
+        if (data) setClient(data)
+      } catch (e) { toast.error('Scan failed', { id: 'scan' }) }
+    }
+
+    async function saveBrandKit(updates) {
+      const updated = { ...bk, ...updates }
+      const { error } = await supabase.from('clients').update({ brand_kit: updated }).eq('id', clientId)
+      if (error) toast.error(error.message)
+      else { setClient(prev => prev ? { ...prev, brand_kit: updated } : prev); toast.success('Brand kit saved') }
+    }
+
+    async function toggleVisibility(field) {
+      const newVis = { ...vis, [field]: !vis[field] }
+      saveBrandKit({ portal_visibility: newVis })
+    }
+
+    const VisToggle = ({ field, label }) => (
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280', cursor: 'pointer' }}>
+        <input type="checkbox" checked={vis[field] || false} onChange={() => toggleVisibility(field)} style={{ accentColor: T }} />
+        Show to client
+      </label>
+    )
+
+    return (
+      <div ref={el => { sectionRefs.current.brandkit = el }}>
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={sectionTitle}><Palette size={16} color={T} /> Brand Kit</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {bk.scanned_at && (
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                  Scanned {new Date(bk.scanned_at).toLocaleDateString()}
+                </span>
+              )}
+              <button onClick={triggerScan} disabled={scanning}
+                style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <RefreshCw size={11} className={scanning ? 'animate-spin' : ''} /> {scanning ? 'Scanning…' : bk.scan_status === 'complete' ? 'Re-scan' : 'Scan Website'}
+              </button>
+            </div>
+          </div>
+
+          {bk.scan_status === 'failed' && (
+            <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fef2f2', color: '#dc2626', fontSize: 12, marginBottom: 16 }}>
+              Scan failed: {bk.error || 'Unknown error'}. Try re-scanning or enter brand info manually.
+            </div>
+          )}
+
+          {/* Logo */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={fieldLabel}>Logo</label>
+              <VisToggle field="logo" />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {(bk.logo_url || client?.logo_url) && (
+                <img src={bk.logo_url || client?.logo_url} alt="Logo" style={{ height: 48, maxWidth: 160, objectFit: 'contain', borderRadius: 8, border: '1px solid #e5e7eb', padding: 4 }} />
+              )}
+              <input defaultValue={bk.logo_url || ''} placeholder="https://..." id="bk-logo-input"
+                style={{ ...inp, flex: 1 }} />
+              <button onClick={() => { const v = document.getElementById('bk-logo-input')?.value?.trim(); if (v) saveBrandKit({ logo_url: v }) }}
+                style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+            </div>
+          </div>
+
+          {/* Colors */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={fieldLabel}>Brand Colors</label>
+              <VisToggle field="colors" />
+            </div>
+            <div style={{ display: 'flex', gap: 16 }}>
+              {['primary', 'secondary', 'accent'].map(key => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="color" defaultValue={bk.colors?.[key] || '#cccccc'} id={`bk-color-${key}`}
+                    style={{ width: 36, height: 36, border: '2px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', padding: 2 }} />
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'capitalize' }}>{key}</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: 'monospace' }}>{bk.colors?.[key] || '—'}</div>
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => {
+                const colors = {}
+                ;['primary', 'secondary', 'accent'].forEach(k => { colors[k] = document.getElementById(`bk-color-${k}`)?.value })
+                saveBrandKit({ colors })
+              }} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', alignSelf: 'flex-end' }}>Save</button>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={fieldLabel}>Description</label>
+              <VisToggle field="description" />
+            </div>
+            <textarea defaultValue={bk.description || ''} id="bk-desc" rows={3}
+              style={{ ...inp, resize: 'vertical' }} placeholder="Business description…" />
+            <button onClick={() => saveBrandKit({ description: document.getElementById('bk-desc')?.value })}
+              style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', marginTop: 6 }}>Save</button>
+          </div>
+
+          {/* Services */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={fieldLabel}>Services</label>
+              <VisToggle field="services" />
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+              {(bk.services || []).map((s, i) => (
+                <span key={i} style={{ padding: '4px 10px', borderRadius: 20, background: T + '12', color: T, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {s}
+                  <X size={10} style={{ cursor: 'pointer' }} onClick={() => saveBrandKit({ services: bk.services.filter((_, j) => j !== i) })} />
+                </span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input id="bk-service-input" placeholder="Add service…" style={{ ...inp, flex: 1 }}
+                onKeyDown={e => { if (e.key === 'Enter') { const v = e.target.value.trim(); if (v) { saveBrandKit({ services: [...(bk.services || []), v] }); e.target.value = '' } } }} />
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={fieldLabel}>Social Links</label>
+              <VisToggle field="social_links" />
+            </div>
+            {(bk.social_links || []).map((link, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', width: 80, textTransform: 'capitalize' }}>{link.platform}</span>
+                <span style={{ fontSize: 12, color: T, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.url}</span>
+                <X size={12} style={{ cursor: 'pointer', color: '#dc2626' }} onClick={() => saveBrandKit({ social_links: bk.social_links.filter((_, j) => j !== i) })} />
+              </div>
+            ))}
+          </div>
+
+          {/* Industry & Tagline */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <label style={fieldLabel}>Industry</label>
+                <VisToggle field="industry" />
+              </div>
+              <div style={{ fontSize: 14, color: BLK }}>{bk.industry || client?.industry || '—'}</div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <label style={fieldLabel}>Tagline</label>
+                <VisToggle field="tagline" />
+              </div>
+              <div style={{ fontSize: 14, color: BLK, fontStyle: 'italic' }}>{bk.tagline || '—'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   function renderIntelligenceSection() {
     const hs = healthScore || 0
     const hsColor = getHealthColor(hs)
@@ -1712,6 +1888,8 @@ export default function ClientDetailPage() {
             {renderActivitySection()}
             <div style={{ height: 32 }} />
             {renderIntelligenceSection()}
+            <div style={{ height: 32 }} />
+            {renderBrandKitSection()}
             <div style={{ height: 40 }} />
           </div>
         </div>
