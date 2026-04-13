@@ -7,16 +7,14 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED='#E6007E',TEAL='#00C2CB',BLK='#111111',GREEN='#16a34a',AMBER='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 
 const SEV={critical:{bg:'#fef2f2',color:RED,dot:RED},moderate:{bg:'#fffbeb',color:AMBER,dot:AMBER},low:{bg:'#f0fdf4',color:GREEN,dot:GREEN}}
 const TYPE_COLOR={blog:'#8b5cf6',faq:TEAL,service:RED,location:'#f97316','case-study':'#0284c7',educational:GREEN,page:'#374151',video:'#f43f5e'}
 
 function TypeBadge({type}){
   const color=TYPE_COLOR[type]||'#9ca3af'
-  return <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:color+'20',color,fontFamily:FH}}>{type}</span>
+  return <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:color+'20',color,fontFamily:FH}}>{type}</span>
 }
 
 function ClusterCard({cluster}){
@@ -29,9 +27,9 @@ function ClusterCard({cluster}){
         <div style={{width:10,height:10,borderRadius:'50%',background:sev.color,flexShrink:0}}/>
         <div style={{flex:1}}>
           <div style={{fontFamily:FH,fontSize:14,fontWeight:800,color:BLK}}>{cluster.cluster_name}</div>
-          <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB,marginTop:2}}>{cluster.supporting_pages?.length||0} supporting pages · {cluster.pillar_page?.type}</div>
+          <div style={{fontSize:12,color:'#6b7280',fontFamily:FB,marginTop:2}}>{cluster.supporting_pages?.length||0} supporting pages · {cluster.pillar_page?.type}</div>
         </div>
-        <span style={{fontSize:11,fontWeight:700,padding:'3px 9px',borderRadius:20,background:sev.bg,color:sev.color,fontFamily:FH,flexShrink:0}}>{cluster.gap_severity}</span>
+        <span style={{fontSize:12,fontWeight:700,padding:'3px 9px',borderRadius:20,background:sev.bg,color:sev.color,fontFamily:FH,flexShrink:0}}>{cluster.gap_severity}</span>
         <TypeBadge type={cluster.pillar_page?.type}/>
         {open?<ChevronUp size={14} color="#9ca3af"/>:<ChevronDown size={14} color="#9ca3af"/>}
       </div>
@@ -44,7 +42,7 @@ function ClusterCard({cluster}){
               <div style={{fontFamily:FH,fontSize:13,fontWeight:700,color:BLK}}>{cluster.pillar_page?.title}</div>
               <div style={{display:'flex',gap:6,marginTop:4,flexWrap:'wrap'}}>
                 {cluster.pillar_page?.keywords?.map((k,i)=>(
-                  <span key={i} style={{fontSize:11,padding:'2px 8px',borderRadius:20,background:'#f3f4f6',color:'#374151',fontFamily:FB}}>{k}</span>
+                  <span key={i} style={{fontSize:12,padding:'2px 8px',borderRadius:20,background:'#f3f4f6',color:'#374151',fontFamily:FB}}>{k}</span>
                 ))}
               </div>
             </div>
@@ -57,8 +55,8 @@ function ClusterCard({cluster}){
                   <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',background:'#fff',borderRadius:9,border:'1px solid #e5e7eb'}}>
                     <TypeBadge type={p.type}/>
                     <div style={{flex:1,fontSize:13,fontFamily:FH,fontWeight:600,color:BLK}}>{p.title}</div>
-                    <div style={{fontSize:11,color:'#9ca3af',fontFamily:FB}}>{p.target_keyword}</div>
-                    <div style={{fontSize:11,color:'#9ca3af',fontFamily:FB}}>{p.word_count}w</div>
+                    <div style={{fontSize:12,color:'#6b7280',fontFamily:FB}}>{p.target_keyword}</div>
+                    <div style={{fontSize:12,color:'#6b7280',fontFamily:FB}}>{p.word_count}w</div>
                   </div>
                 ))}
               </div>
@@ -114,16 +112,16 @@ export default function ContentGapPage(){
         <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:14}}>
             <div>
-              <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color: '#111111', margin: 0, letterSpacing:'-.03em',display:'flex',alignItems:'center',gap:10}}>
+              <h1 style={{fontFamily:FH,fontSize:20,fontWeight:800,color:'#111', margin: 0, letterSpacing:'-.03em',display:'flex',alignItems:'center',gap:10}}>
                 <BookOpen size={20} color={TEAL}/> Content Gap & Topic Clusters
               </h1>
-              <p style={{fontSize:13,color:'#999999',margin:'3px 0 0',fontFamily:FB}}>AI content strategy from your real GSC data</p>
+              <p style={{fontSize:13,color:'#6b7280',margin:'3px 0 0',fontFamily:FB}}>AI content strategy from your real GSC data</p>
             </div>
             <div style={{display:'flex',gap:10}}>
               <select value={clientId} onChange={e=>setClientId(e.target.value)}
-                style={{padding:'9px 14px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14,fontFamily:FH,minWidth:200}}>
+                style={{padding:'9px 14px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:14,fontFamily:FH,minWidth:200}}>
                 <option value="">Select client</option>
-                {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
+                {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               <button onClick={analyze} disabled={loading||!clientId}
                 style={{padding:'9px 22px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:7,boxShadow:`0 3px 12px ${RED}40`}}>
@@ -136,7 +134,7 @@ export default function ContentGapPage(){
             <div style={{display:'flex',gap:0}}>
               {TABS.map(t=>(
                 <button key={t.key} onClick={()=>setTab(t.key)}
-                  style={{padding:'10px 18px',border:'none',background:'transparent',borderBottom:tab===t.key?`2.5px solid ${RED}`:`2.5px solid transparent`,color:tab===t.key?'#fff':'rgba(255,255,255,.35)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
+                  style={{padding:'10px 18px',border:'none',background:'transparent',borderBottom:tab===t.key?`2.5px solid ${RED}`:`2.5px solid transparent`,color:tab===t.key?RED:'#6b7280',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
                   <t.icon size={12}/> {t.label}
                 </button>
               ))}
@@ -150,8 +148,8 @@ export default function ContentGapPage(){
                 <div style={{background:`linear-gradient(135deg, ${BLK} 0%, #1a1a2e 100%)`,borderRadius:16,padding:'18px 22px',marginBottom:16,display:'flex',gap:12,alignItems:'flex-start'}}>
                   <Sparkles size={16} color={TEAL} style={{flexShrink:0,marginTop:2}}/>
                   <div>
-                    <div style={{fontFamily:FH,fontSize:11,fontWeight:700,color:TEAL,textTransform:'uppercase',letterSpacing:'.07em',marginBottom:5}}>Content Health Assessment</div>
-                    <div style={{fontSize:14,color:'#999999',fontFamily:FB,lineHeight:1.7}}>{s.content_health}</div>
+                    <div style={{fontFamily:FH,fontSize:12,fontWeight:700,color:TEAL,textTransform:'uppercase',letterSpacing:'.07em',marginBottom:5}}>Content Health Assessment</div>
+                    <div style={{fontSize:14,color:'#6b7280',fontFamily:FB,lineHeight:1.7}}>{s.content_health}</div>
                   </div>
                 </div>
               )}
@@ -181,7 +179,7 @@ export default function ContentGapPage(){
                           <div style={{display:'flex',gap:8,marginTop:3,alignItems:'center'}}>
                             <TypeBadge type={w.type}/>
                             <span style={{fontSize:12,color:TEAL,fontFamily:FH}}>→ {w.target_keyword}</span>
-                            <span style={{fontSize:11,color:'#9ca3af',display:'flex',alignItems:'center',gap:3}}><Clock size={11}/>{w.estimated_time}</span>
+                            <span style={{fontSize:12,color:'#6b7280',display:'flex',alignItems:'center',gap:3}}><Clock size={11}/>{w.estimated_time}</span>
                           </div>
                         </div>
                       </div>
@@ -196,7 +194,7 @@ export default function ContentGapPage(){
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {(s.content_calendar||[]).map((item,i)=>(
                     <div key={i} style={{background:'#fff',borderRadius:12,border:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
-                      <div style={{width:44,height:44,borderRadius:11,background:RED+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:FH,fontSize:11,fontWeight:700,color:RED,textAlign:'center',lineHeight:1.3}}>
+                      <div style={{width:44,height:44,borderRadius:11,background:RED+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:FH,fontSize:12,fontWeight:700,color:RED,textAlign:'center',lineHeight:1.3}}>
                         Week {item.week}
                       </div>
                       <div style={{flex:1}}>
@@ -205,7 +203,7 @@ export default function ContentGapPage(){
                           <TypeBadge type={item.type}/>
                           <span style={{fontSize:12,color:TEAL,fontFamily:FH}}>→ {item.keyword}</span>
                         </div>
-                        {item.notes&&<div style={{fontSize:12,color:'#9ca3af',fontFamily:FB,marginTop:3}}>{item.notes}</div>}
+                        {item.notes&&<div style={{fontSize:12,color:'#6b7280',fontFamily:FB,marginTop:3}}>{item.notes}</div>}
                       </div>
                     </div>
                   ))}

@@ -13,9 +13,9 @@ import {
   Zap, Copy, Download, Edit2, Trash2, Mail, MessageSquare, Target
 } from 'lucide-react'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b',PURP='#7c3aed'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const PURP='#7c3aed'
+const W='#ffffff'
 
 const DEPARTMENTS = ['Main Line','Sales','Support','Billing','Emergency','After Hours']
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
@@ -30,9 +30,9 @@ const defaultHours = () => DAYS.reduce((a,d)=>({...a,[d]:{enabled:d!=='Sat'&&d!=
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const card = { background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:20 }
-const input = { width:'100%', padding:'8px 12px', borderRadius:8, border:'1px solid #d1d5db', fontSize:14, fontFamily:FB, outline:'none' }
+const input = { width:'100%', padding:'8px 12px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:14, fontFamily:FB, outline:'none' }
 const btn = (bg=R,c='#fff') => ({ padding:'8px 18px', borderRadius:8, background:bg, color:c, border:'none', fontSize:14, fontFamily:FH, fontWeight:600, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6 })
-const badge = (bg,c='#fff') => ({ display:'inline-block', padding:'2px 8px', borderRadius:20, background:bg, color:c, fontSize:11, fontWeight:600 })
+const badge = (bg,c='#fff') => ({ display:'inline-block', padding:'2px 8px', borderRadius:20, background:bg, color:c, fontSize:12, fontWeight:600 })
 const tabStyle = (active) => ({ padding:'8px 16px', borderRadius:'8px 8px 0 0', background:active?'#fff':'transparent', color:active?R:'#6b7280', fontWeight:active?700:500, border:'none', borderBottom:active?`2px solid ${R}`:'2px solid transparent', cursor:'pointer', fontSize:13, fontFamily:FH })
 
 export default function AnsweringServicePage() {
@@ -71,14 +71,14 @@ export default function AnsweringServicePage() {
       <Sidebar />
       <div style={{ flex:1, display:'flex', flexDirection:'column' }}>
         {/* Header */}
-        <div style={{ background:W, padding:'16px 28px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ background:W, padding:'16px 28px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <Phone size={22} color={R} />
-            <span style={{ color:'#fff', fontSize:20, fontWeight:700, fontFamily:FH }}>Koto Answering</span>
+            <span style={{ color:BLK, fontSize:20, fontWeight:700, fontFamily:FH }}>Koto Answering</span>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ color:'#9ca3af', fontSize:13 }}>{agents.length} agent{agents.length!==1?'s':''}</span>
-            <RefreshCw size={16} color='#9ca3af' style={{ cursor:'pointer' }} onClick={loadAgents} />
+            <span style={{ color:'#6b7280', fontSize:13 }}>{agents.length} agent{agents.length!==1?'s':''}</span>
+            <RefreshCw size={16} color='#6b7280' style={{ cursor:'pointer' }} onClick={loadAgents} />
           </div>
         </div>
 
@@ -91,13 +91,13 @@ export default function AnsweringServicePage() {
             </div>
             <div style={{ padding:'0 12px 8px' }}>
               <div style={{ position:'relative' }}>
-                <Search size={14} color='#9ca3af' style={{ position:'absolute', left:10, top:10 }} />
+                <Search size={14} color='#6b7280' style={{ position:'absolute', left:10, top:10 }} />
                 <input placeholder="Search agents..." value={searchQ} onChange={e=>setSearchQ(e.target.value)} style={{ ...input, paddingLeft:32 }} />
               </div>
             </div>
             <div style={{ flex:1, overflowY:'auto' }}>
               {loading ? <div style={{ padding:20, textAlign:'center' }}><Loader2 size={20} className="spin" color={R} /></div>
-              : filtered.length === 0 ? <div style={{ padding:20, color:'#9ca3af', fontSize:13, textAlign:'center' }}>No agents yet. Click "New Agent" to get started.</div>
+              : filtered.length === 0 ? <div style={{ padding:20, color:'#6b7280', fontSize:13, textAlign:'center' }}>No agents yet. Click "New Agent" to get started.</div>
               : filtered.map(a => (
                 <div key={a.id} onClick={()=>{setSelectedAgent(a);setActiveTab(0)}} style={{
                   padding:'10px 14px', cursor:'pointer', borderLeft: selectedAgent?.id===a.id ? `3px solid ${R}` : '3px solid transparent',
@@ -109,7 +109,7 @@ export default function AnsweringServicePage() {
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:4, marginLeft:16 }}>
                     {a.department && <span style={badge('#f3f4f6','#374151')}>{a.department}</span>}
-                    {a.phone_number && <span style={{ fontSize:11, color:'#9ca3af' }}>{a.phone_number}</span>}
+                    {a.phone_number && <span style={{ fontSize:12, color:'#6b7280' }}>{a.phone_number}</span>}
                   </div>
                 </div>
               ))}
@@ -121,7 +121,7 @@ export default function AnsweringServicePage() {
             {!selectedAgent ? (
               <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
                 <PhoneIncoming size={40} color='#d1d5db' />
-                <p style={{ color:'#9ca3af', fontSize:15 }}>Select an agent or create a new one</p>
+                <p style={{ color:'#6b7280', fontSize:15 }}>Select an agent or create a new one</p>
               </div>
             ) : (
               <>
@@ -223,7 +223,7 @@ function SetupTab({ agent, setAgent, agencyId, saving, setSaving }) {
                 {filteredSic.map(s => (
                   <div key={s.code} onClick={()=>{upd('sic_code',s.code);setSicOpen(false)}} style={{ padding:'6px 12px', cursor:'pointer', fontSize:13, borderBottom:'1px solid #f3f4f6' }}
                     onMouseEnter={e=>e.currentTarget.style.background='#f3f4f6'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                    <strong>{s.code}</strong> — {s.label} <span style={{ color:'#9ca3af', fontSize:11 }}>{s.division}</span>
+                    <strong>{s.code}</strong> — {s.label} <span style={{ color:'#6b7280', fontSize:11 }}>{s.division}</span>
                   </div>
                 ))}
               </div>
@@ -246,7 +246,7 @@ function SetupTab({ agent, setAgent, agencyId, saving, setSaving }) {
                 <input style={{ ...input, width:100 }} placeholder="Area code" value={form._area_code||''} onChange={e=>upd('_area_code',e.target.value)} />
                 <button onClick={provisionNumber} style={btn()}>Provision</button>
               </div>
-              <div style={{ margin:'12px 0', color:'#9ca3af', fontSize:12, textAlign:'center' }}>— or —</div>
+              <div style={{ margin:'12px 0', color:'#6b7280', fontSize:12, textAlign:'center' }}>— or —</div>
               <label style={{ fontSize:12, color:'#6b7280', marginBottom:4, display:'block' }}>Forward an Existing Number</label>
               <input style={input} placeholder="+1 (555) 123-4567" value={form.forward_number||''} onChange={e=>upd('forward_number',e.target.value)} />
             </div>
@@ -284,10 +284,10 @@ function SetupTab({ agent, setAgent, agencyId, saving, setSaving }) {
               {hours[day]?.enabled ? (
                 <>
                   <input type="time" style={{ ...input, width:120 }} value={hours[day]?.open||'09:00'} onChange={e=>setHour(day,'open',e.target.value)} />
-                  <span style={{ color:'#9ca3af' }}>to</span>
+                  <span style={{ color:'#6b7280' }}>to</span>
                   <input type="time" style={{ ...input, width:120 }} value={hours[day]?.close||'17:00'} onChange={e=>setHour(day,'close',e.target.value)} />
                 </>
-              ) : <span style={{ color:'#9ca3af', fontSize:12 }}>Closed</span>}
+              ) : <span style={{ color:'#6b7280', fontSize:12 }}>Closed</span>}
             </div>
           ))}
           <label style={{ fontSize:12, color:'#6b7280', marginTop:12, marginBottom:4, display:'block' }}>Timezone</label>
@@ -484,7 +484,7 @@ function IntakeFormTab({ agent, setAgent }) {
                 cursor:'pointer', background: selectedTemplate===tpl.id ? 'rgba(234,39,41,.04)' : '#fafafa', transition:'all .15s'
               }}>
                 <div style={{ fontWeight:600, fontSize:13, marginBottom:4 }}>{tpl.name}</div>
-                <div style={{ fontSize:11, color:'#9ca3af' }}>{tpl.questions?.length || 0} questions</div>
+                <div style={{ fontSize:12, color:'#6b7280' }}>{tpl.questions?.length || 0} questions</div>
                 {tpl.industry && <span style={badge('#f3f4f6','#374151')}>{tpl.industry}</span>}
               </div>
             ))}
@@ -495,14 +495,14 @@ function IntakeFormTab({ agent, setAgent }) {
       {/* Questions */}
       <div style={card}>
         <h3 style={{ margin:'0 0 14px', fontFamily:FH, fontSize:15 }}>Questions</h3>
-        {questions.length===0 ? <p style={{ color:'#9ca3af', fontSize:13 }}>Select a template or add custom questions</p> : (
+        {questions.length===0 ? <p style={{ color:'#6b7280', fontSize:13 }}>Select a template or add custom questions</p> : (
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {questions.map((q,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, background:q.enabled?'#f0fdf4':'#f9fafb', border:'1px solid #e5e7eb' }}>
                 <button onClick={()=>toggleQuestion(i)} style={{ width:22, height:22, borderRadius:6, border:`2px solid ${q.enabled?GRN:'#d1d5db'}`, background:q.enabled?GRN:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   {q.enabled && <Check size={13} color="#fff"/>}
                 </button>
-                <span style={{ flex:1, fontSize:13, color:q.enabled?BLK:'#9ca3af' }}>{q.text}</span>
+                <span style={{ flex:1, fontSize:13, color:q.enabled?BLK:'#6b7280' }}>{q.text}</span>
                 {q.custom && <Trash2 size={14} color="#9ca3af" style={{ cursor:'pointer' }} onClick={()=>removeQuestion(i)}/>}
               </div>
             ))}
@@ -594,12 +594,12 @@ function CallLogTab({ agent }) {
       {loading ? <div style={{ textAlign:'center', padding:40 }}><Loader2 size={24} className="spin" color={R}/></div> : filtered.length===0 ? (
         <div style={{ ...card, textAlign:'center', padding:40 }}>
           <PhoneOff size={32} color='#d1d5db' style={{ marginBottom:8 }} />
-          <p style={{ color:'#9ca3af' }}>No calls match your filters</p>
+          <p style={{ color:'#6b7280' }}>No calls match your filters</p>
         </div>
       ) : (
         <div style={card}>
           {/* Header */}
-          <div style={{ display:'grid', gridTemplateColumns:'140px 1fr 80px 80px 90px 80px', gap:8, padding:'8px 12px', borderBottom:'2px solid #e5e7eb', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'140px 1fr 80px 80px 90px 80px', gap:8, padding:'8px 12px', borderBottom:'2px solid #e5e7eb', fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase' }}>
             <span>Date</span><span>Caller</span><span>Duration</span><span>Urgency</span><span>Outcome</span><span>Sentiment</span>
           </div>
           {filtered.map(c => (
@@ -644,7 +644,7 @@ function CallLogTab({ agent }) {
                   )}
                   {c.follow_up_notes !== undefined && (
                     <div><strong style={{ fontSize:12, color:'#6b7280' }}>Follow-Up Notes</strong>
-                      <p style={{ margin:'4px 0 0', fontSize:13, color:c.follow_up_notes?BLK:'#9ca3af' }}>{c.follow_up_notes || 'No follow-up notes'}</p>
+                      <p style={{ margin:'4px 0 0', fontSize:13, color:c.follow_up_notes?BLK:'#6b7280' }}>{c.follow_up_notes || 'No follow-up notes'}</p>
                     </div>
                   )}
                 </div>
@@ -676,7 +676,7 @@ function AnalyticsTab({ agent, agencyId }) {
   }, [agent.id, agencyId])
 
   if (loading) return <div style={{ textAlign:'center', padding:40 }}><Loader2 size={24} className="spin" color={R}/></div>
-  if (!data) return <div style={{ ...card, textAlign:'center', padding:40 }}><BarChart2 size={32} color="#d1d5db"/><p style={{ color:'#9ca3af' }}>No analytics data available</p></div>
+  if (!data) return <div style={{ ...card, textAlign:'center', padding:40 }}><BarChart2 size={32} color="#d1d5db"/><p style={{ color:'#6b7280' }}>No analytics data available</p></div>
 
   const stats = [
     { label:'Total Calls', value:data.total_calls||0, icon:<Phone size={18}/>, color:R },
@@ -699,7 +699,7 @@ function AnalyticsTab({ agent, agencyId }) {
           <div key={s.label} style={{ ...card, textAlign:'center' }}>
             <div style={{ color:s.color, marginBottom:6 }}>{s.icon}</div>
             <div style={{ fontSize:24, fontWeight:700, fontFamily:FH, color:BLK }}>{s.value}</div>
-            <div style={{ fontSize:11, color:'#6b7280', marginTop:2 }}>{s.label}</div>
+            <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -712,7 +712,7 @@ function AnalyticsTab({ agent, agencyId }) {
             <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center' }}>
               <div style={{ width:'100%', height:Math.max(2, (v/maxHour)*100), background: v>0 ? R : '#e5e7eb', borderRadius:'3px 3px 0 0', transition:'height .3s' }}
                 title={`${i}:00 — ${v} calls`} />
-              {i%3===0 && <span style={{ fontSize:9, color:'#9ca3af', marginTop:2 }}>{i}</span>}
+              {i%3===0 && <span style={{ fontSize:9, color:'#6b7280', marginTop:2 }}>{i}</span>}
             </div>
           ))}
         </div>
@@ -926,7 +926,7 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
                     cursor:'pointer', background: form.intake_template_id===tpl.id ? 'rgba(234,39,41,.04)' : '#fafafa', textAlign:'center', transition:'all .15s'
                   }}>
                     <div style={{ fontWeight:600, fontSize:12, marginBottom:4 }}>{tpl.name}</div>
-                    <div style={{ fontSize:10, color:'#9ca3af' }}>{tpl.questions?.length||0} questions</div>
+                    <div style={{ fontSize:10, color:'#6b7280' }}>{tpl.questions?.length||0} questions</div>
                     {tpl.industry && <div style={{ marginTop:4 }}><span style={badge('#f3f4f6','#374151')}>{tpl.industry}</span></div>}
                     {form.intake_template_id===tpl.id && <Check size={16} color={R} style={{ marginTop:4 }}/>}
                   </div>

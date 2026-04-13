@@ -17,8 +17,10 @@ import { useLiveTranscription } from '../hooks/useLiveTranscription'
 import Sidebar from '../components/Sidebar'
 import HelpTooltip from '../components/HelpTooltip'
 
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
 const C = {
-  bg: '#F7F7F6',
+  bg: '#f9fafb',
   white: '#ffffff',
   text: '#111',
   muted: '#6b7280',
@@ -204,7 +206,7 @@ function ListView({ aid, onOpen }) {
               Discovery Intelligence
             </h1>
             <span style={{
-              fontSize: 11, fontWeight: 800, letterSpacing: '.06em',
+              fontSize: 12, fontWeight: 800, letterSpacing: '.06em',
               background: C.teal, color: '#fff', padding: '2px 7px', borderRadius: 10,
             }}>NEW</span>
           </div>
@@ -311,7 +313,7 @@ function ListView({ aid, onOpen }) {
                     background: e.assigned_to_name ? C.teal : '#e5e7eb',
                     color: e.assigned_to_name ? '#fff' : '#9ca3af',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 800, fontFamily: 'var(--font-display)',
+                    fontSize: 12, fontWeight: 800, fontFamily: 'var(--font-display)',
                   }}
                 >
                   {initials}
@@ -446,7 +448,7 @@ function DuplicateModal({ source, aid, onClose, onDone }) {
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>
           Copies sections and questions from <strong style={{ color: C.text }}>{source.client_name}</strong> with all answers cleared.
         </div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
           New client name
         </div>
         <input
@@ -1507,7 +1509,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
               <span style={{ fontWeight: 800, fontSize: 13 }}>{fieldsPopulatedThisSession}</span> field{fieldsPopulatedThisSession === 1 ? '' : 's'} captured
             </div>
             {lastProcessedAt && (
-              <div style={{ fontSize: 11, opacity: 0.75 }}>
+              <div style={{ fontSize: 12, opacity: 0.75 }}>
                 last processed {Math.max(1, Math.round((Date.now() - lastProcessedAt) / 1000))}s ago
               </div>
             )}
@@ -1610,7 +1612,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
                   onClick={() => setShowAssign(true)}
                   style={{
                     background: C.white, border: `1px dashed ${C.borderMd}`, borderRadius: 12,
-                    padding: '3px 10px', fontSize: 11, fontWeight: 600, color: C.muted, cursor: 'pointer',
+                    padding: '3px 10px', fontSize: 12, fontWeight: 600, color: C.muted, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: 4,
                   }}
                 >
@@ -1876,7 +1878,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
                     border: `1px solid ${coachSection === section.id ? C.teal : C.border}`,
                     background: coachSection === section.id ? C.tealSoft : '#fff',
                     color: coachSection === section.id ? C.teal : C.mutedDark,
-                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
                 >
@@ -2085,7 +2087,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
               background: '#f9fafb', border: `1px solid ${C.border}`,
               borderRadius: 10, padding: '12px 14px', marginBottom: 14,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
                 Before you start
               </div>
               <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: C.text, lineHeight: 1.7 }}>
@@ -2161,7 +2163,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
 
             {sessionPopulatedRef.current.length > 0 ? (
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
                   Captured from speech
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2192,7 +2194,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
 
             {micSegments.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
                   Full transcript ({micSegments.length} segments)
                 </div>
                 <div style={{
@@ -2280,7 +2282,7 @@ function AssigneeChip({ name, onClick }) {
       onClick={onClick}
       style={{
         background: C.white, border: `1px solid ${C.border}`, borderRadius: 12,
-        padding: '2px 9px 2px 3px', fontSize: 11, fontWeight: 600, color: C.text,
+        padding: '2px 9px 2px 3px', fontSize: 12, fontWeight: 600, color: C.text,
         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
       }}
     >
@@ -2358,7 +2360,7 @@ function SectionNav({ sections, active, onSelect }) {
             transition: 'width .5s',
           }} />
         </div>
-        <div style={{ fontSize: 11, color: C.muted }}>
+        <div style={{ fontSize: 12, color: C.muted }}>
           <span style={{ fontWeight: 800, color: overallColor }}>{overallPct}%</span> · {overallAnswered}/{overallTotal} fields answered
         </div>
       </div>
@@ -2451,7 +2453,7 @@ function IntelCardsPanel({ intelCards }) {
           <div key={i} style={{
             background: C.white, borderRadius: 9, padding: 12, border: `1px solid ${C.border}`,
           }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
               {card.category || 'intel'}
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>{card.title}</div>
@@ -2824,17 +2826,17 @@ function FieldEditor({ field, sectionId, sectionName, engagementId, clientName, 
             >
               {field.question}
               {field.question_is_edited && (
-                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.amberTint, color: C.amber }}>
+                <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.amberTint, color: C.amber }}>
                   EDITED
                 </span>
               )}
               {sourceBadge && (
-                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: sourceBadge.bg, color: sourceBadge.fg }}>
+                <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: sourceBadge.bg, color: sourceBadge.fg }}>
                   {sourceBadge.label}
                 </span>
               )}
               {isOpportunity && (
-                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.greenTint, color: C.green }}>
+                <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 700, padding: '1px 6px', borderRadius: 8, background: C.greenTint, color: C.green }}>
                   OPPORTUNITY
                 </span>
               )}
@@ -3392,7 +3394,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
       }}>
         {/* Current section header */}
         <div style={{ padding: 14, borderBottom: `1px solid ${C.border}`, background: C.tealTint }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#0E7490', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#0E7490', textTransform: 'uppercase', letterSpacing: '.06em' }}>
             Now Discussing
           </div>
           <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginTop: 4 }}>
@@ -3405,7 +3407,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
           {/* Section jump */}
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
             Section Jump
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 14 }}>
@@ -3434,7 +3436,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
           </div>
 
           {/* Captured notes */}
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
             Notes Captured
           </div>
           {Object.keys(capturedBySection).length === 0 && (
@@ -3469,7 +3471,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
           {/* Live Flags */}
           {flags.length > 0 && (
             <>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 6, marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 6, marginBottom: 8 }}>
                 Live Flags
               </div>
               {flags.map((f, i) => {
@@ -3534,7 +3536,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Interview Mode</div>
-            <div style={{ fontSize: 11, color: C.muted }}>Adam Segall, Senior Strategist · Momenta Marketing</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Adam Segall, Senior Strategist · Momenta Marketing</div>
           </div>
         </div>
 
@@ -3690,7 +3692,7 @@ function CoachPanel({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 14, color: C.text, fontFamily: 'var(--font-display)' }}>Discovery AI Coach</div>
-          <div style={{ fontSize: 11, color: C.muted }}>Real-time guidance as you work</div>
+          <div style={{ fontSize: 12, color: C.muted }}>Real-time guidance as you work</div>
         </div>
         <button
           onClick={onClose}
@@ -3840,7 +3842,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
     <div>
       {/* Section header + progress */}
       <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
           You're in
         </div>
         <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 3 }}>
@@ -3851,7 +3853,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
         )}
         {completion && (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.muted, marginBottom: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: C.muted, marginBottom: 4 }}>
               <span>Completion</span>
               <span style={{ fontWeight: 700, color: completionColor }}>{completion.answered} / {completion.total}</span>
             </div>
@@ -3870,7 +3872,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
               animation: 'pulse 1.4s ease-in-out infinite',
             }} />
           ))}
-          <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: C.muted, textAlign: 'center', marginTop: 4 }}>
             🧠 Analyzing section…
           </div>
         </div>
@@ -3902,7 +3904,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
           {/* Smart questions */}
           {coachData.smart_questions?.length > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
                 Questions to ask right now
               </div>
               {coachData.smart_questions.map((q, i) => (
@@ -3920,7 +3922,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
           {/* Red flags */}
           {coachData.red_flags?.length > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
                 ⚠️ Watch for
               </div>
               {coachData.red_flags.map((f, i) => {
@@ -3949,7 +3951,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
           {/* Opportunities */}
           {coachData.opportunities?.length > 0 && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
                 💡 Opportunities
               </div>
               {coachData.opportunities.map((o, i) => (
@@ -3971,7 +3973,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
                         onClick={() => onAutoFill(o.section_id, o.field_id, o.opportunity)}
                         disabled={busyAutofill}
                         style={{
-                          fontSize: 11, padding: '4px 11px',
+                          fontSize: 12, padding: '4px 11px',
                           background: C.teal, color: '#fff',
                           border: 'none', borderRadius: 6,
                           cursor: busyAutofill ? 'default' : 'pointer',
@@ -4009,7 +4011,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
             animation: 'pulse 1.4s ease-in-out infinite',
           }} />
         ))}
-        <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: C.muted, textAlign: 'center', marginTop: 4 }}>
           🧠 Analyzing the full document… this takes about 30 seconds.
         </div>
       </div>
@@ -4046,7 +4048,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '6px 12px', borderRadius: 6,
             border: `1px solid ${C.border}`, background: '#fff',
-            fontSize: 11, color: C.mutedDark, cursor: 'pointer',
+            fontSize: 12, color: C.mutedDark, cursor: 'pointer',
             fontFamily: 'inherit',
           }}
         >
@@ -4071,7 +4073,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
       {/* Contradictions */}
       {crossData.contradictions?.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
             ⚠️ Contradictions
           </div>
           {crossData.contradictions.map((c, i) => (
@@ -4099,7 +4101,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
       {/* Top opportunities */}
       {crossData.top_opportunities?.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
             💡 Top Opportunities
           </div>
           {crossData.top_opportunities.map((o, i) => (
@@ -4134,7 +4136,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
       {/* Critical gaps */}
       {crossData.critical_gaps?.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
             🔍 Critical Gaps
           </div>
           {crossData.critical_gaps.map((g, i) => (
@@ -4152,7 +4154,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
       {/* Proposal focus */}
       {crossData.proposal_focus?.length > 0 && (
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
             🎯 Proposal Focus
           </div>
           {crossData.proposal_focus.map((p, i) => (
@@ -4262,7 +4264,7 @@ function LiveAnswersPanel({ eng, engagementId, agencyId, answersRef, sectionsRef
             onClick={() => setTab(t)}
             style={{
               flex: 1, padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em',
+              fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em',
               color: tab === t ? C.teal : C.muted,
               borderBottom: tab === t ? `2px solid ${C.teal}` : '2px solid transparent',
             }}
@@ -4392,11 +4394,11 @@ function AnswersTab({ sections, answers, engSections, editingKey, editValue, set
                     <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
                       <button
                         onClick={() => saveEdit(item.sectionId, item.fieldId)}
-                        style={{ background: C.teal, color: '#fff', border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                        style={{ background: C.teal, color: '#fff', border: 'none', borderRadius: 5, padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                       ><Check size={11} /></button>
                       <button
                         onClick={() => { setEditingKey(null); setEditValue('') }}
-                        style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 5, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}
+                        style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 5, padding: '4px 10px', fontSize: 12, cursor: 'pointer' }}
                       ><X size={11} color={C.muted} /></button>
                     </div>
                   </div>
@@ -4503,7 +4505,7 @@ function SummaryTab({ sectionStats, totalFields, totalAnswered }) {
         <div style={{ fontSize: 22, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)', marginTop: 4 }}>
           {totalAnswered} / {totalFields}
         </div>
-        <div style={{ fontSize: 11, color: C.muted, marginBottom: 6 }}>{pct}% of fields captured</div>
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>{pct}% of fields captured</div>
         <div style={{ height: 6, background: '#fff', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: C.teal, transition: 'width .3s' }} />
         </div>
@@ -4518,7 +4520,7 @@ function SummaryTab({ sectionStats, totalFields, totalAnswered }) {
         const color = p === 100 ? C.green : p > 0 ? C.teal : '#d1d5db'
         return (
           <div key={s.id} style={{ marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
               <span style={{ color: C.text, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 6 }}>
                 {s.title}
               </span>
@@ -4547,7 +4549,7 @@ function SummaryStat({ label, count, color }) {
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       padding: '7px 10px', background: '#fafafa', borderRadius: 6,
     }}>
-      <span style={{ fontSize: 11, color: C.text, fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>{label}</span>
       <span style={{ fontSize: 13, fontWeight: 800, color }}>{count}</span>
     </div>
   )
@@ -4567,7 +4569,7 @@ function BenchmarkIndicator({ data }) {
     <div style={{ marginTop: 8 }}>
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
-        fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 14,
+        fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 14,
         background: palette.bg, color: palette.fg,
       }}>
         <span style={{ fontSize: 12 }}>{palette.arrow}</span>
@@ -4577,13 +4579,13 @@ function BenchmarkIndicator({ data }) {
         )}
       </div>
       {data.insight && (
-        <div style={{ fontSize: 11, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
           {data.insight}
         </div>
       )}
       {data.action && data.assessment === 'below' && (
         <div style={{
-          marginTop: 6, fontSize: 11, color: '#991b1b', background: '#fee2e2',
+          marginTop: 6, fontSize: 12, color: '#991b1b', background: '#fee2e2',
           border: '1px solid #fca5a5', borderRadius: 6, padding: '5px 9px',
           display: 'flex', alignItems: 'flex-start', gap: 6,
         }}>
@@ -4655,7 +4657,7 @@ function TranscriptImportModal({ eng, aid, onClose, onImported }) {
               Paste your call transcript below. The AI will extract answers for every field it can map.
             </div>
 
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
               Source
             </div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
@@ -4739,7 +4741,7 @@ function TranscriptImportModal({ eng, aid, onClose, onImported }) {
 
             {Array.isArray(result.field_updates) && result.field_updates.length > 0 && (
               <>
-                <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>
                   Field Updates
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 240, overflowY: 'auto', marginBottom: 14 }}>
@@ -4752,7 +4754,7 @@ function TranscriptImportModal({ eng, aid, onClose, onImported }) {
                       </div>
                       <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{u.answer}</div>
                       {u.quote && (
-                        <div style={{ fontSize: 11, color: C.muted, fontStyle: 'italic', marginTop: 4 }}>
+                        <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic', marginTop: 4 }}>
                           "{u.quote}"
                         </div>
                       )}
@@ -4844,7 +4846,7 @@ function VersionHistoryDrawer({ eng, aid, onClose, onRestored }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Version {v.version}</div>
-                      <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{dt}</div>
+                      <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{dt}</div>
                       {v.note && (
                         <div style={{ fontSize: 10, color: C.muted, marginTop: 3, fontStyle: 'italic' }}>{v.note}</div>
                       )}
@@ -4855,14 +4857,14 @@ function VersionHistoryDrawer({ eng, aid, onClose, onRestored }) {
                       onClick={() => setPreviewVersion(v)}
                       style={{
                         background: C.white, border: `1px solid ${C.border}`, borderRadius: 6,
-                        padding: '5px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: C.text,
+                        padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: C.text,
                       }}
                     >Preview</button>
                     <button
                       onClick={() => restore(v.version)}
                       style={{
                         background: C.teal, color: '#fff', border: 'none', borderRadius: 6,
-                        padding: '5px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                        padding: '5px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                       }}
                     >Restore</button>
                   </div>
@@ -4891,7 +4893,7 @@ function VersionHistoryDrawer({ eng, aid, onClose, onRestored }) {
             <h3 style={{ margin: '0 0 6px', fontSize: 17, fontWeight: 800 }}>
               Version {previewVersion.version} Preview
             </h3>
-            <div style={{ fontSize: 11, color: C.muted, marginBottom: 14 }}>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>
               Compiled {previewVersion.compiled_at ? new Date(previewVersion.compiled_at).toLocaleString() : '—'}
             </div>
             <div style={{ fontSize: 13, color: C.text, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
@@ -5096,13 +5098,13 @@ function ProfileCard({ eng, domains, onNavigate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>{eng.client_name}</h2>
             <span style={{
-              fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
+              fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
               background: C.tealTint, color: C.teal, textTransform: 'uppercase', letterSpacing: '.04em',
             }}>
               {eng.client_industry || 'No industry'}
             </span>
             <span style={{
-              fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
+              fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 12,
               background: statusBadge.bg, color: statusBadge.fg, textTransform: 'uppercase', letterSpacing: '.04em',
             }}>
               {statusBadge.label}
@@ -5126,7 +5128,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
       {/* Domains */}
       {(domains || []).length > 0 && (
         <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
             Domains
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -5142,7 +5144,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
                   <Globe size={14} color={C.teal} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{d.url}</div>
-                    <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
                       {d.domain_type} · {d.scan_status}
                       {confirmed.length > 0 && ` · ${confirmed.join(', ')}`}
                     </div>
@@ -5157,7 +5159,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
       {/* Tech stack summary */}
       {Object.keys(byCategory).length > 0 && (
         <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
             Tech Stack
           </div>
           {Object.entries(byCategory).map(([cat, tools]) => (
@@ -5168,7 +5170,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {Array.from(tools).map(t => (
                   <span key={t} style={{
-                    fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 12,
+                    fontSize: 12, fontWeight: 600, padding: '3px 9px', borderRadius: 12,
                     background: C.tealTint, color: C.teal, border: `1px solid ${C.teal}30`,
                   }}>{t}</span>
                 ))}
@@ -5181,7 +5183,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
       {/* Key facts grid */}
       {factEntries.length > 0 && (
         <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>
             Key Facts
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
@@ -5199,7 +5201,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
 
       {/* Links */}
       <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>
           Links
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -5223,7 +5225,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
 
       {/* Timeline */}
       <div style={{ background: C.white, borderRadius: 14, border: `1px solid ${C.border}`, padding: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 14 }}>
           Timeline
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
@@ -5239,7 +5241,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
                 }}>
                   {t.complete ? <Check size={14} /> : i + 1}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: t.complete ? C.text : C.muted, marginTop: 5 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.complete ? C.text : C.muted, marginTop: 5 }}>
                   {t.label}
                 </div>
                 <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
@@ -5313,7 +5315,7 @@ function ReadinessBadge({ score, label, onClick }) {
       title={`Readiness: ${score}/100 — ${label}`}
       style={{
         background: palette.bg, border: 'none', borderRadius: 12,
-        padding: '3px 10px', fontSize: 11, fontWeight: 800, color: palette.fg, cursor: 'pointer',
+        padding: '3px 10px', fontSize: 12, fontWeight: 800, color: palette.fg, cursor: 'pointer',
         display: 'flex', alignItems: 'center', gap: 4, textTransform: 'uppercase', letterSpacing: '.04em',
       }}
     >
@@ -5361,7 +5363,7 @@ function ReadinessPopover({ data, onClose }) {
         </div>
 
         <div style={{
-          fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10,
+          fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10,
         }}>
           Breakdown
         </div>
@@ -5423,7 +5425,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
         }}>
           <ClipboardList size={18} color={C.teal} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em' }}>
               Call Prep Sheet
             </div>
             <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>
@@ -5448,7 +5450,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
         <div style={{ padding: '22px 28px' }}>
           {prepSheet.client_snapshot && (
             <div style={{ marginBottom: 22, borderLeft: `3px solid ${C.teal}`, paddingLeft: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
                 Client Snapshot
               </div>
               <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>{prepSheet.client_snapshot}</div>
@@ -5457,7 +5459,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
 
           {Array.isArray(prepSheet.top_5_questions) && prepSheet.top_5_questions.length > 0 && (
             <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
                 Top 5 Questions to Ask
               </div>
               <ol style={{ margin: 0, paddingLeft: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -5479,7 +5481,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
 
           {Array.isArray(prepSheet.risk_flags) && prepSheet.risk_flags.length > 0 && (
             <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
                 Risk Flags
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -5500,7 +5502,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
 
           {Array.isArray(prepSheet.tech_gaps_to_confirm) && prepSheet.tech_gaps_to_confirm.length > 0 && (
             <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
                 Tech Gaps to Confirm
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -5526,7 +5528,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
 
           {Array.isArray(prepSheet.ghl_opportunities_most_relevant) && prepSheet.ghl_opportunities_most_relevant.length > 0 && (
             <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
                 Most Relevant GHL Opportunities
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -5550,7 +5552,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
             <div style={{
               background: C.tealTint, border: `1px solid ${C.teal}40`, borderRadius: 12, padding: 16,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
                 Recommended Opening
               </div>
               <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>
@@ -5666,7 +5668,7 @@ function FollowupEmailModal({ eng, aid, onClose, onSent }) {
         <div style={{ padding: 22 }}>
           {!email ? (
             <>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
                 Recipient name
               </div>
               <input
@@ -5679,7 +5681,7 @@ function FollowupEmailModal({ eng, aid, onClose, onSent }) {
                   borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 12,
                 }}
               />
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
                 Recipient email
               </div>
               <input
@@ -5719,7 +5721,7 @@ function FollowupEmailModal({ eng, aid, onClose, onSent }) {
               }} dangerouslySetInnerHTML={{ __html: email.body_html || '' }} />
               {Array.isArray(email.key_points_heard) && email.key_points_heard.length > 0 && (
                 <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6 }}>
                     Key points heard
                   </div>
                   <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -5917,7 +5919,7 @@ function NotesTab({ eng, engagementId, agencyId }) {
                 <div style={{ fontSize: 10, color: C.muted, marginBottom: 3 }}>
                   {sug.section_id}/{sug.field_id} · {sug.confidence}
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.text, marginBottom: 3 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 3 }}>
                   {sug.field_question}
                 </div>
                 <div style={{ fontSize: 12, color: C.text, lineHeight: 1.4 }}>
@@ -5957,7 +5959,7 @@ function SessionsView({ eng, aid, onChange }) {
       }}>
         <div>
           <div style={{
-            fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4,
+            fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4,
           }}>
             Call Sessions
           </div>
@@ -6107,7 +6109,7 @@ function AddSessionModal({ eng, aid, nextNumber, onClose, onAdded }) {
           </h3>
         </div>
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 10, marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 10, marginBottom: 6 }}>
           Call date & time
         </div>
         <input
@@ -6121,7 +6123,7 @@ function AddSessionModal({ eng, aid, nextNumber, onClose, onAdded }) {
           }}
         />
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
           Duration (minutes)
         </div>
         <input
@@ -6135,7 +6137,7 @@ function AddSessionModal({ eng, aid, nextNumber, onClose, onAdded }) {
           }}
         />
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
           Notes
         </div>
         <textarea
@@ -6150,7 +6152,7 @@ function AddSessionModal({ eng, aid, nextNumber, onClose, onAdded }) {
           }}
         />
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 12, marginBottom: 6 }}>
           Optional transcript (will auto-populate discovery fields)
         </div>
         <textarea

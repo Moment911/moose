@@ -7,8 +7,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R='#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a'
-const W='#ffffff'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/video-voicemails'
 
@@ -140,10 +140,10 @@ export default function AvatarBrowserPage() {
       <Sidebar />
       <div style={{ flex: 1, overflow: 'auto' }}>
         {/* Header */}
-        <div style={{ background: W, padding: '18px 24px', borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: W, padding: '18px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: 19, fontWeight: 500, color: BLK, margin: 0 }}>AI Avatar Browser</h1>
-            <p style={{ fontSize: 12, color: '#999', margin: '2px 0 0' }}>Choose the face for your video voicemails -- {total} avatars available</p>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111', margin: 0 }}>AI Avatar Browser</h1>
+            <p style={{ fontSize: 14, color: '#6b7280', margin: '2px 0 0' }}>Choose the face for your video voicemails -- {total} avatars available</p>
           </div>
         </div>
 
@@ -154,16 +154,16 @@ export default function AvatarBrowserPage() {
               <Send size={16} color={R} />
               <span style={{ fontSize: 15, fontWeight: 500, color: BLK }}>Create Video Message</span>
               {selectedId && (
-                <span style={{ fontSize: 11, color: R, fontWeight: 500 }}>
+                <span style={{ fontSize: 12, color: R, fontWeight: 500 }}>
                   Avatar: {avatars.find(a => a.avatar_id === selectedId)?.avatar_name || 'Selected'}
                 </span>
               )}
-              {!selectedId && <span style={{ fontSize: 11, color: '#999' }}>-- select an avatar below first</span>}
+              {!selectedId && <span style={{ fontSize: 12, color: '#6b7280' }}>-- select an avatar below first</span>}
             </div>
 
             {/* Step 1: AI assist OR paste script */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                 Option A: Let AI write it
               </div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
@@ -172,7 +172,7 @@ export default function AvatarBrowserPage() {
                   onChange={e => setAiMessage(e.target.value)}
                   placeholder="Describe what you want to say... e.g. I tried calling Mike about their low Google reviews"
                   onKeyDown={e => e.key === 'Enter' && generateAiMessage()}
-                  style={{ flex: 1, padding: '10px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
                 />
                 <button onClick={generateAiMessage} disabled={aiGenerating} style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 6,
@@ -185,9 +185,9 @@ export default function AvatarBrowserPage() {
               </div>
               {aiResult && (
                 <div style={{ padding: '10px 14px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #dcfce7', fontSize: 12, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>
-                  <div style={{ fontSize: 10, fontWeight: 500, color: GRN, marginBottom: 4, textTransform: 'uppercase' }}>AI Generated:</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: GRN, marginBottom: 4, textTransform: 'uppercase' }}>AI Generated:</div>
                   {aiResult}
-                  <button onClick={useAiScript} style={{ marginTop: 8, padding: '5px 12px', borderRadius: 4, border: 'none', background: GRN, color: W, fontSize: 11, fontWeight: 500, cursor: 'pointer' }}>
+                  <button onClick={useAiScript} style={{ marginTop: 8, padding: '5px 12px', borderRadius: 4, border: 'none', background: GRN, color: W, fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
                     Use This Script
                   </button>
                 </div>
@@ -197,10 +197,10 @@ export default function AvatarBrowserPage() {
             {/* Step 2: Script editor */}
             <div style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Option B: Type or paste your script
                 </span>
-                <span style={{ fontSize: 11, color: scriptText.length > 80 ? (scriptText.length > 120 ? '#dc2626' : '#d97706') : '#999' }}>
+                <span style={{ fontSize: 12, color: scriptText.length > 80 ? (scriptText.length > 120 ? '#dc2626' : '#d97706') : '#999' }}>
                   {scriptText.length} chars {scriptText.length > 0 && `(~${Math.round(scriptText.split(/\s+/).filter(Boolean).length / 2.5)}s)`}
                 </span>
               </div>
@@ -209,20 +209,20 @@ export default function AvatarBrowserPage() {
                 onChange={e => setScriptText(e.target.value)}
                 placeholder="Type or paste what you want the avatar to say... Keep it under 60 words for a 15-20 second video."
                 rows={4}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, lineHeight: 1.6, resize: 'vertical', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px 14px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', boxSizing: 'border-box' }}
               />
             </div>
 
             {/* Step 3: Email (optional) */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                 Send to email (optional)
               </div>
               <input
                 value={emailTo}
                 onChange={e => setEmailTo(e.target.value)}
                 placeholder="prospect@business.com (leave blank to just generate the video)"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
               />
             </div>
 
@@ -263,7 +263,7 @@ export default function AvatarBrowserPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search avatars by name..."
-                style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -271,14 +271,14 @@ export default function AvatarBrowserPage() {
                 <button key={f.key} onClick={() => setGender(f.key)} style={{
                   padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 500,
                   border: 'none', cursor: 'pointer',
-                  background: gender === f.key ? BLK : '#F5F5F5',
+                  background: gender === f.key ? BLK : '#f9fafb',
                   color: gender === f.key ? W : '#555',
                 }}>
                   {f.label}
                 </button>
               ))}
             </div>
-            <span style={{ fontSize: 12, color: '#999' }}>{total} avatars</span>
+            <span style={{ fontSize: 12, color: '#6b7280' }}>{total} avatars</span>
           </div>
 
           {/* Avatar Grid */}
@@ -301,7 +301,7 @@ export default function AvatarBrowserPage() {
                   onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none' }}
                 >
                   {/* Image / Video */}
-                  <div style={{ position: 'relative', aspectRatio: '1', background: '#F5F5F5', overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', aspectRatio: '1', background: '#f9fafb', overflow: 'hidden' }}>
                     {av.preview_image_url && (
                       <img src={av.preview_image_url} alt={av.avatar_name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: isPlaying ? 'none' : 'block' }} loading="lazy" />
                     )}
@@ -329,7 +329,7 @@ export default function AvatarBrowserPage() {
 
                     {/* Selected badge */}
                     {isSelected && (
-                      <div style={{ position: 'absolute', top: 8, right: 8, padding: '3px 10px', borderRadius: 99, background: R, color: W, fontSize: 10, fontWeight: 600 }}>
+                      <div style={{ position: 'absolute', top: 8, right: 8, padding: '3px 10px', borderRadius: 99, background: R, color: W, fontSize: 12, fontWeight: 600 }}>
                         <Check size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />Current
                       </div>
                     )}
@@ -338,7 +338,7 @@ export default function AvatarBrowserPage() {
                   {/* Info */}
                   <div style={{ padding: '10px 12px' }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: BLK, marginBottom: 2 }}>{av.avatar_name}</div>
-                    <div style={{ fontSize: 11, color: '#999', textTransform: 'capitalize' }}>{av.gender}</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', textTransform: 'capitalize' }}>{av.gender}</div>
 
                     <button
                       onClick={() => selectAvatar(av.avatar_id, av.avatar_name)}
@@ -363,8 +363,8 @@ export default function AvatarBrowserPage() {
           {page < pages - 1 && (
             <div style={{ textAlign: 'center', marginTop: 20 }}>
               <button onClick={() => loadAvatars(page + 1)} disabled={loading} style={{
-                padding: '10px 28px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)',
-                background: W, fontSize: 13, fontWeight: 500, cursor: 'pointer', color: '#555',
+                padding: '10px 28px', borderRadius: 6, border: '1px solid #e5e7eb',
+                background: W, fontSize: 13, fontWeight: 500, cursor: 'pointer', color: '#374151',
               }}>
                 {loading ? <Loader2 size={14} className="ds-spin" /> : `Load More (${avatars.length}/${total})`}
               </button>

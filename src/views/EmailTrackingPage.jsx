@@ -11,8 +11,10 @@ import HelpTooltip from '../components/HelpTooltip'
 import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
 const C = {
-  bg: '#F7F7F6',
+  bg: '#f9fafb',
   white: '#fff',
   text: '#111',
   muted: '#6b7280',
@@ -26,8 +28,6 @@ const C = {
   amber: '#f59e0b',
   amberSoft: '#fffbeb',
 }
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
 
 function timeAgo(iso) {
   if (!iso) return ''
@@ -309,7 +309,7 @@ export default function EmailTrackingPage() {
                       {c.value}
                     </div>
                     {c.sub && (
-                      <div style={{ fontSize: 11, color: C.muted, marginTop: 2, fontWeight: 600 }}>
+                      <div style={{ fontSize: 12, color: C.muted, marginTop: 2, fontWeight: 600 }}>
                         {c.sub}
                       </div>
                     )}
@@ -526,7 +526,7 @@ function EmailRow({ email, active, onSelect, onDelete }) {
           )}
         </div>
         <span style={{
-          display: 'inline-block', fontSize: 11, fontWeight: 800, fontFamily: FH,
+          display: 'inline-block', fontSize: 12, fontWeight: 800, fontFamily: FH,
           padding: '3px 8px', borderRadius: 999,
           background: st.bg, color: st.fg, letterSpacing: '.04em',
           animation: isRecentlyForwarded ? 'pulse-recent 1.5s infinite' : undefined,
@@ -684,7 +684,7 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
                     background: opened ? C.teal : '#e5e7eb',
                     color: opened ? '#fff' : C.muted,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 800, fontFamily: FH, flexShrink: 0,
+                    fontSize: 12, fontWeight: 800, fontFamily: FH, flexShrink: 0,
                   }}>
                     {initials(r.name, r.email)}
                   </div>
@@ -692,10 +692,10 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {r.name || r.email}
                     </div>
-                    <div style={{ fontSize: 11, color: C.muted }}>{r.email}</div>
+                    <div style={{ fontSize: 12, color: C.muted }}>{r.email}</div>
                   </div>
                   <div style={{
-                    fontSize: 11, fontWeight: 700,
+                    fontSize: 12, fontWeight: 700,
                     color: opened ? C.teal : C.muted,
                   }}>
                     {opened ? `Opened ${rOpens.length}×` : 'Not yet opened'}
@@ -706,7 +706,7 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
                   <div style={{
                     marginTop: 8, padding: '6px 10px', borderRadius: 8,
                     background: C.amberSoft, color: '#b45309',
-                    fontSize: 11, fontWeight: 700,
+                    fontSize: 12, fontWeight: 700,
                     display: 'flex', alignItems: 'center', gap: 6,
                   }}>
                     <AlertTriangle size={12} /> Likely forwarded
@@ -718,7 +718,7 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
                   <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {rOpens.slice(0, 5).map((o, j) => (
                       <div key={j} style={{
-                        fontSize: 11, color: C.mutedDark,
+                        fontSize: 12, color: C.mutedDark,
                         display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
                       }}>
                         <Clock size={10} color={C.muted} />
@@ -733,7 +733,7 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
                       </div>
                     ))}
                     {rOpens.length > 5 && (
-                      <div style={{ fontSize: 11, color: C.muted }}>+{rOpens.length - 5} more opens</div>
+                      <div style={{ fontSize: 12, color: C.muted }}>+{rOpens.length - 5} more opens</div>
                     )}
                   </div>
                 )}
@@ -782,7 +782,7 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
                 }}>
                   <DeviceIcon type={d} />
                   <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, marginTop: 4 }}>{pct}%</div>
-                  <div style={{ fontSize: 11, color: C.muted, textTransform: 'capitalize' }}>{d}</div>
+                  <div style={{ fontSize: 12, color: C.muted, textTransform: 'capitalize' }}>{d}</div>
                 </div>
               )
             })}
@@ -798,7 +798,7 @@ function DetailDrawer({ email, opens, onClose, isMobile }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {Object.entries(clientBreakdown).map(([name, count]) => (
                 <span key={name} style={{
-                  fontSize: 11, fontWeight: 700,
+                  fontSize: 12, fontWeight: 700,
                   padding: '4px 10px', borderRadius: 999,
                   background: C.tealSoft, color: '#0e7490',
                 }}>
@@ -865,7 +865,7 @@ function ForwardRecipientCard({ recipient }) {
                 ? 'Forwarded to a corporate network'
                 : 'Forwarded to an individual'}
           </div>
-          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 12, color: '#9a9a96', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {recipient.location_city && `${recipient.location_city}${recipient.location_country ? `, ${recipient.location_country}` : ''} · `}
             {recipient.device} · {recipient.email_client} · {timeAgo(recipient.identified_at)}
           </div>
@@ -910,7 +910,7 @@ function ForwardRecipientCard({ recipient }) {
       {/* Recipient type scores */}
       {scores && (
         <div style={{ padding: '10px 16px', background: '#fafafa', borderTop: '1px solid #f0f0f0' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
             Most likely forwarded to:{' '}
             <span style={{ color: '#00C2CB', textTransform: 'capitalize' }}>
               {(recipient.most_likely_type || 'unknown').replace(/_/g, ' ')}
@@ -937,7 +937,7 @@ function ForwardRecipientCard({ recipient }) {
             )
           })}
           {recipient.classification_reasoning && (
-            <div style={{ fontSize: 11, color: '#9a9a96', fontStyle: 'italic', marginTop: 8 }}>
+            <div style={{ fontSize: 12, color: '#9a9a96', fontStyle: 'italic', marginTop: 8 }}>
               {recipient.classification_reasoning}
             </div>
           )}
@@ -946,7 +946,7 @@ function ForwardRecipientCard({ recipient }) {
 
       {/* Proxy warning */}
       {recipient.proxy_type && (
-        <div style={{ padding: '8px 16px', background: '#f0f9ff', borderTop: '1px solid #e0f2fe', fontSize: 11, color: '#0369a1' }}>
+        <div style={{ padding: '8px 16px', background: '#f0f9ff', borderTop: '1px solid #e0f2fe', fontSize: 12, color: '#0369a1' }}>
           ℹ️ Opened via {recipient.proxy_type} — IP may reflect mail server, not recipient's actual location
         </div>
       )}
@@ -1133,7 +1133,7 @@ function TrackEmailModal({ aid, onClose, onCreated }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700 }}>{r.name || r.email}</div>
-                      {r.name && <div style={{ fontSize: 11, color: C.muted }}>{r.email}</div>}
+                      {r.name && <div style={{ fontSize: 12, color: C.muted }}>{r.email}</div>}
                     </div>
                     <button
                       onClick={() => copyPixel(i, r.pixel_html)}
@@ -1148,7 +1148,7 @@ function TrackEmailModal({ aid, onClose, onCreated }) {
                     </button>
                   </div>
                   <code style={{
-                    display: 'block', fontSize: 11, fontFamily: 'ui-monospace, monospace',
+                    display: 'block', fontSize: 12, fontFamily: 'ui-monospace, monospace',
                     background: C.bg, padding: 8, borderRadius: 6,
                     color: C.mutedDark, wordBreak: 'break-all',
                   }}>

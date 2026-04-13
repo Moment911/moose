@@ -7,8 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED='#E6007E',TEAL='#00C2CB',BLK='#111111',GREEN='#16a34a',AMBER='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans',sans-serif",FB="'Raleway',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 
 const ALL_SECTIONS=[
   {id:'cover',label:'Cover Page',icon:FileText,desc:'Agency logo, client name, report date',required:true},
@@ -178,19 +177,19 @@ export default function WhiteLabelReportPage(){
         <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:14}}>
             <div>
-              <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color:'#fff',margin:0,display:'flex',alignItems:'center',gap:10}}>
+              <h1 style={{fontFamily:FH,fontSize:20,fontWeight:800,color:'#111',margin:0,display:'flex',alignItems:'center',gap:10}}>
                 <FileText size={20} color={RED}/> White-Label Report Builder
               </h1>
-              <p style={{fontSize:13,color:'#999999',margin:'3px 0 0',fontFamily:FB}}>Build branded PDF-ready reports for your clients</p>
+              <p style={{fontSize:13,color:'#6b7280',margin:'3px 0 0',fontFamily:FB}}>Build branded PDF-ready reports for your clients</p>
             </div>
             <div style={{display:'flex',gap:10}}>
               <select value={clientId} onChange={e=>setClientId(e.target.value)}
-                style={{padding:'9px 14px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14,fontFamily:FH,minWidth:200}}>
+                style={{padding:'9px 14px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:14,fontFamily:FH,minWidth:200}}>
                 <option value="">Select client</option>
-                {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
+                {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               <input type="month" value={month} onChange={e=>setMonth(e.target.value)}
-                style={{padding:'9px 12px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14}}/>
+                style={{padding:'9px 12px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:14}}/>
               <button onClick={buildReport} disabled={loading||!clientId}
                 style={{padding:'9px 22px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:7,boxShadow:`0 3px 12px ${RED}40`}}>
                 {loading?<Loader2 size={14} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={14}/>}
@@ -199,11 +198,11 @@ export default function WhiteLabelReportPage(){
               {preview&&(
                 <>
                   <button onClick={downloadHTML}
-                    style={{padding:'9px 16px',borderRadius:10,border:'1px solid rgba(255,255,255,.2)',background:'transparent',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
+                    style={{padding:'9px 16px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:'#374151',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
                     <Download size={13}/> Download
                   </button>
                   <button onClick={printReport}
-                    style={{padding:'9px 16px',borderRadius:10,border:'1px solid rgba(255,255,255,.2)',background:'transparent',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
+                    style={{padding:'9px 16px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:'#374151',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:5}}>
                     <Eye size={13}/> Print/PDF
                   </button>
                 </>
@@ -213,7 +212,7 @@ export default function WhiteLabelReportPage(){
           <div style={{display:'flex',gap:0}}>
             {[{key:'sections',label:'Sections'},{key:'branding',label:'Branding'},{key:'preview',label:'Preview'}].map(t=>(
               <button key={t.key} onClick={()=>setActiveTab(t.key)}
-                style={{padding:'10px 18px',border:'none',background:'transparent',borderBottom:activeTab===t.key?`2.5px solid ${RED}`:`2.5px solid transparent`,color:activeTab===t.key?'#fff':'rgba(255,255,255,.35)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH}}>
+                style={{padding:'10px 18px',border:'none',background:'transparent',borderBottom:activeTab===t.key?`2.5px solid ${RED}`:`2.5px solid transparent`,color:activeTab===t.key?RED:'#6b7280',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH}}>
                 {t.label}
               </button>
             ))}
@@ -238,7 +237,7 @@ export default function WhiteLabelReportPage(){
                       </div>
                       <div style={{flex:1}}>
                         <div style={{fontFamily:FH,fontSize:14,fontWeight:700,color:BLK}}>{sec.label}{sec.required&&' *'}</div>
-                        <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>{sec.desc}</div>
+                        <div style={{fontSize:12,color:'#6b7280',fontFamily:FB}}>{sec.desc}</div>
                       </div>
                       {active?<CheckCircle size={16} color={RED}/>:<div style={{width:16,height:16,borderRadius:'50%',border:'2px solid #e5e7eb'}}/>}
                     </div>
@@ -264,7 +263,7 @@ export default function WhiteLabelReportPage(){
                   {label:'Footer Text',field:'footer_text',placeholder:'Confidential — prepared for {client_name}'},
                 ].map(item=>(
                   <div key={item.field} style={{marginBottom:14}}>
-                    <label style={{fontFamily:FH,fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5}}>{item.label}</label>
+                    <label style={{fontFamily:FH,fontSize:12,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5}}>{item.label}</label>
                     <input value={branding[item.field]} onChange={e=>setBranding(b=>({...b,[item.field]:e.target.value}))}
                       placeholder={item.placeholder}
                       style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1.5px solid #e5e7eb',fontSize:14,outline:'none',fontFamily:FB,color:BLK,boxSizing:'border-box'}}
@@ -272,7 +271,7 @@ export default function WhiteLabelReportPage(){
                   </div>
                 ))}
                 <div style={{marginBottom:14}}>
-                  <label style={{fontFamily:FH,fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5}}>Brand Color</label>
+                  <label style={{fontFamily:FH,fontSize:12,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5}}>Brand Color</label>
                   <div style={{display:'flex',gap:10,alignItems:'center'}}>
                     <input type="color" value={branding.primary_color} onChange={e=>setBranding(b=>({...b,primary_color:e.target.value}))}
                       style={{width:44,height:36,borderRadius:8,border:'1px solid #e5e7eb',cursor:'pointer',padding:2}}/>
@@ -294,8 +293,8 @@ export default function WhiteLabelReportPage(){
                     <div style={{fontSize:16,opacity:.8}}>Performance Report</div>
                   </div>
                   <div style={{background:'#f9fafb',padding:'12px 20px',display:'flex',justifyContent:'space-between'}}>
-                    <div style={{fontSize:11,color:'#9ca3af'}}>{branding.footer_text?.replace('{client_name}','Client')||''}</div>
-                    {branding.show_powered_by&&<div style={{fontSize:11,color:'#9ca3af'}}>Powered by Koto</div>}
+                    <div style={{fontSize:12,color:'#6b7280'}}>{branding.footer_text?.replace('{client_name}','Client')||''}</div>
+                    {branding.show_powered_by&&<div style={{fontSize:12,color:'#6b7280'}}>Powered by Koto</div>}
                   </div>
                 </div>
               </div>

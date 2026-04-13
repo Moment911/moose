@@ -55,34 +55,34 @@ const Badge = ({ label, color, bg }) => (
 )
 
 const statusColor = s => {
-  const map = { active:{c:W,bg:GRN}, inactive:{c:W,bg:'#6b7280'}, draft:{c:BLK,bg:'#e5e7eb'}, paused:{c:BLK,bg:AMB}, completed:{c:W,bg:T}, running:{c:W,bg:GRN}, pending:{c:'#555',bg:'#e5e7eb'}, calling:{c:W,bg:AMB}, answered:{c:W,bg:GRN}, appointment_set:{c:W,bg:T}, no_answer:{c:W,bg:R}, callback:{c:W,bg:AMB}, failed:{c:W,bg:R} }
-  return map[s] || { c:'#555', bg:'#e5e7eb' }
+  const map = { active:{c:W,bg:GRN}, inactive:{c:W,bg:'#6b7280'}, draft:{c:BLK,bg:'#e5e7eb'}, paused:{c:BLK,bg:AMB}, completed:{c:W,bg:T}, running:{c:W,bg:GRN}, pending:{c:'#374151',bg:'#e5e7eb'}, calling:{c:W,bg:AMB}, answered:{c:W,bg:GRN}, appointment_set:{c:W,bg:T}, no_answer:{c:W,bg:R}, callback:{c:W,bg:AMB}, failed:{c:W,bg:R} }
+  return map[s] || { c:'#374151', bg:'#e5e7eb' }
 }
 
 const StatPill = ({ label, value, color }) => (
   <div style={{ display:'flex', alignItems:'center', gap:6, background:`${color}18`, padding:'3px 10px', borderRadius:999, fontSize:12 }}>
     <span style={{ fontWeight:700, color }}>{value}</span>
-    <span style={{ color:'#666' }}>{label}</span>
+    <span style={{ color:'#6b7280' }}>{label}</span>
   </div>
 )
 
 const Btn = ({ children, onClick, bg=R, color=W, small, disabled, style:sx }) => (
-  <button disabled={disabled} onClick={onClick} style={{ fontFamily:FH, fontSize:small?12:13, fontWeight:600, padding:small?'5px 12px':'8px 18px', background:disabled?'#ccc':bg, color, border:'none', borderRadius:8, cursor:disabled?'default':'pointer', display:'inline-flex', alignItems:'center', gap:6, transition:'opacity .15s', ...sx }}>{children}</button>
+  <button disabled={disabled} onClick={onClick} style={{ fontFamily:FH, fontSize:small?12:13, fontWeight:600, padding:small?'5px 12px':'8px 18px', background:disabled?'#d1d5db':bg, color, border:'none', borderRadius:8, cursor:disabled?'default':'pointer', display:'inline-flex', alignItems:'center', gap:6, transition:'opacity .15s', ...sx }}>{children}</button>
 )
 
 const Input = ({ label, value, onChange, placeholder, textarea, type='text', style:sx }) => (
   <div style={{ marginBottom:12, ...sx }}>
-    {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>{label}</label>}
+    {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#374151', marginBottom:4, fontFamily:FH }}>{label}</label>}
     {textarea
-      ? <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={4} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }} />
-      : <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />}
+      ? <textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={4} style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }} />
+      : <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />}
   </div>
 )
 
 const Select = ({ label, value, onChange, options, placeholder, style:sx }) => (
   <div style={{ marginBottom:12, ...sx }}>
-    {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>{label}</label>}
-    <select value={value} onChange={e=>onChange(e.target.value)} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, background:W, boxSizing:'border-box' }}>
+    {label && <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#374151', marginBottom:4, fontFamily:FH }}>{label}</label>}
+    <select value={value} onChange={e=>onChange(e.target.value)} style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, background:W, boxSizing:'border-box' }}>
       {placeholder && <option value="">{placeholder}</option>}
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
@@ -97,10 +97,10 @@ const StatCard = ({ icon:Icon, label, value, color=T, sub }) => (
   <Card style={{ flex:1, minWidth:160 }}>
     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
       <div style={{ width:32, height:32, borderRadius:8, background:`${color}18`, display:'flex', alignItems:'center', justifyContent:'center' }}><Icon size={16} color={color} /></div>
-      <span style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
+      <span style={{ fontSize:11, fontWeight:600, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{label}</span>
     </div>
     <div style={{ fontSize:24, fontWeight:700, color:BLK, fontFamily:FH }}>{value}</div>
-    {sub && <div style={{ fontSize:11, color:'#888', marginTop:2 }}>{sub}</div>}
+    {sub && <div style={{ fontSize:11, color:'#6b7280', marginTop:2 }}>{sub}</div>}
   </Card>
 )
 
@@ -444,7 +444,7 @@ export default function VoiceAgentPage() {
           }}><Plus size={14} /> New Agent</Btn>
         </div>
       </div>
-      {agents.length === 0 && !loading && <Card><p style={{ color:'#888', textAlign:'center', margin:20 }}>No agents yet. Create your first voice agent to get started.</p></Card>}
+      {agents.length === 0 && !loading && <Card><p style={{ color:'#6b7280', textAlign:'center', margin:20 }}>No agents yet. Create your first voice agent to get started.</p></Card>}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))', gap:16 }}>
         {agents.map(ag => {
           const voice = RETELL_VOICES.find(v=>v.id===ag.voice_id)
@@ -456,7 +456,7 @@ export default function VoiceAgentPage() {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 }}>
                 <div>
                   <div style={{ fontSize:16, fontWeight:700, fontFamily:FH, color:BLK }}>{ag.name || 'Unnamed Agent'}</div>
-                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>
+                  <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>
                     {voice?.name || ag.voice_id || 'No voice'} ({voice?.provider || 'Unknown'}) -- {voice?.tone || ''}
                   </div>
                 </div>
@@ -476,12 +476,12 @@ export default function VoiceAgentPage() {
                     <span style={{ fontSize:11, color:PURP, fontWeight:600, fontFamily:FB, marginLeft:6 }}>Playing...</span>
                   </div>
                 ) : (
-                  <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>Preview Voice</span>
+                  <span style={{ fontSize:11, color:'#6b7280', fontFamily:FB }}>Preview Voice</span>
                 )}
               </div>
 
-              {sic && <div style={{ fontSize:11, color:'#666', marginBottom:4 }}><Globe size={11} style={{ marginRight:3, verticalAlign:'middle' }} />{sic.code} - {sic.label}</div>}
-              {ag.business_name && <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{ag.business_name}</div>}
+              {sic && <div style={{ fontSize:11, color:'#6b7280', marginBottom:4 }}><Globe size={11} style={{ marginRight:3, verticalAlign:'middle' }} />{sic.code} - {sic.label}</div>}
+              {ag.business_name && <div style={{ fontSize:11, color:'#6b7280', marginBottom:4 }}>{ag.business_name}</div>}
               {ag.closer_name && <div style={{ fontSize:11, color:T, marginBottom:4 }}>Closer: {ag.closer_name}</div>}
 
               <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8, marginBottom:10 }}>
@@ -490,7 +490,7 @@ export default function VoiceAgentPage() {
                 <StatPill label="rate" value={`${ag.connection_rate||0}%`} color={PURP} />
               </div>
 
-              {ag.updated_at && <div style={{ fontSize:10, color:'#bbb', fontFamily:FB, marginBottom:8 }}>Edited {new Date(ag.updated_at).toLocaleDateString()}</div>}
+              {ag.updated_at && <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:8 }}>Edited {new Date(ag.updated_at).toLocaleDateString()}</div>}
 
               <div style={{ display:'flex', gap:6 }}>
                 <Btn small bg={`${T}15`} color={T} onClick={()=>openEditAgent(ag)}><Edit2 size={12} /> Edit</Btn>
@@ -527,7 +527,7 @@ export default function VoiceAgentPage() {
           <button key={t} onClick={()=>setWizardStep(i+1)} style={{
             padding:'8px 16px', fontSize:12, fontWeight:wizardStep===i+1?700:500, fontFamily:FH,
             border:'none', borderBottom:wizardStep===i+1?`2px solid ${R}`:'2px solid transparent',
-            background:'none', cursor:'pointer', color:wizardStep===i+1?BLK:'#9ca3af',
+            background:'none', cursor:'pointer', color:wizardStep===i+1?BLK:'#6b7280',
           }}>{i+1}. {t}</button>
         ))}
       </div>
@@ -544,14 +544,14 @@ export default function VoiceAgentPage() {
             {value:'consultative',label:'Consultative'},{value:'empathetic',label:'Empathetic'},{value:'authoritative',label:'Authoritative'}
           ]} />
           <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, padding:'10px 14px', background:'#f9fafb', borderRadius:8 }}>
-            <span style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:'#444' }}>Status:</span>
+            <span style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:'#374151' }}>Status:</span>
             <button onClick={()=>setWd('status',wd.status==='inactive'?'active':'inactive')} style={{
               padding:'4px 14px', borderRadius:99, border:'none', fontSize:11, fontWeight:700, fontFamily:FB, cursor:'pointer',
               background:wd.status==='inactive'?'#e5e7eb':GRN, color:wd.status==='inactive'?'#6b7280':W,
             }}>{wd.status==='inactive'?'Inactive':'Active'}</button>
           </div>
 
-          <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:8, fontFamily:FH }}>Select Voice</label>
+          <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#374151', marginBottom:8, fontFamily:FH }}>Select Voice</label>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, maxHeight:340, overflow:'auto' }}>
             {RETELL_VOICES.map(v => (
               <div key={v.id} onClick={()=>setWd('voice_id',v.id)} style={{
@@ -567,9 +567,9 @@ export default function VoiceAgentPage() {
                     {playingVoice===v.id ? <Square size={9} color={R} /> : <Play size={9} color={PURP} />}
                   </button>
                 </div>
-                <div style={{ fontSize:9, color:'#888' }}>{v.gender} -- {v.accent}</div>
-                <div style={{ fontSize:9, color:T, fontWeight:600 }}>{v.tone}</div>
-                <div style={{ display:'inline-block', fontSize:8, color:'#aaa', background:'#f3f4f6', padding:'1px 6px', borderRadius:4, marginTop:3 }}>{v.provider}</div>
+                <div style={{ fontSize:12, color:'#6b7280' }}>{v.gender} -- {v.accent}</div>
+                <div style={{ fontSize:12, color:T, fontWeight:600 }}>{v.tone}</div>
+                <div style={{ display:'inline-block', fontSize:12, color:'#6b7280', background:'#f3f4f6', padding:'1px 6px', borderRadius:4, marginTop:3 }}>{v.provider}</div>
               </div>
             ))}
           </div>
@@ -584,8 +584,8 @@ export default function VoiceAgentPage() {
         <div>
           <Input label="Business Name" value={wd.business_name} onChange={v=>setWd('business_name',v)} placeholder="e.g. Smith Plumbing Co." />
           <div style={{ marginBottom:12 }}>
-            <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>SIC Code / Industry</label>
-            <input value={sicSearch} onChange={e=>setSicSearch(e.target.value)} placeholder="Search SIC codes..." style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', marginBottom:4 }} />
+            <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#374151', marginBottom:4, fontFamily:FH }}>SIC Code / Industry</label>
+            <input value={sicSearch} onChange={e=>setSicSearch(e.target.value)} placeholder="Search SIC codes..." style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', marginBottom:4 }} />
             {sicSearch && (
               <div style={{ maxHeight:140, overflow:'auto', border:'1px solid #e5e7eb', borderRadius:8, background:W }}>
                 {filteredSic.slice(0,12).map(s => (
@@ -658,9 +658,9 @@ export default function VoiceAgentPage() {
           {['intro','questions','value_prop','objections','closing','voicemail','tcpa_consent'].map(section => (
             <div key={section} style={{ marginBottom:14, padding:12, background:'#fafafa', borderRadius:10, border:'1px solid #eee' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-                <label style={{ fontSize:12, fontWeight:700, color:'#444', fontFamily:FH, textTransform:'capitalize' }}>{section.replace(/_/g,' ')}</label>
+                <label style={{ fontSize:12, fontWeight:700, color:'#374151', fontFamily:FH, textTransform:'capitalize' }}>{section.replace(/_/g,' ')}</label>
                 <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                  <span style={{ fontSize:10, color:'#bbb', fontFamily:FB }}>{((wd.script||{})[section]||'').length} chars</span>
+                  <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{((wd.script||{})[section]||'').length} chars</span>
                   <Btn small bg={`${PURP}15`} color={PURP} disabled={generatingSection===section} onClick={()=>generateSection(section)}>
                     {generatingSection===section ? <Loader2 size={11} className="spin" /> : <Sparkles size={11} />}
                   </Btn>
@@ -674,7 +674,7 @@ export default function VoiceAgentPage() {
                 }}
                 rows={section==='questions'||section==='objections'?4:2}
                 placeholder={section==='questions'?'One question per line...':section==='objections'?'One objection handler per line...':section==='tcpa_consent'?'TCPA consent language...': `Enter ${section.replace(/_/g,' ')} script...`}
-                style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:12, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }}
+                style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:12, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }}
               />
             </div>
           ))}
@@ -691,12 +691,12 @@ export default function VoiceAgentPage() {
           <h3 style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:BLK, margin:'0 0 12px' }}>Call Behavior</h3>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:16 }}>
             <div>
-              <label style={{ display:'block', fontSize:11, fontWeight:600, color:'#444', fontFamily:FH, marginBottom:4 }}>Max Duration (min)</label>
-              <input type="number" min={1} max={30} value={wd.max_call_duration||5} onChange={e=>setWd('max_call_duration',parseInt(e.target.value)||5)} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
+              <label style={{ display:'block', fontSize:11, fontWeight:600, color:'#374151', fontFamily:FH, marginBottom:4 }}>Max Duration (min)</label>
+              <input type="number" min={1} max={30} value={wd.max_call_duration||5} onChange={e=>setWd('max_call_duration',parseInt(e.target.value)||5)} style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
             </div>
             <div>
-              <label style={{ display:'block', fontSize:11, fontWeight:600, color:'#444', fontFamily:FH, marginBottom:4 }}>Silence Timeout (sec)</label>
-              <select value={wd.silence_timeout||10} onChange={e=>setWd('silence_timeout',parseInt(e.target.value))} style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', cursor:'pointer' }}>
+              <label style={{ display:'block', fontSize:11, fontWeight:600, color:'#374151', fontFamily:FH, marginBottom:4 }}>Silence Timeout (sec)</label>
+              <select value={wd.silence_timeout||10} onChange={e=>setWd('silence_timeout',parseInt(e.target.value))} style={{ width:'100%', padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, boxSizing:'border-box', cursor:'pointer' }}>
                 <option value={5}>5 seconds</option><option value={10}>10 seconds</option><option value={15}>15 seconds</option><option value={20}>20 seconds</option>
               </select>
             </div>
@@ -715,7 +715,7 @@ export default function VoiceAgentPage() {
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div>
                     <div style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:BLK }}>{tog.label}</div>
-                    <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>{tog.sub}</div>
+                    <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{tog.sub}</div>
                   </div>
                   <button onClick={()=>setWd(tog.key,!wd[tog.key])} style={{
                     width:40, height:22, borderRadius:99, border:'none', cursor:'pointer', position:'relative',
@@ -739,7 +739,7 @@ export default function VoiceAgentPage() {
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <div>
                     <div style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:BLK }}>{tog.label}</div>
-                    <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>{tog.sub}</div>
+                    <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{tog.sub}</div>
                   </div>
                   <button onClick={()=>setWd(tog.key,!wd[tog.key])} style={{
                     width:40, height:22, borderRadius:99, border:'none', cursor:'pointer', position:'relative',
@@ -776,7 +776,7 @@ export default function VoiceAgentPage() {
         <h2 style={{ margin:0, fontFamily:FH, fontSize:18, fontWeight:700, color:BLK }}>Campaigns</h2>
         <Btn onClick={()=>setShowCampaignModal(true)}><Plus size={14} /> New Campaign</Btn>
       </div>
-      {campaigns.length===0 && !loading && <Card><p style={{ color:'#888', textAlign:'center', margin:20 }}>No campaigns yet. Create a campaign to start calling.</p></Card>}
+      {campaigns.length===0 && !loading && <Card><p style={{ color:'#6b7280', textAlign:'center', margin:20 }}>No campaigns yet. Create a campaign to start calling.</p></Card>}
       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         {campaigns.map(c => {
           const sc = statusColor(c.status||'draft')
@@ -789,7 +789,7 @@ export default function VoiceAgentPage() {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
                 <div>
                   <div style={{ fontSize:16, fontWeight:700, fontFamily:FH, color:BLK }}>{c.name}</div>
-                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Agent: {ag?.name || 'Unknown'} {c.is_test_mode && <Badge label="TEST" color={AMB} bg={`${AMB}20`} />}</div>
+                  <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>Agent: {ag?.name || 'Unknown'} {c.is_test_mode && <Badge label="TEST" color={AMB} bg={`${AMB}20`} />}</div>
                 </div>
                 <Badge label={c.status||'draft'} color={sc.c} bg={sc.bg} />
               </div>
@@ -805,7 +805,7 @@ export default function VoiceAgentPage() {
               <div style={{ background:'#e5e7eb', borderRadius:999, height:8, marginBottom:12, overflow:'hidden' }}>
                 <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${T},${GRN})`, borderRadius:999, transition:'width .3s' }} />
               </div>
-              <div style={{ fontSize:11, color:'#888', marginBottom:12 }}>{pct}% complete - {called}/{total} called</div>
+              <div style={{ fontSize:11, color:'#6b7280', marginBottom:12 }}>{pct}% complete - {called}/{total} called</div>
               {/* Action buttons */}
               <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                 {(c.status==='draft'||c.status==='paused') && <Btn small bg={GRN} onClick={()=>campaignAction(c.id,'start')}><Play size={12} /> Start</Btn>}
@@ -828,7 +828,7 @@ export default function VoiceAgentPage() {
       <Input label="Campaign Name" value={campaignForm.name} onChange={v=>setCampaignForm(p=>({...p,name:v}))} placeholder="e.g. HVAC Spring Push" />
       <Select label="Agent" value={campaignForm.agent_id} onChange={v=>setCampaignForm(p=>({...p,agent_id:v}))} placeholder="Select an agent..." options={agents.map(a=>({value:a.id,label:a.name||'Unnamed'}))} />
       <div style={{ marginBottom:12 }}>
-        <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#444', marginBottom:4, fontFamily:FH }}>Import Leads (CSV)</label>
+        <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#374151', marginBottom:4, fontFamily:FH }}>Import Leads (CSV)</label>
         <input ref={fileRef} type="file" accept=".csv" onChange={e=>setCampaignLeadFile(e.target.files[0])} style={{ fontSize:12 }} />
       </div>
       <div style={{ marginBottom:16 }}>
@@ -836,7 +836,7 @@ export default function VoiceAgentPage() {
       </div>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
         <input type="checkbox" checked={campaignForm.is_test_mode} onChange={e=>setCampaignForm(p=>({...p,is_test_mode:e.target.checked}))} id="test-mode" />
-        <label htmlFor="test-mode" style={{ fontSize:12, fontWeight:600, color:'#666', fontFamily:FH }}>Test Mode (calls only your number)</label>
+        <label htmlFor="test-mode" style={{ fontSize:12, fontWeight:600, color:'#6b7280', fontFamily:FH }}>Test Mode (calls only your number)</label>
       </div>
       <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
         <Btn bg="#e5e7eb" color={BLK} onClick={()=>setShowCampaignModal(false)}>Cancel</Btn>
@@ -855,8 +855,8 @@ export default function VoiceAgentPage() {
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           <Select value={campaignFilter} onChange={setCampaignFilter} placeholder="All Campaigns" options={campaigns.map(c=>({value:c.id,label:c.name}))} style={{ marginBottom:0, minWidth:180 }} />
           <div style={{ position:'relative' }}>
-            <Search size={14} style={{ position:'absolute', left:10, top:10, color:'#aaa' }} />
-            <input value={leadSearch} onChange={e=>setLeadSearch(e.target.value)} placeholder="Search leads..." style={{ padding:'8px 12px 8px 30px', border:'1px solid #ddd', borderRadius:8, fontSize:13, fontFamily:FB, width:200 }} />
+            <Search size={14} style={{ position:'absolute', left:10, top:10, color:'#6b7280' }} />
+            <input value={leadSearch} onChange={e=>setLeadSearch(e.target.value)} placeholder="Search leads..." style={{ padding:'8px 12px 8px 30px', border:'1px solid #e5e7eb', borderRadius:8, fontSize:13, fontFamily:FB, width:200 }} />
           </div>
           <input ref={csvRef} type="file" accept=".csv" style={{ display:'none' }} onChange={e=>{ if(e.target.files[0] && campaignFilter) importCSV(e.target.files[0], campaignFilter) }} />
           <Btn small bg={`${T}15`} color={T} onClick={()=>{ if(!campaignFilter){ toast.error('Select a campaign first'); return }; csvRef.current?.click() }}><Upload size={12} /> Import CSV</Btn>
@@ -868,22 +868,22 @@ export default function VoiceAgentPage() {
             <thead>
               <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                 {['Name','Phone','Business','SIC','Status','Duration','Sentiment','Score'].map(h=>(
-                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
+                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredLeads.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No leads found</td></tr>}
+              {filteredLeads.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#6b7280' }}>No leads found</td></tr>}
               {filteredLeads.map(l => {
                 const sc = statusColor(l.status||'pending')
                 return (
                   <tr key={l.id} style={{ borderBottom:'1px solid #f5f5f5' }}>
                     <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{l.name||'-'}</td>
-                    <td style={{ padding:'10px 14px', color:'#555' }}>{l.phone||'-'}</td>
-                    <td style={{ padding:'10px 14px', color:'#555' }}>{l.business||'-'}</td>
-                    <td style={{ padding:'10px 14px', color:'#555', fontSize:11 }}>{l.sic_code||'-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#374151' }}>{l.phone||'-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#374151' }}>{l.business||'-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#374151', fontSize:11 }}>{l.sic_code||'-'}</td>
                     <td style={{ padding:'10px 14px' }}><Badge label={l.status||'pending'} color={sc.c} bg={sc.bg} /></td>
-                    <td style={{ padding:'10px 14px', color:'#555' }}>{l.duration ? `${l.duration}s` : '-'}</td>
+                    <td style={{ padding:'10px 14px', color:'#374151' }}>{l.duration ? `${l.duration}s` : '-'}</td>
                     <td style={{ padding:'10px 14px' }}>{l.sentiment ? <span style={{ color:l.sentiment==='positive'?GRN:l.sentiment==='negative'?R:AMB, fontWeight:600, fontSize:12 }}>{l.sentiment}</span> : '-'}</td>
                     <td style={{ padding:'10px 14px', fontWeight:700, color:PURP }}>{l.score ?? '-'}</td>
                   </tr>
@@ -920,12 +920,12 @@ export default function VoiceAgentPage() {
             <thead>
               <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                 {['','Name','Phone','Duration','Outcome','Sentiment','Appointment','TCPA','Discovery'].map(h=>(
-                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
+                  <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredCalls.length===0 && <tr><td colSpan={9} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No calls found</td></tr>}
+              {filteredCalls.length===0 && <tr><td colSpan={9} style={{ padding:24, textAlign:'center', color:'#6b7280' }}>No calls found</td></tr>}
               {filteredCalls.map(c => {
                 const sc = statusColor(c.outcome||'pending')
                 const expanded = callExpanded===c.id
@@ -934,12 +934,12 @@ export default function VoiceAgentPage() {
                     <tr style={{ borderBottom:'1px solid #f5f5f5', cursor:'pointer', background:expanded?`${T}08`:W }} onClick={()=>setCallExpanded(expanded?null:c.id)}>
                       <td style={{ padding:'10px 14px', width:30 }}>{expanded ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />}</td>
                       <td style={{ padding:'10px 14px', fontWeight:600, color:BLK }}>{c.lead_name||'-'}</td>
-                      <td style={{ padding:'10px 14px', color:'#555' }}>{c.phone||'-'}</td>
-                      <td style={{ padding:'10px 14px', color:'#555' }}>{c.duration ? `${Math.floor(c.duration/60)}:${String(c.duration%60).padStart(2,'0')}` : '-'}</td>
+                      <td style={{ padding:'10px 14px', color:'#374151' }}>{c.phone||'-'}</td>
+                      <td style={{ padding:'10px 14px', color:'#374151' }}>{c.duration ? `${Math.floor(c.duration/60)}:${String(c.duration%60).padStart(2,'0')}` : '-'}</td>
                       <td style={{ padding:'10px 14px' }}><Badge label={c.outcome||'pending'} color={sc.c} bg={sc.bg} /></td>
                       <td style={{ padding:'10px 14px' }}>{c.sentiment ? <span style={{ color:c.sentiment==='positive'?GRN:c.sentiment==='negative'?R:AMB, fontWeight:600, fontSize:12 }}>{c.sentiment}</span> : '-'}</td>
-                      <td style={{ padding:'10px 14px' }}>{c.appointment_set ? <Check size={14} color={GRN} /> : <X size={14} color="#ddd" />}</td>
-                      <td style={{ padding:'10px 14px' }}>{c.tcpa_consent ? <Shield size={14} color={GRN} /> : <Shield size={14} color="#ddd" />}</td>
+                      <td style={{ padding:'10px 14px' }}>{c.appointment_set ? <Check size={14} color={GRN} /> : <X size={14} color="#e5e7eb" />}</td>
+                      <td style={{ padding:'10px 14px' }}>{c.tcpa_consent ? <Shield size={14} color={GRN} /> : <Shield size={14} color="#e5e7eb" />}</td>
                       <td style={{ padding:'10px 14px' }}>
                         <button
                           onClick={async (ev) => {
@@ -1100,13 +1100,13 @@ export default function VoiceAgentPage() {
             const colors = [T,GRN,AMB,PURP,R]
             return (
               <div key={stage} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
-                <span style={{ width:90, fontSize:12, fontWeight:600, color:'#555', textTransform:'capitalize', fontFamily:FH }}>{stage}</span>
+                <span style={{ width:90, fontSize:12, fontWeight:600, color:'#374151', textTransform:'capitalize', fontFamily:FH }}>{stage}</span>
                 <div style={{ flex:1, background:'#f0f0f0', borderRadius:999, height:24, overflow:'hidden', position:'relative' }}>
                   <div style={{ height:'100%', width:`${pct}%`, background:colors[i], borderRadius:999, transition:'width .5s', minWidth:pct>0?40:0, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:8 }}>
                     <span style={{ fontSize:11, fontWeight:700, color:W }}>{val}</span>
                   </div>
                 </div>
-                <span style={{ fontSize:11, color:'#888', width:45, textAlign:'right' }}>{pct.toFixed(0)}%</span>
+                <span style={{ fontSize:11, color:'#6b7280', width:45, textAlign:'right' }}>{pct.toFixed(0)}%</span>
               </div>
             )
           })}
@@ -1121,7 +1121,7 @@ export default function VoiceAgentPage() {
                 <thead>
                   <tr style={{ borderBottom:'1px solid #e5e7eb' }}>
                     {['SIC','Industry','Calls','Connection %','Appointment %','Avg Duration','Sentiment'].map(h=>(
-                      <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontSize:10, fontWeight:700, color:'#888', textTransform:'uppercase', fontFamily:FH }}>{h}</th>
+                      <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', fontFamily:FH }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1150,19 +1150,19 @@ export default function VoiceAgentPage() {
             <div>
               <div style={{ fontSize:12, fontWeight:700, color:GRN, marginBottom:8, fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}><TrendingUp size={14} /> What's Working</div>
               {(insights.working || ['No data yet']).map((item,i) => (
-                <div key={i} style={{ fontSize:12, color:'#555', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${GRN}`, lineHeight:1.5 }}>{item}</div>
+                <div key={i} style={{ fontSize:12, color:'#374151', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${GRN}`, lineHeight:1.5 }}>{item}</div>
               ))}
             </div>
             <div>
               <div style={{ fontSize:12, fontWeight:700, color:R, marginBottom:8, fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}><AlertTriangle size={14} /> What's Failing</div>
               {(insights.failing || ['No data yet']).map((item,i) => (
-                <div key={i} style={{ fontSize:12, color:'#555', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${R}`, lineHeight:1.5 }}>{item}</div>
+                <div key={i} style={{ fontSize:12, color:'#374151', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${R}`, lineHeight:1.5 }}>{item}</div>
               ))}
             </div>
             <div>
               <div style={{ fontSize:12, fontWeight:700, color:PURP, marginBottom:8, fontFamily:FH, display:'flex', alignItems:'center', gap:4 }}><Sparkles size={14} /> Recommendations</div>
               {(insights.recommendations || ['No data yet']).map((item,i) => (
-                <div key={i} style={{ fontSize:12, color:'#555', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${PURP}`, lineHeight:1.5 }}>{item}</div>
+                <div key={i} style={{ fontSize:12, color:'#374151', marginBottom:6, paddingLeft:12, borderLeft:`2px solid ${PURP}`, lineHeight:1.5 }}>{item}</div>
               ))}
             </div>
           </div>
@@ -1205,11 +1205,11 @@ export default function VoiceAgentPage() {
           <Card style={{ marginBottom:16, borderColor:`${R}40`, background:`${R}05` }}>
             <h3 style={{ margin:'0 0 8px', fontFamily:FH, fontSize:14, fontWeight:700, color:R }}><AlertTriangle size={16} style={{ marginRight:6 }} />Red Flags ({redFlags.length})</h3>
             {redFlags.slice(0,5).map((r,i) => (
-              <div key={i} style={{ fontSize:12, color:'#666', marginBottom:4, paddingLeft:12, borderLeft:`2px solid ${R}` }}>
+              <div key={i} style={{ fontSize:12, color:'#6b7280', marginBottom:4, paddingLeft:12, borderLeft:`2px solid ${R}` }}>
                 {r.phone} - {r.dnc_flagged ? 'On DNC list' : 'Missing consent'} {r.called ? '(Already called!)' : ''}
               </div>
             ))}
-            {redFlags.length>5 && <div style={{ fontSize:11, color:'#aaa', marginTop:4 }}>...and {redFlags.length-5} more</div>}
+            {redFlags.length>5 && <div style={{ fontSize:11, color:'#6b7280', marginTop:4 }}>...and {redFlags.length-5} more</div>}
           </Card>
         )}
 
@@ -1220,21 +1220,21 @@ export default function VoiceAgentPage() {
               <thead>
                 <tr style={{ background:'#fafafa', borderBottom:'1px solid #e5e7eb' }}>
                   {['Phone','Phone Consent','SMS Consent','Email Consent','Method','DNC','Timestamp','Actions'].map(h=>(
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
+                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:.5, fontFamily:FH }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {tcpaData.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#aaa' }}>No TCPA records</td></tr>}
+                {tcpaData.length===0 && <tr><td colSpan={8} style={{ padding:24, textAlign:'center', color:'#6b7280' }}>No TCPA records</td></tr>}
                 {tcpaData.map((r,i) => (
                   <tr key={i} style={{ borderBottom:'1px solid #f5f5f5', background:r.dnc_flagged?`${R}05`:W }}>
                     <td style={{ padding:'10px 14px', fontWeight:600 }}>{r.phone}</td>
                     <td style={{ padding:'10px 14px' }}>{r.consent_phone ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}</td>
                     <td style={{ padding:'10px 14px' }}>{r.consent_sms ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}</td>
                     <td style={{ padding:'10px 14px' }}>{r.consent_email ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}</td>
-                    <td style={{ padding:'10px 14px', fontSize:12, color:'#666' }}>{r.method||'-'}</td>
+                    <td style={{ padding:'10px 14px', fontSize:12, color:'#6b7280' }}>{r.method||'-'}</td>
                     <td style={{ padding:'10px 14px' }}>{r.dnc_flagged ? <Badge label="DNC" color={W} bg={R} /> : <Badge label="Clear" color={GRN} bg={`${GRN}15`} />}</td>
-                    <td style={{ padding:'10px 14px', fontSize:11, color:'#888' }}>{r.timestamp ? new Date(r.timestamp).toLocaleString() : '-'}</td>
+                    <td style={{ padding:'10px 14px', fontSize:11, color:'#6b7280' }}>{r.timestamp ? new Date(r.timestamp).toLocaleString() : '-'}</td>
                     <td style={{ padding:'10px 14px' }}>
                       <Btn small bg="#fee2e2" color={R} onClick={async ()=>{
                         await api({ action:'opt_out', agency_id:aid, phone:r.phone })
@@ -1294,9 +1294,9 @@ export default function VoiceAgentPage() {
                 <input type="checkbox" checked={cfg.enabled} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],enabled:e.target.checked}}))} />
                 <span style={{ fontSize:13, fontWeight:600, color:cfg.enabled?BLK:'#aaa', fontFamily:FH }}>{day}</span>
               </div>
-              <input type="time" value={cfg.start} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],start:e.target.value}}))} disabled={!cfg.enabled} style={{ padding:'4px 8px', border:'1px solid #ddd', borderRadius:6, fontSize:12, fontFamily:FB, opacity:cfg.enabled?1:0.4 }} />
-              <span style={{ color:'#aaa', fontSize:12 }}>to</span>
-              <input type="time" value={cfg.end} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],end:e.target.value}}))} disabled={!cfg.enabled} style={{ padding:'4px 8px', border:'1px solid #ddd', borderRadius:6, fontSize:12, fontFamily:FB, opacity:cfg.enabled?1:0.4 }} />
+              <input type="time" value={cfg.start} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],start:e.target.value}}))} disabled={!cfg.enabled} style={{ padding:'4px 8px', border:'1px solid #e5e7eb', borderRadius:6, fontSize:12, fontFamily:FB, opacity:cfg.enabled?1:0.4 }} />
+              <span style={{ color:'#6b7280', fontSize:12 }}>to</span>
+              <input type="time" value={cfg.end} onChange={e=>setAvailGrid(p=>({...p,[day]:{...p[day],end:e.target.value}}))} disabled={!cfg.enabled} style={{ padding:'4px 8px', border:'1px solid #e5e7eb', borderRadius:6, fontSize:12, fontFamily:FB, opacity:cfg.enabled?1:0.4 }} />
             </div>
           ))}
           <Btn onClick={()=>saveAvailability(availGrid)} style={{ marginTop:12 }} bg={GRN}><Check size={14} /> Save Availability</Btn>
@@ -1305,23 +1305,23 @@ export default function VoiceAgentPage() {
         {/* Upcoming appointments */}
         <Card>
           <h3 style={{ margin:'0 0 16px', fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>Upcoming Appointments</h3>
-          {appointments.length === 0 && <p style={{ color:'#aaa', fontSize:13, textAlign:'center', margin:20 }}>No upcoming appointments</p>}
+          {appointments.length === 0 && <p style={{ color:'#6b7280', fontSize:13, textAlign:'center', margin:20 }}>No upcoming appointments</p>}
           {appointments.map((apt,i) => (
             <div key={i} style={{ padding:12, background:'#fafafa', borderRadius:10, marginBottom:8, border:'1px solid #eee' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
                 <div>
                   <div style={{ fontSize:14, fontWeight:700, color:BLK, fontFamily:FH }}>{apt.lead_name || 'Unknown'}</div>
-                  <div style={{ fontSize:12, color:'#666', marginTop:2 }}>{apt.phone}</div>
-                  {apt.business && <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{apt.business}</div>}
+                  <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>{apt.phone}</div>
+                  {apt.business && <div style={{ fontSize:12, color:'#6b7280', marginTop:2 }}>{apt.business}</div>}
                 </div>
                 <Badge label={apt.status||'scheduled'} color={statusColor(apt.status||'active').c} bg={statusColor(apt.status||'active').bg} />
               </div>
-              <div style={{ display:'flex', gap:8, marginTop:8, fontSize:12, color:'#666' }}>
+              <div style={{ display:'flex', gap:8, marginTop:8, fontSize:12, color:'#6b7280' }}>
                 <span style={{ display:'flex', alignItems:'center', gap:4 }}><Calendar size={12} />{apt.date ? new Date(apt.date).toLocaleDateString() : '-'}</span>
                 <span style={{ display:'flex', alignItems:'center', gap:4 }}><Clock size={12} />{apt.time || '-'}</span>
                 {apt.agent_name && <span style={{ display:'flex', alignItems:'center', gap:4 }}><Users size={12} />{apt.agent_name}</span>}
               </div>
-              {apt.notes && <div style={{ fontSize:12, color:'#888', marginTop:6, fontStyle:'italic' }}>{apt.notes}</div>}
+              {apt.notes && <div style={{ fontSize:12, color:'#6b7280', marginTop:6, fontStyle:'italic' }}>{apt.notes}</div>}
             </div>
           ))}
         </Card>
@@ -1429,15 +1429,15 @@ export default function VoiceAgentPage() {
         {/* Stats row */}
         <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
           <div style={{ flex:1, minWidth:130, padding:'14px 16px', background:'#f9fafb', borderRadius:10, borderTop:`3px solid ${T}` }}>
-            <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>Synthetic Calls</div>
+            <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>Synthetic Calls</div>
             <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:BLK }}>{syntheticStatus?.total_synthetic || 0}</div>
           </div>
           <div style={{ flex:1, minWidth:130, padding:'14px 16px', background:'#f9fafb', borderRadius:10, borderTop:`3px solid ${GRN}` }}>
-            <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>Real Calls</div>
+            <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>Real Calls</div>
             <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:BLK }}>{syntheticStatus?.total_real || 0}</div>
           </div>
           <div style={{ flex:1, minWidth:130, padding:'14px 16px', background:'#f9fafb', borderRadius:10, borderTop:`3px solid ${PURP}` }}>
-            <div style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>Total Combined</div>
+            <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>Total Combined</div>
             <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:BLK }}>{(syntheticStatus?.total_synthetic || 0) + (syntheticStatus?.total_real || 0)}</div>
           </div>
         </div>
@@ -1450,7 +1450,7 @@ export default function VoiceAgentPage() {
               const data = syntheticStatus?.by_industry?.[ind.sic]
               const count = data?.synthetic || 0
               const bg = count >= 10 ? '#dcfce7' : count > 0 ? '#fef3c7' : '#f3f4f6'
-              const color = count >= 10 ? GRN : count > 0 ? AMB : '#9ca3af'
+              const color = count >= 10 ? GRN : count > 0 ? AMB : '#6b7280'
               return (
                 <div key={ind.sic} style={{ padding:'10px 14px', borderRadius:8, background:bg, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                   <span style={{ fontSize:12, fontWeight:600, fontFamily:FH, color:BLK }}>{ind.name}</span>
@@ -1505,7 +1505,7 @@ export default function VoiceAgentPage() {
         ].map(p => (
           <div key={p.name} style={{ flex:1, padding:'12px 16px', background:W, borderRadius:10, borderLeft:`3px solid ${p.color}`, boxShadow:'0 1px 3px rgba(0,0,0,.04)' }}>
             <div style={{ fontSize:13, fontWeight:700, fontFamily:FH, color:BLK }}>{p.name}</div>
-            <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>{p.desc}</div>
+            <div style={{ fontSize:11, color:'#6b7280', fontFamily:FB }}>{p.desc}</div>
           </div>
         ))}
       </div>
@@ -1541,7 +1541,7 @@ export default function VoiceAgentPage() {
             </div>
             <div>
               <h1 style={{ margin:0, fontSize:18, fontWeight:700, color:W, fontFamily:FH }}>Voice Agent Intelligence</h1>
-              <p style={{ margin:0, fontSize:11, color:'#888', fontFamily:FB }}>AI-powered outbound calling platform</p>
+              <p style={{ margin:0, fontSize:11, color:'#6b7280', fontFamily:FB }}>AI-powered outbound calling platform</p>
             </div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>

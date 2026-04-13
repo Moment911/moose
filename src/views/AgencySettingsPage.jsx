@@ -74,19 +74,19 @@ const SKILLS = ['SEO','Paid Ads','Social Media','Content','Design','Development'
 const AVATAR_COLORS = [R,'#3b82f6','#16a34a','#d97706','#8b5cf6',T,'#ec4899','#14b8a6']
 
 // ── Shared components ─────────────────────────────────────────────
-const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1px solid #ececea',
+const INP = { width:'100%', padding:'10px 13px', borderRadius:10, border:'1px solid #e5e7eb',
   fontSize:14, outline:'none', color:'#0a0a0a', boxSizing:'border-box',
   fontFamily:FB, background:'#fff', transition:'border-color .15s' }
 
 function SectionCard({ title, subtitle, children, action, onAction, actionLabel='Save changes' }) {
   return (
-    <div style={{ background:'#fff', borderRadius:14, border:'1px solid #ececea', overflow:'hidden', marginBottom:16 }}>
-      <div style={{ padding:'18px 22px', borderBottom:'1px solid #f2f2f0',
+    <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:16 }}>
+      <div style={{ padding:'18px 22px', borderBottom:'1px solid #e5e7eb',
         display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
         <div>
           <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:'#0a0a0a',
             letterSpacing:'-.02em', marginBottom:2 }}>{title}</div>
-          {subtitle && <div style={{ fontSize:14, color:'#9a9a96', fontFamily:FB }}>{subtitle}</div>}
+          {subtitle && <div style={{ fontSize:14, color:'#6b7280', fontFamily:FB }}>{subtitle}</div>}
         </div>
         {onAction && (
           <button onClick={onAction}
@@ -107,7 +107,7 @@ function Field({ label, hint, children }) {
     <div style={{ marginBottom:16 }}>
       <label style={{ display:'block', fontFamily:FH, fontSize:14, fontWeight:700,
         color:'#0a0a0a', marginBottom:5 }}>{label}</label>
-      {hint && <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, marginBottom:6 }}>{hint}</div>}
+      {hint && <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:6 }}>{hint}</div>}
       {children}
     </div>
   )
@@ -131,7 +131,7 @@ function PillToggle({ label, active, onChange }) {
     <button onClick={()=>onChange(!active)}
       style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'5px 12px',
         borderRadius:20, border:'none', cursor:'pointer', transition:'all .15s',
-        background:active?R:'#F9F9F9', color:active?'#fff':'#5a5a58',
+        background:active?R:'#f9fafb', color:active?'#fff':'#374151',
         fontSize:13, fontWeight:700, fontFamily:FH }}>
       {active ? <Check size={11}/> : <span style={{ width:11, height:11, borderRadius:'50%', background:'#d1d5db', display:'inline-block' }}/>}
       {label}
@@ -366,11 +366,11 @@ export default function AgencySettingsPage() {
           <Field label="Slug" hint="Used in your referral link and portal URL"><input value={agency.slug||''} onChange={e=>setAgency(a=>({...a,slug:e.target.value}))} style={INP} placeholder="unified-marketing"/></Field>
           <Field label="Billing Email"><input type="email" value={agency.billing_email||''} onChange={e=>setAgency(a=>({...a,billing_email:e.target.value}))} style={INP} placeholder="billing@youragency.com"/></Field>
           <Field label="Custom Domain" hint="Pro plan only — white-label portal domain"><input value={agency.brand_domain||''} onChange={e=>setAgency(a=>({...a,brand_domain:e.target.value}))} style={INP} placeholder="app.youragency.com"/></Field>
-          <div style={{ marginTop:8, background:'#f8f8f6', borderRadius:11, padding:'14px 16px', border:'1px solid #ececea' }}>
+          <div style={{ marginTop:8, background:'#f9fafb', borderRadius:11, padding:'14px 16px', border:'1px solid #e5e7eb' }}>
             <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:4 }}>Referral Link</div>
-            <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, marginBottom:8 }}>Earn 20% recurring commission on referred agencies</div>
+            <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:8 }}>Earn 20% recurring commission on referred agencies</div>
             <div style={{ display:'flex', gap:8 }}>
-              <input readOnly value={`${appUrl}/signup?ref=${agency.slug||''}`} style={{...INP,flex:1,color:'#9a9a96',fontSize:13}}/>
+              <input readOnly value={`${appUrl}/signup?ref=${agency.slug||''}`} style={{...INP,flex:1,color:'#6b7280',fontSize:13}}/>
               <button onClick={()=>{navigator.clipboard.writeText(`${appUrl}/signup?ref=${agency.slug||''}`);setCopied(true);setTimeout(()=>setCopied(false),2000)}}
                 style={{ padding:'9px 14px', borderRadius:9, border:`1px solid ${R}`, background:'#fff', color:R, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, flexShrink:0, display:'flex', alignItems:'center', gap:5 }}>
                 {copied?<><Check size={12}/> Copied</>:<><Copy size={12}/> Copy</>}
@@ -385,7 +385,7 @@ export default function AgencySettingsPage() {
 
           {/* Live preview */}
           <div style={{ marginBottom:20, borderRadius:14, border:'2px solid #f0f0ee', overflow:'hidden' }}>
-            <div style={{ background:'#f8f8f6', padding:'8px 14px', fontSize:11, fontWeight:800, color:'#9a9a96', textTransform:'uppercase', letterSpacing:'.08em' }}>Live Portal Preview</div>
+            <div style={{ background:'#f9fafb', padding:'8px 14px', fontSize:12, fontWeight:800, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.08em' }}>Live Portal Preview</div>
             <div style={{ background: agency.brand_color||R, padding:'18px 20px', display:'flex', alignItems:'center', gap:12 }}>
               {agency.brand_logo_url
                 ? <img src={agency.brand_logo_url} alt="logo" style={{height:32,maxWidth:140,objectFit:'contain'}} onError={e=>e.currentTarget.style.display='none'}/>
@@ -401,7 +401,7 @@ export default function AgencySettingsPage() {
               {[['⭐ 4.8','Avg Rating'],['24','Reviews'],['92','SEO Score']].map(([v,l])=>(
                 <div key={l} style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid #f0f0ee',textAlign:'center'}}>
                   <div style={{fontWeight:900,fontSize:18,color:agency.brand_color||R}}>{v}</div>
-                  <div style={{fontSize:12,color:'#9a9a96',marginTop:2}}>{l}</div>
+                  <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{l}</div>
                 </div>
               ))}
             </div>
@@ -415,7 +415,7 @@ export default function AgencySettingsPage() {
           {/* Logo upload */}
           <Field label="Logo" hint="Upload file or paste URL — shown in client portal header">
             <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
-              <label style={{padding:'8px 14px',borderRadius:9,border:'1.5px solid #ececea',cursor:'pointer',fontSize:13,fontWeight:700,color:'#374151',background:'#f9f9f7',display:'inline-flex',alignItems:'center',gap:6,flexShrink:0}}>
+              <label style={{padding:'8px 14px',borderRadius:9,border:'1.5px solid #e5e7eb',cursor:'pointer',fontSize:13,fontWeight:700,color:'#374151',background:'#f9f9f7',display:'inline-flex',alignItems:'center',gap:6,flexShrink:0}}>
                 📁 Upload File
                 <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{
                   const file = e.target.files?.[0]
@@ -433,7 +433,7 @@ export default function AgencySettingsPage() {
                 style={{...INP,flex:1}} placeholder="https://youragency.com/logo.png"/>
             </div>
             {agency.brand_logo_url && (
-              <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px',background:'#f8f8f6',borderRadius:9,border:'1px solid #ececea'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px',background:'#f9fafb',borderRadius:9,border:'1px solid #e5e7eb'}}>
                 <img src={agency.brand_logo_url} alt="preview" style={{height:36,maxWidth:180,objectFit:'contain'}} onError={e=>e.currentTarget.style.display='none'}/>
                 <button onClick={()=>setAgency(a=>({...a,brand_logo_url:''}))}
                   style={{marginLeft:'auto',fontSize:12,color:'#9ca3af',background:'none',border:'none',cursor:'pointer',padding:'4px 8px'}}>
@@ -448,7 +448,7 @@ export default function AgencySettingsPage() {
             <div style={{display:'flex',gap:10,alignItems:'center'}}>
               <input type="color" value={agency.brand_color||R}
                 onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))}
-                style={{width:46,height:40,borderRadius:9,border:'1px solid #ececea',padding:3,cursor:'pointer',flexShrink:0}}/>
+                style={{width:46,height:40,borderRadius:9,border:'1px solid #e5e7eb',padding:3,cursor:'pointer',flexShrink:0}}/>
               <input value={agency.brand_color||R}
                 onChange={e=>setAgency(a=>({...a,brand_color:e.target.value}))}
                 style={{...INP,flex:1,fontFamily:'monospace'}}/>
@@ -484,7 +484,7 @@ export default function AgencySettingsPage() {
                   }
                 }}
                 disabled={!agency.custom_domain || agency._domain_verifying}
-                style={{padding:'10px 16px',borderRadius:9,border:'1.5px solid #ececea',background:'#f9f9f7',fontSize:13,fontWeight:700,color:'#374151',cursor: agency.custom_domain ? 'pointer' : 'not-allowed',whiteSpace:'nowrap',flexShrink:0}}>
+                style={{padding:'10px 16px',borderRadius:9,border:'1.5px solid #e5e7eb',background:'#f9f9f7',fontSize:13,fontWeight:700,color:'#374151',cursor: agency.custom_domain ? 'pointer' : 'not-allowed',whiteSpace:'nowrap',flexShrink:0}}>
                 {agency._domain_verifying ? 'Checking…' : 'Verify DNS'}
               </button>
             </div>
@@ -519,7 +519,7 @@ export default function AgencySettingsPage() {
           {members.length > 0 ? (
             <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
               {members.map(m=>(
-                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f9fafb', borderRadius:11, border:'1px solid #e5e7eb' }}>
                   <div style={{ width:36, height:36, borderRadius:'50%', background:R, flexShrink:0,
                     display:'flex', alignItems:'center', justifyContent:'center',
                     fontFamily:FH, fontSize:14, fontWeight:700, color:'#fff' }}>
@@ -527,13 +527,13 @@ export default function AgencySettingsPage() {
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{m.user?.email}</div>
-                    <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, textTransform:'capitalize' }}>{m.role}</div>
+                    <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, textTransform:'capitalize' }}>{m.role}</div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ textAlign:'center', padding:'32px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No team members yet</div>
+            <div style={{ textAlign:'center', padding:'32px 0', color:'#6b7280', fontSize:14, fontFamily:FB, marginBottom:12 }}>No team members yet</div>
           )}
           <button onClick={()=>navigate('/agency-settings')}
             style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px',
@@ -578,9 +578,9 @@ export default function AgencySettingsPage() {
               { label:'Clients', value:`${members.length} / unlimited` },
               { label:'Status', value:'Active', green:true },
             ].map(s=>(
-              <div key={s.label} style={{ background:'#f8f8f6', borderRadius:11, padding:'14px 16px', border:'1px solid #ececea', textAlign:'center' }}>
+              <div key={s.label} style={{ background:'#f9fafb', borderRadius:11, padding:'14px 16px', border:'1px solid #e5e7eb', textAlign:'center' }}>
                 <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:s.green?'#16a34a':'#0a0a0a', letterSpacing:'-.02em' }}>{s.value}</div>
-                <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, marginTop:3 }}>{s.label}</div>
+                <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginTop:3 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -595,27 +595,27 @@ export default function AgencySettingsPage() {
 
       case 'connections': return (
         <div>
-          <div style={{ background:'#fff', borderRadius:14, border:'1px solid #ececea',
+          <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb',
             padding:'16px 20px', marginBottom:16, display:'flex', alignItems:'center', gap:14 }}>
             <div style={{ flex:1 }}>
               <div style={{ fontFamily:FH, fontSize:15, fontWeight:700, color:'#0a0a0a', marginBottom:6 }}>
                 {CONNECTIONS.filter(c=>!!process.env[c.env]).length} of {CONNECTIONS.length} connections configured
               </div>
-              <div style={{ height:5, background:'#F9F9F9', borderRadius:3, overflow:'hidden', maxWidth:240 }}>
+              <div style={{ height:5, background:'#f9fafb', borderRadius:3, overflow:'hidden', maxWidth:240 }}>
                 <div style={{ height:'100%', borderRadius:3, background:R, transition:'width .4s',
                   width:`${(CONNECTIONS.filter(c=>!!process.env[c.env]).length/CONNECTIONS.length)*100}%` }}/>
               </div>
             </div>
             <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer"
               style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px',
-                borderRadius:10, border:'1px solid #ececea', background:'#fff',
-                color:'#5a5a58', fontSize:14, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
+                borderRadius:10, border:'1px solid #e5e7eb', background:'#fff',
+                color:'#374151', fontSize:14, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
               <ExternalLink size={13}/> Vercel Env Vars
             </a>
           </div>
           {connGroups.map(grp=>(
             <div key={grp} style={{ marginBottom:20 }}>
-              <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:'#9a9a96',
+              <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:'#6b7280',
                 textTransform:'uppercase', letterSpacing:'.09em', marginBottom:10 }}>{grp}</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:10 }}>
                 {CONNECTIONS.filter(c=>c.group===grp).map(conn=>{
@@ -623,7 +623,7 @@ export default function AgencySettingsPage() {
                   const Icon = conn.icon
                   return (
                     <div key={conn.id} style={{ background:'#fff', borderRadius:12,
-                      border:`1px solid ${ok?conn.color+'35':'#ececea'}`, padding:'16px' }}>
+                      border:`1px solid ${ok?conn.color+'35':'#e5e7eb'}`, padding:'16px' }}>
                       <div style={{ display:'flex', alignItems:'flex-start', gap:11, marginBottom:10 }}>
                         <div style={{ width:36, height:36, borderRadius:10, flexShrink:0,
                           background:conn.color+'15', border:`1px solid ${conn.color}25`,
@@ -637,27 +637,27 @@ export default function AgencySettingsPage() {
                               ? <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, padding:'1px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', display:'flex', alignItems:'center', gap:4 }}><Check size={10} strokeWidth={3}/> Connected</span>
                               : <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, padding:'1px 8px', borderRadius:20, background:'#fffbeb', color:'#d97706', display:'flex', alignItems:'center', gap:4 }}><AlertTriangle size={10}/> Not set</span>}
                           </div>
-                          <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{conn.free}</div>
+                          <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{conn.free}</div>
                         </div>
                       </div>
-                      <div style={{ background:'#f8f8f6', borderRadius:7, padding:'6px 10px', marginBottom:10, display:'flex', alignItems:'center', gap:7 }}>
-                        <code style={{ fontSize:12, color:'#5a5a58', fontFamily:'monospace', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{conn.env}</code>
-                        <button onClick={()=>{navigator.clipboard.writeText(conn.env);toast.success('Copied!')}} style={{ padding:'2px 8px', borderRadius:5, border:'1px solid #ececea', background:'#fff', cursor:'pointer', fontSize:12, color:'#9a9a96', fontFamily:FH, fontWeight:600, flexShrink:0, display:'flex', alignItems:'center', gap:3 }}>
+                      <div style={{ background:'#f9fafb', borderRadius:7, padding:'6px 10px', marginBottom:10, display:'flex', alignItems:'center', gap:7 }}>
+                        <code style={{ fontSize:12, color:'#374151', fontFamily:'monospace', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{conn.env}</code>
+                        <button onClick={()=>{navigator.clipboard.writeText(conn.env);toast.success('Copied!')}} style={{ padding:'2px 8px', borderRadius:5, border:'1px solid #e5e7eb', background:'#fff', cursor:'pointer', fontSize:12, color:'#6b7280', fontFamily:FH, fontWeight:600, flexShrink:0, display:'flex', alignItems:'center', gap:3 }}>
                           <Copy size={10}/> Copy
                         </button>
                       </div>
                       <div style={{ display:'flex', gap:7 }}>
                         <a href={conn.setupUrl} target="_blank" rel="noreferrer"
                           style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                            padding:'7px', borderRadius:8, border:`1px solid ${ok?'#ececea':conn.color}`,
-                            background:ok?'#fff':conn.color+'08', color:ok?'#5a5a58':conn.color,
+                            padding:'7px', borderRadius:8, border:`1px solid ${ok?'#e5e7eb':conn.color}`,
+                            background:ok?'#fff':conn.color+'08', color:ok?'#374151':conn.color,
                             fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:FH }}>
                           <ExternalLink size={11}/> {ok?'Manage':'Get Key'}
                         </a>
                         <button onClick={()=>testConn(conn)} disabled={testing[conn.id]}
-                          style={{ padding:'7px 12px', borderRadius:8, border:'1px solid #ececea', background:'#fff',
+                          style={{ padding:'7px 12px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff',
                             cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:13, fontFamily:FH,
-                            color: testResult[conn.id]==='pass'?'#16a34a': testResult[conn.id]==='fail'?R: '#9a9a96' }}>
+                            color: testResult[conn.id]==='pass'?'#16a34a': testResult[conn.id]==='fail'?R: '#6b7280' }}>
                           {testing[conn.id] ? <Loader2 size={11} style={{animation:'spin 1s linear infinite'}}/> : <RefreshCw size={11}/>}
                           Test
                         </button>
@@ -675,10 +675,10 @@ export default function AgencySettingsPage() {
         <SectionCard title="Notification Preferences" subtitle="Choose what you want to be alerted about">
           {NOTIFS.map((n,i)=>(
             <div key={n.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-              padding:'14px 0', borderBottom:i<NOTIFS.length-1?'1px solid #f2f2f0':'none' }}>
+              padding:'14px 0', borderBottom:i<NOTIFS.length-1?'1px solid #e5e7eb':'none' }}>
               <div style={{ flex:1, paddingRight:20 }}>
                 <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:2 }}>{n.label}</div>
-                <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{n.desc}</div>
+                <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{n.desc}</div>
               </div>
               <Toggle on={notifs[n.key]} onChange={()=>{ setNotifs(p=>({...p,[n.key]:!p[n.key]})); toast.success('Saved') }}/>
             </div>
@@ -696,20 +696,20 @@ export default function AgencySettingsPage() {
           ].map((item,i)=>{
             const I = item.icon
             return (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 0', borderBottom:i<3?'1px solid #f2f2f0':'none' }}>
-                <div style={{ width:36, height:36, borderRadius:10, background:'#F9F9F9', border:'1px solid #ececea', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <I size={15} color="#9a9a96"/>
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 0', borderBottom:i<3?'1px solid #e5e7eb':'none' }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:'#f9fafb', border:'1px solid #e5e7eb', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <I size={15} color="#6b7280"/>
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{item.label}</div>
-                  <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{item.desc}</div>
+                  <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{item.desc}</div>
                 </div>
                 {item.href?.startsWith('http') ? (
-                  <a href={item.href} target="_blank" rel="noreferrer" style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 13px', borderRadius:9, border:'1px solid #ececea', background:'#fff', color:'#5a5a58', fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:FH, whiteSpace:'nowrap' }}><ExternalLink size={11}/> {item.action}</a>
+                  <a href={item.href} target="_blank" rel="noreferrer" style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 13px', borderRadius:9, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:13, fontWeight:700, textDecoration:'none', fontFamily:FH, whiteSpace:'nowrap' }}><ExternalLink size={11}/> {item.action}</a>
                 ) : item.href ? (
-                  <button onClick={()=>navigate(item.href)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 13px', borderRadius:9, border:'1px solid #ececea', background:'#fff', color:'#5a5a58', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap' }}><ChevronRight size={11}/> {item.action}</button>
+                  <button onClick={()=>navigate(item.href)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 13px', borderRadius:9, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap' }}><ChevronRight size={11}/> {item.action}</button>
                 ) : (
-                  <button onClick={()=>toast('Coming soon')} style={{ padding:'7px 13px', borderRadius:9, border:'1px solid #ececea', background:'#fff', color:'#9a9a96', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>{item.action}</button>
+                  <button onClick={()=>toast('Coming soon')} style={{ padding:'7px 13px', borderRadius:9, border:'1px solid #e5e7eb', background:'#fff', color:'#6b7280', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>{item.action}</button>
                 )}
               </div>
             )
@@ -725,9 +725,9 @@ export default function AgencySettingsPage() {
               style={{...INP,resize:'vertical',lineHeight:1.65}}
               placeholder="We'd love to learn more about your business so we can hit the ground running…"/>
           </Field>
-          <div style={{ padding:'14px 16px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+          <div style={{ padding:'14px 16px', background:'#f9fafb', borderRadius:11, border:'1px solid #e5e7eb' }}>
             <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:4 }}>Default fields collected</div>
-            <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB, lineHeight:1.65 }}>
+            <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, lineHeight:1.65 }}>
               Business name · Industry · Website · Phone · Service area · Key goals · Monthly budget · Who's the decision maker
             </div>
           </div>
@@ -789,7 +789,7 @@ export default function AgencySettingsPage() {
                 >
                   {creatingOnboardingAgent ? 'Creating…' : '+ Create Retell Onboarding Agent'}
                 </button>
-                <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 6, lineHeight: 1.5 }}>
                   This creates a dedicated agent in Retell with the <code>save_answer</code> tool wired up. After creating, assign your chosen phone number to the agent inside the Retell dashboard.
                 </div>
               </div>
@@ -888,16 +888,16 @@ export default function AgencySettingsPage() {
       case 'proposals': return (
         <SectionCard title="Service Modules & SOW Library" subtitle="Pre-built services you can add to proposals">
           {modules.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'28px 0', color:'#9a9a96', fontSize:14, fontFamily:FB }}>
+            <div style={{ textAlign:'center', padding:'28px 0', color:'#6b7280', fontSize:14, fontFamily:FB }}>
               No service modules yet — add your first below
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
               {modules.map(m=>(
-                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'11px 14px', background:'#f9fafb', borderRadius:11, border:'1px solid #e5e7eb' }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{m.name}</div>
-                    <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{m.category} · ${m.price}/{m.price_type}</div>
+                    <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{m.category} · ${m.price}/{m.price_type}</div>
                   </div>
                   <button onClick={async()=>{ if(!confirm('Delete?'))return; await supabase.from('service_modules').delete().eq('id',m.id); loadAll() }}
                     style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #fecaca', background:'#fef2f2', color:R, cursor:'pointer', display:'flex', alignItems:'center' }}>
@@ -907,7 +907,7 @@ export default function AgencySettingsPage() {
               ))}
             </div>
           )}
-          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #ececea', padding:'16px' }}>
+          <div style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'16px' }}>
             <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:12 }}>Add Service Module</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
               <Field label="Name"><input placeholder="SEO Management" value={''} style={INP} onChange={()=>{}}/></Field>
@@ -927,14 +927,14 @@ export default function AgencySettingsPage() {
               {totalWeight}% total {totalWeight!==100&&<span style={{fontSize:14,fontWeight:600}}>(must equal 100)</span>}
             </div>
             <button onClick={()=>{setWeights({...WEIGHT_DEFAULTS});toast.success('Reset')}}
-              style={{ padding:'7px 14px', borderRadius:9, border:'1px solid #ececea', background:'#fff', fontSize:14, cursor:'pointer', color:'#5a5a58', fontFamily:FH, fontWeight:600 }}>Reset</button>
+              style={{ padding:'7px 14px', borderRadius:9, border:'1px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151', fontFamily:FH, fontWeight:600 }}>Reset</button>
           </div>
           {WEIGHT_LABELS.map(w=>(
             <div key={w.key} style={{ marginBottom:20 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
                 <div>
                   <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{w.label}</div>
-                  <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{w.desc}</div>
+                  <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{w.desc}</div>
                 </div>
                 <span style={{ fontFamily:FH, fontSize:18, fontWeight:900, color:R, minWidth:44, textAlign:'right' }}>{weights[w.key]}%</span>
               </div>
@@ -950,18 +950,18 @@ export default function AgencySettingsPage() {
         <div>
           <SectionCard title="Support Agents" subtitle="Team members who handle KotoDesk tickets">
             {agents.length===0 ? (
-              <div style={{ textAlign:'center', padding:'20px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No agents yet</div>
+              <div style={{ textAlign:'center', padding:'20px 0', color:'#6b7280', fontSize:14, fontFamily:FB, marginBottom:12 }}>No agents yet</div>
             ) : (
               <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
                 {agents.map(a=>(
-                  <div key={a.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f8f8f6', borderRadius:11, border:'1px solid #ececea' }}>
+                  <div key={a.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f9fafb', borderRadius:11, border:'1px solid #e5e7eb' }}>
                     <div style={{ width:34, height:34, borderRadius:'50%', background:a.avatar_color||R, flexShrink:0,
                       display:'flex', alignItems:'center', justifyContent:'center', fontFamily:FH, fontSize:13, fontWeight:700, color:'#fff' }}>
                       {a.name[0].toUpperCase()}
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a' }}>{a.name}</div>
-                      <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>{a.email} · {a.role} · ${a.hourly_rate||0}/hr</div>
+                      <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{a.email} · {a.role} · ${a.hourly_rate||0}/hr</div>
                     </div>
                     <Toggle on={a.is_active} onChange={v=>updateAgent(a.id,'is_active',v)}/>
                     <button onClick={()=>deleteAgent(a.id)} style={{ padding:'5px 8px', borderRadius:7, border:'1px solid #fecaca', background:'#fef2f2', color:R, cursor:'pointer', display:'flex', alignItems:'center' }}><Trash2 size={13}/></button>
@@ -970,7 +970,7 @@ export default function AgencySettingsPage() {
               </div>
             )}
             {/* Add agent */}
-            <div style={{ background:'#f8f8f6', borderRadius:12, border:'1px solid #ececea', padding:'16px' }}>
+            <div style={{ background:'#f9fafb', borderRadius:12, border:'1px solid #e5e7eb', padding:'16px' }}>
               <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:12 }}>Add Agent</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
                 <Field label="Name"><input value={newAgent.name} onChange={e=>setNewAgent(a=>({...a,name:e.target.value}))} style={INP} placeholder="Sarah Johnson"/></Field>
@@ -1005,14 +1005,14 @@ export default function AgencySettingsPage() {
       case 'routing': return (
         <SectionCard title="Ticket Routing Rules" subtitle="Auto-assign tickets to agents based on conditions">
           {rules.length===0 ? (
-            <div style={{ textAlign:'center', padding:'20px 0', color:'#9a9a96', fontSize:14, fontFamily:FB, marginBottom:12 }}>No rules yet — tickets will be unassigned by default</div>
+            <div style={{ textAlign:'center', padding:'20px 0', color:'#6b7280', fontSize:14, fontFamily:FB, marginBottom:12 }}>No rules yet — tickets will be unassigned by default</div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
               {rules.map(r=>(
-                <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f8f8f6', borderRadius:11, border:`1px solid ${r.is_active?T+'40':'#ececea'}` }}>
+                <div key={r.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:'#f9fafb', borderRadius:11, border:`1px solid ${r.is_active?T+'40':'#e5e7eb'}` }}>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:2 }}>{r.name}</div>
-                    <div style={{ fontSize:13, color:'#9a9a96', fontFamily:FB }}>
+                    <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>
                       {r.match_category?.length>0 && `Category: ${r.match_category.join(', ')} · `}
                       {r.match_keywords?.length>0 && `Keywords: ${r.match_keywords.join(', ')} · `}
                       Priority {r.priority}
@@ -1025,7 +1025,7 @@ export default function AgencySettingsPage() {
               ))}
             </div>
           )}
-          <div style={{ background:'#f8f8f6', borderRadius:12, border:'1px solid #ececea', padding:'16px' }}>
+          <div style={{ background:'#f9fafb', borderRadius:12, border:'1px solid #e5e7eb', padding:'16px' }}>
             <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:'#0a0a0a', marginBottom:12 }}>Add Routing Rule</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
               <Field label="Rule Name"><input value={newRule.name} onChange={e=>setNewRule(r=>({...r,name:e.target.value}))} style={INP} placeholder="Billing tickets → Sarah"/></Field>
@@ -1076,8 +1076,8 @@ export default function AgencySettingsPage() {
                       <MobileRow key={s.key}
                         onClick={()=>setSection(s.key)}
                         borderBottom={i<items.length-1}
-                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#E6007E':'#F9F9F9',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                          <I size={16} color={section===s.key?'#fff':'#5a5a58'}/>
+                        left={<div style={{width:36,height:36,borderRadius:10,background:section===s.key?'#E6007E':'#f9fafb',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                          <I size={16} color={section===s.key?'#fff':'#374151'}/>
                         </div>}
                         title={s.label}/>
                     )
@@ -1103,7 +1103,7 @@ export default function AgencySettingsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9', fontFamily:FB }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f9fafb', fontFamily:FB }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
@@ -1125,12 +1125,12 @@ export default function AgencySettingsPage() {
         <div style={{ flex:1, overflow:'hidden', display:'grid', gridTemplateColumns:'220px 1fr' }}>
 
           {/* Left nav */}
-          <div style={{ background:'#fff', borderRight:'1px solid #ececea', overflowY:'auto', padding:'16px 10px' }}>
+          <div style={{ background:'#fff', borderRight:'1px solid #e5e7eb', overflowY:'auto', padding:'16px 10px' }}>
             {['Agency','Platform','Intelligence'].map(group=>{
               const items = SECTIONS.filter(s=>s.group===group)
               return (
                 <div key={group} style={{ marginBottom:8 }}>
-                  <div style={{ padding:'8px 10px 4px', fontFamily:FH, fontSize:11, fontWeight:700,
+                  <div style={{ padding:'8px 10px 4px', fontFamily:FH, fontSize:12, fontWeight:700,
                     color:'#d0d0cc', textTransform:'uppercase', letterSpacing:'.1em' }}>{group}</div>
                   {items.map(s=>{
                     const I = s.icon
@@ -1140,13 +1140,13 @@ export default function AgencySettingsPage() {
                         style={{ width:'100%', display:'flex', alignItems:'center', gap:9,
                           padding:'8px 10px', borderRadius:9, border:'none',
                           background:active?R+'12':'transparent',
-                          color:active?R:'#5a5a58',
+                          color:active?R:'#374151',
                           fontSize:14, fontWeight:active?700:500,
                           cursor:'pointer', fontFamily:FH, textAlign:'left',
                           transition:'all .12s', marginBottom:1,
                           borderLeft:`2.5px solid ${active?R:'transparent'}` }}
-                        onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='#f8f8f6';e.currentTarget.style.color='#0a0a0a'}}}
-                        onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color='#5a5a58'}}}>
+                        onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='#f9fafb';e.currentTarget.style.color='#0a0a0a'}}}
+                        onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color='#374151'}}}>
                         <I size={14} style={{ flexShrink:0 }}/> {s.label}
                       </button>
                     )

@@ -14,13 +14,7 @@ import { useMobile } from '../hooks/useMobile'
 import { useClient } from '../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLK = '#111111'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../lib/theme'
 
 const STATUS_CFG = {
   pending:       { label: 'Pending',       color: '#6b7280', bg: '#f3f4f6' },
@@ -36,7 +30,7 @@ function StatCard({ label, value, icon: Icon, color }) {
     <div style={{ background:'#fff', borderRadius:12, border:'1px solid #f3f4f6', padding:'14px 16px', textAlign:'center' }}>
       {Icon && <Icon size={16} color={color||'#9ca3af'} style={{ margin:'0 auto 6px', display:'block' }}/>}
       <div style={{ fontFamily:FH, fontSize:24, fontWeight:900, color:color||BLK, letterSpacing:'-.03em', lineHeight:1 }}>{value}</div>
-      <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginTop:3 }}>{label}</div>
+      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:3 }}>{label}</div>
     </div>
   )
 }
@@ -188,7 +182,7 @@ export default function ReviewCampaignsPage() {
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Star size={18} color={AMBER} fill={AMBER}/> Review Campaigns
               </div>
-              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 Send review requests via email & SMS — track opens, clicks, and conversions
               </div>
             </div>
@@ -226,7 +220,7 @@ export default function ReviewCampaignsPage() {
             <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'56px 24px', textAlign:'center' }}>
               <Star size={40} color="#e5e7eb" style={{ margin:'0 auto 14px', display:'block' }}/>
               <div style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, marginBottom:8 }}>Select a client to manage review campaigns</div>
-              <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB }}>Campaigns are built per-client and use their branding</div>
+              <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>Campaigns are built per-client and use their branding</div>
             </div>
           )}
 
@@ -238,7 +232,7 @@ export default function ReviewCampaignsPage() {
                 <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'22px 24px', marginBottom:20 }}>
                   <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, marginBottom:16, display:'flex', justifyContent:'space-between' }}>
                     New Campaign
-                    <button onClick={()=>setShowNew(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}><X size={15}/></button>
+                    <button onClick={()=>setShowNew(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280' }}><X size={15}/></button>
                   </div>
 
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
@@ -281,14 +275,14 @@ export default function ReviewCampaignsPage() {
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:5 }}>
                         <label style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:BLK }}>Email Message</label>
                         <button onClick={()=>generateMessage('email')} disabled={generating}
-                          style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:7, border:`1px solid ${TEAL}40`, background:`${TEAL}10`, color:TEAL, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                          style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:7, border:`1px solid ${TEAL}40`, background:`${TEAL}10`, color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                           {generating?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>} AI Write
                         </button>
                       </div>
                       <textarea value={form.message_email} onChange={e=>setForm(f=>({...f,message_email:e.target.value}))}
                         rows={5} placeholder="Hi [NAME], thank you for choosing us..."
                         style={{ width:'100%', padding:'9px 13px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, outline:'none', resize:'vertical', boxSizing:'border-box', lineHeight:1.7 }}/>
-                      <div style={{ fontSize:11, color:'#9ca3af', marginTop:4, fontFamily:FB }}>Use [NAME] for customer's first name · [REVIEW_LINK] for the review URL (auto-inserted if omitted)</div>
+                      <div style={{ fontSize:12, color:'#6b7280', marginTop:4, fontFamily:FB }}>Use [NAME] for customer's first name · [REVIEW_LINK] for the review URL (auto-inserted if omitted)</div>
                     </div>
                   )}
 
@@ -298,7 +292,7 @@ export default function ReviewCampaignsPage() {
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:5 }}>
                         <label style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:BLK }}>SMS Message ({form.message_sms.length}/160)</label>
                         <button onClick={()=>generateMessage('sms')} disabled={generating}
-                          style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:7, border:`1px solid ${TEAL}40`, background:`${TEAL}10`, color:TEAL, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                          style={{ display:'flex', alignItems:'center', gap:4, padding:'4px 10px', borderRadius:7, border:`1px solid ${TEAL}40`, background:`${TEAL}10`, color:TEAL, fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                           {generating?<Loader2 size={10} style={{animation:'spin 1s linear infinite'}}/>:<Sparkles size={10}/>} AI Write
                         </button>
                       </div>
@@ -320,7 +314,7 @@ export default function ReviewCampaignsPage() {
                 <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'48px 24px', textAlign:'center' }}>
                   <Star size={36} color="#e5e7eb" style={{ margin:'0 auto 12px', display:'block' }}/>
                   <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:BLK, marginBottom:6 }}>No campaigns yet</div>
-                  <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, marginBottom:16 }}>Create your first review request campaign for {clientObj?.name}</div>
+                  <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:16 }}>Create your first review request campaign for {clientObj?.name}</div>
                   <button onClick={()=>setShowNew(true)}
                     style={{ padding:'10px 24px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                     <Plus size={13} style={{ display:'inline', marginRight:5 }}/> New Campaign
@@ -336,12 +330,12 @@ export default function ReviewCampaignsPage() {
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>{camp.name}</div>
-                        <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, marginTop:2 }}>
+                        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>
                           {camp.channel} · {camp.total_sent} sent · {camp.total_clicked} clicked
                         </div>
                       </div>
                       <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                        <span style={{ fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20, background:camp.status==='active'?GREEN+'15':'#f3f4f6', color:camp.status==='active'?GREEN:'#6b7280', fontFamily:FH }}>
+                        <span style={{ fontSize:12, fontWeight:700, padding:'3px 9px', borderRadius:20, background:camp.status==='active'?GREEN+'15':'#f3f4f6', color:camp.status==='active'?GREEN:'#6b7280', fontFamily:FH }}>
                           {camp.status}
                         </span>
                         <button onClick={e=>{e.stopPropagation();deleteCampaign(camp.id)}}
@@ -360,7 +354,7 @@ export default function ReviewCampaignsPage() {
           {clientId && activeTab === 'contacts' && (
             <div>
               {!activeCamp ? (
-                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'40px 24px', textAlign:'center', color:'#9ca3af', fontFamily:FB, fontSize:14 }}>
+                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'40px 24px', textAlign:'center', color:'#6b7280', fontFamily:FB, fontSize:14 }}>
                   Select a campaign from the Campaigns tab first
                 </div>
               ) : (
@@ -368,7 +362,7 @@ export default function ReviewCampaignsPage() {
                   <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px', marginBottom:16, display:'flex', alignItems:'center', gap:12 }}>
                     <div style={{ flex:1 }}>
                       <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK }}>{activeCamp.name}</div>
-                      <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{activeCamp.channel} · {contacts.length} contacts</div>
+                      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{activeCamp.channel} · {contacts.length} contacts</div>
                     </div>
                     <button onClick={()=>sendCampaign(activeCamp.id)} disabled={sending||contacts.filter(c=>c.status==='pending').length===0}
                       style={{ display:'flex', alignItems:'center', gap:7, padding:'10px 20px', borderRadius:10, border:'none', background:contacts.filter(c=>c.status==='pending').length>0?RED:'#f3f4f6', color:contacts.filter(c=>c.status==='pending').length>0?'#fff':'#9ca3af', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH, boxShadow:contacts.filter(c=>c.status==='pending').length>0?`0 2px 10px ${RED}50`:'none' }}>
@@ -380,7 +374,7 @@ export default function ReviewCampaignsPage() {
                   {/* Add contacts */}
                   <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px', marginBottom:16 }}>
                     <div style={{ fontFamily:FH, fontSize:13, fontWeight:800, color:BLK, marginBottom:10 }}>Add Contacts</div>
-                    <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, marginBottom:8 }}>
+                    <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:8 }}>
                       Paste names, emails, and/or phone numbers — one per line or comma-separated.<br/>
                       Format: Name, email@example.com, (555) 555-5555
                     </div>
@@ -403,7 +397,7 @@ export default function ReviewCampaignsPage() {
                   {/* Contacts table */}
                   {contacts.length > 0 && (
                     <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
-                      <div style={{ padding:'12px 16px', borderBottom:'1px solid #f3f4f6', display:'grid', gridTemplateColumns:'1fr 1fr 1fr 100px', gap:12, fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.06em' }}>
+                      <div style={{ padding:'12px 16px', borderBottom:'1px solid #f3f4f6', display:'grid', gridTemplateColumns:'1fr 1fr 1fr 100px', gap:12, fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.06em' }}>
                         <span>Name</span><span>Contact</span><span>Sent</span><span>Status</span>
                       </div>
                       {contacts.map(c => {
@@ -415,10 +409,10 @@ export default function ReviewCampaignsPage() {
                               {c.email && <div><Mail size={10} style={{ display:'inline', marginRight:3 }}/>{c.email}</div>}
                               {c.phone && <div><Phone size={10} style={{ display:'inline', marginRight:3 }}/>{c.phone}</div>}
                             </div>
-                            <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>
+                            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>
                               {c.sent_at ? new Date(c.sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}
                             </div>
-                            <span style={{ fontSize:11, fontWeight:700, padding:'2px 9px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:FH, display:'inline-block' }}>
+                            <span style={{ fontSize:12, fontWeight:700, padding:'2px 9px', borderRadius:20, background:cfg.bg, color:cfg.color, fontFamily:FH, display:'inline-block' }}>
                               {cfg.label}
                             </span>
                           </div>
@@ -435,7 +429,7 @@ export default function ReviewCampaignsPage() {
           {clientId && activeTab === 'analytics' && (
             <div>
               {campaigns.length === 0 ? (
-                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'40px 24px', textAlign:'center', color:'#9ca3af', fontFamily:FB, fontSize:14 }}>
+                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'40px 24px', textAlign:'center', color:'#6b7280', fontFamily:FB, fontSize:14 }}>
                   No campaigns yet — create one to see analytics
                 </div>
               ) : (
@@ -459,22 +453,22 @@ export default function ReviewCampaignsPage() {
                         <div key={camp.id} style={{ padding:'14px 18px', borderBottom:'1px solid #f9fafb', display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 80px', gap:12, alignItems:'center' }}>
                           <div>
                             <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}>{camp.name}</div>
-                            <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>{camp.channel}</div>
+                            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{camp.channel}</div>
                           </div>
                           <div style={{ textAlign:'center' }}>
                             <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:TEAL }}>{sent}</div>
-                            <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>Sent</div>
+                            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Sent</div>
                           </div>
                           <div style={{ textAlign:'center' }}>
                             <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:AMBER }}>{open}%</div>
-                            <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>Opened</div>
+                            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Opened</div>
                           </div>
                           <div style={{ textAlign:'center' }}>
                             <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:GREEN }}>{click}%</div>
-                            <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>Clicked</div>
+                            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Clicked</div>
                           </div>
                           <div style={{ textAlign:'center' }}>
-                            <span style={{ fontSize:11, fontWeight:700, padding:'3px 8px', borderRadius:20, background:camp.status==='active'?GREEN+'15':'#f3f4f6', color:camp.status==='active'?GREEN:'#6b7280', fontFamily:FH }}>
+                            <span style={{ fontSize:12, fontWeight:700, padding:'3px 8px', borderRadius:20, background:camp.status==='active'?GREEN+'15':'#f3f4f6', color:camp.status==='active'?GREEN:'#6b7280', fontFamily:FH }}>
                               {camp.status}
                             </span>
                           </div>

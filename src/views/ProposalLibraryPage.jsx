@@ -12,14 +12,8 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLK = '#111111'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../lib/theme'
 const PURP  = '#7c3aed'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
 
 const MODULE_TYPES = [
   { key: 'all',           label: 'All Modules',      color: '#6b7280' },
@@ -62,17 +56,17 @@ function ModuleCard({ mod, onEdit, onDelete, onRefine, onFavorite, onCopy, selec
       </div>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8, paddingRight: 28 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: typeInfo.color + '18', color: typeInfo.color, flexShrink: 0, fontFamily: FH }}>
+        <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: typeInfo.color + '18', color: typeInfo.color, flexShrink: 0, fontFamily: FH }}>
           {typeInfo.label}
         </span>
         {mod.is_favorite && <Star size={13} color={AMBER} fill={AMBER}/>}
         {mod.price_hint && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, fontFamily: FH }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: GREEN, fontFamily: FH }}>
             ${mod.price_hint?.toLocaleString()}{mod.price_type === 'monthly' ? '/mo' : mod.price_type === 'one_time' ? ' once' : ''}
           </span>
         )}
         {mod.usage_count > 0 && (
-          <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB, marginLeft: 'auto', marginRight: 28 }}>used {mod.usage_count}×</span>
+          <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginLeft: 'auto', marginRight: 28 }}>used {mod.usage_count}×</span>
         )}
       </div>
 
@@ -93,14 +87,14 @@ function ModuleCard({ mod, onEdit, onDelete, onRefine, onFavorite, onCopy, selec
       )}
 
       {mod.refined_content && (
-        <div style={{ fontSize: 10, fontWeight: 700, color: TEAL, fontFamily: FH, marginTop: 4 }}>✨ AI Polished</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: TEAL, fontFamily: FH, marginTop: 4 }}>✨ AI Polished</div>
       )}
 
       {/* Tags */}
       {mod.tags?.length > 0 && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
           {mod.tags.map(t => (
-            <span key={t} style={{ fontSize: 10, padding: '1px 7px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280', fontFamily: FB }}>{t}</span>
+            <span key={t} style={{ fontSize: 12, padding: '1px 7px', borderRadius: 10, background: '#f3f4f6', color: '#6b7280', fontFamily: FB }}>{t}</span>
           ))}
         </div>
       )}
@@ -108,20 +102,20 @@ function ModuleCard({ mod, onEdit, onDelete, onRefine, onFavorite, onCopy, selec
       {/* Actions */}
       <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
         <button onClick={handleRefine} disabled={refining}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: `1px solid ${TEAL}40`, background: `${TEAL}10`, color: TEAL, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: `1px solid ${TEAL}40`, background: `${TEAL}10`, color: TEAL, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
           {refining ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }}/> : <Sparkles size={10}/>}
           {refining ? 'Polishing…' : 'AI Polish'}
         </button>
         <button onClick={() => { navigator.clipboard.writeText(mod.refined_content || mod.content); toast.success('Copied!') }}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
           <Copy size={10}/> Copy
         </button>
         <button onClick={() => onFavorite(mod.id)}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: mod.is_favorite ? AMBER : '#6b7280', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: mod.is_favorite ? AMBER : '#6b7280', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
           <Star size={10} fill={mod.is_favorite ? AMBER : 'none'}/> {mod.is_favorite ? 'Saved' : 'Save'}
         </button>
         <button onClick={() => onEdit(mod)}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
           <Edit2 size={10}/> Edit
         </button>
         <button onClick={() => onDelete(mod.id)}
@@ -162,7 +156,7 @@ function UploadZone({ onUpload, uploading }) {
       <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK, marginBottom: 4 }}>
         {uploading ? 'Parsing document…' : 'Drop your proposals, SOWs & agreements here'}
       </div>
-      <div style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
+      <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB }}>
         PDF, TXT, or DOCX · Upload multiple at once · Claude reads and learns your style
       </div>
     </div>
@@ -314,18 +308,18 @@ export default function ProposalLibraryPage() {
   const favorites = modules.filter(m => m.is_favorite)
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F9F9F9' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f9fafb' }}>
       <Sidebar/>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '18px 28px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '18px 28px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 9 }}>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 700, color: '#111', letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 9 }}>
                 <Layers size={18} color={TEAL}/> Proposal Library
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', margin: '3px 0 0', fontFamily: FB }}>
+              <div style={{ fontSize: 14, color: '#6b7280', margin: '3px 0 0', fontFamily: FB }}>
                 Upload past docs → extract modules → generate new proposals in your voice
               </div>
             </div>
@@ -333,7 +327,7 @@ export default function ProposalLibraryPage() {
               {voiceProfile && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 8, background: TEAL+'20', border: `1px solid ${TEAL}40` }}>
                   <Brain size={12} color={TEAL}/>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: TEAL, fontFamily: FH }}>Voice trained on {voiceProfile.doc_count} docs</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: TEAL, fontFamily: FH }}>Voice trained on {voiceProfile.doc_count} docs</span>
                 </div>
               )}
               {selected.size > 0 && (
@@ -357,9 +351,9 @@ export default function ProposalLibraryPage() {
               const active = activeTab === tab.key
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: active ? '#F9F9F9' : 'transparent', color: active ? BLK : 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer', fontFamily: FH }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '9px 14px', borderRadius: '8px 8px 0 0', border: 'none', background: active ? '#f9fafb' : 'transparent', color: active ? BLK : '#6b7280', fontSize: 12, fontWeight: active ? 700 : 500, cursor: 'pointer', fontFamily: FH }}>
                   <Icon size={12}/> {tab.label}
-                  {tab.badge > 0 && <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 10, background: active ? RED : 'rgba(255,255,255,.2)', color: active ? '#fff' : 'rgba(255,255,255,.7)' }}>{tab.badge}</span>}
+                  {tab.badge > 0 && <span style={{ fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 10, background: active ? RED : '#e5e7eb', color: active ? '#fff' : '#6b7280' }}>{tab.badge}</span>}
                 </button>
               )
             })}
@@ -382,7 +376,7 @@ export default function ProposalLibraryPage() {
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {MODULE_TYPES.map(t => (
                     <button key={t.key} onClick={() => setTypeFilter(t.key)}
-                      style={{ padding: '6px 12px', borderRadius: 20, border: `1.5px solid ${typeFilter === t.key ? t.color : '#e5e7eb'}`, background: typeFilter === t.key ? t.color + '15' : '#fff', color: typeFilter === t.key ? t.color : '#6b7280', fontSize: 11, fontWeight: typeFilter === t.key ? 700 : 500, cursor: 'pointer', fontFamily: FH }}>
+                      style={{ padding: '6px 12px', borderRadius: 20, border: `1.5px solid ${typeFilter === t.key ? t.color : '#e5e7eb'}`, background: typeFilter === t.key ? t.color + '15' : '#fff', color: typeFilter === t.key ? t.color : '#6b7280', fontSize: 12, fontWeight: typeFilter === t.key ? 700 : 500, cursor: 'pointer', fontFamily: FH }}>
                       {t.label}{typeFilter === t.key && modules.filter(m => t.key === 'all' || m.module_type === t.key).length > 0 ? ` (${modules.filter(m => t.key === 'all' || m.module_type === t.key).length})` : ''}
                     </button>
                   ))}
@@ -399,7 +393,7 @@ export default function ProposalLibraryPage() {
                     <Wand2 size={11}/> Generate Document →
                   </button>
                   <button onClick={() => setSelected(new Set())}
-                    style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 11, cursor: 'pointer', fontFamily: FH }}>
+                    style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 12, cursor: 'pointer', fontFamily: FH }}>
                     Clear
                   </button>
                 </div>
@@ -469,11 +463,11 @@ export default function ProposalLibraryPage() {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{doc.file_name}</div>
-                          <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
+                          <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
                             {doc.status === 'done' ? `${doc.modules_extracted} modules extracted` : doc.status}
                           </div>
                         </div>
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: TEAL+'15', color: TEAL, fontFamily: FH, textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: TEAL+'15', color: TEAL, fontFamily: FH, textTransform: 'uppercase' }}>
                           {doc.doc_type}
                         </span>
                       </div>
@@ -533,7 +527,7 @@ export default function ProposalLibraryPage() {
                 <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
                   <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 8 }}>Selected Modules ({selected.size})</div>
                   {selected.size === 0 ? (
-                    <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
+                    <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
                       Go to Library tab and check modules to include
                     </div>
                   ) : (
@@ -558,7 +552,7 @@ export default function ProposalLibraryPage() {
                 </button>
 
                 {voiceProfile && (
-                  <div style={{ marginTop: 12, padding: '10px 12px', background: TEAL+'10', borderRadius: 9, border: `1px solid ${TEAL}30`, fontSize: 11, color: '#374151', fontFamily: FB, lineHeight: 1.5 }}>
+                  <div style={{ marginTop: 12, padding: '10px 12px', background: TEAL+'10', borderRadius: 9, border: `1px solid ${TEAL}30`, fontSize: 12, color: '#374151', fontFamily: FB, lineHeight: 1.5 }}>
                     <strong style={{ fontFamily: FH, color: TEAL }}>Voice:</strong> {voiceProfile.tone} · {voiceProfile.writing_style}
                   </div>
                 )}
@@ -580,7 +574,7 @@ export default function ProposalLibraryPage() {
 
                 <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
                   {!generatedDoc && !generating && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', color: '#9ca3af' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', color: '#6b7280' }}>
                       <Wand2 size={36} color="#e5e7eb" style={{ marginBottom: 12 }}/>
                       <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 700, color: '#d1d5db', marginBottom: 4 }}>Generated document appears here</div>
                       <div style={{ fontSize: 13, fontFamily: FB }}>Select modules from the Library, fill in client details, and generate</div>
@@ -590,7 +584,7 @@ export default function ProposalLibraryPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12 }}>
                       <Brain size={32} color={TEAL} style={{ animation: 'pulse 2s infinite' }}/>
                       <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>Writing in your voice…</div>
-                      <div style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB }}>Claude is crafting the document using your style profile</div>
+                      <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB }}>Claude is crafting the document using your style profile</div>
                     </div>
                   )}
                   {generatedDoc && (
@@ -610,7 +604,7 @@ export default function ProposalLibraryPage() {
                 <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '48px 24px', textAlign: 'center' }}>
                   <Brain size={36} color="#e5e7eb" style={{ margin: '0 auto 12px', display: 'block' }}/>
                   <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>No voice profile yet</div>
-                  <div style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB, marginBottom: 16 }}>Upload at least one proposal to build your voice profile</div>
+                  <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginBottom: 16 }}>Upload at least one proposal to build your voice profile</div>
                   <button onClick={() => setActiveTab('upload')} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: RED, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>Upload a Doc →</button>
                 </div>
               ) : (
@@ -618,7 +612,7 @@ export default function ProposalLibraryPage() {
                   <div style={{ background: `linear-gradient(135deg,${BLK},#1a1a2e)`, borderRadius: 14, padding: '20px 22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <Brain size={14} color={TEAL}/>
-                      <span style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '.08em' }}>Your Writing Voice — Trained on {voiceProfile.doc_count} document{voiceProfile.doc_count !== 1 ? 's' : ''}</span>
+                      <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '.08em' }}>Your Writing Voice — Trained on {voiceProfile.doc_count} document{voiceProfile.doc_count !== 1 ? 's' : ''}</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                       {[
@@ -627,8 +621,8 @@ export default function ProposalLibraryPage() {
                         { label: 'Pricing Style', value: voiceProfile.pricing_style },
                       ].map(item => item.value && (
                         <div key={item.label}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: '#999999', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3, fontFamily: FH }}>{item.label}</div>
-                          <div style={{ fontSize: 13, color: 'rgba(255,255,255,.85)', fontFamily: FB }}>{item.value}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 3, fontFamily: FH }}>{item.label}</div>
+                          <div style={{ fontSize: 13, color: '#d1d5db', fontFamily: FB }}>{item.value}</div>
                         </div>
                       ))}
                     </div>
@@ -681,7 +675,7 @@ export default function ProposalLibraryPage() {
           <div style={{ background: '#fff', borderRadius: 16, padding: '24px 28px', width: '100%', maxWidth: 600, maxHeight: '80vh', overflow: 'auto' }}>
             <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Edit Module
-              <button onClick={() => setEditingMod(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={16}/></button>
+              <button onClick={() => setEditingMod(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={16}/></button>
             </div>
 
             <div style={{ marginBottom: 14 }}>

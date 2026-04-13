@@ -9,8 +9,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R='#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#d97706'
-const W='#ffffff'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API_INDUSTRY = '/api/industry-agent'
 const API_REGISTRY = '/api/industry-agent'
@@ -92,29 +92,29 @@ export default function TradesPortalPage() {
     <div style={{ display: 'flex', minHeight: '100vh', background: GRY }}>
       <Sidebar />
       <div style={{ flex: 1, overflow: 'auto' }}>
-        {/* Dark top banner */}
-        <div style={{ background: '#111', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Top banner */}
+        <div style={{ background: '#f9fafb', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Wrench size={16} color={W} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: W }}>Trades Industry Intelligence Portal</span>
+            <Wrench size={16} color={BLK} />
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Trades Industry Intelligence Portal</span>
           </div>
-          <span style={{ fontSize: 11, color: '#999' }}>{industries.length} industries -- Auto-learning enabled</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{industries.length} industries -- Auto-learning enabled</span>
         </div>
 
         {/* Header */}
-        <div style={{ background: W, padding: '18px 24px', borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: W, padding: '18px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: 19, fontWeight: 500, color: BLK, margin: 0 }}>Trades & Home Services</h1>
-            <p style={{ fontSize: 12, color: '#999', margin: '2px 0 0' }}>Industry-specific AI agents that learn from every call</p>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111', margin: 0 }}>Trades & Home Services</h1>
+            <p style={{ fontSize: 14, color: '#6b7280', margin: '2px 0 0' }}>Industry-specific AI agents that learn from every call</p>
           </div>
         </div>
 
         <div style={{ padding: 24 }}>
           {/* Subcategory filter pills */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-            <button onClick={() => setSubFilter('')} style={{ padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', background: !subFilter ? BLK : '#F5F5F5', color: !subFilter ? W : '#555' }}>All</button>
+            <button onClick={() => setSubFilter('')} style={{ padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', background: !subFilter ? BLK : '#f9fafb', color: !subFilter ? W : '#555' }}>All</button>
             {subcategories.sort().map(sc => (
-              <button key={sc} onClick={() => setSubFilter(sc)} style={{ padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', background: subFilter === sc ? BLK : '#F5F5F5', color: subFilter === sc ? W : '#555' }}>
+              <button key={sc} onClick={() => setSubFilter(sc)} style={{ padding: '6px 14px', borderRadius: 99, fontSize: 12, fontWeight: 500, border: 'none', cursor: 'pointer', background: subFilter === sc ? BLK : '#f9fafb', color: subFilter === sc ? W : '#555' }}>
                 {SUBCATEGORY_LABELS[sc] || sc}
               </button>
             ))}
@@ -124,7 +124,7 @@ export default function TradesPortalPage() {
           <div style={{ position: 'relative', marginBottom: 20, maxWidth: 400 }}>
             <Search size={14} color="#999" style={{ position: 'absolute', left: 12, top: 11 }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search trades..."
-              style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', fontSize: 13, boxSizing: 'border-box' }} />
+              style={{ width: '100%', padding: '9px 12px 9px 34px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
           </div>
 
           {loading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={24} color={R} className="ds-spin" /></div>}
@@ -150,15 +150,15 @@ export default function TradesPortalPage() {
                           <Icon size={16} color={R} />
                           <span style={{ fontSize: 14, fontWeight: 500, color: BLK }}>{ind.industry_name}</span>
                         </div>
-                        <span style={{ fontSize: 10, color: '#999' }}>SIC {ind.sic_code}</span>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>SIC {ind.sic_code}</span>
                       </div>
-                      <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>{ind.decision_maker_title || 'Owner'} -- {ind.typical_business_size || 'small'}</div>
-                      <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#666' }}>
+                      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>{ind.decision_maker_title || 'Owner'} -- {ind.typical_business_size || 'small'}</div>
+                      <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#666' }}>
                         <span>Spend: ${ind.avg_monthly_marketing_spend_low}-${ind.avg_monthly_marketing_spend_high}/mo</span>
                         <span>Close: {ind.avg_close_rate_percent}%</span>
                       </div>
                       {Array.isArray(ind.best_call_days) && ind.best_call_days.length > 0 && (
-                        <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
                           Best: {ind.best_call_days.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(', ')} {Array.isArray(ind.best_call_hours) ? ind.best_call_hours.slice(0, 3).map(h => `${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`).join(', ') : ''}
                         </div>
                       )}
@@ -176,17 +176,17 @@ export default function TradesPortalPage() {
                 ) : detail && (
                   <div>
                     {/* Detail header */}
-                    <div style={{ background: W, borderRadius: 8, padding: '20px 24px', border: '1px solid rgba(0,0,0,0.08)', marginBottom: 12 }}>
+                    <div style={{ background: W, borderRadius: 8, padding: '20px 24px', border: '1px solid #e5e7eb', marginBottom: 12 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                         <div>
                           <h2 style={{ fontSize: 18, fontWeight: 500, color: BLK, margin: 0 }}>{detail.industry_name}</h2>
-                          <span style={{ fontSize: 12, color: '#999' }}>SIC {detail.sic_code} -- NAICS {detail.naics_code}</span>
+                          <span style={{ fontSize: 12, color: '#6b7280' }}>SIC {detail.sic_code} -- NAICS {detail.naics_code}</span>
                         </div>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => generateConfig(detail)} disabled={generating === detail.industry_name} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: W, fontSize: 11, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <button onClick={() => generateConfig(detail)} disabled={generating === detail.industry_name} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: W, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                             {generating === detail.industry_name ? <Loader2 size={12} className="ds-spin" /> : <Zap size={12} />} AI Config
                           </button>
-                          <button onClick={() => generateQA(detail)} disabled={generating === detail.industry_name + '_qa'} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: R, color: W, fontSize: 11, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <button onClick={() => generateQA(detail)} disabled={generating === detail.industry_name + '_qa'} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: R, color: W, fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                             {generating === detail.industry_name + '_qa' ? <Loader2 size={12} className="ds-spin" /> : <Brain size={12} />} Q&A Bank
                           </button>
                         </div>
@@ -199,8 +199,8 @@ export default function TradesPortalPage() {
                           { label: 'Spend', value: `$${detail.avg_monthly_marketing_spend_low}-${detail.avg_monthly_marketing_spend_high}`, accent: AMB },
                           { label: 'Q&A Pairs', value: detail.qa_count || 0, accent: T },
                         ].map(s => (
-                          <div key={s.label} style={{ flex: 1, padding: '10px 12px', background: '#F9F9F9', borderRadius: 6 }}>
-                            <div style={{ fontSize: 10, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>{s.label}</div>
+                          <div key={s.label} style={{ flex: 1, padding: '10px 12px', background: '#f9fafb', borderRadius: 6 }}>
+                            <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>{s.label}</div>
                             <div style={{ fontSize: 16, fontWeight: 600, color: BLK }}>{s.value}</div>
                           </div>
                         ))}
@@ -209,10 +209,10 @@ export default function TradesPortalPage() {
                       {/* Pain points */}
                       {Array.isArray(detail.typical_pain_points) && detail.typical_pain_points.length > 0 && (
                         <div>
-                          <div style={{ fontSize: 11, fontWeight: 500, color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Common Pain Points</div>
+                          <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Common Pain Points</div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {detail.typical_pain_points.map((p, i) => (
-                              <span key={i} style={{ padding: '3px 10px', borderRadius: 99, background: '#FFF0F7', color: '#B5005B', fontSize: 11, fontWeight: 500 }}>{p}</span>
+                              <span key={i} style={{ padding: '3px 10px', borderRadius: 99, background: '#FFF0F7', color: '#B5005B', fontSize: 12, fontWeight: 500 }}>{p}</span>
                             ))}
                           </div>
                         </div>
@@ -221,13 +221,13 @@ export default function TradesPortalPage() {
 
                     {/* AI Config preview */}
                     {detail.config && (
-                      <div style={{ background: W, borderRadius: 8, padding: '16px 20px', border: '1px solid rgba(0,0,0,0.08)', marginBottom: 12 }}>
+                      <div style={{ background: W, borderRadius: 8, padding: '16px 20px', border: '1px solid #e5e7eb', marginBottom: 12 }}>
                         <div style={{ fontSize: 13, fontWeight: 500, color: BLK, marginBottom: 8 }}>AI Configuration</div>
-                        {detail.config.tone && <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>Tone: {detail.config.tone}</div>}
+                        {detail.config.tone && <div style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}>Tone: {detail.config.tone}</div>}
                         {Array.isArray(detail.config.vocabulary) && detail.config.vocabulary.length > 0 && (
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
                             {detail.config.vocabulary.slice(0, 8).map((v, i) => (
-                              <span key={i} style={{ padding: '2px 8px', borderRadius: 99, background: '#F0FAFA', color: '#00878E', fontSize: 10, fontWeight: 500 }}>{v}</span>
+                              <span key={i} style={{ padding: '2px 8px', borderRadius: 99, background: '#F0FAFA', color: '#00878E', fontSize: 12, fontWeight: 500 }}>{v}</span>
                             ))}
                           </div>
                         )}
@@ -235,12 +235,12 @@ export default function TradesPortalPage() {
                     )}
 
                     {/* Best call times */}
-                    <div style={{ background: W, borderRadius: 8, padding: '16px 20px', border: '1px solid rgba(0,0,0,0.08)' }}>
+                    <div style={{ background: W, borderRadius: 8, padding: '16px 20px', border: '1px solid #e5e7eb' }}>
                       <div style={{ fontSize: 13, fontWeight: 500, color: BLK, marginBottom: 8 }}>Best Call Times</div>
-                      <div style={{ fontSize: 12, color: '#555' }}>
+                      <div style={{ fontSize: 12, color: '#374151' }}>
                         Days: {(detail.best_call_days || []).map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ') || 'Tue-Thu'}
                       </div>
-                      <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: '#374151', marginTop: 2 }}>
                         Hours: {(detail.best_call_hours || []).map(h => `${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`).join(', ') || '9-11am'}
                       </div>
                     </div>

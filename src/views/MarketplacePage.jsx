@@ -10,14 +10,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLK = '#111111'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../lib/theme'
 const PURP  = '#7c3aed'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
 
 const ICON_MAP = {
   Star, Target, FileText, Globe, Brain, Mail, CheckCircle,
@@ -50,12 +44,12 @@ function AddonCard({ addon, isEnabled, isPending, isPlanIncluded, userPlan, onRe
     }}>
       {/* Enabled badge */}
       {isEnabled && (
-        <div style={{ position:'absolute', top:12, right:12, display:'flex', alignItems:'center', gap:4, padding:'3px 9px', borderRadius:20, background:GREEN+'15', color:GREEN, fontSize:10, fontWeight:700, fontFamily:FH }}>
+        <div style={{ position:'absolute', top:12, right:12, display:'flex', alignItems:'center', gap:4, padding:'3px 9px', borderRadius:20, background:GREEN+'15', color:GREEN, fontSize:12, fontWeight:700, fontFamily:FH }}>
           <Check size={10} strokeWidth={3}/> Active
         </div>
       )}
       {isPlanIncluded && !isEnabled && (
-        <div style={{ position:'absolute', top:12, right:12, padding:'3px 9px', borderRadius:20, background:TEAL+'15', color:TEAL, fontSize:10, fontWeight:700, fontFamily:FH }}>
+        <div style={{ position:'absolute', top:12, right:12, padding:'3px 9px', borderRadius:20, background:TEAL+'15', color:TEAL, fontSize:12, fontWeight:700, fontFamily:FH }}>
           Included
         </div>
       )}
@@ -66,7 +60,7 @@ function AddonCard({ addon, isEnabled, isPending, isPlanIncluded, userPlan, onRe
         </div>
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, marginBottom:3 }}>{addon.name}</div>
-          <span style={{ fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:20, background:catCfg.color+'15', color:catCfg.color, fontFamily:FH }}>
+          <span style={{ fontSize:12, fontWeight:700, padding:'2px 7px', borderRadius:20, background:catCfg.color+'15', color:catCfg.color, fontFamily:FH }}>
             {catCfg.label}
           </span>
         </div>
@@ -78,7 +72,7 @@ function AddonCard({ addon, isEnabled, isPending, isPlanIncluded, userPlan, onRe
 
       {/* Plan requirement */}
       {addon.min_plan !== 'starter' && (
-        <div style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, fontWeight:700, color: PLAN_COLOR[addon.min_plan] || BLK, fontFamily:FH }}>
+        <div style={{ display:'flex', alignItems:'center', gap:5, fontSize:12, fontWeight:700, color: PLAN_COLOR[addon.min_plan] || BLK, fontFamily:FH }}>
           <Lock size={10}/>
           Requires {addon.min_plan.charAt(0).toUpperCase() + addon.min_plan.slice(1)} plan
         </div>
@@ -90,7 +84,7 @@ function AddonCard({ addon, isEnabled, isPending, isPlanIncluded, userPlan, onRe
           {hasPrice ? `+$${addon.price_monthly}/mo` : 'Included'}
         </div>
         {planRequired ? (
-          <button style={{ padding:'7px 14px', borderRadius:9, border:`1px solid ${PLAN_COLOR[addon.min_plan]}40`, background:`${PLAN_COLOR[addon.min_plan]}10`, color:PLAN_COLOR[addon.min_plan], fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:5 }}>
+          <button style={{ padding:'7px 14px', borderRadius:9, border:`1px solid ${PLAN_COLOR[addon.min_plan]}40`, background:`${PLAN_COLOR[addon.min_plan]}10`, color:PLAN_COLOR[addon.min_plan], fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:5 }}>
             Upgrade <ArrowRight size={11}/>
           </button>
         ) : isEnabled ? (
@@ -98,11 +92,11 @@ function AddonCard({ addon, isEnabled, isPending, isPlanIncluded, userPlan, onRe
             <CheckCircle size={13}/> Enabled
           </div>
         ) : isPending ? (
-          <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FH }}>Request pending…</div>
+          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Request pending…</div>
         ) : (
           <button onClick={() => onRequest(addon.key)}
             disabled={requesting === addon.key}
-            style={{ padding:'7px 14px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:5 }}>
+            style={{ padding:'7px 14px', borderRadius:9, border:'none', background:RED, color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:5 }}>
             {requesting === addon.key ? <Loader2 size={10} style={{ animation:'spin 1s linear infinite' }}/> : null}
             {requesting === addon.key ? 'Requesting…' : 'Request Access'}
           </button>
@@ -159,25 +153,25 @@ export default function MarketplacePage() {
   const planIncludes  = addons.filter(a => PLAN_ORDER[a.min_plan] <= PLAN_ORDER[plan]).map(a => a.key)
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#F9F9F9' }}>
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f9fafb' }}>
       <Sidebar/>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding:'20px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
             <div>
-              <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
+              <div style={{ fontFamily:FH, fontSize:20, fontWeight:700, color:'#111', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
                 <Sparkles size={18} color={AMBER}/> Koto Marketplace
               </div>
-              <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <div style={{ fontSize:14, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 {enabledCount} of {totalCount} features active · {plan.charAt(0).toUpperCase()+plan.slice(1)} plan
               </div>
             </div>
             {/* Plan badge */}
             <div style={{ textAlign:'right' }}>
-              <div style={{ fontSize:11, color:'#999999', fontFamily:FB, marginBottom:3 }}>Current Plan</div>
-              <div style={{ fontFamily:FH, fontSize:16, fontWeight:900, color: PLAN_COLOR[plan]||'#fff', textTransform:'capitalize' }}>
+              <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:3 }}>Current Plan</div>
+              <div style={{ fontFamily:FH, fontSize:16, fontWeight:900, color: PLAN_COLOR[plan]||'#111', textTransform:'capitalize' }}>
                 {plan}
               </div>
             </div>
@@ -190,7 +184,7 @@ export default function MarketplacePage() {
               const active = category === cat
               return (
                 <button key={cat} onClick={() => setCategory(cat)}
-                  style={{ padding:'6px 14px', borderRadius:20, border:`1px solid ${active?(cfg?.color||'rgba(255,255,255,.3)'):'rgba(255,255,255,.12)'}`, background:active?(cfg?.color||'rgba(255,255,255,.15)')+(!cfg?'':'25'):'transparent', color:active?'#fff':'rgba(255,255,255,.45)', fontSize:11, fontWeight:active?700:500, cursor:'pointer', fontFamily:FH, textTransform:'capitalize' }}>
+                  style={{ padding:'6px 14px', borderRadius:20, border:`1px solid ${active?(cfg?.color||'#e5e7eb'):'#e5e7eb'}`, background:active?(cfg?.color||'#f9fafb')+'25':'transparent', color:active?(cfg?.color||'#374151'):'#6b7280', fontSize:12, fontWeight:active?700:500, cursor:'pointer', fontFamily:FH, textTransform:'capitalize' }}>
                   {cat === 'all' ? `All (${addons.length})` : (cfg?.label || cat)}
                 </button>
               )
@@ -212,7 +206,7 @@ export default function MarketplacePage() {
                   if (!addon) return null
                   const Icon = ICON_MAP[addon.icon] || Sparkles
                   return (
-                    <div key={key} style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 10px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'#999999', fontSize:12, fontFamily:FB }}>
+                    <div key={key} style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 10px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'#d1d5db', fontSize:12, fontFamily:FB }}>
                       <Icon size={11}/> {addon.name}
                     </div>
                   )

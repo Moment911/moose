@@ -8,13 +8,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLK = '#111111'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 
 const PRIORITY_CFG = {
   high:   { bg:'#fef2f2', color:RED,    border:'#fecaca', dot:RED },
@@ -38,7 +32,7 @@ const INTENT_CFG = {
 function PriorityBadge({ priority }) {
   const cfg = PRIORITY_CFG[priority] || PRIORITY_CFG.low
   return (
-    <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, border:`1px solid ${cfg.border}`, fontFamily:FH }}>
+    <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20, background:cfg.bg, color:cfg.color, border:`1px solid ${cfg.border}`, fontFamily:FH }}>
       {priority?.charAt(0).toUpperCase() + priority?.slice(1)}
     </span>
   )
@@ -62,22 +56,22 @@ function KeywordCard({ kw, index }) {
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK, marginBottom:2 }}>{kw.keyword}</div>
           <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-            <span style={{ fontSize:11, color:intent.color, fontFamily:FH }}>
+            <span style={{ fontSize:12, color:intent.color, fontFamily:FH }}>
               {intent.icon} {intent.label}
             </span>
-            <span style={{ fontSize:11, color:'#9ca3af' }}>·</span>
-            <span style={{ fontSize:11, color:diff.color, fontWeight:700, fontFamily:FH }}>{diff.label}</span>
+            <span style={{ fontSize:12, color:'#6b7280' }}>·</span>
+            <span style={{ fontSize:12, color:diff.color, fontWeight:700, fontFamily:FH }}>{diff.label}</span>
             {kw.monthly_volume_estimate && (
               <>
-                <span style={{ fontSize:11, color:'#9ca3af' }}>·</span>
-                <span style={{ fontSize:11, color:'#6b7280', fontFamily:FB }}>~{kw.monthly_volume_estimate} searches/mo</span>
+                <span style={{ fontSize:12, color:'#6b7280' }}>·</span>
+                <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>~{kw.monthly_volume_estimate} searches/mo</span>
               </>
             )}
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
           <PriorityBadge priority={kw.priority}/>
-          <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, maxWidth:100, textAlign:'right' }}>{kw.content_type}</span>
+          <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB, maxWidth:100, textAlign:'right' }}>{kw.content_type}</span>
           {open ? <ChevronUp size={14} color="#9ca3af"/> : <ChevronDown size={14} color="#9ca3af"/>}
         </div>
       </div>
@@ -85,16 +79,16 @@ function KeywordCard({ kw, index }) {
         <div style={{ borderTop:'1px solid #f3f4f6', padding:'14px 16px', background:'#fafafa' }}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
             <div>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:4 }}>Current Rank</div>
+              <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:4 }}>Current Rank</div>
               <div style={{ fontSize:14, fontWeight:700, color: kw.current_rank === 'Not ranking' ? RED : GREEN, fontFamily:FH }}>{kw.current_rank || 'Not ranking'}</div>
             </div>
             <div>
-              <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:4 }}>Content Type</div>
+              <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', fontFamily:FH, marginBottom:4 }}>Content Type</div>
               <div style={{ fontSize:14, fontWeight:600, color:'#374151', fontFamily:FH }}>{kw.content_type}</div>
             </div>
           </div>
           <div style={{ padding:'10px 14px', background:'#f0fdf4', borderRadius:9, border:'1px solid #bbf7d0' }}>
-            <div style={{ fontSize:11, fontWeight:700, color:GREEN, fontFamily:FH, marginBottom:4 }}>Action to Rank:</div>
+            <div style={{ fontSize:12, fontWeight:700, color:GREEN, fontFamily:FH, marginBottom:4 }}>Action to Rank:</div>
             <div style={{ fontSize:13, color:'#15803d', fontFamily:FB, lineHeight:1.6 }}>{kw.action}</div>
           </div>
         </div>
@@ -176,10 +170,10 @@ export default function KeywordGapPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:14 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color: '#111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <Search size={20} color={TEAL}/> Keyword Gap Tool
               </h1>
-              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:14, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 AI-powered keyword opportunities from your GSC data
               </p>
             </div>
@@ -203,7 +197,7 @@ export default function KeywordGapPage() {
                 <button key={t.key} onClick={()=>setActiveTab(t.key)}
                   style={{ padding:'10px 16px', border:'none', background:'transparent',
                     borderBottom:activeTab===t.key?`2.5px solid ${RED}`:'2.5px solid transparent',
-                    color:activeTab===t.key?'#fff':'rgba(255,255,255,.4)',
+                    color:activeTab===t.key?RED:'#6b7280',
                     fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:5 }}>
                   <t.icon size={12}/> {t.label}
                 </button>
@@ -223,7 +217,7 @@ export default function KeywordGapPage() {
                     {history.map((k,i)=>(
                       <span key={i} style={{ fontSize:12, padding:'4px 10px', borderRadius:20, background:'#f3f4f6', color:'#374151', fontFamily:FB, border:'1px solid #e5e7eb' }}>
                         {k.keyword}
-                        {k.opportunity && <span style={{ marginLeft:5, fontSize:10, color: k.opportunity==='high'?RED:k.opportunity==='medium'?AMBER:'#9ca3af', fontWeight:700 }}>●</span>}
+                        {k.opportunity && <span style={{ marginLeft:5, fontSize:12, color: k.opportunity==='high'?RED:k.opportunity==='medium'?AMBER:'#9ca3af', fontWeight:700 }}>●</span>}
                       </span>
                     ))}
                   </div>
@@ -244,12 +238,12 @@ export default function KeywordGapPage() {
                     <div key={i} style={{ padding:'16px', background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6' }}>
                       <div style={{ fontSize:24, marginBottom:8 }}>{item.icon}</div>
                       <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK, marginBottom:3 }}>{item.label}</div>
-                      <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{item.desc}</div>
+                      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{item.desc}</div>
                     </div>
                   ))}
                 </div>
                 {!client && (
-                  <div style={{ marginTop:20, fontSize:13, color:'#9ca3af', fontFamily:FB }}>
+                  <div style={{ marginTop:20, fontSize:13, color:'#6b7280', fontFamily:FB }}>
                     Select a client above to get started
                   </div>
                 )}
@@ -271,7 +265,7 @@ export default function KeywordGapPage() {
                   <Sparkles size={18} color={TEAL} style={{ flexShrink:0, marginTop:2 }}/>
                   <div>
                     <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>AI Summary</div>
-                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7 }}>{result.analysis.summary}</div>
+                    <div style={{ fontSize:14, color:'#6b7280', fontFamily:FB, lineHeight:1.7 }}>{result.analysis.summary}</div>
                   </div>
                 </div>
               )}
@@ -290,7 +284,7 @@ export default function KeywordGapPage() {
                         {p.charAt(0).toUpperCase()+p.slice(1)} {p!=='all'&&`(${gaps.filter(k=>k.priority===p).length})`}
                       </button>
                     ))}
-                    <div style={{ marginLeft:'auto', fontSize:13, color:'#9ca3af', fontFamily:FB }}>{filtered.length} opportunities</div>
+                    <div style={{ marginLeft:'auto', fontSize:13, color:'#6b7280', fontFamily:FB }}>{filtered.length} opportunities</div>
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {filtered.map((kw,i) => <KeywordCard key={i} kw={kw} index={i}/>)}
@@ -357,7 +351,7 @@ export default function KeywordGapPage() {
               {activeTab === 'longtail' && (
                 <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'20px' }}>
                   <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, marginBottom:6 }}>Long-Tail Keyword Opportunities</div>
-                  <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, marginBottom:16 }}>Lower competition, higher buyer intent — easiest to rank for fast</div>
+                  <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:16 }}>Lower competition, higher buyer intent — easiest to rank for fast</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     {(result.analysis?.long_tail_opportunities || []).map((kw, i) => (
                       <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'#f0fbfc', borderRadius:10, border:`1px solid ${TEAL}30` }}>
@@ -376,7 +370,7 @@ export default function KeywordGapPage() {
                   <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                     {(result.analysis?.content_calendar || []).map((item, i) => (
                       <div key={i} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}>
-                        <div style={{ width:44, height:44, borderRadius:11, background: item.priority==='high'?RED+'15':TEAL+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontFamily:FH, fontSize:11, fontWeight:700, color:item.priority==='high'?RED:TEAL, textAlign:'center', lineHeight:1.3 }}>
+                        <div style={{ width:44, height:44, borderRadius:11, background: item.priority==='high'?RED+'15':TEAL+'15', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontFamily:FH, fontSize:12, fontWeight:700, color:item.priority==='high'?RED:TEAL, textAlign:'center', lineHeight:1.3 }}>
                           Mo {item.month}
                         </div>
                         <div style={{ flex:1 }}>
@@ -413,14 +407,14 @@ export default function KeywordGapPage() {
                         <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK }}>
                           {result.gsc_keyword_count} keywords from GSC (last 90 days)
                         </div>
-                        <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB }}>Showing top 100</div>
+                        <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>Showing top 100</div>
                       </div>
                       <div style={{ overflowX:'auto' }}>
                         <table style={{ width:'100%', borderCollapse:'collapse' }}>
                           <thead>
                             <tr style={{ background:'#f9fafb' }}>
                               {['Keyword','Position','Clicks','Impressions','CTR'].map((h,i)=>(
-                                <th key={h} style={{ padding:'9px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:i===0?'left':'right', textTransform:'uppercase', letterSpacing:'.05em', fontFamily:FH }}>{h}</th>
+                                <th key={h} style={{ padding:'9px 14px', fontSize:12, fontWeight:700, color:'#6b7280', textAlign:i===0?'left':'right', textTransform:'uppercase', letterSpacing:'.05em', fontFamily:FH }}>{h}</th>
                               ))}
                             </tr>
                           </thead>

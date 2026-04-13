@@ -15,15 +15,8 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileSearch, MobileCard, MobileRow, MobileEmpty, MobileSectionHeader, MobileTabs } from '../components/mobile/MobilePage'
 
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 const ACCENT = R
 const TEAL = T
 
@@ -206,7 +199,7 @@ export default function ProposalsPage() {
             {mobileFiltered.map((p,i)=>{
               const color = TYPE_COLORS[p.type]||'#9a9a96'
               const sts = p.status
-              const stsBg = sts==='signed'?'#f0fdf4':sts==='sent'?'#f0fbfc':sts==='declined'?'#fef2f2':'#F9F9F9'
+              const stsBg = sts==='signed'?'#f0fdf4':sts==='sent'?'#f0fbfc':sts==='declined'?'#fef2f2':'#f9fafb'
               const stsColor = sts==='signed'?'#16a34a':sts==='sent'?'#0e7490':sts==='declined'?'#E6007E':'#9a9a96'
               return (
                 <MobileRow key={p.id}
@@ -217,7 +210,7 @@ export default function ProposalsPage() {
                   </div>}
                   title={p.title||'Untitled'}
                   subtitle={[p.client_name, p.total_value?`$${Number(p.total_value).toLocaleString()}`:null].filter(Boolean).join(' · ')}
-                  badge={<span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:stsBg,color:stsColor,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0,textTransform:'capitalize'}}>{sts||'draft'}</span>}/>
+                  badge={<span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:stsBg,color:stsColor,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",flexShrink:0,textTransform:'capitalize'}}>{sts||'draft'}</span>}/>
               )
             })}
           </MobileCard>
@@ -228,7 +221,7 @@ export default function ProposalsPage() {
 
   /* ─── DESKTOP ─── */
   return (
-    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#F9F9F9', overflow:'hidden' }}>
+    <div className="page-shell" style={{ display:'flex', height:'100vh', background:'#f9fafb', overflow:'hidden' }}>
       <Sidebar/>
       <main style={{ flex:1, overflowY:'auto' }}>
         <div style={{ maxWidth:1100, margin:'0 auto', padding:'28px 28px' }}>
@@ -344,7 +337,7 @@ export default function ProposalsPage() {
                         display: 'flex', alignItems: 'center', gap: 5,
                         padding: '5px 10px', borderRadius: 10,
                         background: '#E6FCFD', border: `1px solid ${T}40`, color: '#0E7490',
-                        fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                        fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
                       }}
                     >
                       <Eye size={11} />
@@ -458,7 +451,7 @@ function ViewHistoryDrawer({ proposal, onClose }) {
         }}>
           <Eye size={17} color={T} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em' }}>
               View History
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>
@@ -513,7 +506,7 @@ function ViewHistoryDrawer({ proposal, onClose }) {
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>
                       {ev.ts ? new Date(ev.ts).toLocaleString() : 'Unknown time'}
                     </div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                       {ev.device || 'unknown'}
                       {ev.ua && ev.ua.length > 0 && (
                         <> · <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{ev.ua.slice(0, 40)}…</span></>

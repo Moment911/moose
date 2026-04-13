@@ -7,14 +7,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED    = '#E6007E'
-const TEAL   = '#00C2CB'
-const BLK = '#111111'
-const GREEN  = '#16a34a'
-const AMBER  = '#f59e0b'
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 const PURPLE = '#8b5cf6'
-const FH     = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB     = "'Raleway','Helvetica Neue',sans-serif"
 
 const CATEGORY_COLOR = {
   primary:   { color: RED,    bg: RED+'15',    label: 'Primary' },
@@ -36,7 +30,7 @@ function ScoreRing({ score, size=120 }) {
       </svg>
       <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
         <div style={{ fontFamily:FH, fontSize:size>100?34:22, fontWeight:900, color, lineHeight:1 }}>{score}</div>
-        <div style={{ fontFamily:FH, fontSize:10, fontWeight:700, color:'#9ca3af', textTransform:'uppercase' }}>/100</div>
+        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase' }}>/100</div>
       </div>
     </div>
   )
@@ -65,13 +59,13 @@ function DirectoryRow({ dir }) {
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
           <span style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>{dir.directory}</span>
-          <span style={{ fontSize:10, fontWeight:700, padding:'1px 7px', borderRadius:20, background:catCfg.bg, color:catCfg.color, fontFamily:FH }}>{catCfg.label}</span>
+          <span style={{ fontSize:12, fontWeight:700, padding:'1px 7px', borderRadius:20, background:catCfg.bg, color:catCfg.color, fontFamily:FH }}>{catCfg.label}</span>
           {hasNAPIssue && (
-            <span style={{ fontSize:10, fontWeight:700, padding:'1px 7px', borderRadius:20, background:AMBER+'15', color:AMBER, fontFamily:FH }}>NAP Issue</span>
+            <span style={{ fontSize:12, fontWeight:700, padding:'1px 7px', borderRadius:20, background:AMBER+'15', color:AMBER, fontFamily:FH }}>NAP Issue</span>
           )}
         </div>
         {dir.found && (
-          <div style={{ display:'flex', gap:8, fontSize:11, color:'#9ca3af', fontFamily:FH }}>
+          <div style={{ display:'flex', gap:8, fontSize:12, color:'#6b7280', fontFamily:FH }}>
             {[
               { label:'Name', ok: dir.name_match },
               { label:'Phone', ok: dir.phone_match },
@@ -185,18 +179,18 @@ export default function CitationTrackerPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:14 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color: '#111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <MapPin size={20} color={RED}/> Citation Tracker
               </h1>
-              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:13, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 20 directories · NAP consistency · AI action plan
               </p>
             </div>
             <div style={{ display:'flex', gap:10 }}>
               <select value={clientId} onChange={e=>setClientId(e.target.value)}
-                style={{ padding:'9px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#fff', fontSize:14, fontFamily:FH, minWidth:200 }}>
+                style={{ padding:'9px 14px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:BLK, fontSize:14, fontFamily:FH, minWidth:200 }}>
                 <option value="">Select client</option>
-                {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
+                {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               <button onClick={runCheck} disabled={loading||!clientId}
                 style={{ padding:'9px 20px', borderRadius:10, border:'none', background:RED, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:FH, display:'flex', alignItems:'center', gap:7, boxShadow:`0 3px 12px ${RED}40` }}>
@@ -208,7 +202,7 @@ export default function CitationTrackerPage() {
 
           {/* History bar */}
           {history.length > 0 && !result && (
-            <div style={{ paddingBottom:12, fontSize:12, color:'#999999', fontFamily:FB }}>
+            <div style={{ paddingBottom:12, fontSize:12, color:'#6b7280', fontFamily:FB }}>
               Last check: {history.filter(h=>h.found).length}/{history.length} found on {new Date(history[0]?.checked_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
             </div>
           )}
@@ -237,7 +231,7 @@ export default function CitationTrackerPage() {
                   <ScoreRing score={result.score}/>
                   <div>
                     <div style={{ fontFamily:FH, fontSize:16, fontWeight:800, color:BLK, marginBottom:3 }}>{result.client_name}</div>
-                    <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, marginBottom:10 }}>
+                    <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:10 }}>
                       {result.nap.city}{result.nap.state ? ', '+result.nap.state : ''}
                     </div>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
@@ -248,7 +242,7 @@ export default function CitationTrackerPage() {
                       ].map((s,i) => (
                         <div key={i} style={{ textAlign:'center' }}>
                           <div style={{ fontFamily:FH, fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-                          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>{s.label}</div>
+                          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>{s.label}</div>
                         </div>
                       ))}
                     </div>
@@ -262,11 +256,11 @@ export default function CitationTrackerPage() {
                       <Sparkles size={14} color={TEAL}/>
                       <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Assessment</span>
                     </div>
-                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.summary}</div>
+                    <div style={{ fontSize:14, color:'#6b7280', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.summary}</div>
                     {result.ai.quick_win && (
                       <div style={{ background:`${RED}15`, borderRadius:9, padding:'9px 12px', border:`1px solid ${RED}30` }}>
-                        <span style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:RED }}>Quick Win: </span>
-                        <span style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{result.ai.quick_win}</span>
+                        <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:RED }}>Quick Win: </span>
+                        <span style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{result.ai.quick_win}</span>
                       </div>
                     )}
                   </div>
@@ -278,7 +272,7 @@ export default function CitationTrackerPage() {
                   <div style={{ fontFamily:FH, fontSize:32, fontWeight:900, color: missingPrimary.length===0?GREEN:RED, marginBottom:6 }}>
                     {result.primary_score}
                   </div>
-                  <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, marginBottom:10 }}>primary directories found</div>
+                  <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:10 }}>primary directories found</div>
                   {missingPrimary.length > 0 && (
                     <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
                       {missingPrimary.map(d=>(
@@ -365,7 +359,7 @@ export default function CitationTrackerPage() {
                   <div key={i} style={{ padding:'16px 12px', background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6' }}>
                     <div style={{ fontSize:24, marginBottom:8 }}>{item.icon}</div>
                     <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK, marginBottom:3 }}>{item.label}</div>
-                    <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{item.desc}</div>
+                    <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{item.desc}</div>
                   </div>
                 ))}
               </div>

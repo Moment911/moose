@@ -13,13 +13,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED   = '#E6007E'
-const TEAL  = '#00C2CB'
-const BLK = '#111111'
-const GREEN = '#16a34a'
-const AMBER = '#f59e0b'
-const FH    = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB    = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 
 const CATEGORY_META = {
   'on-page':     { label:'On-Page SEO',  icon:FileText,   color:'#8b5cf6' },
@@ -50,7 +44,7 @@ function ScoreRing({ score, size=120 }) {
       </svg>
       <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
         <div style={{ fontFamily:FH, fontSize:fs, fontWeight:900, color, lineHeight:1 }}>{score}</div>
-        <div style={{ fontFamily:FH, fontSize:10, fontWeight:700, color:'#9ca3af', textTransform:'uppercase' }}>/100</div>
+        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase' }}>/100</div>
       </div>
     </div>
   )
@@ -89,10 +83,10 @@ function CheckItem({ item, pass }) {
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:14, fontWeight:600, color:BLK, fontFamily:FH }}>{item.label}</div>
-          <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.detail}</div>
+          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.detail}</div>
         </div>
         {!pass && (
-          <span style={{ fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:20, background:sev.bg, color:sev.color, border:`1px solid ${sev.border}`, flexShrink:0, fontFamily:FH }}>
+          <span style={{ fontSize:12, fontWeight:700, padding:'2px 7px', borderRadius:20, background:sev.bg, color:sev.color, border:`1px solid ${sev.border}`, flexShrink:0, fontFamily:FH }}>
             {sev.label}
           </span>
         )}
@@ -191,10 +185,10 @@ export default function OnPageAuditPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:14 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color: '#111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <Globe size={20} color={TEAL}/> On-Page SEO Checker
               </h1>
-              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:14, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 20+ technical checks · PageSpeed · AI recommendations
               </p>
             </div>
@@ -210,9 +204,9 @@ export default function OnPageAuditPage() {
             <div style={{ display:'flex', gap:8, paddingBottom:12, overflowX:'auto' }}>
               {history.map(h=>(
                 <button key={h.id} onClick={()=>setUrl(h.url)}
-                  style={{ padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)', display:'flex', alignItems:'center', gap:6, flexShrink:0, cursor:'pointer' }}>
+                  style={{ padding:'4px 12px', borderRadius:20, background:'#f3f4f6', border:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:6, flexShrink:0, cursor:'pointer' }}>
                   <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:h.score>=80?'#4ade80':h.score>=60?'#fbbf24':'#f87171' }}>{h.score}</span>
-                  <span style={{ fontSize:11, color:'#999999', fontFamily:FB, maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{h.url.replace(/https?:\/\//,'')}</span>
+                  <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB, maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{h.url.replace(/https?:\/\//,'')}</span>
                 </button>
               ))}
             </div>
@@ -225,7 +219,7 @@ export default function OnPageAuditPage() {
           <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 20px', marginBottom:20 }}>
             <div style={{ display:'flex', gap:10, alignItems:'flex-end' }}>
               <div style={{ flex:2 }}>
-                <label style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>URL to Audit</label>
+                <label style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>URL to Audit</label>
                 <input value={url} onChange={e=>setUrl(e.target.value)}
                   placeholder="https://example.com or https://example.com/services"
                   onKeyDown={e=>e.key==='Enter'&&runAudit()}
@@ -233,7 +227,7 @@ export default function OnPageAuditPage() {
                   onFocus={e=>e.target.style.borderColor=TEAL} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
               </div>
               <div style={{ flex:1 }}>
-                <label style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Location (optional)</label>
+                <label style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Location (optional)</label>
                 <input value={location} onChange={e=>setLocation(e.target.value)}
                   placeholder="e.g. Boca Raton, FL"
                   style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:14, outline:'none', color:BLK, boxSizing:'border-box' }}
@@ -257,7 +251,7 @@ export default function OnPageAuditPage() {
                   <ScoreRing score={result.score}/>
                   <div>
                     <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, marginBottom:2 }}>SEO Score</div>
-                    <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, marginBottom:10 }}>
+                    <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:10 }}>
                       {result.passes?.length}/{result.total_checks} checks passing
                     </div>
                     <div style={{ display:'flex', gap:10 }}>
@@ -268,7 +262,7 @@ export default function OnPageAuditPage() {
                       ].map((s,i)=>(
                         <div key={i} style={{ textAlign:'center' }}>
                           <div style={{ fontFamily:FH, fontSize:18, fontWeight:900, color:s.color }}>{s.count}</div>
-                          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>{s.label}</div>
+                          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>{s.label}</div>
                         </div>
                       ))}
                     </div>
@@ -282,11 +276,11 @@ export default function OnPageAuditPage() {
                       <Sparkles size={14} color={TEAL}/>
                       <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Assessment</span>
                     </div>
-                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.executive_summary}</div>
+                    <div style={{ fontSize:14, color:'#6b7280', fontFamily:FB, lineHeight:1.7, marginBottom:10 }}>{result.ai.executive_summary}</div>
                     {result.ai.biggest_issue && (
                       <div style={{ background:'rgba(234,39,41,.15)', borderRadius:9, padding:'8px 12px', border:`1px solid ${RED}30` }}>
-                        <span style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:RED }}>Top Priority: </span>
-                        <span style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{result.ai.biggest_issue}</span>
+                        <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:RED }}>Top Priority: </span>
+                        <span style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{result.ai.biggest_issue}</span>
                       </div>
                     )}
                   </div>
@@ -301,7 +295,7 @@ export default function OnPageAuditPage() {
                     <SpeedBar label="Accessibility" value={result.speed.accessibility} color={TEAL}/>
                     <SpeedBar label="Best Practices" value={result.speed.bestPractices} color='#8b5cf6'/>
                     {result.speed.lcp && (
-                      <div style={{ marginTop:10, fontSize:12, color:'#9ca3af', fontFamily:FB }}>
+                      <div style={{ marginTop:10, fontSize:12, color:'#6b7280', fontFamily:FB }}>
                         LCP: {result.speed.lcp} · CLS: {result.speed.cls}
                       </div>
                     )}
@@ -320,7 +314,7 @@ export default function OnPageAuditPage() {
                   { label:'Schema', value: result.page_data.has_schema ? 'Present' : 'Missing', good: result.page_data.has_schema },
                 ].map((m,i)=>(
                   <div key={i} style={{ textAlign:'center' }}>
-                    <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH, marginBottom:3 }}>{m.label}</div>
+                    <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH, marginBottom:3 }}>{m.label}</div>
                     <div style={{ fontFamily:FH, fontSize:14, fontWeight:800, color: m.good?GREEN:RED }}>{m.value}</div>
                   </div>
                 ))}
@@ -338,7 +332,7 @@ export default function OnPageAuditPage() {
                       <button key={tab.key} onClick={()=>setActiveTab(tab.key)}
                         style={{ padding:'11px 16px', border:'none', background:activeTab===tab.key?'#fff':'transparent',
                           borderBottom:activeTab===tab.key?`2px solid ${tab.color}`:'2px solid transparent',
-                          color:activeTab===tab.key?tab.color:'#9ca3af', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap' }}>
+                          color:activeTab===tab.key?tab.color:'#6b7280', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH, whiteSpace:'nowrap' }}>
                         {tab.label}
                       </button>
                     ))}
@@ -350,7 +344,7 @@ export default function OnPageAuditPage() {
                       {filtered.map((item,i) => <CheckItem key={i} item={item} pass={false}/>)}
                     </div>
                   ) : (
-                    <div style={{ padding:'32px', textAlign:'center', color:'#9ca3af', fontSize:14, fontFamily:FB }}>
+                    <div style={{ padding:'32px', textAlign:'center', color:'#6b7280', fontSize:14, fontFamily:FB }}>
                       ✅ No issues in this category
                     </div>
                   )}
@@ -397,13 +391,13 @@ export default function OnPageAuditPage() {
                     )}
                     {result.ai.title_suggestion && result.ai.title_suggestion !== result.page_data.title && (
                       <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
-                        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>Suggested Title</div>
+                        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>Suggested Title</div>
                         <div style={{ fontSize:13, color:BLK, fontFamily:FB, fontStyle:'italic', lineHeight:1.5 }}>"{result.ai.title_suggestion}"</div>
                       </div>
                     )}
                     {result.ai.meta_suggestion && (
                       <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'16px 18px' }}>
-                        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>Suggested Meta</div>
+                        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:6 }}>Suggested Meta</div>
                         <div style={{ fontSize:13, color:BLK, fontFamily:FB, fontStyle:'italic', lineHeight:1.5 }}>"{result.ai.meta_suggestion}"</div>
                       </div>
                     )}

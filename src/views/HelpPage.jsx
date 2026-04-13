@@ -10,14 +10,12 @@ import Sidebar from '../components/Sidebar'
 import { useMobile } from '../hooks/useMobile'
 import { renderMarkdown } from '../components/HelpAssistant'
 
-const TEAL = '#00C2CB'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const TEAL = T
 const TEAL_SOFT = '#E6FCFD'
-const BLK = '#111'
-const BG = '#F7F7F6'
+const BG = '#f9fafb'
 const BORDER = '#e5e7eb'
 const MUTED = '#6b7280'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
 
 export default function HelpPage() {
   const [sp, setSp] = useSearchParams()
@@ -201,7 +199,7 @@ export default function HelpPage() {
                       }}
                     >
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{r.title}</div>
-                      <div style={{ fontSize: 11, color: MUTED, marginTop: 2,
+                      <div style={{ fontSize: 12, color: MUTED, marginTop: 2,
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {r.summary}
                       </div>
@@ -244,7 +242,7 @@ export default function HelpPage() {
                 >
                   <span style={{ fontSize: 16 }}>{m.icon}</span>
                   <span style={{ flex: 1 }}>{m.label}</span>
-                  <span style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>{m.article_count}</span>
+                  <span style={{ fontSize: 12, color: MUTED, fontWeight: 600 }}>{m.article_count}</span>
                 </button>
               )
             })}
@@ -328,7 +326,7 @@ function LandingView({ modules, onModuleClick }) {
             <div style={{ fontSize: 30, marginBottom: 10 }}>{m.icon}</div>
             <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{m.label}</div>
             <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, marginBottom: 10 }}>{m.description}</div>
-            <div style={{ fontSize: 11, color: TEAL, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ fontSize: 12, color: TEAL, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
               {m.article_count} article{m.article_count === 1 ? '' : 's'} <ChevronRight size={12} />
             </div>
           </button>
@@ -402,7 +400,7 @@ function ArticleView({ article, related, onBack, onRelatedClick, onFeedback, fee
         </button>
 
         {/* Breadcrumb */}
-        <div style={{ fontSize: 11, color: MUTED, marginBottom: 10, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 700 }}>
+        <div style={{ fontSize: 12, color: MUTED, marginBottom: 10, fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 700 }}>
           Help / {article.module} / {article.title}
         </div>
 
@@ -448,7 +446,7 @@ function ArticleView({ article, related, onBack, onRelatedClick, onFeedback, fee
       {/* Related articles sidebar */}
       {!isMobile && related.length > 0 && (
         <div style={{ width: 240, flexShrink: 0 }}>
-          <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 800, color: MUTED, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, marginTop: 60 }}>
+          <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: MUTED, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, marginTop: 60 }}>
             Related
           </div>
           {related.map((a) => (
@@ -462,7 +460,7 @@ function ArticleView({ article, related, onBack, onRelatedClick, onFeedback, fee
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH }}>{a.title}</div>
-              <div style={{ fontSize: 11, color: MUTED, marginTop: 3, lineHeight: 1.4,
+              <div style={{ fontSize: 12, color: MUTED, marginTop: 3, lineHeight: 1.4,
                 display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {a.summary}
               </div>

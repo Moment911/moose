@@ -24,13 +24,13 @@ const PLANS = [
 
 function StatCard({ label, value, icon: Icon, accent = T, sub }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 18, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18, position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent, opacity: .7 }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, lineHeight: 1, letterSpacing: '-.03em' }}>{value}</div>
-          <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
-          {sub && <div style={{ fontSize: 11, color: accent, marginTop: 3, fontFamily: FH, fontWeight: 600 }}>{sub}</div>}
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+          {sub && <div style={{ fontSize: 12, color: accent, marginTop: 3, fontFamily: FH, fontWeight: 600 }}>{sub}</div>}
         </div>
         <div style={{ width: 36, height: 36, borderRadius: 10, background: accent + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Icon size={16} color={accent} />
@@ -43,7 +43,7 @@ function StatCard({ label, value, icon: Icon, accent = T, sub }) {
 function Badge({ label, color }) {
   return (
     <span style={{
-      fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20,
+      fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20,
       background: color + '18', color, textTransform: 'uppercase',
       letterSpacing: '.05em', fontFamily: FH, display: 'inline-block',
     }}>{label}</span>
@@ -220,10 +220,10 @@ export default function BillingPage() {
           <StatCard label="Failed Payments" value={ov.failed_payments || '0'} icon={X} accent={R} />
         </div>
         {ov.by_plan && (
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 20 }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Revenue by Plan</div>
             {Object.entries(ov.by_plan).map(([plan, count]) => (
-              <div key={plan} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f2f2f0' }}>
+              <div key={plan} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #e5e7eb' }}>
                 <span style={{ fontFamily: FH, fontWeight: 600, color: BLK, textTransform: 'capitalize' }}>{plan}</span>
                 <Badge label={`${count} agencies`} color={T} />
               </div>
@@ -236,27 +236,27 @@ export default function BillingPage() {
 
   function renderAgencies() {
     return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>All Agencies</div>
-          <span style={{ fontSize: 12, color: '#9a9a96' }}>{agencies.length} agencies</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{agencies.length} agencies</span>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #f2f2f0', background: '#fafafa' }}>
+            <tr style={{ borderBottom: '2px solid #e5e7eb', background: '#fafafa' }}>
               {['Agency', 'Plan', 'Price', 'Balance', 'Status', 'Actions'].map(h => (
-                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 11, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
+                <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {agencies.length === 0 ? (
-              <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#9a9a96' }}>No agencies found</td></tr>
+              <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No agencies found</td></tr>
             ) : agencies.map(ag => (
-              <tr key={ag.id || ag.agency_id} style={{ borderBottom: '1px solid #f8f8f6' }}>
+              <tr key={ag.id || ag.agency_id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '12px 14px' }}>
                   <div style={{ fontWeight: 700, color: BLK }}>{ag.name || ag.brand_name || 'Unknown'}</div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>{ag.id || ag.agency_id}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>{ag.id || ag.agency_id}</div>
                 </td>
                 <td style={{ padding: '12px 14px' }}><Badge label={ag.plan || 'starter'} color={ag.plan === 'agency' ? R : ag.plan === 'growth' ? T : AMB} /></td>
                 <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: BLK }}>${ag.plan_price || 297}/mo</td>
@@ -264,7 +264,7 @@ export default function BillingPage() {
                 <td style={{ padding: '12px 14px' }}><Badge label={ag.billing_status || 'active'} color={statusColor(ag.billing_status || 'active')} /></td>
                 <td style={{ padding: '12px 14px' }}>
                   <button onClick={() => navigate(`/billing-admin?agency=${ag.id || ag.agency_id}`)}
-                    style={{ background: 'none', border: `1px solid #e5e7eb`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    style={{ background: 'none', border: `1px solid #e5e7eb`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 4 }}>
                     View <ChevronRight size={10} />
                   </button>
                 </td>
@@ -282,26 +282,26 @@ export default function BillingPage() {
       ...(Array.isArray(stripeInvoices) ? stripeInvoices.map(i => ({ ...i, _src: 'stripe' })) : []),
     ]
     return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
             {isSuperAdmin ? 'All Invoices (Koto + Stripe)' : 'Invoices from Koto'}
           </div>
         </div>
         {allInvoices.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No invoices yet</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No invoices yet</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #f2f2f0', background: '#fafafa' }}>
+              <tr style={{ borderBottom: '2px solid #e5e7eb', background: '#fafafa' }}>
                 {['Invoice', 'Period', 'Amount', 'Status', isSuperAdmin ? 'Source' : null].filter(Boolean).map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 11, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {allInvoices.map((inv, i) => (
-                <tr key={inv.id || i} style={{ borderBottom: '1px solid #f8f8f6' }}>
+                <tr key={inv.id || i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '12px 14px', fontWeight: 700, color: BLK }}>{inv.invoice_number || inv.number || '—'}</td>
                   <td style={{ padding: '12px 14px', color: '#6b7280' }}>{inv.billing_period_start || inv.period_start || '—'} — {inv.billing_period_end || inv.period_end || ''}</td>
                   <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: BLK }}>${Number(inv.total || inv.amount_due || 0).toFixed(2)}</td>
@@ -319,7 +319,7 @@ export default function BillingPage() {
   function renderCreditsUsage() {
     return (
       <div>
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 24, marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 24, marginBottom: 20 }}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Purchase Credits</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
             {CREDIT_AMOUNTS.map(amt => (
@@ -328,14 +328,14 @@ export default function BillingPage() {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none' }}>
                 <div style={{ fontSize: 28, fontWeight: 800, color: BLK }}>${amt}</div>
-                <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 4 }}>Add credits</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Add credits</div>
               </button>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: '#f9fafb', borderRadius: 10 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Auto-Recharge</div>
-              <div style={{ fontSize: 12, color: '#9a9a96' }}>Automatically add credits when balance drops below threshold</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>Automatically add credits when balance drops below threshold</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 700, color: balance?.auto_recharge ? GRN : '#9a9a96', fontFamily: FH }}>
               {balance?.auto_recharge ? `ON — below $${balance.threshold} → add $${balance.recharge_amount}` : 'OFF'}
@@ -344,19 +344,19 @@ export default function BillingPage() {
         </div>
 
         {/* Usage records */}
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden', marginBottom: 20 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 20 }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Usage This Month</div>
-            <span style={{ fontSize: 12, color: '#9a9a96' }}>{usage.length} records</span>
+            <span style={{ fontSize: 12, color: '#6b7280' }}>{usage.length} records</span>
           </div>
           <div style={{ padding: '4px 12px' }}>
             {usage.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No usage this month</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No usage this month</div>
             ) : usage.map((u, i) => (
-              <div key={u.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f8f8f6' }}>
+              <div key={u.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{u.feature?.replace(/_/g, ' ')}</div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>{u.quantity} {u.unit} @ ${Number(u.unit_cost || 0).toFixed(4)}/{u.unit}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>{u.quantity} {u.unit} @ ${Number(u.unit_cost || 0).toFixed(4)}/{u.unit}</div>
                 </div>
                 <div style={{ fontFamily: FH, fontWeight: 700, color: BLK }}>${Number(u.total_cost || 0).toFixed(2)}</div>
               </div>
@@ -365,24 +365,24 @@ export default function BillingPage() {
         </div>
 
         {/* Transaction history */}
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Transaction History</div>
           </div>
           <div style={{ padding: '4px 12px' }}>
             {(balance?.transactions || []).length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No transactions yet</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No transactions yet</div>
             ) : (balance.transactions || []).map((t, i) => (
-              <div key={t.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f8f8f6' }}>
+              <div key={t.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: t.type === 'purchase' || t.type === 'bonus' ? GRN : AMB, flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, color: BLK, fontWeight: 600 }}>{t.description || t.type}</div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>{t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>{t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</div>
                 </div>
                 <div style={{ fontFamily: FH, fontWeight: 700, color: Number(t.amount) >= 0 ? GRN : R }}>
                   {Number(t.amount) >= 0 ? '+' : ''}${Number(t.amount).toFixed(2)}
                 </div>
-                <div style={{ fontSize: 11, color: '#9a9a96', fontFamily: FH }}>${Number(t.balance_after || 0).toFixed(2)}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FH }}>${Number(t.balance_after || 0).toFixed(2)}</div>
               </div>
             ))}
           </div>
@@ -414,7 +414,7 @@ export default function BillingPage() {
         )}
 
         {/* Promo code */}
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 20, marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 20, marginBottom: 20 }}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Promo Code</div>
           <div style={{ display: 'flex', gap: 10 }}>
             <input
@@ -433,7 +433,7 @@ export default function BillingPage() {
 
         {/* Usage breakdown */}
         {dash?.usage_by_feature && Object.keys(dash.usage_by_feature).length > 0 && (
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 20, marginBottom: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 20, marginBottom: 20 }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Usage Breakdown</div>
             {Object.entries(dash.usage_by_feature).map(([feature, data]) => {
               const maxCost = Math.max(...Object.values(dash.usage_by_feature).map(v => v.cost || 0), 1)
@@ -443,7 +443,7 @@ export default function BillingPage() {
                     <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK }}>{feature.replace(/_/g, ' ')}</span>
                     <span style={{ fontSize: 13, fontFamily: FH, fontWeight: 700, color: BLK }}>${(data.cost || 0).toFixed(2)}</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 3, background: '#ececea', overflow: 'hidden' }}>
+                  <div style={{ height: 6, borderRadius: 3, background: '#e5e7eb', overflow: 'hidden' }}>
                     <div style={{ width: `${((data.cost || 0) / maxCost) * 100}%`, height: '100%', background: T, borderRadius: 3 }} />
                   </div>
                 </div>
@@ -454,13 +454,13 @@ export default function BillingPage() {
 
         {/* Recent transactions */}
         {dash?.recent_transactions?.length > 0 && (
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
               <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Recent Transactions</div>
             </div>
             <div style={{ padding: '4px 12px' }}>
               {dash.recent_transactions.map((t, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f8f8f6' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: Number(t.amount) >= 0 ? GRN : R, flexShrink: 0 }} />
                   <div style={{ flex: 1, fontSize: 13, color: BLK }}>{t.type}</div>
                   <div style={{ fontFamily: FH, fontWeight: 700, color: Number(t.amount) >= 0 ? GRN : R }}>{Number(t.amount) >= 0 ? '+' : ''}${Number(t.amount).toFixed(2)}</div>
@@ -476,7 +476,7 @@ export default function BillingPage() {
   function renderCreditsTabAgency() {
     return (
       <div>
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', padding: 24, marginBottom: 20 }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 24, marginBottom: 20 }}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>Purchase Credits</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
             {CREDIT_AMOUNTS.map(amt => (
@@ -485,38 +485,38 @@ export default function BillingPage() {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = R; e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.transform = 'none' }}>
                 <div style={{ fontSize: 28, fontWeight: 800, color: BLK }}>${amt}</div>
-                <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 4 }}>Add credits</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Add credits</div>
               </button>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: '#f9fafb', borderRadius: 10 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Auto-Recharge</div>
-              <div style={{ fontSize: 12, color: '#9a9a96' }}>Automatically add credits when balance drops below threshold</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>Automatically add credits when balance drops below threshold</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 700, color: balance?.auto_recharge ? GRN : '#9a9a96', fontFamily: FH }}>
               {balance?.auto_recharge ? `ON — below $${balance.threshold} → add $${balance.recharge_amount}` : 'OFF'}
             </div>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Transaction History</div>
           </div>
           <div style={{ padding: '4px 12px' }}>
             {(balance?.transactions || []).length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No transactions yet</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No transactions yet</div>
             ) : (balance.transactions || []).map((t, i) => (
-              <div key={t.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f8f8f6' }}>
+              <div key={t.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: t.type === 'purchase' || t.type === 'bonus' ? GRN : AMB, flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, color: BLK, fontWeight: 600 }}>{t.description || t.type}</div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>{t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>{t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</div>
                 </div>
                 <div style={{ fontFamily: FH, fontWeight: 700, color: Number(t.amount) >= 0 ? GRN : R }}>
                   {Number(t.amount) >= 0 ? '+' : ''}${Number(t.amount).toFixed(2)}
                 </div>
-                <div style={{ fontSize: 11, color: '#9a9a96', fontFamily: FH }}>${Number(t.balance_after || 0).toFixed(2)}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FH }}>${Number(t.balance_after || 0).toFixed(2)}</div>
               </div>
             ))}
           </div>
@@ -527,19 +527,19 @@ export default function BillingPage() {
 
   function renderUsageTab() {
     return (
-      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Usage This Month</div>
-          <span style={{ fontSize: 12, color: '#9a9a96' }}>{usage.length} records</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{usage.length} records</span>
         </div>
         <div style={{ padding: '4px 12px' }}>
           {usage.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No usage recorded this month</div>
+            <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No usage recorded this month</div>
           ) : usage.map((u, i) => (
-            <div key={u.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f8f8f6' }}>
+            <div key={u.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{u.feature?.replace(/_/g, ' ')}</div>
-                <div style={{ fontSize: 11, color: '#9a9a96' }}>{u.quantity} {u.unit} @ ${Number(u.unit_cost || 0).toFixed(4)}/{u.unit}</div>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>{u.quantity} {u.unit} @ ${Number(u.unit_cost || 0).toFixed(4)}/{u.unit}</div>
               </div>
               <div style={{ fontFamily: FH, fontWeight: 700, color: BLK }}>${Number(u.total_cost || 0).toFixed(2)}</div>
             </div>
@@ -552,18 +552,18 @@ export default function BillingPage() {
   function renderClientBilling() {
     return (
       <div>
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden', marginBottom: 20 }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 20 }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Client Pricing</div>
           </div>
           <div style={{ padding: '4px 12px' }}>
             {clientPricing.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No client pricing configured yet</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No client pricing configured yet</div>
             ) : clientPricing.map(cp => (
-              <div key={cp.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f8f8f6' }}>
+              <div key={cp.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>Client {(cp.client_id || '').slice(0, 8)}...</div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>Retainer: ${cp.monthly_retainer}/mo · Voice: ${cp.voice_call_rate}/min · SMS: ${cp.sms_rate}/msg</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>Retainer: ${cp.monthly_retainer}/mo · Voice: ${cp.voice_call_rate}/min · SMS: ${cp.sms_rate}/msg</div>
                 </div>
                 <Badge label={cp.auto_invoice ? 'Auto-Invoice' : 'Manual'} color={cp.auto_invoice ? GRN : '#9a9a96'} />
               </div>
@@ -571,8 +571,8 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Invoices Sent to Clients</div>
             <button onClick={() => navigate('/invoice-builder')}
               style={{ background: R, border: 'none', color: '#fff', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -581,12 +581,12 @@ export default function BillingPage() {
           </div>
           <div style={{ padding: '4px 12px' }}>
             {clientInvoices.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9a9a96', fontSize: 13 }}>No client invoices yet</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No client invoices yet</div>
             ) : clientInvoices.map(inv => (
-              <div key={inv.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 8px', borderBottom: '1px solid #f8f8f6' }}>
+              <div key={inv.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 8px', borderBottom: '1px solid #f3f4f6' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{inv.invoice_number}</div>
-                  <div style={{ fontSize: 11, color: '#9a9a96' }}>Client {(inv.client_id || '').slice(0, 8)}... · Due: {inv.due_date}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>Client {(inv.client_id || '').slice(0, 8)}... · Due: {inv.due_date}</div>
                 </div>
                 <div style={{ fontFamily: FH, fontWeight: 700, color: BLK }}>${Number(inv.total || 0).toFixed(2)}</div>
                 <Badge label={inv.status || 'draft'} color={statusColor(inv.status)} />
@@ -612,25 +612,25 @@ export default function BillingPage() {
             <Plus size={13} /> Create Product
           </button>
         </div>
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #ececea', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #f2f2f0' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Stripe Products</div>
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #f2f2f0', background: '#fafafa' }}>
+              <tr style={{ borderBottom: '2px solid #e5e7eb', background: '#fafafa' }}>
                 {['Name', 'ID', 'Price', 'Active'].map(h => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 11, fontWeight: 800, color: '#9a9a96', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {products.length === 0 ? (
-                <tr><td colSpan={4} style={{ padding: 40, textAlign: 'center', color: '#9a9a96' }}>No products — sync from Stripe to load</td></tr>
+                <tr><td colSpan={4} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No products — sync from Stripe to load</td></tr>
               ) : products.map(p => (
-                <tr key={p.id} style={{ borderBottom: '1px solid #f8f8f6' }}>
+                <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '12px 14px', fontWeight: 700, color: BLK }}>{p.name}</td>
-                  <td style={{ padding: '12px 14px', color: '#9a9a96', fontSize: 11, fontFamily: 'monospace' }}>{p.id}</td>
+                  <td style={{ padding: '12px 14px', color: '#6b7280', fontSize: 12, fontFamily: 'monospace' }}>{p.id}</td>
                   <td style={{ padding: '12px 14px', fontFamily: FH, fontWeight: 700, color: BLK }}>{p.default_price ? `$${(p.default_price.unit_amount / 100).toFixed(2)}/${p.default_price.recurring?.interval || 'once'}` : '—'}</td>
                   <td style={{ padding: '12px 14px' }}><Badge label={p.active ? 'Active' : 'Inactive'} color={p.active ? GRN : '#9a9a96'} /></td>
                 </tr>
@@ -666,13 +666,13 @@ export default function BillingPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '20px 32px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>
                 {isSuperAdmin ? 'Platform Billing' : 'Billing'}
               </h1>
-              <p style={{ fontSize: 13, color: '#999999', margin: '4px 0 0' }}>
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '4px 0 0' }}>
                 {isSuperAdmin ? 'Revenue, agencies, invoices, and Stripe' : 'Credits, usage, invoices, client billing'}
               </p>
             </div>
@@ -687,7 +687,7 @@ export default function BillingPage() {
               <button key={t} onClick={() => setTab(i)} style={{
                 padding: '10px 18px', border: 'none', cursor: 'pointer', fontSize: 13,
                 fontWeight: tab === i ? 700 : 500, fontFamily: FH,
-                color: tab === i ? '#fff' : 'rgba(255,255,255,.4)', background: 'transparent',
+                color: tab === i ? R : '#6b7280', background: 'transparent',
                 borderBottom: tab === i ? `2px solid ${R}` : '2px solid transparent',
                 whiteSpace: 'nowrap',
               }}>{t}</button>
@@ -699,7 +699,7 @@ export default function BillingPage() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
           {loading && tab === 0 && !isSuperAdmin ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200 }}>
-              <div style={{ fontSize: 13, color: '#9a9a96', fontFamily: FH }}>Loading...</div>
+              <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FH }}>Loading...</div>
             </div>
           ) : renderTabContent()}
         </div>
@@ -713,18 +713,18 @@ export default function BillingPage() {
             onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <h2 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0 }}>Choose Your Plan</h2>
-              <button onClick={() => setShowUpgrade(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9a9a96' }}><X size={20} /></button>
+              <button onClick={() => setShowUpgrade(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
               {PLANS.map(p => (
                 <div key={p.id} style={{ border: p.popular ? `2px solid ${R}` : '1.5px solid #e5e7eb', borderRadius: 16, padding: 24, position: 'relative' }}>
                   {p.popular && (
-                    <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: R, color: '#fff', fontSize: 10, fontWeight: 800, padding: '3px 12px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.06em', whiteSpace: 'nowrap' }}>
+                    <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: R, color: '#fff', fontSize: 12, fontWeight: 800, padding: '3px 12px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '.06em', whiteSpace: 'nowrap' }}>
                       Most Popular
                     </div>
                   )}
                   <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 4 }}>{p.name}</div>
-                  <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 800, color: BLK, marginBottom: 16 }}>${p.price}<span style={{ fontSize: 14, color: '#9a9a96' }}>/mo</span></div>
+                  <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 800, color: BLK, marginBottom: 16 }}>${p.price}<span style={{ fontSize: 14, color: '#6b7280' }}>/mo</span></div>
                   {p.features.map(f => (
                     <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <Check size={14} color={GRN} /><span style={{ fontSize: 13, color: '#374151' }}>{f}</span>

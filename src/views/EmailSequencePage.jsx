@@ -9,8 +9,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, W, FH, FB } from '../lib/theme'
 
 const API = '/api/sequences'
 async function apiGet(action, params={}) {
@@ -117,19 +116,19 @@ export default function EmailSequencePage() {
     <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
-        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ width:40, height:40, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <div style={{ width:40, height:40, borderRadius:10, background: R, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Mail size={20} color={W} />
               </div>
               <div>
-                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>Multi-Channel Sequences</h1>
-                <p style={{ fontFamily:FB, fontSize:12, color: '#999999', margin:0 }}>Call, voicemail, SMS, email. Response rates from 8% to 25%+</p>
+                <h1 style={{ fontFamily:FH, fontSize:20, fontWeight: 700, color: BLK, margin:0 }}>Multi-Channel Sequences</h1>
+                <p style={{ fontFamily:FB, fontSize:13, color: '#6b7280', margin:0 }}>Call, voicemail, SMS, email. Response rates from 8% to 25%+</p>
               </div>
             </div>
             <div style={{ display:'flex', gap:8 }}>
-              <button onClick={processQueue} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid rgba(0,0,0,0.14)', background:'transparent', color:'#555555', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
+              <button onClick={processQueue} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
                 <RefreshCw size={14} /> Process Queue
               </button>
               <button onClick={() => setShowCreate(true)} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 18px', borderRadius:8, border:'none', background:R, color:W, fontSize:13, fontWeight:700, fontFamily:FB, cursor:'pointer' }}>
@@ -143,9 +142,9 @@ export default function EmailSequencePage() {
               { label:'Enrolled', value:stats.total_enrolled||0, accent:AMB },
               { label:'Replied', value:stats.total_replied||0, accent:GRN },
             ].map(s => (
-              <div key={s.label} style={{ padding:'8px 16px', background: '#F5F5F5', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
-                <div style={{ fontSize:10, fontWeight:700, color:'#999999', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
-                <div style={{ fontSize:18, fontWeight:800, fontFamily:FH, color:W }}>{s.value}</div>
+              <div key={s.label} style={{ padding:'8px 16px', background: '#f9fafb', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
+                <div style={{ fontSize:18, fontWeight:800, fontFamily:FH, color:BLK }}>{s.value}</div>
               </div>
             ))}
           </div>
@@ -172,13 +171,13 @@ export default function EmailSequencePage() {
                   <div>
                     <div style={{ fontSize:16, fontWeight:700, fontFamily:FH, color:BLK }}>{seq.sequence_name}</div>
                     <div style={{ display:'flex', gap:8, marginTop:4 }}>
-                      <span style={{ padding:'2px 8px', borderRadius:99, fontSize:10, fontWeight:700, fontFamily:FB, background:`${T}15`, color:T, textTransform:'capitalize' }}>{seq.sequence_type}</span>
-                      {seq.trigger_type && <span style={{ padding:'2px 8px', borderRadius:99, fontSize:10, fontWeight:600, fontFamily:FB, background:'#f3f4f6', color:'#6b7280' }}>{seq.trigger_type}</span>}
-                      {seq.use_ghl && <span style={{ padding:'2px 8px', borderRadius:99, fontSize:10, fontWeight:700, fontFamily:FB, background:'#ff6a0020', color:'#ff6a00' }}>GHL</span>}
+                      <span style={{ padding:'2px 8px', borderRadius:99, fontSize:12, fontWeight:700, fontFamily:FB, background:`${T}15`, color:T, textTransform:'capitalize' }}>{seq.sequence_type}</span>
+                      {seq.trigger_type && <span style={{ padding:'2px 8px', borderRadius:99, fontSize:12, fontWeight:600, fontFamily:FB, background:'#f3f4f6', color:'#6b7280' }}>{seq.trigger_type}</span>}
+                      {seq.use_ghl && <span style={{ padding:'2px 8px', borderRadius:99, fontSize:12, fontWeight:700, fontFamily:FB, background:'#ff6a0020', color:'#ff6a00' }}>GHL</span>}
                     </div>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <button onClick={() => toggleActive(seq)} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:seq.is_active?GRN+'15':W, fontSize:10, fontWeight:700, fontFamily:FB, cursor:'pointer', color:seq.is_active?GRN:'#9ca3af' }}>
+                    <button onClick={() => toggleActive(seq)} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:seq.is_active?GRN+'15':W, fontSize:12, fontWeight:700, fontFamily:FB, cursor:'pointer', color:seq.is_active?GRN:'#6b7280' }}>
                       {seq.is_active ? 'Active' : 'Paused'}
                     </button>
                   </div>
@@ -210,12 +209,12 @@ export default function EmailSequencePage() {
             <div style={{ background:W, borderRadius:16, padding:28, width:480, maxWidth:'95vw' }}>
               <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 16px' }}>Create Sequence</h3>
               <div style={{ marginBottom:12 }}>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Sequence Name</label>
+                <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Sequence Name</label>
                 <input value={newSeq.sequence_name} onChange={e => setNewSeq(s => ({...s, sequence_name:e.target.value}))} placeholder="e.g. After No Answer - 5 Touch" style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
                 <div>
-                  <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Type</label>
+                  <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Type</label>
                   <select value={newSeq.sequence_type} onChange={e => setNewSeq(s => ({...s, sequence_type:e.target.value}))} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, cursor:'pointer', boxSizing:'border-box' }}>
                     <option value="outbound">Outbound</option>
                     <option value="nurture">Nurture</option>
@@ -224,7 +223,7 @@ export default function EmailSequencePage() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Trigger</label>
+                  <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Trigger</label>
                   <select value={newSeq.trigger_type} onChange={e => setNewSeq(s => ({...s, trigger_type:e.target.value}))} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, cursor:'pointer', boxSizing:'border-box' }}>
                     <option value="manual">Manual enrollment</option>
                     <option value="call_outcome">After call outcome</option>
@@ -251,15 +250,15 @@ export default function EmailSequencePage() {
     <div style={{ display:'flex', minHeight:'100vh', background:GRY }}>
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
-        <div style={{ background:W, padding:'16px 32px', borderBottom:'1px solid rgba(0,0,0,0.08)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ background:W, padding:'16px 32px', borderBottom:'1px solid #e5e7eb', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <button onClick={() => { setEditingSeq(null); loadAll() }} style={{ background:'none', border:'none', color:W, cursor:'pointer', fontSize:14, fontFamily:FH }}>
+            <button onClick={() => { setEditingSeq(null); loadAll() }} style={{ background:'none', border:'none', color:'#374151', cursor:'pointer', fontSize:14, fontFamily:FH }}>
               <ArrowRight size={16} style={{ transform:'rotate(180deg)', verticalAlign:'middle', marginRight:6 }} /> Back
             </button>
-            <h2 style={{ fontFamily:FH, fontSize:18, fontWeight: 500, color: BLK, margin:0 }}>{editingSeq.sequence_name}</h2>
+            <h2 style={{ fontFamily:FH, fontSize:18, fontWeight: 700, color: BLK, margin:0 }}>{editingSeq.sequence_name}</h2>
           </div>
           <div style={{ display:'flex', gap:8 }}>
-            <button onClick={generateWithAI} disabled={generating} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid rgba(0,0,0,0.14)', background:'transparent', color:'#555555', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
+            <button onClick={generateWithAI} disabled={generating} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, border: '1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer' }}>
               {generating ? <Loader2 size={14} style={{ animation:'spin 1s linear infinite' }} /> : <Sparkles size={14} />}
               Generate Steps with AI
             </button>
@@ -300,7 +299,7 @@ export default function EmailSequencePage() {
                   {i > 0 && (
                     <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 0 8px 18px' }}>
                       <div style={{ width:2, height:20, background:'#e5e7eb' }} />
-                      <span style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>
+                      <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>
                         {step.delay_days > 0 ? `${step.delay_days} day${step.delay_days>1?'s':''} later` : 'Same day'} at {step.send_hour || 9}:00
                       </span>
                     </div>
@@ -321,9 +320,9 @@ export default function EmailSequencePage() {
                       </div>
                       <div style={{ display:'flex', gap:4 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                          <span style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>Day</span>
+                          <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Day</span>
                           <input type="number" min={0} value={step.delay_days||0} onChange={e => updateStep(step.id, { delay_days: parseInt(e.target.value)||0 })} style={{ width:40, padding:'3px 6px', borderRadius:4, border:'1px solid #e5e7eb', fontSize:11, fontFamily:FB, textAlign:'center' }} />
-                          <span style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>at</span>
+                          <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>at</span>
                           <input type="number" min={0} max={23} value={step.send_hour||9} onChange={e => updateStep(step.id, { send_hour: parseInt(e.target.value)||9 })} style={{ width:40, padding:'3px 6px', borderRadius:4, border:'1px solid #e5e7eb', fontSize:11, fontFamily:FB, textAlign:'center' }} />
                         </div>
                         <button onClick={() => deleteStep(step.id)} style={{ width:28, height:28, borderRadius:6, border:'1px solid #e5e7eb', background:W, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
@@ -342,7 +341,7 @@ export default function EmailSequencePage() {
                     {step.channel === 'sms' && (
                       <div>
                         <textarea value={step.sms_template||''} onChange={e => updateStep(step.id, { sms_template: e.target.value })} placeholder="SMS message... Use {{first_name}}, {{business_name}}. Keep under 160 chars." rows={2} style={{ width:'100%', padding:'8px 12px', borderRadius:6, border:'1px solid #e5e7eb', fontSize:12, fontFamily:FB, resize:'vertical', boxSizing:'border-box' }} />
-                        <div style={{ fontSize:10, color:(step.sms_template||'').length > 160 ? R : '#9ca3af', fontFamily:FB, textAlign:'right', marginTop:2 }}>{(step.sms_template||'').length}/160</div>
+                        <div style={{ fontSize:10, color:(step.sms_template||'').length > 160 ? R : '#6b7280', fontFamily:FB, textAlign:'right', marginTop:2 }}>{(step.sms_template||'').length}/160</div>
                       </div>
                     )}
 
@@ -353,7 +352,7 @@ export default function EmailSequencePage() {
                     )}
 
                     {step.total_sent > 0 && (
-                      <div style={{ display:'flex', gap:12, marginTop:8, fontSize:10, color:'#9ca3af', fontFamily:FB }}>
+                      <div style={{ display:'flex', gap:12, marginTop:8, fontSize:12, color:'#6b7280', fontFamily:FB }}>
                         <span>Sent: {step.total_sent}</span>
                         <span>Opened: {step.total_opened||0}</span>
                         <span>Clicked: {step.total_clicked||0}</span>
@@ -367,7 +366,7 @@ export default function EmailSequencePage() {
           </div>
 
           {editSteps.length > 0 && (
-            <button onClick={addStep} style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 16px', borderRadius:8, border:'2px dashed #d1d5db', background:'none', color:'#9ca3af', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer', marginTop:8, width:'100%', justifyContent:'center' }}>
+            <button onClick={addStep} style={{ display:'flex', alignItems:'center', gap:6, padding:'10px 16px', borderRadius:8, border:'2px dashed #d1d5db', background:'none', color:'#6b7280', fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer', marginTop:8, width:'100%', justifyContent:'center' }}>
               <Plus size={14} /> Add Another Step
             </button>
           )}

@@ -9,8 +9,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/pixel'
 async function apiGet(action, params={}) {
@@ -115,15 +115,15 @@ export default function PixelTrackingPage() {
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
         {/* Header */}
-        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <div style={{ width:40, height:40, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Eye size={20} color={W} />
               </div>
               <div>
-                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>Visitor Intelligence</h1>
-                <p style={{ fontFamily:FB, fontSize:12, color: '#999999', margin:0 }}>
+                <h1 style={{ fontFamily:FH, fontSize:20, fontWeight: 700, color: '#111', margin:0 }}>Visitor Intelligence</h1>
+                <p style={{ fontFamily:FB, fontSize:14, color: '#6b7280', margin:0 }}>
                   See who visits your websites in real time
                   {sessions.length > 0 && <span style={{ marginLeft:8, color:GRN }}><span style={{ display:'inline-block', width:6, height:6, borderRadius:'50%', background:GRN, marginRight:4, animation:'pulse 1.5s infinite' }} />{sessions.length} live now</span>}
                 </p>
@@ -142,9 +142,9 @@ export default function PixelTrackingPage() {
               { label:'Hot Visitors', value:stats.hot_visitors || 0, accent:R },
               { label:'Leads Created', value:stats.leads_created || 0, accent:GRN },
             ].map(s => (
-              <div key={s.label} style={{ padding:'8px 16px', background: '#F5F5F5', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
-                <div style={{ fontSize:10, fontWeight:700, color:'#999999', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
-                <div style={{ fontSize:18, fontWeight:800, fontFamily:FH, color:W }}>{s.value}</div>
+              <div key={s.label} style={{ padding:'8px 16px', background: '#f9fafb', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
+                <div style={{ fontSize:18, fontWeight:800, fontFamily:FH, color:BLK }}>{s.value}</div>
               </div>
             ))}
           </div>
@@ -156,7 +156,7 @@ export default function PixelTrackingPage() {
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               display:'flex', alignItems:'center', gap:6, padding:'10px 18px', fontSize:13, fontWeight:tab===t.key?700:500, fontFamily:FH,
               border:'none', borderBottom:tab===t.key?`2px solid ${R}`:'2px solid transparent',
-              background:'none', cursor:'pointer', color:tab===t.key?BLK:'#9ca3af',
+              background:'none', cursor:'pointer', color:tab===t.key?BLK:'#6b7280',
             }}>
               <t.icon size={14} /> {t.label}
             </button>
@@ -171,7 +171,7 @@ export default function PixelTrackingPage() {
                 <div key={alert.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 16px', borderRadius:8, background:`${R}08`, border:`1px solid ${R}30`, marginBottom:6 }}>
                   <span style={{ fontSize:16 }}>{scoreEmoji(alert.intent_score || 0)}</span>
                   <span style={{ flex:1, fontSize:13, fontFamily:FB, color:BLK }}>{alert.alert_message}</span>
-                  <button onClick={() => dismissAlert(alert.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}><X size={14} /></button>
+                  <button onClick={() => dismissAlert(alert.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280' }}><X size={14} /></button>
                 </div>
               ))}
             </div>
@@ -200,17 +200,17 @@ export default function PixelTrackingPage() {
                         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                           <span style={{ fontSize:16 }}>{scoreEmoji(s.intent_score)}</span>
                           <span style={{ fontSize:15, fontWeight:700, fontFamily:FH, color:BLK }}>{s.identified_company || 'Unknown Visitor'}</span>
-                          {s.identified_city && <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>{s.identified_city}, {s.identified_state}</span>}
+                          {s.identified_city && <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{s.identified_city}, {s.identified_state}</span>}
                         </div>
                         {s.identified_domain && <div style={{ fontSize:12, color:T, fontFamily:FB, marginTop:2 }}>{s.identified_domain}</div>}
                       </div>
                       <div style={{ textAlign:'right' }}>
                         <div style={{ fontSize:22, fontWeight:800, fontFamily:FH, color:scoreColor(s.intent_score) }}>{s.intent_score || 0}</div>
-                        <div style={{ fontSize:9, color:'#9ca3af', fontFamily:FB }}>intent</div>
+                        <div style={{ fontSize:9, color:'#6b7280', fontFamily:FB }}>intent</div>
                       </div>
                     </div>
 
-                    <div style={{ display:'flex', gap:12, fontSize:11, color:'#6b7280', fontFamily:FB, marginBottom:8 }}>
+                    <div style={{ display:'flex', gap:12, fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:8 }}>
                       {s.pages_viewed?.length > 0 && <span>{s.pages_viewed.length} pages</span>}
                       {s.time_on_site_seconds > 0 && <span>{Math.floor(s.time_on_site_seconds/60)}m {s.time_on_site_seconds%60}s on site</span>}
                       {s.submitted_form && <span style={{ color:GRN, fontWeight:700 }}>Submitted form</span>}
@@ -222,13 +222,13 @@ export default function PixelTrackingPage() {
                     {s.intent_signals?.length > 0 && (
                       <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginBottom:8 }}>
                         {s.intent_signals.slice(0,3).map((sig,i) => (
-                          <span key={i} style={{ padding:'2px 8px', borderRadius:99, background:'#f3f4f6', fontSize:10, color:'#6b7280', fontFamily:FB }}>{sig.split('--')[0].trim()}</span>
+                          <span key={i} style={{ padding:'2px 8px', borderRadius:99, background:'#f3f4f6', fontSize:12, color:'#6b7280', fontFamily:FB }}>{sig.split('--')[0].trim()}</span>
                         ))}
                       </div>
                     )}
 
                     {s.identification_confidence > 0 && (
-                      <div style={{ fontSize:10, color:'#bbb', fontFamily:FB }}>
+                      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>
                         Identified via IP lookup (confidence: {s.identification_confidence}%)
                       </div>
                     )}
@@ -257,15 +257,15 @@ export default function PixelTrackingPage() {
                     <div>
                       <div style={{ fontSize:15, fontWeight:700, fontFamily:FH, color:BLK }}>{p.pixel_name}</div>
                       <div style={{ fontSize:12, color:T, fontFamily:FB }}>{p.domain}</div>
-                      <div style={{ display:'flex', gap:12, fontSize:11, color:'#9ca3af', fontFamily:FB, marginTop:4 }}>
+                      <div style={{ display:'flex', gap:12, fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:4 }}>
                         <span>ID: {p.pixel_id}</span>
                         <span>{p.total_visits || 0} visits</span>
                         <span>{p.total_leads_created || 0} leads</span>
                       </div>
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ padding:'3px 10px', borderRadius:99, fontSize:10, fontWeight:700, fontFamily:FB, background:p.is_active?GRN+'20':R+'20', color:p.is_active?GRN:R }}>{p.is_active?'Active':'Inactive'}</span>
-                      <button onClick={() => copyCode(`<script src="https://hellokoto.com/api/pixel?id=${p.pixel_id}" async></script>`)} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:11, fontWeight:600, fontFamily:FB, cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center', gap:4 }}>
+                      <span style={{ padding:'3px 10px', borderRadius:99, fontSize:12, fontWeight:700, fontFamily:FB, background:p.is_active?GRN+'20':R+'20', color:p.is_active?GRN:R }}>{p.is_active?'Active':'Inactive'}</span>
+                      <button onClick={() => copyCode(`<script src="https://hellokoto.com/api/pixel?id=${p.pixel_id}" async></script>`)} style={{ padding:'6px 12px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer', color:'#6b7280', display:'flex', alignItems:'center', gap:4 }}>
                         <Copy size={12} /> Copy Code
                       </button>
                     </div>
@@ -288,8 +288,8 @@ export default function PixelTrackingPage() {
                       cursor:'pointer', textAlign:'center',
                     }} onClick={() => { setShowIntegrate(plat.id); setNewIntegration({ platform_pixel_id:'', config:{} }) }}>
                       <div style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:plat.textColor || BLK, marginBottom:4 }}>{plat.name}</div>
-                      <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginBottom:8 }}>{plat.desc}</div>
-                      <span style={{ padding:'3px 10px', borderRadius:99, fontSize:10, fontWeight:700, fontFamily:FB, background:connected?GRN+'20':'#f3f4f6', color:connected?GRN:'#9ca3af' }}>
+                      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:8 }}>{plat.desc}</div>
+                      <span style={{ padding:'3px 10px', borderRadius:99, fontSize:12, fontWeight:700, fontFamily:FB, background:connected?GRN+'20':'#f3f4f6', color:connected?GRN:'#6b7280' }}>
                         {connected ? 'Connected' : 'Not Connected'}
                       </span>
                     </div>
@@ -308,11 +308,11 @@ export default function PixelTrackingPage() {
                 <>
                   <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 16px' }}>Create Tracking Pixel</h3>
                   <div style={{ marginBottom:12 }}>
-                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Pixel Name</label>
+                    <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Pixel Name</label>
                     <input value={newPixel.pixel_name} onChange={e => setNewPixel(p => ({...p, pixel_name:e.target.value}))} placeholder="e.g. Momenta Marketing Website" style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
                   </div>
                   <div style={{ marginBottom:12 }}>
-                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Domain</label>
+                    <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Domain</label>
                     <input value={newPixel.domain} onChange={e => setNewPixel(p => ({...p, domain:e.target.value}))} placeholder="e.g. momentamktg.com" style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
                   </div>
                   <div style={{ display:'flex', gap:12, marginBottom:16 }}>
@@ -332,11 +332,11 @@ export default function PixelTrackingPage() {
                     <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 4px' }}>Pixel Created!</h3>
                     <p style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Add this code to your website before the closing body tag:</p>
                   </div>
-                  <div style={{ background: '#F5F5F5', borderRadius:10, padding:'14px 16px', marginBottom:16, position:'relative' }}>
-                    <code style={{ fontSize:11, color:'#a3e635', fontFamily:'monospace', wordBreak:'break-all' }}>
+                  <div style={{ background: '#f9fafb', borderRadius:10, padding:'14px 16px', marginBottom:16, position:'relative' }}>
+                    <code style={{ fontSize:12, color:'#a3e635', fontFamily:'monospace', wordBreak:'break-all' }}>
                       {`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`}
                     </code>
-                    <button onClick={() => copyCode(`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`)} style={{ position:'absolute', top:8, right:8, padding:'4px 8px', borderRadius:4, border:'none', background:'#e5e7eb', color:W, fontSize:10, fontFamily:FB, cursor:'pointer' }}>
+                    <button onClick={() => copyCode(`<script src="https://hellokoto.com/api/pixel?id=${createdPixel.pixel_id}" async></script>`)} style={{ position:'absolute', top:8, right:8, padding:'4px 8px', borderRadius:4, border:'none', background:'#e5e7eb', color:'#374151', fontSize:12, fontFamily:FB, cursor:'pointer' }}>
                       <Copy size={10} /> Copy
                     </button>
                   </div>
@@ -466,7 +466,7 @@ function IntegrationModal({ platform, onClose, newIntegration, setNewIntegration
             <button key={t} onClick={() => setModalTab(t)} style={{
               flex:1, padding:'10px', fontSize:13, fontWeight:modalTab===t?700:500, fontFamily:FH,
               border:'none', borderBottom:modalTab===t?`2px solid ${R}`:'2px solid transparent',
-              background:'none', cursor:'pointer', color:modalTab===t?BLK:'#9ca3af',
+              background:'none', cursor:'pointer', color:modalTab===t?BLK:'#6b7280',
               textTransform:'capitalize',
             }}>{t === 'instructions' ? 'How to Get Your ID' : 'Connect'}</button>
           ))}
@@ -487,16 +487,16 @@ function IntegrationModal({ platform, onClose, newIntegration, setNewIntegration
               ))}
 
               <div style={{ padding:'12px 16px', background:'#f0fdfa', borderRadius:8, borderLeft:`3px solid ${T}`, marginTop:16, marginBottom:12 }}>
-                <div style={{ fontSize:11, fontWeight:700, fontFamily:FB, color:'#0f766e', marginBottom:4 }}>What Koto sends automatically:</div>
+                <div style={{ fontSize:12, fontWeight:700, fontFamily:FB, color:'#0f766e', marginBottom:4 }}>What Koto sends automatically:</div>
                 {info.events.map((ev, i) => (
-                  <div key={i} style={{ fontSize:11, fontFamily:FB, color:'#374151', lineHeight:1.6 }}>
+                  <div key={i} style={{ fontSize:12, fontFamily:FB, color:'#374151', lineHeight:1.6 }}>
                     <Check size={10} color={GRN} style={{ verticalAlign:'middle', marginRight:4 }} />{ev}
                   </div>
                 ))}
               </div>
 
               {info.tip && (
-                <div style={{ padding:'10px 14px', background:'#fef3c7', borderRadius:8, fontSize:11, fontFamily:FB, color:'#92400e' }}>
+                <div style={{ padding:'10px 14px', background:'#fef3c7', borderRadius:8, fontSize:12, fontFamily:FB, color:'#92400e' }}>
                   <strong>Pro tip:</strong> {info.tip}
                 </div>
               )}
@@ -513,12 +513,12 @@ function IntegrationModal({ platform, onClose, newIntegration, setNewIntegration
             <div>
               <h4 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:'0 0 16px' }}>Connect {info.title}</h4>
               <div style={{ marginBottom:12 }}>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>{info.idLabel}</label>
+                <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>{info.idLabel}</label>
                 <input value={newIntegration.platform_pixel_id} onChange={e => setNewIntegration(p => ({...p, platform_pixel_id:e.target.value}))} placeholder={info.placeholder} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
               </div>
               {info.extraFields?.map(f => (
                 <div key={f.key} style={{ marginBottom:12 }}>
-                  <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>{f.label}</label>
+                  <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>{f.label}</label>
                   <input value={newIntegration.config?.[f.key] || ''} onChange={e => setNewIntegration(p => ({...p, config:{...(p.config||{}), [f.key]:e.target.value}}))} placeholder={f.placeholder} style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
                 </div>
               ))}

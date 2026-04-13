@@ -7,8 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED='#E6007E',TEAL='#00C2CB',BLK='#111111',GREEN='#16a34a',AMBER='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans',sans-serif",FB="'Raleway',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 const PURPLE='#7c3aed'
 
 export default function AIVisibilityPage(){
@@ -61,15 +60,15 @@ export default function AIVisibilityPage(){
         <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <div>
-              <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color:'#fff',margin:0,display:'flex',alignItems:'center',gap:10}}>
+              <h1 style={{fontFamily:FH,fontSize:20,fontWeight:800,color:'#111',margin:0,display:'flex',alignItems:'center',gap:10}}>
                 <Brain size={20} color={PURPLE}/> AI Visibility Tracker
               </h1>
-              <p style={{fontSize:13,color:'#999999',margin:'3px 0 0',fontFamily:FB}}>Does your client appear when customers ask AI assistants?</p>
+              <p style={{fontSize:13,color:'#6b7280',margin:'3px 0 0',fontFamily:FB}}>Does your client appear when customers ask AI assistants?</p>
             </div>
             <select value={clientId} onChange={e=>selectClient(e.target.value)}
-              style={{padding:'9px 14px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14,fontFamily:FH,minWidth:200}}>
+              style={{padding:'9px 14px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:14,fontFamily:FH,minWidth:200}}>
               <option value="">Select client</option>
-              {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
+              {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr auto',gap:10,alignItems:'flex-end'}}>
@@ -80,10 +79,10 @@ export default function AIVisibilityPage(){
               {label:'Services (comma-separated)',field:'services',placeholder:'lawn care, tree trimming'},
             ].map(item=>(
               <div key={item.field}>
-                <label style={{fontSize:11,fontWeight:700,color:'#999999',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5,fontFamily:FH}}>{item.label}</label>
+                <label style={{fontSize:12,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:'.07em',display:'block',marginBottom:5,fontFamily:FH}}>{item.label}</label>
                 <input value={form[item.field]} onChange={e=>setForm(f=>({...f,[item.field]:e.target.value}))}
                   placeholder={item.placeholder}
-                  style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                  style={{width:'100%',padding:'9px 12px',borderRadius:9,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:13,outline:'none',boxSizing:'border-box'}}/>
               </div>
             ))}
             <button onClick={runScan} disabled={loading||!form.business_name.trim()}
@@ -101,25 +100,25 @@ export default function AIVisibilityPage(){
                 <div style={{background:'#fff',borderRadius:16,border:'1px solid #e5e7eb',padding:'24px 28px',display:'flex',alignItems:'center',gap:20}}>
                   <div style={{textAlign:'center'}}>
                     <div style={{fontFamily:FH,fontSize:52,fontWeight:900,color:scoreColor,lineHeight:1}}>{rpt?.visibility_score||0}</div>
-                    <div style={{fontSize:11,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:3}}>/100</div>
+                    <div style={{fontSize:12,color:'#6b7280',fontFamily:FH,textTransform:'uppercase',marginBottom:3}}>/100</div>
                     <div style={{fontFamily:FH,fontSize:24,fontWeight:900,color:scoreColor}}>{rpt?.grade||'F'}</div>
                   </div>
                   <div>
                     <div style={{fontFamily:FH,fontSize:15,fontWeight:800,color:BLK,marginBottom:6}}>AI Visibility Score</div>
                     <div style={{display:'flex',gap:16,marginBottom:8}}>
-                      <div><div style={{fontFamily:FH,fontSize:20,fontWeight:900,color:r.mention_rate>=50?GREEN:RED}}>{r.mention_rate}%</div><div style={{fontSize:11,color:'#9ca3af',fontFamily:FH}}>Mention rate</div></div>
-                      <div><div style={{fontFamily:FH,fontSize:20,fontWeight:900,color:GREEN}}>{r.positive_rate}%</div><div style={{fontSize:11,color:'#9ca3af',fontFamily:FH}}>Positive</div></div>
-                      <div><div style={{fontFamily:FH,fontSize:20,fontWeight:900,color:BLK}}>{r.total_prompts}</div><div style={{fontSize:11,color:'#9ca3af',fontFamily:FH}}>Tests run</div></div>
+                      <div><div style={{fontFamily:FH,fontSize:20,fontWeight:900,color:r.mention_rate>=50?GREEN:RED}}>{r.mention_rate}%</div><div style={{fontSize:12,color:'#6b7280',fontFamily:FH}}>Mention rate</div></div>
+                      <div><div style={{fontFamily:FH,fontSize:20,fontWeight:900,color:GREEN}}>{r.positive_rate}%</div><div style={{fontSize:12,color:'#6b7280',fontFamily:FH}}>Positive</div></div>
+                      <div><div style={{fontFamily:FH,fontSize:20,fontWeight:900,color:BLK}}>{r.total_prompts}</div><div style={{fontSize:12,color:'#6b7280',fontFamily:FH}}>Tests run</div></div>
                     </div>
-                    <div style={{fontSize:11,color:'#9ca3af',fontFamily:FB}}>Tested on: {r.engines_tested?.join(', ')}</div>
+                    <div style={{fontSize:12,color:'#6b7280',fontFamily:FB}}>Tested on: {r.engines_tested?.join(', ')}</div>
                   </div>
                 </div>
                 <div style={{background:`linear-gradient(135deg, ${BLK} 0%, #1a1a2e 100%)`,borderRadius:16,padding:'20px 24px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:8}}>
                     <Brain size={14} color={PURPLE}/>
-                    <span style={{fontFamily:FH,fontSize:11,fontWeight:700,color:PURPLE,textTransform:'uppercase',letterSpacing:'.07em'}}>AI Assessment</span>
+                    <span style={{fontFamily:FH,fontSize:12,fontWeight:700,color:PURPLE,textTransform:'uppercase',letterSpacing:'.07em'}}>AI Assessment</span>
                   </div>
-                  <div style={{fontSize:14,color:'#999999',fontFamily:FB,lineHeight:1.7,marginBottom:10}}>{rpt?.summary}</div>
+                  <div style={{fontSize:14,color:'#6b7280',fontFamily:FB,lineHeight:1.7,marginBottom:10}}>{rpt?.summary}</div>
                   {rpt?.why_missing&&(
                     <div style={{padding:'8px 12px',background:'rgba(239,68,68,.15)',borderRadius:9,border:'1px solid rgba(239,68,68,.3)',fontSize:13,color:'#fca5a5',fontFamily:FB}}>
                       Why not appearing: {rpt.why_missing}
@@ -139,7 +138,7 @@ export default function AIVisibilityPage(){
                         <div style={{fontSize:13,fontWeight:700,color:BLK,fontFamily:FH,marginBottom:3}}>"{res.prompt}"</div>
                         <div style={{fontSize:12,color:'#6b7280',fontFamily:FB,lineHeight:1.5}}>{res.response}</div>
                       </div>
-                      <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,flexShrink:0,fontFamily:FH,background:res.mentioned?GREEN+'15':'#f3f4f6',color:res.mentioned?GREEN:'#9ca3af'}}>{res.mentioned?'Mentioned':'Not mentioned'}</span>
+                      <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,flexShrink:0,fontFamily:FH,background:res.mentioned?GREEN+'15':'#f3f4f6',color:res.mentioned?GREEN:'#9ca3af'}}>{res.mentioned?'Mentioned':'Not mentioned'}</span>
                     </div>
                   </div>
                 ))}
@@ -157,8 +156,8 @@ export default function AIVisibilityPage(){
                       return(
                         <div key={i} style={{padding:'10px 0',borderBottom:'1px solid #f9fafb'}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                            <span style={{fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:20,background:imp.bg,color:imp.color,fontFamily:FH}}>{tip.impact}</span>
-                            <span style={{fontSize:11,color:'#9ca3af',fontFamily:FB}}>{tip.effort} effort</span>
+                            <span style={{fontSize:12,fontWeight:700,padding:'2px 7px',borderRadius:20,background:imp.bg,color:imp.color,fontFamily:FH}}>{tip.impact}</span>
+                            <span style={{fontSize:12,color:'#6b7280',fontFamily:FB}}>{tip.effort} effort</span>
                           </div>
                           <div style={{fontSize:13,color:'#374151',fontFamily:FB}}>{tip.tip}</div>
                         </div>
@@ -203,7 +202,7 @@ export default function AIVisibilityPage(){
                   <div key={i} style={{padding:'16px',background:'#f9fafb',borderRadius:12,border:'1px solid #f3f4f6'}}>
                     <div style={{fontSize:24,marginBottom:6}}>{item.icon}</div>
                     <div style={{fontFamily:FH,fontSize:13,fontWeight:700,color:BLK,marginBottom:3}}>{item.label}</div>
-                    <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>{item.desc}</div>
+                    <div style={{fontSize:12,color:'#6b7280',fontFamily:FB}}>{item.desc}</div>
                   </div>
                 ))}
               </div>

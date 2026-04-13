@@ -8,8 +8,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/ghl'
 
@@ -122,15 +122,15 @@ export default function GHLIntegrationPage() {
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
         {/* Header */}
-        <div style={{ background: W, padding: '28px 36px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: W, padding: '28px 36px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:14 }}>
               <div style={{ width:42, height:42, borderRadius:12, background:'#ff6a00', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Zap size={22} color={W} />
               </div>
               <div>
-                <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>GoHighLevel Integration</h1>
-                <p style={{ fontFamily:FB, fontSize:12, color: '#999999', margin:0 }}>Sync Koto with your GoHighLevel CRM automatically</p>
+                <h1 style={{ fontFamily:FH, fontSize:20, fontWeight: 700, color: '#111', margin:0 }}>GoHighLevel Integration</h1>
+                <p style={{ fontFamily:FB, fontSize:14, color: '#6b7280', margin:0 }}>Sync Koto with your GoHighLevel CRM automatically</p>
               </div>
             </div>
             <span style={{ padding:'4px 14px', borderRadius:99, fontSize:12, fontWeight:700, fontFamily:FB, background:connected?GRN+'20':R+'20', color:connected?GRN:R }}>
@@ -151,8 +151,8 @@ export default function GHLIntegrationPage() {
                     background:step===i+1?`${R}10`:step>i+1?`${GRN}10`:'#f3f4f6',
                     border:`2px solid ${step===i+1?R:step>i+1?GRN:'#e5e7eb'}`,
                   }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:step===i+1?R:step>i+1?GRN:'#aaa', fontFamily:FH }}>STEP {i+1}</div>
-                    <div style={{ fontSize:11, fontWeight:600, color:step===i+1?BLK:'#888', fontFamily:FH }}>{s}</div>
+                    <div style={{ fontSize:12, fontWeight:700, color:step===i+1?R:step>i+1?GRN:'#aaa', fontFamily:FH }}>STEP {i+1}</div>
+                    <div style={{ fontSize:12, fontWeight:600, color:step===i+1?BLK:'#888', fontFamily:FH }}>{s}</div>
                   </div>
                 ))}
               </div>
@@ -209,7 +209,7 @@ export default function GHLIntegrationPage() {
                     </div>
                   ))}
                   <div style={{ marginTop:16 }}>
-                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>API Key</label>
+                    <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>API Key</label>
                     <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIs..." style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between', marginTop:20 }}>
@@ -239,7 +239,7 @@ export default function GHLIntegrationPage() {
                     </div>
                   ))}
                   <div style={{ marginTop:16 }}>
-                    <label style={{ display:'block', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Location ID</label>
+                    <label style={{ display:'block', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Location ID</label>
                     <input value={locationId} onChange={e => setLocationId(e.target.value)} placeholder="abc123xyz..." style={{ width:'100%', padding:'10px 14px', borderRadius:8, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, boxSizing:'border-box' }} />
                   </div>
                   {testResult && !testResult.success && (
@@ -299,7 +299,7 @@ export default function GHLIntegrationPage() {
                   <div key={s.label} style={{ flex:1, padding:'16px 20px', background:W, borderRadius:12, borderTop:`3px solid ${s.accent}`, boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
                       <s.icon size={14} color={s.accent} />
-                      <span style={{ fontSize:10, fontWeight:700, color:'#9ca3af', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</span>
                     </div>
                     <div style={{ fontSize:24, fontWeight:800, fontFamily:FH, color:BLK }}>{s.value}</div>
                   </div>
@@ -309,7 +309,7 @@ export default function GHLIntegrationPage() {
               {/* Client → Location Assignment */}
               <div style={{ background:W, borderRadius:12, padding:'20px 24px', border:'1px solid #e5e7eb', marginBottom:16 }}>
                 <h3 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:'0 0 4px' }}>Client Location Mapping</h3>
-                <p style={{ fontSize:12, color:'#9ca3af', margin:'0 0 14px', fontFamily:FB }}>Assign each client to a GHL sub-account. Clients without a mapping use the agency default.</p>
+                <p style={{ fontSize:12, color:'#6b7280', margin:'0 0 14px', fontFamily:FB }}>Assign each client to a GHL sub-account. Clients without a mapping use the agency default.</p>
 
                 {/* Assign form */}
                 <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
@@ -332,16 +332,16 @@ export default function GHLIntegrationPage() {
 
                 {/* Current mappings */}
                 {clientMappings.filter(m => m.status === 'active').length === 0 ? (
-                  <div style={{ fontSize:13, color:'#9ca3af', textAlign:'center', padding:12, fontFamily:FB }}>No clients assigned yet</div>
+                  <div style={{ fontSize:13, color:'#6b7280', textAlign:'center', padding:12, fontFamily:FB }}>No clients assigned yet</div>
                 ) : (
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                     {clientMappings.filter(m => m.status === 'active').map(m => (
                       <div key={m.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', borderRadius:8, border:'1px solid #ececea', background:'#fafafa' }}>
                         <div>
                           <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK }}>{m.clients?.name || 'Unknown client'}</div>
-                          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>→ {m.ghl_location_name || m.ghl_location_id}</div>
+                          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>→ {m.ghl_location_name || m.ghl_location_id}</div>
                         </div>
-                        <button onClick={() => disconnectClient(m.client_id)} disabled={disconnecting === m.client_id} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:11, fontWeight:600, fontFamily:FB, cursor:'pointer', color:R }}>
+                        <button onClick={() => disconnectClient(m.client_id)} disabled={disconnecting === m.client_id} style={{ padding:'4px 10px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:12, fontWeight:600, fontFamily:FB, cursor:'pointer', color:R }}>
                           {disconnecting === m.client_id ? '...' : 'Disconnect'}
                         </button>
                       </div>
@@ -354,7 +354,7 @@ export default function GHLIntegrationPage() {
               <div style={{ background:W, borderRadius:12, padding:'20px 24px', border:'1px solid #e5e7eb', marginBottom:16 }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
                   <h3 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:0 }}>Sync Settings</h3>
-                  <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>Last sync: {integration.last_sync_at ? new Date(integration.last_sync_at).toLocaleString() : 'Never'}</span>
+                  <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Last sync: {integration.last_sync_at ? new Date(integration.last_sync_at).toLocaleString() : 'Never'}</span>
                 </div>
                 {[
                   { key:'sync_leads', label:'Auto-sync leads' },
@@ -376,15 +376,15 @@ export default function GHLIntegrationPage() {
               <div style={{ background:W, borderRadius:12, padding:'20px 24px', border:'1px solid #e5e7eb' }}>
                 <h3 style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, margin:'0 0 12px' }}>Recent Sync Activity</h3>
                 {syncLog.length === 0 ? (
-                  <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, textAlign:'center', padding:20 }}>No sync activity yet</div>
+                  <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, textAlign:'center', padding:20 }}>No sync activity yet</div>
                 ) : (
                   <div style={{ maxHeight:300, overflow:'auto' }}>
                     {syncLog.map((log, i) => (
                       <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:i<syncLog.length-1?'1px solid #f3f4f6':'none' }}>
                         {log.status === 'success' ? <Check size={14} color={GRN} /> : <X size={14} color={R} />}
                         <span style={{ fontSize:12, fontFamily:FB, color:BLK, flex:1 }}>{log.sync_type}</span>
-                        <span style={{ fontSize:11, color:'#9ca3af', fontFamily:FB }}>{log.direction}</span>
-                        <span style={{ fontSize:10, color:'#bbb', fontFamily:FB }}>{new Date(log.created_at).toLocaleString()}</span>
+                        <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{log.direction}</span>
+                        <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{new Date(log.created_at).toLocaleString()}</span>
                       </div>
                     ))}
                   </div>

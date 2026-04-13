@@ -12,15 +12,8 @@ import toast from 'react-hot-toast'
 import { generateQATemplateCSV, QA_TYPE_OPTIONS } from '../data/qaImportTemplate'
 import { EXPERT_QA_SEEDS, INDUSTRY_COUNTS } from '../data/expertQASeeds'
 
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/qa-intelligence'
 
@@ -88,7 +81,7 @@ function TypeBadge({ type, map }) {
   return (
     <span style={{
       display: 'inline-block', padding: '2px 10px', borderRadius: 99,
-      fontSize: 10, fontWeight: 700, fontFamily: FB, textTransform: 'uppercase',
+      fontSize: 12, fontWeight: 700, fontFamily: FB, textTransform: 'uppercase',
       letterSpacing: '.05em', background: c.bg, color: c.color,
     }}>
       {type || 'unknown'}
@@ -111,9 +104,9 @@ function StatBox({ label, value, sub, accent = T }) {
       flex: 1, minWidth: 120, padding: '14px 16px', background: W, borderRadius: 10,
       borderTop: `3px solid ${accent}`, boxShadow: '0 1px 4px rgba(0,0,0,.05)',
     }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: BLK }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginTop: 2 }}>{sub}</div>}
     </div>
   )
 }
@@ -372,23 +365,23 @@ export default function QAIntelligencePage() {
       <div style={{ flex: 1, overflow: 'auto' }}>
 
         {/* ── Dark Header ──────────────────────────────────────── */}
-        <div style={{ background: W, padding: '36px 40px 28px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: W, padding: '36px 40px 28px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
             <div style={{ width: 42, height: 42, borderRadius: 12, background: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Brain size={22} color={W} />
             </div>
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 500, color: BLK, margin: 0, letterSpacing: '-.03em' }}>Q&A Intelligence Engine</h1>
-              <p style={{ fontFamily: FB, fontSize: 13, color: '#999999', margin: 0 }}>Every question asked. Every answer given. Every outcome tracked.</p>
+              <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 700, color: '#111', margin: 0, letterSpacing: '-.03em' }}>Q&A Intelligence Engine</h1>
+              <p style={{ fontFamily: FB, fontSize: 14, color: '#6b7280', margin: 0 }}>Every question asked. Every answer given. Every outcome tracked.</p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setShowImport(true); setImportStep(1) }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: GRN, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
                 <Upload size={14} /> Import Q&A
               </button>
-              <button onClick={exportAll} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', background: 'transparent', color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
+              <button onClick={exportAll} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
                 <Download size={14} /> Export All
               </button>
-              <button onClick={downloadTemplate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', background: 'transparent', color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
+              <button onClick={downloadTemplate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
                 <FileDown size={14} /> Template
               </button>
               <button onClick={seedExpertData} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>
@@ -436,7 +429,7 @@ export default function QAIntelligencePage() {
               <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
                 {QUESTION_TYPES.map(t => (
                   <button key={t.key} onClick={() => setTypeFilter(t.key)} style={{
-                    padding: '4px 12px', borderRadius: 99, fontSize: 11, fontWeight: 600, fontFamily: FB,
+                    padding: '4px 12px', borderRadius: 99, fontSize: 12, fontWeight: 600, fontFamily: FB,
                     border: 'none', cursor: 'pointer',
                     background: typeFilter === t.key ? BLK : '#f3f4f6',
                     color: typeFilter === t.key ? W : '#6b7280',
@@ -450,13 +443,13 @@ export default function QAIntelligencePage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{
-                    padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 11,
+                    padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12,
                     fontFamily: FB, color: '#6b7280', background: W, cursor: 'pointer',
                   }}>
                     {SORT_OPTIONS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                   </select>
                   <button onClick={() => { setBulkMode(!bulkMode); setSelectedIds(new Set()) }} style={{
-                    padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 10, fontWeight: 600,
+                    padding: '4px 8px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, fontWeight: 600,
                     fontFamily: FB, cursor: 'pointer', background: bulkMode ? BLK : W, color: bulkMode ? W : '#6b7280',
                   }}>
                     {bulkMode ? 'Exit Bulk' : 'Bulk'}
@@ -464,7 +457,7 @@ export default function QAIntelligencePage() {
                 </div>
                 <button onClick={() => setShowAddQA(true)} style={{
                   display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6,
-                  border: 'none', background: R, color: W, fontSize: 11, fontWeight: 700, fontFamily: FB,
+                  border: 'none', background: R, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB,
                   cursor: 'pointer',
                 }}>
                   <Plus size={12} /> Add Q&A
@@ -473,12 +466,12 @@ export default function QAIntelligencePage() {
               {/* Bulk select all */}
               {bulkMode && questions.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                  <button onClick={toggleSelectAll} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: W, fontSize: 10, fontFamily: FB, cursor: 'pointer', color: '#6b7280' }}>
+                  <button onClick={toggleSelectAll} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: W, fontSize: 12, fontFamily: FB, cursor: 'pointer', color: '#6b7280' }}>
                     {selectedIds.size === questions.length ? <CheckSquare size={12} /> : <Square size={12} />}
                     {selectedIds.size === questions.length ? 'Deselect All' : 'Select All'}
                   </button>
                   {selectedIds.size > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 700, fontFamily: FB, color: R }}>{selectedIds.size} selected</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FB, color: R }}>{selectedIds.size} selected</span>
                   )}
                 </div>
               )}
@@ -487,7 +480,7 @@ export default function QAIntelligencePage() {
             {/* Question list */}
             <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 16px' }}>
               {questions.length === 0 && !loadingQuestions && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af', fontSize: 13, fontFamily: FB }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6b7280', fontSize: 13, fontFamily: FB }}>
                   {query ? 'No questions match your search' : 'No questions in database yet. They appear after calls are analyzed.'}
                 </div>
               )}
@@ -516,20 +509,20 @@ export default function QAIntelligencePage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                     <TypeBadge type={q.question_type} />
                     {q.industry_sic_code && q.industry_sic_code !== 'unknown' && (
-                      <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB }}>{q.industry_sic_code}</span>
+                      <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>{q.industry_sic_code}</span>
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
-                    <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>Asked {q.times_asked}x</span>
+                    <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>Asked {q.times_asked}x</span>
                     <div style={{ flex: 1 }}>
                       <RateBar rate={q.appointment_rate_when_asked || 0} />
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: (q.appointment_rate_when_asked || 0) >= 50 ? GRN : (q.appointment_rate_when_asked || 0) >= 25 ? AMB : R }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: (q.appointment_rate_when_asked || 0) >= 50 ? GRN : (q.appointment_rate_when_asked || 0) >= 25 ? AMB : R }}>
                       {Number(q.appointment_rate_when_asked || 0).toFixed(0)}%
                     </span>
                   </div>
                   {q.koto_answer_intelligence?.[0] && (
-                    <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, marginTop: 6, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginTop: 6, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       Top answer: {q.koto_answer_intelligence[0].answer_text?.slice(0, 60)}...
                     </div>
                   )}
@@ -546,7 +539,7 @@ export default function QAIntelligencePage() {
                 </button>
               )}
 
-              <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, textAlign: 'center', marginTop: 8 }}>
+              <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, textAlign: 'center', marginTop: 8 }}>
                 Showing {questions.length} question{questions.length !== 1 ? 's' : ''}
               </div>
             </div>
@@ -643,7 +636,7 @@ export default function QAIntelligencePage() {
 
                     {/* Best Call Position */}
                     <div style={{ background: W, borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,.04)', border: '1px solid #e5e7eb', marginBottom: 20 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, fontFamily: FB, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FB, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>
                         <Clock size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                         Optimal Call Position
                       </div>
@@ -702,11 +695,11 @@ export default function QAIntelligencePage() {
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ background: W, borderRadius: 16, padding: 32, width: 480, maxWidth: '90vw' }}>
               <h3 style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, margin: '0 0 16px' }}>Add Q&A Pair</h3>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FB, marginBottom: 6, textTransform: 'uppercase' }}>Question</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, marginBottom: 6, textTransform: 'uppercase' }}>Question</label>
               <textarea value={newQuestion} onChange={e => setNewQuestion(e.target.value)} rows={3} placeholder="What question should the agent ask?" style={{ width: '100%', padding: 12, borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FB, resize: 'vertical', boxSizing: 'border-box', marginBottom: 12 }} />
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FB, marginBottom: 6, textTransform: 'uppercase' }}>Best Answer / Response</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, marginBottom: 6, textTransform: 'uppercase' }}>Best Answer / Response</label>
               <textarea value={newAnswer} onChange={e => setNewAnswer(e.target.value)} rows={3} placeholder="Ideal answer or response template..." style={{ width: '100%', padding: 12, borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FB, resize: 'vertical', boxSizing: 'border-box', marginBottom: 12 }} />
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FB, marginBottom: 6, textTransform: 'uppercase' }}>Industry SIC Code (optional)</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, marginBottom: 6, textTransform: 'uppercase' }}>Industry SIC Code (optional)</label>
               <input value={newIndustry} onChange={e => setNewIndustry(e.target.value)} placeholder="e.g. 1711" style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box', marginBottom: 20 }} />
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                 <button onClick={() => setShowAddQA(false)} style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#6b7280' }}>Cancel</button>
@@ -720,12 +713,12 @@ export default function QAIntelligencePage() {
         {bulkMode && selectedIds.size > 0 && (
           <div style={{
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-            background: '#F5F5F5', borderRadius: 14, padding: '12px 24px', display: 'flex',
+            background: '#f9fafb', borderRadius: 14, padding: '12px 24px', display: 'flex',
             alignItems: 'center', gap: 16, zIndex: 9998, boxShadow: '0 8px 32px rgba(0,0,0,.3)',
           }}>
             <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: W }}>{selectedIds.size} selected</span>
             <select onChange={e => { if (e.target.value) bulkChangeType(e.target.value); e.target.value = '' }} style={{
-              padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.14)', background: 'rgba(255,255,255,.1)', color: W, fontSize: 12, fontFamily: FB, cursor: 'pointer',
+              padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontFamily: FB, cursor: 'pointer',
             }}>
               <option value="">Change Type...</option>
               {QA_TYPE_OPTIONS.question_types.map(t => <option key={t} value={t}>{t}</option>)}
@@ -743,7 +736,7 @@ export default function QAIntelligencePage() {
               {/* Modal header */}
               <div style={{ padding: '20px 28px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h3 style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, margin: 0 }}>Import Q&A Data</h3>
-                <button onClick={() => { setShowImport(false); setImportRows([]); setImportValidation(null); setImportProgress(null); setImportStep(1) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+                <button onClick={() => { setShowImport(false); setImportRows([]); setImportValidation(null); setImportProgress(null); setImportStep(1) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
               </div>
 
               {/* Step tabs */}
@@ -812,7 +805,7 @@ export default function QAIntelligencePage() {
                     >
                       <Upload size={32} color="#9ca3af" style={{ marginBottom: 12 }} />
                       <div style={{ fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK, marginBottom: 4 }}>Drop your CSV file here</div>
-                      <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>Or click to browse. Accepts .csv files up to 10MB</div>
+                      <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>Or click to browse. Accepts .csv files up to 10MB</div>
                     </div>
                     <input id="qa-import-file" type="file" accept=".csv" style={{ display: 'none' }} onChange={handleFileUpload} />
                     {importRows.length > 0 && (
@@ -862,12 +855,12 @@ export default function QAIntelligencePage() {
                         {importValidation.errors?.length > 0 && (
                           <div style={{ padding: '12px 14px', background: '#fef2f2', borderRadius: 8, maxHeight: 150, overflow: 'auto', marginBottom: 12 }}>
                             {importValidation.errors.slice(0, 10).map((e, i) => (
-                              <div key={i} style={{ fontSize: 11, fontFamily: FB, color: R, lineHeight: 1.6 }}>
+                              <div key={i} style={{ fontSize: 12, fontFamily: FB, color: R, lineHeight: 1.6 }}>
                                 Row {e.row}: <strong>{e.field}</strong> — {e.message}
                               </div>
                             ))}
                             {importValidation.errors.length > 10 && (
-                              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>...and {importValidation.errors.length - 10} more errors</div>
+                              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>...and {importValidation.errors.length - 10} more errors</div>
                             )}
                           </div>
                         )}
@@ -876,7 +869,7 @@ export default function QAIntelligencePage() {
 
                     {/* Preview table */}
                     <div style={{ maxHeight: 200, overflow: 'auto', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 16 }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: FB }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: FB }}>
                         <thead>
                           <tr style={{ background: '#f9fafb' }}>
                             <th style={{ padding: '6px 8px', textAlign: 'left', fontWeight: 700, color: '#6b7280' }}>Question</th>
@@ -889,7 +882,7 @@ export default function QAIntelligencePage() {
                             <tr key={i} style={{ borderTop: '1px solid #f3f4f6' }}>
                               <td style={{ padding: '6px 8px', color: BLK, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.question_text}</td>
                               <td style={{ padding: '6px 8px' }}><TypeBadge type={r.question_type} /></td>
-                              <td style={{ padding: '6px 8px', color: '#9ca3af' }}>{r.industry_sic_code}</td>
+                              <td style={{ padding: '6px 8px', color: '#6b7280' }}>{r.industry_sic_code}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -961,8 +954,8 @@ export default function QAIntelligencePage() {
 
 function MiniStat({ label, value, accent }) {
   return (
-    <div style={{ padding: '8px 16px', background: '#F5F5F5', borderRadius: 8, minWidth: 100 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.35)', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em' }}>{label}</div>
+    <div style={{ padding: '8px 16px', background: '#f9fafb', borderRadius: 8, minWidth: 100 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.35)', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em' }}>{label}</div>
       <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: accent || W, marginTop: 2 }}>{value}</div>
     </div>
   )
@@ -1000,15 +993,15 @@ function PositionTimeline({ actual, best }) {
         {/* Actual marker */}
         <div style={{ position: 'absolute', left: `${a}%`, top: 2, width: 20, height: 20, borderRadius: '50%', background: R, border: `2px solid ${W}`, transform: 'translateX(-50%)', boxShadow: '0 1px 4px rgba(0,0,0,.2)' }} />
         {/* Labels */}
-        <div style={{ position: 'absolute', left: 8, top: 4, fontSize: 10, color: '#9ca3af', fontFamily: FB }}>0%</div>
-        <div style={{ position: 'absolute', right: 8, top: 4, fontSize: 10, color: '#9ca3af', fontFamily: FB }}>100%</div>
+        <div style={{ position: 'absolute', left: 8, top: 4, fontSize: 12, color: '#6b7280', fontFamily: FB }}>0%</div>
+        <div style={{ position: 'absolute', right: 8, top: 4, fontSize: 12, color: '#6b7280', fontFamily: FB }}>100%</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-        <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>
+        <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
           Avg position: <strong style={{ color: R }}>{Number(a).toFixed(0)}%</strong> into call
         </span>
         {b !== a && (
-          <span style={{ fontSize: 11, color: GRN, fontFamily: FB, fontWeight: 600 }}>
+          <span style={{ fontSize: 12, color: GRN, fontFamily: FB, fontWeight: 600 }}>
             Best at {Number(b).toFixed(0)}%
           </span>
         )}
@@ -1034,11 +1027,11 @@ function AnswerCard({
               <textarea value={editText} onChange={e => onEditTextChange(e.target.value)} rows={3} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, fontFamily: FB, resize: 'vertical', boxSizing: 'border-box' }} />
               <input value={editNotes} onChange={e => onEditNotesChange(e.target.value)} placeholder="Why are you editing?" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, marginTop: 6, boxSizing: 'border-box' }} />
               {ans.is_edited && ans.original_text && (
-                <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, marginTop: 6, fontStyle: 'italic' }}>Originally: {ans.original_text.slice(0, 80)}...</div>
+                <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, marginTop: 6, fontStyle: 'italic' }}>Originally: {ans.original_text.slice(0, 80)}...</div>
               )}
               <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                <button onClick={onSaveEdit} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: GRN, color: W, fontSize: 11, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>Save</button>
-                <button onClick={onCancelEdit} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, color: '#6b7280', fontSize: 11, fontFamily: FB, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={onSaveEdit} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: GRN, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>Save</button>
+                <button onClick={onCancelEdit} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, color: '#6b7280', fontSize: 12, fontFamily: FB, cursor: 'pointer' }}>Cancel</button>
               </div>
             </div>
           ) : (
@@ -1062,8 +1055,8 @@ function AnswerCard({
         <div style={{ marginTop: 10, padding: '10px 12px', background: '#fef3c7', borderRadius: 8 }}>
           <input value={flagReason} onChange={e => onFlagReasonChange(e.target.value)} placeholder="Reason for flagging..." style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, fontFamily: FB, boxSizing: 'border-box' }} />
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-            <button onClick={onSaveFlag} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: AMB, color: W, fontSize: 11, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>Flag</button>
-            <button onClick={onCancelFlag} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, color: '#6b7280', fontSize: 11, fontFamily: FB, cursor: 'pointer' }}>Cancel</button>
+            <button onClick={onSaveFlag} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: AMB, color: W, fontSize: 12, fontWeight: 700, fontFamily: FB, cursor: 'pointer' }}>Flag</button>
+            <button onClick={onCancelFlag} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, color: '#6b7280', fontSize: 12, fontFamily: FB, cursor: 'pointer' }}>Cancel</button>
           </div>
         </div>
       )}
@@ -1071,28 +1064,28 @@ function AnswerCard({
       {/* Meta row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <TypeBadge type={ans.answer_type} map={ANSWER_TYPE_COLORS} />
-        <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>Used {ans.times_used}x</span>
-        <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>Appt: {Number(ans.appointment_rate || 0).toFixed(0)}%</span>
+        <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>Used {ans.times_used}x</span>
+        <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>Appt: {Number(ans.appointment_rate || 0).toFixed(0)}%</span>
         {ans.is_top_performer && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700, fontFamily: FB, background: '#dcfce7', color: GRN }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 99, fontSize: 12, fontWeight: 700, fontFamily: FB, background: '#dcfce7', color: GRN }}>
             <Award size={10} /> TOP
           </span>
         )}
         {ans.is_flagged && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700, fontFamily: FB, background: '#fef3c7', color: AMB }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 99, fontSize: 12, fontWeight: 700, fontFamily: FB, background: '#fef3c7', color: AMB }}>
             <Flag size={10} /> FLAGGED
           </span>
         )}
         {ans.is_edited && (
-          <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB, fontStyle: 'italic' }}>edited</span>
+          <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, fontStyle: 'italic' }}>edited</span>
         )}
       </div>
 
       {/* Effectiveness bar */}
       <div style={{ marginTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-          <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB }}>Effectiveness</span>
-          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: FH, color: eff >= 75 ? GRN : eff >= 40 ? AMB : R }}>{eff.toFixed(0)}/100</span>
+          <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>Effectiveness</span>
+          <span style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: eff >= 75 ? GRN : eff >= 40 ? AMB : R }}>{eff.toFixed(0)}/100</span>
         </div>
         <RateBar rate={eff} height={4} />
       </div>
@@ -1125,11 +1118,11 @@ function OutcomeCorrelation({ answers }) {
           const c = ANSWER_TYPE_COLORS[b.type] || { bg: '#f3f4f6', color: '#6b7280' }
           return (
             <div key={b.type} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ width: 80, fontSize: 11, fontWeight: 600, fontFamily: FB, color: c.color, textTransform: 'capitalize' }}>{b.type}</span>
+              <span style={{ width: 80, fontSize: 12, fontWeight: 600, fontFamily: FB, color: c.color, textTransform: 'capitalize' }}>{b.type}</span>
               <div style={{ flex: 1, height: 16, borderRadius: 99, background: '#f3f4f6', overflow: 'hidden' }}>
                 <div style={{ width: `${(b.rate / maxRate) * 100}%`, height: '100%', borderRadius: 99, background: c.color, transition: 'width .3s' }} />
               </div>
-              <span style={{ width: 40, fontSize: 11, fontWeight: 700, fontFamily: FH, color: BLK, textAlign: 'right' }}>{b.rate.toFixed(0)}%</span>
+              <span style={{ width: 40, fontSize: 12, fontWeight: 700, fontFamily: FH, color: BLK, textAlign: 'right' }}>{b.rate.toFixed(0)}%</span>
             </div>
           )
         })}
@@ -1182,19 +1175,19 @@ function LeadScoreImpact({ question }) {
         <h4 style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, margin: '0 0 14px' }}>Position vs Outcome</h4>
         <div style={{ display: 'flex', gap: 20 }}>
           <div style={{ flex: 1, textAlign: 'center', padding: 16, background: '#f9fafb', borderRadius: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase', marginBottom: 4 }}>Early (0-33%)</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, textTransform: 'uppercase', marginBottom: 4 }}>Early (0-33%)</div>
             <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: T }}>
               {position <= 33 ? 'Current' : '--'}
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center', padding: 16, background: '#f9fafb', borderRadius: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase', marginBottom: 4 }}>Mid (34-66%)</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, textTransform: 'uppercase', marginBottom: 4 }}>Mid (34-66%)</div>
             <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: AMB }}>
               {position > 33 && position <= 66 ? 'Current' : '--'}
             </div>
           </div>
           <div style={{ flex: 1, textAlign: 'center', padding: 16, background: '#f9fafb', borderRadius: 10 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase', marginBottom: 4 }}>Late (67-100%)</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, textTransform: 'uppercase', marginBottom: 4 }}>Late (67-100%)</div>
             <div style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: R }}>
               {position > 66 ? 'Current' : '--'}
             </div>
@@ -1227,7 +1220,7 @@ function GlobalOverview({ stats, loadingStats }) {
       {/* Most asked question */}
       {stats.most_asked_question && (
         <div style={{ background: W, borderRadius: 12, padding: '18px 22px', boxShadow: '0 1px 4px rgba(0,0,0,.04)', border: '1px solid #e5e7eb', marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>
             <Star size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />
             Most Asked Question
           </div>

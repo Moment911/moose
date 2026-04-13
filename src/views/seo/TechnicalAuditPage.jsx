@@ -7,8 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED='#E6007E',TEAL='#00C2CB',BLK='#111111',GREEN='#16a34a',AMBER='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans',sans-serif",FB="'Raleway',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 
 export default function TechnicalAuditPage(){
   const {agencyId}=useAuth()
@@ -57,24 +56,24 @@ export default function TechnicalAuditPage(){
         <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0',flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingBottom:14}}>
             <div>
-              <h1 style={{fontFamily:FH,fontSize:22,fontWeight:800,color:'#fff',margin:0,display:'flex',alignItems:'center',gap:10}}>
+              <h1 style={{fontFamily:FH,fontSize:20,fontWeight:800,color:'#111',margin:0,display:'flex',alignItems:'center',gap:10}}>
                 <Code2 size={20} color={TEAL}/> Technical Site Audit
               </h1>
-              <p style={{fontSize:13,color:'#999999',margin:'3px 0 0',fontFamily:FB}}>Crawl up to {maxPages} pages · broken links · missing tags · PageSpeed</p>
+              <p style={{fontSize:13,color:'#6b7280',margin:'3px 0 0',fontFamily:FB}}>Crawl up to {maxPages} pages · broken links · missing tags · PageSpeed</p>
             </div>
             <select value={clientId} onChange={e=>{setClientId(e.target.value);const cl=clients.find(c=>c.id===e.target.value);if(cl?.website)setUrl(cl.website)}}
-              style={{padding:'9px 14px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14,fontFamily:FH,minWidth:180}}>
+              style={{padding:'9px 14px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:14,fontFamily:FH,minWidth:180}}>
               <option value="">Select client</option>
-              {clients.map(c=><option key={c.id} value={c.id} style={{color:BLK,background:'#fff'}}>{c.name}</option>)}
+              {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div style={{display:'flex',gap:10,paddingBottom:14,alignItems:'center'}}>
             <input value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>e.key==='Enter'&&runAudit()}
               placeholder="https://example.com"
-              style={{flex:1,padding:'9px 14px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:14,outline:'none'}}/>
+              style={{flex:1,padding:'9px 14px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:14,outline:'none'}}/>
             <select value={maxPages} onChange={e=>setMaxPages(Number(e.target.value))}
-              style={{padding:'9px 12px',borderRadius:10,border:'1px solid rgba(255,255,255,.15)',background:'rgba(255,255,255,.08)',color:'#fff',fontSize:13,fontFamily:FH}}>
-              {[5,10,20,50].map(n=><option key={n} value={n} style={{color:BLK,background:'#fff'}}>{n} pages</option>)}
+              style={{padding:'9px 12px',borderRadius:10,border:'1px solid #e5e7eb',background:'#f9fafb',color:BLK,fontSize:13,fontFamily:FH}}>
+              {[5,10,20,50].map(n=><option key={n} value={n}>{n} pages</option>)}
             </select>
             <button onClick={runAudit} disabled={loading||!url.trim()}
               style={{padding:'9px 22px',borderRadius:10,border:'none',background:RED,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:7,boxShadow:`0 3px 12px ${RED}40`}}>
@@ -86,7 +85,7 @@ export default function TechnicalAuditPage(){
             <div style={{display:'flex',gap:0}}>
               {TABS.map(t=>(
                 <button key={t.key} onClick={()=>setTab(t.key)}
-                  style={{padding:'10px 18px',border:'none',background:'transparent',borderBottom:tab===t.key?`2.5px solid ${RED}`:`2.5px solid transparent`,color:tab===t.key?'#fff':'rgba(255,255,255,.35)',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH}}>
+                  style={{padding:'10px 18px',border:'none',background:'transparent',borderBottom:tab===t.key?`2.5px solid ${RED}`:`2.5px solid transparent`,color:tab===t.key?RED:'#6b7280',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:FH}}>
                   {t.label}
                 </button>
               ))}
@@ -103,7 +102,7 @@ export default function TechnicalAuditPage(){
                       <div style={{background:'#fff',borderRadius:16,border:'1px solid #e5e7eb',padding:'24px',display:'flex',alignItems:'center',gap:20}}>
                         <div style={{textAlign:'center'}}>
                           <div style={{fontFamily:FH,fontSize:52,fontWeight:900,color:scoreColor,lineHeight:1}}>{ai.overall_score}</div>
-                          <div style={{fontFamily:FH,fontSize:11,color:'#9ca3af',textTransform:'uppercase'}}>/100</div>
+                          <div style={{fontFamily:FH,fontSize:12,color:'#6b7280',textTransform:'uppercase'}}>/100</div>
                           <div style={{fontFamily:FH,fontSize:28,fontWeight:900,color:scoreColor}}>{ai.grade}</div>
                         </div>
                         <div style={{flex:1}}>
@@ -141,7 +140,7 @@ export default function TechnicalAuditPage(){
                     ].map(s=>(
                       <div key={s.label} style={{background:'#fff',borderRadius:12,border:`1px solid ${s.bad&&s.v>0?RED+'40':'#e5e7eb'}`,padding:'12px 14px',textAlign:'center'}}>
                         <div style={{fontFamily:FH,fontSize:22,fontWeight:900,color:s.bad&&s.v>0?RED:GREEN}}>{s.v}</div>
-                        <div style={{fontSize:11,color:'#9ca3af',fontFamily:FH}}>{s.label}</div>
+                        <div style={{fontSize:12,color:'#6b7280',fontFamily:FH}}>{s.label}</div>
                       </div>
                     ))}
                   </div>
@@ -150,7 +149,7 @@ export default function TechnicalAuditPage(){
                       <div style={{fontFamily:FH,fontSize:14,fontWeight:800,color:BLK,marginBottom:12}}>Priority Fixes</div>
                       {ai.priority_fixes.map((fix,i)=>(
                         <div key={i} style={{display:'flex',gap:10,padding:'8px 0',borderBottom:'1px solid #f9fafb'}}>
-                          <div style={{width:22,height:22,borderRadius:6,background:RED+'15',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:FH,fontSize:11,fontWeight:900,color:RED,flexShrink:0}}>{i+1}</div>
+                          <div style={{width:22,height:22,borderRadius:6,background:RED+'15',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:FH,fontSize:12,fontWeight:900,color:RED,flexShrink:0}}>{i+1}</div>
                           <div style={{fontSize:13,color:'#374151',fontFamily:FB,lineHeight:1.5}}>{fix}</div>
                         </div>
                       ))}
@@ -163,7 +162,7 @@ export default function TechnicalAuditPage(){
                   <table style={{width:'100%',borderCollapse:'collapse'}}>
                     <thead><tr style={{background:'#f9fafb'}}>
                       {['URL','Status','Title','H1','Schema','SSL'].map(h=>(
-                        <th key={h} style={{padding:'9px 14px',fontSize:11,fontWeight:700,color:'#6b7280',textAlign:'left',fontFamily:FH}}>{h}</th>
+                        <th key={h} style={{padding:'9px 14px',fontSize:12,fontWeight:700,color:'#6b7280',textAlign:'left',fontFamily:FH}}>{h}</th>
                       ))}
                     </tr></thead>
                     <tbody>
@@ -173,7 +172,7 @@ export default function TechnicalAuditPage(){
                             <a href={p.url} target="_blank" rel="noreferrer" style={{color:BLK,textDecoration:'none'}}>{p.url.replace(/https?:\/\//,'')}</a>
                           </td>
                           <td style={{padding:'9px 14px'}}>
-                            <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,fontFamily:FH,background:p.status===200?GREEN+'15':RED+'15',color:p.status===200?GREEN:RED}}>{p.status||'ERR'}</span>
+                            <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,fontFamily:FH,background:p.status===200?GREEN+'15':RED+'15',color:p.status===200?GREEN:RED}}>{p.status||'ERR'}</span>
                           </td>
                           <td style={{padding:'9px 14px',fontSize:12,color:'#374151',fontFamily:FB,maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.title||<span style={{color:RED}}>Missing</span>}</td>
                           <td style={{padding:'9px 14px'}}>{p.h1Count>0?<CheckCircle size={14} color={GREEN}/>:<XCircle size={14} color={RED}/>}</td>
@@ -192,7 +191,7 @@ export default function TechnicalAuditPage(){
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                         <XCircle size={15} color={RED}/>
                         <div style={{fontFamily:FH,fontSize:14,fontWeight:700,color:BLK}}>{issue.issue}</div>
-                        {issue.count>0&&<span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:20,background:RED+'15',color:RED,fontFamily:FH}}>{issue.count} pages</span>}
+                        {issue.count>0&&<span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:RED+'15',color:RED,fontFamily:FH}}>{issue.count} pages</span>}
                       </div>
                       <div style={{fontSize:13,color:'#6b7280',fontFamily:FB,marginBottom:8}}>{issue.impact}</div>
                       <div style={{padding:'8px 12px',background:'#f0fdf4',borderRadius:9,border:'1px solid #bbf7d0',fontSize:13,color:'#15803d',fontFamily:FB}}>Fix: {issue.fix}</div>

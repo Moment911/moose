@@ -18,15 +18,8 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobileSearch, MobileRow, MobileCard, MobileEmpty, MobileButton, MobileTabs, MobilePageHeader, MobileStatStrip, MobileSectionHeader } from '../components/mobile/MobilePage'
 
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 const ACCENT = R
 const TEAL = T
 
@@ -178,7 +171,7 @@ function ReviewCard({ review, profile, savedResponse, agencyId, clientId, onAppr
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10, flexWrap:'wrap' }}>
             <span style={{ fontSize:15, fontWeight:700, color:'#111' }}>Response</span>
             {savedResponse && (
-              <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background:'#f3f4f6', color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em' }}>
+              <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:10, background:'#f3f4f6', color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em' }}>
                 Previously generated
               </span>
             )}
@@ -187,7 +180,7 @@ function ReviewCard({ review, profile, savedResponse, agencyId, clientId, onAppr
 
           {/* Tone selector */}
           <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:10 }}>
-            <span style={{ fontSize:11, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginRight:6 }}>Tone</span>
+            <span style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.05em', marginRight:6 }}>Tone</span>
             {[
               { k:'professional', l:'Professional' },
               { k:'friendly', l:'Friendly' },
@@ -218,7 +211,7 @@ function ReviewCard({ review, profile, savedResponse, agencyId, clientId, onAppr
             placeholder="Pick a tone and click Generate, or write your own response…"
             style={{ width:'100%', padding:'12px 14px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:15, outline:'none', resize:'vertical', lineHeight:1.65, color:'#111', background:'#fff', fontFamily:'inherit', boxSizing:'border-box', minHeight:80 }}/>
           <div style={{ display:'flex', gap:8, marginTop:8, justifyContent:'flex-end', alignItems:'center' }}>
-            <span style={{ fontSize:12, color:'#9ca3af', marginRight:'auto' }}>{response.length} / 4096</span>
+            <span style={{ fontSize:12, color:'#6b7280', marginRight:'auto' }}>{response.length} / 4096</span>
             <button onClick={generateResponse} disabled={generating || !response}
               style={{ padding:'7px 14px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', fontSize:14, cursor:'pointer', color:'#374151', display:'flex', alignItems:'center', gap:5, opacity: generating ? 0.6 : 1 }}>
               <RefreshCw size={11}/> Regenerate
@@ -783,7 +776,7 @@ export default function ReviewsPage() {
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <div style={{ width:26, height:26, borderRadius:7, background:'#eff6ff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13 }}>🔵</div>
               <span style={{ fontFamily:"'Proxima Nova','Nunito Sans',sans-serif", fontSize:14, fontWeight:800, color:'#111' }}>Google Reviews</span>
-              {googleStats && <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>★{googleStats.rating} · {googleStats.total} total</span>}
+              {googleStats && <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#f0fdf4', color:'#16a34a', fontFamily:"'Proxima Nova','Nunito Sans',sans-serif" }}>★{googleStats.rating} · {googleStats.total} total</span>}
             </div>
             <div style={{ display:'flex', gap:6 }}>
               <button onClick={()=>setGoogleTab('search')}
@@ -840,7 +833,7 @@ export default function ReviewsPage() {
               )}
 
               {!googleSearchResults.length && !googleSearching && (
-                <div style={{ fontSize:13, color:'#9ca3af', textAlign:'center', padding:'8px 0' }}>
+                <div style={{ fontSize:13, color:'#6b7280', textAlign:'center', padding:'8px 0' }}>
                   Search above to find the business on Google Maps
                 </div>
               )}
@@ -859,9 +852,9 @@ export default function ReviewsPage() {
                       <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
                         <span style={{ fontSize:13, fontWeight:700, color:'#111' }}>{r.reviewer_name||'Anonymous'}</span>
                         <span style={{ color:'#f59e0b', fontSize:13 }}>{'★'.repeat(r.rating||0)}{'☆'.repeat(5-(r.rating||0))}</span>
-                        <span style={{ fontSize:11, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#E6007E':'#f59e0b' }}>{r.rating}★</span>
-                        {r.is_responded && <span style={{ fontSize:11, fontWeight:700, padding:'1px 7px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>✓ Responded</span>}
-                        <span style={{ fontSize:11, color:'#9ca3af', marginLeft:'auto' }}>
+                        <span style={{ fontSize:12, fontWeight:700, color:r.rating>=4?'#16a34a':r.rating<=2?'#E6007E':'#f59e0b' }}>{r.rating}★</span>
+                        {r.is_responded && <span style={{ fontSize:12, fontWeight:700, padding:'1px 7px', borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>✓ Responded</span>}
+                        <span style={{ fontSize:12, color:'#6b7280', marginLeft:'auto' }}>
                           {r.review_date ? new Date(r.review_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}
                         </span>
                       </div>
@@ -887,7 +880,7 @@ export default function ReviewsPage() {
                       </div>
                     ) : draftResponses[r.review_id] || r.response_text ? (
                       <div>
-                        <div style={{ fontSize:11, fontWeight:700, color:'#00C2CB', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Response Draft</div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#00C2CB', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Response Draft</div>
                         <div style={{ fontSize:13, color:'#374151', lineHeight:1.6, cursor:'text' }} onClick={()=>setEditingId(r.review_id)}>
                           {draftResponses[r.review_id]||r.response_text}
                         </div>
@@ -923,11 +916,11 @@ export default function ReviewsPage() {
         </div>
 
         {loading ? (
-          <div style={{padding:40,textAlign:'center',color:'#9a9a96'}}>Loading…</div>
+          <div style={{padding:40,textAlign:'center',color:'#6b7280'}}>Loading…</div>
         ) : !selectedClient ? (
-          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>Select a client to view their reviews</div>
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#6b7280',fontSize:14}}>Select a client to view their reviews</div>
         ) : fReviews.length===0 ? (
-          <div style={{padding:'40px 24px',textAlign:'center',color:'#9a9a96',fontSize:14}}>No reviews found</div>
+          <div style={{padding:'40px 24px',textAlign:'center',color:'#6b7280',fontSize:14}}>No reviews found</div>
         ) : (
           <div style={{padding:'0 16px',display:'flex',flexDirection:'column',gap:10}}>
             {fReviews.map(r=>{
@@ -940,12 +933,12 @@ export default function ReviewsPage() {
                       <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:700,color:'#0a0a0a'}}>{r.reviewer_name||'Anonymous'}</div>
                       <div style={{fontSize:13,color:'#f59e0b',letterSpacing:1}}>{stars}</div>
                     </div>
-                    <span style={{fontSize:11,color:'#9a9a96',flexShrink:0}}>{r.platform}</span>
+                    <span style={{fontSize:12,color:'#6b7280',flexShrink:0}}>{r.platform}</span>
                   </div>
                   {r.review_text && <p style={{fontSize:14,color:'#5a5a58',margin:'0 0 8px',lineHeight:1.55,fontFamily:"'Raleway',sans-serif"}}>{r.review_text}</p>}
                   {r.response_text ? (
                     <div style={{background:'#f8f8f6',borderRadius:9,padding:'10px 12px',borderLeft:'2px solid #00C2CB'}}>
-                      <div style={{fontSize:11,fontWeight:700,color:'#00C2CB',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
+                      <div style={{fontSize:12,fontWeight:700,color:'#00C2CB',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",marginBottom:4}}>YOUR RESPONSE</div>
                       <p style={{fontSize:13,color:'#5a5a58',margin:0,lineHeight:1.5}}>{r.response_text}</p>
                     </div>
                   ) : isNeg && (

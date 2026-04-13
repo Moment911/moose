@@ -8,8 +8,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/intelligence'
 async function apiGet(action, params={}) {
@@ -115,14 +115,14 @@ export default function IntelligenceDashboardPage() {
       <Sidebar />
       <div style={{ flex:1, overflow:'auto' }}>
         {/* Header */}
-        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: W, padding: '24px 32px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <div style={{ width:40, height:40, borderRadius:10, background: '#E6007E', display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Brain size={20} color={W} />
             </div>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight: 500, color: BLK, margin:0 }}>Predictive Intelligence</h1>
-              <p style={{ fontFamily:FB, fontSize:12, color: '#999999', margin:0 }}>Every lead scored. Every call optimized. Every deal tracked.</p>
+              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight: 700, color: '#111', margin:0 }}>Predictive Intelligence</h1>
+              <p style={{ fontFamily:FB, fontSize:14, color: '#6b7280', margin:0 }}>Every lead scored. Every call optimized. Every deal tracked.</p>
             </div>
           </div>
         </div>
@@ -167,14 +167,14 @@ export default function IntelligenceDashboardPage() {
                   <table style={{ borderCollapse:'collapse', width:'100%' }}>
                     <thead>
                       <tr>
-                        <th style={{ padding:'6px 8px', fontSize:11, fontFamily:FB, color:'#9ca3af', textAlign:'left' }}></th>
-                        {HOURS.map(h => <th key={h} style={{ padding:'6px 8px', fontSize:10, fontFamily:FB, color:'#9ca3af', textAlign:'center' }}>{h > 12 ? h-12+'pm' : h+'am'}</th>)}
+                        <th style={{ padding:'6px 8px', fontSize:12, fontFamily:FB, color:'#6b7280', textAlign:'left' }}></th>
+                        {HOURS.map(h => <th key={h} style={{ padding:'6px 8px', fontSize:12, fontFamily:FB, color:'#6b7280', textAlign:'center' }}>{h > 12 ? h-12+'pm' : h+'am'}</th>)}
                       </tr>
                     </thead>
                     <tbody>
                       {[1,2,3,4,5,6,0].map(day => (
                         <tr key={day}>
-                          <td style={{ padding:'6px 8px', fontSize:11, fontWeight:600, fontFamily:FH, color:BLK, width:50 }}>{DAYS[day]}</td>
+                          <td style={{ padding:'6px 8px', fontSize:12, fontWeight:600, fontFamily:FH, color:BLK, width:50 }}>{DAYS[day]}</td>
                           {HOURS.map(h => {
                             const val = heatmapData[day]?.[h] || 0
                             return (
@@ -182,7 +182,7 @@ export default function IntelligenceDashboardPage() {
                                 <div title={`${DAYS[day]} ${h}:00 — ${val}% appt rate`} style={{
                                   width:36, height:28, borderRadius:4, background:heatColor(val),
                                   display:'flex', alignItems:'center', justifyContent:'center',
-                                  fontSize:9, fontWeight:700, fontFamily:FB, color:val >= 10 ? W : '#9ca3af',
+                                  fontSize:12, fontWeight:700, fontFamily:FB, color:val >= 10 ? W : '#9ca3af',
                                   cursor:'pointer',
                                 }}>
                                   {val > 0 ? val + '%' : ''}
@@ -194,7 +194,7 @@ export default function IntelligenceDashboardPage() {
                       ))}
                     </tbody>
                   </table>
-                  <div style={{ display:'flex', gap:12, marginTop:12, fontSize:10, color:'#9ca3af', fontFamily:FB }}>
+                  <div style={{ display:'flex', gap:12, marginTop:12, fontSize:12, color:'#6b7280', fontFamily:FB }}>
                     <span><span style={{ display:'inline-block', width:12, height:12, borderRadius:2, background:'#dc2626', verticalAlign:'middle', marginRight:4 }} />20%+ appt rate</span>
                     <span><span style={{ display:'inline-block', width:12, height:12, borderRadius:2, background:'#ea580c', verticalAlign:'middle', marginRight:4 }} />15-20%</span>
                     <span><span style={{ display:'inline-block', width:12, height:12, borderRadius:2, background:'#d97706', verticalAlign:'middle', marginRight:4 }} />10-15%</span>
@@ -220,7 +220,7 @@ export default function IntelligenceDashboardPage() {
               <div style={{ display:'flex', gap:10, marginBottom:20, flexWrap:'wrap' }}>
                 {(decayData.by_stage || []).map(s => (
                   <div key={s.stage} style={{ flex:1, minWidth:120, padding:'16px 18px', background:W, borderRadius:10, borderTop:`3px solid ${DECAY_COLORS[s.stage] || '#6b7280'}`, boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
-                    <div style={{ fontSize:12, fontWeight:700, fontFamily:FB, color:'#9ca3af', marginBottom:4 }}>{DECAY_EMOJI[s.stage] || ''} {s.stage.charAt(0).toUpperCase() + s.stage.slice(1)}</div>
+                    <div style={{ fontSize:12, fontWeight:700, fontFamily:FB, color:'#6b7280', marginBottom:4 }}>{DECAY_EMOJI[s.stage] || ''} {s.stage.charAt(0).toUpperCase() + s.stage.slice(1)}</div>
                     <div style={{ fontSize:28, fontWeight:800, fontFamily:FH, color:BLK }}>{s.count}</div>
                   </div>
                 ))}
@@ -260,7 +260,7 @@ export default function IntelligenceDashboardPage() {
                   { label:'Revenue', value:`$${(velocityData.total_revenue || 0).toLocaleString()}`, accent:GRN },
                 ].map(s => (
                   <div key={s.label} style={{ flex:1, minWidth:130, padding:'16px 18px', background:W, borderRadius:10, borderTop:`3px solid ${s.accent}`, boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
-                    <div style={{ fontSize:10, fontWeight:700, fontFamily:FB, color:'#9ca3af', textTransform:'uppercase', marginBottom:4 }}>{s.label}</div>
+                    <div style={{ fontSize:12, fontWeight:700, fontFamily:FB, color:'#6b7280', textTransform:'uppercase', marginBottom:4 }}>{s.label}</div>
                     <div style={{ fontSize:24, fontWeight:800, fontFamily:FH, color:BLK }}>{s.value || 0}</div>
                   </div>
                 ))}
@@ -326,7 +326,7 @@ export default function IntelligenceDashboardPage() {
                         {d.calls_count} calls | {d.appointments_count} appointments | Sent to {d.sent_to}
                       </div>
                     </div>
-                    <span style={{ padding:'3px 10px', borderRadius:99, fontSize:10, fontWeight:700, fontFamily:FB, background:GRN+'20', color:GRN }}>{d.status}</span>
+                    <span style={{ padding:'3px 10px', borderRadius:99, fontSize:12, fontWeight:700, fontFamily:FB, background:GRN+'20', color:GRN }}>{d.status}</span>
                   </div>
                 ))}
               </div>

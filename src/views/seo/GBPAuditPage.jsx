@@ -8,12 +8,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED  = '#E6007E'
-const TEAL = '#00C2CB'
-const BLK = '#111111'
-const GREEN = '#16a34a'
-const FH   = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB   = "'Raleway','Helvetica Neue',sans-serif"
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB, FH, FB } from '../../lib/theme'
 
 function ScoreRing({ score }) {
   const color = score >= 80 ? GREEN : score >= 60 ? '#f59e0b' : RED
@@ -29,7 +24,7 @@ function ScoreRing({ score }) {
       </svg>
       <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
         <div style={{ fontFamily:FH, fontSize:36, fontWeight:900, color, letterSpacing:'-.03em', lineHeight:1 }}>{score}</div>
-        <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em' }}>/100</div>
+        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em' }}>/100</div>
       </div>
     </div>
   )
@@ -51,7 +46,7 @@ function CheckRow({ item, pass }) {
         )}
       </div>
       {!pass && item.weight >= 8 && (
-        <span style={{ fontSize:11, fontWeight:700, padding:'2px 7px', borderRadius:20, background:RED+'15', color:RED, fontFamily:FH, flexShrink:0 }}>High priority</span>
+        <span style={{ fontSize:12, fontWeight:700, padding:'2px 7px', borderRadius:20, background:RED+'15', color:RED, fontFamily:FH, flexShrink:0 }}>High priority</span>
       )}
     </div>
   )
@@ -66,21 +61,21 @@ function CompetitorCard({ comp, clientRating, clientReviews, clientPhotos }) {
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
         <div style={{ textAlign:'center' }}>
           <div style={{ fontFamily:FH, fontSize:18, fontWeight:900, color: ratingBetter?RED:GREEN }}>{comp.rating || '—'}★</div>
-          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>Rating</div>
+          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Rating</div>
         </div>
         <div style={{ textAlign:'center' }}>
           <div style={{ fontFamily:FH, fontSize:18, fontWeight:900, color: reviewsBetter?RED:GREEN }}>{comp.review_count}</div>
-          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>Reviews</div>
+          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Reviews</div>
         </div>
         <div style={{ textAlign:'center' }}>
           <div style={{ fontFamily:FH, fontSize:18, fontWeight:900, color:'#374151' }}>{comp.photo_count}</div>
-          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>Photos</div>
+          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Photos</div>
         </div>
       </div>
       <div style={{ display:'flex', gap:4, marginTop:8, flexWrap:'wrap' }}>
-        {comp.has_website && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:20, background:'#f0fdf4', color:GREEN, fontFamily:FH, fontWeight:700 }}>Has website</span>}
-        {comp.has_hours   && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:20, background:'#eff6ff', color:'#3b82f6', fontFamily:FH, fontWeight:700 }}>Hours set</span>}
-        {!comp.has_hours  && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:20, background:'#fef2f2', color:RED, fontFamily:FH, fontWeight:700 }}>No hours</span>}
+        {comp.has_website && <span style={{ fontSize:12, padding:'2px 7px', borderRadius:20, background:'#f0fdf4', color:GREEN, fontFamily:FH, fontWeight:700 }}>Has website</span>}
+        {comp.has_hours   && <span style={{ fontSize:12, padding:'2px 7px', borderRadius:20, background:'#eff6ff', color:'#3b82f6', fontFamily:FH, fontWeight:700 }}>Hours set</span>}
+        {!comp.has_hours  && <span style={{ fontSize:12, padding:'2px 7px', borderRadius:20, background:'#fef2f2', color:RED, fontFamily:FH, fontWeight:700 }}>No hours</span>}
       </div>
     </div>
   )
@@ -150,10 +145,10 @@ export default function GBPAuditPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 32px 0', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingBottom:16 }}>
             <div>
-              <h1 style={{ fontFamily:FH, fontSize:22, fontWeight:800, color: '#111111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
+              <h1 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color: '#111', margin: 0, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:10 }}>
                 <MapPin size={20} color={RED}/> GBP Audit
               </h1>
-              <p style={{ fontSize:13, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
+              <p style={{ fontSize:14, color:'#6b7280', margin:'3px 0 0', fontFamily:FB }}>
                 Score your Google Business Profile and outperform competitors
               </p>
             </div>
@@ -168,9 +163,9 @@ export default function GBPAuditPage() {
           {history.length > 0 && (
             <div style={{ display:'flex', gap:8, paddingBottom:14, overflowX:'auto' }}>
               {history.map((h,i)=>(
-                <div key={h.id} style={{ padding:'5px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)', display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+                <div key={h.id} style={{ padding:'5px 12px', borderRadius:20, background:'#f3f4f6', border:'1px solid #e5e7eb', display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
                   <span style={{ fontFamily:FH, fontSize:12, fontWeight:700, color: h.score>=80?'#4ade80':h.score>=60?'#fbbf24':'#f87171' }}>{h.score}</span>
-                  <span style={{ fontSize:11, color:'#999999', fontFamily:FB }}>{new Date(h.audited_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+                  <span style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{new Date(h.audited_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
                 </div>
               ))}
             </div>
@@ -183,7 +178,7 @@ export default function GBPAuditPage() {
           <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', padding:'18px 20px', marginBottom:20 }}>
             <div style={{ display:'flex', gap:10, alignItems:'flex-end' }}>
               <div style={{ flex:1 }}>
-                <label style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>
+                <label style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>
                   Google Place ID
                 </label>
                 <input value={placeId} onChange={e=>setPlaceId(e.target.value)}
@@ -204,7 +199,7 @@ export default function GBPAuditPage() {
               </button>
             </div>
             {!placeId && clientId && (
-              <div style={{ fontSize:12, color:'#9ca3af', marginTop:8, fontFamily:FB }}>
+              <div style={{ fontSize:12, color:'#6b7280', marginTop:8, fontFamily:FB }}>
                 Tip: Go to Reviews page, search for this client, and the Place ID will be saved automatically.
               </div>
             )}
@@ -222,15 +217,15 @@ export default function GBPAuditPage() {
                     <div style={{ display:'flex', gap:16 }}>
                       <div style={{ textAlign:'center' }}>
                         <div style={{ fontFamily:FH, fontSize:20, fontWeight:900, color:'#f59e0b' }}>★{result.rating || '—'}</div>
-                        <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>Rating</div>
+                        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Rating</div>
                       </div>
                       <div style={{ textAlign:'center' }}>
                         <div style={{ fontFamily:FH, fontSize:20, fontWeight:900, color:BLK }}>{result.review_count}</div>
-                        <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>Reviews</div>
+                        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Reviews</div>
                       </div>
                       <div style={{ textAlign:'center' }}>
                         <div style={{ fontFamily:FH, fontSize:20, fontWeight:900, color:BLK }}>{result.photo_count}</div>
-                        <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FH }}>Photos</div>
+                        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FH }}>Photos</div>
                       </div>
                     </div>
                   </div>
@@ -242,11 +237,11 @@ export default function GBPAuditPage() {
                       <Sparkles size={16} color={TEAL}/>
                       <span style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em' }}>AI Assessment</span>
                     </div>
-                    <div style={{ fontSize:14, color:'#999999', fontFamily:FB, lineHeight:1.7 }}>{result.ai.overall_assessment}</div>
+                    <div style={{ fontSize:14, color:'#6b7280', fontFamily:FB, lineHeight:1.7 }}>{result.ai.overall_assessment}</div>
                     {result.ai.biggest_opportunity && (
                       <div style={{ background:'rgba(234,39,41,.15)', borderRadius:10, padding:'10px 14px', border:`1px solid ${RED}30` }}>
-                        <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:RED, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Biggest Opportunity</div>
-                        <div style={{ fontSize:13, color:'#999999', fontFamily:FB }}>{result.ai.biggest_opportunity}</div>
+                        <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:RED, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>Biggest Opportunity</div>
+                        <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{result.ai.biggest_opportunity}</div>
                       </div>
                     )}
                     {result.ai.quick_wins?.length > 0 && (
@@ -268,7 +263,7 @@ export default function GBPAuditPage() {
                 {/* Checks panel */}
                 <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'18px 20px' }}>
                   <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, marginBottom:4 }}>Profile Checklist</div>
-                  <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, marginBottom:14 }}>
+                  <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:14 }}>
                     {result.passes.length} passing · {result.fails.length} to fix
                   </div>
 
@@ -303,7 +298,7 @@ export default function GBPAuditPage() {
                   {result.competitors?.length > 0 && (
                     <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'18px 20px' }}>
                       <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:BLK, marginBottom:4 }}>Nearby Competitors</div>
-                      <div style={{ fontSize:13, color:'#9ca3af', fontFamily:FB, marginBottom:14 }}>Within 5km — red = they beat you, green = you beat them</div>
+                      <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB, marginBottom:14 }}>Within 5km — red = they beat you, green = you beat them</div>
                       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                         {result.competitors.map((comp, i) => (
                           <CompetitorCard key={i} comp={comp} clientRating={result.rating} clientReviews={result.review_count} clientPhotos={result.photo_count}/>
@@ -321,7 +316,7 @@ export default function GBPAuditPage() {
                       <div style={{ fontSize:14, color:'#374151', fontFamily:FB, lineHeight:1.65, marginBottom:10 }}>{result.ai.vs_competitors}</div>
                       {result.ai.estimated_rank_impact && (
                         <div style={{ padding:'10px 14px', background:TEAL+'10', borderRadius:10, border:`1px solid ${TEAL}30` }}>
-                          <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:3 }}>Rank Impact</div>
+                          <div style={{ fontFamily:FH, fontSize:12, fontWeight:700, color:TEAL, textTransform:'uppercase', letterSpacing:'.07em', marginBottom:3 }}>Rank Impact</div>
                           <div style={{ fontSize:13, color:'#374151', fontFamily:FB }}>{result.ai.estimated_rank_impact}</div>
                         </div>
                       )}
@@ -382,7 +377,7 @@ export default function GBPAuditPage() {
                   <div key={i} style={{ padding:'16px', background:'#f9fafb', borderRadius:12, border:'1px solid #f3f4f6' }}>
                     <item.icon size={20} color={RED} style={{ margin:'0 auto 8px', display:'block' }}/>
                     <div style={{ fontFamily:FH, fontSize:13, fontWeight:700, color:BLK, marginBottom:3 }}>{item.label}</div>
-                    <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{item.desc}</div>
+                    <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{item.desc}</div>
                   </div>
                 ))}
               </div>

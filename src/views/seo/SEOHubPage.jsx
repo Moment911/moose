@@ -14,9 +14,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED  = '#E6007E'
-const TEAL = '#00C2CB'
-const BLACK = '#0a0a0a'
+import { R as RED, T as TEAL, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 
 const TABS = [
   { key:'overview', label:'Overview',     icon:BarChart2 },
@@ -34,7 +32,7 @@ const PROVIDERS = [
 ]
 
 function Delta({ cur, prev }) {
-  if (!prev || cur === prev) return <span style={{ color:'#9ca3af', fontSize:13 }}>—</span>
+  if (!prev || cur === prev) return <span style={{ color:'#6b7280', fontSize:13 }}>—</span>
   const d = prev - cur
   if (d > 0) return (
     <span style={{ display:'inline-flex', alignItems:'center', gap:2, color:'#16a34a', fontSize:13, fontWeight:800, background:'#f0fdf4', padding:'2px 7px', borderRadius:12 }}>
@@ -383,7 +381,7 @@ Return ONLY valid JSON (no markdown):
           {value ?? <span style={{ fontSize:22 }}>—</span>}
         </div>
         <div style={{ fontSize:13, fontWeight:600, color:subC, marginTop:6 }}>{label}</div>
-        {sub && <div style={{ fontSize:11, color:subC, marginTop:2 }}>{sub}</div>}
+        {sub && <div style={{ fontSize:12, color:subC, marginTop:2 }}>{sub}</div>}
       </div>
     )
   }
@@ -446,16 +444,16 @@ Return ONLY valid JSON (no markdown):
         {tab==='overview' && (
           <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
             <MobileCard style={{padding:'14px'}}>
-              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#0a0a0a',marginBottom:10}}>Connections</div>
+              <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:800,color:'#111',marginBottom:10}}>Connections</div>
               {[
                 {label:'Google Search Console',key:'gsc',color:'#4285f4'},
                 {label:'Google Analytics 4',   key:'ga4',color:'#e8710a'},
                 {label:'Google Business Profile',key:'gmb',color:'#34a853'},
               ].map((p,i)=>(
                 <div key={p.key} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:i<2?'1px solid #f2f2f0':'none'}}>
-                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:600,color:'#0a0a0a'}}>{p.label}</div>
+                  <div style={{fontFamily:"'Proxima Nova','Nunito Sans',sans-serif",fontSize:14,fontWeight:600,color:'#111'}}>{p.label}</div>
                   {connections?.[p.key]
-                    ? <span style={{fontSize:11,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>✓ Connected</span>
+                    ? <span style={{fontSize:12,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 8px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>✓ Connected</span>
                     : <button style={{padding:'5px 12px',borderRadius:8,border:`1px solid ${p.color}`,background:'transparent',color:p.color,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>Connect</button>
                   }
                 </div>
@@ -492,7 +490,7 @@ Return ONLY valid JSON (no markdown):
                   <MobileRow key={s.id} borderBottom={i<sites.length-1}
                     title={s.name||s.url}
                     subtitle={s.url}
-                    badge={<span style={{fontSize:10,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 6px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>v{s.plugin_version||'?'}</span>}/>
+                    badge={<span style={{fontSize:12,fontWeight:800,color:'#16a34a',background:'#f0fdf4',padding:'2px 6px',borderRadius:20,fontFamily:"'Proxima Nova','Nunito Sans',sans-serif"}}>v{s.plugin_version||'?'}</span>}/>
                 ))}
               </MobileCard>
             )}
@@ -513,7 +511,7 @@ Return ONLY valid JSON (no markdown):
         {/* ── Left panel: client list ─────────────────────────────────── */}
         <div  className="reviews-client-col"style={{ width:220, flexShrink:0, background:'#fff', borderRight:'1px solid #e5e7eb', display:'flex', flexDirection:'column', overflow:'hidden' }}>
           <div style={{ padding:'18px 16px 12px', borderBottom:'1px solid #f3f4f6' }}>
-            <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>SEO Hub</div>
+            <div style={{ fontSize:13, fontWeight:800, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:4 }}>SEO Hub</div>
             <div style={{ fontSize:18, fontWeight:900, color:'#111' }}>Clients</div>
           </div>
           <div style={{ flex:1, overflowY:'auto' }}>
@@ -553,7 +551,7 @@ Return ONLY valid JSON (no markdown):
           ) : (
             <>
               {/* Header */}
-              <div style={{ background:BLACK, padding:'18px 28px 0', flexShrink:0 }}>
+              <div style={{ background:'#fff', borderBottom:'1px solid #e5e7eb', padding:'18px 28px 0', flexShrink:0 }}>
                 <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:16 }}>
                   <div>
                     <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
@@ -561,15 +559,15 @@ Return ONLY valid JSON (no markdown):
                         {(selectedClient.name||'?')[0].toUpperCase()}
                       </div>
                       <div>
-                        <h1 style={{ fontSize:20, fontWeight:900, color: '#111111', margin: 0, letterSpacing:-0.3 }}>{selectedClient.name}</h1>
-                        <div style={{ fontSize:13, color:'#999999', marginTop:1 }}>{selectedClient.industry||'Local business'}</div>
+                        <h1 style={{ fontSize:20, fontWeight:800, color:'#111', margin: 0, letterSpacing:-0.3, fontFamily:FH }}>{selectedClient.name}</h1>
+                        <div style={{ fontSize:13, color:'#6b7280', marginTop:1, fontFamily:FB }}>{selectedClient.industry||'Local business'}</div>
                       </div>
                     </div>
                   </div>
 
                   <div style={{ display:'flex', gap:8, marginTop:4 }}>
                     <button onClick={()=>loadClientData(selectedClient.id)}
-                      style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10, border:'1px solid rgba(255,255,255,.15)', background:'rgba(255,255,255,.08)', color:'#999999', fontSize:13, fontWeight:700, cursor:'pointer' }}>
+                      style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:10, border:'1px solid #e5e7eb', background:'#f9fafb', color:'#374151', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                       <RefreshCw size={13}/> Refresh
                     </button>
                     <button onClick={generateAnalysis} disabled={generating}
@@ -590,8 +588,8 @@ Return ONLY valid JSON (no markdown):
                     { label:'Data sources', value:`${connections.filter(c=>c.connected).length}/4` },
                   ].map(s=>(
                     <div key={s.label} style={{ padding:'10px 0' }}>
-                      <div style={{ fontSize:20, fontWeight:900, color:'#fff', lineHeight:1 }}>{s.value}</div>
-                      <div style={{ fontSize:13, color:'#999999', marginTop:3 }}>{s.label}</div>
+                      <div style={{ fontSize:20, fontWeight:900, color:'#111', lineHeight:1, fontFamily:FH }}>{s.value}</div>
+                      <div style={{ fontSize:13, color:'#6b7280', marginTop:3, fontFamily:FB }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -603,7 +601,7 @@ Return ONLY valid JSON (no markdown):
                     const active = tab === t.key
                     return (
                       <button key={t.key} onClick={()=>setTab(t.key)}
-                        style={{ display:'flex', alignItems:'center', gap:6, padding:'11px 20px', border:'none', borderBottom:`2.5px solid ${active?RED:'transparent'}`, background:'transparent', color:active?'#fff':'rgba(255,255,255,.4)', fontSize:14, fontWeight:active?800:600, cursor:'pointer', transition:'all .15s' }}>
+                        style={{ display:'flex', alignItems:'center', gap:6, padding:'11px 20px', border:'none', borderBottom:`2.5px solid ${active?RED:'transparent'}`, background:'transparent', color:active?RED:'#6b7280', fontSize:14, fontWeight:active?800:600, cursor:'pointer', transition:'all .15s', fontFamily:FH }}>
                         <I size={14}/>{t.label}
                       </button>
                     )
@@ -631,26 +629,26 @@ Return ONLY valid JSON (no markdown):
 
                         {/* AI Analysis card — shown when available */}
                         {analysis && (
-                          <div style={{ background:BLACK, borderRadius:18, padding:'24px 28px', marginBottom:20, display:'flex', gap:24 }}>
+                          <div style={{ background:'#fff', borderRadius:18, border:'1px solid #e5e7eb', padding:'24px 28px', marginBottom:20, display:'flex', gap:24 }}>
                             <div style={{ flexShrink:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
                               <div style={{ position:'relative', width:80, height:80 }}>
                                 <ScoreRing score={analysis.overallScore} size={80}/>
-                                <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:900, color:'#fff' }}>
+                                <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:900, color:'#111' }}>
                                   {analysis.overallScore}
                                 </div>
                               </div>
-                              <div style={{ fontSize:13, color:'#999999', marginTop:6, textAlign:'center' }}>SEO Score</div>
+                              <div style={{ fontSize:13, color:'#6b7280', marginTop:6, textAlign:'center' }}>SEO Score</div>
                             </div>
                             <div style={{ flex:1 }}>
                               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
                                 <Sparkles size={15} color={RED}/>
-                                <span style={{ fontSize:14, fontWeight:800, color:'#999999', textTransform:'uppercase', letterSpacing:'.06em' }}>AI Analysis</span>
+                                <span style={{ fontSize:14, fontWeight:800, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.06em' }}>AI Analysis</span>
                               </div>
-                              <p style={{ fontSize:15, color:'#999999', lineHeight:1.7, margin:'0 0 14px' }}>{analysis.executiveSummary}</p>
+                              <p style={{ fontSize:15, color:'#6b7280', lineHeight:1.7, margin:'0 0 14px' }}>{analysis.executiveSummary}</p>
                               {analysis.quickWins?.length > 0 && (
                                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                                   {analysis.quickWins.slice(0,4).map((w,i)=>(
-                                    <span key={i} style={{ fontSize:13, fontWeight:700, padding:'4px 12px', borderRadius:20, background:'rgba(255,255,255,.08)', color:'#999999', border:'1px solid rgba(255,255,255,.12)' }}>
+                                    <span key={i} style={{ fontSize:13, fontWeight:700, padding:'4px 12px', borderRadius:20, background:'#f3f4f6', color:'#6b7280', border:'1px solid #e5e7eb' }}>
                                       {w}
                                     </span>
                                   ))}
@@ -659,11 +657,11 @@ Return ONLY valid JSON (no markdown):
                             </div>
                             {analysis.opportunities?.length > 0 && (
                               <div style={{ width:220, flexShrink:0 }}>
-                                <div style={{ fontSize:13, fontWeight:800, color:'#999999', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Top opportunities</div>
+                                <div style={{ fontSize:13, fontWeight:800, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:8 }}>Top opportunities</div>
                                 {analysis.opportunities.slice(0,3).map((op,i)=>(
-                                  <div key={i} style={{ padding:'8px 12px', background:'rgba(255,255,255,.06)', borderRadius:10, marginBottom:6, borderLeft:`3px solid ${RED}` }}>
-                                    <div style={{ fontSize:13, fontWeight:800, color:'#fff', marginBottom:2 }}>{op.title}</div>
-                                    <div style={{ fontSize:13, color:'#999999' }}>{op.impact} impact · {op.effort} effort</div>
+                                  <div key={i} style={{ padding:'8px 12px', background:'#f9fafb', borderRadius:10, marginBottom:6, borderLeft:`3px solid ${RED}` }}>
+                                    <div style={{ fontSize:13, fontWeight:800, color:'#111', marginBottom:2 }}>{op.title}</div>
+                                    <div style={{ fontSize:13, color:'#6b7280' }}>{op.impact} impact · {op.effort} effort</div>
                                   </div>
                                 ))}
                               </div>
@@ -675,7 +673,7 @@ Return ONLY valid JSON (no markdown):
                         {/* Real GSC data */}
                          {liveData?.gsc && (
                            <div style={{ marginBottom:20 }}>
-                             <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Search Console — Last {liveData.period?.days} days</div>
+                             <div style={{ fontSize:13, fontWeight:800, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Search Console — Last {liveData.period?.days} days</div>
                              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:12, marginBottom:12 }}>
                                {[
                                  { label:'Clicks',       value:liveData.gsc.totals.clicks.toLocaleString() },
@@ -684,7 +682,7 @@ Return ONLY valid JSON (no markdown):
                                  { label:'Avg Position', value:'#'+liveData.gsc.totals.avgPos, color:parseFloat(liveData.gsc.totals.avgPos)<10?'#16a34a':'#d97706' },
                                ].map(s=>(
                                  <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
-                                   <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.label}</div>
+                                   <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.label}</div>
                                    <div style={{ fontSize:22, fontWeight:900, color:s.color||'#0a0a0a' }}>{s.value}</div>
                                  </div>
                                ))}
@@ -692,12 +690,12 @@ Return ONLY valid JSON (no markdown):
                              {liveData.gsc.quickWins?.length > 0 && (
                                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:12 }}>
                                  <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                                   <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>🎯 Quick Win Keywords <span style={{ fontSize:12, color:'#9ca3af' }}>(pos 4–20, high impressions)</span></div>
+                                   <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>🎯 Quick Win Keywords <span style={{ fontSize:12, color:'#6b7280' }}>(pos 4–20, high impressions)</span></div>
                                    <span style={{ fontSize:12, fontWeight:700, background:'#f0fdf4', color:'#16a34a', padding:'2px 8px', borderRadius:20 }}>{liveData.gsc.quickWins.length} found</span>
                                  </div>
                                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
                                    <thead><tr style={{ background:'#f9fafb' }}>
-                                     {['Keyword','Pos','Impressions','Clicks','CTR','Est. Gain'].map(h=><th key={h} style={{ padding:'9px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:'left', textTransform:'uppercase' }}>{h}</th>)}
+                                     {['Keyword','Pos','Impressions','Clicks','CTR','Est. Gain'].map(h=><th key={h} style={{ padding:'9px 14px', fontSize:12, fontWeight:700, color:'#6b7280', textAlign:'left', textTransform:'uppercase' }}>{h}</th>)}
                                    </tr></thead>
                                    <tbody>
                                      {liveData.gsc.quickWins.slice(0,8).map((kw,i)=>(
@@ -717,12 +715,12 @@ Return ONLY valid JSON (no markdown):
                              {liveData.gsc.lowCTR?.length > 0 && (
                                <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden', marginBottom:4 }}>
                                  <div style={{ padding:'12px 18px', borderBottom:'1px solid #f3f4f6', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                                   <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>📉 Low CTR Keywords <span style={{ fontSize:12, color:'#9ca3af' }}>(fix meta titles to unlock clicks)</span></div>
+                                   <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>📉 Low CTR Keywords <span style={{ fontSize:12, color:'#6b7280' }}>(fix meta titles to unlock clicks)</span></div>
                                    <span style={{ fontSize:12, fontWeight:700, background:'#fef2f2', color:RED, padding:'2px 8px', borderRadius:20 }}>{liveData.gsc.lowCTR.length} found</span>
                                  </div>
                                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
                                    <thead><tr style={{ background:'#f9fafb' }}>
-                                     {['Keyword','Pos','Impressions','CTR','Potential Clicks'].map(h=><th key={h} style={{ padding:'9px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:'left', textTransform:'uppercase' }}>{h}</th>)}
+                                     {['Keyword','Pos','Impressions','CTR','Potential Clicks'].map(h=><th key={h} style={{ padding:'9px 14px', fontSize:12, fontWeight:700, color:'#6b7280', textAlign:'left', textTransform:'uppercase' }}>{h}</th>)}
                                    </tr></thead>
                                    <tbody>
                                      {liveData.gsc.lowCTR.slice(0,6).map((kw,i)=>(
@@ -742,7 +740,7 @@ Return ONLY valid JSON (no markdown):
                          )}
                          {liveData?.ga4 && (
                            <div style={{ marginBottom:20 }}>
-                             <div style={{ fontSize:13, fontWeight:800, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Google Analytics — Last {liveData.period?.days} days</div>
+                             <div style={{ fontSize:13, fontWeight:800, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', marginBottom:10 }}>Google Analytics — Last {liveData.period?.days} days</div>
                              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
                                {[
                                  { label:'Total Sessions',    value:liveData.ga4.totalSessions.toLocaleString() },
@@ -750,7 +748,7 @@ Return ONLY valid JSON (no markdown):
                                  { label:'Organic % Traffic', value:liveData.ga4.organicPct+'%', color:liveData.ga4.organicPct>40?'#16a34a':liveData.ga4.organicPct>20?'#d97706':RED },
                                ].map(s=>(
                                  <div key={s.label} style={{ background:'#fff', borderRadius:12, border:'1px solid #e5e7eb', padding:'14px 16px' }}>
-                                   <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.label}</div>
+                                   <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{s.label}</div>
                                    <div style={{ fontSize:22, fontWeight:900, color:s.color||'#0a0a0a' }}>{s.value}</div>
                                  </div>
                                ))}
@@ -765,7 +763,7 @@ Return ONLY valid JSON (no markdown):
                                    </div>
                                    <div style={{ flex:2, fontSize:14, color:'#374151' }}>{ch.name}</div>
                                    <div style={{ fontSize:13, fontWeight:700, color:'#111', minWidth:80, textAlign:'right' }}>{ch.sessions.toLocaleString()} sessions</div>
-                                   <div style={{ fontSize:12, color:'#9ca3af', minWidth:70, textAlign:'right' }}>{ch.avgBounceRate} bounce</div>
+                                   <div style={{ fontSize:12, color:'#6b7280', minWidth:70, textAlign:'right' }}>{ch.avgBounceRate} bounce</div>
                                  </div>
                                ))}
                              </div>
@@ -873,13 +871,13 @@ Return ONLY valid JSON (no markdown):
                             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                               <MapPin size={15} color={RED}/>
                               <div style={{ fontSize:14, fontWeight:900, color:'#111' }}>Local Rank Tracker</div>
-                              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20, background:RED+'15', color:RED }}>Google Maps</span>
+                              <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:20, background:RED+'15', color:RED }}>Google Maps</span>
                             </div>
                             <a href="/seo/local-rank" style={{ fontSize:13, color:RED, fontWeight:700, textDecoration:'none' }}>Full tracker →</a>
                           </div>
                           <div style={{ padding:'14px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:10, alignItems:'end', borderBottom:'1px solid #f9fafb' }}>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Keyword</label>
+                              <label style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Keyword</label>
                               <input value={rankKw} onChange={e=>setRankKw(e.target.value)}
                                 placeholder={selectedClient?.industry || 'e.g. plumber'}
                                 onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
@@ -887,7 +885,7 @@ Return ONLY valid JSON (no markdown):
                                 onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
                             </div>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Location</label>
+                              <label style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Location</label>
                               <input value={rankLoc} onChange={e=>setRankLoc(e.target.value)}
                                 placeholder="e.g. Boca Raton FL"
                                 onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
@@ -895,7 +893,7 @@ Return ONLY valid JSON (no markdown):
                                 onFocus={e=>e.target.style.borderColor=RED} onBlur={e=>e.target.style.borderColor='#e5e7eb'}/>
                             </div>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Business Name</label>
+                              <label style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Business Name</label>
                               <input value={rankBiz} onChange={e=>setRankBiz(e.target.value)}
                                 placeholder={selectedClient?.name || 'To highlight in results'}
                                 onKeyDown={e=>e.key==='Enter'&&runLocalRankScan()}
@@ -909,7 +907,7 @@ Return ONLY valid JSON (no markdown):
                             </button>
                           </div>
                           {rankLoading && (
-                            <div style={{ padding:'24px', textAlign:'center', color:'#9ca3af', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                            <div style={{ padding:'24px', textAlign:'center', color:'#6b7280', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                               <Loader2 size={14} color={RED} style={{animation:'spin 1s linear infinite'}}/> Searching Google Maps…
                             </div>
                           )}
@@ -917,7 +915,7 @@ Return ONLY valid JSON (no markdown):
                             <div>
                               <div style={{ padding:'12px 20px', display:'flex', alignItems:'center', gap:16, borderBottom:'1px solid #f9fafb', flexWrap:'wrap' }}>
                                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                                  <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em' }}>Rank</div>
+                                  <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em' }}>Rank</div>
                                   <div style={{ fontSize:28, fontWeight:900, letterSpacing:'-.03em',
                                     color:rankResults.target_rank ? (rankResults.target_rank<=3?'#16a34a':rankResults.target_rank<=7?TEAL:rankResults.target_rank<=15?'#f59e0b':RED) : RED }}>
                                     {rankResults.target_rank ? '#'+rankResults.target_rank : 'Not found'}
@@ -950,12 +948,12 @@ Return ONLY valid JSON (no markdown):
                                       <div style={{ flex:1, minWidth:0 }}>
                                         <div style={{ fontSize:13, fontWeight:700, color:isTarget?RED:'#111', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                                           {r.name}
-                                          {isTarget && <span style={{ marginLeft:6, fontSize:10, background:RED, color:'#fff', padding:'1px 5px', borderRadius:20 }}>YOU</span>}
-                                          {r.is_open_now===true && <span style={{ marginLeft:4, fontSize:10, background:'#f0fdf4', color:'#16a34a', padding:'1px 5px', borderRadius:20 }}>Open</span>}
+                                          {isTarget && <span style={{ marginLeft:6, fontSize:12, background:RED, color:'#fff', padding:'1px 5px', borderRadius:20 }}>YOU</span>}
+                                          {r.is_open_now===true && <span style={{ marginLeft:4, fontSize:12, background:'#f0fdf4', color:'#16a34a', padding:'1px 5px', borderRadius:20 }}>Open</span>}
                                         </div>
-                                        <div style={{ fontSize:11, color:'#9ca3af', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.address}</div>
+                                        <div style={{ fontSize:12, color:'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.address}</div>
                                       </div>
-                                      {r.rating && <div style={{ fontSize:12, color:'#374151', flexShrink:0, display:'flex', alignItems:'center', gap:3 }}><span style={{ color:'#f59e0b' }}>★</span>{r.rating}<span style={{ color:'#9ca3af', fontSize:11 }}>({r.review_count})</span></div>}
+                                      {r.rating && <div style={{ fontSize:12, color:'#374151', flexShrink:0, display:'flex', alignItems:'center', gap:3 }}><span style={{ color:'#f59e0b' }}>★</span>{r.rating}<span style={{ color:'#6b7280', fontSize:11 }}>({r.review_count})</span></div>}
                                     </div>
                                   )
                                 })}
@@ -965,13 +963,13 @@ Return ONLY valid JSON (no markdown):
                                   <Sparkles size={13} color={TEAL} style={{ flexShrink:0, marginTop:2 }}/>
                                   <div style={{ fontSize:13, color:'#374151', lineHeight:1.6 }}>
                                     <strong style={{ color:'#111' }}>AI:</strong> {rankResults.ai_analysis.overall_assessment}
-                                    {rankResults.ai_analysis.estimated_time_to_rank && <span style={{ color:'#9ca3af' }}> · Est. {rankResults.ai_analysis.estimated_time_to_rank} to rank.</span>}
+                                    {rankResults.ai_analysis.estimated_time_to_rank && <span style={{ color:'#6b7280' }}> · Est. {rankResults.ai_analysis.estimated_time_to_rank} to rank.</span>}
                                   </div>
                                 </div>
                               )}
                               {rankResults.ai_analysis?.quick_wins?.length > 0 && (
                                 <div style={{ padding:'9px 20px', borderTop:'1px solid #f3f4f6', display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                                  <span style={{ fontSize:11, fontWeight:700, color:'#16a34a', textTransform:'uppercase', letterSpacing:'.07em', flexShrink:0 }}>Quick wins:</span>
+                                  <span style={{ fontSize:12, fontWeight:700, color:'#16a34a', textTransform:'uppercase', letterSpacing:'.07em', flexShrink:0 }}>Quick wins:</span>
                                   {rankResults.ai_analysis.quick_wins.slice(0,3).map((w,i) => (
                                     <span key={i} style={{ fontSize:12, background:'#f0fdf4', color:'#15803d', padding:'3px 9px', borderRadius:20, border:'1px solid #bbf7d0' }}>{w}</span>
                                   ))}
@@ -980,7 +978,7 @@ Return ONLY valid JSON (no markdown):
                             </div>
                           )}
                           {!rankResults && !rankLoading && (
-                            <div style={{ padding:'18px 20px', fontSize:13, color:'#9ca3af', textAlign:'center' }}>
+                            <div style={{ padding:'18px 20px', fontSize:13, color:'#6b7280', textAlign:'center' }}>
                               Enter a keyword and location to scan Google Maps rankings for this client
                             </div>
                           )}
@@ -1307,7 +1305,7 @@ Return ONLY valid JSON (no markdown):
                         <div style={{ background:'#fff', borderRadius:16, border:'1px solid #e5e7eb', padding:'16px 20px', marginBottom:16 }}>
                           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr auto', gap:12, alignItems:'end' }}>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Report Type</label>
+                              <label style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Report Type</label>
                               <select value={reportType} onChange={e=>setReportType(e.target.value)}
                                 style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
                                 <option value="overview">Overview</option>
@@ -1320,7 +1318,7 @@ Return ONLY valid JSON (no markdown):
                               </select>
                             </div>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Date Range</label>
+                              <label style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Date Range</label>
                               <select value={dateRange} onChange={e=>setDateRange(e.target.value)}
                                 style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
                                 <option value="7d">Last 7 days</option>
@@ -1332,7 +1330,7 @@ Return ONLY valid JSON (no markdown):
                               </select>
                             </div>
                             <div>
-                              <label style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Compare To</label>
+                              <label style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.07em', display:'block', marginBottom:5 }}>Compare To</label>
                               <select value={compare} onChange={e=>setCompare(e.target.value)}
                                 style={{ width:'100%', padding:'9px 12px', borderRadius:9, border:'1.5px solid #e5e7eb', fontSize:13, color:'#111', background:'#fff' }}>
                                 <option value="previous_period">Previous period</option>
@@ -1356,7 +1354,7 @@ Return ONLY valid JSON (no markdown):
                               <div style={{ fontSize:14, fontWeight:800, color:'#111' }}>
                                 {reportType.replace(/_/g,' ').replace(/\w/g,l=>l.toUpperCase())} — {dateRange}
                               </div>
-                              <span style={{ fontSize:12, color:'#9ca3af', marginLeft:'auto' }}>
+                              <span style={{ fontSize:12, color:'#6b7280', marginLeft:'auto' }}>
                                 {analyticsData.period?.start} → {analyticsData.period?.end}
                               </span>
                             </div>
@@ -1365,7 +1363,7 @@ Return ONLY valid JSON (no markdown):
                               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderBottom:'1px solid #f3f4f6' }}>
                                 {Object.entries(analyticsData.summary).slice(0,4).map(([key,val],i) => (
                                   <div key={key} style={{ padding:'14px 16px', borderRight:i<3?'1px solid #f3f4f6':'none', textAlign:'center' }}>
-                                    <div style={{ fontSize:11, fontWeight:700, color:'#9ca3af', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>
+                                    <div style={{ fontSize:12, fontWeight:700, color:'#6b7280', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>
                                       {key.replace(/_/g,' ')}
                                     </div>
                                     <div style={{ fontSize:20, fontWeight:900, color:'#111' }}>
@@ -1382,7 +1380,7 @@ Return ONLY valid JSON (no markdown):
                                   <thead>
                                     <tr style={{ background:'#f9fafb' }}>
                                       {analyticsData.columns?.map((col,i) => (
-                                        <th key={i} style={{ padding:'10px 14px', fontSize:11, fontWeight:700, color:'#6b7280', textAlign:i===0?'left':'right', textTransform:'uppercase', letterSpacing:'.05em' }}>{col}</th>
+                                        <th key={i} style={{ padding:'10px 14px', fontSize:12, fontWeight:700, color:'#6b7280', textAlign:i===0?'left':'right', textTransform:'uppercase', letterSpacing:'.05em' }}>{col}</th>
                                       ))}
                                     </tr>
                                   </thead>
@@ -1399,7 +1397,7 @@ Return ONLY valid JSON (no markdown):
                               </div>
                             )}
                             {!analyticsData.rows?.length && (
-                              <div style={{ padding:'32px', textAlign:'center', color:'#9ca3af', fontSize:14 }}>
+                              <div style={{ padding:'32px', textAlign:'center', color:'#6b7280', fontSize:14 }}>
                                 No data available for this report and date range
                               </div>
                             )}
@@ -1413,7 +1411,7 @@ Return ONLY valid JSON (no markdown):
                             <div style={{ fontSize:14, color:'#374151', marginBottom:4 }}>
                               Select a report type and date range, then click Run Report
                             </div>
-                            <div style={{ fontSize:13, color:'#9ca3af' }}>
+                            <div style={{ fontSize:13, color:'#6b7280' }}>
                               Requires Google Search Console and/or GA4 connected
                             </div>
                           </div>
@@ -1431,7 +1429,7 @@ Return ONLY valid JSON (no markdown):
                                   </div>
                                   <div style={{ flex:1 }}>
                                     <div style={{ fontSize:14,fontWeight:700,color:'#111' }}>{r.report_type==='ai_analysis'?'AI SEO Analysis':'SEO Report'}</div>
-                                    <div style={{ fontSize:12,color:'#9ca3af' }}>{new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}{r.content?.gsc_site?` · ${r.content.gsc_site.replace('sc-domain:','').replace('https://','').slice(0,30)}`:''}</div>
+                                    <div style={{ fontSize:12,color:'#6b7280' }}>{new Date(r.generated_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}{r.content?.gsc_site?` · ${r.content.gsc_site.replace('sc-domain:','').replace('https://','').slice(0,30)}`:''}</div>
                                   </div>
                                   {r.score!=null&&<div style={{ width:44,height:44,borderRadius:11,background:r.score>=70?'#f0fdf4':r.score>=40?'#fffbeb':'#fef2f2',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
                                     <div style={{ fontSize:18,fontWeight:900,color:r.score>=70?'#16a34a':r.score>=40?'#d97706':RED,lineHeight:1 }}>{r.score}</div>

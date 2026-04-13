@@ -10,11 +10,9 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 const inp = { width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, fontFamily: FB, outline: 'none', boxSizing: 'border-box' }
-const lbl = { fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', display: 'block', marginBottom: 6 }
+const lbl = { fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', display: 'block', marginBottom: 6 }
 
 export default function InvoiceBuilderPage() {
   const navigate = useNavigate()
@@ -186,17 +184,17 @@ export default function InvoiceBuilderPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '16px 24px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <FileText size={20} color={R} />
-            <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff', margin: 0 }}>Invoice Builder</h1>
-            <span style={{ fontSize: 12, color: '#999999', fontFamily: 'monospace' }}>{invoiceNumber}</span>
+            <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 700, color: '#111', margin: 0 }}>Invoice Builder</h1>
+            <span style={{ fontSize: 13, color: '#6b7280', fontFamily: 'monospace' }}>{invoiceNumber}</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setShowPreview(!showPreview)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid rgba(0,0,0,0.14)', background: 'transparent', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+            <button onClick={() => setShowPreview(!showPreview)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
               <Eye size={13} /> Preview
             </button>
-            <button onClick={() => saveInvoice('draft')} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: 'rgba(255,255,255,.1)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+            <button onClick={() => saveInvoice('draft')} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
               {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} />} Save Draft
             </button>
             <button onClick={sendInvoice} disabled={sending} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
@@ -257,10 +255,10 @@ export default function InvoiceBuilderPage() {
                   <DollarSign size={16} color={R} /> Line Items
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => aiSuggest('lineItems')} disabled={aiSuggesting || !selectedClient} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+                  <button onClick={() => aiSuggest('lineItems')} disabled={aiSuggesting || !selectedClient} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
                     {aiSuggesting ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={11} />} AI Suggest Items
                   </button>
-                  <button onClick={addLineItem} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 6, border: 'none', background: T + '15', color: T, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+                  <button onClick={addLineItem} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 6, border: 'none', background: T + '15', color: T, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
                     <Plus size={11} /> Add Item
                   </button>
                 </div>
@@ -324,7 +322,7 @@ export default function InvoiceBuilderPage() {
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <label style={{ ...lbl, marginBottom: 0 }}>Notes to Client</label>
-                  <button onClick={() => aiSuggest('notes')} disabled={aiSuggesting} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+                  <button onClick={() => aiSuggest('notes')} disabled={aiSuggesting} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
                     <Brain size={10} /> AI Write
                   </button>
                 </div>
@@ -339,7 +337,7 @@ export default function InvoiceBuilderPage() {
                     <label style={{ ...lbl, marginBottom: 0 }}>Custom Section</label>
                     <input value={customSectionTitle} onChange={e => setCustomSectionTitle(e.target.value)} placeholder="Section title..." style={{ ...inp, width: 140, padding: '4px 8px', fontSize: 11 }} />
                   </div>
-                  <button onClick={() => aiSuggest('custom')} disabled={aiSuggesting} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+                  <button onClick={() => aiSuggest('custom')} disabled={aiSuggesting} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
                     <Brain size={10} /> AI Write
                   </button>
                 </div>
@@ -352,7 +350,7 @@ export default function InvoiceBuilderPage() {
             <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 20, marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <label style={{ ...lbl, marginBottom: 0 }}>Invoice Footer</label>
-                <button onClick={() => aiSuggest('footer')} disabled={aiSuggesting} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
+                <button onClick={() => aiSuggest('footer')} disabled={aiSuggesting} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: 'none', background: '#7c3aed15', color: '#7c3aed', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
                   <Brain size={10} /> AI Write
                 </button>
               </div>
@@ -381,7 +379,7 @@ export default function InvoiceBuilderPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32 }}>
               <div>
-                <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6 }}>Bill To</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6 }}>Bill To</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{selectedClient?.name || '—'}</div>
                 {selectedClient?.email && <div style={{ fontSize: 12, color: '#6b7280' }}>{selectedClient.email}</div>}
                 {selectedClient?.address && <div style={{ fontSize: 12, color: '#6b7280' }}>{[selectedClient.address, selectedClient.city, selectedClient.state, selectedClient.zip].filter(Boolean).join(', ')}</div>}
@@ -396,10 +394,10 @@ export default function InvoiceBuilderPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                  <th style={{ padding: '8px 0', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase' }}>Description</th>
-                  <th style={{ padding: '8px 0', textAlign: 'center', fontSize: 11, fontWeight: 800, color: '#9ca3af' }}>Qty</th>
-                  <th style={{ padding: '8px 0', textAlign: 'right', fontSize: 11, fontWeight: 800, color: '#9ca3af' }}>Rate</th>
-                  <th style={{ padding: '8px 0', textAlign: 'right', fontSize: 11, fontWeight: 800, color: '#9ca3af' }}>Amount</th>
+                  <th style={{ padding: '8px 0', textAlign: 'left', fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase' }}>Description</th>
+                  <th style={{ padding: '8px 0', textAlign: 'center', fontSize: 12, fontWeight: 800, color: '#6b7280' }}>Qty</th>
+                  <th style={{ padding: '8px 0', textAlign: 'right', fontSize: 12, fontWeight: 800, color: '#6b7280' }}>Rate</th>
+                  <th style={{ padding: '8px 0', textAlign: 'right', fontSize: 12, fontWeight: 800, color: '#6b7280' }}>Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -428,17 +426,17 @@ export default function InvoiceBuilderPage() {
 
             {customSection && (
               <div style={{ marginBottom: 20, padding: 16, background: '#f9fafb', borderRadius: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 6 }}>{customSectionTitle}</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>{customSectionTitle}</div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{customSection}</div>
               </div>
             )}
             {notes && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 6 }}>Notes</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>Notes</div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{notes}</div>
               </div>
             )}
-            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 16, fontSize: 12, color: '#9ca3af', textAlign: 'center', lineHeight: 1.6 }}>
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 16, fontSize: 12, color: '#6b7280', textAlign: 'center', lineHeight: 1.6 }}>
               {footer}
             </div>
           </div>

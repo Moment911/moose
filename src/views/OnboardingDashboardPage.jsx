@@ -89,7 +89,7 @@ function pct(client) {
 const STATUS_CFG = {
   complete:  { label:'Complete',  color:GREEN,      bg:'#f0fdf4', icon:CheckCircle  },
   sent:      { label:'Link Sent', color:TEAL,        bg:'#f0fbfc', icon:Send         },
-  not_sent:  { label:'Not Sent',  color:'#9ca3af',   bg:'#f9fafb', icon:Clock        },
+  not_sent:  { label:'Not Sent',  color:'#6b7280',   bg:'#f9fafb', icon:Clock        },
   bounced:   { label:'Bounced',   color:RED,         bg:'#fef2f2', icon:AlertCircle  },
 }
 
@@ -154,16 +154,16 @@ function SendModal({ allClients, agencyId, onClose, onSent }) {
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
           <div>
             <div style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK }}>Send Onboarding Link</div>
-            <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, marginTop:2 }}>Find a client, send email + copy the link</div>
+            <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>Find a client, send email + copy the link</div>
           </div>
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}><X size={18}/></button>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280' }}><X size={18}/></button>
         </div>
 
         {/* Client search */}
         {!result && (
           <>
             <div style={{ position:'relative', marginBottom: matches.length > 0 || query ? 0 : 16 }}>
-              <Search size={15} style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', color:'#9ca3af' }}/>
+              <Search size={15} style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', color:'#6b7280' }}/>
               <input
                 ref={inputRef}
                 value={query}
@@ -181,9 +181,9 @@ function SendModal({ allClients, agencyId, onClose, onSent }) {
                     style={{ width:'100%', textAlign:'left', padding:'11px 16px', borderBottom:'1px solid #f9fafb', background:'#fff', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                     <div>
                       <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>{cl.name}</div>
-                      <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{cl.email || 'No email'}</div>
+                      <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>{cl.email || 'No email'}</div>
                     </div>
-                    <div style={{ fontSize:11, fontWeight:700, padding:'2px 9px', borderRadius:20, background:STATUS_CFG[cl.onboarding_status||'not_sent']?.bg, color:STATUS_CFG[cl.onboarding_status||'not_sent']?.color, fontFamily:FH }}>
+                    <div style={{ fontSize:12, fontWeight:700, padding:'2px 9px', borderRadius:20, background:STATUS_CFG[cl.onboarding_status||'not_sent']?.bg, color:STATUS_CFG[cl.onboarding_status||'not_sent']?.color, fontFamily:FH }}>
                       {STATUS_CFG[cl.onboarding_status||'not_sent']?.label}
                     </div>
                   </button>
@@ -200,7 +200,7 @@ function SendModal({ allClients, agencyId, onClose, onSent }) {
                     <div style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>{selected.email || 'No email on file'}</div>
                   </div>
                   <button onClick={() => { setSelected(null); setQuery('') }}
-                    style={{ background:'none', border:'none', cursor:'pointer', color:'#9ca3af' }}><X size={14}/></button>
+                    style={{ background:'none', border:'none', cursor:'pointer', color:'#6b7280' }}><X size={14}/></button>
                 </div>
                 {!selected.email && (
                   <div style={{ marginTop:8, fontSize:12, color:AMBER, fontWeight:600, fontFamily:FH }}>
@@ -215,7 +215,7 @@ function SendModal({ allClients, agencyId, onClose, onSent }) {
               <button
                 onClick={send}
                 disabled={!selected || sending || !selected.email}
-                style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'13px', borderRadius:11, border:'none', background:selected&&selected.email?RED:'#f3f4f6', color:selected&&selected.email?'#fff':'#9ca3af', fontSize:14, fontWeight:700, cursor:selected&&selected.email?'pointer':'default', fontFamily:FH }}>
+                style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'13px', borderRadius:11, border:'none', background:selected&&selected.email?RED:'#f3f4f6', color:selected&&selected.email?'#fff':'#6b7280', fontSize:14, fontWeight:700, cursor:selected&&selected.email?'pointer':'default', fontFamily:FH }}>
                 {sending ? <Loader2 size={15} style={{ animation:'spin 1s linear infinite' }}/> : <Send size={15}/>}
                 {sending ? 'Sending…' : 'Send Email + Copy Link'}
               </button>
@@ -366,7 +366,7 @@ export default function OnboardingDashboardPage() {
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
         {/* ── Header ────────────────────────────────────────────────────── */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'18px 28px', flexShrink:0 }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding:'18px 28px', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
               <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:BLK, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
@@ -403,7 +403,7 @@ export default function OnboardingDashboardPage() {
               <button key={s.key} onClick={() => setFilter(s.key)}
                 style={{ background:'#fff', borderRadius:12, border:`1.5px solid ${filter===s.key?s.color:'#f3f4f6'}`, padding:'14px 16px', textAlign:'center', cursor:'pointer' }}>
                 <div style={{ fontFamily:FH, fontSize:26, fontWeight:900, color:s.color, letterSpacing:'-.03em', lineHeight:1 }}>{counts[s.key]}</div>
-                <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginTop:4 }}>{s.label}</div>
+                <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:4 }}>{s.label}</div>
               </button>
             ))}
           </div>
@@ -411,7 +411,7 @@ export default function OnboardingDashboardPage() {
           {/* Search + filter */}
           <div style={{ display:'flex', gap:10, marginBottom:16 }}>
             <div style={{ position:'relative', flex:1 }}>
-              <Search size={14} style={{ position:'absolute', left:11, top:'50%', transform:'translateY(-50%)', color:'#9ca3af' }}/>
+              <Search size={14} style={{ position:'absolute', left:11, top:'50%', transform:'translateY(-50%)', color:'#6b7280' }}/>
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search clients by name or email…"
                 style={{ width:'100%', padding:'10px 14px 10px 34px', borderRadius:10, border:'1.5px solid #e5e7eb', fontSize:13, fontFamily:FB, outline:'none', boxSizing:'border-box' }}/>
@@ -449,13 +449,13 @@ export default function OnboardingDashboardPage() {
           ) : (
             <div style={{ background:'#fff', borderRadius:14, border:'1px solid #e5e7eb', overflow:'hidden' }}>
               {/* Table header */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 90px 130px 260px', gap:12, padding:'10px 18px', borderBottom:'1px solid #f3f4f6', fontSize:11, fontWeight:700, color:'#9ca3af', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.06em' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 90px 130px 260px', gap:12, padding:'10px 18px', borderBottom:'1px solid #f3f4f6', fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FH, textTransform:'uppercase', letterSpacing:'.06em' }}>
                 <span>Client</span><span>Fields</span><span>Status</span><span>Actions</span>
               </div>
 
               {filtered.length === 0 && (
                 <div style={{ padding:'40px 24px', textAlign:'center', fontFamily:FB }}>
-                  <div style={{ color:'#9ca3af', fontSize:14, marginBottom:16 }}>
+                  <div style={{ color:'#6b7280', fontSize:14, marginBottom:16 }}>
                     {search || filter !== 'all' ? 'No clients match your filter' : 'No clients yet — add a client to get started'}
                   </div>
                   {!search && filter === 'all' && (
@@ -486,28 +486,28 @@ export default function OnboardingDashboardPage() {
                       {/* Client info + progress bar */}
                       <div>
                         <div style={{ fontFamily:FH, fontSize:14, fontWeight:700, color:BLK }}>{cl.name}</div>
-                        <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB, marginBottom:5 }}>
+                        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginBottom:5 }}>
                           {cl.email || <span style={{ fontStyle:'italic' }}>No email</span>}
                         </div>
                         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                           <div style={{ flex:1, maxWidth:160, height:5, background:'#f3f4f6', borderRadius:10, overflow:'hidden' }}>
                             <div style={{ height:'100%', width:`${completion}%`, background:completion===100?GREEN:completion>60?TEAL:AMBER, borderRadius:10, transition:'width .3s' }}/>
                           </div>
-                          <span style={{ fontSize:11, fontWeight:700, color:completion===100?GREEN:completion>60?TEAL:'#92400e', fontFamily:FH }}>{completion}%</span>
+                          <span style={{ fontSize:12, fontWeight:700, color:completion===100?GREEN:completion>60?TEAL:'#92400e', fontFamily:FH }}>{completion}%</span>
                           {missing.length > 0 && (
                             <button type="button" onClick={() => setExpanded(e => ({ ...e, [cl.id]: !e[cl.id] }))}
-                              style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:6, border:'1px solid #fde68a', background:'#fffbeb', color:'#92400e', cursor:'pointer', fontFamily:FH }}>
+                              style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:6, border:'1px solid #fde68a', background:'#fffbeb', color:'#92400e', cursor:'pointer', fontFamily:FH }}>
                               {missing.length} missing {isExpanded ? '▲' : '▼'}
                             </button>
                           )}
                         </div>
                         {cl.onboarding_completed_at && (
-                          <div style={{ fontSize:11, color:GREEN, fontFamily:FB, marginTop:2 }}>
+                          <div style={{ fontSize:12, color:GREEN, fontFamily:FB, marginTop:2 }}>
                             ✓ Completed {new Date(cl.onboarding_completed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
                           </div>
                         )}
                         {cl.onboarding_sent_at && status !== 'complete' && (
-                          <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginTop:2 }}>
+                          <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>
                             Sent {new Date(cl.onboarding_sent_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
                           </div>
                         )}
@@ -518,7 +518,7 @@ export default function OnboardingDashboardPage() {
                         <div style={{ fontFamily:FH, fontSize:15, fontWeight:800, color:completion===100?GREEN:AMBER }}>
                           {REQUIRED_FIELDS.length - missing.length}/{REQUIRED_FIELDS.length}
                         </div>
-                        <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>fields</div>
+                        <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>fields</div>
                       </div>
 
                       {/* Status badge */}
@@ -533,7 +533,7 @@ export default function OnboardingDashboardPage() {
                         {/* Send / Resend */}
                         <button onClick={() => sendLink(cl)} disabled={isSending || !cl.email}
                           title={!cl.email ? 'No email — use Send New Link button' : status === 'sent' ? 'Resend link' : 'Send link'}
-                          style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, border:'none', background:cl.email?RED:'#f3f4f6', color:cl.email?'#fff':'#9ca3af', fontSize:11, fontWeight:700, cursor:cl.email?'pointer':'default', fontFamily:FH }}>
+                          style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, border:'none', background:cl.email?RED:'#f3f4f6', color:cl.email?'#fff':'#6b7280', fontSize:12, fontWeight:700, cursor:cl.email?'pointer':'default', fontFamily:FH }}>
                           {isSending ? <Loader2 size={10} style={{ animation:'spin 1s linear infinite' }}/> : <Send size={10}/>}
                           {isSending ? 'Sending…' : status === 'sent' || status === 'complete' ? 'Resend' : 'Send'}
                         </button>
@@ -541,14 +541,14 @@ export default function OnboardingDashboardPage() {
                         {/* Copy link */}
                         {cl.onboarding_token && (
                           <button onClick={() => copyLink(cl)}
-                            style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                            style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                             <Copy size={10}/> Link
                           </button>
                         )}
 
                         {/* View profile */}
                         <button onClick={() => navigate(`/clients/${cl.id}`)}
-                          style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
+                          style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 10px', borderRadius:8, border:'1px solid #e5e7eb', background:'#fff', color:'#374151', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:FH }}>
                           <Eye size={10}/> Profile
                         </button>
                       </div>
@@ -556,7 +556,7 @@ export default function OnboardingDashboardPage() {
 
                     {/* Voice onboarding line — show if client has a provisioned number */}
                     {cl.onboarding_phone && (
-                      <div style={{ padding:'0 18px 10px', fontSize:11, color:'#6b7280', fontFamily:FB, display:'flex', alignItems:'center', gap:6 }}>
+                      <div style={{ padding:'0 18px 10px', fontSize:12, color:'#6b7280', fontFamily:FB, display:'flex', alignItems:'center', gap:6 }}>
                         📞 {cl.onboarding_phone_display || cl.onboarding_phone}
                         {cl.onboarding_pin && (
                           <>
@@ -582,7 +582,7 @@ export default function OnboardingDashboardPage() {
                         </div>
                         <div style={{ display:'flex', gap:8 }}>
                           <button onClick={() => sendLink(cl)} disabled={isSending || !cl.email}
-                            style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 14px', borderRadius:8, border:'none', background:cl.email?RED:'#e5e7eb', color:cl.email?'#fff':'#9ca3af', fontSize:12, fontWeight:700, cursor:cl.email?'pointer':'default', fontFamily:FH }}>
+                            style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 14px', borderRadius:8, border:'none', background:cl.email?RED:'#e5e7eb', color:cl.email?'#fff':'#6b7280', fontSize:12, fontWeight:700, cursor:cl.email?'pointer':'default', fontFamily:FH }}>
                             <Send size={11}/> Resend Link
                           </button>
                           {cl.onboarding_token && (

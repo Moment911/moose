@@ -124,7 +124,7 @@ function Section({ id, label, icon: SIcon, children, defaultOpen, currentPath, f
 }
 
 export default function Sidebar() {
-  const { user, firstName, fullName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures, clientInfo } = useAuth()
+  const { user, firstName, fullName, agencyId, agencyName, agency, loading: authLoading, isImpersonating, isPreviewingClient, isSuperAdmin, isAgencyAdmin, isAgencyStaff, isViewer, isClient, can, agencyFeatures, clientInfo, impersonateAgency, stopImpersonating } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
@@ -137,6 +137,17 @@ export default function Sidebar() {
   const [projectsMap,  setProjectsMap]  = useState({})
   const [searchQuery, setSearchQuery]   = useState('')
   const navScrollRef = useRef(null)
+  const [wsOpen, setWsOpen] = useState(false)
+  const [wsAgencies, setWsAgencies] = useState([])
+  const [wsSearch, setWsSearch] = useState('')
+
+  // Load agencies for workspace switcher (super admin only)
+  useEffect(() => {
+    if (!isSuperAdmin) return
+    import('../lib/supabase').then(({ supabase }) => {
+      supabase.from('agencies').select('id, name, brand_name, logo_url').order('name').then(({ data }) => setWsAgencies(data || []))
+    })
+  }, [isSuperAdmin])
 
   // Restore sidebar scroll position after mount (survives route changes)
   useEffect(() => {

@@ -8,8 +8,10 @@ import {
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
 const C = {
-  bg: '#F7F7F6',
+  bg: '#f9fafb',
   white: '#ffffff',
   text: '#111',
   muted: '#6b7280',
@@ -159,11 +161,11 @@ export default function DataVaultPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Database size={22} color={C.teal} />
-              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>
+              <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#111', fontFamily: 'var(--font-display)' }}>
                 Data Vault
               </h1>
               <span style={{
-                fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 10,
+                fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 10,
                 background: C.teal, color: '#fff', letterSpacing: '.06em',
               }}>NEW</span>
             </div>
@@ -342,7 +344,7 @@ export default function DataVaultPage() {
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>
                       {snap.label || `${snap.source_type} snapshot`}
                     </div>
-                    <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
                       {snap.source_type} · {snap.source_id?.slice(0, 8)}… · {new Date(snap.created_at).toLocaleString()}
                     </div>
                   </div>
@@ -471,7 +473,7 @@ function TableView({ entries, selected, onToggle, onSoftDelete, onHardDelete }) 
               </td>
               <td style={tdStyle}>
                 <span style={{
-                  fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
+                  fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
                   background: C.tealSoft, color: C.tealDark, textTransform: 'uppercase',
                 }}>
                   {e.record_type}
@@ -484,7 +486,7 @@ function TableView({ entries, selected, onToggle, onSoftDelete, onHardDelete }) 
               <td style={{ ...tdStyle, color: C.muted, maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {e.summary || '—'}
               </td>
-              <td style={{ ...tdStyle, color: C.muted, fontSize: 11, whiteSpace: 'nowrap' }}>
+              <td style={{ ...tdStyle, color: C.muted, fontSize: 12, whiteSpace: 'nowrap' }}>
                 {new Date(e.created_at).toLocaleString()}
               </td>
               <td style={{ ...tdStyle, width: 80 }}>
@@ -531,7 +533,7 @@ function TimelineView({ entries }) {
       {days.map(day => (
         <div key={day} style={{ marginBottom: 18 }}>
           <div style={{
-            fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
+            fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
             letterSpacing: '.06em', marginBottom: 10,
           }}>
             {day}
@@ -551,12 +553,12 @@ function TimelineView({ entries }) {
                 }} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                   <span style={{
-                    fontSize: 9, fontWeight: 800, padding: '1px 7px', borderRadius: 10,
+                    fontSize: 12, fontWeight: 800, padding: '1px 7px', borderRadius: 10,
                     background: C.tealSoft, color: C.tealDark, textTransform: 'uppercase',
                   }}>
                     {e.record_type}
                   </span>
-                  <span style={{ fontSize: 11, color: C.muted }}>
+                  <span style={{ fontSize: 12, color: C.muted }}>
                     {new Date(e.created_at).toLocaleTimeString()}
                   </span>
                 </div>
@@ -576,7 +578,7 @@ function TimelineView({ entries }) {
 }
 
 const thStyle = {
-  fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em',
+  fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em',
   color: C.muted, padding: '10px 12px', textAlign: 'left',
 }
 

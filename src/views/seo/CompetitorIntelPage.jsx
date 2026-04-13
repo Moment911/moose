@@ -7,14 +7,8 @@ import { useAuth } from '../../hooks/useAuth'
 import { useClient } from '../../context/ClientContext'
 import toast from 'react-hot-toast'
 
-const RED    = '#E6007E'
-const TEAL   = '#00C2CB'
-const BLK = '#111111'
-const GREEN  = '#16a34a'
-const AMBER  = '#f59e0b'
+import { R as RED, T as TEAL, BLK, GRN as GREEN, AMB as AMBER, FH, FB } from '../../lib/theme'
 const PURPLE = '#8b5cf6'
-const FH     = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB     = "'Raleway','Helvetica Neue',sans-serif"
 
 function ScoreRing({ score, size = 80, label }) {
   const color = score >= 70 ? GREEN : score >= 50 ? AMBER : RED
@@ -31,7 +25,7 @@ function ScoreRing({ score, size = 80, label }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size > 70 ? 20 : 14, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
-        {label && <div style={{ fontSize: 9, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>{label}</div>}
+        {label && <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FH, textTransform: 'uppercase' }}>{label}</div>}
       </div>
     </div>
   )
@@ -45,14 +39,14 @@ function StatCompare({ label, client, competitor, higherIsBetter = true }) {
   const icon       = clientVal === compVal ? <Minus size={12}/> : clientWins ? <ArrowUp size={12}/> : <ArrowDown size={12}/>
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FH, marginBottom: 4 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
         <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: clientWins ? GREEN : RED }}>
           {client}
         </span>
         <span style={{ color: clientWins ? GREEN : RED }}>{icon}</span>
       </div>
-      <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB }}>
+      <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
         vs {competitor}
       </div>
     </div>
@@ -74,14 +68,14 @@ function CompetitorCard({ comp, client, rank }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{comp.name}</div>
-          <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{comp.address}</div>
+          <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{comp.address}</div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 900, color: comp.rating >= (client?.rating || 0) ? RED : GREEN }}>
               ★{comp.rating || '—'}
             </div>
-            <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FH }}>{comp.review_count} reviews</div>
+            <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FH }}>{comp.review_count} reviews</div>
           </div>
           <ScoreRing score={comp.score} size={52} label="score"/>
           {open ? <ChevronUp size={14} color="#9ca3af"/> : <ChevronDown size={14} color="#9ca3af"/>}
@@ -97,9 +91,9 @@ function CompetitorCard({ comp, client, rank }) {
             <StatCompare label="Website"  client={client?.has_website ? 'Yes' : 'No'} competitor={comp.has_website ? 'Yes' : 'No'} higherIsBetter={true}/>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {comp.has_website && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: '#f0fdf4', color: GREEN, fontFamily: FH, fontWeight: 700 }}>Has website</span>}
-            {comp.has_hours   && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: '#eff6ff', color: '#3b82f6', fontFamily: FH, fontWeight: 700 }}>Hours set</span>}
-            {comp.photo_count >= 10 && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: '#f5f3ff', color: PURPLE, fontFamily: FH, fontWeight: 700 }}>10+ photos</span>}
+            {comp.has_website && <span style={{ fontSize: 12, padding: '3px 9px', borderRadius: 20, background: '#f0fdf4', color: GREEN, fontFamily: FH, fontWeight: 700 }}>Has website</span>}
+            {comp.has_hours   && <span style={{ fontSize: 12, padding: '3px 9px', borderRadius: 20, background: '#eff6ff', color: '#3b82f6', fontFamily: FH, fontWeight: 700 }}>Hours set</span>}
+            {comp.photo_count >= 10 && <span style={{ fontSize: 12, padding: '3px 9px', borderRadius: 20, background: '#f5f3ff', color: PURPLE, fontFamily: FH, fontWeight: 700 }}>10+ photos</span>}
             {comp.description && <div style={{ width: '100%', fontSize: 12, color: '#6b7280', fontFamily: FB, lineHeight: 1.5, marginTop: 4, fontStyle: 'italic' }}>"{comp.description}"</div>}
           </div>
           {comp.website && (
@@ -200,17 +194,17 @@ export default function CompetitorIntelPage() {
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding: '20px 32px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14 }}>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#111', margin: 0, letterSpacing: '-.03em', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <BarChart2 size={20} color={TEAL}/> Competitor Intelligence
               </h1>
-              <p style={{ fontSize: 13, color: '#999999', margin: '3px 0 0', fontFamily: FB }}>
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '3px 0 0', fontFamily: FB }}>
                 Real-time local competitor analysis · AI strategic recommendations
               </p>
             </div>
             <select value={clientId} onChange={e => { setClientId(e.target.value); const cl = clients.find(c => c.id === e.target.value); if (cl?.google_place_id) setPlaceId(cl.google_place_id) }}
-              style={{ padding: '9px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,.15)', background: 'rgba(255,255,255,.08)', color: '#fff', fontSize: 14, fontFamily: FH, minWidth: 200 }}>
+              style={{ padding: '9px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#f9fafb', color: BLK, fontSize: 14, fontFamily: FH, minWidth: 200 }}>
               <option value="">Select client</option>
-              {clients.map(c => <option key={c.id} value={c.id} style={{ color: BLK, background: '#fff' }}>{c.name}</option>)}
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 
@@ -220,7 +214,7 @@ export default function CompetitorIntelPage() {
                 <button key={t.key} onClick={() => setActiveTab(t.key)}
                   style={{ padding: '10px 18px', border: 'none', background: 'transparent',
                     borderBottom: activeTab === t.key ? `2.5px solid ${RED}` : '2.5px solid transparent',
-                    color: activeTab === t.key ? '#fff' : 'rgba(255,255,255,.35)',
+                    color: activeTab === t.key ? RED : '#6b7280',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
                   {t.label}
                 </button>
@@ -235,14 +229,14 @@ export default function CompetitorIntelPage() {
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '16px 20px', marginBottom: 20 }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
               <div style={{ flex: 2 }}>
-                <label style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', marginBottom: 5 }}>Google Place ID</label>
+                <label style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', marginBottom: 5 }}>Google Place ID</label>
                 <input value={placeId} onChange={e => setPlaceId(e.target.value)}
                   placeholder="ChIJ… — from your client's GBP listing"
                   style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none', color: BLK, boxSizing: 'border-box' }}
                   onFocus={e => e.target.style.borderColor = TEAL} onBlur={e => e.target.style.borderColor = '#e5e7eb'}/>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', marginBottom: 5 }}>Track specific competitors (optional)</label>
+                <label style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', marginBottom: 5 }}>Track specific competitors (optional)</label>
                 <input value={extraNames} onChange={e => setExtraNames(e.target.value)}
                   placeholder="Apex Plumbing, Smith HVAC (comma-separated)"
                   style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none', color: BLK, boxSizing: 'border-box' }}
@@ -267,7 +261,7 @@ export default function CompetitorIntelPage() {
                   <div key={i} style={{ padding: '6px 12px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{h.competitor_name}</span>
                     {h.rating && <span style={{ fontSize: 12, color: AMBER, fontFamily: FH }}>★{h.rating}</span>}
-                    <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>{h.review_count} reviews</span>
+                    <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>{h.review_count} reviews</span>
                   </div>
                 ))}
               </div>
@@ -288,7 +282,7 @@ export default function CompetitorIntelPage() {
                       <ScoreRing score={client?.score || 0} size={90} label="your score"/>
                       <div>
                         <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>{client?.name || 'Your Business'}</div>
-                        <div style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB, marginTop: 3 }}>
+                        <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 3 }}>
                           ★{client?.rating || '—'} · {client?.review_count} reviews · {client?.photo_count} photos
                         </div>
                         {intel?.competitive_score && (
@@ -335,8 +329,8 @@ export default function CompetitorIntelPage() {
                       <div style={{ fontSize: 15, color: 'rgba(255,255,255,.85)', fontFamily: FB, lineHeight: 1.75, marginBottom: 12 }}>{intel.market_position}</div>
                       {intel.biggest_opportunity && (
                         <div style={{ padding: '12px 16px', background: `${TEAL}15`, borderRadius: 10, border: `1px solid ${TEAL}30` }}>
-                          <div style={{ fontFamily: FH, fontSize: 11, fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 4 }}>Biggest Opportunity</div>
-                          <div style={{ fontSize: 14, color: '#999999', fontFamily: FB }}>{intel.biggest_opportunity}</div>
+                          <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '.07em', marginBottom: 4 }}>Biggest Opportunity</div>
+                          <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB }}>{intel.biggest_opportunity}</div>
                         </div>
                       )}
                     </div>
@@ -400,7 +394,7 @@ export default function CompetitorIntelPage() {
               {activeTab === 'actions' && (
                 <div>
                   {(intel?.recommended_actions || []).length === 0 ? (
-                    <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '40px 24px', textAlign: 'center', color: '#9ca3af', fontFamily: FB }}>
+                    <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '40px 24px', textAlign: 'center', color: '#6b7280', fontFamily: FB }}>
                       No action plan generated — try running the analysis again
                     </div>
                   ) : (
@@ -415,13 +409,13 @@ export default function CompetitorIntelPage() {
                             <div style={{ flex: 1 }}>
                               <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 4 }}>{action.action}</div>
                               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: impactColor + '15', color: impactColor, fontFamily: FH, fontWeight: 700 }}>
+                                <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 20, background: impactColor + '15', color: impactColor, fontFamily: FH, fontWeight: 700 }}>
                                   {action.impact} impact
                                 </span>
-                                <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#f3f4f6', color: '#6b7280', fontFamily: FH, fontWeight: 700 }}>
+                                <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 20, background: '#f3f4f6', color: '#6b7280', fontFamily: FH, fontWeight: 700 }}>
                                   {action.effort} effort
                                 </span>
-                                <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#f0f9ff', color: '#0284c7', fontFamily: FH, fontWeight: 700 }}>
+                                <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 20, background: '#f0f9ff', color: '#0284c7', fontFamily: FH, fontWeight: 700 }}>
                                   {action.timeframe}
                                 </span>
                               </div>
@@ -453,7 +447,7 @@ export default function CompetitorIntelPage() {
                   <div key={i} style={{ padding: '16px', background: '#f9fafb', borderRadius: 12, border: '1px solid #f3f4f6' }}>
                     <item.icon size={20} color={RED} style={{ margin: '0 auto 8px', display: 'block' }}/>
                     <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 3 }}>{item.label}</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>{item.desc}</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>{item.desc}</div>
                   </div>
                 ))}
               </div>

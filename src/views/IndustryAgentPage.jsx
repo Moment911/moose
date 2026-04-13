@@ -8,8 +8,8 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const W='#ffffff',FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const W = '#ffffff'
 
 const API = '/api/industry-agent'
 
@@ -74,14 +74,14 @@ export default function IndustryAgentPage() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <div style={{ background: W, padding: '20px 32px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ background: W, padding: '20px 32px', borderBottom: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 38, height: 38, borderRadius: 10, background: '#E6007E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Globe size={20} color={W} />
             </div>
             <div>
-              <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 500, color: BLK, margin: 0 }}>Industry Agent System</h1>
-              <p style={{ fontFamily: FB, fontSize: 12, color: '#999999', margin: 0 }}>{industries.length} industries configured</p>
+              <h1 style={{ fontFamily: FH, fontSize: 20, fontWeight: 700, color: '#111', margin: 0 }}>Industry Agent System</h1>
+              <p style={{ fontFamily: FB, fontSize: 14, color: '#6b7280', margin: 0 }}>{industries.length} industries configured</p>
             </div>
           </div>
         </div>
@@ -107,9 +107,9 @@ export default function IndustryAgentPage() {
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>{ind.industry_name}</div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                    <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: FB }}>SIC: {ind.industry_sic_code}</span>
-                    {ind.total_calls > 0 && <span style={{ fontSize: 10, color: T, fontFamily: FB }}>{ind.total_calls} calls</span>}
-                    {ind.confidence_score > 0 && <span style={{ fontSize: 10, color: GRN, fontFamily: FB }}>Score: {ind.confidence_score}</span>}
+                    <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>SIC: {ind.industry_sic_code}</span>
+                    {ind.total_calls > 0 && <span style={{ fontSize: 12, color: T, fontFamily: FB }}>{ind.total_calls} calls</span>}
+                    {ind.confidence_score > 0 && <span style={{ fontSize: 12, color: GRN, fontFamily: FB }}>Score: {ind.confidence_score}</span>}
                   </div>
                 </div>
               ))}
@@ -139,7 +139,7 @@ export default function IndustryAgentPage() {
                     <h2 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: '0 0 4px' }}>
                       {detail.intelligence?.industry_name || 'Unknown'}
                     </h2>
-                    <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>SIC: {selectedSic}</span>
+                    <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>SIC: {selectedSic}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={generateConfig} disabled={generating === 'config'} style={{
@@ -168,7 +168,7 @@ export default function IndustryAgentPage() {
                     { label: 'Q&A Pairs', value: detail.qa_count || 0, accent: R },
                   ].map(s => (
                     <div key={s.label} style={{ flex: 1, padding: '14px 16px', background: W, borderRadius: 10, borderTop: `3px solid ${s.accent}`, boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase' }}>{s.label}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', fontFamily: FB, textTransform: 'uppercase' }}>{s.label}</div>
                       <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: BLK }}>{s.value}</div>
                     </div>
                   ))}
@@ -186,7 +186,7 @@ export default function IndustryAgentPage() {
                           <strong>Industry Vocabulary:</strong>
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
                             {detail.config.vocabulary.map((v, i) => (
-                              <span key={i} style={{ padding: '2px 8px', borderRadius: 99, background: '#f0f9ff', color: '#0369a1', fontSize: 10, fontWeight: 600 }}>{v}</span>
+                              <span key={i} style={{ padding: '2px 8px', borderRadius: 99, background: '#f0f9ff', color: '#0369a1', fontSize: 12, fontWeight: 600 }}>{v}</span>
                             ))}
                           </div>
                         </div>
@@ -220,7 +220,7 @@ export default function IndustryAgentPage() {
                   <div style={{ textAlign: 'center', padding: '40px 20px', background: W, borderRadius: 12, border: '1px solid #e5e7eb' }}>
                     <Brain size={36} color="#d1d5db" style={{ marginBottom: 12 }} />
                     <p style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, margin: '0 0 12px' }}>No AI config yet for this industry.</p>
-                    <p style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>Click "Generate AI Config" to create one using Claude, or "Generate Q&A Bank" to seed questions.</p>
+                    <p style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>Click "Generate AI Config" to create one using Claude, or "Generate Q&A Bank" to seed questions.</p>
                   </div>
                 )}
               </div>
