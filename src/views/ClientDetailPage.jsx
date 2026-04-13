@@ -1825,24 +1825,32 @@ export default function ClientDetailPage() {
     const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     const fdLabel = { fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH, display: 'block', marginBottom: 5 }
     const fdInput = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, fontFamily: FB, color: BLK, outline: 'none' }
+    const fdCard = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 14 }
+    const fdCardTitle = (icon, label, color = BLK) => (
+      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {icon} {label}
+      </div>
+    )
 
     return (
       <div ref={el => { sectionRefs.current['front-desk'] = el }}>
-        <div style={card}>
-          <div style={{ ...sectionTitle, justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><PhoneIncoming size={16} color={R} /> Virtual Front Desk</span>
+        {/* Section header with actions */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <PhoneIncoming size={20} color={R} /> Virtual Front Desk
+          </div>
+          {hasConfig && (
             <div style={{ display: 'flex', gap: 6 }}>
-              {hasConfig && (<>
-                <button onClick={fdAiScan} disabled={fdLoading} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, color: T, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: fdLoading ? 0.5 : 1 }}>
-                  {fdLoading ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={11} />} AI Scan
-                </button>
-                <button onClick={fdPreviewPrompt} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280', cursor: 'pointer' }}>Preview Prompt</button>
-              </>)}
-              <button onClick={() => fdSave(fdConfig)} disabled={fdSaving} style={{ padding: '4px 12px', borderRadius: 6, border: 'none', background: R, color: '#fff', fontSize: 11, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, opacity: fdSaving ? 0.5 : 1 }}>
-                {fdSaving ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={11} />} Save
+              <button onClick={fdAiScan} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, color: T, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: fdLoading ? 0.5 : 1 }}>
+                {fdLoading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} AI Scan
+              </button>
+              <button onClick={fdPreviewPrompt} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', cursor: 'pointer' }}>Preview Prompt</button>
+              <button onClick={() => fdSave(fdConfig)} disabled={fdSaving} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: fdSaving ? 0.5 : 1 }}>
+                {fdSaving ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={12} />} Save All
               </button>
             </div>
-          </div>
+          )}
+        </div>
 
           {!hasConfig && (
             <div style={{ padding: '20px 0', marginBottom: 16 }}>
@@ -1874,18 +1882,139 @@ export default function ClientDetailPage() {
           )}
 
           {hasConfig && (<>
-            {/* AI Scan bar */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '14px 16px', background: '#f0fdf4', borderRadius: 10, border: '1px solid #bbf7d0', alignItems: 'center' }}>
-              <Zap size={16} color={T} />
-              <span style={{ fontSize: 13, color: '#374151', fontFamily: FB, flex: 1 }}>Re-scan website + Google to refresh all fields</span>
-              <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} placeholder="Website URL" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, width: 240, color: BLK }} />
-              <input value={fd.gmb_url || ''} onChange={e => fdUpdate('gmb_url', e.target.value)} placeholder="GMB URL (optional)" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, width: 200, color: BLK }} />
-              <button onClick={fdAiScan} disabled={fdLoading} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', opacity: fdLoading ? 0.5 : 1 }}>
-                {fdLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={13} />} Scan
-              </button>
+
+            {/* ═══ CARD 1: Status + Phone Hero ═══ */}
+            <div style={{ ...fdCard, background: fd.retell_phone_number ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)', border: fd.retell_phone_number ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: fd.status === 'active' ? GRN + '15' : fd.status === 'paused' ? AMB + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Phone size={22} color={fd.status === 'active' ? GRN : fd.status === 'paused' ? AMB : '#9ca3af'} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, padding: '3px 8px', borderRadius: 20, border: 'none', background: fd.status === 'active' ? GRN + '15' : fd.status === 'paused' ? AMB + '15' : '#f3f4f6', color: fd.status === 'active' ? GRN : fd.status === 'paused' ? AMB : '#9ca3af', cursor: 'pointer' }}>
+                        <option value="draft">Draft</option>
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                      </select>
+                    </div>
+                    {fd.retell_phone_number ? (
+                      <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.02em' }}>{fd.retell_phone_number}</div>
+                    ) : (
+                      <div style={{ fontSize: 14, color: '#6b7280' }}>No phone number assigned</div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {fd.retell_phone_number ? (<>
+                    <button onClick={async () => {
+                      setFdLoading(true)
+                      try { const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_agent', client_id: clientId, agency_id: aid }) }); const data = await res.json(); if (data.error) throw new Error(data.error); toast.success('Agent synced') } catch (e) { toast.error(e.message) }
+                      setFdLoading(false)
+                    }} disabled={fdLoading} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: T, cursor: 'pointer' }}>Sync Agent</button>
+                    <button onClick={async () => {
+                      if (!confirm('Release this phone number?')) return; setFdLoading(true)
+                      try { const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release_number', client_id: clientId, agency_id: aid }) }); const data = await res.json(); if (data.error) throw new Error(data.error); fdUpdate('retell_phone_number', null); fdUpdate('retell_agent_id', null); toast.success('Number released') } catch (e) { toast.error(e.message) }
+                      setFdLoading(false)
+                    }} disabled={fdLoading} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>Release</button>
+                  </>) : (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <input id="fd-area-code" defaultValue="954" style={{ width: 60, padding: '8px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, textAlign: 'center', color: BLK }} />
+                      <button onClick={async () => {
+                        const ac = document.getElementById('fd-area-code')?.value || '954'; setFdLoading(true)
+                        try { const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'provision_number', client_id: clientId, agency_id: aid, area_code: ac }) }); const data = await res.json(); if (data.error) throw new Error(data.error); fdUpdate('retell_phone_number', data.phone_number); fdUpdate('retell_agent_id', data.agent_id); toast.success(`Number: ${data.phone_number}`) } catch (e) { toast.error(e.message) }
+                        setFdLoading(false)
+                      }} disabled={fdLoading} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: fdLoading ? 0.5 : 1 }}>
+                        {fdLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Phone size={13} />} Get Number
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Metrics strip */}
+              <div style={{ display: 'flex', gap: 20, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,.06)' }}>
+                {[
+                  { label: 'Calls', val: fd.total_calls || 0, color: T },
+                  { label: 'Appointments', val: fd.total_appointments || 0, color: GRN },
+                  { label: 'Transfers', val: fd.total_transfers || 0, color: AMB },
+                  { label: 'Voicemails', val: fd.total_voicemails || 0, color: '#7c3aed' },
+                ].map(s => (
+                  <div key={s.label}>
+                    <span style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: s.color }}>{s.val}</span>
+                    <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 4 }}>{s.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Status + basics */}
+            {/* ═══ CARD 2: Business Info ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<Globe size={16} color={T} />, 'Business Information')}
+              {/* AI Scan bar */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: '10px 12px', background: '#f9fafb', borderRadius: 8, alignItems: 'center' }}>
+                <Zap size={14} color={T} />
+                <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} placeholder="Website URL" style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
+                <input value={fd.gmb_url || ''} onChange={e => fdUpdate('gmb_url', e.target.value)} placeholder="GMB URL (optional)" style={{ width: 180, padding: '6px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, color: BLK }} />
+                <button onClick={fdAiScan} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', whiteSpace: 'nowrap', opacity: fdLoading ? 0.5 : 1 }}>
+                  {fdLoading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Scan
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div><label style={fdLabel}>Company Name</label><input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={fdInput} /></div>
+                <div><label style={fdLabel}>Industry</label><input value={fd.industry || ''} onChange={e => fdUpdate('industry', e.target.value)} style={fdInput} /></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div><label style={fdLabel}>Phone</label><input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={fdInput} /></div>
+                <div><label style={fdLabel}>Address</label><input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={fdInput} /></div>
+                <div><label style={fdLabel}>Timezone</label>
+                  <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={{ ...fdInput }}>
+                    {['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Phoenix','Pacific/Honolulu'].map(tz => <option key={tz} value={tz}>{tz.replace('America/', '').replace('Pacific/', '').replace(/_/g, ' ')}</option>)}
+                  </select>
+                </div>
+              </div>
+              {/* Hours */}
+              <label style={fdLabel}>Business Hours</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+                {DAYS.map(day => {
+                  const h = (fd.business_hours || {})[day]
+                  return (
+                    <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
+                      {h ? (<>
+                        <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', marginBottom: 3, color: BLK }} />
+                        <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '3px 4px', color: BLK }} />
+                        <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 11, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 3, fontWeight: 600 }}>Closed</button>
+                      </>) : (
+                        <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 12, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontWeight: 700 }}>+ Add</button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* ═══ CARD 3: Call Routing ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<Phone size={16} color={R} />, 'Call Routing & Transfer')}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div><label style={fdLabel}>Scheduling Contact</label><input value={fd.scheduling_department_name || ''} onChange={e => fdUpdate('scheduling_department_name', e.target.value)} placeholder="e.g. Rachel" style={fdInput} /></div>
+                <div><label style={fdLabel}>Transfer Phone</label><input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} placeholder="(555) 123-4567" style={fdInput} /></div>
+                <div><label style={fdLabel}>Online Scheduling URL</label><input value={fd.scheduling_link || ''} onChange={e => fdUpdate('scheduling_link', e.target.value)} placeholder="https://..." style={fdInput} /></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div><label style={fdLabel}>Transfer Timeout (sec)</label><input type="number" value={fd.transfer_timeout_seconds || 30} onChange={e => fdUpdate('transfer_timeout_seconds', parseInt(e.target.value) || 30)} style={{ ...fdInput, width: 100 }} /></div>
+                <div><label style={fdLabel}>Transfer Announcement</label><input value={fd.transfer_announce_template || 'You have an incoming call from {caller}. Press 1 to connect.'} onChange={e => fdUpdate('transfer_announce_template', e.target.value)} style={fdInput} /></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div><label style={fdLabel}>Voicemail Greeting</label><textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone..." style={{ ...fdInput, resize: 'vertical' }} /></div>
+                <div><label style={fdLabel}>Max Voicemail (sec)</label><input type="number" value={fd.voicemail_max_seconds || 120} onChange={e => fdUpdate('voicemail_max_seconds', parseInt(e.target.value) || 120)} style={{ ...fdInput, width: 100 }} /></div>
+              </div>
+            </div>
+
+            {/* ═══ CARD 4: Sendable Links ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<span style={{ fontSize: 16 }}>📲</span>, 'Sendable Links (SMS / Email)')}
+              <p style={{ fontSize: 13, color: '#6b7280', margin: '-8px 0 12px' }}>Links the AI can text or email to callers.</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
                 <label style={fdLabel}>Status</label>
@@ -2025,11 +2154,16 @@ export default function ClientDetailPage() {
               })()}
             </div>
 
-            {/* Services */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={fdLabel}>Services ({(fd.services || []).length})</label>
-              <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={5} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }} />
-            </div>
+            {/* ═══ CARD 5: Services & Insurance ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<span style={{ fontSize: 16 }}>🏥</span>, 'Services & Insurance')}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={fdLabel}>Services ({(fd.services || []).length})</label>
+                  <textarea value={(fd.services || []).join('\n')} onChange={e => fdUpdate('services', e.target.value.split('\n').filter(s => s.trim()))} rows={8} placeholder="One service per line" style={{ ...fdInput, resize: 'vertical' }} />
+                </div>
+                <div>
+                  <label style={{ ...fdLabel, marginBottom: 8 }}>Insurance Accepted</label>
 
             {/* Insurance */}
             <div style={{ marginBottom: 16 }}>
@@ -2099,179 +2233,55 @@ export default function ClientDetailPage() {
               })()}
             </div>
 
-            {/* Custom greeting + instructions */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-              <div>
-                <label style={fdLabel}>Custom Greeting</label>
-                <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="{greeting}, it's a great day at {company}!" style={fdInput} />
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Use {'{greeting}'} and {'{company}'} as placeholders</div>
-              </div>
-              <div>
-                <label style={fdLabel}>Additional Instructions</label>
-                <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={3} placeholder="Any special instructions for the AI..." style={{ ...fdInput, resize: 'vertical' }} />
               </div>
             </div>
 
-            {/* Toggles */}
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 16 }}>
-              {[
-                { key: 'hipaa_mode', label: 'HIPAA Mode' },
-                { key: 'transfer_enabled', label: 'Call Transfer' },
-                { key: 'sms_enabled', label: 'SMS Links' },
-                { key: 'recording_enabled', label: 'Recording' },
-                { key: 'voicemail_enabled', label: 'Voicemail' },
-                { key: 'allow_client_editing', label: 'Allow Client to Edit' },
-              ].map(t => (
-                <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontFamily: FH, fontWeight: 600, color: BLK, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R, width: 18, height: 18 }} />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-
-            {/* Phone Number */}
-            <div style={{ marginBottom: 16, padding: '16px', background: fd.retell_phone_number ? '#f0fdf4' : GRY, borderRadius: 12, border: `1px solid ${fd.retell_phone_number ? '#bbf7d0' : '#e5e7eb'}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fd.retell_phone_number ? 8 : 0 }}>
+            {/* ═══ CARD 6: AI Personality ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<Settings size={16} color="#6b7280" />, 'AI Personality & Settings')}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Phone size={15} color={fd.retell_phone_number ? GRN : '#9ca3af'} /> Phone Number
-                  </div>
-                  {fd.retell_phone_number ? (
-                    <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK, marginTop: 4 }}>{fd.retell_phone_number}</div>
-                  ) : (
-                    <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>No phone number assigned. Provision one to start receiving calls.</div>
-                  )}
+                  <label style={fdLabel}>Custom Greeting</label>
+                  <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="{greeting}, it's a great day at {company}!" style={fdInput} />
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>Use {'{greeting}'} and {'{company}'}</div>
                 </div>
-                {fd.retell_phone_number ? (
-                  <button onClick={async () => {
-                    if (!confirm('Release this phone number? Callers will no longer reach the AI receptionist.')) return
-                    setFdLoading(true)
-                    try {
-                      const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release_number', client_id: clientId, agency_id: aid }) })
-                      const data = await res.json()
-                      if (data.error) throw new Error(data.error)
-                      fdUpdate('retell_phone_number', null); fdUpdate('retell_agent_id', null)
-                      toast.success('Phone number released')
-                    } catch (e) { toast.error(e.message) }
-                    setFdLoading(false)
-                  }} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>
-                    Release Number
-                  </button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <input id="fd-area-code" defaultValue="954" placeholder="Area code" style={{ width: 70, padding: '8px 10px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, textAlign: 'center', color: BLK }} />
-                    <button onClick={async () => {
-                      const areaCode = document.getElementById('fd-area-code')?.value || '954'
-                      setFdLoading(true)
-                      try {
-                        const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'provision_number', client_id: clientId, agency_id: aid, area_code: areaCode }) })
-                        const data = await res.json()
-                        if (data.error) throw new Error(data.error)
-                        fdUpdate('retell_phone_number', data.phone_number); fdUpdate('retell_agent_id', data.agent_id)
-                        toast.success(`Phone number provisioned: ${data.phone_number}`)
-                      } catch (e) { toast.error(e.message) }
-                      setFdLoading(false)
-                    }} disabled={fdLoading} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: fdLoading ? 0.5 : 1 }}>
-                      {fdLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Phone size={13} />} Get a Number
-                    </button>
-                  </div>
-                )}
+                <div>
+                  <label style={fdLabel}>Additional Instructions</label>
+                  <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={3} placeholder="Special instructions for the AI..." style={{ ...fdInput, resize: 'vertical' }} />
+                </div>
               </div>
-              {fd.retell_phone_number && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                  <button onClick={async () => {
-                    setFdLoading(true)
-                    try {
-                      const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_agent', client_id: clientId, agency_id: aid }) })
-                      const data = await res.json()
-                      if (data.error) throw new Error(data.error)
-                      toast.success('AI agent synced with latest settings')
-                    } catch (e) { toast.error(e.message) }
-                    setFdLoading(false)
-                  }} disabled={fdLoading} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: T, cursor: 'pointer' }}>
-                    Sync Agent Settings
-                  </button>
-                </div>
-              )}
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                {[{ key: 'hipaa_mode', label: 'HIPAA Mode' },{ key: 'transfer_enabled', label: 'Call Transfer' },{ key: 'sms_enabled', label: 'SMS Links' },{ key: 'recording_enabled', label: 'Recording' },{ key: 'voicemail_enabled', label: 'Voicemail' },{ key: 'allow_client_editing', label: 'Allow Client to Edit' }].map(t => (
+                  <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R, width: 16, height: 16 }} /> {t.label}
+                  </label>
+                ))}
+              </div>
             </div>
 
-            {/* GHL Connection */}
-            <div style={{ marginBottom: 16, padding: '16px', background: fd.ghl_connected ? '#f0fdf4' : GRY, borderRadius: 12, border: `1px solid ${fd.ghl_connected ? '#bbf7d0' : '#e5e7eb'}` }}>
+            {/* ═══ CARD 7: Integrations (GHL) ═══ */}
+            <div style={{ ...fdCard, background: fd.ghl_connected ? '#f0fdf4' : undefined, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <ExternalLink size={15} color={fd.ghl_connected ? GRN : '#9ca3af'} /> GoHighLevel
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: fd.ghl_connected ? GRN + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ExternalLink size={18} color={fd.ghl_connected ? GRN : '#9ca3af'} />
                   </div>
-                  <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
-                    {fd.ghl_connected ? `Connected to location ${fd.ghl_location_id || ''}` : 'Connect this client\'s GHL sub-account for call syncing'}
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>GoHighLevel</div>
+                    <div style={{ fontSize: 13, color: '#6b7280' }}>{fd.ghl_connected ? `Connected — ${fd.ghl_location_id || ''}` : 'Connect for call syncing & contact push'}</div>
                   </div>
                 </div>
                 {fd.ghl_connected ? (
-                  <button onClick={async () => {
-                    if (!confirm('Disconnect this client from GHL?')) return
-                    await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) })
-                    fdUpdate('ghl_connected', false); fdUpdate('ghl_location_id', null)
-                    toast.success('GHL disconnected')
-                  }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>
-                    Disconnect
-                  </button>
+                  <button onClick={async () => { if (!confirm('Disconnect?')) return; await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) }); fdUpdate('ghl_connected', false); toast.success('Disconnected') }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>Disconnect</button>
                 ) : (
-                  <button onClick={async () => {
-                    try {
-                      const res = await fetch(`/api/ghl?action=get_client_oauth_url&agency_id=${aid}&client_id=${clientId}`)
-                      const data = await res.json()
-                      if (data.error) throw new Error(data.error)
-                      window.open(data.url, '_blank', 'width=600,height=700')
-                    } catch (e) { toast.error(e.message) }
-                  }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <ExternalLink size={13} /> Connect to GHL
-                  </button>
+                  <button onClick={async () => { try { const res = await fetch(`/api/ghl?action=get_client_oauth_url&agency_id=${aid}&client_id=${clientId}`); const data = await res.json(); if (data.error) throw new Error(data.error); window.open(data.url, '_blank', 'width=600,height=700') } catch (e) { toast.error(e.message) } }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><ExternalLink size={13} /> Connect</button>
                 )}
               </div>
             </div>
 
-            {/* Voicemail Settings */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={fdLabel}>Voicemail Settings</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={{ ...fdLabel, fontSize: 12 }}>Voicemail Greeting</label>
-                  <textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone, and someone will get back to you shortly." style={{ ...fdInput, resize: 'vertical' }} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div>
-                    <label style={{ ...fdLabel, fontSize: 12 }}>Transfer Timeout (seconds)</label>
-                    <input type="number" value={fd.transfer_timeout_seconds || 30} onChange={e => fdUpdate('transfer_timeout_seconds', parseInt(e.target.value) || 30)} style={{ ...fdInput, width: 100 }} />
-                  </div>
-                  <div>
-                    <label style={{ ...fdLabel, fontSize: 12 }}>Max Voicemail Length (seconds)</label>
-                    <input type="number" value={fd.voicemail_max_seconds || 120} onChange={e => fdUpdate('voicemail_max_seconds', parseInt(e.target.value) || 120)} style={{ ...fdInput, width: 100 }} />
-                  </div>
-                </div>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <label style={{ ...fdLabel, fontSize: 12 }}>Transfer Announcement</label>
-                <input value={fd.transfer_announce_template || 'You have an incoming call from {caller}. Press 1 to connect.'} onChange={e => fdUpdate('transfer_announce_template', e.target.value)} style={fdInput} />
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>What the office hears when the AI transfers a call. Use {'{caller}'} for the caller's name/number.</div>
-              </div>
-            </div>
-
-            {/* Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
-              {[
-                { label: 'Total Calls', val: fd.total_calls || 0, color: T },
-                { label: 'Appointments', val: fd.total_appointments || 0, color: GRN },
-                { label: 'Transfers', val: fd.total_transfers || 0, color: AMB },
-                { label: 'Voicemails', val: fd.total_voicemails || 0, color: '#7c3aed' },
-              ].map(s => (
-                <div key={s.label} style={{ textAlign: 'center', padding: '14px 8px', background: GRY, borderRadius: 10 }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: s.color }}>{s.val}</div>
-                  <div style={{ fontSize: 11, fontFamily: FH, color: '#6b7280', marginTop: 2 }}>{s.label}</div>
-                </div>
-              ))}
-            {/* Recent Calls */}
-            <div>
-              <label style={fdLabel}>Recent Calls</label>
+            {/* ═══ CARD 8: Call Log ═══ */}
+            <div style={fdCard}>
+              {fdCardTitle(<Activity size={16} color={T} />, `Recent Calls (${fdCalls.length})`)}
               {fdCalls.length === 0 ? (
                 <div style={{ background: GRY, borderRadius: 10, padding: '20px', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>
                   No calls yet. Once the phone number is active, calls will appear here.
@@ -2316,9 +2326,7 @@ export default function ClientDetailPage() {
               )}
             </div>
 
-            </div>
           </>)}
-        </div>
 
         {/* Prompt Preview Modal */}
         {fdPromptPreview && (
