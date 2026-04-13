@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Activity, BarChart2, BookOpen, Brain, CheckCircle, DollarSign, Eye, HelpCircle, CheckSquare, ChevronDown, ChevronRight, Clock, Code2, Cpu, CreditCard, Database, Download, Edit2, FileSignature, FileText, FlaskConical, Folder, Globe, HardDrive, Inbox, Key, Layers, LayoutGrid, LogOut, Mail, MapPin, MoreHorizontal, Phone, PhoneIncoming, Plug, Plus, Search, Settings, Shield, Sparkles, Star, Target, Trash2, TrendingUp, Users, Workflow, X, Zap
@@ -136,6 +136,15 @@ export default function Sidebar() {
   const [newProjClient,setNewProjClient]= useState(null)
   const [projectsMap,  setProjectsMap]  = useState({})
   const [searchQuery, setSearchQuery]   = useState('')
+  const navScrollRef = useRef(null)
+
+  // Restore sidebar scroll position after mount (survives route changes)
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('koto_sidebar_scroll')
+      if (saved && navScrollRef.current) navScrollRef.current.scrollTop = parseInt(saved, 10)
+    } catch {}
+  }, [])
 
   useEffect(()=>{ loadClients() },[aid])
 
@@ -219,8 +228,8 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Nav */}
-        <div style={{flex:1,overflowY:'auto',padding:'4px 6px',
+        {/* Nav — scroll position persists across route changes */}
+        <div ref={navScrollRef} onScroll={e => { try { sessionStorage.setItem('koto_sidebar_scroll', String(e.currentTarget.scrollTop)) } catch {} }} style={{flex:1,overflowY:'auto',padding:'4px 6px',
           scrollbarWidth:'none'}}>
 
           {/* ══════ CLIENT VIEW — ONLY shows tools the agency explicitly enabled ══════ */}
