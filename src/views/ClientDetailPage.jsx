@@ -297,7 +297,7 @@ export default function ClientDetailPage() {
 
       // Load front desk config
       try {
-        const fdRes = await fetch(`/api/front-desk?action=get&client_id=${clientId}`)
+        const fdRes = await fetch(`/api/front-desk?action=get&client_id=${clientId}&agency_id=${aid}`)
         const fdData = await fdRes.json()
         if (fdData.config) setFdConfig(fdData.config)
       } catch {}
@@ -1741,7 +1741,7 @@ export default function ClientDetailPage() {
     try {
       const res = await fetch('/api/front-desk', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save', client_id: clientId, ...cfg }),
+        body: JSON.stringify({ action: 'save', client_id: clientId, agency_id: aid, ...cfg }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -1756,7 +1756,7 @@ export default function ClientDetailPage() {
     try {
       const res = await fetch('/api/front-desk', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'seed_tsawc', client_id: clientId }),
+        body: JSON.stringify({ action: 'seed_tsawc', client_id: clientId, agency_id: aid }),
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
@@ -1768,7 +1768,7 @@ export default function ClientDetailPage() {
 
   async function fdPreviewPrompt() {
     try {
-      const res = await fetch(`/api/front-desk?action=preview_prompt&client_id=${clientId}`)
+      const res = await fetch(`/api/front-desk?action=preview_prompt&client_id=${clientId}&agency_id=${aid}`)
       const data = await res.json()
       if (data.error) throw new Error(data.error)
       setFdPromptPreview(data.prompt)

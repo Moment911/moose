@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const action = searchParams.get('action') || 'list'
-    const agency_id = await resolveAgencyId(req)
+    const agency_id = resolveAgencyId(req, searchParams)
     if (!agency_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const sb = getSupabase()
 
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { action } = body
-    const agency_id = await resolveAgencyId(req)
+    const agency_id = resolveAgencyId(req, undefined, body)
     if (!agency_id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const sb = getSupabase()
 

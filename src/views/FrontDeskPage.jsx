@@ -97,7 +97,7 @@ export default function FrontDeskPage() {
     setPromptLoading(true)
     setPromptText('')
     try {
-      const res = await fetch(`/api/front-desk?action=preview_prompt&client_id=${config.client_id}`)
+      const res = await fetch(`/api/front-desk?action=preview_prompt&client_id=${config.client_id}&agency_id=${agencyId}`)
       if (res.ok) {
         const data = await res.json()
         setPromptText(data.prompt || data.text || 'No prompt generated.')
@@ -129,7 +129,7 @@ export default function FrontDeskPage() {
       const res = await fetch('/api/front-desk', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'save', client_id: cl.id,
+          action: 'save', client_id: cl.id, agency_id: agencyId,
           company_name: cl.name || '', phone: cl.phone || '', website: cl.website || '',
           industry: cl.industry || '', timezone: 'America/New_York',
           business_hours: {}, services: [], insurance_accepted: [], staff_directory: [],
