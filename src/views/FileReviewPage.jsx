@@ -751,46 +751,48 @@ export default function FileReviewPage() {
                 </div>
               )}
 
-              {/* Pending pin comment popover — counteracts zoom scale */}
-              {pendingPin && (
-                <div style={{
-                  position: 'absolute',
-                  left: pendingPin.x + 14,
-                  top: pendingPin.y + 14,
-                  zIndex: 100,
-                  background: '#fff',
-                  borderRadius: 10,
-                  padding: 14,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                  minWidth: 280,
-                  transform: `scale(${1 / zoom})`,
-                  transformOrigin: 'top left',
-                }}>
-                  <textarea
-                    placeholder="Add a comment…"
-                    autoFocus
-                    rows={3}
-                    value={pendingComment}
-                    onChange={(e) => setPendingComment(e.target.value)}
-                    style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, fontSize: 16, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                  />
-                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                    <button
-                      onClick={submitPin}
-                      style={{ flex: 1, padding: '6px', background: TEAL, color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                      Add Comment
-                    </button>
-                    <button
-                      onClick={() => { setPendingPin(null); setPendingComment('') }}
-                      style={{ padding: '6px 10px', background: '#f9f9f9', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Pin popup rendered outside scaled container — see below */}
             </div>
           </div>
         </div>
+
+        {/* Pending pin comment popover — fixed position, outside scaled container */}
+        {pendingPin && canvasContainerRef.current && (() => {
+          const rect = canvasContainerRef.current.getBoundingClientRect()
+          const screenX = rect.left + (pendingPin.x * zoom) - canvasContainerRef.current.scrollLeft + 24 + 14
+          const screenY = rect.top + (pendingPin.y * zoom) - canvasContainerRef.current.scrollTop + 24 + 14
+          return (
+            <div style={{
+              position: 'fixed',
+              left: Math.min(screenX, window.innerWidth - 320),
+              top: Math.min(screenY, window.innerHeight - 200),
+              zIndex: 10000,
+              background: '#fff',
+              borderRadius: 12,
+              padding: 16,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+              width: 300,
+            }}>
+              <textarea
+                placeholder="Add a comment…"
+                autoFocus
+                rows={3}
+                value={pendingComment}
+                onChange={(e) => setPendingComment(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitPin() } if (e.key === 'Escape') { setPendingPin(null); setPendingComment('') } }}
+                style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none' }}
+              />
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button onClick={submitPin} style={{ flex: 1, padding: '10px', background: TEAL, color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  Add Comment
+                </button>
+                <button onClick={() => { setPendingPin(null); setPendingComment('') }} style={{ padding: '10px 16px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Comment sidebar */}
         <div style={{ width: 320, background: '#fff', borderLeft: '1px solid #2a2a2a', flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
