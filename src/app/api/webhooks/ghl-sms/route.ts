@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!clientId || !accessToken) {
-      return NextResponse.json({ ok: true }) // No matching client, ignore
+      return NextResponse.json({ ok: true, debug: 'no_client_match', locationId, hasMapping: !!mapping, hasClientId: !!clientId, hasToken: !!accessToken })
     }
 
     // Check if AI SMS is enabled for this client
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         message: messageText, message_type: 'general', ghl_contact_id: contactId,
         status: 'received', sent_via: 'ghl',
       })
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({ ok: true, debug: 'ai_sms_disabled', clientId, ai_sms_enabled: fdConfig?.ai_sms_enabled })
     }
 
     // Check business hours
