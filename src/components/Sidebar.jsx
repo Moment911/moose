@@ -198,27 +198,108 @@ export default function Sidebar() {
         fontFamily:"var(--font-body)",
       }}>
 
-        {/* Logo — client view shows agency logo (or Koto default), agency view shows Koto */}
-        <div style={{padding: showClientView ? '16px 16px 12px' : '20px 16px 14px', flexShrink:0, borderBottom:'1px solid #f3f4f6'}}>
-          {showClientView ? (
-            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6,cursor:'pointer'}} onClick={()=>navigate('/')}>
-              {authLoading ? (
-                <div style={{height:32}} />
-              ) : (agency?.brand_logo_url || agency?.logo_url) ? (
-                <img src={agency.brand_logo_url || agency.logo_url} alt={agency?.brand_name || 'Agency'} style={{height:32,maxWidth:160,objectFit:'contain',display:'block'}}/>
-              ) : (
-                <div style={{fontFamily:"'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif",fontSize:18,fontWeight:800,color:'#111',letterSpacing:'-.03em'}}>{agency?.brand_name || agencyName || 'Agency'}</div>
-              )}
-              <div style={{display:'flex',alignItems:'center',gap:4,opacity:0.5}}>
-                <span style={{fontSize:9,color:'#9ca3af',fontWeight:600,letterSpacing:'.04em'}}>Powered by</span>
-                <img src="/koto_logo.svg" alt="Koto" style={{height:12,width:'auto',display:'block'}}/>
+        {/* Workspace switcher */}
+        <div style={{ flexShrink: 0, borderBottom: '1px solid #e5e7eb', position: 'relative' }}>
+          <button onClick={() => isSuperAdmin ? setWsOpen(!wsOpen) : null}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 14px', border: 'none', background: 'none', cursor: isSuperAdmin ? 'pointer' : 'default', textAlign: 'left' }}
+            onMouseEnter={e => { if (isSuperAdmin) e.currentTarget.style.background = '#f9fafb' }}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+            {showClientView ? (
+              <>
+                {(agency?.brand_logo_url || agency?.logo_url) ? (
+                  <img src={agency.brand_logo_url || agency.logo_url} alt="" style={{ height: 24, maxWidth: 100, objectFit: 'contain' }} />
+                ) : (
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: R, flexShrink: 0 }}>
+                    {(agency?.brand_name || agencyName || 'A')[0].toUpperCase()}
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agency?.brand_name || agencyName || 'Agency'}</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '.04em' }}>Client Portal</div>
+                </div>
+              </>
+            ) : isImpersonating ? (
+              <>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: R, flexShrink: 0 }}>
+                  {(agencyName || 'A')[0].toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agencyName}</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '.04em' }}>Agency</div>
+                </div>
+                {isSuperAdmin && <ChevronDown size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />}
+              </>
+            ) : isSuperAdmin ? (
+              <>
+                <img src="/koto_logo.svg" alt="Koto" style={{ height: 22, width: 'auto' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>Koto Admin</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '.04em' }}>Platform</div>
+                </div>
+                <ChevronDown size={14} style={{ color: '#9ca3af', flexShrink: 0 }} />
+              </>
+            ) : (
+              <>
+                {(agency?.brand_logo_url || agency?.logo_url) ? (
+                  <img src={agency.brand_logo_url || agency.logo_url} alt="" style={{ height: 24, maxWidth: 100, objectFit: 'contain' }} />
+                ) : (
+                  <img src="/koto_logo.svg" alt="Koto" style={{ height: 22, width: 'auto' }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agencyName || 'Koto'}</div>
+                </div>
+              </>
+            )}
+          </button>
+
+          {/* Workspace dropdown */}
+          {wsOpen && isSuperAdmin && (
+            <div style={{ position: 'absolute', top: '100%', left: 8, right: 8, zIndex: 9999, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 8px 30px rgba(0,0,0,.12)', overflow: 'hidden', maxHeight: 400, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '10px 12px', borderBottom: '1px solid #f3f4f6', flexShrink: 0 }}>
+                <input value={wsSearch} onChange={e => setWsSearch(e.target.value)} placeholder="Search workspaces..." autoFocus
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#111', outline: 'none' }} />
+              </div>
+              <div style={{ overflowY: 'auto', flex: 1 }}>
+                {/* Koto Admin option */}
+                <button onClick={() => { stopImpersonating(); setWsOpen(false); setWsSearch(''); navigate('/') }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: !isImpersonating ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                  onMouseLeave={e => e.currentTarget.style.background = !isImpersonating ? '#f9fafb' : '#fff'}>
+                  <img src="/koto_logo.svg" alt="" style={{ height: 18, width: 'auto' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>Koto Platform Admin</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af' }}>All agencies & settings</div>
+                  </div>
+                  {!isImpersonating && <div style={{ width: 8, height: 8, borderRadius: '50%', background: R }} />}
+                </button>
+
+                {/* Agency list */}
+                {wsAgencies.filter(a => !wsSearch || (a.name || a.brand_name || '').toLowerCase().includes(wsSearch.toLowerCase())).map(a => {
+                  const isActive = agencyId === a.id
+                  return (
+                    <button key={a.id} onClick={() => { impersonateAgency(a); setWsOpen(false); setWsSearch(''); navigate('/clients') }}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: 'none', borderBottom: '1px solid #f3f4f6', background: isActive ? '#f9fafb' : '#fff', cursor: 'pointer', textAlign: 'left' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                      onMouseLeave={e => e.currentTarget.style.background = isActive ? '#f9fafb' : '#fff'}>
+                      {a.logo_url ? (
+                        <img src={a.logo_url} alt="" style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'contain', background: '#f3f4f6' }} />
+                      ) : (
+                        <div style={{ width: 24, height: 24, borderRadius: 6, background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: R, flexShrink: 0 }}>
+                          {(a.brand_name || a.name || '?')[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.brand_name || a.name}</div>
+                      </div>
+                      {isActive && <div style={{ width: 8, height: 8, borderRadius: '50%', background: R }} />}
+                    </button>
+                  )
+                })}
               </div>
             </div>
-          ) : (
-            <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <img src="/koto_logo.svg" alt="Koto" style={{height:28,width:'auto',display:'block'}}/>
-            </div>
           )}
+          {/* Click-away to close */}
+          {wsOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => { setWsOpen(false); setWsSearch('') }} />}
         </div>
 
         {/* Search — scoped to current hierarchy level */}
