@@ -1827,11 +1827,11 @@ export default function ClientDetailPage() {
     const fd = fdConfig || {}
     const hasConfig = !!fdConfig?.id
     const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-    const fdLabel = { fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: FH, display: 'block', marginBottom: 5 }
-    const fdInput = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, fontFamily: FB, color: BLK, outline: 'none' }
-    const fdCard = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 14 }
+    const fdLabel = { fontSize: 14, fontWeight: 700, color: '#111', fontFamily: FH, display: 'block', marginBottom: 8 }
+    const fdInput = { width: '100%', padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', fontSize: 15, fontFamily: FB, color: BLK, outline: 'none' }
+    const fdCard = { background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '28px 28px', marginBottom: 20 }
     const fdCardTitle = (icon, label, color = BLK) => (
-      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 14, borderBottom: '1px solid #f3f4f6' }}>
         {icon} {label}
       </div>
     )

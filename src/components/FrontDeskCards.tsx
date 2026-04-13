@@ -14,46 +14,49 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
   }
 
   return (
-    <div>
+    <div style={{ maxWidth: 900 }}>
 
       {/* CARD 1: Status + Phone */}
-      <div style={{ ...fdCard, background: fd.retell_phone_number ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)', border: fd.retell_phone_number ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ ...fdCard, background: fd.retell_phone_number ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' : 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)', border: fd.retell_phone_number ? '2px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: fd.status === 'active' ? GRN + '15' : fd.status === 'paused' ? AMB + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Phone size={22} color={fd.status === 'active' ? GRN : fd.status === 'paused' ? AMB : '#9ca3af'} />
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: fd.status === 'active' ? GRN + '15' : fd.status === 'paused' ? AMB + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Phone size={26} color={fd.status === 'active' ? GRN : fd.status === 'paused' ? AMB : '#9ca3af'} />
             </div>
             <div>
-              <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ fontSize: 12, fontWeight: 800, fontFamily: FH, padding: '3px 8px', borderRadius: 20, border: 'none', background: fd.status === 'active' ? GRN + '15' : fd.status === 'paused' ? AMB + '15' : '#f3f4f6', color: fd.status === 'active' ? GRN : fd.status === 'paused' ? AMB : '#9ca3af', cursor: 'pointer', marginBottom: 4 }}>
+              <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, padding: '4px 10px', borderRadius: 20, border: 'none', background: fd.status === 'active' ? GRN + '15' : fd.status === 'paused' ? AMB + '15' : '#f3f4f6', color: fd.status === 'active' ? GRN : fd.status === 'paused' ? AMB : '#9ca3af', cursor: 'pointer', marginBottom: 6 }}>
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
                 <option value="paused">Paused</option>
               </select>
               {fd.retell_phone_number
-                ? <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: BLK }}>{fd.retell_phone_number}</div>
-                : <div style={{ fontSize: 14, color: '#6b7280' }}>No phone number assigned</div>
+                ? <div style={{ fontSize: 26, fontWeight: 800, fontFamily: FH, color: BLK, letterSpacing: '-.01em' }}>{fd.retell_phone_number}</div>
+                : <div style={{ fontSize: 16, color: '#6b7280' }}>No phone number assigned</div>
               }
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {fd.retell_phone_number ? (
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={async () => { setFdLoading(true); try { const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Agent synced') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: T, cursor: 'pointer' }}>Sync Agent</button>
-                <button onClick={async () => { if (!confirm('Release this phone number?')) return; setFdLoading(true); try { const d = await doFetch('release_number'); if (d.error) throw new Error(d.error); fdUpdate('retell_phone_number', null); fdUpdate('retell_agent_id', null); toast.success('Released') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>Release</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={async () => { setFdLoading(true); try { const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Agent synced') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, color: T, cursor: 'pointer' }}>Sync Agent</button>
+                <button onClick={async () => { if (!confirm('Release this phone number?')) return; setFdLoading(true); try { const d = await doFetch('release_number'); if (d.error) throw new Error(d.error); fdUpdate('retell_phone_number', null); fdUpdate('retell_agent_id', null); toast.success('Released') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, color: R, cursor: 'pointer' }}>Release</button>
               </div>
             ) : (
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <input id="fd-area-code" defaultValue="954" style={{ width: 60, padding: '8px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, textAlign: 'center', color: BLK }} />
-                <button onClick={async () => { const ac = (document.getElementById('fd-area-code') as any)?.value || '954'; setFdLoading(true); try { const d = await doFetch('provision_number', { area_code: ac }); if (d.error) throw new Error(d.error); fdUpdate('retell_phone_number', d.phone_number); fdUpdate('retell_agent_id', d.agent_id); toast.success('Number: ' + d.phone_number) } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: fdLoading ? 0.5 : 1 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input id="fd-area-code" defaultValue="954" style={{ width: 70, padding: '12px', borderRadius: 10, border: '1px solid #d1d5db', fontSize: 15, textAlign: 'center', color: BLK, fontWeight: 700 }} />
+                <button onClick={async () => { const ac = (document.getElementById('fd-area-code') as any)?.value || '954'; setFdLoading(true); try { const d = await doFetch('provision_number', { area_code: ac }); if (d.error) throw new Error(d.error); fdUpdate('retell_phone_number', d.phone_number); fdUpdate('retell_agent_id', d.agent_id); toast.success('Number: ' + d.phone_number) } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: fdLoading ? 0.5 : 1 }}>
                   {fdLoading ? 'Provisioning...' : 'Get Number'}
                 </button>
               </div>
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 20, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,.06)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginTop: 20, paddingTop: 18, borderTop: '1px solid rgba(0,0,0,.06)' }}>
           {[{ label: 'Calls', val: fd.total_calls || 0, color: T }, { label: 'Appointments', val: fd.total_appointments || 0, color: GRN }, { label: 'Transfers', val: fd.total_transfers || 0, color: AMB }, { label: 'Voicemails', val: fd.total_voicemails || 0, color: '#7c3aed' }].map(s => (
-            <div key={s.label}><span style={{ fontSize: 20, fontWeight: 800, fontFamily: FH, color: s.color }}>{s.val}</span><span style={{ fontSize: 12, color: '#6b7280', marginLeft: 4 }}>{s.label}</span></div>
+            <div key={s.label} style={{ textAlign: 'center', padding: '10px 0' }}>
+              <div style={{ fontSize: 28, fontWeight: 800, fontFamily: FH, color: s.color }}>{s.val}</div>
+              <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginTop: 2 }}>{s.label}</div>
+            </div>
           ))}
         </div>
       </div>
@@ -127,7 +130,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
           <div><label style={fdLabel}>Voicemail Greeting</label><textarea value={fd.voicemail_greeting || ''} onChange={e => fdUpdate('voicemail_greeting', e.target.value)} rows={2} placeholder="Please leave your message after the tone..." style={{ ...fdInput, resize: 'vertical' }}></textarea></div>
           <div><label style={fdLabel}>Max Voicemail (sec)</label><input type="number" value={fd.voicemail_max_seconds || 120} onChange={e => fdUpdate('voicemail_max_seconds', parseInt(e.target.value) || 120)} style={{ ...fdInput, width: 100 }} /></div>
         </div>
-        <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Call routing saved & synced to agent') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', width: '100%', opacity: fdLoading ? 0.5 : 1 }}>
+        <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Call routing saved & synced to agent') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '14px 24px', borderRadius: 12, border: 'none', background: R, color: '#fff', fontSize: 16, fontWeight: 700, fontFamily: FH, cursor: 'pointer', width: '100%', opacity: fdLoading ? 0.5 : 1 }}>
           {fdLoading ? 'Saving & Syncing...' : 'Save & Sync Call Routing'}
         </button>
       </div>
@@ -213,16 +216,16 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <label style={{ ...fdLabel, marginBottom: 0 }}>Additional Instructions & Directives</label>
-            <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Saved & synced to LLM') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: R, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, opacity: fdLoading ? 0.5 : 1 }}>
+            <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); const d = await doFetch('update_agent'); if (d.error) throw new Error(d.error); toast.success('Saved & synced to LLM') } catch (e) { toast.error(e.message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: fdLoading ? 0.5 : 1 }}>
               {fdLoading ? 'Saving...' : 'Save & Sync to LLM'}
             </button>
           </div>
           <textarea value={fd.custom_instructions || ''} onChange={e => fdUpdate('custom_instructions', e.target.value)} rows={12} placeholder="Add instructions for the AI receptionist..." style={{ ...fdInput, resize: 'vertical', minHeight: 220 }}></textarea>
         </div>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          {[{ key: 'hipaa_mode', label: 'HIPAA Mode' },{ key: 'transfer_enabled', label: 'Call Transfer' },{ key: 'sms_enabled', label: 'SMS Links' },{ key: 'recording_enabled', label: 'Recording' },{ key: 'voicemail_enabled', label: 'Voicemail' },{ key: 'allow_client_editing', label: 'Allow Client to Edit' }].map(t => (
-            <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontFamily: FH, fontWeight: 600, color: BLK, cursor: 'pointer' }}>
-              <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R, width: 16, height: 16 }} /> {t.label}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 8 }}>
+          {[{ key: 'hipaa_mode', label: 'HIPAA Mode' },{ key: 'transfer_enabled', label: 'Call Transfer' },{ key: 'sms_enabled', label: 'SMS Links' },{ key: 'recording_enabled', label: 'Recording' },{ key: 'voicemail_enabled', label: 'Voicemail' },{ key: 'allow_client_editing', label: 'Client Editing' }].map(t => (
+            <label key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontFamily: FH, fontWeight: 600, color: BLK, cursor: 'pointer', padding: '10px 14px', borderRadius: 10, border: '1px solid ' + (fd[t.key] ? R + '40' : '#e5e7eb'), background: fd[t.key] ? R + '08' : '#fff' }}>
+              <input type="checkbox" checked={fd[t.key] ?? false} onChange={e => fdUpdate(t.key, e.target.checked)} style={{ accentColor: R, width: 20, height: 20 }} /> {t.label}
             </label>
           ))}
         </div>
@@ -235,17 +238,17 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       <div style={{ ...fdCard, background: fd.ghl_connected ? '#f0fdf4' : undefined, border: fd.ghl_connected ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: fd.ghl_connected ? GRN + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ExternalLink size={18} color={fd.ghl_connected ? GRN : '#9ca3af'} />
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: fd.ghl_connected ? GRN + '15' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ExternalLink size={22} color={fd.ghl_connected ? GRN : '#9ca3af'} />
             </div>
             <div>
-              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>GoHighLevel</div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>{fd.ghl_connected ? 'Connected' : 'Connect for call syncing'}</div>
+              <div style={{ fontFamily: FH, fontSize: 17, fontWeight: 800, color: BLK }}>GoHighLevel</div>
+              <div style={{ fontSize: 14, color: '#6b7280' }}>{fd.ghl_connected ? 'Connected — calls & SMS sync to CRM' : 'Connect for call & SMS syncing'}</div>
             </div>
           </div>
           {fd.ghl_connected
-            ? <button onClick={async () => { if (!confirm('Disconnect?')) return; await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) }); fdUpdate('ghl_connected', false); toast.success('Disconnected') }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #fecaca', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: R, cursor: 'pointer' }}>Disconnect</button>
-            : <button onClick={async () => { try { const res = await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'connect_client_direct', agency_id: aid, client_id: clientId }) }); const d = await res.json(); if (d.error) throw new Error(d.error); fdUpdate('ghl_connected', true); toast.success('Connected to GHL' + (d.location_name ? ' — ' + d.location_name : '')) } catch (e) { toast.error((e as any).message) } }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Connect</button>
+            ? <button onClick={async () => { if (!confirm('Disconnect?')) return; await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'disconnect_client', agency_id: aid, client_id: clientId }) }); fdUpdate('ghl_connected', false); toast.success('Disconnected') }} style={{ padding: '12px 20px', borderRadius: 10, border: '1px solid #fecaca', background: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, color: R, cursor: 'pointer' }}>Disconnect</button>
+            : <button onClick={async () => { try { const res = await fetch('/api/ghl', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'connect_client_direct', agency_id: aid, client_id: clientId }) }); const d = await res.json(); if (d.error) throw new Error(d.error); fdUpdate('ghl_connected', true); toast.success('Connected to GHL' + (d.location_name ? ' — ' + d.location_name : '')) } catch (e) { toast.error((e as any).message) } }} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Connect</button>
           }
         </div>
       </div>
@@ -316,7 +319,7 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
           )}
         </div>
 
-        <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); toast.success('SMS settings saved') } catch (e) { toast.error((e as any).message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', width: '100%', opacity: fdLoading ? 0.5 : 1 }}>
+        <button onClick={async () => { setFdLoading(true); try { if (fdSave) await fdSave(); toast.success('SMS settings saved') } catch (e) { toast.error((e as any).message) } setFdLoading(false) }} disabled={fdLoading || fdSaving} style={{ padding: '14px 24px', borderRadius: 12, border: 'none', background: R, color: '#fff', fontSize: 16, fontWeight: 700, fontFamily: FH, cursor: 'pointer', width: '100%', opacity: fdLoading ? 0.5 : 1 }}>
           {fdLoading ? 'Saving...' : 'Save SMS Settings'}
         </button>
       </div>
