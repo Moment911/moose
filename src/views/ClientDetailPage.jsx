@@ -2040,86 +2040,6 @@ export default function ClientDetailPage() {
             <div style={fdCard}>
               {fdCardTitle(<span style={{ fontSize: 16 }}>📲</span>, 'Sendable Links (SMS / Email)')}
               <p style={{ fontSize: 13, color: '#6b7280', margin: '-8px 0 12px' }}>Links the AI can text or email to callers.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
-              <div>
-                <label style={fdLabel}>Status</label>
-                <select value={fd.status || 'draft'} onChange={e => fdUpdate('status', e.target.value)} style={{ ...fdInput }}>
-                  <option value="draft">Draft</option>
-                  <option value="active">Active</option>
-                  <option value="paused">Paused</option>
-                </select>
-              </div>
-              <div>
-                <label style={fdLabel}>Company Name</label>
-                <input value={fd.company_name || ''} onChange={e => fdUpdate('company_name', e.target.value)} style={fdInput} />
-              </div>
-              <div>
-                <label style={fdLabel}>Timezone</label>
-                <select value={fd.timezone || 'America/New_York'} onChange={e => fdUpdate('timezone', e.target.value)} style={{ ...fdInput }}>
-                  {['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Phoenix','Pacific/Honolulu'].map(tz => <option key={tz} value={tz}>{tz.replace('America/', '').replace('Pacific/', '').replace(/_/g, ' ')}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
-              <div>
-                <label style={fdLabel}>Phone</label>
-                <input value={fd.phone || ''} onChange={e => fdUpdate('phone', e.target.value)} style={fdInput} />
-              </div>
-              <div>
-                <label style={fdLabel}>Website</label>
-                <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} style={fdInput} />
-              </div>
-              <div>
-                <label style={fdLabel}>Address</label>
-                <input value={fd.address || ''} onChange={e => fdUpdate('address', e.target.value)} style={fdInput} />
-              </div>
-            </div>
-
-            {/* Business Hours */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={fdLabel}>Business Hours</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginTop: 4 }}>
-                {DAYS.map(day => {
-                  const h = (fd.business_hours || {})[day]
-                  return (
-                    <div key={day} style={{ background: GRY, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK, textTransform: 'capitalize', marginBottom: 6 }}>{day.slice(0, 3)}</div>
-                      {h ? (
-                        <span>
-                          <input type="time" value={h.open || '09:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })} style={{ width: '100%', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px', marginBottom: 4, color: BLK }} />
-                          <input type="time" value={h.close || '17:00'} onChange={e => fdUpdate('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })} style={{ width: '100%', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px', color: BLK }} />
-                          <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 12, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, fontWeight: 600 }}>Set Closed</button>
-                        </span>
-                      ) : (
-                        <button onClick={() => fdUpdate('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 13, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '12px 0', fontWeight: 700 }}>+ Add Hours</button>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Scheduling */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
-              <div>
-                <label style={fdLabel}>Scheduling Contact</label>
-                <input value={fd.scheduling_department_name || ''} onChange={e => fdUpdate('scheduling_department_name', e.target.value)} placeholder="e.g. Rachel" style={fdInput} />
-              </div>
-              <div>
-                <label style={fdLabel}>Scheduling Phone</label>
-                <input value={fd.scheduling_department_phone || ''} onChange={e => fdUpdate('scheduling_department_phone', e.target.value)} style={fdInput} />
-              </div>
-              <div>
-                <label style={fdLabel}>Online Scheduling URL</label>
-                <input value={fd.scheduling_link || ''} onChange={e => fdUpdate('scheduling_link', e.target.value)} placeholder="https://..." style={fdInput} />
-              </div>
-            </div>
-
-            {/* Sendable Links */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ ...fdLabel, marginBottom: 8 }}>Sendable Links (SMS / Email)</label>
-              <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 10px' }}>Links the AI receptionist can text or email to callers during a conversation.</p>
               {(() => {
                 const links = fd.sendable_links || []
                 const DEFAULT_TYPES = [
@@ -2177,6 +2097,7 @@ export default function ClientDetailPage() {
                   </span>
                 )
               })()}
+            </div>
             </div>
 
             {/* ═══ CARD 5: Services & Insurance ═══ */}
