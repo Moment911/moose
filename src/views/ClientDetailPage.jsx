@@ -1834,18 +1834,46 @@ export default function ClientDetailPage() {
           </div>
 
           {!hasConfig && (
-            <div style={{ textAlign: 'center', padding: '24px 0', marginBottom: 16 }}>
-              <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 12 }}>No front desk configured yet.</p>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                <button onClick={() => fdSave({ company_name: client?.name || '', phone: client?.phone || '', website: client?.website || '', industry: client?.industry || '', timezone: 'America/New_York', business_hours: {}, services: [], insurance_accepted: [], staff_directory: [], hipaa_mode: false, transfer_enabled: true, sms_enabled: true, status: 'draft' })} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Create Config</button>
-                <button onClick={fdSeedTsawc} disabled={fdLoading} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', cursor: 'pointer' }}>
-                  {fdLoading ? 'Loading...' : 'Seed TSAWC Test Data'}
+            <div style={{ padding: '20px 0', marginBottom: 16 }}>
+              <p style={{ fontSize: 15, color: BLK, fontFamily: FH, fontWeight: 700, marginBottom: 4 }}>Get started — enter the business website</p>
+              <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>AI will scan the website and Google Business Profile to auto-fill services, hours, address, insurance, and more.</p>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <input id="fd-setup-url" defaultValue={client?.website || ''} placeholder="https://www.example.com" style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '1px solid #d1d5db', fontSize: 15, fontFamily: FB, color: BLK }} />
+                <button onClick={async () => {
+                  const url = document.getElementById('fd-setup-url').value.trim()
+                  if (!url) { toast.error('Enter a website URL'); return }
+                  // Create the config first, then scan
+                  await fdSave({ company_name: client?.name || '', phone: client?.phone || '', website: url, industry: client?.industry || '', timezone: 'America/New_York', business_hours: {}, services: [], insurance_accepted: [], staff_directory: [], hipaa_mode: false, transfer_enabled: true, sms_enabled: true, status: 'draft' })
+                  // Now trigger AI scan
+                  setFdLoading(true)
+                  try {
+                    const res = await fetch('/api/front-desk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ai_scan', client_id: clientId, agency_id: aid, website: url, business_name: client?.name }) })
+                    const data = await res.json()
+                    if (data.results) { setFdConfig(prev => ({ ...prev, ...data.results })); toast.success(`Found ${data.fields_found.length} fields from AI scan`) }
+                  } catch (e) { toast.error(e.message) }
+                  setFdLoading(false)
+                }} disabled={fdLoading} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', opacity: fdLoading ? 0.5 : 1 }}>
+                  {fdLoading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Scanning...</> : <><Zap size={16} /> Scan &amp; Build</>}
                 </button>
               </div>
+              <button onClick={fdSeedTsawc} disabled={fdLoading} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, fontFamily: FH, color: '#9ca3af', cursor: 'pointer' }}>
+                {fdLoading ? 'Loading...' : 'Load TSAWC test data instead'}
+              </button>
             </div>
           )}
 
           {hasConfig && (<>
+            {/* AI Scan bar */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16, padding: '14px 16px', background: '#f0fdf4', borderRadius: 10, border: '1px solid #bbf7d0', alignItems: 'center' }}>
+              <Zap size={16} color={T} />
+              <span style={{ fontSize: 13, color: '#374151', fontFamily: FB, flex: 1 }}>Re-scan website + Google to refresh all fields</span>
+              <input value={fd.website || ''} onChange={e => fdUpdate('website', e.target.value)} placeholder="Website URL" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, width: 240, color: BLK }} />
+              <input value={fd.gmb_url || ''} onChange={e => fdUpdate('gmb_url', e.target.value)} placeholder="GMB URL (optional)" style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, width: 200, color: BLK }} />
+              <button onClick={fdAiScan} disabled={fdLoading} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', opacity: fdLoading ? 0.5 : 1 }}>
+                {fdLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={13} />} Scan
+              </button>
+            </div>
+
             {/* Status + basics */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div>
