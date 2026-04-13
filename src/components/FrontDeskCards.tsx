@@ -199,6 +199,31 @@ export default function FrontDeskCards({ fd, fdCard, fdCardTitle, fdLabel, fdInp
       <div style={fdCard}>
         {fdCardTitle(<Settings size={16} color="#6b7280" />, 'AI Personality & Settings')}
         <div style={{ marginBottom: 14 }}>
+          <label style={fdLabel}>Voice</label>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { id: '11labs-Marissa', name: 'Marissa', desc: 'Warm & friendly', gender: 'F' },
+              { id: '11labs-Myra', name: 'Myra', desc: 'Professional & calm', gender: 'F' },
+              { id: '11labs-Paola', name: 'Paola', desc: 'Bright & upbeat', gender: 'F' },
+              { id: '11labs-Karina', name: 'Karina', desc: 'Soft & natural', gender: 'F' },
+              { id: '11labs-Adrian', name: 'Adrian', desc: 'Confident & clear', gender: 'M' },
+              { id: '11labs-Nathan', name: 'Nathan', desc: 'Warm & approachable', gender: 'M' },
+              { id: '11labs-Ryan', name: 'Ryan', desc: 'Energetic & natural', gender: 'M' },
+              { id: '11labs-Josh', name: 'Josh', desc: 'Calm & reassuring', gender: 'M' },
+            ].map(v => (
+              <button key={v.id} onClick={() => fdUpdate('voice_id', v.id)} style={{
+                padding: '8px 14px', borderRadius: 10,
+                border: (fd.voice_id || '11labs-Marissa') === v.id ? '2px solid ' + R : '1px solid #e5e7eb',
+                background: (fd.voice_id || '11labs-Marissa') === v.id ? R + '08' : '#fff',
+                cursor: 'pointer', textAlign: 'left', minWidth: 130,
+              }}>
+                <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{v.name}</div>
+                <div style={{ fontSize: 11, color: '#6b7280' }}>{v.desc} · {v.gender === 'F' ? 'Female' : 'Male'}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
           <label style={fdLabel}>Custom Greeting</label>
           <input value={fd.custom_greeting || ''} onChange={e => fdUpdate('custom_greeting', e.target.value)} placeholder="Hello, thanks for calling Our Office!" style={fdInput} />
         </div>
