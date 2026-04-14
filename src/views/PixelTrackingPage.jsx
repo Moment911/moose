@@ -171,9 +171,21 @@ export default function PixelTrackingPage() {
     toast.success('Copied to clipboard')
   }
 
+  const [ga4Data, setGa4Data] = useState(null)
+  const [ga4Loading, setGa4Loading] = useState(false)
+
+  async function loadGA4() {
+    setGa4Loading(true)
+    const data = await apiGet('get_ga4_data', {})
+    if (data && !data.error) setGa4Data(data)
+    else toast.error(data?.error || 'Failed to load GA4 data')
+    setGa4Loading(false)
+  }
+
   const TABS = [
     { key:'live', label:'Live', icon:Radio },
     { key:'visitors', label:`Visitors${profiles.length ? ` (${profiles.length})` : ''}`, icon:Users },
+    { key:'analytics', label:'GA4 Analytics', icon:TrendingUp },
     { key:'pixels', label:'Pixels', icon:Layers },
     { key:'integrations', label:'Integrations', icon:Settings },
   ]
@@ -570,6 +582,162 @@ export default function PixelTrackingPage() {
                 }
               }}
             />
+          )}
+
+          {/* ══════════════════════════════════════════════════════════════
+             GA4 ANALYTICS TAB
+             ══════════════════════════════════════════════════════════════ */}
+          {tab === 'analytics' && (
+            <div>
+              {!ga4Data && !ga4Loading && (
+                <div style={{ textAlign:'center', padding:'80px 20px' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
+                    <TrendingUp size={28} color="#d1d5db" />
+                  </div>
+                  <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin:'0 0 8px' }}>Google Analytics 4</h3>
+                  <p style={{ fontSize: 14, color:'#6b7280', fontFamily: FB, maxWidth: 440, margin:'0 auto', marginBottom: 20 }}>
+                    Pull real-time analytics from your GA4 property to enrich visitor intelligence.
+                  </p>
+                  <button onClick={loadGA4} style={{
+                    padding:'12px 28px', borderRadius: 10, border:'none', background: BLK, color: W,
+                    fontSize: 14, fontWeight: 700, fontFamily: FH, cursor:'pointer',
+                  }}>
+                    Pull GA4 Data
+                  </button>
+                </div>
+              )}
+              {ga4Loading && (
+                <div style={{ textAlign:'center', padding: 60 }}>
+                  <Loader2 size={28} color={BLK} style={{ animation:'spin 1s linear infinite' }} />
+                  <p style={{ fontSize: 13, color:'#6b7280', fontFamily: FB, marginTop: 12 }}>Fetching from Google Analytics...</p>
+                </div>
+              )}
+              {ga4Data && (
+                <div>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 24 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: '#4285F4' + '12', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <TrendingUp size={18} color="#4285F4" />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>GA4 Analytics</div>
+                        <div style={{ fontSize: 13, color:'#6b7280', marginTop: 1 }}>
+                          Property {ga4Data.property_id} &middot; {ga4Data.date_range?.start} to {ga4Data.date_range?.end}
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={loadGA4} style={{
+                      display:'flex', alignItems:'center', gap: 6, padding:'8px 16px', borderRadius: 8,
+                      border:'1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 600, fontFamily: FB, cursor:'pointer', color: BLK,
+                    }}>
+                      <RefreshCw size={13} /> Refresh
+                    </button>
+                  </div>
+
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 20 }}>
+                    {/* Top Pages */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
+                        <FileText size={16} color={T} />
+                        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Top Pages</div>
+                        <span style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB, marginLeft:'auto' }}>{ga4Data.pages?.length || 0} pages</span>
+                      </div>
+                      {(ga4Data.pages || []).slice(0, 15).map((pg, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 0', borderBottom: i < 14 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, color: BLK, fontFamily: FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pg.title || pg.path}</div>
+                            <div style={{ fontSize: 11, color:'#9ca3af', fontFamily: FB }}>{pg.path}</div>
+                          </div>
+                          <div style={{ display:'flex', gap: 12, flexShrink: 0, textAlign:'right' }}>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 800, fontFamily: FH, color: BLK }}>{pg.views}</div>
+                              <div style={{ fontSize: 10, color:'#9ca3af', fontFamily: FH }}>views</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 800, fontFamily: FH, color: T }}>{Math.round(pg.avg_duration)}s</div>
+                              <div style={{ fontSize: 10, color:'#9ca3af', fontFamily: FH }}>avg</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Traffic Sources */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
+                        <Target size={16} color={R} />
+                        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Traffic Sources</div>
+                      </div>
+                      {(ga4Data.traffic_sources || []).slice(0, 10).map((src, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 0', borderBottom: i < 9 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{src.channel}</div>
+                            <div style={{ fontSize: 11, color:'#9ca3af', fontFamily: FB }}>{src.source}</div>
+                          </div>
+                          <div style={{ display:'flex', gap: 16, textAlign:'right' }}>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 800, fontFamily: FH, color: BLK }}>{src.sessions}</div>
+                              <div style={{ fontSize: 10, color:'#9ca3af' }}>sessions</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 800, fontFamily: FH, color: T }}>{src.users}</div>
+                              <div style={{ fontSize: 10, color:'#9ca3af' }}>users</div>
+                            </div>
+                            {src.conversions > 0 && (
+                              <div>
+                                <div style={{ fontSize: 14, fontWeight: 800, fontFamily: FH, color: GRN }}>{src.conversions}</div>
+                                <div style={{ fontSize: 10, color:'#9ca3af' }}>conv</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Geography */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
+                        <MapPin size={16} color={AMB} />
+                        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Top Locations</div>
+                      </div>
+                      {(ga4Data.geography || []).slice(0, 12).map((geo, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 0', borderBottom: i < 11 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div style={{ fontSize: 13, color: BLK, fontFamily: FB }}>
+                            {geo.city}{geo.city !== '(not set)' && geo.region ? `, ${geo.region}` : ''}{geo.country && geo.country !== 'US' ? ` (${geo.country})` : ''}
+                          </div>
+                          <div style={{ display:'flex', gap: 12 }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK }}>{geo.sessions}</span>
+                            <span style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB }}>{geo.users} users</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Devices */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
+                        <Monitor size={16} color={GRN} />
+                        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Devices & Browsers</div>
+                      </div>
+                      {(ga4Data.devices || []).slice(0, 12).map((dev, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'7px 0', borderBottom: i < 11 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
+                            <DeviceIcon type={dev.category} size={14} color="#6b7280" />
+                            <div style={{ fontSize: 13, color: BLK, fontFamily: FB }}>
+                              {dev.browser} / {dev.os}
+                            </div>
+                          </div>
+                          <div style={{ display:'flex', gap: 12 }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: BLK }}>{dev.sessions}</span>
+                            <span style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB }}>{dev.users} users</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* ══════════════════════════════════════════════════════════════

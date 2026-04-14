@@ -13,6 +13,117 @@ function sb() {
   )
 }
 
+// ── GA4 data pull — uses existing Google OAuth credentials ──
+async function fetchGA4Analytics(propertyId: string): Promise<any> {
+  const clientId = process.env.GOOGLE_ADS_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
+  const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET || ''
+  const refreshToken = (process.env.GOOGLE_ADS_REFRESH_TOKEN || '').replace(/\\n/g, '').trim()
+
+  if (!clientId || !clientSecret || !refreshToken) return null
+
+  try {
+    // Get fresh access token
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: 'refresh_token' }),
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) return null
+
+    const accessToken = tokenData.access_token
+    const today = new Date()
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 86400000)
+    const startDate = thirtyDaysAgo.toISOString().split('T')[0]
+    const endDate = today.toISOString().split('T')[0]
+
+    // Pull multiple reports in parallel
+    const [pageReport, trafficReport, geoReport, deviceReport] = await Promise.all([
+      // Top pages
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate, endDate }],
+          dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
+          metrics: [{ name: 'screenPageViews' }, { name: 'averageSessionDuration' }, { name: 'bounceRate' }],
+          limit: 50, orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+      // Traffic sources
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate, endDate }],
+          dimensions: [{ name: 'sessionDefaultChannelGroup' }, { name: 'sessionSource' }],
+          metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'conversions' }],
+          limit: 20,
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+      // Geography
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate, endDate }],
+          dimensions: [{ name: 'city' }, { name: 'region' }, { name: 'country' }],
+          metrics: [{ name: 'activeUsers' }, { name: 'sessions' }],
+          limit: 30, orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+      // Devices
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate, endDate }],
+          dimensions: [{ name: 'deviceCategory' }, { name: 'operatingSystem' }, { name: 'browser' }],
+          metrics: [{ name: 'sessions' }, { name: 'activeUsers' }],
+          limit: 20,
+        }),
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+    ])
+
+    return {
+      fetched_at: new Date().toISOString(),
+      property_id: propertyId,
+      date_range: { start: startDate, end: endDate },
+      pages: pageReport?.rows?.map((r: any) => ({
+        path: r.dimensionValues?.[0]?.value,
+        title: r.dimensionValues?.[1]?.value,
+        views: parseInt(r.metricValues?.[0]?.value || '0'),
+        avg_duration: parseFloat(r.metricValues?.[1]?.value || '0'),
+        bounce_rate: parseFloat(r.metricValues?.[2]?.value || '0'),
+      })) || [],
+      traffic_sources: trafficReport?.rows?.map((r: any) => ({
+        channel: r.dimensionValues?.[0]?.value,
+        source: r.dimensionValues?.[1]?.value,
+        sessions: parseInt(r.metricValues?.[0]?.value || '0'),
+        users: parseInt(r.metricValues?.[1]?.value || '0'),
+        conversions: parseInt(r.metricValues?.[2]?.value || '0'),
+      })) || [],
+      geography: geoReport?.rows?.map((r: any) => ({
+        city: r.dimensionValues?.[0]?.value,
+        region: r.dimensionValues?.[1]?.value,
+        country: r.dimensionValues?.[2]?.value,
+        users: parseInt(r.metricValues?.[0]?.value || '0'),
+        sessions: parseInt(r.metricValues?.[1]?.value || '0'),
+      })) || [],
+      devices: deviceReport?.rows?.map((r: any) => ({
+        category: r.dimensionValues?.[0]?.value,
+        os: r.dimensionValues?.[1]?.value,
+        browser: r.dimensionValues?.[2]?.value,
+        sessions: parseInt(r.metricValues?.[0]?.value || '0'),
+        users: parseInt(r.metricValues?.[1]?.value || '0'),
+      })) || [],
+    }
+  } catch (e) {
+    console.warn('[pixel] GA4 fetch error:', e)
+    return null
+  }
+}
+
 // ── Auto-enrich domain + generate AI persona (fire-and-forget) ──
 async function autoEnrichAndPersona(s: any, profileId: string, domain: string | null) {
   try {
@@ -153,6 +264,14 @@ export async function GET(req: NextRequest) {
   if (action === 'get_integrations') {
     const { data } = await s.from('koto_pixel_integrations').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false })
     return Response.json({ data: data || [] })
+  }
+
+  // ── GA4 Analytics Data ────────────────────────────────────────
+  if (action === 'get_ga4_data') {
+    const propertyId = searchParams.get('property_id') || process.env.GA4_PROPERTY_ID || '529449358'
+    const data = await fetchGA4Analytics(propertyId)
+    if (!data) return Response.json({ error: 'Failed to fetch GA4 data — check OAuth credentials' }, { status: 500 })
+    return Response.json(data)
   }
 
   // ── Backfill profiles from existing sessions ──────────────────
