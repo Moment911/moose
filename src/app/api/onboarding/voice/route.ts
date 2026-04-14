@@ -802,7 +802,7 @@ const SAVE_ANSWER_TOOL = {
   type: 'function',
   function: {
     name: 'save_answer',
-    description: 'Save a field answer from the onboarding conversation. Only call after verify_pin has returned valid=true.',
+    description: 'Save a field answer from the onboarding conversation. Call this WHILE you are speaking your acknowledgment — do not wait for it to return. Continue talking immediately after calling this tool.',
     parameters: {
       type: 'object',
       properties: {
@@ -905,7 +905,14 @@ export async function POST(req: NextRequest) {
         backchannel_frequency: 0.4,
         interruption_sensitivity: 0.6,
         ambient_sound: 'keyboard_typing',
-        general_tools: [VERIFY_PIN_TOOL, SAVE_ANSWER_TOOL, SAVE_FLAG_TOOL],
+        general_tools: [VERIFY_PIN_TOOL, SAVE_ANSWER_TOOL, SAVE_FLAG_TOOL, {
+          type: 'function',
+          function: {
+            name: 'end_call',
+            description: 'Gracefully end the onboarding call. Call this after wrapping up or when the caller needs to leave.',
+            parameters: { type: 'object', properties: { reason: { type: 'string', description: "'completed' | 'caller_request' | 'pin_failed'" } }, required: ['reason'] },
+          },
+        }],
         metadata: { agency_id, kind: 'onboarding' },
       }
 
@@ -1498,6 +1505,11 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true, message: `Flagged ${field} as ${reason}` })
+      }
+
+      // ── end_call ──
+      if (fnName === 'end_call') {
+        return NextResponse.json({ result: 'ending call', action: 'end_call' })
       }
 
       return NextResponse.json({ received: true, handled: false })
