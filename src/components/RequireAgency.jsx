@@ -29,7 +29,7 @@ export default function RequireAgency({ children }) {
   if (isAdminPath) return children
 
   // Super admin NOT impersonating, on an agency-scoped page — must pick
-  return <AgencyPicker onSelect={impersonateAgency} />
+  return <AgencyPicker onSelect={(agency) => { impersonateAgency(agency); window.location.reload() }} />
 }
 
 function AgencyPicker({ onSelect }) {
