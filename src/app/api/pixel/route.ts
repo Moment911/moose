@@ -16,7 +16,7 @@ function sb() {
 // ── GA4 data pull — uses existing Google OAuth credentials ──
 async function fetchGA4Analytics(propertyId: string): Promise<any> {
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
-  const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET || ''
+  const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || ''
   const refreshToken = (process.env.GOOGLE_ADS_REFRESH_TOKEN || '').replace(/\\n/g, '').trim()
 
   if (!clientId || !clientSecret || !refreshToken) return null
