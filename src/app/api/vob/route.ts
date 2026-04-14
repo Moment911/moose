@@ -31,39 +31,47 @@ async function retellFetch(path: string, method = 'GET', body?: any) {
 const VOB_RETELL_TOOLS = [
   {
     type: 'function',
-    name: 'save_vob_answer',
-    description: 'Save a verified insurance benefit answer. Call this WHILE speaking your acknowledgment — do not wait for the response.',
-    parameters: { type: 'object', properties: {
-      field: { type: 'string', description: 'VOB field name (e.g. plan_status, ded_individual_in, coinsurance_in)' },
-      value: { type: 'string', description: 'The verified answer value' },
-      confidence: { type: 'number', description: 'Confidence score 0-100' },
-    }, required: ['field', 'value'] },
+    function: {
+      name: 'save_vob_answer',
+      description: 'Save a verified insurance benefit answer. Call this WHILE speaking your acknowledgment — do not wait for the response.',
+      parameters: { type: 'object', properties: {
+        field: { type: 'string', description: 'VOB field name (e.g. plan_status, ded_individual_in, coinsurance_in)' },
+        value: { type: 'string', description: 'The verified answer value' },
+        confidence: { type: 'number', description: 'Confidence score 0-100' },
+      }, required: ['field', 'value'] },
+    },
   },
   {
     type: 'function',
-    name: 'navigate_ivr',
-    description: 'Log an IVR navigation step (pressing a button, entering a number, or noting a menu option).',
-    parameters: { type: 'object', properties: {
-      action: { type: 'string', description: 'What was pressed or entered' },
-      description: { type: 'string', description: 'What the IVR prompt said' },
-    }, required: ['action'] },
+    function: {
+      name: 'navigate_ivr',
+      description: 'Log an IVR navigation step (pressing a button, entering a number, or noting a menu option).',
+      parameters: { type: 'object', properties: {
+        action: { type: 'string', description: 'What was pressed or entered' },
+        description: { type: 'string', description: 'What the IVR prompt said' },
+      }, required: ['action'] },
+    },
   },
   {
     type: 'function',
-    name: 'escalate_call',
-    description: 'Flag this call for human review when the rep refuses to provide information or the call is stuck.',
-    parameters: { type: 'object', properties: {
-      reason: { type: 'string', description: 'Why escalation is needed' },
-    }, required: ['reason'] },
+    function: {
+      name: 'escalate_call',
+      description: 'Flag this call for human review when the rep refuses to provide information or the call is stuck.',
+      parameters: { type: 'object', properties: {
+        reason: { type: 'string', description: 'Why escalation is needed' },
+      }, required: ['reason'] },
+    },
   },
   {
     type: 'function',
-    name: 'end_call',
-    description: 'Gracefully end the verification call.',
-    parameters: { type: 'object', properties: {
-      reason: { type: 'string', description: "'completed' | 'rep_unavailable' | 'escalated' | 'carrier_closed'" },
-      summary: { type: 'string', description: 'Brief summary of what was verified' },
-    }, required: ['reason'] },
+    function: {
+      name: 'end_call',
+      description: 'Gracefully end the verification call.',
+      parameters: { type: 'object', properties: {
+        reason: { type: 'string', description: "'completed' | 'rep_unavailable' | 'escalated' | 'carrier_closed'" },
+        summary: { type: 'string', description: 'Brief summary of what was verified' },
+      }, required: ['reason'] },
+    },
   },
 ]
 
