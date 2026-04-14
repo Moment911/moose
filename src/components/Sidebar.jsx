@@ -160,8 +160,8 @@ export default function Sidebar() {
   useEffect(()=>{ loadClients() },[aid])
 
   async function loadClients() {
-    const data = await getClients(aid)
-    setClients(data||[])
+    const result = await getClients(aid)
+    setClients(Array.isArray(result) ? result : result?.data || [])
   }
 
   async function toggleClient(cid) {
