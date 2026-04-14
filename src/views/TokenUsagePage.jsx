@@ -434,7 +434,7 @@ export default function TokenUsagePage() {
                       <div key={prov} style={{ background: `${cfg.color}10`, borderRadius: 10, padding: '12px 14px', borderLeft: `3px solid ${cfg.color}` }}>
                         <div style={{ fontSize: 11, fontWeight: 800, color: cfg.color, marginBottom: 4 }}>{cfg.icon} {cfg.label}</div>
                         <div style={{ fontSize: 20, fontWeight: 900, color: '#111' }}>{fmtCostLarge(stats.total_cost)}</div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{fmt(stats.input_tokens + stats.output_tokens)} tokens · {stats.calls} calls</div>
+                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>{fmt(stats.input_tokens + stats.output_tokens)} tokens · {stats.calls} calls</div>
                       </div>
                     )
                   })}
@@ -590,7 +590,7 @@ export default function TokenUsagePage() {
                     <thead>
                       <tr style={{ background: '#f9fafb' }}>
                         {['Date', 'Type', 'Description', 'Amount'].map(h => (
-                          <th key={h} style={{ padding: '8px 14px', textAlign: h === 'Amount' ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 10 }}>{h}</th>
+                          <th key={h} style={{ padding: '8px 14px', textAlign: h === 'Amount' ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 12 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -599,7 +599,7 @@ export default function TokenUsagePage() {
                         <tr key={row.id} style={{ borderTop: '1px solid #f9fafb' }}>
                           <td style={{ padding: '8px 14px', color: '#6b7280' }}>{row.date}</td>
                           <td style={{ padding: '8px 14px' }}>
-                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#8b5cf620', color: '#8b5cf6', fontWeight: 700, fontSize: 10, textTransform: 'capitalize' }}>
+                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#8b5cf620', color: '#8b5cf6', fontWeight: 700, fontSize: 12, textTransform: 'capitalize' }}>
                               {row.metadata?.type || 'subscription'}
                             </span>
                           </td>
@@ -697,11 +697,11 @@ export default function TokenUsagePage() {
                     <XAxis
                       dataKey="timestamp"
                       tickFormatter={(ts) => tickLabel(ts, granularity)}
-                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      tick={{ fontSize: 12, fill: '#9ca3af' }}
                     />
                     <YAxis
                       tickFormatter={(v) => `$${Number(v).toFixed(4)}`}
-                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      tick={{ fontSize: 12, fill: '#9ca3af' }}
                       width={70}
                     />
                     <Tooltip
@@ -712,7 +712,7 @@ export default function TokenUsagePage() {
                     <Bar dataKey="cost" fill="#E6007E" radius={[3, 3, 0, 0]} style={{ cursor: 'pointer' }} />
                   </BarChart>
                 </ResponsiveContainer>
-                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, textAlign: 'center' }}>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 6, textAlign: 'center' }}>
                   Click any bar to drill into {granularity === 'month' ? 'daily' : granularity === 'week' || granularity === 'day' ? 'hourly' : granularity === 'hour' ? '15-minute' : 'per-minute'} view
                 </div>
               </div>
@@ -728,7 +728,7 @@ export default function TokenUsagePage() {
                   <thead>
                     <tr style={{ background: '#f9fafb' }}>
                       {['Feature', 'Model', 'Input', 'Output', 'Total Tokens', 'Cost', 'When'].map(h => (
-                        <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 10 }}>{h}</th>
+                        <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontSize: 12 }}>{h}</th>
                       ))}
                     </tr>
                   </thead>

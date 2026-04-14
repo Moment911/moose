@@ -1,9 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 
-const R   = '#E6007E',T='#00C2CB',GRN='#16a34a',AMB='#f59e0b',BLK='#111111'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRN, AMB, FH, FB } from '../lib/theme'
 
 function StatusDot({status}){
   const c=status==='operational'?GRN:status==='degraded'?AMB:R
@@ -18,7 +16,7 @@ function StatusBadge({status}){
 
 function IncidentSeverity({severity}){
   const c=severity==='critical'?R:severity==='major'?AMB:T
-  return <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:c+'20',color:c,fontFamily:FH,textTransform:'uppercase'}}>{severity}</span>
+  return <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:c+'20',color:c,fontFamily:FH,textTransform:'uppercase'}}>{severity}</span>
 }
 
 export default function StatusPage(){
@@ -131,7 +129,7 @@ export default function StatusPage(){
                 </div>
                 <div style={{fontFamily:FH,fontSize:15,fontWeight:700,color:BLK,marginBottom:6}}>{inc.title}</div>
                 <div style={{fontSize:13,color:'#6b7280',fontFamily:FB,lineHeight:1.6}}>{inc.description}</div>
-                {inc.services?.length>0&&<div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>{inc.services.map(s=><span key={s} style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:10,background:'#f3f4f6',color:'#6b7280',fontFamily:FH}}>{s}</span>)}</div>}
+                {inc.services?.length>0&&<div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>{inc.services.map(s=><span key={s} style={{fontSize:12,fontWeight:600,padding:'2px 8px',borderRadius:10,background:'#f3f4f6',color:'#6b7280',fontFamily:FH}}>{s}</span>)}</div>}
                 {(inc.updates||[]).length>0&&(
                   <div style={{marginTop:12,borderTop:'1px solid #f3f4f6',paddingTop:10}}>
                     {[...(inc.updates||[])].reverse().map((u,i)=>(

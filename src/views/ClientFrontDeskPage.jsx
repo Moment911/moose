@@ -152,21 +152,21 @@ export default function ClientFrontDeskPage() {
                     const h = (fd.business_hours || {})[day]
                     return (
                       <div key={day} style={{ background: GRY, borderRadius: 8, padding: '8px 6px', textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, fontFamily: FH, color: '#6b7280', textTransform: 'capitalize', marginBottom: 4 }}>{day.slice(0, 3)}</div>
                         {h ? (
                           <>
                             <input type="time" value={h.open || '09:00'} disabled={!editable}
                               onChange={e => update('business_hours', { ...fd.business_hours, [day]: { ...h, open: e.target.value } })}
-                              style={{ width: '100%', fontSize: 10, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2, marginBottom: 2 }} />
+                              style={{ width: '100%', fontSize: 12, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2, marginBottom: 2 }} />
                             <input type="time" value={h.close || '17:00'} disabled={!editable}
                               onChange={e => update('business_hours', { ...fd.business_hours, [day]: { ...h, close: e.target.value } })}
-                              style={{ width: '100%', fontSize: 10, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2 }} />
-                            {editable && <button onClick={() => update('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 9, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 2 }}>Closed</button>}
+                              style={{ width: '100%', fontSize: 12, border: '1px solid #e5e7eb', borderRadius: 4, padding: 2 }} />
+                            {editable && <button onClick={() => update('business_hours', { ...fd.business_hours, [day]: null })} style={{ fontSize: 11, color: R, background: 'none', border: 'none', cursor: 'pointer', marginTop: 2 }}>Closed</button>}
                           </>
                         ) : (
                           editable
-                            ? <button onClick={() => update('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 10, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>+ Add</button>
-                            : <div style={{ fontSize: 10, color: '#9ca3af', padding: '8px 0' }}>Closed</div>
+                            ? <button onClick={() => update('business_hours', { ...fd.business_hours, [day]: { open: '09:00', close: '17:00' } })} style={{ fontSize: 12, color: T, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0' }}>+ Add</button>
+                            : <div style={{ fontSize: 12, color: '#9ca3af', padding: '8px 0' }}>Closed</div>
                         )}
                       </div>
                     )
@@ -261,7 +261,7 @@ export default function ClientFrontDeskPage() {
                 <input value={fd.custom_greeting || ''} onChange={e => update('custom_greeting', e.target.value)} disabled={!editable}
                   placeholder="{greeting}, it's a great day at {company}!"
                   style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, background: editable ? '#fff' : '#f9fafb' }} />
-                <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>Use {'{greeting}'} for Good morning/afternoon/evening and {'{company}'} for your business name</div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>Use {'{greeting}'} for Good morning/afternoon/evening and {'{company}'} for your business name</div>
               </div>
 
               {/* Call Stats */}

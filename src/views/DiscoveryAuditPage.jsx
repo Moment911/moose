@@ -310,7 +310,7 @@ function CircularGauge({ value, color }) {
         <div style={{ fontSize: 26, fontWeight: 800, color, fontFamily: 'var(--font-display)', lineHeight: 1 }}>
           {Math.round(value)}
         </div>
-        <div style={{ fontSize: 9, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 2 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginTop: 2 }}>
           Health
         </div>
       </div>
@@ -328,7 +328,7 @@ function StickyNav({ active, onSelect }) {
       border: `1px solid ${C.border}`, padding: 10, maxHeight: 'calc(100vh - 40px)', overflowY: 'auto',
     }}>
       <div style={{
-        fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase',
+        fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase',
         letterSpacing: '.08em', padding: '6px 10px 8px',
       }}>
         Audit Sections
@@ -462,7 +462,7 @@ function CriticalFindings({ findings }) {
                   background: palette.bg, border: `1px solid ${palette.border}`, borderRadius: 10, padding: 14,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: palette.fg, color: '#fff', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: palette.fg, color: '#fff', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                       {sev}
                     </span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: palette.fg, textTransform: 'uppercase', letterSpacing: '.04em' }}>
@@ -528,14 +528,14 @@ function Opportunities({ opps }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                 <span style={{
-                  fontSize: 10, fontWeight: 800, padding: '2px 9px', borderRadius: 10,
+                  fontSize: 12, fontWeight: 800, padding: '2px 9px', borderRadius: 10,
                   background: prioBg, color: prioColor, textTransform: 'uppercase', letterSpacing: '.05em',
                 }}>
                   {String(prio).replace('_', ' ')}
                 </span>
                 {o.estimated_effort && (
                   <span style={{
-                    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                    fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                     background: '#f3f4f6', color: effortColor, textTransform: 'uppercase',
                   }}>
                     {o.estimated_effort} effort
@@ -548,7 +548,7 @@ function Opportunities({ opps }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, marginBottom: 10 }}>
                 {o.estimated_impact && (
                   <div>
-                    <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>
+                    <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>
                       Estimated Impact
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.green, marginTop: 2 }}>{o.estimated_impact}</div>
@@ -556,7 +556,7 @@ function Opportunities({ opps }) {
                 )}
                 {o.revenue_potential && (
                   <div>
-                    <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>
+                    <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>
                       Revenue Potential
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginTop: 2 }}>{o.revenue_potential}</div>
@@ -609,7 +609,7 @@ function TechAudit({ audit }) {
           )}
           {Array.isArray(cat.gaps) && cat.gaps.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: C.amber, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: C.amber, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>
                 Gaps
               </div>
               <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -645,7 +645,7 @@ function TechAudit({ audit }) {
                       <td style={{ ...tdStyle, fontWeight: 700 }}>{r.tool}</td>
                       <td style={tdStyle}>
                         <span style={{
-                          fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
+                          fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 10,
                           background: palette.bg, color: palette.fg, textTransform: 'uppercase', letterSpacing: '.05em',
                         }}>
                           {prio}
@@ -667,7 +667,7 @@ function TechAudit({ audit }) {
   )
 }
 
-const thStyle = { fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: C.muted, padding: '8px 12px', textAlign: 'left' }
+const thStyle = { fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: C.muted, padding: '8px 12px', textAlign: 'left' }
 const tdStyle = { padding: '10px 12px', fontSize: 13, color: C.text, verticalAlign: 'top' }
 
 // ─────────────────────────────────────────────────────────────
@@ -703,7 +703,7 @@ function LeadGenPlan({ plan }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{c.channel}</div>
                     <span style={{
-                      fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                      fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                       background: usageColor.bg, color: usageColor.fg, textTransform: 'uppercase', letterSpacing: '.04em',
                     }}>
                       {c.current_usage}
@@ -766,7 +766,7 @@ function FunnelCol({ label, value, color }) {
       background: `${color}10`, border: `1px solid ${color}30`,
       borderRadius: 10, padding: 12, borderTop: `3px solid ${color}`,
     }}>
-      <div style={{ fontSize: 10, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
         {label}
       </div>
       <div style={{ fontSize: 12, color: C.mutedDark, lineHeight: 1.5 }}>{value || '—'}</div>
@@ -819,7 +819,7 @@ function CrmPlan({ plan }) {
                   </div>
                   {Array.isArray(p.actions) && p.actions.length > 0 && (
                     <div style={{ marginBottom: 10 }}>
-                      <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, marginBottom: 4 }}>
+                      <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, marginBottom: 4 }}>
                         Actions
                       </div>
                       <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -831,7 +831,7 @@ function CrmPlan({ plan }) {
                   )}
                   {Array.isArray(p.deliverables) && p.deliverables.length > 0 && (
                     <div>
-                      <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, marginBottom: 4 }}>
+                      <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700, marginBottom: 4 }}>
                         Deliverables
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -1057,7 +1057,7 @@ function InvestSummary({ data }) {
 function InvestStat({ label, value }) {
   return (
     <div style={{ background: C.white, borderRadius: 8, padding: 12, border: `1px solid ${C.border}` }}>
-      <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 3 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 3 }}>
         {label}
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{value || '—'}</div>

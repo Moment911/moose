@@ -8,9 +8,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../hooks/useMobile'
 import { MobilePage, MobilePageHeader } from '../components/mobile/MobilePage'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',W='#ffffff',GRN='#16a34a',AMB='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, W, GRN, AMB, FH, FB } from '../lib/theme'
 
 const KOTO_SYSTEM_PROMPT = `You are the Koto Help Center AI assistant. Koto is an AI-powered marketing agency platform that helps digital agencies manage clients, generate SEO content, handle reviews, find leads, and optimize performance marketing.
 
@@ -342,7 +340,7 @@ export default function HelpCenterPage() {
                     {msg.role === 'ai' && (
                       <span style={{
                         display: 'inline-block', background: `linear-gradient(135deg, ${T}, #8b5cf6)`,
-                        color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                        color: '#fff', fontSize: 12, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
                         marginBottom: 6, marginRight: 4
                       }}>AI</span>
                     )}

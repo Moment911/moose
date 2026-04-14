@@ -54,7 +54,7 @@ function SourceBadge({ kind, title }) {
       display: 'inline-flex', alignItems: 'center', gap: 4,
       padding: '2px 7px', borderRadius: 20,
       background: s.bg, color: s.fg, border: `1px solid ${s.border}`,
-      fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4,
+      fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4,
       whiteSpace: 'nowrap',
     }}>
       {kind}
@@ -575,8 +575,8 @@ export default function CogReportPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Icon size={13} color={cat.color} />
                         <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{cat.label}</span>
-                        {over && <span style={{ padding: '1px 7px', borderRadius: 10, background: '#fef2f2', color: '#dc2626', fontSize: 10, fontWeight: 800 }}>OVER BUDGET</span>}
-                        {warn && <span style={{ padding: '1px 7px', borderRadius: 10, background: '#fffbeb', color: '#f59e0b', fontSize: 10, fontWeight: 800 }}>{pct}%</span>}
+                        {over && <span style={{ padding: '1px 7px', borderRadius: 10, background: '#fef2f2', color: '#dc2626', fontSize: 12, fontWeight: 800 }}>OVER BUDGET</span>}
+                        {warn && <span style={{ padding: '1px 7px', borderRadius: 10, background: '#fffbeb', color: '#f59e0b', fontSize: 12, fontWeight: 800 }}>{pct}%</span>}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
                         <span style={{ color: '#374151', fontWeight: 700 }}>{fmt$(monthlyBurn)}</span>
@@ -627,12 +627,12 @@ export default function CogReportPage() {
                   <div key={svc.key} style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>{svc.label}</div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: '#111', lineHeight: 1 }}>{fmt$(svc.total)}</div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6 }}>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 6 }}>
                       {svc.api_cost > 0 && <span>API: {fmt$4(svc.api_cost)} · </span>}
                       {svc.platform_cost > 0 && <span>Flat: {fmt$(svc.platform_cost)}</span>}
                     </div>
                     {svc.calls > 0 && (
-                      <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
                         {svc.calls} calls · {Number(svc.tokens).toLocaleString()} tokens
                       </div>
                     )}
@@ -678,7 +678,7 @@ export default function CogReportPage() {
                       <div style={{ fontWeight: 700, color: '#111', marginBottom: 2 }}>
                         {event.title}
                       </div>
-                      <div style={{ color: '#9ca3af', fontSize: 10 }}>
+                      <div style={{ color: '#9ca3af', fontSize: 12 }}>
                         {event.cost ? `${fmt$4(event.cost)} · ` : ''}
                         {event.tokens ? `${Number(event.tokens).toLocaleString()} tokens · ` : ''}
                         {event.time ? formatDistanceToNow(new Date(event.time), { addSuffix: true }) : ''}
@@ -759,7 +759,7 @@ export default function CogReportPage() {
                     <thead>
                       <tr style={{ background: '#f9fafb' }}>
                         {['Deploy', 'When', 'Before', 'After', 'Change', 'Top Feature'].map((h) => (
-                          <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>{h}</th>
+                          <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 12 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -837,7 +837,7 @@ export default function CogReportPage() {
                           )
                         })}
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: '#9ca3af' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12, color: '#9ca3af' }}>
                         <span>{trend.days[0]?.day}</span>
                         <span>{trend.days[trend.days.length - 1]?.day}</span>
                       </div>
@@ -854,7 +854,7 @@ export default function CogReportPage() {
                       const pct = prev > 0 ? Math.round((delta / prev) * 100) : null
                       return (
                         <div key={month} style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 14px' }}>
-                          <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{month}</div>
+                          <div style={{ fontSize: 12, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{month}</div>
                           <div style={{ fontSize: 20, fontWeight: 900, color: '#111', marginTop: 4 }}>{fmt$(vals.total)}</div>
                           {pct !== null && (
                             <div style={{ fontSize: 11, color: delta > 0 ? '#dc2626' : '#16a34a', fontWeight: 700, marginTop: 2 }}>
@@ -882,7 +882,7 @@ export default function CogReportPage() {
                     <thead>
                       <tr style={{ background: '#f9fafb' }}>
                         {['Feature', 'Calls', 'Avg / call', 'Total', 'Tokens', 'Primary model'].map((h, i) => (
-                          <th key={h} style={{ padding: '8px 14px', textAlign: i >= 1 && i <= 3 ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>{h}</th>
+                          <th key={h} style={{ padding: '8px 14px', textAlign: i >= 1 && i <= 3 ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 12 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -1036,7 +1036,7 @@ export default function CogReportPage() {
                     <thead>
                       <tr style={{ background: '#f9fafb' }}>
                         {['Date', 'Type', 'Description', 'Amount'].map(h => (
-                          <th key={h} style={{ padding: '8px 16px', textAlign: h === 'Amount' ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 10 }}>{h}</th>
+                          <th key={h} style={{ padding: '8px 16px', textAlign: h === 'Amount' ? 'right' : 'left', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 12 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -1045,7 +1045,7 @@ export default function CogReportPage() {
                         <tr key={row.id} style={{ borderTop: '1px solid #f9fafb' }}>
                           <td style={{ padding: '9px 16px', color: '#6b7280' }}>{row.date}</td>
                           <td style={{ padding: '9px 16px' }}>
-                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#f3f4f6', color: '#374151', fontWeight: 700, fontSize: 10 }}>
+                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 20, background: '#f3f4f6', color: '#374151', fontWeight: 700, fontSize: 12 }}>
                               {row.cost_type}
                             </span>
                           </td>

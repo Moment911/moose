@@ -10,9 +10,8 @@ import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b', PURP = '#7c3aed'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+const PURP = '#7c3aed'
 
 const TABS = ['Agent Simulator', 'Script Tester', 'Campaign Stress Test', 'Compliance Checker']
 const NODE_COLORS = { agent: GRN, branch: T, objection: AMB, end: R, appointment: PURP }
@@ -743,11 +742,11 @@ export default function VoiceTestConsolePage() {
                     <div style={{ fontFamily: FB, fontSize: 13, color: '#555', width: 140 }}>{m.label}</div>
                     <div style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'center' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: FB, fontSize: 10, color: T, marginBottom: 2 }}>Yours</div>
+                        <div style={{ fontFamily: FB, fontSize: 12, color: T, marginBottom: 2 }}>Yours</div>
                         <div style={{ height: 8, background: T, borderRadius: 4, width: `${Math.min((m.yours / Math.max(m.yours, m.bench)) * 100, 100)}%` }} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: FB, fontSize: 10, color: '#aaa', marginBottom: 2 }}>Benchmark</div>
+                        <div style={{ fontFamily: FB, fontSize: 12, color: '#aaa', marginBottom: 2 }}>Benchmark</div>
                         <div style={{ height: 8, background: '#ddd', borderRadius: 4, width: `${Math.min((m.bench / Math.max(m.yours, m.bench)) * 100, 100)}%` }} />
                       </div>
                     </div>

@@ -14,15 +14,7 @@ import toast from 'react-hot-toast'
 import { useMobile } from '../../hooks/useMobile'
 import { MobilePage, MobilePageHeader, MobileStatStrip, MobileTabs, MobileCard, MobileSectionHeader, MobileRow, MobileEmpty } from '../../components/mobile/MobilePage'
 
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, W, GRN, AMB, FH, FB } from '../../lib/theme'
 const RED = R, TEAL = T, BLACK = BLK, GREEN = GRN
 
 function fmt(n, type='number') {

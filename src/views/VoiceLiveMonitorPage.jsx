@@ -11,9 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 function fmtDur(s) { if (!s) return '0:00'; const m = Math.floor(s/60); return `${m}:${String(s%60).padStart(2,'0')}` }
 function timeAgo(d) { if (!d) return ''; const diff = Date.now()-new Date(d).getTime(); const m = Math.floor(diff/60000); if (m<1) return 'just now'; if (m<60) return `${m}m ago`; const h = Math.floor(m/60); if (h<24) return `${h}h ago`; return `${Math.floor(h/24)}d ago` }

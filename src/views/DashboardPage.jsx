@@ -108,7 +108,7 @@ function DashLogRow({ log, showLevel = false }) {
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
       <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: dotColor, marginTop: 5 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        {showLevel && (<span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: dotColor + '15', color: dotColor, textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 8 }}>{log.level}</span>)}
+        {showLevel && (<span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: dotColor + '15', color: dotColor, textTransform: 'uppercase', letterSpacing: '.05em', marginRight: 8 }}>{log.level}</span>)}
         <span style={{ fontSize: 13, color: BLK, fontFamily: FB, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', maxWidth: '100%' }}>{log.message}</span>
         <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{timeAgo(log.created_at)}</div>
       </div>
@@ -870,7 +870,7 @@ export default function DashboardPage() {
                         <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: s.color, lineHeight: 1 }}>
                           {loading ? '—' : s.value}
                         </div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
                           {s.label}
                         </div>
                       </div>
@@ -904,11 +904,11 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>{qaHealth.pass_rate || 0}%</div>
-                      <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Pass Rate</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Pass Rate</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: qaHealth.open_errors > 0 ? R : GRN }}>{qaHealth.open_errors || 0}</div>
-                      <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Open Errors</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Open Errors</div>
                     </div>
                   </div>
                 </div>
@@ -1153,7 +1153,7 @@ export default function DashboardPage() {
                           </div>
                           <div style={{ textAlign: 'right', flexShrink: 0 }}>
                             <span style={{
-                              fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+                              fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
                               background: statusColor + '15', color: statusColor,
                               textTransform: 'uppercase', letterSpacing: '.05em',
                             }}>
@@ -1247,12 +1247,6 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
     setLoading(false)
   }
 
-  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-  const FB = "'Raleway','Helvetica Neue',sans-serif"
-  const BLK = '#111111'
-  const GRY = '#F9F9F9'
-  const T = '#00C2CB'
-  const R = '#E6007E'
 
   const tools = [
     can?.('view_pages') && {

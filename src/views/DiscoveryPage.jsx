@@ -1565,7 +1565,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
               }}
               title="Click to dismiss"
             >
-              <div style={{ fontSize: 10, fontWeight: 800, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 3 }}>
                 💬 Live Hint
                 {liveCoachHintSource && <span style={{ marginLeft: 8, fontWeight: 500, opacity: 0.7 }}>· "{liveCoachHintSource}"</span>}
               </div>
@@ -1902,7 +1902,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
                   <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
                   <div style={{ flex: 1, fontSize: 13, color: '#92400e', lineHeight: 1.5 }}>
                     <strong>This section may not apply</strong> — {naSug.reason}
-                    <span style={{ marginLeft: 6, fontSize: 10, color: '#b45309', fontWeight: 700 }}>
+                    <span style={{ marginLeft: 6, fontSize: 12, color: '#b45309', fontWeight: 700 }}>
                       · {naSug.confidence}% confidence
                     </span>
                   </div>
@@ -2172,7 +2172,7 @@ function DetailView({ aid, id, isMobile, isSuperAdmin, onBack }) {
                       padding: '10px 12px', background: '#f0fdf4',
                       border: '1px solid #bbf7d0', borderRadius: 8,
                     }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: '#15803d', marginBottom: 4, letterSpacing: '.05em', textTransform: 'uppercase' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#15803d', marginBottom: 4, letterSpacing: '.05em', textTransform: 'uppercase' }}>
                         {item.section_id} · {item.field_id}
                         {item.confidence ? <span style={{ marginLeft: 6, opacity: 0.7 }}>{item.confidence}%</span> : null}
                       </div>
@@ -2288,7 +2288,7 @@ function AssigneeChip({ name, onClick }) {
     >
       <span style={{
         width: 18, height: 18, borderRadius: '50%', background: C.teal, color: '#fff',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800,
       }}>
         {initials}
       </span>
@@ -2346,7 +2346,7 @@ function SectionNav({ sections, active, onSelect }) {
         marginBottom: 8,
       }}>
         <div style={{
-          fontSize: 10, fontWeight: 800, color: C.mutedDark,
+          fontSize: 12, fontWeight: 800, color: C.mutedDark,
           textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6,
         }}>
           Document Completion
@@ -2406,7 +2406,7 @@ function SectionNav({ sections, active, onSelect }) {
               </div>
               {isNA && (
                 <span style={{
-                  fontSize: 9, fontWeight: 800, background: '#f3f4f6', color: '#6b7280',
+                  fontSize: 11, fontWeight: 800, background: '#f3f4f6', color: '#6b7280',
                   padding: '1px 5px', borderRadius: 4, letterSpacing: '.05em',
                 }}>
                   N/A
@@ -2414,7 +2414,7 @@ function SectionNav({ sections, active, onSelect }) {
               )}
               {hasPendingAIQ && !isNA && <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.teal, flexShrink: 0 }} />}
             </div>
-            <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
               {isNA ? 'Not applicable' : `${pct}% · ${answered}/${total}`}
             </div>
             <div style={{ height: 3, background: '#f3f4f6', borderRadius: 99, marginTop: 4, overflow: 'hidden' }}>
@@ -3449,7 +3449,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
             if (items.length === 0) return null
             return (
               <div key={sec.id} style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
                   {sec.title}
                 </div>
                 {items.map((item, i) => (
@@ -3460,7 +3460,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
                       animation: 'fadeIn 0.4s ease-out',
                     }}
                   >
-                    <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>{item.question}</div>
+                    <div style={{ fontSize: 12, color: C.muted, marginBottom: 2 }}>{item.question}</div>
                     <div style={{ fontSize: 12, color: C.text, lineHeight: 1.4 }}>{item.answer}</div>
                   </div>
                 ))}
@@ -3492,7 +3492,7 @@ function InterviewMode({ eng, aid, onExit, onEngUpdate }) {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
                       <Icon size={11} color={palette.fg} />
-                      <div style={{ fontSize: 10, fontWeight: 800, color: palette.fg, letterSpacing: '.06em' }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: palette.fg, letterSpacing: '.06em' }}>
                         {palette.label}
                       </div>
                     </div>
@@ -3741,7 +3741,7 @@ function CoachPanel({
             }}
             title="Click to dismiss"
           >
-            <div style={{ fontSize: 10, fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
               💬 Live Hint
               {liveCoachHintSource && (
                 <span style={{ marginLeft: 6, fontWeight: 500, color: '#991b1b' }}>· "{liveCoachHintSource}"</span>
@@ -3936,7 +3936,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
                     fontSize: 12, color: '#7c2d12', lineHeight: 1.5, marginBottom: 6,
                   }}>
                     <span style={{
-                      fontSize: 9, fontWeight: 800, color, textTransform: 'uppercase',
+                      fontSize: 11, fontWeight: 800, color, textTransform: 'uppercase',
                       letterSpacing: '.05em', marginRight: 6,
                     }}>
                       {severity}
@@ -3961,7 +3961,7 @@ function SectionCoachContent({ section, sections, setCoachSection, coachLoading,
                   fontSize: 12, color: '#0f766e', lineHeight: 1.5, marginBottom: 6,
                 }}>
                   <span style={{
-                    fontSize: 9, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
+                    fontSize: 11, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
                     letterSpacing: '.05em', marginRight: 6,
                   }}>
                     {o.type || 'win'}
@@ -4063,7 +4063,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
           borderRadius: 10, padding: '12px 14px', marginBottom: 16,
           fontSize: 12, color: C.text, lineHeight: 1.6,
         }}>
-          <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
             Readiness Assessment
           </div>
           {crossData.readiness_assessment}
@@ -4085,7 +4085,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
               <div style={{ display: 'flex', gap: 4, marginBottom: 4, flexWrap: 'wrap' }}>
                 {(c.sections || []).map((sid) => (
                   <span key={sid} style={{
-                    fontSize: 9, fontWeight: 800, background: '#fff', color: '#dc2626',
+                    fontSize: 11, fontWeight: 800, background: '#fff', color: '#dc2626',
                     padding: '1px 5px', borderRadius: 4,
                   }}>
                     {sid}
@@ -4120,7 +4120,7 @@ function CrossSectionContent({ crossData, crossLoading, loadCrossAnalysis, secti
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {o.which_sections.map((sid) => (
                     <span key={sid} style={{
-                      fontSize: 9, fontWeight: 700, background: '#fff', color: C.teal,
+                      fontSize: 11, fontWeight: 700, background: '#fff', color: C.teal,
                       padding: '1px 5px', borderRadius: 4,
                     }}>
                       {sid}
@@ -4272,7 +4272,7 @@ function LiveAnswersPanel({ eng, engagementId, agencyId, answersRef, sectionsRef
             {t}
             {t === 'flags' && flags.length > 0 && (
               <span style={{
-                marginLeft: 5, fontSize: 9, fontWeight: 800, padding: '1px 6px',
+                marginLeft: 5, fontSize: 11, fontWeight: 800, padding: '1px 6px',
                 borderRadius: 10, background: C.teal, color: '#fff',
               }}>{flags.length}</span>
             )}
@@ -4353,7 +4353,7 @@ function AnswersTab({ sections, answers, engSections, editingKey, editValue, set
       {grouped.map(g => (
         <div key={g.id} style={{ marginBottom: 14 }}>
           <div style={{
-            fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
+            fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase',
             letterSpacing: '.06em', marginBottom: 6,
           }}>
             {g.title}
@@ -4375,7 +4375,7 @@ function AnswersTab({ sections, answers, engSections, editingKey, editValue, set
                   animation: 'fadeIn 0.4s ease-out',
                 }}
               >
-                <div style={{ fontSize: 10, color: C.muted, marginBottom: 3, lineHeight: 1.3 }}>
+                <div style={{ fontSize: 12, color: C.muted, marginBottom: 3, lineHeight: 1.3 }}>
                   {item.question}
                 </div>
                 {isEditing ? (
@@ -4410,7 +4410,7 @@ function AnswersTab({ sections, answers, engSections, editingKey, editValue, set
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                       {badge && (
                         <span style={{
-                          fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
+                          fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 8,
                           background: badge.bg, color: badge.fg,
                         }}>
                           {badge.label}
@@ -4419,7 +4419,7 @@ function AnswersTab({ sections, answers, engSections, editingKey, editValue, set
                       <button
                         onClick={() => { setEditingKey(item.key); setEditValue(item.answer) }}
                         style={{
-                          background: 'none', border: 'none', color: C.muted, fontSize: 10,
+                          background: 'none', border: 'none', color: C.muted, fontSize: 12,
                           cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 3,
                         }}
                       >
@@ -4461,7 +4461,7 @@ function FlagsTab({ flags }) {
         return (
           <div key={type} style={{ marginBottom: 14 }}>
             <div style={{
-              fontSize: 10, fontWeight: 800, color: palette.fg, textTransform: 'uppercase',
+              fontSize: 12, fontWeight: 800, color: palette.fg, textTransform: 'uppercase',
               letterSpacing: '.06em', marginBottom: 6,
             }}>
               {palette.label} · {groups[type].length}
@@ -4473,7 +4473,7 @@ function FlagsTab({ flags }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
                   <Icon size={10} color={palette.fg} />
-                  <div style={{ fontSize: 9, fontWeight: 700, color: palette.fg, letterSpacing: '.06em' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: palette.fg, letterSpacing: '.06em' }}>
                     {f.section_title || 'General'}
                   </div>
                 </div>
@@ -4499,7 +4499,7 @@ function SummaryTab({ sectionStats, totalFields, totalAnswered }) {
       <div style={{
         background: C.tealTint, borderRadius: 10, padding: 14, border: `1px solid ${C.teal}40`, marginBottom: 14,
       }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em' }}>
           Overall Progress
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)', marginTop: 4 }}>
@@ -4512,7 +4512,7 @@ function SummaryTab({ sectionStats, totalFields, totalAnswered }) {
       </div>
 
       {/* Per-section progress bars */}
-      <div style={{ fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
         By Section
       </div>
       {sectionStats.map(s => {
@@ -4749,7 +4749,7 @@ function TranscriptImportModal({ eng, aid, onClose, onImported }) {
                     <div key={i} style={{
                       padding: 10, background: '#fafafa', borderRadius: 8, border: `1px solid ${C.border}`,
                     }}>
-                      <div style={{ fontSize: 10, color: C.muted, marginBottom: 3 }}>
+                      <div style={{ fontSize: 12, color: C.muted, marginBottom: 3 }}>
                         {u.section_id} / {u.field_id} · {u.confidence}
                       </div>
                       <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{u.answer}</div>
@@ -4848,7 +4848,7 @@ function VersionHistoryDrawer({ eng, aid, onClose, onRestored }) {
                       <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Version {v.version}</div>
                       <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{dt}</div>
                       {v.note && (
-                        <div style={{ fontSize: 10, color: C.muted, marginTop: 3, fontStyle: 'italic' }}>{v.note}</div>
+                        <div style={{ fontSize: 12, color: C.muted, marginTop: 3, fontStyle: 'italic' }}>{v.note}</div>
                       )}
                     </div>
                   </div>
@@ -5119,7 +5119,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
         {/* Progress gauge */}
         <div style={{ textAlign: 'center' }}>
           <ProfileGauge value={pct} color={gaugeColor} />
-          <div style={{ fontSize: 10, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>
             Completion
           </div>
         </div>
@@ -5164,7 +5164,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
           </div>
           {Object.entries(byCategory).map(([cat, tools]) => (
             <div key={cat} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5 }}>
                 {cat}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
@@ -5189,7 +5189,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
             {factEntries.map(([k, v]) => (
               <div key={k} style={{ padding: 12, background: '#fafafa', borderRadius: 8, border: `1px solid ${C.border}` }}>
-                <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 700, marginBottom: 3 }}>
+                <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 700, marginBottom: 3 }}>
                   {k}
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.4 }}>{v}</div>
@@ -5244,7 +5244,7 @@ function ProfileCard({ eng, domains, onNavigate }) {
                 <div style={{ fontSize: 12, fontWeight: 700, color: t.complete ? C.text : C.muted, marginTop: 5 }}>
                   {t.label}
                 </div>
-                <div style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
                   {t.date ? new Date(t.date).toLocaleDateString() : '—'}
                 </div>
               </div>
@@ -5469,7 +5469,7 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
                     {q.why && <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic', marginBottom: 4 }}>Why: {q.why}</div>}
                     {q.section && (
                       <span style={{
-                        fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                        fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                         background: C.tealTint, color: C.teal, textTransform: 'uppercase',
                       }}>{q.section}</span>
                     )}
@@ -5508,9 +5508,9 @@ function PrepSheetModal({ prepSheet, clientName, industry, onClose }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: '#fafafa' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Category</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Current</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Confirm Question</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Category</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Current</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase' }}>Confirm Question</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -5712,7 +5712,7 @@ function FollowupEmailModal({ eng, aid, onClose, onSent }) {
               <div style={{
                 background: '#fafafa', borderRadius: 10, padding: 16, marginBottom: 14, border: `1px solid ${C.border}`,
               }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 3 }}>Subject</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 3 }}>Subject</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{email.subject}</div>
               </div>
               <div style={{
@@ -5735,7 +5735,7 @@ function FollowupEmailModal({ eng, aid, onClose, onSent }) {
                 <div style={{
                   background: C.tealTint, border: `1px solid ${C.teal}40`, borderRadius: 10, padding: 12, marginBottom: 14,
                 }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>
                     Recommended next step
                   </div>
                   <div style={{ fontSize: 13, color: C.text }}>{email.recommended_next_step}</div>
@@ -5867,7 +5867,7 @@ function NotesTab({ eng, engagementId, agencyId }) {
   return (
     <div>
       <div style={{
-        fontSize: 10, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
+        fontSize: 12, fontWeight: 800, color: C.muted, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
       }}>
         Notes
         {saving && <span style={{ marginLeft: 6, color: C.teal, fontWeight: 600 }}>saving…</span>}
@@ -5907,7 +5907,7 @@ function NotesTab({ eng, engagementId, agencyId }) {
       {suggestions && suggestions.length > 0 && (
         <div style={{ marginTop: 14 }}>
           <div style={{
-            fontSize: 10, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
+            fontSize: 12, fontWeight: 800, color: C.teal, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8,
           }}>
             {suggestions.length} Suggestions
           </div>
@@ -5916,7 +5916,7 @@ function NotesTab({ eng, engagementId, agencyId }) {
               <div key={i} style={{
                 padding: '8px 10px', background: '#fafafa', borderRadius: 6, border: `1px solid ${C.border}`,
               }}>
-                <div style={{ fontSize: 10, color: C.muted, marginBottom: 3 }}>
+                <div style={{ fontSize: 12, color: C.muted, marginBottom: 3 }}>
                   {sug.section_id}/{sug.field_id} · {sug.confidence}
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 3 }}>
@@ -6012,7 +6012,7 @@ function SessionsView({ eng, aid, onChange }) {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                     <span style={{
-                      fontSize: 10, fontWeight: 800, padding: '2px 9px', borderRadius: 10,
+                      fontSize: 12, fontWeight: 800, padding: '2px 9px', borderRadius: 10,
                       background: C.tealTint, color: C.teal, textTransform: 'uppercase', letterSpacing: '.05em',
                     }}>
                       Session {sess.session_number}

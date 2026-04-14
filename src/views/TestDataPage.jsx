@@ -430,7 +430,7 @@ export default function TestDataPage() {
           <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: C.text, fontFamily: 'var(--font-display)' }}>
             Test Data Generator
           </h1>
-          <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 10, background: C.amberSoft, color: C.amber, letterSpacing: '.06em' }}>
+          <span style={{ fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 10, background: C.amberSoft, color: C.amber, letterSpacing: '.06em' }}>
             DEV
           </span>
         </div>
@@ -510,7 +510,7 @@ export default function TestDataPage() {
           <div style={cardHeader}>
             <Brain size={16} color={C.teal} />
             <span>Discovery Simulator</span>
-            <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: C.tealSoft, color: C.teal, letterSpacing: '.06em' }}>
+            <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: C.tealSoft, color: C.teal, letterSpacing: '.06em' }}>
               AI
             </span>
           </div>
@@ -553,10 +553,10 @@ export default function TestDataPage() {
                       {p.description}
                     </div>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: '#eef2ff', color: '#4338ca', fontWeight: 700 }}>
+                      <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: '#eef2ff', color: '#4338ca', fontWeight: 700 }}>
                         {String(p.business_model || '').toUpperCase()}
                       </span>
-                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: '#fef3c7', color: '#92400e', fontWeight: 700 }}>
+                      <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 10, background: '#fef3c7', color: '#92400e', fontWeight: 700 }}>
                         {p.geographic_scope}
                       </span>
                     </div>
@@ -599,18 +599,18 @@ export default function TestDataPage() {
               }}>
                 <div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: C.teal }}>{discoResult.field_count}</div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Fields Populated</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Fields Populated</div>
                 </div>
                 <div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>{discoResult.sections_populated}/12</div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Sections</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Sections</div>
                 </div>
                 {discoResult.readiness_score != null && (
                   <div>
                     <div style={{ fontSize: 24, fontWeight: 800, color: discoResult.readiness_score >= 60 ? '#16a34a' : C.amber }}>
                       {discoResult.readiness_score}
                     </div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>
                       Readiness {discoResult.readiness_label ? `· ${discoResult.readiness_label}` : ''}
                     </div>
                   </div>
@@ -673,7 +673,7 @@ export default function TestDataPage() {
           <div style={cardHeader}>
             <Phone size={16} color="#dc2626" />
             <span>Bulk Voice Onboarding Setup</span>
-            <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: '#fef2f2', color: '#991b1b', letterSpacing: '.06em' }}>
+            <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: '#fef2f2', color: '#991b1b', letterSpacing: '.06em' }}>
               SPENDS MONEY
             </span>
           </div>
@@ -854,7 +854,7 @@ export default function TestDataPage() {
           <div style={cardHeader}>
             <Mic size={16} color="#7c3aed" />
             <span>Voice Onboarding Test Simulator</span>
-            <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: '#ede9fe', color: '#6d28d9', letterSpacing: '.06em' }}>
+            <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 8, background: '#ede9fe', color: '#6d28d9', letterSpacing: '.06em' }}>
               DEV
             </span>
             <a
@@ -917,11 +917,11 @@ export default function TestDataPage() {
             {voiceTestProvision && (
               <div style={{ marginTop: 10, padding: '10px 14px', background: '#fff', borderRadius: 8, border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <div>
-                  <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Phone</div>
+                  <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>Phone</div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{voiceTestProvision.display_number || voiceTestProvision.phone_number}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>PIN</div>
+                  <div style={{ fontSize: 12, color: C.muted, textTransform: 'uppercase', letterSpacing: '.05em' }}>PIN</div>
                   <div style={{ fontSize: 18, fontWeight: 900, color: '#7c3aed', letterSpacing: '.2em' }}>{voiceTestProvision.pin}</div>
                 </div>
                 <button
@@ -953,7 +953,7 @@ export default function TestDataPage() {
                   }}
                   style={{ flex: 1, minWidth: 220, padding: '6px 10px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 12, fontFamily: 'inherit', boxSizing: 'border-box' }}
                 />
-                <div style={{ fontSize: 10, color: C.muted }}>Press Enter to load, then use the Import button</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Press Enter to load, then use the Import button</div>
               </div>
             )}
           </div>

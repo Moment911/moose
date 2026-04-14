@@ -51,7 +51,7 @@ const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb'
 const sectionTitle = { fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }
 const fieldLabel = { fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', display: 'block', marginBottom: 4 }
 const fieldValue = { fontSize: 14, color: BLK, fontFamily: FB, cursor: 'pointer', padding: '6px 0', borderBottom: '1px dashed #e5e7eb', display: 'block', minHeight: 30 }
-const badge = (color) => ({ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: color + '15', color, textTransform: 'uppercase', fontFamily: FH, letterSpacing: '.04em' })
+const badge = (color) => ({ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: color + '15', color, textTransform: 'uppercase', fontFamily: FH, letterSpacing: '.04em' })
 const inp = { width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, fontFamily: FB, outline: 'none', boxSizing: 'border-box' }
 
 const SECTIONS = [
@@ -654,7 +654,7 @@ export default function ClientDetailPage() {
       const whenStr = when ? when.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''
       return (
         <div style={{
-          fontSize: 10,
+          fontSize: 12,
           color: '#9ca3af',
           fontFamily: FB,
           marginTop: 5,
@@ -848,7 +848,7 @@ export default function ClientDetailPage() {
                   className={isFlashing ? 'client-field-flash' : undefined}
                   style={{ padding: '10px 14px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}
                 >
-                  <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                  <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
                     {label}
                   </div>
                   <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
@@ -864,7 +864,7 @@ export default function ClientDetailPage() {
               const prettyKey = k.replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
               return (
                 <div key={k} style={{ padding: '10px 14px', borderRadius: 10, background: '#f0fffe', border: `1px solid ${T}30` }}>
-                  <div style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                  <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
                     {prettyKey}
                   </div>
                   <div style={{ fontSize: 13, color: BLK, fontFamily: FB, whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.45 }}>
@@ -1185,7 +1185,7 @@ export default function ClientDetailPage() {
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 22, fontWeight: 900, fontFamily: FH }}>{liveFieldCount}</div>
-              <div style={{ fontSize: 10, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+              <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '.06em' }}>
                 Fields Filled
               </div>
             </div>
@@ -2441,7 +2441,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
                   </div>
                 </div>
                 <div style={{
-                  fontSize: 10, fontWeight: 800,
+                  fontSize: 12, fontWeight: 800,
                   padding: '3px 8px', borderRadius: 10,
                   background: call.status === 'complete' ? '#f0fdf4' : '#fffbeb',
                   color: call.status === 'complete' ? GRN : '#f59e0b',
