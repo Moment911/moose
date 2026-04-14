@@ -4,6 +4,7 @@ import { identifyVisitor } from '@/lib/reverseIPLookup'
 import { calculateIntentScore } from '@/lib/visitorIntentScorer'
 import { fireToAllPlatforms } from '@/lib/pixelEventFiring'
 import { createNotification } from '@/lib/notifications'
+import { enrichDomain } from '@/lib/domainEnrichment'
 
 function sb() {
   return createClient(
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
         last_seen_at: new Date().toISOString(),
       }, { onConflict: 'session_id' })
 
-      // Async: reverse IP lookup
+      // Async: reverse IP lookup + auto-enrich domain
       if (ip) {
         identifyVisitor(ip).then(async (result) => {
           if (result.confidence > 30) {
@@ -163,6 +164,27 @@ export async function POST(req: NextRequest) {
               identified_country: result.country,
               identification_confidence: result.confidence,
             }).eq('session_id', data.session_id)
+
+            // Auto-enrich domain (fire-and-forget)
+            if (result.domain) {
+              enrichDomain(result.domain).then(async (enrichment) => {
+                // Store enrichment on any visitor profile linked to this session
+                const { data: sess } = await s.from('koto_visitor_sessions').select('visitor_profile_id').eq('session_id', data.session_id).maybeSingle()
+                if (sess?.visitor_profile_id) {
+                  const { data: prof } = await s.from('koto_visitor_profiles').select('enrichment_data').eq('id', sess.visitor_profile_id).maybeSingle()
+                  // Only enrich if not already done (within last 7 days)
+                  const existingEnrichment = prof?.enrichment_data as any
+                  const enrichedRecently = existingEnrichment?.enriched_at && (Date.now() - new Date(existingEnrichment.enriched_at).getTime()) < 7 * 86400000
+                  if (!enrichedRecently) {
+                    await s.from('koto_visitor_profiles').update({
+                      enrichment_data: enrichment,
+                      identified_company: enrichment.company_name || undefined,
+                      updated_at: new Date().toISOString(),
+                    }).eq('id', sess.visitor_profile_id)
+                  }
+                }
+              }).catch(() => {})
+            }
           }
         }).catch(() => {})
       }
@@ -633,6 +655,37 @@ Return this exact JSON structure:
       if (identified_phone !== undefined) updates.identified_phone = identified_phone
       await s.from('koto_visitor_profiles').update(updates).eq('id', profile_id)
       return Response.json({ success: true })
+    }
+
+    // ── Enrich profile — scrape domain for company data ──────────
+    if (action === 'enrich_profile') {
+      const { profile_id } = body
+      if (!profile_id) return Response.json({ error: 'profile_id required' }, { status: 400 })
+
+      const { data: profile } = await s.from('koto_visitor_profiles').select('id, identified_domain, identified_company, enrichment_data').eq('id', profile_id).single() as { data: any }
+      if (!profile) return Response.json({ error: 'Profile not found' }, { status: 404 })
+
+      const domain = profile.identified_domain
+      if (!domain) return Response.json({ error: 'No domain identified for this visitor' }, { status: 400 })
+
+      try {
+        const enrichment = await enrichDomain(domain)
+
+        // Update profile with enrichment data + any discovered contact info
+        const updates: any = {
+          enrichment_data: enrichment,
+          updated_at: new Date().toISOString(),
+        }
+        // Auto-fill identified fields if not already set
+        if (enrichment.company_name && !profile.identified_company) {
+          updates.identified_company = enrichment.company_name
+        }
+
+        await s.from('koto_visitor_profiles').update(updates).eq('id', profile_id)
+        return Response.json({ success: true, enrichment })
+      } catch (e: any) {
+        return Response.json({ error: e?.message || 'Enrichment failed' }, { status: 500 })
+      }
     }
 
     return Response.json({ error: 'Unknown action' }, { status: 400 })

@@ -133,6 +133,20 @@ export default function PixelTrackingPage() {
     setGeneratingPersona(false)
   }
 
+  const [enriching, setEnriching] = useState(false)
+  async function enrichProfile(profileId) {
+    setEnriching(true)
+    const res = await apiPost({ action: 'enrich_profile', profile_id: profileId })
+    if (res.success) {
+      toast.success('Domain enriched — company data pulled')
+      const updated = await apiGet('get_profile', { agency_id: agencyId, profile_id: profileId })
+      setProfileDetail(updated)
+    } else {
+      toast.error(res.error || 'Enrichment failed')
+    }
+    setEnriching(false)
+  }
+
   async function createPixel() {
     if (!newPixel.pixel_name || !newPixel.domain) { toast.error('Name and domain required'); return }
     const res = await apiPost({ action:'create_pixel', agency_id:agencyId, ...newPixel })
@@ -520,6 +534,8 @@ export default function PixelTrackingPage() {
               onBack={() => { setSelectedProfile(null); setProfileDetail(null) }}
               onGeneratePersona={() => generatePersona(selectedProfile)}
               generatingPersona={generatingPersona}
+              onEnrich={() => enrichProfile(selectedProfile)}
+              enriching={enriching}
             />
           )}
 
@@ -722,7 +738,7 @@ export default function PixelTrackingPage() {
    VISITOR DETAIL PANEL
    ══════════════════════════════════════════════════════════════════════════ */
 
-function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona }) {
+function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona, onEnrich, enriching }) {
   if (!profileDetail?.profile) {
     return (
       <div style={{ textAlign:'center', padding: 80 }}>
@@ -733,8 +749,47 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
 
   const p = profileDetail.profile
   const sessions = profileDetail.sessions || []
+  const events = profileDetail.events || []
   const persona = p.ai_persona
+  const enrichment = p.enrichment_data
   const sc = p.max_intent_score || 0
+
+  // Build activity heatmap data (7 days x 24 hours)
+  const heatmapData = (() => {
+    const grid = Array.from({ length: 7 }, () => Array(24).fill(0))
+    for (const sess of sessions) {
+      const d = new Date(sess.started_at)
+      const day = d.getDay() // 0=Sun
+      const hour = d.getHours()
+      grid[day][hour]++
+    }
+    return grid
+  })()
+  const maxHeat = Math.max(1, ...heatmapData.flat())
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+  // Build event timeline
+  const timeline = [...events].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+
+  // Per-page stats
+  const pageStats = (() => {
+    const map = {}
+    for (const ev of events) {
+      if (ev.event_type !== 'pageview' || !ev.page_url) continue
+      const path = ev.page_url.replace(/https?:\/\/[^/]+/, '') || '/'
+      if (!map[path]) map[path] = { path, title: ev.page_title, views: 0, scrollDepth: 0, timeSeconds: 0 }
+      map[path].views++
+      if (ev.event_data?.depth) map[path].scrollDepth = Math.max(map[path].scrollDepth, ev.event_data.depth)
+    }
+    // Add scroll/time from scroll and time_milestone events
+    for (const ev of events) {
+      if (ev.event_type === 'scroll' && ev.page_url) {
+        const path = ev.page_url.replace(/https?:\/\/[^/]+/, '') || '/'
+        if (map[path] && ev.event_data?.depth) map[path].scrollDepth = Math.max(map[path].scrollDepth, ev.event_data.depth)
+      }
+    }
+    return Object.values(map).sort((a, b) => b.views - a.views)
+  })()
 
   return (
     <div>
@@ -746,28 +801,40 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
         <ArrowLeft size={15} /> All Visitors
       </button>
 
-      {/* Header */}
+      {/* ── Header Card ──────────────────────────────────────────── */}
       <div style={{
-        display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 28,
+        display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 24,
         padding:'24px 28px', background: W, borderRadius: 14, border:'1px solid #e5e7eb',
       }}>
         <div style={{ display:'flex', alignItems:'center', gap: 16 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 14, background: scoreColor(sc) + '12',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            border: `2px solid ${scoreColor(sc)}30`,
-          }}>
-            <DeviceIcon type={p.device_type} size={24} color={scoreColor(sc)} />
-          </div>
+          {/* Company logo or device icon */}
+          {enrichment?.company_logo_url ? (
+            <img src={enrichment.company_logo_url} alt="" style={{ width: 56, height: 56, borderRadius: 14, objectFit:'contain', border:'1px solid #e5e7eb', background:'#fafafa' }}
+              onError={e => { e.target.style.display = 'none' }} />
+          ) : (
+            <div style={{
+              width: 56, height: 56, borderRadius: 14, background: scoreColor(sc) + '12',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              border: `2px solid ${scoreColor(sc)}30`,
+            }}>
+              <DeviceIcon type={p.device_type} size={24} color={scoreColor(sc)} />
+            </div>
+          )}
           <div>
             <h2 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0, letterSpacing:'-.02em' }}>
-              {p.label || p.identified_company || `Visitor ${p.fingerprint?.slice(0,8)}`}
+              {p.label || enrichment?.company_name || p.identified_company || `Visitor ${p.fingerprint?.slice(0,8)}`}
             </h2>
-            <div style={{ display:'flex', alignItems:'center', gap: 12, marginTop: 4, fontSize: 13, color:'#6b7280', fontFamily: FB }}>
+            <div style={{ display:'flex', alignItems:'center', gap: 12, marginTop: 4, fontSize: 13, color:'#6b7280', fontFamily: FB, flexWrap:'wrap' }}>
               {p.city && <span style={{ display:'flex', alignItems:'center', gap: 3 }}><MapPin size={12} /> {p.city}, {p.state}</span>}
               {p.identified_domain && <span style={{ color: T }}>{p.identified_domain}</span>}
+              {enrichment?.email_provider && <span>{enrichment.email_provider}</span>}
               <span>First seen {new Date(p.first_seen_at).toLocaleDateString()}</span>
             </div>
+            {enrichment?.company_description && (
+              <div style={{ fontSize: 12, color:'#6b7280', fontFamily: FB, marginTop: 4, maxWidth: 500, lineHeight: 1.5 }}>
+                {enrichment.company_description.slice(0, 160)}{enrichment.company_description.length > 160 ? '...' : ''}
+              </div>
+            )}
           </div>
         </div>
         <div style={{ textAlign:'center' }}>
@@ -779,11 +846,133 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
         </div>
       </div>
 
+      {/* ── Action Bar ───────────────────────────────────────────── */}
+      <div style={{ display:'flex', gap: 10, marginBottom: 24 }}>
+        <button onClick={onEnrich} disabled={enriching} style={{
+          display:'flex', alignItems:'center', gap: 6, padding:'8px 18px', borderRadius: 8,
+          border:'1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
+          cursor:'pointer', color: T, opacity: enriching ? 0.5 : 1,
+        }}>
+          {enriching ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }} /> : <Globe size={13} />}
+          {enrichment ? 'Re-enrich Domain' : 'Enrich Domain'}
+        </button>
+        <button onClick={onGeneratePersona} disabled={generatingPersona} style={{
+          display:'flex', alignItems:'center', gap: 6, padding:'8px 18px', borderRadius: 8,
+          border:'1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
+          cursor:'pointer', color: AMB, opacity: generatingPersona ? 0.5 : 1,
+        }}>
+          {generatingPersona ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }} /> : <Brain size={13} />}
+          {persona ? 'Regenerate Persona' : 'Generate AI Persona'}
+        </button>
+      </div>
+
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 20 }}>
-        {/* ── Left Column ─────────────────────────────────────────────── */}
+        {/* ══ LEFT COLUMN ═══════════════════════════════════════════ */}
         <div style={{ display:'flex', flexDirection:'column', gap: 20 }}>
 
-          {/* Behavioral Stats */}
+          {/* ── Company Intel (from enrichment) ──────────────────── */}
+          {enrichment && (
+            <div style={{ background: W, borderRadius: 14, border: `1.5px solid ${T}30`, padding:'20px 24px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 18 }}>
+                <Globe size={16} color={T} />
+                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Company Intel</div>
+                <span style={{ fontSize: 11, color:'#9ca3af', fontFamily: FB, marginLeft:'auto' }}>
+                  Enriched {timeAgo(enrichment.enriched_at)}
+                </span>
+              </div>
+
+              {/* Contact Info */}
+              {(enrichment.emails?.length > 0 || enrichment.phones?.length > 0) && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 8 }}>Contact Info Found</div>
+                  {enrichment.emails?.slice(0, 5).map((e, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'6px 0', borderBottom:'1px solid #f3f4f6', fontSize: 13, fontFamily: FB, color: BLK }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', width: 50 }}>Email</span>
+                      <a href={`mailto:${e}`} style={{ color: T, textDecoration:'none' }}>{e}</a>
+                    </div>
+                  ))}
+                  {enrichment.phones?.slice(0, 3).map((ph, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'6px 0', borderBottom:'1px solid #f3f4f6', fontSize: 13, fontFamily: FB, color: BLK }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', width: 50 }}>Phone</span>
+                      <a href={`tel:${ph}`} style={{ color: T, textDecoration:'none' }}>{ph}</a>
+                    </div>
+                  ))}
+                  {enrichment.addresses?.slice(0, 2).map((addr, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap: 8, padding:'6px 0', borderBottom:'1px solid #f3f4f6', fontSize: 13, fontFamily: FB, color: BLK }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', width: 50 }}>Address</span>
+                      {addr}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Social Links */}
+              {Object.keys(enrichment.social_links || {}).length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 8 }}>Social Profiles</div>
+                  <div style={{ display:'flex', gap: 6, flexWrap:'wrap' }}>
+                    {Object.entries(enrichment.social_links).filter(([,v]) => v).map(([platform, url]) => (
+                      <a key={platform} href={url} target="_blank" rel="noopener noreferrer" style={{
+                        padding:'4px 12px', borderRadius: 20, background:'#f3f4f6', fontSize: 12, fontWeight: 600,
+                        color: BLK, fontFamily: FB, textDecoration:'none', textTransform:'capitalize',
+                      }}>{platform}</a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tech Stack */}
+              {enrichment.tech_stack?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 8 }}>Tech Stack</div>
+                  <div style={{ display:'flex', gap: 6, flexWrap:'wrap' }}>
+                    {enrichment.tech_stack.map((t, i) => (
+                      <span key={i} style={{ padding:'3px 10px', borderRadius: 20, background:'#f0f9ff', fontSize: 12, fontWeight: 600, color:'#0369a1', fontFamily: FB }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Domain Info */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 0 }}>
+                {[
+                  ['Email Provider', enrichment.email_provider],
+                  ['CMS', enrichment.cms],
+                  ['Hosting', enrichment.hosting],
+                  ['Domain Reg.', enrichment.domain_created ? new Date(enrichment.domain_created).toLocaleDateString() : null],
+                  ['Registrar', enrichment.domain_registrar],
+                  ['WHOIS Org', enrichment.domain_org],
+                ].filter(([,v]) => v).map(([label, value]) => (
+                  <div key={label} style={{ display:'flex', padding:'6px 0', borderBottom:'1px solid #f3f4f6' }}>
+                    <div style={{ width: 90, fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH }}>{label}</div>
+                    <div style={{ flex: 1, fontSize: 12, color: BLK, fontFamily: FB }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Schema.org data */}
+              {enrichment.schema_data && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 6 }}>Schema.org Data</div>
+                  {[
+                    ['Type', enrichment.schema_data.type],
+                    ['Name', enrichment.schema_data.name],
+                    ['Phone', enrichment.schema_data.telephone],
+                    ['Email', enrichment.schema_data.email],
+                    ['Employees', enrichment.schema_data.employee_count],
+                    ['Founded', enrichment.schema_data.founding_date],
+                  ].filter(([,v]) => v).map(([label, value]) => (
+                    <div key={label} style={{ display:'flex', padding:'4px 0', fontSize: 12, fontFamily: FB }}>
+                      <div style={{ width: 80, fontWeight: 700, color:'#9ca3af' }}>{label}</div>
+                      <div style={{ color: BLK }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Behavioral Stats ─────────────────────────────────── */}
           <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
             <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 18 }}>
               <Activity size={16} color={T} />
@@ -810,7 +999,44 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
             </div>
           </div>
 
-          {/* Device & Technology */}
+          {/* ── Activity Heatmap ─────────────────────────────────── */}
+          {sessions.length > 0 && (
+            <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 18 }}>
+                <BarChart2 size={16} color={R} />
+                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Activity Heatmap</div>
+                <span style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB, marginLeft:'auto' }}>Visits by day/hour</span>
+              </div>
+              <div style={{ overflowX:'auto' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'40px repeat(24, 1fr)', gap: 2, minWidth: 500 }}>
+                  {/* Hour labels */}
+                  <div />
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <div key={h} style={{ fontSize: 9, color:'#9ca3af', fontFamily: FH, textAlign:'center' }}>
+                      {h % 4 === 0 ? `${h}` : ''}
+                    </div>
+                  ))}
+                  {/* Grid rows */}
+                  {dayLabels.map((day, d) => (
+                    <>
+                      <div key={`label-${d}`} style={{ fontSize: 10, fontWeight: 700, color:'#6b7280', fontFamily: FH, display:'flex', alignItems:'center' }}>{day}</div>
+                      {heatmapData[d].map((count, h) => {
+                        const intensity = count / maxHeat
+                        return (
+                          <div key={`${d}-${h}`} style={{
+                            width:'100%', aspectRatio:'1', borderRadius: 3,
+                            background: count === 0 ? '#f3f4f6' : `rgba(230, 0, 126, ${0.15 + intensity * 0.7})`,
+                          }} title={`${day} ${h}:00 — ${count} visit${count !== 1 ? 's' : ''}`} />
+                        )
+                      })}
+                    </>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Device & Technology ──────────────────────────────── */}
           <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
             <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 18 }}>
               <Cpu size={16} color={R} />
@@ -822,24 +1048,22 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
                 ['OS', `${p.os || '?'} ${p.os_version || ''}`],
                 ['Device', p.device_type],
                 ['Screen', p.screen_resolution],
-                ['Colors', p.color_depth ? `${p.color_depth}-bit` : null],
                 ['CPU', p.hardware_concurrency ? `${p.hardware_concurrency} cores` : null],
                 ['GPU', p.gpu_renderer?.slice(0, 40)],
                 ['Touch', p.touch_support ? 'Yes' : 'No'],
                 ['Connection', p.connection_type],
                 ['Timezone', p.timezone],
                 ['Language', p.language],
-                ['Platform', p.platform],
               ].filter(([,v]) => v).map(([label, value]) => (
-                <div key={label} style={{ display:'flex', padding:'8px 0', borderBottom:'1px solid #f3f4f6' }}>
-                  <div style={{ width: 90, fontSize: 12, fontWeight: 700, color:'#9ca3af', fontFamily: FH }}>{label}</div>
-                  <div style={{ flex: 1, fontSize: 13, color: BLK, fontFamily: FB }}>{value}</div>
+                <div key={label} style={{ display:'flex', padding:'7px 0', borderBottom:'1px solid #f3f4f6' }}>
+                  <div style={{ width: 80, fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH }}>{label}</div>
+                  <div style={{ flex: 1, fontSize: 12, color: BLK, fontFamily: FB }}>{value}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Identity */}
+          {/* ── Identity ────────────────────────────────────────── */}
           <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
             <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 18 }}>
               <Fingerprint size={16} color={AMB} />
@@ -852,9 +1076,9 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
               ['Email', p.identified_email],
               ['Phone', p.identified_phone],
             ].filter(([,v]) => v).map(([label, value]) => (
-              <div key={label} style={{ display:'flex', padding:'8px 0', borderBottom:'1px solid #f3f4f6' }}>
-                <div style={{ width: 90, fontSize: 12, fontWeight: 700, color:'#9ca3af', fontFamily: FH }}>{label}</div>
-                <div style={{ flex: 1, fontSize: 13, color: BLK, fontFamily: FB, overflow:'hidden', textOverflow:'ellipsis' }}>{value}</div>
+              <div key={label} style={{ display:'flex', padding:'7px 0', borderBottom:'1px solid #f3f4f6' }}>
+                <div style={{ width: 80, fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH }}>{label}</div>
+                <div style={{ flex: 1, fontSize: 12, color: BLK, fontFamily: FB, overflow:'hidden', textOverflow:'ellipsis' }}>{value}</div>
               </div>
             ))}
             {p.tags?.length > 0 && (
@@ -867,101 +1091,92 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
           </div>
         </div>
 
-        {/* ── Right Column ────────────────────────────────────────────── */}
+        {/* ══ RIGHT COLUMN ══════════════════════════════════════════ */}
         <div style={{ display:'flex', flexDirection:'column', gap: 20 }}>
 
-          {/* AI Persona */}
-          <div style={{
-            background: W, borderRadius: 14, padding:'20px 24px',
-            border: persona ? `1.5px solid ${T}30` : '1px solid #e5e7eb',
-          }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 18 }}>
-              <div style={{ display:'flex', alignItems:'center', gap: 10 }}>
+          {/* ── AI Persona ───────────────────────────────────────── */}
+          {persona && (
+            <div style={{ background: W, borderRadius: 14, padding:'20px 24px', border: `1.5px solid ${T}30` }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
                 <Brain size={16} color={T} />
                 <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>AI Persona</div>
-              </div>
-              <button onClick={onGeneratePersona} disabled={generatingPersona} style={{
-                display:'flex', alignItems:'center', gap: 6, padding:'7px 16px', borderRadius: 8,
-                border:'1px solid #e5e7eb', background: W, fontSize: 12, fontWeight: 700, fontFamily: FH,
-                cursor:'pointer', color: T, opacity: generatingPersona ? 0.5 : 1, transition:'all .12s',
-              }}
-                onMouseEnter={e => { if (!generatingPersona) e.currentTarget.style.background = '#f9fafb' }}
-                onMouseLeave={e => e.currentTarget.style.background = W}>
-                {generatingPersona ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
-                {persona ? 'Regenerate' : 'Generate'}
-              </button>
-            </div>
-
-            {persona ? (
-              <div>
-                <p style={{ fontSize: 14, color: BLK, fontFamily: FB, lineHeight: 1.7, margin:'0 0 16px' }}>{persona.summary}</p>
-
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-                  {[
-                    { label:'Role', value: persona.likely_role },
-                    { label:'Buying Stage', value: persona.buying_stage },
-                    { label:'Engagement', value: persona.engagement_level },
-                    { label:'Device Persona', value: persona.device_persona },
-                    { label:'Traffic Quality', value: persona.traffic_quality },
-                    { label:'Predicted Value', value: persona.predicted_value },
-                  ].filter(x => x.value).map(x => (
-                    <div key={x.label} style={{ padding:'10px 12px', background:'#f0f9ff', borderRadius: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color:'#6b7280', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.04em' }}>{x.label}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color:'#0369a1', fontFamily: FB, textTransform:'capitalize', marginTop: 3 }}>{x.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {persona.segments?.length > 0 && (
-                  <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 6 }}>Segments</div>
-                    <div style={{ display:'flex', gap: 6, flexWrap:'wrap' }}>
-                      {persona.segments.map((s,i) => <span key={i} style={{ padding:'3px 12px', borderRadius: 20, background:'#f0f9ff', fontSize: 12, fontWeight: 600, color:'#0369a1', fontFamily: FB }}>{s}</span>)}
-                    </div>
-                  </div>
-                )}
-
-                {persona.interests?.length > 0 && (
-                  <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 6 }}>Interests</div>
-                    <div style={{ display:'flex', gap: 6, flexWrap:'wrap' }}>
-                      {persona.interests.map((s,i) => <span key={i} style={{ padding:'3px 12px', borderRadius: 20, background:'#fef3c7', fontSize: 12, fontWeight: 600, color:'#92400e', fontFamily: FB }}>{s}</span>)}
-                    </div>
-                  </div>
-                )}
-
-                {persona.recommended_action && (
-                  <div style={{ padding:'14px 18px', background: GRN + '08', borderRadius: 12, border: `1px solid ${GRN}20`, marginTop: 14 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: GRN, fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 4 }}>Recommended Action</div>
-                    <div style={{ fontSize: 14, color: BLK, fontFamily: FB, fontWeight: 600 }}>{persona.recommended_action}</div>
-                  </div>
-                )}
-
-                {persona.best_time_to_reach && (
-                  <div style={{ fontSize: 13, color:'#6b7280', fontFamily: FB, marginTop: 12 }}>
-                    <Clock size={12} style={{ verticalAlign:'middle', marginRight: 4 }} />
-                    Best time to reach: <strong style={{ color: BLK }}>{persona.best_time_to_reach}</strong>
-                  </div>
-                )}
-
                 {p.ai_persona_generated_at && (
-                  <div style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB, marginTop: 10 }}>Generated {timeAgo(p.ai_persona_generated_at)}</div>
+                  <span style={{ fontSize: 11, color:'#9ca3af', fontFamily: FB, marginLeft:'auto' }}>{timeAgo(p.ai_persona_generated_at)}</span>
                 )}
               </div>
-            ) : (
-              <div style={{ textAlign:'center', padding:'32px 0' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: '#f3f4f6', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
-                  <Brain size={24} color="#d1d5db" />
-                </div>
-                <p style={{ fontSize: 14, color:'#6b7280', fontFamily: FB, maxWidth: 280, margin:'0 auto' }}>
-                  Generate an AI behavioral profile for this visitor.
-                </p>
+              <p style={{ fontSize: 14, color: BLK, fontFamily: FB, lineHeight: 1.7, margin:'0 0 16px' }}>{persona.summary}</p>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap: 10, marginBottom: 14 }}>
+                {[
+                  { label:'Role', value: persona.likely_role },
+                  { label:'Buying Stage', value: persona.buying_stage },
+                  { label:'Engagement', value: persona.engagement_level },
+                  { label:'Device Persona', value: persona.device_persona },
+                  { label:'Traffic Quality', value: persona.traffic_quality },
+                  { label:'Predicted Value', value: persona.predicted_value },
+                ].filter(x => x.value).map(x => (
+                  <div key={x.label} style={{ padding:'10px 12px', background:'#f0f9ff', borderRadius: 10 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color:'#6b7280', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.04em' }}>{x.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color:'#0369a1', fontFamily: FB, textTransform:'capitalize', marginTop: 3 }}>{x.value}</div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+              {persona.segments?.length > 0 && (
+                <div style={{ display:'flex', gap: 6, flexWrap:'wrap', marginBottom: 10 }}>
+                  {persona.segments.map((s,i) => <span key={i} style={{ padding:'3px 12px', borderRadius: 20, background:'#f0f9ff', fontSize: 12, fontWeight: 600, color:'#0369a1', fontFamily: FB }}>{s}</span>)}
+                </div>
+              )}
+              {persona.interests?.length > 0 && (
+                <div style={{ display:'flex', gap: 6, flexWrap:'wrap', marginBottom: 10 }}>
+                  {persona.interests.map((s,i) => <span key={i} style={{ padding:'3px 12px', borderRadius: 20, background:'#fef3c7', fontSize: 12, fontWeight: 600, color:'#92400e', fontFamily: FB }}>{s}</span>)}
+                </div>
+              )}
+              {persona.recommended_action && (
+                <div style={{ padding:'14px 18px', background: GRN + '08', borderRadius: 12, border: `1px solid ${GRN}20`, marginTop: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: GRN, fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 4 }}>Recommended Action</div>
+                  <div style={{ fontSize: 14, color: BLK, fontFamily: FB, fontWeight: 600 }}>{persona.recommended_action}</div>
+                </div>
+              )}
+              {persona.best_time_to_reach && (
+                <div style={{ fontSize: 13, color:'#6b7280', fontFamily: FB, marginTop: 10 }}>
+                  <Clock size={12} style={{ verticalAlign:'middle', marginRight: 4 }} />
+                  Best time: <strong style={{ color: BLK }}>{persona.best_time_to_reach}</strong>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Top Pages */}
-          {p.top_pages?.length > 0 && (
+          {/* ── Page Analytics ───────────────────────────────────── */}
+          {pageStats.length > 0 && (
+            <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
+                <FileText size={16} color={T} />
+                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Page Analytics</div>
+              </div>
+              {pageStats.slice(0, 12).map((pg, i) => (
+                <div key={i} style={{ padding:'10px 0', borderBottom: i < Math.min(pageStats.length, 12) - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom: 4 }}>
+                    <div style={{ fontSize: 13, color: BLK, fontFamily: FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex: 1, marginRight: 12 }}>
+                      {pg.title || pg.path}
+                    </div>
+                    <span style={{ padding:'2px 10px', borderRadius: 20, background:'#f3f4f6', fontSize: 12, fontWeight: 700, color:'#6b7280', fontFamily: FH, flexShrink: 0 }}>
+                      {pg.views}x
+                    </span>
+                  </div>
+                  {pg.scrollDepth > 0 && (
+                    <div style={{ display:'flex', alignItems:'center', gap: 8, marginTop: 4 }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 2, background:'#f3f4f6', overflow:'hidden' }}>
+                        <div style={{ width: `${pg.scrollDepth}%`, height:'100%', borderRadius: 2, background: pg.scrollDepth >= 75 ? GRN : pg.scrollDepth >= 50 ? AMB : '#9ca3af' }} />
+                      </div>
+                      <span style={{ fontSize: 11, color:'#9ca3af', fontFamily: FB, flexShrink: 0 }}>{pg.scrollDepth}% scrolled</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Top Pages (from profile aggregates) ──────────────── */}
+          {!pageStats.length && p.top_pages?.length > 0 && (
             <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
               <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 16 }}>
                 <FileText size={16} color={T} />
@@ -975,16 +1190,13 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
                   <div style={{ fontSize: 13, color: BLK, fontFamily: FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex: 1, marginRight: 12 }}>
                     {pg.title || pg.url}
                   </div>
-                  <span style={{
-                    padding:'2px 10px', borderRadius: 20, background:'#f3f4f6', fontSize: 12, fontWeight: 700,
-                    color:'#6b7280', fontFamily: FH, flexShrink: 0,
-                  }}>{pg.views}x</span>
+                  <span style={{ padding:'2px 10px', borderRadius: 20, background:'#f3f4f6', fontSize: 12, fontWeight: 700, color:'#6b7280', fontFamily: FH, flexShrink: 0 }}>{pg.views}x</span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Session History */}
+          {/* ── Full Session History ─────────────────────────────── */}
           <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 16 }}>
               <div style={{ display:'flex', alignItems:'center', gap: 10 }}>
@@ -993,8 +1205,8 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
               </div>
               <span style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB }}>{sessions.length} sessions</span>
             </div>
-            {sessions.slice(0, 15).map((sess, i) => (
-              <div key={i} style={{ padding:'12px 0', borderBottom: i < Math.min(sessions.length, 15) - 1 ? '1px solid #f3f4f6' : 'none' }}>
+            {sessions.slice(0, 20).map((sess, i) => (
+              <div key={i} style={{ padding:'12px 0', borderBottom: i < Math.min(sessions.length, 20) - 1 ? '1px solid #f3f4f6' : 'none' }}>
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK }}>{new Date(sess.started_at).toLocaleString()}</span>
                   <span style={{
@@ -1005,7 +1217,9 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
                 <div style={{ display:'flex', gap: 10, fontSize: 12, color:'#9ca3af', fontFamily: FB, flexWrap:'wrap' }}>
                   <span>{sess.landing_page?.replace(/https?:\/\/[^/]+/, '') || '/'}</span>
                   {sess.referrer && <span>via {sess.referrer.replace(/https?:\/\/([^/]+).*/, '$1')}</span>}
+                  {sess.pages_viewed?.length > 0 && <span>{sess.pages_viewed.length} pages</span>}
                   {sess.time_on_site_seconds > 0 && <span>{Math.floor(sess.time_on_site_seconds/60)}m {sess.time_on_site_seconds%60}s</span>}
+                  {sess.scroll_depth_percent > 0 && <span>{sess.scroll_depth_percent}% scrolled</span>}
                   {sess.submitted_form && <span style={{ color: GRN, fontWeight: 700 }}>Form</span>}
                   {sess.clicked_cta && <span style={{ color: AMB, fontWeight: 700 }}>CTA</span>}
                   {sess.viewed_pricing && <span style={{ color: R, fontWeight: 700 }}>Pricing</span>}
