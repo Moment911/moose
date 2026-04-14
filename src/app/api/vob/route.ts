@@ -636,6 +636,14 @@ export async function POST(req: NextRequest) {
 
       if (!to_number) return Response.json({ error: 'to_number required' }, { status: 400 })
 
+      // Normalize to E.164 — auto-prepend +1 for US numbers
+      let normalizedNumber = to_number.replace(/[^\d+]/g, '')
+      if (!normalizedNumber.startsWith('+')) {
+        if (normalizedNumber.length === 10) normalizedNumber = '+1' + normalizedNumber
+        else if (normalizedNumber.length === 11 && normalizedNumber.startsWith('1')) normalizedNumber = '+' + normalizedNumber
+        else normalizedNumber = '+' + normalizedNumber
+      }
+
       // Get agency config
       const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
 
@@ -674,7 +682,7 @@ export async function POST(req: NextRequest) {
       try {
         const retellCall = await retellFetch('/v2/create-phone-call', 'POST', {
           from_number: agency.vob_from_number,
-          to_number: to_number.replace(/[^\d+]/g, ''),
+          to_number: normalizedNumber,
           agent_id: agency.vob_agent_id,
           metadata: {
             agency_id,
