@@ -1157,6 +1157,41 @@ export default function ClientDetailPage() {
           }
         `}</style>
 
+        {/* Onboarding Completeness */}
+        {(() => {
+          const p1Fields = ['welcome_statement', 'owner_name', 'primary_service', 'target_customer', 'city', 'notes']
+          const p2Fields = ['phone', 'website', 'industry', 'num_employees', 'marketing_budget', 'crm_used', 'unique_selling_prop', 'referral_sources']
+          const allRequired = [...p1Fields, ...p2Fields]
+          const answers = client?.onboarding_answers || {}
+          const filled = allRequired.filter(f => {
+            const v = client?.[f] || answers[f]
+            return v && String(v).trim().length > 0
+          }).length
+          const pct = Math.round((filled / allRequired.length) * 100)
+          const color = pct === 100 ? '#16a34a' : pct >= 70 ? '#f59e0b' : '#dc2626'
+          return (
+            <div style={{ ...card, marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>Onboarding Completeness</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color }}>{pct}%</span>
+              </div>
+              <div style={{ height: 8, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4, transition: 'width .3s' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, color: '#6b7280' }}>
+                <span>Must Get: {p1Fields.filter(f => client?.[f] || answers[f]).length}/{p1Fields.length}</span>
+                <span>Important: {p2Fields.filter(f => client?.[f] || answers[f]).length}/{p2Fields.length}</span>
+              </div>
+              {client?.onboarding_call_summary && (
+                <div style={{ marginTop: 12, padding: '10px 14px', background: '#f9fafb', borderRadius: 8, fontSize: 13, color: '#374151', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Call Summary</div>
+                  {client.onboarding_call_summary}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* ── LIVE VOICE CALL banner ── */}
         {activeVoiceCall && (
           <div style={{
