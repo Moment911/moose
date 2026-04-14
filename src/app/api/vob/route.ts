@@ -667,17 +667,35 @@ export async function POST(req: NextRequest) {
         started_at: new Date().toISOString(),
       }).select('id').single()
 
-      // Build a test-mode prompt with only 10 questions
+      // Dummy test patient data so the agent has something to verify
+      const testMember = {
+        member_name: 'John Michael Roberts',
+        member_dob: '03/15/1989',
+        member_id: 'XHN-884421-09',
+        group_number: 'GRP-44210',
+        group_name: 'Delta Corporation',
+        subscriber_name: 'John Michael Roberts',
+        subscriber_dob: '03/15/1989',
+        relationship: 'Self',
+        phone: '(954) 555-0142',
+        facility_name: agency.brand_name || agency.name,
+        facility_npi: agency.vob_npi || '1234567890',
+        requesting_loc: test_loc || 'Residential Treatment',
+        date_of_service: new Date().toLocaleDateString('en-US'),
+      }
+
+      // Build a test-mode prompt with only 10 questions + member data
       const testPrompt = buildVOBPrompt({
         agencyName: agency.brand_name || agency.name,
-        npi: agency.vob_npi || 'N/A',
+        npi: agency.vob_npi || '1234567890',
         carrierName: test_carrier || 'the insurance company',
         levelOfCare: test_loc || 'Residential Treatment',
         ivrMap: [],
         questions: testQuestions,
+        memberInfo: testMember,
       })
 
-      const beginMessage = `Hi, this is the billing department calling from ${agency.brand_name || agency.name}. I need to verify behavioral health benefits for a member. Can I speak with someone in provider benefits verification?`
+      const beginMessage = `Hi, this is the billing department at ${agency.brand_name || agency.name}, provider NPI ${agency.vob_npi || '1234567890'}. I need to verify behavioral health benefits for a member. The member name is ${testMember.member_name}, date of birth ${testMember.member_dob}, member ID ${testMember.member_id}, group number ${testMember.group_number}. We're requesting coverage verification for ${testMember.requesting_loc}. Can you help me with that?`
 
       try {
         const retellCall = await retellFetch('/v2/create-phone-call', 'POST', {
@@ -738,8 +756,23 @@ function buildVOBPrompt(args: {
   levelOfCare: string
   ivrMap: any[]
   questions: typeof VOB_QUESTIONS
+  memberInfo?: {
+    member_name?: string
+    member_dob?: string
+    member_id?: string
+    group_number?: string
+    group_name?: string
+    subscriber_name?: string
+    subscriber_dob?: string
+    relationship?: string
+    phone?: string
+    facility_name?: string
+    facility_npi?: string
+    requesting_loc?: string
+    date_of_service?: string
+  }
 }): string {
-  const { agencyName, npi, carrierName, levelOfCare, ivrMap, questions } = args
+  const { agencyName, npi, carrierName, levelOfCare, ivrMap, questions, memberInfo } = args
 
   const ivrInstructions = ivrMap.length > 0
     ? `IVR NAVIGATION MAP (follow these steps in order):\n${ivrMap.map((step: any, i: number) => `  Step ${i + 1}: ${step.prompt} → ${step.action}`).join('\n')}\nAfter navigating the IVR, wait on hold until a representative answers.`
@@ -760,6 +793,26 @@ function buildVOBPrompt(args: {
 
 ═══ CALLER TYPE ═══
 You are the PROVIDER calling the INSURANCE COMPANY. You are NOT the patient.
+${memberInfo ? `
+═══ MEMBER INFORMATION (use this when asked by the rep) ═══
+- Member Name: ${memberInfo.member_name || 'N/A'}
+- Member Date of Birth: ${memberInfo.member_dob || 'N/A'}
+- Member ID: ${memberInfo.member_id || 'N/A'}
+- Group Number: ${memberInfo.group_number || 'N/A'}
+- Group Name: ${memberInfo.group_name || 'N/A'}
+- Subscriber Name: ${memberInfo.subscriber_name || 'Same as member'}
+- Subscriber DOB: ${memberInfo.subscriber_dob || 'Same as member'}
+- Relationship to Subscriber: ${memberInfo.relationship || 'Self'}
+- Facility Name: ${memberInfo.facility_name || agencyName}
+- Facility NPI: ${memberInfo.facility_npi || npi}
+- Level of Care Requested: ${memberInfo.requesting_loc || levelOfCare}
+- Date of Service: ${memberInfo.date_of_service || 'Today'}
+
+IMPORTANT: When the insurance representative asks for member information,
+provide it naturally from the data above. Say the member ID as individual
+characters/groups (e.g. "X-H-N, 8-8-4-4-2-1, dash 09"). Spell out the
+name if asked. Provide the date of birth as "March fifteenth, nineteen
+eighty-nine" not "03/15/1989".` : ''}
 
 ═══ ${ivrInstructions} ═══
 
