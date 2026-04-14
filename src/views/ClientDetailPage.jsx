@@ -283,20 +283,21 @@ export default function ClientDetailPage() {
         const health = calculateHealthScore(clientData)
         setHealthScore(health.total)
       }
-      const [pagesRes, sitesRes, callsRes, inboundRes, tasksRes, logsRes] = await Promise.all([
-        supabase.from('koto_wp_pages').select('id,title,status,created_at').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
-        supabase.from('koto_wp_sites').select('id,site_url,connected').eq('client_id', clientId).limit(5),
-        supabase.from('koto_voice_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
-        supabase.from('koto_front_desk_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
-        supabase.from('tasks').select('*').eq('client_id', clientId).eq('status', 'open').limit(10).then(r => r).catch(() => ({ data: [] })),
-        supabase.from('koto_system_logs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20).then(r => r).catch(() => ({ data: [] })),
+      const safeQuery = (q) => q.then(r => Array.isArray(r.data) ? r.data : []).catch(() => [])
+      const [pagesData, sitesData, callsData, inboundData, tasksData, logsData] = await Promise.all([
+        safeQuery(supabase.from('koto_wp_pages').select('id,title,status,created_at').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20)),
+        safeQuery(supabase.from('koto_wp_sites').select('id,site_url,connected').eq('client_id', clientId).limit(5)),
+        safeQuery(supabase.from('koto_voice_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20)),
+        safeQuery(supabase.from('koto_front_desk_calls').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20)),
+        safeQuery(supabase.from('tasks').select('*').eq('client_id', clientId).eq('status', 'open').limit(10)),
+        safeQuery(supabase.from('koto_system_logs').select('*').eq('client_id', clientId).order('created_at', { ascending: false }).limit(20)),
       ])
-      setPages(pagesRes.data || [])
-      setWpSites(sitesRes.data || [])
-      setVoiceCalls(callsRes.data || [])
-      setInboundCalls(inboundRes.data || [])
-      setTasks(tasksRes.data || [])
-      setActivityLogs(logsRes.data || [])
+      setPages(pagesData)
+      setWpSites(sitesData)
+      setVoiceCalls(callsData)
+      setInboundCalls(inboundData)
+      setTasks(tasksData)
+      setActivityLogs(logsData)
 
       // Load front desk config + calls + GHL status
       try {
