@@ -498,95 +498,14 @@ export default function VOBAgentPage() {
 
           {/* ══ VOB RESULTS ════════════════════════════════════════ */}
           {tab === 'results' && (
-            <div>
-              {selectedCall ? (
-                <div>
-                  <button onClick={() => setSelectedCall(null)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: 13, fontFamily: FH, fontWeight: 700, marginBottom: 20, padding: 0 }}>
-                    <ArrowLeft size={15} /> All Results
-                  </button>
-                  <div style={{ ...cardInner, marginBottom: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                      <div>
-                        <h2 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: 0 }}>
-                          VOB — {selectedCall.patient_id} · {selectedCall.carrier_name}
-                        </h2>
-                        <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 4 }}>
-                          {selectedCall.level_of_care} · {selectedCall.ref_number ? `Ref# ${selectedCall.ref_number}` : ''} {selectedCall.rep_name ? `· Rep: ${selectedCall.rep_name}` : ''}
-                        </div>
-                      </div>
-                      <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: (STATUS_COLORS[selectedCall.status] || {}).bg, color: (STATUS_COLORS[selectedCall.status] || {}).color }}>
-                        {(STATUS_COLORS[selectedCall.status] || {}).label}
-                      </span>
-                    </div>
-                    {/* VOB form grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                      {questions.map(q => {
-                        const val = selectedCall.vob_data?.[q.field]
-                        return (
-                          <div key={q.field} style={{
-                            padding: '10px 14px', borderRadius: 8,
-                            background: val ? '#ecfdf5' : '#fafafa',
-                            border: `1px solid ${val ? '#a7f3d0' : '#e5e7eb'}`,
-                          }}>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em' }}>{q.field.replace(/_/g, ' ')}</div>
-                            <div style={{ fontSize: 13, fontWeight: val ? 600 : 400, color: val ? '#0a5c44' : '#d1d5db', fontFamily: FB, marginTop: 3 }}>
-                              {val || '—'}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                    <FileText size={18} color={T} />
-                    <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>VOB Results</span>
-                    <span style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB, marginLeft: 'auto' }}>{completedCalls.length} completed</span>
-                  </div>
-                  <div style={{ ...card }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          {['Patient', 'Carrier', 'LOC', 'Status', 'Duration', 'Questions', 'Ref #', ''].map(h => (
-                            <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {calls.filter(c => ['completed', 'escalated'].includes(c.status)).map(call => {
-                          const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
-                          return (
-                            <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }} onClick={() => setSelectedCall(call)}>
-                              <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{call.patient_id}</td>
-                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.carrier_name}</td>
-                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.level_of_care || '—'}</td>
-                              <td style={{ padding: '10px 14px' }}>
-                                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
-                              </td>
-                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
-                                {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '—'}
-                              </td>
-                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
-                                {call.questions_answered || 0}/{call.questions_total || 20}
-                              </td>
-                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: T }}>{call.reference_number || '—'}</td>
-                              <td style={{ padding: '10px 14px' }}>
-                                <button style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: BLK }}>View VOB</button>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                        {completedCalls.length === 0 && (
-                          <tr><td colSpan={8} style={{ padding: '48px 14px', textAlign: 'center', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>No completed VOBs yet</td></tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
+            <VOBResultsTab
+              calls={calls}
+              questions={questions}
+              selectedCall={selectedCall}
+              setSelectedCall={setSelectedCall}
+              agencyId={agencyId}
+              onRefresh={loadAll}
+            />
           )}
 
           {/* ══ CARRIERS ═══════════════════════════════════════════ */}
@@ -1225,6 +1144,253 @@ export default function VOBAgentPage() {
         )}
 
         <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   VOB RESULTS TAB — All calls database with editable UB-04 form viewer
+   ══════════════════════════════════════════════════════════════════════════ */
+function VOBResultsTab({ calls, questions, selectedCall, setSelectedCall, agencyId, onRefresh }) {
+  const [editingField, setEditingField] = useState(null)
+  const [editValue, setEditValue] = useState('')
+
+  // UB-04 field groups for visual form layout
+  const UB04_SECTIONS = [
+    { title: 'Plan Information', fields: ['plan_status', 'plan_type', 'group_name', 'plan_year', 'erisa_aca', 'bh_carveout', 'bh_administrator'] },
+    { title: 'Member Verification', fields: ['member_verified', 'pcp_referral', 'cob_status', 'hsa_fsa', 'case_manager'] },
+    { title: 'Deductible', fields: ['ded_individual_in', 'ded_individual_out', 'ded_met', 'ded_separate_bh', 'ded_per_admission', 'ded_family'] },
+    { title: 'Out-of-Pocket & Cost Share', fields: ['oop_max_in', 'oop_max_out', 'oop_met', 'coinsurance_in', 'coinsurance_out', 'copay_inpatient', 'copay_php_iop', 'copay_outpatient'] },
+    { title: 'Residential & Detox Coverage', fields: ['detox_covered', 'rtc_covered', 'rtc_days_authorized', 'rtc_days_used', 'medical_necessity', 'mat_covered'] },
+    { title: 'PHP & IOP Coverage', fields: ['php_covered', 'iop_covered', 'php_iop_days_used', 'telehealth_iop'] },
+    { title: 'Outpatient Coverage', fields: ['op_therapy_covered', 'op_group_covered', 'op_psych_eval', 'op_family_therapy'] },
+    { title: 'Prior Authorization', fields: ['pa_required', 'pa_phone', 'pa_turnaround', 'pa_initial_days', 'pa_retro', 'pa_portal'] },
+    { title: 'CPT Code Coverage', fields: ['cpt_h0010', 'cpt_h0018', 'cpt_h0019', 'cpt_h2036', 'cpt_h0035', 'cpt_h0015', 'cpt_90837', 'cpt_uds'] },
+    { title: 'Claims & Network', fields: ['timely_filing', 'claim_form', 'payer_id', 'in_network_npi', 'oon_reimbursement', 'sca_available'] },
+    { title: 'Reference & Verification', fields: ['ref_number', 'rep_name', 'call_timestamp'] },
+  ]
+
+  async function saveField(callId, field, value) {
+    const res = await fetch('/api/vob', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_vob_field', call_id: callId, field, value }),
+    }).then(r => r.json())
+    if (res.success) {
+      // Update local state
+      selectedCall.vob_data = { ...selectedCall.vob_data, [field]: value }
+      setSelectedCall({ ...selectedCall })
+      setEditingField(null)
+      toast.success('Field updated')
+    }
+  }
+
+  if (selectedCall) {
+    const st = STATUS_COLORS[selectedCall.status] || STATUS_COLORS.queued
+    const vob = selectedCall.vob_data || {}
+    const answeredCount = Object.keys(vob).filter(k => !k.startsWith('_')).length
+
+    return (
+      <div>
+        <button onClick={() => setSelectedCall(null)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: 13, fontFamily: FH, fontWeight: 700, marginBottom: 20, padding: 0 }}>
+          <ArrowLeft size={15} /> All Calls
+        </button>
+
+        {/* Header */}
+        <div style={{ ...cardInner, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div>
+              <h2 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0 }}>
+                {selectedCall.patient_id} — {selectedCall.carrier_name}
+              </h2>
+              <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 6 }}>
+                <span>LOC: {selectedCall.level_of_care || '—'}</span>
+                {selectedCall.duration_seconds > 0 && <span>Duration: {Math.floor(selectedCall.duration_seconds / 60)}m {selectedCall.duration_seconds % 60}s</span>}
+                {selectedCall.rep_name && <span>Rep: {selectedCall.rep_name}</span>}
+                {selectedCall.reference_number && <span>Ref#: {selectedCall.reference_number}</span>}
+                {selectedCall.recording_url && (
+                  <a href={selectedCall.recording_url} target="_blank" rel="noopener noreferrer" style={{ color: T, fontWeight: 700, textDecoration: 'none' }}>Play Recording</a>
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: '#0a5c44' }}>{answeredCount} / {questions.length} fields</span>
+              <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
+            <div style={{ width: `${Math.round((answeredCount / Math.max(questions.length, 1)) * 100)}%`, height: '100%', borderRadius: 3, background: '#0a5c44', transition: 'width .3s' }} />
+          </div>
+        </div>
+
+        {/* UB-04 Form Sections */}
+        {UB04_SECTIONS.map(section => {
+          const sectionAnswered = section.fields.filter(f => vob[f]).length
+          return (
+            <div key={section.title} style={{ ...cardInner, marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid #e5e7eb' }}>
+                <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK }}>{section.title}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, fontFamily: FH, color: sectionAnswered === section.fields.length ? GRN : '#9ca3af' }}>
+                  {sectionAnswered}/{section.fields.length}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                {section.fields.map(field => {
+                  const val = vob[field]
+                  const q = questions.find(q => q.field === field)
+                  const isEditing = editingField === `${selectedCall.id}_${field}`
+
+                  return (
+                    <div key={field} style={{
+                      padding: '10px 14px', borderRadius: 8,
+                      background: val ? '#ecfdf5' : '#fafafa',
+                      border: `1px solid ${isEditing ? T : val ? '#a7f3d0' : '#e5e7eb'}`,
+                      cursor: 'pointer', transition: 'border-color .12s',
+                    }}
+                      onClick={() => { if (!isEditing) { setEditingField(`${selectedCall.id}_${field}`); setEditValue(val || '') } }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>
+                        {field.replace(/_/g, ' ')}
+                      </div>
+                      {isEditing ? (
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <input value={editValue} onChange={e => setEditValue(e.target.value)}
+                            autoFocus onKeyDown={e => { if (e.key === 'Enter') saveField(selectedCall.id, field, editValue); if (e.key === 'Escape') setEditingField(null) }}
+                            style={{ flex: 1, padding: '4px 8px', borderRadius: 4, border: `1px solid ${T}`, fontSize: 13, fontFamily: FB, outline: 'none', boxSizing: 'border-box' }}
+                            onClick={e => e.stopPropagation()} />
+                          <button onClick={e => { e.stopPropagation(); saveField(selectedCall.id, field, editValue) }}
+                            style={{ padding: '4px 8px', borderRadius: 4, border: 'none', background: '#0a5c44', color: W, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 13, fontWeight: val ? 600 : 400, color: val ? '#0a5c44' : '#d1d5db', fontFamily: FB, minHeight: 18 }}>
+                          {val || '—'}
+                        </div>
+                      )}
+                      {q && !isEditing && (
+                        <div style={{ fontSize: 10, color: '#c4c4be', fontFamily: FB, marginTop: 3, lineHeight: 1.3 }}>
+                          {q.question.slice(0, 60)}{q.question.length > 60 ? '...' : ''}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Transcript */}
+        {selectedCall.transcript && (
+          <div style={{ ...cardInner, marginTop: 14 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK, marginBottom: 12 }}>Call Transcript</div>
+            <div style={{ fontSize: 13, fontFamily: FB, color: '#6b7280', lineHeight: 1.8, maxHeight: 300, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+              {selectedCall.transcript}
+            </div>
+          </div>
+        )}
+
+        {/* Post-call analysis */}
+        {selectedCall.post_call_analysis && (
+          <div style={{ ...cardInner, marginTop: 14 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK, marginBottom: 12 }}>AI Analysis</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {selectedCall.post_call_analysis.call_summary && (
+                <div style={{ gridColumn: 'span 2', fontSize: 14, color: BLK, fontFamily: FB, lineHeight: 1.6, padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+                  {selectedCall.post_call_analysis.call_summary}
+                </div>
+              )}
+              {selectedCall.post_call_analysis.denial_risk_score != null && (
+                <div style={{ padding: '12px 16px', borderRadius: 8, background: selectedCall.post_call_analysis.denial_risk_score < 30 ? GRN + '08' : selectedCall.post_call_analysis.denial_risk_score < 60 ? AMB + '08' : R + '08', border: `1px solid ${selectedCall.post_call_analysis.denial_risk_score < 30 ? GRN : selectedCall.post_call_analysis.denial_risk_score < 60 ? AMB : R}20` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>Denial Risk</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: selectedCall.post_call_analysis.denial_risk_score < 30 ? GRN : selectedCall.post_call_analysis.denial_risk_score < 60 ? AMB : R, marginTop: 4 }}>
+                    {selectedCall.post_call_analysis.denial_risk_score}%
+                  </div>
+                </div>
+              )}
+              {selectedCall.post_call_analysis.completeness_score != null && (
+                <div style={{ padding: '12px 16px', borderRadius: 8, background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>Completeness</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: T, marginTop: 4 }}>{selectedCall.post_call_analysis.completeness_score}%</div>
+                </div>
+              )}
+            </div>
+            {selectedCall.post_call_analysis.denial_risk_factors?.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', marginBottom: 6 }}>Risk Factors</div>
+                {selectedCall.post_call_analysis.denial_risk_factors.map((f, i) => (
+                  <div key={i} style={{ fontSize: 12, color: R, fontFamily: FB, padding: '3px 0' }}>• {f}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── All Calls Table ──
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <FileText size={18} color={T} />
+          <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>All VOB Calls</span>
+          <span style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB }}>{calls.length} total</span>
+        </div>
+      </div>
+      <div style={{ ...card }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {['Patient', 'Carrier', 'LOC', 'Status', 'Mode', 'Duration', 'Fields', 'Ref #', 'Recording', ''].map(h => (
+                <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {calls.map(call => {
+              const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+              const answered = Object.keys(call.vob_data || {}).filter(k => !k.startsWith('_')).length
+              return (
+                <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }} onClick={() => setSelectedCall(call)}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'} onMouseLeave={e => e.currentTarget.style.background = W}>
+                  <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{call.patient_id}</td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.carrier_name}</td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.level_of_care || '—'}</td>
+                  <td style={{ padding: '10px 14px' }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+                  </td>
+                  <td style={{ padding: '10px 14px' }}>
+                    <span style={{ fontSize: 11, fontFamily: FH, color: '#6b7280' }}>{call.trigger_mode || 'manual'}</span>
+                  </td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
+                    {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '—'}
+                  </td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: answered > 0 ? '#0a5c44' : '#9ca3af', fontWeight: answered > 0 ? 700 : 400 }}>
+                    {answered > 0 ? `${answered} filled` : '—'}
+                  </td>
+                  <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: T }}>{call.reference_number || '—'}</td>
+                  <td style={{ padding: '10px 14px' }}>
+                    {call.recording_url ? (
+                      <a href={call.recording_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                        style={{ padding: '3px 10px', borderRadius: 6, background: T + '12', color: T, fontSize: 11, fontWeight: 700, fontFamily: FH, textDecoration: 'none' }}>Play</a>
+                    ) : '—'}
+                  </td>
+                  <td style={{ padding: '10px 14px' }}>
+                    <button onClick={e => { e.stopPropagation(); setSelectedCall(call) }}
+                      style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: BLK }}>
+                      View / Edit
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+            {calls.length === 0 && (
+              <tr><td colSpan={10} style={{ padding: '48px 14px', textAlign: 'center', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>No calls yet</td></tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   )

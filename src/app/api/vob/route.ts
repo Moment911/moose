@@ -400,6 +400,25 @@ export async function POST(req: NextRequest) {
       return Response.json({ success: true })
     }
 
+    // ── Update a single VOB field (inline editing) ─────────────
+    if (action === 'update_vob_field') {
+      const { call_id, field, value } = body
+      if (!call_id || !field) return Response.json({ error: 'call_id and field required' }, { status: 400 })
+
+      const { data: call } = await s.from('vob_calls').select('vob_data, questions_answered').eq('id', call_id).single()
+      const vobData = call?.vob_data || {}
+      vobData[field] = value
+      const answered = Object.keys(vobData).filter(k => !k.startsWith('_')).length
+
+      await s.from('vob_calls').update({
+        vob_data: vobData,
+        questions_answered: answered,
+        updated_at: new Date().toISOString(),
+      }).eq('id', call_id)
+
+      return Response.json({ success: true })
+    }
+
     // ── Create/update carrier ─────────────────────────────────
     if (action === 'save_carrier') {
       const { id, carrier_name, phone_number, department, ivr_map, bh_carveout, bh_carveout_phone, best_time_to_call, notes } = body
@@ -580,9 +599,24 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── Get dummy test patients ─────────────────────────────────
+    if (action === 'get_test_patients') {
+      const testPatients = [
+        { id: 'TEST-001', carrier: 'BCBS Florida', loc: 'RTC', member_id: 'BCB-44210-001', group: 'Delta Corp / GRP-44210' },
+        { id: 'TEST-002', carrier: 'Aetna', loc: 'PHP/IOP', member_id: 'AET-88291-002', group: 'Sunrise Industries / GRP-88291' },
+        { id: 'TEST-003', carrier: 'Cigna / Evernorth', loc: 'Detox/RTC', member_id: 'CIG-33104-003', group: 'Coastal Holdings / GRP-33104' },
+        { id: 'TEST-004', carrier: 'UnitedHealthcare / Optum', loc: 'RTC', member_id: 'UHC-55672-004', group: 'Metro Services / GRP-55672' },
+        { id: 'TEST-005', carrier: 'Humana', loc: 'IOP', member_id: 'HUM-22910-005', group: 'Palm Beach Group / GRP-22910' },
+        { id: 'TEST-006', carrier: 'Magellan Health', loc: 'PHP', member_id: 'MAG-77431-006', group: 'Atlantic Corp / GRP-77431' },
+        { id: 'TEST-007', carrier: 'Optum Behavioral Health', loc: 'Outpatient', member_id: 'OBH-11283-007', group: 'Southern Health / GRP-11283' },
+        { id: 'TEST-008', carrier: 'BCBS Florida', loc: 'Detox', member_id: 'BCB-66150-008', group: 'Evergreen LLC / GRP-66150' },
+      ]
+      return Response.json({ data: testPatients })
+    }
+
     // ── Test call — call any number with the VOB agent ────────
     if (action === 'test_call') {
-      const { to_number, test_carrier, test_loc } = body
+      const { to_number, test_carrier, test_loc, test_patient_id } = body
 
       if (!to_number) return Response.json({ error: 'to_number required' }, { status: 400 })
 
@@ -593,27 +627,30 @@ export async function POST(req: NextRequest) {
         return Response.json({ error: 'VOB not set up yet. Run setup_vob first.' }, { status: 400 })
       }
 
+      // Use only top 10 priority questions for test calls
+      const testQuestions = VOB_QUESTIONS.filter(q => q.priority === 1).slice(0, 10)
+
       // Create a test call record
       const { data: call } = await s.from('vob_calls').insert({
         agency_id,
-        patient_id: `TEST-${Date.now().toString(36).toUpperCase()}`,
+        patient_id: test_patient_id || `TEST-${Date.now().toString(36).toUpperCase()}`,
         carrier_name: test_carrier || 'Test Call',
         level_of_care: test_loc || 'Test',
         status: 'dialing',
         trigger_mode: 'test',
         priority: 1,
-        questions_total: VOB_QUESTIONS.filter(q => q.priority <= 2).length,
+        questions_total: testQuestions.length,
         started_at: new Date().toISOString(),
       }).select('id').single()
 
-      // Build a test-mode prompt
+      // Build a test-mode prompt with only 10 questions
       const testPrompt = buildVOBPrompt({
         agencyName: agency.brand_name || agency.name,
         npi: agency.vob_npi || 'N/A',
         carrierName: test_carrier || 'the insurance company',
         levelOfCare: test_loc || 'Residential Treatment',
         ivrMap: [],
-        questions: VOB_QUESTIONS.filter(q => q.priority <= 2),
+        questions: testQuestions,
       })
 
       const beginMessage = `Hi, this is the billing department calling from ${agency.brand_name || agency.name}. I need to verify behavioral health benefits for a member. Can I speak with someone in provider benefits verification?`
