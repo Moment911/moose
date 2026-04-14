@@ -401,36 +401,8 @@ export const getOnboardingToken = async (token) => {
     // onboarding links. The agency must explicitly generate a link.
   }
 
-  // 4. Try clients.onboarding_token column
-  const byClientToken = await supabase
-    .from('clients')
-    .select('*')
-    .eq('onboarding_token', token)
-    .maybeSingle()
-  // eslint-disable-next-line no-console
-  console.log(
-    '[Onboarding] Strategy 4 (clients.onboarding_token):',
-    byClientToken?.data ? 'HIT' : 'miss',
-    '| error:', byClientToken?.error?.message || 'none',
-  )
-  if (byClientToken.data) {
-    const synthetic = {
-      data: {
-        id: null,
-        client_id: byClientToken.data.id,
-        agency_id: byClientToken.data.agency_id,
-        token,
-        expires_at: null,
-        used_at: byClientToken.data.onboarding_completed_at || null,
-        created_at: byClientToken.data.created_at,
-        clients: byClientToken.data,
-      },
-      error: null,
-    }
-    // eslint-disable-next-line no-console
-    console.log('[Onboarding] Final result: strategy-4 synthetic for client_id', byClientToken.data.id)
-    return synthetic
-  }
+  // Strategy 4 removed — clients.onboarding_token fallback disabled.
+  // Only explicitly created onboarding_tokens rows are valid.
 
   // eslint-disable-next-line no-console
   console.log('[Onboarding] Final result: ALL STRATEGIES MISSED — returning null')
