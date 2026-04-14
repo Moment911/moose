@@ -515,7 +515,7 @@ export async function POST(req: NextRequest) {
       const ac = area_code || '561'
 
       try {
-        const result = await retellFetch('/v2/create-phone-number', 'POST', {
+        const result = await retellFetch('/create-phone-number', 'POST', {
           area_code: Number(ac),
         })
 
@@ -573,7 +573,7 @@ export async function POST(req: NextRequest) {
 
         // Step 3: Provision number if missing
         if (!agency?.vob_from_number) {
-          const numResult = await retellFetch('/v2/create-phone-number', 'POST', { area_code: Number(area_code || '561') })
+          const numResult = await retellFetch('/create-phone-number', 'POST', { area_code: Number(area_code || '561') })
           if (numResult.phone_number) {
             await s.from('agencies').update({ vob_from_number: numResult.phone_number }).eq('id', agency_id)
             results.phone_number = numResult.phone_number
