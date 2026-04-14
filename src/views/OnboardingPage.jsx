@@ -1626,6 +1626,8 @@ export default function OnboardingPage() {
   // confirmation banner so they can correct it.
   useEffect(() => {
     if (!classification || scopeConfirmed) return;
+    // During a voice call, auto-confirm scope — no banner needed
+    if (activeVoiceCall) { setScopeConfirmed(true); return; }
     const scope = classification.geographic_scope;
     if (!scope) return;
     if (!form.growth_scope || form.growth_scope === '') {
@@ -1640,7 +1642,7 @@ export default function OnboardingPage() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classification, scopeConfirmed]);
+  }, [classification, scopeConfirmed, activeVoiceCall]);
 
   // Debounced watcher — fires 2s after the last form change
   useEffect(() => {
@@ -2356,7 +2358,7 @@ export default function OnboardingPage() {
         )}
 
         {/* FIX 14: Geographic scope confirmation banner */}
-        {step === 1 && classification && !scopeConfirmed && aiSuggestedFields.has('growth_scope') && (
+        {step === 1 && classification && !scopeConfirmed && !activeVoiceCall && aiSuggestedFields.has('growth_scope') && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
             padding: '12px 16px', borderRadius: 10,
@@ -4081,7 +4083,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* ── Voice Commands side panel (desktop) ── */}
-      {onboardingPhoneDisplay && onboardingPin && (
+      {onboardingPhoneDisplay && onboardingPin && !activeVoiceCall && (
         <VoiceCommandPanel
           open={voicePanelOpen}
           setOpen={setVoicePanelOpen}

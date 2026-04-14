@@ -72,6 +72,8 @@ type OnboardingQuestion = {
 //   2 = IMPORTANT — ask if time allows, skip gracefully if not.
 //   3 = NICE TO HAVE — only if the call is going well and
 //       there's plenty of time left.
+// NOTE: This order should match the web form's question flow.
+// Priority determines which questions the voice agent MUST ask vs can skip.
 const ONBOARDING_QUESTIONS: OnboardingQuestion[] = [
   // ── Priority 1: MUST GET ──
   { field: 'welcome_statement', question: "First, I'd love to hear about your business in your own words. What do you do, who do you serve, and what's most important for us to know?", priority: 1 },
@@ -499,7 +501,7 @@ async function buildOnboardingSystemPrompt(args: {
   // State-aware transition line — baked in with the correct name
   // conditionals resolved. No Handlebars — plain strings.
   const namePart = callerFirstName ? `, ${callerFirstName}` : ''
-  const freshTransition = `"Perfect${namePart}! So here's how this works — I'm going to ask you about ${clientName}, and as you answer, everything populates live in your onboarding document. If you've got that link open you can actually watch it happen, which is kind of satisfying. We'll cover about ${remainingCount} things — takes about 10 to 15 minutes. Anything you don't know, just say skip it. Ready? Let's go."`
+  const freshTransition = `"Perfect${namePart}! Let's jump right in. I've got about ${remainingCount} questions — this should take around 10 to 15 minutes. Ready?"`
   const partialTransition = `"Perfect${namePart}! So we've already got ${answeredCount} things on file for ${clientName} — nice work. Still need ${remainingCount} more. Want me to tell you what's missing, or should we just dive in?"`
   const nearlyCompleteTransition = `"Perfect${namePart}! Good news — you're almost done. Just ${remainingCount} more things and ${clientName} is all set. This won't take long."`
 
@@ -787,7 +789,7 @@ ABSOLUTE RULES (never break)
 10. ALWAYS interpret PIN as 4 individual digits regardless of how it's spoken.
 11. NEVER go off topic — if they try to discuss something unrelated, acknowledge briefly and redirect: "Ha, good point — let me stay on track though. [Next question]"
 12. NEVER end the call after just one or two answers — welcome_statement is question ONE of twelve. Always continue through all questions in the list.
-13. After ANY save_answer tool call, immediately ask the next unanswered question. Never pause and wait. Never summarize and wrap up mid-session.
+13. After ANY save_answer tool call, pause briefly — take a breath — then ask the next unanswered question naturally. Don't rush. Never summarize and wrap up mid-session.
 23. For ANY question outside the onboarding scope, refer the caller to their ${agencyName} account rep. Never make up information about what the agency does, charges, or offers.
 24. Never discuss pricing, contracts, timelines, or deliverables — these are always referred to the account rep.
 25. Never speak negatively about competitors or other agencies.
@@ -812,7 +814,7 @@ NEVER ask for passwords, payment info, credit cards, SSNs, or sensitive credenti
   // resolved so Retell just substitutes {{begin_message}} → this text.
   let beginMessage: string
   if (state === 'fresh') {
-    beginMessage = `Hi! Welcome to ${agencyName}'s onboarding — you've reached the right place. My name is Alex, and I'll be collecting some information about your business today. Here's the cool part — as you answer each question, everything populates live in your onboarding document in real time. So if you've got that link open, you can actually watch it happen as we talk. We'll cover about ${remainingCount} things today, takes around 10 to 15 minutes. If there's anything you're not sure about, just say skip it — someone else can always fill that in later. Sound good? Go ahead and give me your 4-digit PIN and we'll get started.`
+    beginMessage = `Hi! Welcome to ${agencyName}'s onboarding — you've reached the right place. My name is Alex, and I'll be collecting some information about your business today. Here's the cool part — as you answer each question, everything updates in real time in your onboarding document. So if you've got that link open, you can actually watch it happen as we talk. We'll cover about ${remainingCount} things today, takes around 10 to 15 minutes. If there's anything you're not sure about, just say skip it — someone else can always fill that in later. Sound good? Go ahead and give me your 4-digit PIN and we'll get started.`
   } else if (state === 'nearly_complete') {
     beginMessage = `Hi${namePart}! You're almost at the finish line — welcome back to ${agencyName}'s onboarding. My name is Alex. We've got most of what we need, just ${remainingCount} more things and you're done. Give me your PIN and we'll knock this out quick.`
   } else {
@@ -1081,8 +1083,8 @@ export async function POST(req: NextRequest) {
         // and expects dynamic_variables back within ~3s.
         inbound_dynamic_variables_webhook_url: webhookUrl,
         enable_backchannel: true,
-        backchannel_frequency: 0.7,
-        interruption_sensitivity: 0.75,
+        backchannel_frequency: 0.4,
+        interruption_sensitivity: 0.6,
         general_tools: [VERIFY_PIN_TOOL, SAVE_ANSWER_TOOL, SAVE_FLAG_TOOL],
         metadata: { agency_id, kind: 'onboarding' },
       }
@@ -1518,8 +1520,9 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Normal field ──
+        // Fire-and-forget: don't await the autosave so the webhook returns fast
         try {
-          await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding`, {
+          fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1529,7 +1532,7 @@ export async function POST(req: NextRequest) {
               form_data: { [field]: answer },
               saved_at: new Date().toISOString(),
             }),
-          })
+          }).catch(() => { /* silent */ })
         } catch { /* silent */ }
 
         const { data: recipient } = await sb
@@ -1556,26 +1559,27 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Per-field attribution on the client row ──
-        // Lets the dashboard render "Submitted by [name] via voice on [date]"
-        // under each onboarding field.
-        try {
-          const { data: clientRow } = await sb
-            .from('clients')
-            .select('onboarding_field_attribution')
-            .eq('id', clientId)
-            .maybeSingle()
-          const attribution = (clientRow?.onboarding_field_attribution as Record<string, any>) || {}
-          attribution[field] = {
-            value: answer,
-            submitted_by: callerName,
-            submitted_at: nowIso,
-            channel: 'voice',
-            call_id: callId,
+        // Fire-and-forget: don't block the webhook response for attribution updates
+        ;(async () => {
+          try {
+            const { data: clientRow } = await sb
+              .from('clients')
+              .select('onboarding_field_attribution')
+              .eq('id', clientId)
+              .maybeSingle()
+            const attribution = (clientRow?.onboarding_field_attribution as Record<string, any>) || {}
+            attribution[field] = {
+              value: answer,
+              submitted_by: callerName,
+              submitted_at: nowIso,
+              channel: 'voice',
+              call_id: callId,
+            }
+            await sb.from('clients').update({ onboarding_field_attribution: attribution }).eq('id', clientId)
+          } catch (e: any) {
+            console.warn('[save_answer attribution] update failed:', e?.message)
           }
-          await sb.from('clients').update({ onboarding_field_attribution: attribution }).eq('id', clientId)
-        } catch (e: any) {
-          console.warn('[save_answer attribution] update failed:', e?.message)
-        }
+        })()
 
         return NextResponse.json({ success: true, message: `Saved ${field}` })
       }
