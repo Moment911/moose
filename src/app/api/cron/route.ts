@@ -3,6 +3,7 @@ import { processSequenceQueue } from '@/lib/emailSequenceEngine'
 import { runDecayUpdate } from '@/lib/leadDecayEngine'
 import { updateTimingIntelligence } from '@/lib/predictiveDialing'
 import { generateDailyDebrief } from '@/lib/debriefEmailEngine'
+import { generateMonthlyRecap } from '@/lib/monthlyRecapEngine'
 import { createClient } from '@supabase/supabase-js'
 
 function sb() {
@@ -58,6 +59,20 @@ export async function GET(req: NextRequest) {
     if (job === 'automations') {
       const result = await processAutomations()
       return Response.json({ success: true, job: 'automations', ...result })
+    }
+
+    if (job === 'monthly_recap') {
+      const s = sb()
+      const { data: agencies } = await s.from('agencies').select('id').is('deleted_at', null).limit(50)
+      let sent = 0
+      for (const agency of agencies || []) {
+        const { data: clients } = await s.from('clients').select('id').eq('agency_id', agency.id).is('deleted_at', null).limit(100)
+        for (const client of clients || []) {
+          const result = await generateMonthlyRecap(client.id, agency.id)
+          if (result.sent) sent++
+        }
+      }
+      return Response.json({ success: true, job: 'monthly_recap', sent })
     }
 
     return Response.json({ error: `Unknown job: ${job}` }, { status: 400 })
