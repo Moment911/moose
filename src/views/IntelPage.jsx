@@ -12,6 +12,7 @@ import {
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 import UnifiedCalculator from '../components/intel/UnifiedCalculator'
+import DataEnrichmentSections from '../components/intel/DataEnrichmentSections'
 
 // ── Brain teasers for scanning view ────────────────────────────────────────
 const BRAIN_TEASERS = [
@@ -1051,6 +1052,9 @@ export default function IntelPage() {
                   </div>
                 </div>
               )}
+
+              {/* Security, Email Auth, Schema, Social, Carbon, W3C, Domain, Files, Knowledge Graph */}
+              {rd && <DataEnrichmentSections rd={rd} />}
 
               {/* 05 — Budget Optimizer */}
               {report?.id && (

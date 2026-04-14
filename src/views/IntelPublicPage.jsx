@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 import UnifiedCalculator from '../components/intel/UnifiedCalculator'
+import DataEnrichmentSections from '../components/intel/DataEnrichmentSections'
 
 function scoreColor(s) {
   if (s >= 75) return GRN
@@ -495,6 +496,9 @@ export default function IntelPublicPage() {
             <UnifiedCalculator reportData={rd} reportInputs={report?.inputs} />
           </div>
         )}
+
+        {/* Security, Email Auth, Schema, Social, Carbon, W3C, Domain, Files, Knowledge Graph */}
+        {rd && <DataEnrichmentSections rd={rd} />}
 
         {/* Data Sources Badge */}
         {rd.data_enrichment_sources?.length > 0 && (

@@ -725,6 +725,425 @@ async function fetchMozCompetitors(competitors: any[]) {
   } catch { return null }
 }
 
+// ── SSL Labs — certificate grade (free, no auth) ───────────────────────────
+async function fetchSSLGrade(hostname: string) {
+  try {
+    // Start scan (or get cached)
+    const res = await fetch(
+      `https://api.ssllabs.com/api/v3/analyze?host=${encodeURIComponent(hostname)}&fromCache=on&maxAge=24`,
+      { signal: AbortSignal.timeout(12000) }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (data.status === 'READY' && data.endpoints?.length) {
+      const ep = data.endpoints[0]
+      return {
+        source: 'Qualys SSL Labs API v3',
+        grade: ep.grade || null,
+        has_warnings: ep.hasWarnings || false,
+        protocol: ep.details?.protocols?.map((p: any) => `${p.name} ${p.version}`).join(', ') || null,
+        hostname,
+      }
+    }
+    // If still processing, return partial
+    if (data.status === 'IN_PROGRESS' || data.status === 'DNS') {
+      return { source: 'Qualys SSL Labs API v3', grade: 'Scanning...', hostname, status: data.status }
+    }
+    return null
+  } catch { return null }
+}
+
+// ── Mozilla Observatory — security headers grade (free, no auth) ────────────
+async function fetchSecurityHeaders(hostname: string) {
+  try {
+    // Trigger scan
+    const scanRes = await fetch(`https://http-observatory.security.mozilla.org/api/v1/analyze?host=${hostname}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'hidden=true&rescan=false',
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!scanRes.ok) return null
+    const scan = await scanRes.json()
+
+    // If complete, get the test results
+    if (scan.state === 'FINISHED' || scan.state === 'ABORTED') {
+      const testsRes = await fetch(`https://http-observatory.security.mozilla.org/api/v1/getScanResults?scan=${scan.scan_id}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+      const tests = testsRes.ok ? await testsRes.json() : null
+
+      const failedTests = tests ? Object.values(tests).filter((t: any) => t.pass === false).map((t: any) => ({
+        name: t.name,
+        description: t.score_description,
+        modifier: t.score_modifier,
+      })) : []
+
+      return {
+        source: 'Mozilla Observatory',
+        grade: scan.grade || null,
+        score: scan.score ?? null,
+        tests_passed: scan.tests_passed ?? null,
+        tests_failed: scan.tests_failed ?? null,
+        failed_tests: failedTests.slice(0, 8),
+        hostname,
+      }
+    }
+    return { source: 'Mozilla Observatory', grade: scan.grade || 'Scanning...', score: scan.score, hostname }
+  } catch { return null }
+}
+
+// ── DNS Email Auth — SPF, DKIM, DMARC (free via Google DNS) ─────────────────
+async function fetchEmailAuth(domain: string) {
+  try {
+    const [spfRes, dmarcRes] = await Promise.all([
+      fetch(`https://dns.google/resolve?name=${domain}&type=TXT`, { signal: AbortSignal.timeout(5000) }),
+      fetch(`https://dns.google/resolve?name=_dmarc.${domain}&type=TXT`, { signal: AbortSignal.timeout(5000) }),
+    ])
+    const spfData = spfRes.ok ? await spfRes.json() : null
+    const dmarcData = dmarcRes.ok ? await dmarcRes.json() : null
+
+    const txtRecords = (spfData?.Answer || []).map((a: any) => a.data).filter(Boolean)
+    const spfRecord = txtRecords.find((r: string) => r.includes('v=spf1'))
+    const dmarcRecords = (dmarcData?.Answer || []).map((a: any) => a.data).filter(Boolean)
+    const dmarcRecord = dmarcRecords.find((r: string) => r.includes('v=DMARC1'))
+
+    return {
+      source: 'Google Public DNS API — SPF/DMARC record lookup',
+      domain,
+      has_spf: !!spfRecord,
+      spf_record: spfRecord?.replace(/"/g, '') || null,
+      has_dmarc: !!dmarcRecord,
+      dmarc_record: dmarcRecord?.replace(/"/g, '') || null,
+      dmarc_policy: dmarcRecord?.match(/p=(\w+)/)?.[1] || null,
+      risk_level: !spfRecord && !dmarcRecord ? 'critical' : !dmarcRecord ? 'high' : !spfRecord ? 'medium' : 'low',
+      explanation: !spfRecord && !dmarcRecord
+        ? 'No SPF or DMARC records — your domain can be spoofed and emails may land in spam'
+        : !dmarcRecord ? 'Missing DMARC — domain spoofing protection incomplete'
+        : !spfRecord ? 'Missing SPF — email delivery may be unreliable'
+        : 'Email authentication configured',
+    }
+  } catch { return null }
+}
+
+// ── Schema.org parsing (from already-fetched HTML) ──────────────────────────
+function parseSchemaMarkup(html: string) {
+  if (!html) return null
+  try {
+    const schemas: any[] = []
+    // JSON-LD blocks
+    const ldMatches = html.matchAll(/<script[^>]*type=['"']application\/ld\+json['"'][^>]*>([\s\S]*?)<\/script>/gi)
+    for (const m of ldMatches) {
+      try {
+        const parsed = JSON.parse(m[1].trim())
+        const items = Array.isArray(parsed) ? parsed : [parsed]
+        items.forEach(item => {
+          if (item['@type']) schemas.push({ type: item['@type'], format: 'JSON-LD', fields: Object.keys(item).filter(k => !k.startsWith('@')).length })
+        })
+      } catch { /* skip malformed JSON-LD */ }
+    }
+
+    // Check for microdata
+    const microdataTypes = [...html.matchAll(/itemtype=["']https?:\/\/schema\.org\/(\w+)["']/gi)].map(m => m[1])
+    microdataTypes.forEach(t => { if (!schemas.some(s => s.type === t)) schemas.push({ type: t, format: 'Microdata', fields: 0 }) })
+
+    const hasLocalBusiness = schemas.some(s => /LocalBusiness|Organization|Store|Restaurant|MedicalBusiness|LegalService|FinancialService|HomeAndConstructionBusiness|ProfessionalService/i.test(String(s.type)))
+    const hasFAQ = schemas.some(s => /FAQPage/i.test(String(s.type)))
+    const hasReview = schemas.some(s => /Review|AggregateRating/i.test(String(s.type)))
+    const hasBreadcrumb = schemas.some(s => /BreadcrumbList/i.test(String(s.type)))
+
+    return {
+      source: 'HTML source scan — JSON-LD and Microdata extraction',
+      schemas,
+      total_schemas: schemas.length,
+      has_local_business: hasLocalBusiness,
+      has_faq: hasFAQ,
+      has_reviews: hasReview,
+      has_breadcrumbs: hasBreadcrumb,
+      missing: [
+        !hasLocalBusiness ? 'LocalBusiness schema (critical for local SEO)' : null,
+        !hasFAQ ? 'FAQ schema (enables rich FAQ results in Google)' : null,
+        !hasReview ? 'Review/AggregateRating schema (enables star ratings in search)' : null,
+        !hasBreadcrumb ? 'BreadcrumbList schema (improves search result appearance)' : null,
+      ].filter(Boolean),
+    }
+  } catch { return null }
+}
+
+// ── Open Graph / Social Preview (from already-fetched HTML) ─────────────────
+function parseSocialPreview(html: string) {
+  if (!html) return null
+  try {
+    const get = (prop: string) => {
+      const m = html.match(new RegExp(`(?:property|name)=["']${prop}["'][^>]*content=["']([^"']+)["']`, 'i'))
+        || html.match(new RegExp(`content=["']([^"']+)["'][^>]*(?:property|name)=["']${prop}["']`, 'i'))
+      return m?.[1] || null
+    }
+
+    const ogTitle = get('og:title')
+    const ogDesc = get('og:description')
+    const ogImage = get('og:image')
+    const ogType = get('og:type')
+    const twitterCard = get('twitter:card')
+    const twitterImage = get('twitter:image')
+    const twitterTitle = get('twitter:title')
+
+    const issues: string[] = []
+    if (!ogTitle) issues.push('Missing og:title — Facebook/LinkedIn will guess your title')
+    if (!ogDesc) issues.push('Missing og:description — social shares will have no description')
+    if (!ogImage) issues.push('Missing og:image — social shares show a blank/generic image')
+    if (!twitterCard) issues.push('Missing twitter:card — Twitter/X shares won\'t have a preview card')
+
+    return {
+      source: 'HTML meta tag extraction',
+      og_title: ogTitle,
+      og_description: ogDesc?.slice(0, 200),
+      og_image: ogImage,
+      og_type: ogType,
+      twitter_card: twitterCard,
+      twitter_image: twitterImage || ogImage,
+      twitter_title: twitterTitle || ogTitle,
+      issues,
+      score: 4 - issues.length, // 0-4, higher is better
+    }
+  } catch { return null }
+}
+
+// ── Website Carbon (free, no auth) ──────────────────────────────────────────
+async function fetchWebsiteCarbon(url: string) {
+  try {
+    const res = await fetch(`https://api.websitecarbon.com/site?url=${encodeURIComponent(url)}`, {
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return {
+      source: 'Website Carbon API — websitecarbon.com',
+      co2_per_view_grams: data.statistics?.co2?.grid?.grams || null,
+      cleaner_than_pct: data.cleanerThan ? Math.round(data.cleanerThan * 100) : null,
+      green_hosting: data.green || false,
+      bytes_transferred: data.bytes || null,
+    }
+  } catch { return null }
+}
+
+// ── W3C HTML Validator (free, no auth) ──────────────────────────────────────
+async function fetchW3CValidation(url: string) {
+  try {
+    const res = await fetch(`https://validator.w3.org/nu/?doc=${encodeURIComponent(url)}&out=json`, {
+      headers: { 'User-Agent': 'KotoIntel/1.0' },
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const messages = data.messages || []
+    const errors = messages.filter((m: any) => m.type === 'error')
+    const warnings = messages.filter((m: any) => m.type === 'info' && m.subType === 'warning')
+    return {
+      source: 'W3C Markup Validation Service',
+      total_errors: errors.length,
+      total_warnings: warnings.length,
+      top_errors: errors.slice(0, 5).map((e: any) => ({ message: e.message?.slice(0, 150), line: e.lastLine })),
+      grade: errors.length === 0 ? 'A' : errors.length <= 5 ? 'B' : errors.length <= 15 ? 'C' : errors.length <= 30 ? 'D' : 'F',
+    }
+  } catch { return null }
+}
+
+// ── CrUX History — 6 months of weekly Core Web Vitals trends ────────────────
+async function fetchCrUXHistory(url: string) {
+  const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY || process.env.GOOGLE_API_KEY || ''
+  if (!apiKey) return null
+  try {
+    const origin = new URL(url).origin
+    const res = await fetch(`https://chromeuxreport.googleapis.com/v1/records:queryHistoryRecord?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: origin, formFactor: 'PHONE', metrics: [
+        'largest_contentful_paint', 'cumulative_layout_shift', 'interaction_to_next_paint'
+      ] }),
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const metrics = data.record?.metrics || {}
+    const periods = data.record?.collectionPeriods || []
+
+    const extractTimeseries = (metric: any) => {
+      if (!metric?.percentilesTimeseries?.p75s) return []
+      return metric.percentilesTimeseries.p75s.map((val: any, i: number) => ({
+        value: typeof val === 'object' ? val.value || val : val,
+        start: periods[i]?.firstDate ? `${periods[i].firstDate.year}-${String(periods[i].firstDate.month).padStart(2,'0')}-${String(periods[i].firstDate.day).padStart(2,'0')}` : null,
+      })).filter((d: any) => d.value != null)
+    }
+
+    return {
+      source: 'Chrome UX Report History API — 6 months of weekly real-user data',
+      lcp_trend: extractTimeseries(metrics.largest_contentful_paint),
+      cls_trend: extractTimeseries(metrics.cumulative_layout_shift),
+      inp_trend: extractTimeseries(metrics.interaction_to_next_paint),
+      data_points: periods.length,
+    }
+  } catch { return null }
+}
+
+// ── Wayback Machine — site age + snapshot count ─────────────────────────────
+async function fetchWaybackData(url: string) {
+  try {
+    const domain = new URL(url).hostname
+    // Get availability (closest snapshot)
+    const [availRes, firstRes] = await Promise.all([
+      fetch(`https://archive.org/wayback/available?url=${domain}`, { signal: AbortSignal.timeout(8000) }),
+      fetch(`https://archive.org/wayback/available?url=${domain}&timestamp=19900101`, { signal: AbortSignal.timeout(8000) }),
+    ])
+    const avail = availRes.ok ? await availRes.json() : null
+    const first = firstRes.ok ? await firstRes.json() : null
+
+    const latestSnapshot = avail?.archived_snapshots?.closest
+    const firstSnapshot = first?.archived_snapshots?.closest
+
+    return {
+      source: 'Internet Archive Wayback Machine API',
+      is_archived: !!latestSnapshot?.available,
+      latest_snapshot_date: latestSnapshot?.timestamp || null,
+      latest_snapshot_url: latestSnapshot?.url || null,
+      earliest_snapshot_date: firstSnapshot?.timestamp || null,
+      earliest_snapshot_url: firstSnapshot?.url || null,
+      domain_first_seen: firstSnapshot?.timestamp ? `${firstSnapshot.timestamp.slice(0,4)}-${firstSnapshot.timestamp.slice(4,6)}-${firstSnapshot.timestamp.slice(6,8)}` : null,
+    }
+  } catch { return null }
+}
+
+// ── RDAP — domain registration age + expiry (free, no auth) ─────────────────
+async function fetchDomainInfo(url: string) {
+  try {
+    const domain = new URL(url).hostname.replace(/^www\./, '')
+    const res = await fetch(`https://rdap.org/domain/${domain}`, {
+      signal: AbortSignal.timeout(8000),
+      headers: { 'Accept': 'application/rdap+json' },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+
+    const events = data.events || []
+    const registration = events.find((e: any) => e.eventAction === 'registration')
+    const expiration = events.find((e: any) => e.eventAction === 'expiration')
+    const lastChanged = events.find((e: any) => e.eventAction === 'last changed')
+
+    const registrar = data.entities?.find((e: any) => e.roles?.includes('registrar'))
+    const registrarName = registrar?.vcardArray?.[1]?.find((v: any) => v[0] === 'fn')?.[3]
+      || registrar?.publicIds?.[0]?.identifier || null
+
+    const regDate = registration?.eventDate ? new Date(registration.eventDate) : null
+    const ageYears = regDate ? Math.round((Date.now() - regDate.getTime()) / (365.25 * 86400000) * 10) / 10 : null
+
+    const expDate = expiration?.eventDate ? new Date(expiration.eventDate) : null
+    const daysUntilExpiry = expDate ? Math.round((expDate.getTime() - Date.now()) / 86400000) : null
+
+    return {
+      source: 'RDAP (Registration Data Access Protocol) — IETF standard domain registration data',
+      domain,
+      registered_date: registration?.eventDate?.split('T')[0] || null,
+      expiry_date: expiration?.eventDate?.split('T')[0] || null,
+      last_updated: lastChanged?.eventDate?.split('T')[0] || null,
+      registrar: registrarName,
+      domain_age_years: ageYears,
+      days_until_expiry: daysUntilExpiry,
+      expiry_warning: daysUntilExpiry !== null && daysUntilExpiry < 90 ? `Domain expires in ${daysUntilExpiry} days!` : null,
+      nameservers: data.nameservers?.map((ns: any) => ns.ldhName).filter(Boolean).slice(0, 4) || [],
+      status: data.status || [],
+    }
+  } catch { return null }
+}
+
+// ── Standard files check — robots.txt, security.txt, ads.txt, etc ───────────
+async function fetchStandardFiles(url: string) {
+  try {
+    const base = new URL(url).origin
+    const files = ['robots.txt', '.well-known/security.txt', 'ads.txt', 'humans.txt', 'sitemap.xml', 'favicon.ico']
+    const results = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const res = await fetch(`${base}/${file}`, {
+            method: 'HEAD',
+            signal: AbortSignal.timeout(5000),
+            headers: { 'User-Agent': 'KotoIntel/1.0' },
+          })
+          return { file, exists: res.ok, status: res.status }
+        } catch { return { file, exists: false, status: 0 } }
+      })
+    )
+    return {
+      source: 'HTTP HEAD requests to standard file locations',
+      files: results,
+      missing: results.filter(r => !r.exists).map(r => r.file),
+      present: results.filter(r => r.exists).map(r => r.file),
+    }
+  } catch { return null }
+}
+
+// ── Shodan InternetDB — open ports + vulns (free, no auth) ──────────────────
+async function fetchShodanData(url: string) {
+  try {
+    const hostname = new URL(url).hostname
+    // Resolve hostname to IP first
+    const dnsRes = await fetch(`https://dns.google/resolve?name=${hostname}&type=A`, { signal: AbortSignal.timeout(5000) })
+    if (!dnsRes.ok) return null
+    const dns = await dnsRes.json()
+    const ip = dns.Answer?.find((a: any) => a.type === 1)?.data
+    if (!ip) return null
+
+    const res = await fetch(`https://internetdb.shodan.io/${ip}`, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return null
+    const data = await res.json()
+    return {
+      source: 'Shodan InternetDB — free internet-wide scan data',
+      ip,
+      hostnames: data.hostnames || [],
+      ports: data.ports || [],
+      vulns: data.vulns || [],
+      cpes: data.cpes?.slice(0, 5) || [],
+      tags: data.tags || [],
+      open_ports_count: (data.ports || []).length,
+      vuln_count: (data.vulns || []).length,
+      risk_level: (data.vulns || []).length > 0 ? 'high' : (data.ports || []).length > 10 ? 'medium' : 'low',
+    }
+  } catch { return null }
+}
+
+// ── Google Knowledge Graph — entity recognition (free, API key) ─────────────
+async function fetchKnowledgeGraph(businessName: string, location: string) {
+  const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_API_KEY || ''
+  if (!apiKey) return null
+  try {
+    const query = `${businessName} ${location}`
+    const res = await fetch(
+      `https://kgsearch.googleapis.com/v1/entities:search?query=${encodeURIComponent(query)}&key=${apiKey}&limit=3&indent=true`,
+      { signal: AbortSignal.timeout(8000) }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    const entities = (data.itemListElement || []).map((item: any) => {
+      const r = item.result || {}
+      return {
+        name: r.name || null,
+        type: r['@type'] || [],
+        description: r.description || null,
+        detailed_description: r.detailedDescription?.articleBody?.slice(0, 300) || null,
+        url: r.url || null,
+        image: r.image?.contentUrl || null,
+        score: item.resultScore || 0,
+      }
+    })
+    const hasPanel = entities.length > 0 && entities[0].score > 100
+    return {
+      source: 'Google Knowledge Graph Search API',
+      has_knowledge_panel: hasPanel,
+      entities: entities.slice(0, 3),
+      top_match: entities[0] || null,
+    }
+  } catch { return null }
+}
+
 // ── Claude analysis — the brain ──────────────────────────────────────────────
 async function analyzeWithClaude(data: any, agencyId?: string) {
   const prompt = `You are KotoIntel, an elite marketing intelligence analyst. Analyze this business data and produce a comprehensive lead pipeline audit.
@@ -780,6 +1199,45 @@ ${data.sitemapData?.clientUrls ? data.sitemapData.clientUrls.join('\n') : 'Sitem
 DETECTED TECH STACK (verified by scanning website HTML source — each tool was confirmed present via script tags, tracking codes, or embed signatures):
 ${data.techStack?.length > 0 ? JSON.stringify(data.techStack) : 'No marketing tools detected on website'}
 
+SCHEMA.ORG STRUCTURED DATA (parsed from HTML):
+${data.schemaMarkup ? JSON.stringify(data.schemaMarkup) : 'No structured data found'}
+
+SOCIAL PREVIEW / OPEN GRAPH (how site looks when shared on Facebook/LinkedIn/Slack):
+${data.socialPreview ? JSON.stringify(data.socialPreview) : 'Not available'}
+
+SSL CERTIFICATE GRADE (Qualys SSL Labs):
+${data.sslData ? JSON.stringify(data.sslData) : 'Not available'}
+
+SECURITY HEADERS (Mozilla Observatory):
+${data.secHeaders ? JSON.stringify(data.secHeaders) : 'Not available'}
+
+EMAIL AUTHENTICATION (SPF/DMARC via Google DNS):
+${data.emailAuth ? JSON.stringify(data.emailAuth) : 'Not available'}
+
+WEBSITE CARBON FOOTPRINT:
+${data.carbonData ? JSON.stringify(data.carbonData) : 'Not available'}
+
+HTML CODE QUALITY (W3C Markup Validation):
+${data.w3cData ? JSON.stringify(data.w3cData) : 'Not available'}
+
+CORE WEB VITALS TRENDS (CrUX History — 6 months weekly):
+${data.cruxHistory ? JSON.stringify(data.cruxHistory) : 'Not enough data for trends'}
+
+INTERNET ARCHIVE / WAYBACK MACHINE:
+${data.waybackData ? JSON.stringify(data.waybackData) : 'Not available'}
+
+DOMAIN REGISTRATION (RDAP):
+${data.domainInfo ? JSON.stringify(data.domainInfo) : 'Not available'}
+
+STANDARD FILES CHECK (robots.txt, security.txt, ads.txt, etc.):
+${data.standardFiles ? JSON.stringify(data.standardFiles) : 'Not available'}
+
+SERVER SECURITY (Shodan InternetDB — open ports & known vulnerabilities):
+${data.shodanData ? JSON.stringify(data.shodanData) : 'Not available'}
+
+GOOGLE KNOWLEDGE GRAPH (does this business have a Knowledge Panel?):
+${data.knowledgeGraph ? JSON.stringify(data.knowledgeGraph) : 'Not available'}
+
 CRITICAL INSTRUCTIONS FOR DATA USAGE:
 - ALL data above comes from verified API sources. When citing metrics, ALWAYS reference the source (e.g. "Per Google Search Console data...", "Moz reports a Domain Authority of...", "CrUX real-user data shows...").
 - If GSC data is available, use REAL keyword rankings and clicks — do NOT estimate. Show their actual top keywords and positions.
@@ -791,6 +1249,16 @@ CRITICAL INSTRUCTIONS FOR DATA USAGE:
 - If Census data is available, use population and income data to size the local market opportunity.
 - The tech stack data is VERIFIED from HTML scanning. Use it to assess their marketing infrastructure maturity.
 - If no analytics or tracking is detected, flag this as a critical finding — they're flying blind.
+- If SSL grade is below A, flag it. If security headers grade is D or F, flag it as a security risk.
+- If email auth shows missing SPF or DMARC, flag as critical — their domain can be spoofed and emails land in spam.
+- If schema markup is missing LocalBusiness, flag it — they're missing rich results in Google.
+- If social preview has missing og:image or og:title, flag it — their links look broken when shared.
+- If W3C validation shows 15+ errors, mention code quality issues.
+- If Wayback data shows the site hasn't changed in years, note it.
+- If domain expiry is within 90 days, flag it as urgent.
+- If Shodan shows known vulnerabilities (CVEs), flag as a security concern.
+- If standard files are missing (no robots.txt, no security.txt), note the gaps.
+- If website carbon shows cleaner_than_pct below 50%, note room for improvement.
 - In your tech_stack_assessment section, grade their marketing infrastructure. Use REAL data from GSC/GA4/Ads to populate estimated_monthly_ad_spend, estimated_close_rate, estimated_cpc, and estimated_conversion_rate when available.
 - For the calculator pre-fills: if Google Ads data shows actual CPC of $8.50, put 8.5 in estimated_cpc. If GA4 shows conversion rate of 3.2%, put 3.2 in estimated_conversion_rate. Use REAL data, not guesses.
 
@@ -949,21 +1417,35 @@ export async function POST(req: NextRequest) {
       let normalizedUrl = website?.trim() || ''
       if (normalizedUrl && !normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl
 
-      // ── Wave 1: All independent data fetches in parallel ──
-      const [pageData, pageSpeed, cruxData, competitors, clientSitemap, gbpData, clientGoogleData, marketData, mozData] = await Promise.all([
+      // ── Wave 1: All independent data fetches in parallel (20+ sources) ──
+      const hostname = normalizedUrl ? new URL(normalizedUrl).hostname : ''
+      const [pageData, pageSpeed, cruxData, cruxHistory, competitors, clientSitemap, gbpData, clientGoogleData, marketData, mozData, sslData, secHeaders, emailAuth, carbonData, w3cData, waybackData, domainInfo, standardFiles, shodanData, knowledgeGraph] = await Promise.all([
         normalizedUrl ? fetchPage(normalizedUrl) : Promise.resolve({ head: '', body: '', raw: '' }),
         normalizedUrl ? fetchPageSpeed(normalizedUrl) : Promise.resolve(null),
         normalizedUrl ? fetchCrUXData(normalizedUrl) : Promise.resolve(null),
+        normalizedUrl ? fetchCrUXHistory(normalizedUrl) : Promise.resolve(null),
         findCompetitors(business_name, location, industry),
         normalizedUrl ? fetchSitemap(normalizedUrl) : Promise.resolve([]),
         fetchGBPData(business_name, location),
         fetchClientGoogleData(client_id, agency_id, normalizedUrl),
         fetchMarketDemographics(location),
         normalizedUrl ? fetchMozData(normalizedUrl) : Promise.resolve(null),
+        hostname ? fetchSSLGrade(hostname) : Promise.resolve(null),
+        hostname ? fetchSecurityHeaders(hostname) : Promise.resolve(null),
+        hostname ? fetchEmailAuth(hostname.replace(/^www\./, '')) : Promise.resolve(null),
+        normalizedUrl ? fetchWebsiteCarbon(normalizedUrl) : Promise.resolve(null),
+        normalizedUrl ? fetchW3CValidation(normalizedUrl) : Promise.resolve(null),
+        normalizedUrl ? fetchWaybackData(normalizedUrl) : Promise.resolve(null),
+        normalizedUrl ? fetchDomainInfo(normalizedUrl) : Promise.resolve(null),
+        normalizedUrl ? fetchStandardFiles(normalizedUrl) : Promise.resolve(null),
+        normalizedUrl ? fetchShodanData(normalizedUrl) : Promise.resolve(null),
+        fetchKnowledgeGraph(business_name, location),
       ])
 
-      // Detect tech stack from raw HTML (deterministic, no AI)
+      // Detect tech stack + parse schema + social preview from raw HTML (deterministic, no AI)
       const techStack = pageData.raw ? detectTechStack(pageData.raw) : []
+      const schemaMarkup = parseSchemaMarkup(pageData.raw)
+      const socialPreview = parseSocialPreview(pageData.raw)
 
       // ── Wave 2: Competitor-dependent fetches ──
       const competitorSitemaps: Record<string, { urls: string[]; categories: Record<string, string[]> }> = {}
@@ -998,8 +1480,21 @@ export async function POST(req: NextRequest) {
         monthlyLeadGoal: monthly_lead_goal,
         websiteData: { head: pageData.head.slice(0, 2000), bodyPreview: pageData.body.slice(0, 3000) },
         techStack,
+        schemaMarkup,
+        socialPreview,
         pageSpeed,
         cruxData,
+        cruxHistory: cruxHistory ? { lcp_points: cruxHistory.lcp_trend?.length, inp_points: cruxHistory.inp_trend?.length, lcp_latest: cruxHistory.lcp_trend?.slice(-1)[0], lcp_oldest: cruxHistory.lcp_trend?.[0], inp_latest: cruxHistory.inp_trend?.slice(-1)[0] } : null,
+        sslData,
+        secHeaders,
+        emailAuth,
+        carbonData,
+        w3cData,
+        waybackData,
+        domainInfo,
+        standardFiles,
+        shodanData,
+        knowledgeGraph,
         gbpData,
         mozData,
         mozCompetitors,
@@ -1019,8 +1514,21 @@ export async function POST(req: NextRequest) {
       const reportData = {
         ...analysis,
         tech_stack: techStack,
+        schema_markup: schemaMarkup,
+        social_preview: socialPreview,
         page_speed: pageSpeed,
         crux_data: cruxData,
+        crux_history: cruxHistory,
+        ssl_grade: sslData,
+        security_headers: secHeaders,
+        email_auth: emailAuth,
+        website_carbon: carbonData,
+        w3c_validation: w3cData,
+        wayback: waybackData,
+        domain_info: domainInfo,
+        standard_files: standardFiles,
+        shodan: shodanData,
+        knowledge_graph: knowledgeGraph,
         gbp_audit: gbpData,
         moz_data: mozData,
         moz_competitors: mozCompetitors,
@@ -1040,6 +1548,19 @@ export async function POST(req: NextRequest) {
         data_enrichment_sources: [
           pageSpeed ? 'Google PageSpeed Insights API' : null,
           cruxData ? 'Chrome User Experience Report (CrUX) API' : null,
+          cruxHistory ? 'CrUX History API (6-month trends)' : null,
+          sslData ? 'Qualys SSL Labs API v3' : null,
+          secHeaders ? 'Mozilla Observatory (security headers)' : null,
+          emailAuth ? 'Google DNS API (SPF/DMARC check)' : null,
+          schemaMarkup ? 'Schema.org structured data extraction' : null,
+          socialPreview ? 'Open Graph / Twitter Card extraction' : null,
+          carbonData ? 'Website Carbon API' : null,
+          w3cData ? 'W3C Markup Validation Service' : null,
+          waybackData ? 'Internet Archive Wayback Machine API' : null,
+          domainInfo ? 'RDAP domain registration data' : null,
+          standardFiles ? 'Standard files check (robots.txt, security.txt, etc.)' : null,
+          shodanData ? 'Shodan InternetDB (ports & vulnerabilities)' : null,
+          knowledgeGraph ? 'Google Knowledge Graph Search API' : null,
           gbpData ? 'Google Places API (GBP Audit)' : null,
           mozData ? 'Moz Link Explorer API v2' : null,
           mozCompetitors ? 'Moz Competitor DA Comparison' : null,
