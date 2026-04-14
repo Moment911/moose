@@ -514,9 +514,14 @@ export async function POST(req: NextRequest) {
       const { area_code } = body
       const ac = area_code || '561'
 
+      // Get agent ID to bind for outbound calls
+      const { data: ag } = await s.from('agencies').select('vob_agent_id').eq('id', agency_id).single()
+
       try {
         const result = await retellFetch('/create-phone-number', 'POST', {
           area_code: Number(ac),
+          ...(ag?.vob_agent_id ? { outbound_agent_id: ag.vob_agent_id } : {}),
+          nickname: 'Koto VOB Outbound',
         })
 
         const phoneNumber = result.phone_number
@@ -573,7 +578,11 @@ export async function POST(req: NextRequest) {
 
         // Step 3: Provision number if missing
         if (!agency?.vob_from_number) {
-          const numResult = await retellFetch('/create-phone-number', 'POST', { area_code: Number(area_code || '561') })
+          const numResult = await retellFetch('/create-phone-number', 'POST', {
+            area_code: Number(area_code || '561'),
+            outbound_agent_id: results.agent_id,
+            nickname: 'Koto VOB Outbound',
+          })
           if (numResult.phone_number) {
             await s.from('agencies').update({ vob_from_number: numResult.phone_number }).eq('id', agency_id)
             results.phone_number = numResult.phone_number
@@ -581,7 +590,15 @@ export async function POST(req: NextRequest) {
           }
         } else {
           results.phone_number = agency.vob_from_number
-          results.steps.push(`Number exists: ${agency.vob_from_number}`)
+          // Ensure agent is bound to the existing number for outbound calls
+          try {
+            await retellFetch(`/update-phone-number/${encodeURIComponent(agency.vob_from_number)}`, 'PATCH', {
+              outbound_agent_id: results.agent_id,
+            })
+            results.steps.push(`Number exists: ${agency.vob_from_number} (agent bound)`)
+          } catch {
+            results.steps.push(`Number exists: ${agency.vob_from_number}`)
+          }
         }
 
         // Step 4: Save NPI
