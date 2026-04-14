@@ -2350,7 +2350,38 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
     setSending(false)
   }
 
+  const [hasOnboardingLink, setHasOnboardingLink] = useState(false)
+  const [generatingLink, setGeneratingLink] = useState(false)
+
+  // Check if onboarding token exists for this client
+  useEffect(() => {
+    if (!client?.id) return
+    supabase.from('onboarding_tokens').select('id').eq('client_id', client.id).maybeSingle()
+      .then(({ data }) => setHasOnboardingLink(!!data))
+  }, [client?.id])
+
+  async function generateOnboardingLink() {
+    if (!client?.id) return
+    setGeneratingLink(true)
+    try {
+      await supabase.from('onboarding_tokens').insert({
+        client_id: client.id,
+        agency_id: agencyId || client.agency_id,
+        token: client.id,
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      setHasOnboardingLink(true)
+      const url = `${window.location.origin}/onboard/${client.id}`
+      navigator.clipboard.writeText(url)
+      toast.success('Onboarding link created and copied!')
+    } catch (e) {
+      toast.error('Failed to generate link')
+    }
+    setGeneratingLink(false)
+  }
+
   function copyLink() {
+    if (!hasOnboardingLink) { generateOnboardingLink(); return }
     const url = `${window.location.origin}/onboard/${client?.id}`
     navigator.clipboard.writeText(url)
     toast.success('Onboarding link copied!')
@@ -2432,11 +2463,12 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
           fontSize: 13,
         }}>
           <div style={{ fontWeight: 700, color: '#92400e', marginBottom: 8 }}>
-            ⚠️ No voice onboarding number yet
+            Onboarding Setup
           </div>
           <div style={{ fontSize: 12, color: '#92400e', marginBottom: 12 }}>
-            Provision a dedicated phone number so {client?.name || 'this client'} can complete
-            onboarding by calling in instead of filling out the form.
+            {hasOnboardingLink
+              ? `Onboarding link is active. Optionally provision a phone number for voice onboarding.`
+              : `Generate an onboarding link for ${client?.name || 'this client'} to fill out their business info.`}
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <input
@@ -2463,17 +2495,17 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
               }}>
               {provisioning ? <span><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning...</span> : <span>📞 Provision Number</span>}
             </button>
-            <button
-              onClick={copyLink}
-              style={{
-                padding: '8px 16px',
-                background: '#fff',
-                border: '1px solid #e5e7eb',
-                color: '#374151', borderRadius: 8,
-                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              }}>
-              🔗 Copy Onboarding Link
-            </button>
+            {hasOnboardingLink ? (
+              <button onClick={copyLink} style={{
+                padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb',
+                color: '#374151', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}>🔗 Copy Onboarding Link</button>
+            ) : (
+              <button onClick={generateOnboardingLink} disabled={generatingLink} style={{
+                padding: '8px 16px', background: '#E6007E', color: '#fff',
+                border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              }}>{generatingLink ? '⏳ Generating...' : '🔗 Generate Onboarding Link'}</button>
+            )}
           </div>
         </div>
       )}

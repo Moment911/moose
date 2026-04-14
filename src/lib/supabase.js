@@ -37,18 +37,9 @@ export const createClient_ = async (name, email, agencyId = null, website = null
 
   if (error || !data) return { data, error }
 
-  // Create onboarding token immediately so the /onboard/:id link works.
-  try {
-    await supabase.from('onboarding_tokens').insert({
-      client_id: data.id,
-      agency_id: agencyId || data.agency_id,
-      token: data.id,
-      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-    })
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn('[createClient_] token creation failed:', e)
-  }
+  // Onboarding link + phone provisioning are now MANUAL.
+  // Agency clicks "Generate Onboarding Link" on the client detail page.
+  // No auto-creation of tokens or phone numbers on client creation.
 
   // Phone provisioning is now MANUAL — agency clicks "Provision Number"
   // on the client detail page when ready for voice onboarding.
@@ -406,36 +397,8 @@ export const getOnboardingToken = async (token) => {
     )
     if (byClientId.data) return byClientId
 
-    // 3. Fall back to clients table directly — synthesize a token record
-    const byClient = await supabase
-      .from('clients')
-      .select('*')
-      .eq('id', token)
-      .maybeSingle()
-    // eslint-disable-next-line no-console
-    console.log(
-      '[Onboarding] Strategy 3 (clients.id synthetic):',
-      byClient?.data ? `HIT client=${byClient.data.name || byClient.data.id}` : 'miss',
-      '| error:', byClient?.error?.message || 'none',
-    )
-    if (byClient.data) {
-      const synthetic = {
-        data: {
-          id: null,
-          client_id: byClient.data.id,
-          agency_id: byClient.data.agency_id,
-          token,
-          expires_at: null,     // synthetic records never expire
-          used_at: byClient.data.onboarding_completed_at || null,
-          created_at: byClient.data.created_at,
-          clients: byClient.data,
-        },
-        error: null,
-      }
-      // eslint-disable-next-line no-console
-      console.log('[Onboarding] Final result: strategy-3 synthetic for client_id', byClient.data.id)
-      return synthetic
-    }
+    // Strategy 3 removed — no more auto-resolving client UUIDs as
+    // onboarding links. The agency must explicitly generate a link.
   }
 
   // 4. Try clients.onboarding_token column
