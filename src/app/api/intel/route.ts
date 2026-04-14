@@ -33,25 +33,65 @@ async function fetchPage(url: string): Promise<{ head: string; body: string; raw
   } catch { return { head: '', body: '', raw: '' } }
 }
 
-// ── Sitemap fetcher ──────────────────────────────────────────────────────────
+// ── Sitemap fetcher — deep crawl, follows nested sitemaps ────────────────────
 async function fetchSitemap(url: string): Promise<string[]> {
+  const allUrls: string[] = []
+  const visited = new Set<string>()
+
+  async function crawlSitemap(sUrl: string) {
+    if (visited.has(sUrl) || visited.size > 20) return
+    visited.add(sUrl)
+    try {
+      const res = await fetch(sUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+        signal: AbortSignal.timeout(8000),
+      })
+      if (!res.ok) return
+      const text = await res.text()
+      const locs = [...text.matchAll(/<loc>(.*?)<\/loc>/gi)].map(m => m[1]).filter(Boolean)
+
+      for (const loc of locs) {
+        // If it's a nested sitemap (contains .xml), crawl it recursively
+        if (loc.endsWith('.xml') || loc.includes('sitemap')) {
+          await crawlSitemap(loc)
+        } else {
+          allUrls.push(loc)
+        }
+      }
+    } catch { /* skip unreachable sitemaps */ }
+  }
+
   try {
     const base = new URL(url).origin
-    const sitemapUrls = [`${base}/sitemap.xml`, `${base}/sitemap_index.xml`, `${base}/wp-sitemap.xml`]
-    for (const sUrl of sitemapUrls) {
-      try {
-        const res = await fetch(sUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
-          signal: AbortSignal.timeout(8000),
-        })
-        if (!res.ok) continue
-        const text = await res.text()
-        // Extract all <loc> URLs
-        const urls = [...text.matchAll(/<loc>(.*?)<\/loc>/gi)].map(m => m[1]).filter(Boolean)
-        if (urls.length > 0) return urls.slice(0, 200)
-      } catch { continue }
+    // Try all common sitemap locations
+    const sitemapUrls = [
+      `${base}/sitemap.xml`,
+      `${base}/sitemap_index.xml`,
+      `${base}/wp-sitemap.xml`,
+      `${base}/sitemap-index.xml`,
+      `${base}/post-sitemap.xml`,
+      `${base}/page-sitemap.xml`,
+    ]
+    // Also check robots.txt for sitemap directives
+    try {
+      const robotsRes = await fetch(`${base}/robots.txt`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+        signal: AbortSignal.timeout(5000),
+      })
+      if (robotsRes.ok) {
+        const robotsTxt = await robotsRes.text()
+        const sitemapMatches = [...robotsTxt.matchAll(/Sitemap:\s*(.*)/gi)]
+        sitemapMatches.forEach(m => { if (m[1]?.trim()) sitemapUrls.push(m[1].trim()) })
+      }
+    } catch { /* ignore */ }
+
+    // Crawl all found sitemaps
+    for (const sUrl of [...new Set(sitemapUrls)]) {
+      await crawlSitemap(sUrl)
+      if (allUrls.length > 0) break // found pages, stop trying alternatives
     }
-    return []
+
+    return [...new Set(allUrls)].slice(0, 500)
   } catch { return [] }
 }
 
@@ -155,7 +195,11 @@ ${data.competitors ? JSON.stringify(data.competitors) : 'Not available'}
 
 SITEMAP ANALYSIS:
 ${data.sitemapData ? JSON.stringify(data.sitemapData) : 'Not available'}
-(Client sitemap pages by category vs competitor sitemaps — use this to identify content gaps: pages competitors have that the client doesn't, missing service pages, missing location pages, missing blog content, etc.)
+
+CLIENT ACTUAL PAGE URLS (from sitemap crawl — these pages DEFINITELY EXIST, do NOT flag them as missing):
+${data.sitemapData?.clientUrls ? data.sitemapData.clientUrls.join('\n') : 'Sitemap not found'}
+
+IMPORTANT: Before flagging ANY content gap, check the actual URL list above. If a URL contains location names, service names, or topic keywords — that page EXISTS. Only flag a gap if you are CERTAIN the page does not appear in the sitemap URLs above. False positives damage credibility.
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -329,6 +373,7 @@ export async function POST(req: NextRequest) {
         competitors,
         sitemapData: {
           client: { total: clientSitemap.length, categories: clientSitemapCats },
+          clientUrls: clientSitemap.slice(0, 200),
           competitors: Object.fromEntries(
             Object.entries(competitorSitemaps).map(([name, d]) => [name, { total: d.urls.length, categories: Object.fromEntries(Object.entries(d.categories).map(([k, v]) => [k, v.length])) }])
           ),
