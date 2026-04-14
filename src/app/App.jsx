@@ -170,6 +170,7 @@ import IntelPage from '../views/IntelPage'
 import MarketingQuizPage from '../views/MarketingQuizPage'
 import IntelPublicPage from '../views/IntelPublicPage'
 import KotoOrderPage from '../views/KotoOrderPage'
+import OnboardingGuidePage from '../views/OnboardingGuidePage'
 // HelpAssistant removed — floating button was disabled per user request
 
 // Global error handler — reports to /api/errors
@@ -250,6 +251,7 @@ export default function App() {
           <Route path="/welcome" element={<MarketingSitePage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/onboarding-guide" element={<OnboardingGuidePage />} />
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/review/:token" element={<PublicReviewPage />} />
