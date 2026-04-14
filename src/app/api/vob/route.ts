@@ -28,52 +28,47 @@ async function retellFetch(path: string, method = 'GET', body?: any) {
 // ─────────────────────────────────────────────────────────────
 // Retell tool definitions — flat format (name at top level)
 // ─────────────────────────────────────────────────────────────
-const VOB_RETELL_TOOLS = [
-  {
-    type: 'function',
-    function: {
+function buildVOBTools(webhookUrl: string) {
+  return [
+    {
+      type: 'custom',
       name: 'save_vob_answer',
       description: 'Save a verified insurance benefit answer. Call this WHILE speaking your acknowledgment — do not wait for the response.',
+      url: webhookUrl,
+      speak_during_execution: true,
       parameters: { type: 'object', properties: {
         field: { type: 'string', description: 'VOB field name (e.g. plan_status, ded_individual_in, coinsurance_in)' },
         value: { type: 'string', description: 'The verified answer value' },
         confidence: { type: 'number', description: 'Confidence score 0-100' },
       }, required: ['field', 'value'] },
     },
-  },
-  {
-    type: 'function',
-    function: {
+    {
+      type: 'custom',
       name: 'navigate_ivr',
       description: 'Log an IVR navigation step (pressing a button, entering a number, or noting a menu option).',
+      url: webhookUrl,
+      speak_during_execution: true,
       parameters: { type: 'object', properties: {
         action: { type: 'string', description: 'What was pressed or entered' },
         description: { type: 'string', description: 'What the IVR prompt said' },
       }, required: ['action'] },
     },
-  },
-  {
-    type: 'function',
-    function: {
+    {
+      type: 'custom',
       name: 'escalate_call',
       description: 'Flag this call for human review when the rep refuses to provide information or the call is stuck.',
+      url: webhookUrl,
       parameters: { type: 'object', properties: {
         reason: { type: 'string', description: 'Why escalation is needed' },
       }, required: ['reason'] },
     },
-  },
-  {
-    type: 'function',
-    function: {
+    {
+      type: 'end_call',
       name: 'end_call',
       description: 'Gracefully end the verification call.',
-      parameters: { type: 'object', properties: {
-        reason: { type: 'string', description: "'completed' | 'rep_unavailable' | 'escalated' | 'carrier_closed'" },
-        summary: { type: 'string', description: 'Brief summary of what was verified' },
-      }, required: ['reason'] },
     },
-  },
-]
+  ]
+}
 
 // ─────────────────────────────────────────────────────────────
 // VOB Question Bank — 72 questions across 16 categories
@@ -489,7 +484,7 @@ export async function POST(req: NextRequest) {
       const llm = await retellFetch('/create-retell-llm', 'POST', {
         general_prompt: '{{system_prompt}}',
         begin_message: '{{begin_message}}',
-        general_tools: VOB_RETELL_TOOLS,
+        general_tools: buildVOBTools(webhookUrl),
         model: 'claude-4.6-sonnet',
       })
 
@@ -555,7 +550,7 @@ export async function POST(req: NextRequest) {
           const llm = await retellFetch('/create-retell-llm', 'POST', {
             general_prompt: '{{system_prompt}}',
             begin_message: '{{begin_message}}',
-            general_tools: VOB_RETELL_TOOLS,
+            general_tools: buildVOBTools(webhookUrl),
             model: 'claude-4.6-sonnet',
           })
           const agent = await retellFetch('/create-agent', 'POST', {

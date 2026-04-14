@@ -49,7 +49,19 @@ const PRIORITY_COLORS = {
 
 export default function VOBAgentPage() {
   const { agencyId } = useAuth()
-  const [tab, setTab] = useState('dashboard')
+  // Persist tab in URL so it survives refresh
+  const [tab, setTab] = (() => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const initial = params?.get('tab') || 'dashboard'
+    const [t, setter] = useState(initial)
+    const wrappedSet = (v) => {
+      setter(v)
+      const url = new URL(window.location.href)
+      url.searchParams.set('tab', v)
+      window.history.replaceState({}, '', url.toString())
+    }
+    return [t, wrappedSet]
+  })()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({})
   const [calls, setCalls] = useState([])

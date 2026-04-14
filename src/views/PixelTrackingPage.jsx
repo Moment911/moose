@@ -64,7 +64,19 @@ const cardInner = { ...card, padding: '20px 24px' }
 
 export default function PixelTrackingPage() {
   const { agencyId } = useAuth()
-  const [tab, setTab] = useState('live')
+  // Persist tab in URL so it survives refresh
+  const [tab, setTab] = (() => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const initial = params?.get('tab') || 'live'
+    const [t, setter] = useState(initial)
+    const wrappedSet = (v) => {
+      setter(v)
+      const url = new URL(window.location.href)
+      url.searchParams.set('tab', v)
+      window.history.replaceState({}, '', url.toString())
+    }
+    return [t, wrappedSet]
+  })()
   const [pixels, setPixels] = useState([])
   const [sessions, setSessions] = useState([])
   const [alerts, setAlerts] = useState([])
