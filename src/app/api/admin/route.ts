@@ -328,6 +328,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ client: data || null })
   }
 
+  // ── Get full client info (for pre-filling forms like KotoIntel) ──────────
+  if (action === 'get_client_full') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data } = await s.from('clients')
+      .select('name, website, industry, city, state, phone, brand_kit, primary_service, marketing_budget, unique_selling_prop, onboarding_answers')
+      .eq('id', client_id)
+      .single()
+    return NextResponse.json({ client: data || null })
+  }
+
+  // ── Update notification preferences ──────────────────────────────────
+  if (action === 'update_notification_prefs') {
+    const { client_id, prefs } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { error } = await s.from('clients').update({ notification_prefs: prefs }).eq('id', client_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // ── List shared files for client ─────────────────────────────────────
+  if (action === 'list_client_files') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data: projects } = await s.from('projects').select('id').eq('client_id', client_id)
+    if (!projects?.length) return NextResponse.json({ files: [] })
+    const projIds = projects.map(p => p.id)
+    const { data: files } = await s.from('files').select('id, name, type, url, storage_path, created_at, project_id')
+      .in('project_id', projIds).order('created_at', { ascending: false }).limit(30)
+    return NextResponse.json({ files: files || [] })
+  }
+
   // ── List client team members with emails ─────────────────��────────────
   if (action === 'list_client_users') {
     const { client_id } = body
