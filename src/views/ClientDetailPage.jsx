@@ -2283,6 +2283,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
   const [copied, setCopied] = useState(false)
   const [provisioning, setProvisioning] = useState(false)
   const [sending, setSending] = useState(false)
+  const [provisionAreaCode, setProvisionAreaCode] = useState('')
 
   // Prefer the per-client provisioned number. Fall back to the
   // agency-level default only if the per-client number isn't set yet.
@@ -2298,14 +2299,19 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
     if (!client?.id) return
     setProvisioning(true)
     try {
+      const payload = {
+        action: 'init_client_onboarding',
+        client_id: client.id,
+        agency_id: agencyId,
+      }
+      // If user entered a custom area code, pass it
+      if (provisionAreaCode && /^\d{3}$/.test(provisionAreaCode.trim())) {
+        payload.area_code = provisionAreaCode.trim()
+      }
       const res = await fetch('/api/onboarding/telnyx-provision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'init_client_onboarding',
-          client_id: client.id,
-          agency_id: agencyId,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (data?.phone_number || data?.already_assigned) {
@@ -2432,7 +2438,18 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
             Provision a dedicated phone number so {client?.name || 'this client'} can complete
             onboarding by calling in instead of filling out the form.
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input
+              value={provisionAreaCode}
+              onChange={e => setProvisionAreaCode(e.target.value.replace(/\D/g, '').slice(0, 3))}
+              placeholder="Area code (e.g. 954)"
+              style={{
+                width: 130, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb',
+                fontSize: 12, fontFamily: FB, boxSizing: 'border-box', outline: 'none',
+              }}
+              onFocus={e => e.target.style.borderColor = '#00C2CB'}
+              onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+            />
             <button
               onClick={handleProvisionNumber}
               disabled={provisioning}
@@ -2444,7 +2461,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
                 fontSize: 12, fontWeight: 700, cursor: provisioning ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6,
               }}>
-              {provisioning ? <span><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning...</span> : <span>📞 Provision Number and PIN</span>}
+              {provisioning ? <span><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Provisioning...</span> : <span>📞 Provision Number</span>}
             </button>
             <button
               onClick={copyLink}

@@ -693,12 +693,15 @@ async function provisionOneClientViaRetell(
     })
     retellResponse = await res.json().catch(() => ({}))
     if (!res.ok) {
+      const usedAc = area_code || '561'
+      const rawMsg = retellResponse?.error_message || retellResponse?.message || ''
+      const isNoNumbers = rawMsg.toLowerCase().includes('no phone number') || rawMsg.toLowerCase().includes('area code') || res.status === 400
       return {
         ok: false,
-        error:
-          retellResponse?.error_message ||
-          retellResponse?.message ||
-          `Retell create-phone-number failed (${res.status})`,
+        error: isNoNumbers
+          ? `No phone numbers available for area code ${usedAc}. Try a different area code.`
+          : rawMsg || `Retell create-phone-number failed (${res.status})`,
+        tried_area_code: usedAc,
         retell_response: retellResponse,
       }
     }
@@ -939,10 +942,9 @@ export async function POST(req: NextRequest) {
       // resolves even if provisioning fails.
       await ensureOnboardingToken(s, client_id, agency_id)
 
-      // Figure out a preferred area code from the client's phone
-      // if we have one — keeps the assigned number in the same
-      // geography when possible.
-      const ac = extractAreaCodeFromPhone((client as any).phone)
+      // Prefer user-provided area code, then try auto-extracting
+      // from client's phone, then fall back to null (defaults to 561).
+      const ac = area_code || extractAreaCodeFromPhone((client as any).phone)
 
       // Use the Retell-native path — bypasses the flaky Telnyx BYOC
       // import that 404s on number assignment. Falls back to the
