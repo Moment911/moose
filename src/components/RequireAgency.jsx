@@ -40,8 +40,15 @@ function AgencyPicker({ onSelect }) {
   useEffect(() => {
     supabase.from('agencies').select('id, name, brand_name, logo_url, created_at')
       .order('name')
-      .then(({ data }) => {
-        setAgencies(data || [])
+      .then(({ data, error }) => {
+        if (data && data.length > 0) {
+          setAgencies(data)
+        } else {
+          // Fallback: try via admin API
+          fetch('/api/admin?action=list_agencies').then(r => r.json()).then(list => {
+            if (Array.isArray(list) && list.length > 0) setAgencies(list)
+          }).catch(() => {})
+        }
         setLoading(false)
       })
   }, [])
