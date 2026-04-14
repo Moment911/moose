@@ -199,7 +199,7 @@ export default function AnnotationCanvas({
     const isResolved = ann.resolved || ann.status === 'completed'
     const isInProgress = ann.status === 'in_progress' || ann.status === 'updated'
     const c = isResolved ? '#16a34a' : isInProgress ? '#f59e0b' : ann.source === 'agency' ? '#7c3aed' : ann.source === 'client' ? '#E6007E' : (ann.color || COLORS[0])
-    const strokeW = isSelected ? 3 : 2.5
+    const strokeW = isSelected ? 4 : 3
     const opacity = isSelected ? 1 : isHovered ? 0.9 : 0.75
 
     const commonProps = {
@@ -245,10 +245,10 @@ export default function AnnotationCanvas({
     if (ann.type === 'approve') {
       return (
         <g key={ann.id} {...commonProps} transform={`translate(${ann.x}, ${ann.y})`}>
-          <circle cx={0} cy={0} r={isSelected ? 16 : 14} fill="#22c55e" opacity={opacity}
-            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.1)'} strokeWidth={isSelected ? 2 : 1}
-            filter={isSelected ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))'} />
-          <path d="M-5 0L-1.5 3.5L5.5-3.5" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx={0} cy={0} r={isSelected ? 22 : 18} fill="#22c55e" opacity={opacity}
+            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.1)'} strokeWidth={isSelected ? 3 : 1.5}
+            filter={isSelected ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.3))' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))'} />
+          <path d="M-7 0L-2.5 5L7.5-5" fill="none" stroke="white" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
         </g>
       )
     }
@@ -269,10 +269,10 @@ export default function AnnotationCanvas({
     if (ann.type === 'text') {
       return (
         <g key={ann.id} {...commonProps} transform={`translate(${ann.x}, ${ann.y})`}>
-          <circle cx={0} cy={0} r={isSelected ? 14 : 12} fill={c} opacity={opacity}
-            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.15)'} strokeWidth={isSelected ? 2 : 1}
-            filter={isSelected ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.2))'} />
-          <text x={0} y={5} textAnchor="middle" fill="white" fontSize={13} fontWeight="800" fontFamily="serif">T</text>
+          <circle cx={0} cy={0} r={isSelected ? 20 : 16} fill={c} opacity={opacity}
+            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.15)'} strokeWidth={isSelected ? 3 : 1.5}
+            filter={isSelected ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'} />
+          <text x={0} y={6} textAnchor="middle" fill="white" fontSize={16} fontWeight="800" fontFamily="serif">T</text>
         </g>
       )
     }
@@ -280,10 +280,10 @@ export default function AnnotationCanvas({
     if (ann.type === 'pin') {
       return (
         <g key={ann.id} {...commonProps} transform={`translate(${ann.x}, ${ann.y})`}>
-          <circle cx={0} cy={0} r={isSelected ? 14 : 12} fill={c} opacity={opacity}
-            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.15)'} strokeWidth={isSelected ? 2 : 1}
-            filter={isSelected ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.4))' : 'drop-shadow(0 1px 3px rgba(0,0,0,0.2))'} />
-          <text x={0} y={4} textAnchor="middle" fill="white" fontSize={10} fontWeight="700">{annNum}</text>
+          <circle cx={0} cy={0} r={isSelected ? 20 : 16} fill={c} opacity={opacity}
+            stroke={isSelected ? 'white' : 'rgba(0,0,0,0.15)'} strokeWidth={isSelected ? 3 : 1.5}
+            filter={isSelected ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'} />
+          <text x={0} y={5} textAnchor="middle" fill="white" fontSize={13} fontWeight="800">{annNum}</text>
         </g>
       )
     }
@@ -292,9 +292,9 @@ export default function AnnotationCanvas({
     function numBadge(bx, by) {
       return (
         <>
-          <circle cx={bx} cy={by} r={10} fill={c} stroke="white" strokeWidth={1.5}
-            filter="drop-shadow(0 1px 3px rgba(0,0,0,0.3))" />
-          <text x={bx} y={by + 3.5} textAnchor="middle" fill="white" fontSize={9} fontWeight="700">{annNum}</text>
+          <circle cx={bx} cy={by} r={14} fill={c} stroke="white" strokeWidth={2}
+            filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))" />
+          <text x={bx} y={by + 4.5} textAnchor="middle" fill="white" fontSize={12} fontWeight="800">{annNum}</text>
         </>
       )
     }

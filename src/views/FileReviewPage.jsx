@@ -765,45 +765,7 @@ export default function FileReviewPage() {
                 </div>
               )}
 
-              {/* Pending shape comment popover — appears after drawing a rect/circle/arrow/freehand */}
-              {pendingShapeComment && (
-                <div style={{
-                  position: 'absolute',
-                  left: pendingShapeComment.x + 14,
-                  top: pendingShapeComment.y + 14,
-                  zIndex: 100,
-                  background: '#fff',
-                  borderRadius: 10,
-                  padding: 12,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                  minWidth: 240,
-                }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 6 }}>Add a note to this annotation</div>
-                  <textarea
-                    placeholder="Describe the change needed…"
-                    autoFocus
-                    rows={3}
-                    value={pendingComment}
-                    onChange={(e) => setPendingComment(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitShapeComment() } }}
-                    style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: 8, fontSize: 13, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                  />
-                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                    <button
-                      onClick={submitShapeComment}
-                      style={{ flex: 1, padding: '6px', background: TEAL, color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-                      {pendingComment.trim() ? 'Save Note' : 'Skip (no note)'}
-                    </button>
-                    <button
-                      onClick={() => { setPendingShapeComment(null); setPendingComment('') }}
-                      style={{ padding: '6px 10px', background: '#f9f9f9', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Pin popup rendered outside scaled container — see below */}
+              {/* Popups rendered as fixed position outside scaled container — see below */}
             </div>
           </div>
         </div>
@@ -839,6 +801,45 @@ export default function FileReviewPage() {
                   Add Comment
                 </button>
                 <button onClick={() => { setPendingPin(null); setPendingComment('') }} style={{ padding: '10px 16px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Pending shape comment popover — fixed position, outside scaled container */}
+        {pendingShapeComment && canvasContainerRef.current && (() => {
+          const rect = canvasContainerRef.current.getBoundingClientRect()
+          const screenX = rect.left + (pendingShapeComment.x * zoom) - canvasContainerRef.current.scrollLeft + 24 + 14
+          const screenY = rect.top + (pendingShapeComment.y * zoom) - canvasContainerRef.current.scrollTop + 24 + 14
+          return (
+            <div style={{
+              position: 'fixed',
+              left: Math.min(screenX, window.innerWidth - 320),
+              top: Math.min(screenY, window.innerHeight - 200),
+              zIndex: 10000,
+              background: '#fff',
+              borderRadius: 12,
+              padding: 16,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+              width: 300,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>Add a note to this annotation</div>
+              <textarea
+                placeholder="Describe the change needed…"
+                autoFocus
+                rows={3}
+                value={pendingComment}
+                onChange={(e) => setPendingComment(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitShapeComment() } if (e.key === 'Escape') { setPendingShapeComment(null); setPendingComment('') } }}
+                style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, fontSize: 15, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none' }}
+              />
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button onClick={submitShapeComment} style={{ flex: 1, padding: '10px', background: TEAL, color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  {pendingComment.trim() ? 'Save Note' : 'Skip (no note)'}
+                </button>
+                <button onClick={() => { setPendingShapeComment(null); setPendingComment('') }} style={{ padding: '10px 16px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>
                   Cancel
                 </button>
               </div>
