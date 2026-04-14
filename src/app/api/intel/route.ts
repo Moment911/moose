@@ -33,6 +33,45 @@ async function fetchPage(url: string): Promise<{ head: string; body: string; raw
   } catch { return { head: '', body: '', raw: '' } }
 }
 
+// ── Sitemap fetcher ──────────────────────────────────────────────────────────
+async function fetchSitemap(url: string): Promise<string[]> {
+  try {
+    const base = new URL(url).origin
+    const sitemapUrls = [`${base}/sitemap.xml`, `${base}/sitemap_index.xml`, `${base}/wp-sitemap.xml`]
+    for (const sUrl of sitemapUrls) {
+      try {
+        const res = await fetch(sUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+          signal: AbortSignal.timeout(8000),
+        })
+        if (!res.ok) continue
+        const text = await res.text()
+        // Extract all <loc> URLs
+        const urls = [...text.matchAll(/<loc>(.*?)<\/loc>/gi)].map(m => m[1]).filter(Boolean)
+        if (urls.length > 0) return urls.slice(0, 200)
+      } catch { continue }
+    }
+    return []
+  } catch { return [] }
+}
+
+function categorizeSitemapUrls(urls: string[]): Record<string, string[]> {
+  const cats: Record<string, string[]> = {
+    services: [], locations: [], blog: [], about: [], contact: [], landing: [], other: []
+  }
+  for (const url of urls) {
+    const path = url.toLowerCase()
+    if (/blog|news|article|post|resource/i.test(path)) cats.blog.push(url)
+    else if (/service|what-we-do|treatment|procedure|offering/i.test(path)) cats.services.push(url)
+    else if (/location|area|city|state|near-me|serving/i.test(path)) cats.locations.push(url)
+    else if (/about|team|staff|doctor|attorney|meet/i.test(path)) cats.about.push(url)
+    else if (/contact|schedule|book|appointment|consult/i.test(path)) cats.contact.push(url)
+    else if (/landing|lp|offer|promo|special/i.test(path)) cats.landing.push(url)
+    else cats.other.push(url)
+  }
+  return cats
+}
+
 // ── Google PageSpeed ─────────────────────────────────────────────────────────
 async function fetchPageSpeed(url: string) {
   const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY || process.env.GOOGLE_API_KEY || ''
@@ -114,6 +153,10 @@ ${data.pageSpeed ? JSON.stringify(data.pageSpeed) : 'Not available'}
 COMPETITORS FOUND:
 ${data.competitors ? JSON.stringify(data.competitors) : 'Not available'}
 
+SITEMAP ANALYSIS:
+${data.sitemapData ? JSON.stringify(data.sitemapData) : 'Not available'}
+(Client sitemap pages by category vs competitor sitemaps — use this to identify content gaps: pages competitors have that the client doesn't, missing service pages, missing location pages, missing blog content, etc.)
+
 Return ONLY valid JSON with this exact structure:
 {
   "pipeline_scores": {
@@ -154,6 +197,9 @@ Return ONLY valid JSON with this exact structure:
     "biggest_threat": "Name and why",
     "your_advantage": "What this business has that competitors don't"
   },
+  "content_gaps": [
+    { "type": "missing_service_page|missing_location_page|missing_blog|missing_faq|missing_landing_page|weak_content", "title": "What's missing", "detail": "Why this matters + which competitor has it", "priority": "high|medium|low" }
+  ],
   "budget_analysis": {
     "estimated_current_spend": number,
     "optimal_spend": number,
@@ -246,11 +292,27 @@ export async function POST(req: NextRequest) {
       let normalizedUrl = website?.trim() || ''
       if (normalizedUrl && !normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl
 
-      const [pageData, pageSpeed, competitors] = await Promise.all([
+      const [pageData, pageSpeed, competitors, clientSitemap] = await Promise.all([
         normalizedUrl ? fetchPage(normalizedUrl) : Promise.resolve({ head: '', body: '', raw: '' }),
         normalizedUrl ? fetchPageSpeed(normalizedUrl) : Promise.resolve(null),
         findCompetitors(business_name, location, industry),
+        normalizedUrl ? fetchSitemap(normalizedUrl) : Promise.resolve([]),
       ])
+
+      // Fetch competitor sitemaps in parallel (top 3)
+      const competitorSitemaps: Record<string, { urls: string[]; categories: Record<string, string[]> }> = {}
+      if (competitors.length > 0) {
+        const compSitemapPromises = competitors.slice(0, 3)
+          .filter((c: any) => c.website)
+          .map(async (c: any) => {
+            const urls = await fetchSitemap(c.website)
+            return { name: c.name, urls, categories: categorizeSitemapUrls(urls) }
+          })
+        const results = await Promise.all(compSitemapPromises)
+        results.forEach(r => { competitorSitemaps[r.name] = { urls: r.urls, categories: r.categories } })
+      }
+
+      const clientSitemapCats = categorizeSitemapUrls(clientSitemap)
 
       // Run Claude analysis with all gathered data
       const analysis = await analyzeWithClaude({
@@ -265,6 +327,12 @@ export async function POST(req: NextRequest) {
         websiteData: { head: pageData.head.slice(0, 2000), bodyPreview: pageData.body.slice(0, 3000) },
         pageSpeed,
         competitors,
+        sitemapData: {
+          client: { total: clientSitemap.length, categories: clientSitemapCats },
+          competitors: Object.fromEntries(
+            Object.entries(competitorSitemaps).map(([name, d]) => [name, { total: d.urls.length, categories: Object.fromEntries(Object.entries(d.categories).map(([k, v]) => [k, v.length])) }])
+          ),
+        },
       }, agency_id)
 
       // Save completed report
@@ -272,6 +340,12 @@ export async function POST(req: NextRequest) {
         ...analysis,
         page_speed: pageSpeed,
         competitors,
+        sitemap: {
+          client: { total: clientSitemap.length, categories: clientSitemapCats, urls: clientSitemap.slice(0, 50) },
+          competitors: Object.fromEntries(
+            Object.entries(competitorSitemaps).map(([name, d]) => [name, { total: d.urls.length, categories: d.categories }])
+          ),
+        },
         scanned_at: new Date().toISOString(),
       }
 

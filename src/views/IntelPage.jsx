@@ -578,6 +578,91 @@ export default function IntelPage() {
                 </div>
               )}
 
+              {/* 03b — Sitemap Comparison & Content Gaps */}
+              {(rd.sitemap || rd.content_gaps) && (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#7c3aed15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: '#7c3aed' }}>03b</div>
+                    <div>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Content & sitemap analysis</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>Your pages vs competitor pages · content gaps · missing opportunities</div>
+                    </div>
+                  </div>
+
+                  {/* Sitemap comparison table */}
+                  {rd.sitemap && (
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, fontFamily: FH }}>Page Count by Category</div>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                              <th style={{ padding: '8px 12px', fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: 'left' }}>Category</th>
+                              <th style={{ padding: '8px 12px', fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', fontFamily: FH, textAlign: 'center' }}>You</th>
+                              {rd.sitemap.competitors && Object.keys(rd.sitemap.competitors).map(name => (
+                                <th key={name} style={{ padding: '8px 12px', fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', fontFamily: FH, textAlign: 'center', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {['services', 'locations', 'blog', 'about', 'contact', 'landing', 'other'].map(cat => {
+                              const clientCount = rd.sitemap.client?.categories?.[cat]?.length || (typeof rd.sitemap.client?.categories?.[cat] === 'number' ? rd.sitemap.client.categories[cat] : 0)
+                              return (
+                                <tr key={cat} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                  <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, textTransform: 'capitalize' }}>{cat}</td>
+                                  <td style={{ padding: '10px 12px', fontSize: 14, fontWeight: 900, color: T, fontFamily: FH, textAlign: 'center' }}>{clientCount}</td>
+                                  {rd.sitemap.competitors && Object.entries(rd.sitemap.competitors).map(([name, data]) => {
+                                    const count = data?.categories?.[cat] || 0
+                                    const isMore = count > clientCount
+                                    return (
+                                      <td key={name} style={{ padding: '10px 12px', fontSize: 14, fontWeight: 700, color: isMore ? R : '#6b7280', fontFamily: FH, textAlign: 'center' }}>
+                                        {count} {isMore && <ArrowUpRight size={10} style={{ display: 'inline' }} />}
+                                      </td>
+                                    )
+                                  })}
+                                </tr>
+                              )
+                            })}
+                            <tr style={{ borderTop: '2px solid #e5e7eb' }}>
+                              <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 900, color: BLK, fontFamily: FH }}>Total Pages</td>
+                              <td style={{ padding: '10px 12px', fontSize: 16, fontWeight: 900, color: T, fontFamily: FH, textAlign: 'center' }}>{rd.sitemap.client?.total || 0}</td>
+                              {rd.sitemap.competitors && Object.entries(rd.sitemap.competitors).map(([name, data]) => (
+                                <td key={name} style={{ padding: '10px 12px', fontSize: 16, fontWeight: 900, color: (data?.total || 0) > (rd.sitemap.client?.total || 0) ? R : '#6b7280', fontFamily: FH, textAlign: 'center' }}>
+                                  {data?.total || 0}
+                                </td>
+                              ))}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Content gaps */}
+                  {rd.content_gaps && rd.content_gaps.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, fontFamily: FH }}>Content Gaps Identified</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {rd.content_gaps.map((gap, i) => {
+                          const gColor = gap.priority === 'high' ? R : gap.priority === 'medium' ? AMB : '#6b7280'
+                          const typeLabels = { missing_service_page: 'Missing Service Page', missing_location_page: 'Missing Location Page', missing_blog: 'Missing Blog Content', missing_faq: 'Missing FAQ', missing_landing_page: 'Missing Landing Page', weak_content: 'Weak Content' }
+                          return (
+                            <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', borderLeft: `4px solid ${gColor}` }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: gColor + '15', color: gColor, textTransform: 'uppercase' }}>{gap.priority}</span>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed', background: '#7c3aed12', padding: '2px 8px', borderRadius: 4 }}>{typeLabels[gap.type] || gap.type}</span>
+                              </div>
+                              <div style={{ fontSize: 14, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 4 }}>{gap.title}</div>
+                              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{gap.detail}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* 04 — PageSpeed */}
               {rd.page_speed && (
                 <div style={card}>
