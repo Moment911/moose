@@ -78,6 +78,7 @@ export default function FileReviewPage() {
   const [thumbsOpen, setThumbsOpen] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
   const [showApproval, setShowApproval] = useState(false)
+  const [fileActivity, setFileActivity] = useState([])
 
   const [tool, setTool] = useState('select')
   const [color, setColor] = useState('#E6007E')
@@ -160,6 +161,18 @@ export default function FileReviewPage() {
         // Load team for @mentions
         const { data: accessList } = await supabase.from('project_access').select('*').eq('project_id', projectId)
         setTeam(accessList || [])
+
+        // Load file activity
+        const { data: activityData } = await supabase.from('koto_file_activity')
+          .select('*').eq('file_id', fileId).order('created_at', { ascending: false }).limit(20)
+        setFileActivity(activityData || [])
+
+        // Log file view
+        supabase.from('koto_file_activity').insert({
+          file_id: fileId, project_id: projectId,
+          action: 'viewed', actor_name: authorName || 'Unknown',
+          detail: `${authorName || 'Someone'} viewed this file`,
+        }).then(() => {})
       } catch (e) {
         console.warn('[FileReviewPage load]', e)
         toast.error('Failed to load file')
@@ -402,6 +415,78 @@ export default function FileReviewPage() {
     }))
   }
 
+  // ── Export annotations as PDF ──
+  function exportAnnotations() {
+    const open = annotations.filter(a => !a.resolved && a.status !== 'completed')
+    const resolved = annotations.filter(a => a.resolved || a.status === 'completed')
+
+    const html = `<!DOCTYPE html><html><head>
+      <title>Feedback Report — ${file?.name || 'File'}</title>
+      <style>
+        body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; color: #111; padding: 0 20px; }
+        h1 { font-size: 24px; margin-bottom: 4px; }
+        .meta { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+        .section { margin-bottom: 32px; }
+        .section-title { font-size: 16px; font-weight: 700; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 16px; }
+        .ann { padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+        .ann-header { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+        .ann-num { width: 24px; height: 24px; border-radius: 50%; background: #E6007E; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+        .ann-num.resolved { background: #16a34a; }
+        .ann-type { font-size: 11px; text-transform: uppercase; color: #9ca3af; font-weight: 600; }
+        .ann-text { font-size: 14px; margin: 4px 0; }
+        .ann-meta { font-size: 12px; color: #9ca3af; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-open { background: #fef2f2; color: #dc2626; }
+        .badge-resolved { background: #f0fdf4; color: #16a34a; }
+        @media print { body { margin: 20px; } }
+      </style>
+    </head><body>
+      <h1>Feedback Report</h1>
+      <div class="meta">
+        ${project?.name || 'Project'} — ${file?.name || 'File'}<br>
+        Generated ${new Date().toLocaleDateString()} · ${annotations.length} annotation${annotations.length !== 1 ? 's' : ''}
+      </div>
+      ${open.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Open Feedback (${open.length})</div>
+          ${open.map((a, i) => `
+            <div class="ann">
+              <div class="ann-header">
+                <span class="ann-num">${i + 1}</span>
+                <span class="ann-type">${a.type || 'comment'}</span>
+                <span class="badge badge-open">Open</span>
+              </div>
+              ${a.text ? `<div class="ann-text">${a.text}</div>` : '<div class="ann-text" style="color:#9ca3af">(no comment)</div>'}
+              <div class="ann-meta">${a.author || 'Anonymous'} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ''}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${resolved.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Resolved (${resolved.length})</div>
+          ${resolved.map((a, i) => `
+            <div class="ann">
+              <div class="ann-header">
+                <span class="ann-num resolved">${i + 1}</span>
+                <span class="ann-type">${a.type || 'comment'}</span>
+                <span class="badge badge-resolved">Resolved</span>
+              </div>
+              ${a.text ? `<div class="ann-text">${a.text}</div>` : '<div class="ann-text" style="color:#9ca3af">(no comment)</div>'}
+              <div class="ann-meta">${a.author || 'Anonymous'} · ${a.created_at ? new Date(a.created_at).toLocaleString() : ''}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${annotations.length === 0 ? '<p style="color:#9ca3af">No annotations on this file.</p>' : ''}
+    </body></html>`
+
+    const w = window.open('', '_blank')
+    w.document.write(html)
+    w.document.close()
+    setTimeout(() => w.print(), 500)
+  }
+
   function handleUndo() {
     if (annotations.length === 0) return
     const last = annotations[annotations.length - 1]
@@ -504,6 +589,9 @@ export default function FileReviewPage() {
             <Download size={14} />
           </a>
           <button onClick={() => setShowHelp(true)} style={{ background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb', padding: '7px 10px', borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 800, marginLeft: 4 }} title="Help & Shortcuts">?</button>
+          <button onClick={() => exportAnnotations()} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Download size={14} /> Feedback
+          </button>
           <div style={{ width: 1, height: 20, background: '#e5e7eb', margin: '0 4px' }} />
           <button
             onClick={() => { toast.success('All changes saved'); navigate(`/project/${projectId}`) }}
@@ -909,6 +997,24 @@ export default function FileReviewPage() {
               </div>
             )
           })()}
+          {/* Activity log */}
+          {fileActivity.length > 0 && (
+            <div style={{ borderTop: '1px solid #e5e7eb', padding: '12px 16px', maxHeight: 200, overflowY: 'auto' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Activity</div>
+              {fileActivity.map(a => (
+                <div key={a.id} style={{ display: 'flex', gap: 8, padding: '6px 0', fontSize: 12, color: '#6b7280' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: a.action === 'approved' ? '#16a34a' : a.action === 'commented' ? '#E6007E' : '#d1d5db', marginTop: 5, flexShrink: 0 }} />
+                  <div>
+                    <span style={{ fontWeight: 600, color: '#374151' }}>{a.actor_name || 'Someone'}</span>
+                    {' '}{a.detail || a.action}
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+                      {a.created_at ? new Date(a.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

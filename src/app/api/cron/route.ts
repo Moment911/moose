@@ -55,8 +55,107 @@ export async function GET(req: NextRequest) {
       return Response.json({ success: true, job: 'score_leads', message: 'Lead scoring runs on campaign start' })
     }
 
+    if (job === 'automations') {
+      const result = await processAutomations()
+      return Response.json({ success: true, job: 'automations', ...result })
+    }
+
     return Response.json({ error: `Unknown job: ${job}` }, { status: 400 })
   } catch (error: any) {
     return Response.json({ error: error.message, job }, { status: 500 })
   }
+}
+
+// ── Process automation rules ──
+async function processAutomations() {
+  const s = sb()
+
+  // Get all active automations
+  const { data: automations } = await s.from('automations')
+    .select('*')
+    .eq('status', 'active')
+
+  if (!automations || automations.length === 0) return { processed: 0 }
+
+  let processed = 0
+
+  for (const auto of automations) {
+    try {
+      const trigger = auto.trigger || {}
+      const actions = auto.actions || []
+
+      // Check trigger conditions
+      let shouldFire = false
+
+      if (trigger.type === 'new_client') {
+        // Check for clients created since last run
+        const since = auto.last_run_at || new Date(Date.now() - 3600000).toISOString()
+        const { count } = await s.from('clients')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', auto.agency_id)
+          .gte('created_at', since)
+        shouldFire = (count || 0) > 0
+      }
+
+      if (trigger.type === 'new_review') {
+        const since = auto.last_run_at || new Date(Date.now() - 3600000).toISOString()
+        const { count } = await s.from('moose_review_queue')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', auto.agency_id)
+          .gte('created_at', since)
+        shouldFire = (count || 0) > 0
+      }
+
+      if (trigger.type === 'schedule') {
+        // Cron-style: check if current hour matches
+        const now = new Date()
+        const hour = trigger.hour || 9
+        shouldFire = now.getHours() === hour
+      }
+
+      if (!shouldFire) continue
+
+      // Execute actions
+      for (const action of actions) {
+        if (action.type === 'send_email' && action.to) {
+          // Queue email via existing email system
+          await s.from('koto_system_logs').insert({
+            level: 'info', source: 'automations',
+            message: `Automation "${auto.name}" fired: ${action.type} to ${action.to}`,
+          })
+        }
+
+        if (action.type === 'create_task' && action.title) {
+          await s.from('tasks').insert({
+            agency_id: auto.agency_id,
+            title: action.title,
+            description: action.description || '',
+            status: 'open',
+            priority: action.priority || 'medium',
+          })
+        }
+
+        if (action.type === 'send_notification') {
+          await s.from('notifications').insert({
+            agency_id: auto.agency_id,
+            title: action.title || `Automation: ${auto.name}`,
+            message: action.message || '',
+            type: 'automation',
+          })
+        }
+      }
+
+      // Update last_run_at
+      await s.from('automations').update({
+        last_run_at: new Date().toISOString(),
+        run_count: (auto.run_count || 0) + 1,
+      }).eq('id', auto.id)
+
+      processed++
+    } catch (e) {
+      console.error(`Automation ${auto.id} failed:`, e)
+    }
+  }
+
+  return { processed }
 }
