@@ -1207,6 +1207,8 @@ export default function DashboardPage() {
 function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigate, aid, clientId, clientInfo }) {
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(true)
+  const [activities, setActivities] = useState([])
+  const [recentProjects, setRecentProjects] = useState([])
 
   useEffect(() => {
     loadStats()
@@ -1244,6 +1246,28 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
       }
     } catch (e) { console.warn('[ClientDashboard] stats:', e) }
     setStats(s)
+
+    // Load activity timeline
+    try {
+      const { data } = await supabase
+        .from('activity_log')
+        .select('*')
+        .eq('agency_id', aid)
+        .order('created_at', { ascending: false })
+        .limit(15)
+      setActivities(data || [])
+    } catch (e) { console.warn('[ClientDashboard] activities:', e); setActivities([]) }
+
+    // Load recent projects for status cards
+    try {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, status, created_at, clients!inner(agency_id)')
+        .eq('clients.agency_id', aid)
+        .limit(6)
+      setRecentProjects(data || [])
+    } catch (e) { console.warn('[ClientDashboard] projects:', e); setRecentProjects([]) }
+
     setLoading(false)
   }
 
@@ -1302,15 +1326,76 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
           )}
         </div>
 
-        {/* Tool cards */}
+        {/* Scrollable body */}
         <div style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
           <div style={{ maxWidth: 700, margin: '0 auto' }}>
+
+            {/* ── Welcome Checklist ──────────────────────────────────────────── */}
+            {!loading && (() => {
+              const checks = [
+                { label: 'Portal login set up', done: true },
+                { label: 'Brand kit scanned', done: clientInfo?.brand_kit?.scan_status === 'complete' },
+                { label: 'First project created', done: (stats.projects || 0) > 0 },
+              ]
+              const completed = checks.filter(c => c.done).length
+              const pct = Math.round((completed / checks.length) * 100)
+              return (
+                <div style={{
+                  background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
+                  padding: '20px 24px', marginBottom: 20,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                      Getting Started
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: pct === 100 ? GRN : T, fontFamily: FH }}>
+                      {completed}/{checks.length} complete
+                    </span>
+                  </div>
+                  {/* Progress bar */}
+                  <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', marginBottom: 16, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: 3, width: `${pct}%`,
+                      background: pct === 100 ? GRN : T,
+                      transition: 'width .4s ease',
+                    }} />
+                  </div>
+                  {/* Checklist items */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {checks.map((c, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: '50%',
+                          background: c.done ? GRN : '#e5e7eb',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
+                        }}>
+                          {c.done
+                            ? <Check size={13} color="#fff" strokeWidth={3} />
+                            : <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#9ca3af' }} />
+                          }
+                        </div>
+                        <span style={{
+                          fontSize: 13, fontFamily: FB, fontWeight: 600,
+                          color: c.done ? '#6b7280' : BLK,
+                          textDecoration: c.done ? 'line-through' : 'none',
+                        }}>
+                          {c.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* ── Tool cards ─────────────────────────────────────────────────── */}
             {loading ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>Loading your workspace…</div>
             ) : tools.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>No tools enabled yet — your agency will set these up for you.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
                 {tools.map((tool, i) => (
                   <div key={i} onClick={() => navigate(tool.to)}
                     style={{
@@ -1335,6 +1420,120 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
                 ))}
               </div>
             )}
+
+            {/* ── Project Status Cards ───────────────────────────────────────── */}
+            {!loading && recentProjects.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>
+                  Projects
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+                  {recentProjects.map(proj => {
+                    const statusMap = {
+                      active: { bg: GRN + '15', color: GRN, label: 'Active' },
+                      draft: { bg: '#6b728015', color: '#6b7280', label: 'Draft' },
+                      review: { bg: AMB + '15', color: AMB, label: 'In Review' },
+                      approved: { bg: T + '15', color: T, label: 'Approved' },
+                      completed: { bg: GRN + '15', color: GRN, label: 'Completed' },
+                    }
+                    const st = statusMap[proj.status] || { bg: '#6b728015', color: '#6b7280', label: proj.status || 'Unknown' }
+                    return (
+                      <div key={proj.id} style={{
+                        background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb',
+                        padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10,
+                      }}>
+                        <div style={{
+                          fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {proj.name || 'Untitled Project'}
+                        </div>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20,
+                          background: st.bg, color: st.color, textTransform: 'uppercase',
+                          letterSpacing: '.04em', alignSelf: 'flex-start', fontFamily: FH,
+                        }}>
+                          {st.label}
+                        </span>
+                        <button
+                          onClick={() => navigate(`/project/${proj.id}`)}
+                          style={{
+                            marginTop: 'auto', padding: '7px 0', borderRadius: 8,
+                            border: `1.5px solid ${T}`, background: 'transparent',
+                            color: T, fontSize: 12, fontWeight: 700, fontFamily: FH,
+                            cursor: 'pointer', transition: 'all .15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = T; e.currentTarget.style.color = '#fff' }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T }}
+                        >
+                          View
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Activity Timeline ──────────────────────────────────────────── */}
+            {!loading && (
+              <div style={{
+                background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
+                padding: '20px 24px',
+              }}>
+                <div style={{
+                  fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  <Activity size={16} color={T} />
+                  Recent Activity
+                </div>
+                {activities.length === 0 ? (
+                  <div style={{
+                    textAlign: 'center', padding: '28px 0', fontSize: 13,
+                    color: '#9ca3af', fontFamily: FB,
+                  }}>
+                    <Clock size={22} color="#d1d5db" style={{ marginBottom: 6 }} />
+                    <br />No recent activity
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative', paddingLeft: 20 }}>
+                    {/* Vertical line */}
+                    <div style={{
+                      position: 'absolute', left: 5, top: 4, bottom: 4,
+                      width: 2, background: '#f3f4f6', borderRadius: 1,
+                    }} />
+                    {activities.map((act, i) => {
+                      const typeColors = {
+                        upload: T, comment: '#3b82f6', approval: GRN,
+                        annotation: AMB, status_change: '#7c3aed', revision: R,
+                      }
+                      const dotColor = typeColors[act.action_type || act.type] || '#9ca3af'
+                      return (
+                        <div key={act.id || i} style={{
+                          position: 'relative', paddingBottom: i < activities.length - 1 ? 18 : 0,
+                        }}>
+                          {/* Dot */}
+                          <div style={{
+                            position: 'absolute', left: -18, top: 3,
+                            width: 10, height: 10, borderRadius: '50%',
+                            background: dotColor, border: '2px solid #fff',
+                            boxShadow: `0 0 0 2px ${dotColor}30`,
+                          }} />
+                          <div style={{ fontSize: 13, color: BLK, fontFamily: FB, lineHeight: 1.5 }}>
+                            {act.message || act.description || `${act.action_type || act.type || 'Event'}`}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, marginTop: 2 }}>
+                            {act.created_at ? timeAgo(act.created_at) : ''}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         </div>
       </div>
