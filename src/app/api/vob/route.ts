@@ -462,7 +462,7 @@ export async function POST(req: NextRequest) {
             },
           },
         ],
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-4.6-sonnet',
       })
 
       // Create agent
@@ -533,7 +533,7 @@ export async function POST(req: NextRequest) {
               { type: 'function', function: { name: 'escalate_call', description: 'Flag for human review.', parameters: { type: 'object', properties: { reason: { type: 'string' } }, required: ['reason'] } } },
               { type: 'function', function: { name: 'end_call', description: 'End the call gracefully.', parameters: { type: 'object', properties: { reason: { type: 'string' }, summary: { type: 'string' } }, required: ['reason'] } } },
             ],
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-4.6-sonnet',
           })
           const agent = await retellFetch('/create-agent', 'POST', {
             agent_name: 'Koto VOB Agent',
