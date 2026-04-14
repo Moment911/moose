@@ -2357,6 +2357,23 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
               🔗 Copy Link
             </button>
             <button
+              onClick={async () => {
+                if (!confirm('Release this onboarding phone number? The client will no longer be able to call in.')) return
+                try {
+                  const res = await fetch('/api/onboarding/telnyx-provision', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'release_number', client_id: client.id, agency_id: agencyId }),
+                  })
+                  const data = await res.json()
+                  if (data.error) throw new Error(data.error)
+                  toast.success('Number released')
+                  onClientRefresh?.()
+                } catch (e) { toast.error(e.message || 'Failed to release') }
+              }}
+              style={{ padding: '7px 14px', background: '#fff', border: '1px solid #fecaca', color: '#dc2626', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              Release Number
+            </button>
+            <button
               onClick={handleSendEmail}
               disabled={sending || !client?.email}
               title={!client?.email ? 'Client has no email on file' : 'Send onboarding email'}
