@@ -1,8 +1,8 @@
 "use client"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
 import { R, T, BLK, GRY, W, FH, FB } from '../lib/theme'
-import { ShoppingCart, Package, Coffee, UtensilsCrossed, Droplets, Box, Truck, Check, ChevronDown } from 'lucide-react'
+import { ShoppingCart, Package, Coffee, UtensilsCrossed, Droplets, Box, Truck, Check, Plus, Minus, Trash2, AlertCircle } from 'lucide-react'
 
 /* ── Product Catalog ──────────────────────────────────────────────────────── */
 
@@ -57,19 +57,34 @@ const CONTAINERS = [
 ]
 
 const SHIPPING = {
-  mediumBox: { name: 'Medium Shipping Box', dims: '18" x 14" x 12"', weight_empty_lbs: 1.5, capacity: 12 },
-  pallet: { name: 'Standard Pallet', dims: '48" x 40" x 6"', maxBoxes: 48, maxLunches: 576 },
+  mediumBox: { name: 'Medium Shipping Box', dims: '18" x 14" x 12"', weight_empty_lbs: 1.5, capacity: 12, l: 18, w: 14, h: 12 },
+  pallet: { name: 'Standard Pallet', dims: '48" x 40" x 6"', maxBoxes: 48, maxLunches: 576, l: 48, w: 40, h: 6 },
 }
+
+const VEHICLES = [
+  { id: 'cargo-van', name: 'Cargo Van', dims: '6\' x 4\' x 4.5\'', l: 72, w: 48, h: 54, pallets: 1, maxBoxes: 24, maxMeals: 288 },
+  { id: 'sprinter', name: 'Sprinter Van', dims: '12\' x 6\' x 6\'', l: 144, w: 72, h: 72, pallets: 2, maxBoxes: 72, maxMeals: 864 },
+  { id: 'box-12', name: 'Box Truck 12\'', dims: '12\' x 7\' x 6\'', l: 144, w: 84, h: 72, pallets: 3, maxBoxes: 96, maxMeals: 1152 },
+  { id: 'box-16', name: 'Box Truck 16\'', dims: '16\' x 7\' x 7\'', l: 192, w: 84, h: 84, pallets: 4, maxBoxes: 144, maxMeals: 1728 },
+  { id: 'box-26', name: 'Box Truck 26\'', dims: '26\' x 8\' x 8\'', l: 312, w: 96, h: 96, pallets: 8, maxBoxes: 288, maxMeals: 3456 },
+]
+
+/* All ad-hoc-able items flattened into one list */
+const ALL_ADHOC_ITEMS = [
+  ...SIDES.map(s => ({ ...s, category: 'Side' })),
+  ...DRINKS.map(d => ({ ...d, category: 'Drink' })),
+  ...EXTRAS.map(e => ({ ...e, category: 'Extra' })),
+]
 
 /* ── Styles ───────────────────────────────────────────────────────────────── */
 
 const card = {
-  background: W, border: '1px solid #e5e7eb', borderRadius: 12,
-  padding: 20, marginBottom: 16,
+  background: W, border: '1px solid #e5e7eb', borderRadius: 16,
+  padding: 24, marginBottom: 20,
 }
 const sectionTitle = {
   fontFamily: FH, fontSize: 15, fontWeight: 700, color: BLK,
-  margin: '0 0 12px', letterSpacing: '-.02em',
+  margin: 0, letterSpacing: '-.02em',
 }
 const label = {
   fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 4,
@@ -78,7 +93,7 @@ const label = {
 const inputStyle = {
   width: '100%', padding: '8px 12px', borderRadius: 8,
   border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB,
-  outline: 'none', transition: 'border-color .15s',
+  outline: 'none', transition: 'border-color .15s', boxSizing: 'border-box',
 }
 const btnPrimary = {
   background: R, color: W, border: 'none', borderRadius: 10,
@@ -86,115 +101,241 @@ const btnPrimary = {
   fontFamily: FH, letterSpacing: '-.01em', transition: 'opacity .15s',
   width: '100%',
 }
+const btnSecondary = {
+  background: W, color: R, border: `1px solid ${R}`, borderRadius: 10,
+  padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  fontFamily: FH, letterSpacing: '-.01em', transition: 'all .15s',
+}
+const thStyle = {
+  fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase',
+  letterSpacing: '.06em', padding: '8px 10px', textAlign: 'left', fontFamily: FH,
+  borderBottom: '2px solid #e5e7eb', whiteSpace: 'nowrap',
+}
+const tdStyle = {
+  fontSize: 12, color: '#374151', padding: '10px 10px', borderBottom: '1px solid #f3f4f6',
+  fontFamily: FB, verticalAlign: 'middle',
+}
 
 function fmt(n) { return '$' + n.toFixed(2) }
 function fmtLbs(oz) { return (oz / 16).toFixed(1) + ' lbs' }
 
+/* ── Helpers: compute per-meal totals ─────────────────────────────────────── */
+
+function computeMealLine(line) {
+  const sw = SANDWICHES.find(s => s.id === line.sandwich)
+  const ct = CONTAINERS.find(c => c.id === line.container)
+  const sd = SIDES.filter(s => line.sides.includes(s.id))
+  const dk = DRINKS.find(d => d.id === line.drink)
+  const ex = EXTRAS.filter(e => line.extras.includes(e.id))
+
+  let price = 0, cogs = 0, weight = 0
+  if (sw) { price += sw.listPrice; cogs += sw.cogs; weight += sw.weight_oz }
+  if (ct) { price += ct.listPrice; cogs += ct.cogs; weight += ct.weight_oz }
+  sd.forEach(s => { price += s.listPrice; cogs += s.cogs; weight += s.weight_oz })
+  if (dk) { price += dk.listPrice; cogs += dk.cogs; weight += dk.weight_oz }
+  ex.forEach(e => { price += e.listPrice; cogs += e.cogs; weight += e.weight_oz })
+
+  return { price, cogs, weight, lineTotal: price * line.qty, lineCogs: cogs * line.qty, lineWeight: weight * line.qty }
+}
+
+/* ── Toast Component ──────────────────────────────────────────────────────── */
+
+function Toast({ message, type, onClose }) {
+  if (!message) return null
+  const bg = type === 'error' ? '#fef2f2' : '#f0fdf4'
+  const border = type === 'error' ? '#fca5a5' : '#86efac'
+  const color = type === 'error' ? '#991b1b' : '#166534'
+  return (
+    <div style={{
+      position: 'fixed', top: 24, right: 24, zIndex: 9999,
+      background: bg, border: `1px solid ${border}`, borderRadius: 12,
+      padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10,
+      boxShadow: '0 8px 32px rgba(0,0,0,.12)', maxWidth: 400, animation: 'fadeIn .2s',
+    }}>
+      {type === 'error' ? <AlertCircle size={16} style={{ color, flexShrink: 0 }} /> : <Check size={16} style={{ color, flexShrink: 0 }} />}
+      <span style={{ fontSize: 13, color, fontFamily: FH, fontWeight: 600 }}>{message}</span>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#9ca3af', marginLeft: 8 }}>x</button>
+    </div>
+  )
+}
+
 /* ── Main Page ────────────────────────────────────────────────────────────── */
 
 export default function KotoOrderPage() {
-  // Selections
-  const [container, setContainer] = useState('paper-box')
-  const [sandwich, setSandwich] = useState(null)
-  const [sides, setSides] = useState([])
-  const [drink, setDrink] = useState(null)
-  const [extras, setExtras] = useState([])
-  const [qty, setQty] = useState(1)
+  /* ── Meal Builder State ── */
+  const [mealContainer, setMealContainer] = useState('paper-box')
+  const [mealSandwich, setMealSandwich] = useState(null)
+  const [mealSides, setMealSides] = useState([])
+  const [mealDrink, setMealDrink] = useState(null)
+  const [mealExtras, setMealExtras] = useState([])
+  const [mealQty, setMealQty] = useState(1)
 
-  // Order details
-  const [customerName, setCustomerName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
+  /* ── Order Lines (array of meal configs) ── */
+  const [orderLines, setOrderLines] = useState([])
+
+  /* ── Ad-Hoc Items ── */
+  const [adhocItemId, setAdhocItemId] = useState('')
+  const [adhocQty, setAdhocQty] = useState(1)
+  const [adhocLines, setAdhocLines] = useState([])
+
+  /* ── Order Details ── */
+  const [contactName, setContactName] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [company, setCompany] = useState('')
+  const [poNumber, setPoNumber] = useState('')
   const [deliveryDate, setDeliveryDate] = useState('')
   const [deliveryTime, setDeliveryTime] = useState('')
-  const [address, setAddress] = useState('')
-  const [instructions, setInstructions] = useState('')
-  const [poNumber, setPoNumber] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('invoice')
+  const [creditAccount, setCreditAccount] = useState('')
+  const [cardLast4, setCardLast4] = useState('')
+  const [paid, setPaid] = useState(false)
+  const [depositAmount, setDepositAmount] = useState('')
+  const [specialInstructions, setSpecialInstructions] = useState('')
+  const [internalNotes, setInternalNotes] = useState('')
+  const [selectedVehicle, setSelectedVehicle] = useState('box-12')
+  const [showPricing, setShowPricing] = useState(false)
+  const [priceOverrides, setPriceOverrides] = useState({}) // { itemId: { cogs, listPrice } }
 
-  // Toggle side (max 2)
-  function toggleSide(id) {
-    setSides(prev => {
+  /* ── Toast ── */
+  const [toast, setToast] = useState({ message: '', type: 'success' })
+
+  function showToast(message, type = 'success') {
+    setToast({ message, type })
+    setTimeout(() => setToast({ message: '', type: 'success' }), 4000)
+  }
+
+  /* ── Meal Builder Toggles ── */
+  function toggleMealSide(id) {
+    setMealSides(prev => {
       if (prev.includes(id)) return prev.filter(s => s !== id)
       if (prev.length >= 2) return [...prev.slice(1), id]
       return [...prev, id]
     })
   }
-
-  function toggleExtra(id) {
-    setExtras(prev => prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id])
+  function toggleMealExtra(id) {
+    setMealExtras(prev => prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id])
   }
 
-  // Compute totals
-  const totals = useMemo(() => {
-    const sel = {
-      container: CONTAINERS.find(c => c.id === container),
-      sandwich: SANDWICHES.find(s => s.id === sandwich),
-      sides: SIDES.filter(s => sides.includes(s.id)),
-      drink: DRINKS.find(d => d.id === drink),
-      extras: EXTRAS.filter(e => extras.includes(e.id)),
+  /* ── Add Meal to Order ── */
+  function addMealToOrder() {
+    if (!mealSandwich) { showToast('Please select a sandwich', 'error'); return }
+    if (!mealDrink) { showToast('Please select a drink', 'error'); return }
+    const line = {
+      id: Date.now(),
+      sandwich: mealSandwich,
+      container: mealContainer,
+      sides: [...mealSides],
+      drink: mealDrink,
+      extras: [...mealExtras],
+      qty: mealQty,
     }
+    setOrderLines(prev => [...prev, line])
+    // Reset builder
+    setMealSandwich(null)
+    setMealSides([])
+    setMealDrink(null)
+    setMealExtras([])
+    setMealQty(1)
+    showToast('Meal added to order')
+  }
 
-    let perBoxPrice = 0
-    let perBoxCogs = 0
-    let perBoxWeight = 0
-    const items = []
+  function removeMealLine(id) {
+    setOrderLines(prev => prev.filter(l => l.id !== id))
+  }
 
-    if (sel.container) {
-      perBoxPrice += sel.container.listPrice
-      perBoxCogs += sel.container.cogs
-      perBoxWeight += sel.container.weight_oz
-      items.push({ name: sel.container.name, price: sel.container.listPrice })
-    }
-    if (sel.sandwich) {
-      perBoxPrice += sel.sandwich.listPrice
-      perBoxCogs += sel.sandwich.cogs
-      perBoxWeight += sel.sandwich.weight_oz
-      items.push({ name: sel.sandwich.name, price: sel.sandwich.listPrice })
-    }
-    sel.sides.forEach(s => {
-      perBoxPrice += s.listPrice
-      perBoxCogs += s.cogs
-      perBoxWeight += s.weight_oz
-      items.push({ name: s.name, price: s.listPrice })
+  function updateMealLineQty(id, newQty) {
+    setOrderLines(prev => prev.map(l => l.id === id ? { ...l, qty: Math.max(1, newQty) } : l))
+  }
+
+  /* ── Ad-Hoc Items ── */
+  function addAdhocItem() {
+    if (!adhocItemId) { showToast('Select an item', 'error'); return }
+    const item = ALL_ADHOC_ITEMS.find(i => i.id === adhocItemId)
+    if (!item) return
+    setAdhocLines(prev => [...prev, { id: Date.now(), itemId: item.id, name: item.name, category: item.category, listPrice: item.listPrice, cogs: item.cogs, weight_oz: item.weight_oz, qty: adhocQty }])
+    setAdhocItemId('')
+    setAdhocQty(1)
+    showToast('Item added')
+  }
+
+  function removeAdhocLine(id) {
+    setAdhocLines(prev => prev.filter(l => l.id !== id))
+  }
+
+  /* ── Order Summary Computation ── */
+  const summary = useMemo(() => {
+    let totalMeals = 0, subtotalPrice = 0, subtotalCogs = 0, totalWeightOz = 0
+
+    const mealDetails = orderLines.map(line => {
+      const c = computeMealLine(line)
+      totalMeals += line.qty
+      subtotalPrice += c.lineTotal
+      subtotalCogs += c.lineCogs
+      totalWeightOz += c.lineWeight
+      return { ...line, ...c }
     })
-    if (sel.drink) {
-      perBoxPrice += sel.drink.listPrice
-      perBoxCogs += sel.drink.cogs
-      perBoxWeight += sel.drink.weight_oz
-      items.push({ name: sel.drink.name, price: sel.drink.listPrice })
-    }
-    sel.extras.forEach(e => {
-      perBoxPrice += e.listPrice
-      perBoxCogs += e.cogs
-      perBoxWeight += e.weight_oz
-      items.push({ name: e.name, price: e.listPrice })
+
+    let adhocTotalItems = 0, adhocSubtotal = 0, adhocCogs = 0, adhocWeightOz = 0
+    adhocLines.forEach(a => {
+      adhocTotalItems += a.qty
+      adhocSubtotal += a.listPrice * a.qty
+      adhocCogs += a.cogs * a.qty
+      adhocWeightOz += a.weight_oz * a.qty
     })
 
-    const totalPrice = perBoxPrice * qty
-    const totalCogs = perBoxCogs * qty
-    const margin = totalPrice > 0 ? ((totalPrice - totalCogs) / totalPrice * 100) : 0
-    const totalWeightOz = perBoxWeight * qty
+    subtotalPrice += adhocSubtotal
+    subtotalCogs += adhocCogs
+    totalWeightOz += adhocWeightOz
 
-    // Shipping calc
-    const shippingBoxes = Math.ceil(qty / SHIPPING.mediumBox.capacity)
+    const grossMargin = subtotalPrice - subtotalCogs
+    const marginPct = subtotalPrice > 0 ? (grossMargin / subtotalPrice * 100) : 0
+
+    const shippingBoxes = Math.ceil(totalMeals / SHIPPING.mediumBox.capacity)
     const shippingBoxWeightOz = SHIPPING.mediumBox.weight_empty_lbs * 16
     const totalShipWeightOz = totalWeightOz + (shippingBoxes * shippingBoxWeightOz)
-    const pallets = qty > SHIPPING.pallet.maxLunches ? Math.ceil(qty / SHIPPING.pallet.maxLunches) : (qty > 48 ? 1 : 0)
+    const pallets = shippingBoxes > SHIPPING.pallet.maxBoxes ? Math.ceil(shippingBoxes / SHIPPING.pallet.maxBoxes) : (shippingBoxes > 0 && totalMeals > SHIPPING.pallet.maxLunches ? Math.ceil(totalMeals / SHIPPING.pallet.maxLunches) : 0)
+
+    const containerDims = orderLines.length > 0
+      ? CONTAINERS.find(c => c.id === orderLines[0].container)?.dims || ''
+      : ''
 
     return {
-      items, perBoxPrice, perBoxCogs, perBoxWeight,
-      totalPrice, totalCogs, margin, totalWeightOz,
-      shippingBoxes, totalShipWeightOz, pallets,
-      containerDims: sel.container?.dims || '',
+      mealDetails, totalMeals, adhocTotalItems,
+      subtotalPrice, subtotalCogs, grossMargin, marginPct,
+      totalWeightOz, shippingBoxes, totalShipWeightOz, pallets,
+      containerDims,
     }
-  }, [container, sandwich, sides, drink, extras, qty])
+  }, [orderLines, adhocLines])
+
+  /* ── Place Order ── */
+  function placeOrder() {
+    if (!contactName) { showToast('Contact name is required', 'error'); return }
+    if (!contactEmail) { showToast('Contact email is required', 'error'); return }
+    if (!deliveryDate) { showToast('Delivery date is required', 'error'); return }
+    if (!deliveryAddress) { showToast('Delivery address is required', 'error'); return }
+    if (orderLines.length === 0) { showToast('Add at least one meal to the order', 'error'); return }
+    showToast('Order placed successfully! Confirmation sent to ' + contactEmail)
+  }
+
+  /* ── Current meal builder preview ── */
+  const builderPreview = useMemo(() => {
+    if (!mealSandwich) return null
+    const preview = computeMealLine({
+      sandwich: mealSandwich, container: mealContainer,
+      sides: mealSides, drink: mealDrink, extras: mealExtras, qty: mealQty,
+    })
+    return preview
+  }, [mealSandwich, mealContainer, mealSides, mealDrink, mealExtras, mealQty])
 
   return (
     <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
       <Sidebar />
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Header */}
+        {/* ── Header ── */}
         <div style={{ background: W, borderBottom: '1px solid #e5e7eb', padding: '20px 32px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -205,154 +346,355 @@ export default function KotoOrderPage() {
                 KotoOrder — Boxed Lunch Catering
               </h1>
               <p style={{ fontSize: 12, color: '#9ca3af', margin: '2px 0 0', fontFamily: FH }}>
-                Configure boxed lunches, review pricing, and place catering orders
+                Build meal lines, add ad-hoc items, and place catering orders
               </p>
             </div>
           </div>
         </div>
 
-        {/* Content */}
+        {/* ── Content ── */}
         <div style={{ flex: 1, overflow: 'auto', padding: '24px 32px 48px' }}>
-          <div style={{ display: 'flex', gap: 24, maxWidth: 1200, alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 24, maxWidth: 1400, alignItems: 'flex-start' }}>
 
-            {/* ── Left Column: Order Builder (60%) ── */}
+            {/* ══════════ Left Column: Builder + Lines + Ad-Hoc + Order Details (60%) ══════════ */}
             <div style={{ flex: '0 0 60%', minWidth: 0 }}>
 
-              {/* Container Selection */}
-              <div style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <Box size={16} style={{ color: R }} />
-                  <h2 style={sectionTitle}>Container</h2>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {CONTAINERS.map(c => (
-                    <button key={c.id} onClick={() => setContainer(c.id)} style={{
-                      border: container === c.id ? `2px solid ${R}` : '2px solid #e5e7eb',
-                      borderRadius: 10, padding: 16, background: container === c.id ? R + '06' : W,
-                      cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <Package size={18} style={{ color: container === c.id ? R : '#6b7280' }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{c.name}</span>
-                      </div>
-                      <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.4, marginBottom: 6 }}>{c.desc}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: R }}>{fmt(c.listPrice)}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sandwich Selection */}
-              <div style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              {/* ── Meal Builder Card ── */}
+              <div style={{ ...card, border: `1px solid ${R}20` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
                   <UtensilsCrossed size={16} style={{ color: R }} />
-                  <h2 style={sectionTitle}>Sandwich</h2>
+                  <h2 style={sectionTitle}>Build a Meal</h2>
+                  <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, marginLeft: 'auto' }}>
+                    Each meal = sandwich + container + up to 2 sides + drink + extras
+                  </span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  {SANDWICHES.map(s => (
-                    <button key={s.id} onClick={() => setSandwich(s.id)} style={{
-                      border: sandwich === s.id ? `2px solid ${R}` : '2px solid #e5e7eb',
-                      borderRadius: 10, padding: 14, background: sandwich === s.id ? R + '06' : W,
-                      cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
-                    }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, marginBottom: 4 }}>{s.name}</div>
-                      <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.35, marginBottom: 6 }}>{s.desc}</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: R }}>{fmt(s.listPrice)}</span>
-                        <span style={{ fontSize: 10, color: '#9ca3af' }}>{s.calories} cal</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Side Selection */}
-              <div style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <Coffee size={16} style={{ color: R }} />
-                  <h2 style={sectionTitle}>Sides</h2>
-                </div>
-                <p style={{ fontSize: 11, color: '#9ca3af', margin: '0 0 12px', fontFamily: FH }}>Pick up to 2</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
-                  {SIDES.map(s => {
-                    const sel = sides.includes(s.id)
-                    return (
-                      <button key={s.id} onClick={() => toggleSide(s.id)} style={{
-                        border: sel ? `2px solid ${R}` : '1px solid #e5e7eb',
-                        borderRadius: 8, padding: '10px 12px', background: sel ? R + '06' : W,
+                {/* Sandwich Selection */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Sandwich</span>
+                    <span style={{ fontSize: 10, color: R, fontWeight: 600 }}>required</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    {SANDWICHES.map(s => (
+                      <button key={s.id} onClick={() => setMealSandwich(s.id)} style={{
+                        border: mealSandwich === s.id ? `2px solid ${R}` : '2px solid #e5e7eb',
+                        borderRadius: 10, padding: 14, background: mealSandwich === s.id ? R + '06' : W,
                         cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
                       }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: BLK, marginBottom: 4, fontFamily: FH }}>{s.name}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: R }}>{fmt(s.listPrice)}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, marginBottom: 4 }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.35, marginBottom: 6 }}>{s.desc}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: R }}>{fmt(s.listPrice)}</span>
+                          <span style={{ fontSize: 10, color: '#9ca3af' }}>{s.calories} cal</span>
+                        </div>
                       </button>
-                    )
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Drink Selection */}
-              <div style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <Droplets size={16} style={{ color: R }} />
-                  <h2 style={sectionTitle}>Drink</h2>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                  {DRINKS.map(d => {
-                    const sel = drink === d.id
-                    return (
-                      <button key={d.id} onClick={() => setDrink(d.id)} style={{
-                        border: sel ? `2px solid ${R}` : '1px solid #e5e7eb',
-                        borderRadius: 8, padding: '10px 12px', background: sel ? R + '06' : W,
+                {/* Container Selection */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                    <Box size={14} style={{ color: R }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Container</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    {CONTAINERS.map(c => (
+                      <button key={c.id} onClick={() => setMealContainer(c.id)} style={{
+                        border: mealContainer === c.id ? `2px solid ${R}` : '2px solid #e5e7eb',
+                        borderRadius: 10, padding: 16, background: mealContainer === c.id ? R + '06' : W,
                         cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
                       }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: BLK, marginBottom: 4, fontFamily: FH }}>{d.name}</div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: R }}>{fmt(d.listPrice)}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <Package size={18} style={{ color: mealContainer === c.id ? R : '#6b7280' }} />
+                          <span style={{ fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{c.name}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.4, marginBottom: 6 }}>{c.desc}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: R }}>{fmt(c.listPrice)}</div>
                       </button>
-                    )
-                  })}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sides */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Coffee size={14} style={{ color: R }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Sides</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#9ca3af', margin: '0 0 10px', fontFamily: FH }}>Pick up to 2</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+                    {SIDES.map(s => {
+                      const sel = mealSides.includes(s.id)
+                      return (
+                        <button key={s.id} onClick={() => toggleMealSide(s.id)} style={{
+                          border: sel ? `2px solid ${R}` : '1px solid #e5e7eb',
+                          borderRadius: 8, padding: '10px 12px', background: sel ? R + '06' : W,
+                          cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
+                        }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: BLK, marginBottom: 4, fontFamily: FH }}>{s.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: R }}>{fmt(s.listPrice)}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Drink */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                    <Droplets size={14} style={{ color: R }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Drink</span>
+                    <span style={{ fontSize: 10, color: R, fontWeight: 600 }}>required</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                    {DRINKS.map(d => {
+                      const sel = mealDrink === d.id
+                      return (
+                        <button key={d.id} onClick={() => setMealDrink(d.id)} style={{
+                          border: sel ? `2px solid ${R}` : '1px solid #e5e7eb',
+                          borderRadius: 8, padding: '10px 12px', background: sel ? R + '06' : W,
+                          cursor: 'pointer', textAlign: 'left', transition: 'all .15s',
+                        }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: BLK, marginBottom: 4, fontFamily: FH }}>{d.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: R }}>{fmt(d.listPrice)}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Extras */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                    <Package size={14} style={{ color: R }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>Extras</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                    {EXTRAS.map(e => {
+                      const sel = mealExtras.includes(e.id)
+                      return (
+                        <label key={e.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
+                          borderRadius: 8, cursor: 'pointer', transition: 'background .1s',
+                          background: sel ? R + '06' : 'transparent',
+                          border: sel ? `1px solid ${R}30` : '1px solid transparent',
+                        }}>
+                          <input type="checkbox" checked={sel} onChange={() => toggleMealExtra(e.id)} style={{ accentColor: R }} />
+                          <span style={{ fontSize: 12, color: BLK, fontFamily: FH, flex: 1 }}>{e.name}</span>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280' }}>{fmt(e.listPrice)}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Quantity + Add to Order */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+                  <div>
+                    <label style={label}>Quantity</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => setMealQty(Math.max(1, mealQty - 1))} style={{
+                        width: 32, height: 32, borderRadius: 8, border: '1px solid #e5e7eb',
+                        background: W, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}><Minus size={14} color="#374151" /></button>
+                      <input type="number" min={1} value={mealQty}
+                        onChange={e => setMealQty(Math.max(1, parseInt(e.target.value) || 1))}
+                        style={{ ...inputStyle, width: 60, textAlign: 'center', fontWeight: 700 }} />
+                      <button onClick={() => setMealQty(mealQty + 1)} style={{
+                        width: 32, height: 32, borderRadius: 8, border: '1px solid #e5e7eb',
+                        background: W, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}><Plus size={14} color="#374151" /></button>
+                    </div>
+                  </div>
+                  {builderPreview && (
+                    <div style={{ flex: 1, fontSize: 12, color: '#6b7280', fontFamily: FH, textAlign: 'right' }}>
+                      Per meal: {fmt(builderPreview.price)} | Line total: {fmt(builderPreview.lineTotal)}
+                    </div>
+                  )}
+                  <button onClick={addMealToOrder} style={{ ...btnPrimary, width: 'auto', padding: '12px 32px' }}>
+                    Add to Order
+                  </button>
                 </div>
               </div>
 
-              {/* Extras */}
+              {/* ── Order Lines Table ── */}
+              {orderLines.length > 0 && (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <ShoppingCart size={16} style={{ color: R }} />
+                    <h2 style={sectionTitle}>Order Lines</h2>
+                    <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, marginLeft: 'auto' }}>
+                      {orderLines.length} meal line{orderLines.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>#</th>
+                          <th style={thStyle}>Sandwich</th>
+                          <th style={thStyle}>Container</th>
+                          <th style={thStyle}>Sides</th>
+                          <th style={thStyle}>Drink</th>
+                          <th style={thStyle}>Extras</th>
+                          <th style={thStyle}>Qty</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }}>Per Meal</th>
+                          <th style={{ ...thStyle, textAlign: 'right' }}>Line Total</th>
+                          <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orderLines.map((line, idx) => {
+                          const c = computeMealLine(line)
+                          const sw = SANDWICHES.find(s => s.id === line.sandwich)
+                          const ct = CONTAINERS.find(x => x.id === line.container)
+                          const sd = SIDES.filter(s => line.sides.includes(s.id))
+                          const dk = DRINKS.find(d => d.id === line.drink)
+                          const ex = EXTRAS.filter(e => line.extras.includes(e.id))
+                          return (
+                            <tr key={line.id} style={{ transition: 'background .1s' }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                              <td style={{ ...tdStyle, fontWeight: 700, color: '#9ca3af', fontSize: 11 }}>{idx + 1}</td>
+                              <td style={{ ...tdStyle, fontWeight: 600 }}>{sw?.name || '—'}</td>
+                              <td style={tdStyle}>{ct?.name || '—'}</td>
+                              <td style={tdStyle}>{sd.length > 0 ? sd.map(s => s.name).join(', ') : '—'}</td>
+                              <td style={tdStyle}>{dk?.name || '—'}</td>
+                              <td style={{ ...tdStyle, fontSize: 11, maxWidth: 120 }}>
+                                {ex.length > 0 ? ex.map(e => e.name).join(', ') : '—'}
+                              </td>
+                              <td style={tdStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <button onClick={() => updateMealLineQty(line.id, line.qty - 1)} style={{
+                                    width: 22, height: 22, borderRadius: 4, border: '1px solid #e5e7eb',
+                                    background: W, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  }}><Minus size={10} color="#374151" /></button>
+                                  <span style={{ fontSize: 13, fontWeight: 700, minWidth: 24, textAlign: 'center' }}>{line.qty}</span>
+                                  <button onClick={() => updateMealLineQty(line.id, line.qty + 1)} style={{
+                                    width: 22, height: 22, borderRadius: 4, border: '1px solid #e5e7eb',
+                                    background: W, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  }}><Plus size={10} color="#374151" /></button>
+                                </div>
+                              </td>
+                              <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(c.price)}</td>
+                              <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: R }}>{fmt(c.lineTotal)}</td>
+                              <td style={{ ...tdStyle, textAlign: 'center' }}>
+                                <button onClick={() => removeMealLine(line.id)} style={{
+                                  background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6,
+                                  padding: '4px 8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
+                                }}>
+                                  <Trash2 size={12} color="#dc2626" />
+                                  <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>Remove</span>
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Ad-Hoc Items Section ── */}
               <div style={card}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <Package size={16} style={{ color: R }} />
-                  <h2 style={sectionTitle}>Extras</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Plus size={16} style={{ color: T }} />
+                  <h2 style={sectionTitle}>Ad-Hoc Items</h2>
+                  <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, marginLeft: 'auto' }}>
+                    Extra items not part of a meal
+                  </span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-                  {EXTRAS.map(e => {
-                    const sel = extras.includes(e.id)
-                    return (
-                      <label key={e.id} style={{
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-                        borderRadius: 8, cursor: 'pointer', transition: 'background .1s',
-                        background: sel ? R + '06' : 'transparent',
-                        border: sel ? `1px solid ${R}30` : '1px solid transparent',
-                      }}>
-                        <input type="checkbox" checked={sel} onChange={() => toggleExtra(e.id)} style={{ accentColor: R }} />
-                        <span style={{ fontSize: 12, color: BLK, fontFamily: FH, flex: 1 }}>{e.name}</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280' }}>{fmt(e.listPrice)}</span>
-                      </label>
-                    )
-                  })}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginBottom: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={label}>Select Item</label>
+                    <select value={adhocItemId} onChange={e => setAdhocItemId(e.target.value)}
+                      style={{ ...inputStyle, cursor: 'pointer', appearance: 'auto' }}>
+                      <option value="">-- Choose an item --</option>
+                      <optgroup label="Sides">
+                        {SIDES.map(s => <option key={s.id} value={s.id}>{s.name} ({fmt(s.listPrice)})</option>)}
+                      </optgroup>
+                      <optgroup label="Drinks">
+                        {DRINKS.map(d => <option key={d.id} value={d.id}>{d.name} ({fmt(d.listPrice)})</option>)}
+                      </optgroup>
+                      <optgroup label="Extras">
+                        {EXTRAS.map(e => <option key={e.id} value={e.id}>{e.name} ({fmt(e.listPrice)})</option>)}
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div style={{ width: 100 }}>
+                    <label style={label}>Qty</label>
+                    <input type="number" min={1} value={adhocQty}
+                      onChange={e => setAdhocQty(Math.max(1, parseInt(e.target.value) || 1))}
+                      style={{ ...inputStyle, textAlign: 'center', fontWeight: 700 }} />
+                  </div>
+                  <button onClick={addAdhocItem} style={{ ...btnSecondary, whiteSpace: 'nowrap', height: 38 }}>
+                    Add Item
+                  </button>
                 </div>
+
+                {adhocLines.length > 0 && (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={thStyle}>Item</th>
+                        <th style={thStyle}>Category</th>
+                        <th style={{ ...thStyle, textAlign: 'right' }}>Unit Price</th>
+                        <th style={{ ...thStyle, textAlign: 'center' }}>Qty</th>
+                        <th style={{ ...thStyle, textAlign: 'right' }}>Total</th>
+                        <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {adhocLines.map(a => (
+                        <tr key={a.id}>
+                          <td style={{ ...tdStyle, fontWeight: 600 }}>{a.name}</td>
+                          <td style={tdStyle}>
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                              background: a.category === 'Side' ? '#f0fdf4' : a.category === 'Drink' ? '#eff6ff' : '#fefce8',
+                              color: a.category === 'Side' ? '#166534' : a.category === 'Drink' ? '#1e40af' : '#854d0e',
+                            }}>{a.category}</span>
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(a.listPrice)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 700 }}>{a.qty}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: R }}>{fmt(a.listPrice * a.qty)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'center' }}>
+                            <button onClick={() => removeAdhocLine(a.id)} style={{
+                              background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6,
+                              padding: '4px 8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
+                            }}>
+                              <Trash2 size={12} color="#dc2626" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
 
               {/* ── Order Details ── */}
               <div style={card}>
-                <h2 style={{ ...sectionTitle, marginBottom: 16 }}>Order Details</h2>
+                <h2 style={{ ...sectionTitle, marginBottom: 20 }}>Order Details</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
-                    <label style={label}>Customer Name *</label>
-                    <input value={customerName} onChange={e => setCustomerName(e.target.value)} style={inputStyle} placeholder="Jane Smith" />
+                    <label style={label}>Contact Person *</label>
+                    <input value={contactName} onChange={e => setContactName(e.target.value)} style={inputStyle} placeholder="Jane Smith" />
                   </div>
                   <div>
-                    <label style={label}>Email *</label>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} placeholder="jane@company.com" />
+                    <label style={label}>Contact Email *</label>
+                    <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} style={inputStyle} placeholder="jane@company.com" />
                   </div>
                   <div>
-                    <label style={label}>Phone</label>
-                    <input value={phone} onChange={e => setPhone(e.target.value)} style={inputStyle} placeholder="(555) 123-4567" />
+                    <label style={label}>Contact Phone</label>
+                    <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} style={inputStyle} placeholder="(555) 123-4567" />
+                  </div>
+                  <div>
+                    <label style={label}>Company / Organization</label>
+                    <input value={company} onChange={e => setCompany(e.target.value)} style={inputStyle} placeholder="Acme Corp" />
                   </div>
                   <div>
                     <label style={label}>PO Number</label>
@@ -366,124 +708,168 @@ export default function KotoOrderPage() {
                     <label style={label}>Delivery Time</label>
                     <input type="time" value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)} style={inputStyle} />
                   </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
+                  <div>
                     <label style={label}>Delivery Address *</label>
-                    <input value={address} onChange={e => setAddress(e.target.value)} style={inputStyle} placeholder="123 Main St, Suite 200, City, ST 12345" />
+                    <textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} placeholder="123 Main St, Suite 200, City, ST 12345" />
                   </div>
+
+                  {/* Payment Method */}
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={label}>Payment Method</label>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 4 }}>
+                      {[
+                        { value: 'credit-card', label: 'Credit Card' },
+                        { value: 'invoice', label: 'Invoice' },
+                        { value: 'credit-account', label: 'Credit Account' },
+                        { value: 'cash', label: 'Cash' },
+                        { value: 'check', label: 'Check' },
+                      ].map(pm => (
+                        <label key={pm.value} style={{
+                          display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+                          padding: '6px 12px', borderRadius: 8,
+                          border: paymentMethod === pm.value ? `2px solid ${R}` : '1px solid #e5e7eb',
+                          background: paymentMethod === pm.value ? R + '06' : W,
+                          transition: 'all .15s',
+                        }}>
+                          <input type="radio" name="paymentMethod" value={pm.value}
+                            checked={paymentMethod === pm.value}
+                            onChange={e => setPaymentMethod(e.target.value)}
+                            style={{ accentColor: R }} />
+                          <span style={{ fontSize: 12, fontWeight: 600, color: BLK, fontFamily: FH }}>{pm.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Conditional payment fields */}
+                  {paymentMethod === 'credit-account' && (
+                    <div>
+                      <label style={label}>Credit Account #</label>
+                      <input value={creditAccount} onChange={e => setCreditAccount(e.target.value)} style={inputStyle} placeholder="ACCT-00001" />
+                    </div>
+                  )}
+                  {paymentMethod === 'credit-card' && (
+                    <div>
+                      <label style={label}>Card Last 4</label>
+                      <input value={cardLast4} onChange={e => setCardLast4(e.target.value)} style={inputStyle} placeholder="4242" maxLength={4} />
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <label style={{ ...label, marginBottom: 0, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={paid} onChange={e => setPaid(e.target.checked)} style={{ accentColor: R, width: 16, height: 16 }} />
+                      <span>Paid</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label style={label}>Deposit Amount</label>
+                    <input type="number" min={0} step="0.01" value={depositAmount}
+                      onChange={e => setDepositAmount(e.target.value)}
+                      style={inputStyle} placeholder="0.00" />
+                  </div>
+
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={label}>Special Instructions</label>
-                    <textarea value={instructions} onChange={e => setInstructions(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Allergies, dietary needs, delivery instructions..." />
+                    <textarea value={specialInstructions} onChange={e => setSpecialInstructions(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Allergies, dietary needs, delivery instructions..." />
                   </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={label}>Internal Notes (agency use only)</label>
+                    <textarea value={internalNotes} onChange={e => setInternalNotes(e.target.value)} rows={2}
+                      style={{ ...inputStyle, resize: 'vertical', background: '#fffbeb', border: '1px solid #fde68a' }}
+                      placeholder="Internal notes not visible to customer..." />
+                  </div>
+                </div>
+
+                {/* Place Order Button */}
+                <div style={{ marginTop: 20 }}>
+                  <button onClick={placeOrder} style={{
+                    ...btnPrimary,
+                    opacity: (contactName && contactEmail && deliveryDate && deliveryAddress && orderLines.length > 0) ? 1 : 0.5,
+                  }}>
+                    Place Order — {fmt(summary.subtotalPrice)}
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* ── Right Column: Order Summary (40%) ── */}
+            {/* ══════════ Right Column: Order Summary + Shipping (40%) ══════════ */}
             <div style={{ flex: '0 0 calc(40% - 24px)', position: 'sticky', top: 24 }}>
 
-              {/* Order Summary Card */}
+              {/* ── Order Summary Card ── */}
               <div style={{ ...card, border: `1px solid ${R}20`, boxShadow: '0 4px 24px rgba(0,0,0,.06)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                   <ShoppingCart size={16} style={{ color: R }} />
                   <h2 style={sectionTitle}>Order Summary</h2>
                 </div>
 
-                {/* Selected items */}
-                {totals.items.length === 0 ? (
-                  <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0', fontFamily: FH }}>
-                    Select items to build your boxed lunch
+                {orderLines.length === 0 && adhocLines.length === 0 ? (
+                  <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '24px 0', fontFamily: FH }}>
+                    Add meals to see the order summary
                   </div>
                 ) : (
-                  <div style={{ marginBottom: 16 }}>
-                    {totals.items.map((item, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f3f4f6' }}>
-                        <span style={{ fontSize: 12, color: '#374151' }}>{item.name}</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{fmt(item.price)}</span>
+                  <>
+                    {/* Counts */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                      <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: BLK, fontFamily: FH }}>{summary.totalMeals}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>Total Meals</div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div style={{ background: '#f9fafb', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: BLK, fontFamily: FH }}>{summary.adhocTotalItems}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>Ad-Hoc Items</div>
+                      </div>
+                    </div>
 
-                {/* Quantity */}
-                <div style={{ marginBottom: 16 }}>
-                  <label style={label}>Quantity (identical boxes)</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button onClick={() => setQty(Math.max(1, qty - 1))} style={{
-                      width: 32, height: 32, borderRadius: 8, border: '1px solid #e5e7eb',
-                      background: W, cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#374151',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>-</button>
-                    <input type="number" min={1} value={qty} onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-                      style={{ ...inputStyle, width: 70, textAlign: 'center', fontWeight: 700 }} />
-                    <button onClick={() => setQty(qty + 1)} style={{
-                      width: 32, height: 32, borderRadius: 8, border: '1px solid #e5e7eb',
-                      background: W, cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#374151',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>+</button>
-                  </div>
-                </div>
+                    {/* Pricing Breakdown */}
+                    <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>Subtotal (list price)</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{fmt(summary.subtotalPrice)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '2px solid #111', marginTop: 8 }}>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: BLK, fontFamily: FH }}>Total</span>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: R, fontFamily: FH }}>{fmt(summary.subtotalPrice)}</span>
+                      </div>
+                    </div>
 
-                {/* Pricing breakdown */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12, marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Per-box subtotal</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{fmt(totals.perBoxPrice)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Quantity</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{qty}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: '2px solid #111', marginTop: 8 }}>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: BLK, fontFamily: FH }}>Total</span>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: R, fontFamily: FH }}>{fmt(totals.totalPrice)}</span>
-                  </div>
-                </div>
+                    {/* COGS & Margin */}
+                    <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                        Cost Analysis
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>Total COGS</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{fmt(summary.subtotalCogs)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>Gross Margin ($)</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>{fmt(summary.grossMargin)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>Margin %</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: summary.marginPct >= 50 ? '#16a34a' : '#f59e0b' }}>
+                          {summary.marginPct.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
 
-                {/* COGS & Margin */}
-                <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
-                    Cost Analysis
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Total COGS</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{fmt(totals.totalCogs)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Gross Profit</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>{fmt(totals.totalPrice - totals.totalCogs)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Margin</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: totals.margin >= 50 ? '#16a34a' : '#f59e0b' }}>
-                      {totals.margin.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Place Order Button */}
-                {submitted ? (
-                  <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                    <Check size={24} style={{ color: '#16a34a', margin: '0 auto 8px' }} />
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a', fontFamily: FH }}>Order Submitted</div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Confirmation sent to {email || 'customer'}</div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => { if (customerName && email && deliveryDate && address && sandwich) setSubmitted(true) }}
-                    style={{
-                      ...btnPrimary,
-                      opacity: (customerName && email && deliveryDate && address && sandwich) ? 1 : 0.5,
-                      cursor: (customerName && email && deliveryDate && address && sandwich) ? 'pointer' : 'not-allowed',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-                    onMouseLeave={e => e.currentTarget.style.opacity = (customerName && email && deliveryDate && address && sandwich) ? '1' : '0.5'}
-                  >
-                    Place Order — {fmt(totals.totalPrice)}
-                  </button>
+                    {/* Weight */}
+                    <div style={{ background: '#f9fafb', borderRadius: 8, padding: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>
+                        Weight
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>Total weight</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>
+                          {summary.totalWeightOz.toFixed(1)} oz ({fmtLbs(summary.totalWeightOz)})
+                        </span>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
 
-              {/* Shipping Calculator Card */}
+              {/* ── Shipping Calculator Card ── */}
               <div style={card}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                   <Truck size={16} style={{ color: T }} />
@@ -492,40 +878,155 @@ export default function KotoOrderPage() {
 
                 <div style={{ display: 'grid', gap: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Boxed lunches</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{qty}</span>
+                    <span style={{ fontSize: 12, color: '#6b7280' }}>Total meals</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{summary.totalMeals}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
                     <span style={{ fontSize: 12, color: '#6b7280' }}>Shipping boxes needed</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>
-                      {totals.shippingBoxes} ({SHIPPING.mediumBox.capacity}/box)
+                      {summary.shippingBoxes} ({SHIPPING.mediumBox.capacity} meals/box)
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Shipping box dims</span>
+                    <span style={{ fontSize: 12, color: '#6b7280' }}>Box dimensions</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{SHIPPING.mediumBox.dims}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Container dims</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{totals.containerDims || '—'}</span>
+                    <span style={{ fontSize: 12, color: '#6b7280' }}>Container dims (per meal)</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{summary.containerDims || '—'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Total weight (lunches)</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{fmtLbs(totals.totalWeightOz)}</span>
+                    <span style={{ fontSize: 12, color: '#6b7280' }}>Total order weight</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{fmtLbs(summary.totalWeightOz)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: '#f9fafb', borderRadius: 8 }}>
-                    <span style={{ fontSize: 12, color: '#6b7280' }}>Total ship weight</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{fmtLbs(totals.totalShipWeightOz)}</span>
+                    <span style={{ fontSize: 12, color: '#6b7280' }}>Total shipping weight</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{fmtLbs(summary.totalShipWeightOz)}</span>
                   </div>
-                  {totals.pallets > 0 && (
+                  {summary.pallets > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: T + '10', borderRadius: 8, border: `1px solid ${T}30` }}>
                       <span style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>Pallets required</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: T }}>
-                        {totals.pallets} ({SHIPPING.pallet.dims})
+                        {summary.pallets} ({SHIPPING.pallet.dims})
                       </span>
                     </div>
                   )}
                 </div>
+
+                {/* Vehicle selector */}
+                <div style={{ marginTop: 16, padding: '14px 0 0', borderTop: '1px solid #f3f4f6' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8 }}>Delivery Vehicle</div>
+                  <div style={{ display: 'grid', gap: 6 }}>
+                    {VEHICLES.map(v => {
+                      const isActive = selectedVehicle === v.id
+                      const fits = summary.shippingBoxes <= v.maxBoxes
+                      return (
+                        <button key={v.id} onClick={() => setSelectedVehicle(v.id)}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '10px 12px', borderRadius: 8, border: isActive ? `2px solid ${T}` : '1px solid #e5e7eb',
+                            background: isActive ? T + '08' : '#fff', cursor: 'pointer', textAlign: 'left',
+                          }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{v.name}</div>
+                            <div style={{ fontSize: 11, color: '#6b7280' }}>{v.dims} · {v.maxBoxes} boxes · {v.maxMeals} meals max</div>
+                          </div>
+                          {fits ? (
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f0fdf4', color: '#16a34a' }}>Fits</span>
+                          ) : (
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#fef2f2', color: '#dc2626' }}>Too small</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {(() => {
+                    const v = VEHICLES.find(x => x.id === selectedVehicle)
+                    if (!v) return null
+                    const palletsNeeded = Math.ceil(summary.shippingBoxes / SHIPPING.pallet.maxBoxes)
+                    const fitsPallets = palletsNeeded <= v.pallets
+                    return (
+                      <div style={{ marginTop: 10, padding: '10px 12px', background: '#f9fafb', borderRadius: 8, fontSize: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ color: '#6b7280' }}>Boxes in this order</span>
+                          <span style={{ fontWeight: 700, color: BLK }}>{summary.shippingBoxes}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ color: '#6b7280' }}>Vehicle capacity</span>
+                          <span style={{ fontWeight: 700, color: BLK }}>{v.maxBoxes} boxes / {v.pallets} pallets</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ color: '#6b7280' }}>Pallets needed</span>
+                          <span style={{ fontWeight: 700, color: fitsPallets ? '#16a34a' : '#dc2626' }}>{palletsNeeded}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: '#6b7280' }}>Utilization</span>
+                          <span style={{ fontWeight: 700, color: BLK }}>{Math.round((summary.shippingBoxes / v.maxBoxes) * 100)}%</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+
+              {/* ── Pricing Editor Card ── */}
+              <div style={card}>
+                <button onClick={() => setShowPricing(!showPricing)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <UtensilsCrossed size={16} style={{ color: R }} />
+                    <h2 style={sectionTitle}>Item Pricing (COGS & List)</h2>
+                  </div>
+                  <span style={{ fontSize: 12, color: '#9ca3af' }}>{showPricing ? 'Hide' : 'Show'}</span>
+                </button>
+                {showPricing && (
+                  <div style={{ marginTop: 14 }}>
+                    {[
+                      { label: 'Sandwiches', items: SANDWICHES },
+                      { label: 'Sides', items: SIDES },
+                      { label: 'Drinks', items: DRINKS },
+                      { label: 'Extras', items: EXTRAS },
+                      { label: 'Containers', items: CONTAINERS },
+                    ].map(group => (
+                      <div key={group.label} style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>{group.label}</div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                              <th style={{ textAlign: 'left', padding: '6px 8px', color: '#6b7280', fontWeight: 600 }}>Item</th>
+                              <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 80 }}>COGS</th>
+                              <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 80 }}>Price</th>
+                              <th style={{ textAlign: 'right', padding: '6px 8px', color: '#6b7280', fontWeight: 600, width: 60 }}>Margin</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {group.items.map(item => {
+                              const ov = priceOverrides[item.id] || {}
+                              const cogs = ov.cogs ?? item.cogs
+                              const price = ov.listPrice ?? item.listPrice
+                              const margin = price > 0 ? Math.round(((price - cogs) / price) * 100) : 0
+                              return (
+                                <tr key={item.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                  <td style={{ padding: '6px 8px', color: BLK, fontWeight: 500 }}>{item.name}</td>
+                                  <td style={{ padding: '4px 4px', textAlign: 'right' }}>
+                                    <input type="number" step="0.01" value={cogs} onChange={e => setPriceOverrides(p => ({ ...p, [item.id]: { ...p[item.id], cogs: parseFloat(e.target.value) || 0 } }))}
+                                      style={{ width: 70, padding: '4px 6px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, textAlign: 'right', color: BLK }} />
+                                  </td>
+                                  <td style={{ padding: '4px 4px', textAlign: 'right' }}>
+                                    <input type="number" step="0.01" value={price} onChange={e => setPriceOverrides(p => ({ ...p, [item.id]: { ...p[item.id], listPrice: parseFloat(e.target.value) || 0 } }))}
+                                      style={{ width: 70, padding: '4px 6px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, textAlign: 'right', color: BLK }} />
+                                  </td>
+                                  <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 700, color: margin > 50 ? '#16a34a' : margin > 30 ? '#f59e0b' : '#dc2626' }}>
+                                    {margin}%
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
             </div>
