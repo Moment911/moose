@@ -2362,7 +2362,7 @@ function VoiceOnboardingCard({ agencyId, client, voiceRecipients, onEmailMissing
                 try {
                   const res = await fetch('/api/onboarding/telnyx-provision', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'release_number', client_id: client.id, agency_id: agencyId }),
+                    body: JSON.stringify({ action: 'release', client_id: client.id, agency_id: agencyId }),
                   })
                   const data = await res.json()
                   if (data.error) throw new Error(data.error)
