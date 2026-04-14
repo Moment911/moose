@@ -50,23 +50,12 @@ export const createClient_ = async (name, email, agencyId = null, website = null
     console.warn('[createClient_] token creation failed:', e)
   }
 
-  // Fire and forget — provision Retell number + PIN.
-  // Never block client creation on this.
+  // Phone provisioning is now MANUAL — agency clicks "Provision Number"
+  // on the client detail page when ready for voice onboarding.
+  // No auto-provision on client creation.
   const appUrl = (typeof window !== 'undefined' && window.location?.origin)
     || process.env.NEXT_PUBLIC_APP_URL
     || 'https://hellokoto.com'
-  fetch(`${appUrl}/api/onboarding/telnyx-provision`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'init_client_onboarding',
-      client_id: data.id,
-      agency_id: agencyId || data.agency_id,
-    }),
-  }).catch((e) => {
-    // eslint-disable-next-line no-console
-    console.warn('[createClient_] auto-provision failed:', e)
-  })
 
   // Fire and forget — scan website for brand info if URL provided.
   if (data.website) {
