@@ -11,14 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useMobile } from '../hooks/useMobile'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 const TABS = ['Platform Health', 'Test Runner', 'Error Log', 'Repair Center', 'Communications', 'Reports', 'History']
 const TAB_ICONS = [Shield, Play, AlertCircle, Wrench, Mail, BarChart2, Clock]
@@ -57,7 +50,7 @@ function ResultBadge({ status }) {
   const c = status === 'pass' ? GRN : status === 'fail' ? R : status === 'warn' ? AMB : '#6b7280'
   return (
     <span style={{
-      fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
+      fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
       background: c + '15', color: c, textTransform: 'uppercase', letterSpacing: '.05em',
     }}>
       {status}
@@ -469,8 +462,8 @@ export default function QAConsolePage() {
                     <div style={{ fontSize:13, fontWeight:600, fontFamily:FH, color:BLK }}>{t.name}</div>
                     <div style={{ fontSize:11, color:t.pass?GRN:R, fontFamily:FB }}>{t.message || t.error}</div>
                   </div>
-                  <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:99, background:t.severity==='critical'?'#fef2f2':t.severity==='high'?'#fef3c7':t.severity==='medium'?'#f0f9ff':'#f3f4f6', color:t.severity==='critical'?R:t.severity==='high'?AMB:t.severity==='medium'?'#0369a1':'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{t.severity}</span>
-                  <span style={{ fontSize:10, color:'#bbb', fontFamily:FB, minWidth:40, textAlign:'right' }}>{t.duration_ms}ms</span>
+                  <span style={{ fontSize:12, fontWeight:700, padding:'2px 8px', borderRadius:99, background:t.severity==='critical'?'#fef2f2':t.severity==='high'?'#fef3c7':t.severity==='medium'?'#f0f9ff':'#f3f4f6', color:t.severity==='critical'?R:t.severity==='high'?AMB:t.severity==='medium'?'#0369a1':'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{t.severity}</span>
+                  <span style={{ fontSize:12, color:'#bbb', fontFamily:FB, minWidth:40, textAlign:'right' }}>{t.duration_ms}ms</span>
                 </div>
               ))}
             </div>
@@ -637,11 +630,11 @@ export default function QAConsolePage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontFamily: FB, color: BLK, marginBottom: 4 }}>{err.message}</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: err.source === 'app' ? R + '12' : T + '12', color: err.source === 'app' ? R : T, textTransform: 'uppercase' }}>{err.source === 'app' ? 'APP' : 'QA TEST'}</span>
-                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#F9F9F9', color: '#6b7280', textTransform: 'uppercase' }}>{err.suite || 'runtime'}</span>
-                      <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: sevColor + '15', color: sevColor, textTransform: 'uppercase' }}>{err.severity}</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: err.source === 'app' ? R + '12' : T + '12', color: err.source === 'app' ? R : T, textTransform: 'uppercase' }}>{err.source === 'app' ? 'APP' : 'QA TEST'}</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#F9F9F9', color: '#6b7280', textTransform: 'uppercase' }}>{err.suite || 'runtime'}</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: sevColor + '15', color: sevColor, textTransform: 'uppercase' }}>{err.severity}</span>
                       <span style={{ fontSize: 11, color: '#9a9a96' }}>{timeAgo(err.created_at)}</span>
-                      {err.url && <span style={{ fontSize: 10, color: '#9a9a96', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.url}</span>}
+                      {err.url && <span style={{ fontSize: 12, color: '#9a9a96', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{err.url}</span>}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -690,9 +683,9 @@ export default function QAConsolePage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontFamily: FB, color: BLK, marginBottom: 4 }}>{rep.description}</div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#F9F9F9', color: '#6b7280', textTransform: 'uppercase' }}>{rep.repair_type}</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20, background: '#F9F9F9', color: '#6b7280', textTransform: 'uppercase' }}>{rep.repair_type}</span>
                     <ResultBadge status={rep.status} />
-                    {rep.auto && <span style={{ fontSize: 10, fontWeight: 700, color: T }}>AUTO</span>}
+                    {rep.auto && <span style={{ fontSize: 12, fontWeight: 700, color: T }}>AUTO</span>}
                     <span style={{ fontSize: 11, color: '#9a9a96' }}>{timeAgo(rep.created_at)}</span>
                   </div>
                 </div>
@@ -887,7 +880,7 @@ export default function QAConsolePage() {
                         {run.passed}/{run.total_tests} passed
                       </span>
                       {run.failed > 0 && (
-                        <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R + '15', color: R }}>{run.failed} failed</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R + '15', color: R }}>{run.failed} failed</span>
                       )}
                     </div>
                     {/* Pass rate bar */}
@@ -1011,7 +1004,7 @@ export default function QAConsolePage() {
                   <Icon size={14} />
                   {t}
                   {i === 1 && errorCount > 0 && (
-                    <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R, color: '#fff', marginLeft: 4 }}>{errorCount}</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, padding: '1px 6px', borderRadius: 10, background: R, color: '#fff', marginLeft: 4 }}>{errorCount}</span>
                   )}
                 </button>
               )

@@ -6,9 +6,7 @@ import {
   TrendingUp, AlertCircle, Check, BarChart2, Cpu, Server
 } from 'lucide-react'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 const STATUS_COLORS = { operational: GRN, degraded: AMB, outage: R }
 
@@ -114,7 +112,7 @@ function BarChart({ data = [], label, maxHeight = 140, barWidth = 12 }) {
               transition: 'height .3s ease'
             }} />
             {d.label && (
-              <span style={{ fontSize: 9, color: '#9ca3af', fontFamily: FB, whiteSpace: 'nowrap' }}>{d.label}</span>
+              <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB, whiteSpace: 'nowrap' }}>{d.label}</span>
             )}
           </div>
         ))}
@@ -132,7 +130,7 @@ function StackedBarChart({ data = [], label, maxHeight = 140 }) {
         {[['P1 Critical', R], ['P2 Warning', AMB], ['P3 Info', T]].map(([l, c]) => (
           <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ width: 8, height: 8, borderRadius: 2, background: c, display: 'inline-block' }} />
-            <span style={{ fontSize: 10, color: '#6b7280', fontFamily: FB }}>{l}</span>
+            <span style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>{l}</span>
           </div>
         ))}
       </div>
@@ -152,7 +150,7 @@ function StackedBarChart({ data = [], label, maxHeight = 140 }) {
                 {total === 0 && <div style={{ width: 14, height: 2, background: '#e5e7eb' }} />}
               </div>
               {d.label && (
-                <span style={{ fontSize: 9, color: '#9ca3af', fontFamily: FB, whiteSpace: 'nowrap' }}>{d.label}</span>
+                <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB, whiteSpace: 'nowrap' }}>{d.label}</span>
               )}
             </div>
           )
@@ -200,7 +198,7 @@ function ServiceCard({ name, status, responseTime, lastChecked, subRows }) {
             {fmt(lastChecked)}
           </span>
           <span style={{
-            fontSize: 10, fontFamily: FB, fontWeight: 600, padding: '2px 8px', borderRadius: 6,
+            fontSize: 12, fontFamily: FB, fontWeight: 600, padding: '2px 8px', borderRadius: 6,
             background: status === 'operational' ? `${GRN}18` : status === 'degraded' ? `${AMB}18` : `${R}18`,
             color: STATUS_COLORS[status] || '#999'
           }}>
@@ -256,7 +254,7 @@ function IncidentTimeline({ incidents = [] }) {
                     {inc.message || inc.error_message || 'Unknown error'}
                   </span>
                   <span style={{
-                    fontSize: 9, fontFamily: FB, fontWeight: 700, padding: '1px 6px', borderRadius: 4,
+                    fontSize: 12, fontFamily: FB, fontWeight: 700, padding: '1px 6px', borderRadius: 4,
                     background: `${pColor}18`, color: pColor, flexShrink: 0
                   }}>
                     {inc.priority || 'P3'}
@@ -265,12 +263,12 @@ function IncidentTimeline({ incidents = [] }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ fontFamily: FB, fontSize: 11, color: '#9ca3af' }}>{fmtDate(inc.created_at || inc.timestamp)}</span>
                   {inc.service && (
-                    <span style={{ fontFamily: FB, fontSize: 10, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>
+                    <span style={{ fontFamily: FB, fontSize: 12, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: 4 }}>
                       {inc.service}
                     </span>
                   )}
                   {inc.resolved && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: GRN, fontFamily: FB }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, color: GRN, fontFamily: FB }}>
                       <Check size={10} /> Resolved
                     </span>
                   )}
@@ -298,7 +296,7 @@ function WPSitesTable({ sites = [] }) {
           <thead>
             <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
               {['Site URL', 'Status', 'Last Ping', 'Response Time', 'Pages'].map(h => (
-                <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#9ca3af', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '.5px' }}>
+                <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#9ca3af', fontWeight: 600, fontSize: 12, textTransform: 'uppercase', letterSpacing: '.5px' }}>
                   {h}
                 </th>
               ))}
@@ -491,7 +489,7 @@ export default function UptimeMonitorPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Activity size={22} color={T} />
-            <span style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: '#fff' }}>System Monitor</span>
+            <span style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>System Monitor</span>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(22,163,74,.12)',
               padding: '4px 12px', borderRadius: 20, marginLeft: 8
@@ -506,15 +504,15 @@ export default function UptimeMonitorPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Clock size={13} color="#6b7280" />
               <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
-                Next refresh in <strong style={{ color: '#fff' }}>{countdown}s</strong>
+                Next refresh in <strong style={{ color: BLK }}>{countdown}s</strong>
               </span>
             </div>
             <button
               onClick={() => { fetchAll(); setCountdown(30) }}
               style={{
-                background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)',
+                background: '#f3f4f6', border: '1px solid #e5e7eb',
                 borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6, color: '#fff', fontSize: 12, fontFamily: FB
+                display: 'flex', alignItems: 'center', gap: 6, color: BLK, fontSize: 12, fontFamily: FB
               }}
             >
               <RefreshCw size={13} /> Refresh

@@ -2,9 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Zap, Check, AlertCircle, XCircle, Clock, RefreshCw, ExternalLink } from 'lucide-react'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRN, AMB, FH, FB } from '../lib/theme'
 
 function fmt(d) {
   if (!d) return '--'
@@ -138,8 +136,8 @@ function UptimeBar({ label, dailyData = [], uptimePct }) {
         })}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-        <span style={{ fontFamily: FB, fontSize: 10, color: '#9ca3af' }}>90 days ago</span>
-        <span style={{ fontFamily: FB, fontSize: 10, color: '#9ca3af' }}>Today</span>
+        <span style={{ fontFamily: FB, fontSize: 12, color: '#9ca3af' }}>90 days ago</span>
+        <span style={{ fontFamily: FB, fontSize: 12, color: '#9ca3af' }}>Today</span>
       </div>
     </div>
   )
@@ -164,7 +162,7 @@ function IncidentCard({ incident }) {
           </span>
           {incident.resolved && (
             <span style={{
-              fontSize: 10, fontFamily: FB, fontWeight: 600, color: GRN,
+              fontSize: 12, fontFamily: FB, fontWeight: 600, color: GRN,
               background: `${GRN}12`, padding: '2px 8px', borderRadius: 10
             }}>
               Resolved
@@ -177,7 +175,7 @@ function IncidentCard({ incident }) {
           </span>
           {incident.service && (
             <span style={{
-              fontFamily: FB, fontSize: 10, color: '#6b7280',
+              fontFamily: FB, fontSize: 12, color: '#6b7280',
               background: '#f3f4f6', padding: '2px 8px', borderRadius: 4
             }}>
               {incident.service}

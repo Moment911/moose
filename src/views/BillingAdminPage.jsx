@@ -10,9 +10,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 function StatCard({ label, value, icon: Icon, accent = T, loading }) {
   return (
@@ -107,7 +105,7 @@ export default function BillingAdminPage() {
               <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>Billing Admin</h1>
               <p style={{ fontSize: 13, color: '#999999', margin: '4px 0 0' }}>Platform revenue, agency billing, pricing</p>
             </div>
-            <button onClick={loadData} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', color: '#fff', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={loadData} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', color: BLK, padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
               <RefreshCw size={13} /> Refresh
             </button>
           </div>
@@ -116,7 +114,7 @@ export default function BillingAdminPage() {
               <button key={t} onClick={() => setTab(i)} style={{
                 padding: '10px 18px', border: 'none', cursor: 'pointer', fontSize: 13,
                 fontWeight: tab === i ? 700 : 500, fontFamily: FH,
-                color: tab === i ? '#fff' : 'rgba(255,255,255,.4)', background: 'transparent',
+                color: tab === i ? BLK : '#9ca3af', background: 'transparent',
                 borderBottom: tab === i ? `2px solid ${R}` : '2px solid transparent',
               }}>{t}</button>
             ))}
@@ -188,8 +186,8 @@ export default function BillingAdminPage() {
                         </td>
                         <td style={{ padding: '12px 14px' }}>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button onClick={() => adjustCredits(a.agency_id, 50)} style={{ fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, border: 'none', background: GRN + '15', color: GRN, cursor: 'pointer' }}>+$50</button>
-                            <select onChange={e => { if (e.target.value) changePlan(a.agency_id, e.target.value); e.target.value = '' }} style={{ fontSize: 10, fontWeight: 700, padding: '4px 6px', borderRadius: 6, border: '1px solid #e5e7eb', cursor: 'pointer', background: '#fff' }}>
+                            <button onClick={() => adjustCredits(a.agency_id, 50)} style={{ fontSize: 12, fontWeight: 700, padding: '4px 8px', borderRadius: 6, border: 'none', background: GRN + '15', color: GRN, cursor: 'pointer' }}>+$50</button>
+                            <select onChange={e => { if (e.target.value) changePlan(a.agency_id, e.target.value); e.target.value = '' }} style={{ fontSize: 12, fontWeight: 700, padding: '4px 6px', borderRadius: 6, border: '1px solid #e5e7eb', cursor: 'pointer', background: '#fff' }}>
                               <option value="">Plan...</option>
                               {Object.keys(PLANS).map(p => <option key={p} value={p}>{p}</option>)}
                             </select>

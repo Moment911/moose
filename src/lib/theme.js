@@ -1,0 +1,9 @@
+export const R   = '#E6007E'
+export const T   = '#00C2CB'
+export const BLK = '#111111'
+export const GRY = '#F9F9F9'
+export const GRN = '#16a34a'
+export const AMB = '#f59e0b'
+export const W   = '#ffffff'
+export const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+export const FB  = "'Raleway','Helvetica Neue',sans-serif"

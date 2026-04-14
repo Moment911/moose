@@ -4,9 +4,7 @@ import { Search, RefreshCw, AlertCircle, Info, AlertTriangle, Bug, Plus, X, Chec
 import Sidebar from '../components/Sidebar'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E',T='#00C2CB',BLK='#111111',GRY='#F9F9F9',GRN='#16a34a',AMB='#f59e0b'
-const FH="'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB="'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 const LEVEL_COLOR={info:T,warn:AMB,error:R,debug:'#9ca3af'}
 const LEVEL_ICON={info:Info,warn:AlertTriangle,error:AlertCircle,debug:Bug}
@@ -27,7 +25,7 @@ function StatCard({label,value,icon:Icon,color,subtitle}){
       <div>
         <div style={{fontFamily:FH,fontSize:22,fontWeight:900,color:BLK,lineHeight:1}}>{value??'--'}</div>
         <div style={{fontSize:11,color:'#9ca3af',fontFamily:FB,marginTop:2}}>{label}</div>
-        {subtitle&&<div style={{fontSize:10,color:'#b0b0b0',fontFamily:FB}}>{subtitle}</div>}
+        {subtitle&&<div style={{fontSize:12,color:'#b0b0b0',fontFamily:FB}}>{subtitle}</div>}
       </div>
     </div>
   )
@@ -36,7 +34,7 @@ function StatCard({label,value,icon:Icon,color,subtitle}){
 function SeverityBadge({severity}){
   const s=SEVERITY_MAP[severity]||SEVERITY_MAP.p3
   return(
-    <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:s.color+'20',color:s.color,fontFamily:FH,textTransform:'uppercase',whiteSpace:'nowrap'}}>
+    <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:s.color+'20',color:s.color,fontFamily:FH,textTransform:'uppercase',whiteSpace:'nowrap'}}>
       {s.label}
     </span>
   )
@@ -78,8 +76,8 @@ function TimelineChart({errors}){
         })}
       </div>
       <div style={{display:'flex',justifyContent:'space-between',marginTop:6}}>
-        <span style={{fontSize:9,color:'#9ca3af',fontFamily:FB}}>24h ago</span>
-        <span style={{fontSize:9,color:'#9ca3af',fontFamily:FB}}>now</span>
+        <span style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>24h ago</span>
+        <span style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>now</span>
       </div>
     </div>
   )
@@ -334,11 +332,11 @@ export default function DebugConsolePage(){
         {/* ══════════ HEADER ══════════ */}
         <div style={{background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'16px 28px',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div>
-            <div style={{fontFamily:FH,fontSize:18,fontWeight:800,color:'#fff',letterSpacing:'-.02em',display:'flex',alignItems:'center',gap:8}}>
+            <div style={{fontFamily:FH,fontSize:18,fontWeight:800,color:BLK,letterSpacing:'-.02em',display:'flex',alignItems:'center',gap:8}}>
               <span style={{width:10,height:10,borderRadius:'50%',background:overallColor,display:'inline-block',boxShadow:`0 0 0 3px ${overallColor}30`}}/>
               Debug Console
               {autoRefresh&&(
-                <span style={{display:'inline-flex',alignItems:'center',gap:4,marginLeft:8,padding:'2px 8px',borderRadius:20,background:GRN+'20',fontSize:10,fontWeight:700,color:GRN,fontFamily:FH}}>
+                <span style={{display:'inline-flex',alignItems:'center',gap:4,marginLeft:8,padding:'2px 8px',borderRadius:20,background:GRN+'20',fontSize:12,fontWeight:700,color:GRN,fontFamily:FH}}>
                   <span style={{width:6,height:6,borderRadius:'50%',background:GRN,display:'inline-block',animation:'pulse 2s ease-in-out infinite'}}/>
                   LIVE
                 </span>
@@ -367,7 +365,7 @@ export default function DebugConsolePage(){
           {TABS.map(t=>{const Icon=t.icon;const active=tab===t.key;return(
             <button key={t.key} onClick={()=>setTab(t.key)} style={{display:'flex',alignItems:'center',gap:5,padding:'12px 16px',border:'none',borderBottom:`2px solid ${active?R:'transparent'}`,background:'transparent',color:active?R:'#6b7280',fontSize:13,fontWeight:active?700:400,cursor:'pointer',fontFamily:FH,transition:'color .15s'}}>
               <Icon size={13}/>{t.label}
-              {t.badge>0&&<span style={{fontSize:9,fontWeight:800,padding:'1px 5px',borderRadius:10,background:R,color:'#fff'}}>{t.badge}</span>}
+              {t.badge>0&&<span style={{fontSize:12,fontWeight:800,padding:'1px 5px',borderRadius:10,background:R,color:'#fff'}}>{t.badge}</span>}
             </button>
           )})}
         </div>
@@ -412,7 +410,7 @@ export default function DebugConsolePage(){
                         <span style={{fontFamily:FH,fontSize:12,fontWeight:600,color:R}}>{err.metadata?.service||err.service||'app'}</span>
                       </div>
                       <div style={{fontSize:12,color:'#6b7280',fontFamily:FB,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginTop:2}}>{err.message||err.error_message||'Unknown error'}</div>
-                      <div style={{fontSize:10,color:'#9ca3af',fontFamily:FB}}>{err.created_at?new Date(err.created_at).toLocaleString():'--'}</div>
+                      <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>{err.created_at?new Date(err.created_at).toLocaleString():'--'}</div>
                     </div>
                   ))}
                   {errors.length===0&&<div style={{fontSize:13,color:'#9ca3af',fontFamily:FB,textAlign:'center',padding:'20px 0'}}>No errors logged</div>}
@@ -468,7 +466,7 @@ export default function DebugConsolePage(){
               {/* Grouped Errors List */}
               <div style={{background:'#fff',borderRadius:14,border:'1px solid #e5e7eb',overflow:'hidden'}} ref={logsRef}>
                 {/* Header row */}
-                <div style={{display:'grid',gridTemplateColumns:'32px 1fr 80px 80px 80px 80px 100px',gap:8,padding:'10px 16px',borderBottom:'1px solid #f3f4f6',fontSize:10,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',letterSpacing:'.06em',alignItems:'center'}}>
+                <div style={{display:'grid',gridTemplateColumns:'32px 1fr 80px 80px 80px 80px 100px',gap:8,padding:'10px 16px',borderBottom:'1px solid #f3f4f6',fontSize:12,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',letterSpacing:'.06em',alignItems:'center'}}>
                   <span/>
                   <span>Error Message</span>
                   <span>Count</span>
@@ -495,7 +493,7 @@ export default function DebugConsolePage(){
                         </div>
                         <div style={{overflow:'hidden'}}>
                           <div style={{fontSize:12,fontWeight:600,color:'#374151',fontFamily:FH,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{group.message}</div>
-                          <div style={{fontSize:10,color:'#9ca3af',fontFamily:FB,marginTop:1}}>First: {new Date(group.firstSeen).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+                          <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB,marginTop:1}}>First: {new Date(group.firstSeen).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
                         </div>
                         <div>
                           <span style={{fontSize:12,fontWeight:800,color:group.count>50?R:group.count>10?AMB:'#6b7280',fontFamily:FH,display:'inline-flex',alignItems:'center',gap:3}}>
@@ -503,11 +501,11 @@ export default function DebugConsolePage(){
                           </span>
                         </div>
                         <div><SeverityBadge severity={group.severity}/></div>
-                        <div style={{fontSize:10,color:'#6b7280',fontFamily:FB,textTransform:'uppercase'}}>{group.type?.replace('_',' ')||'--'}</div>
+                        <div style={{fontSize:12,color:'#6b7280',fontFamily:FB,textTransform:'uppercase'}}>{group.type?.replace('_',' ')||'--'}</div>
                         <div style={{fontSize:11,color:'#6b7280',fontFamily:FB,display:'flex',alignItems:'center',gap:3}}>
                           <Users size={10}/>{group.userCount}
                         </div>
-                        <div style={{fontSize:10,color:'#9ca3af',fontFamily:FB}}>{new Date(group.lastSeen).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+                        <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>{new Date(group.lastSeen).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
                       </div>
 
                       {/* Expanded Detail */}
@@ -515,19 +513,19 @@ export default function DebugConsolePage(){
                         <div style={{padding:'16px 20px 16px 48px',background:'#fafafa',borderBottom:'1px solid #e5e7eb'}}>
                           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
                             <div>
-                              <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>URL</div>
+                              <div style={{fontSize:12,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>URL</div>
                               <div style={{fontSize:12,color:'#374151',fontFamily:FB,wordBreak:'break-all'}}>{latestError.metadata?.url||latestError.url||'N/A'}</div>
                             </div>
                             <div>
-                              <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>User / Agency</div>
+                              <div style={{fontSize:12,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>User / Agency</div>
                               <div style={{fontSize:12,color:'#374151',fontFamily:FB}}>{latestError.metadata?.user_email||latestError.user_id||'Anonymous'}{latestError.metadata?.agency_name?` · ${latestError.metadata.agency_name}`:''}</div>
                             </div>
                             <div>
-                              <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>Timestamp</div>
+                              <div style={{fontSize:12,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>Timestamp</div>
                               <div style={{fontSize:12,color:'#374151',fontFamily:FB}}>{latestError.created_at?new Date(latestError.created_at).toLocaleString():'--'}</div>
                             </div>
                             <div>
-                              <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>Occurrences</div>
+                              <div style={{fontSize:12,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>Occurrences</div>
                               <div style={{fontSize:12,color:'#374151',fontFamily:FB}}>{group.count} times across {group.userCount} user{group.userCount!==1?'s':''}</div>
                             </div>
                           </div>
@@ -535,7 +533,7 @@ export default function DebugConsolePage(){
                           {/* Stack Trace */}
                           {(latestError.stack||latestError.metadata?.stack)&&(
                             <div style={{marginBottom:16}}>
-                              <div style={{fontSize:10,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>Stack Trace</div>
+                              <div style={{fontSize:12,fontWeight:700,color:'#9ca3af',fontFamily:FH,textTransform:'uppercase',marginBottom:4}}>Stack Trace</div>
                               <CodeBlock code={latestError.stack||latestError.metadata?.stack}/>
                             </div>
                           )}
@@ -543,7 +541,7 @@ export default function DebugConsolePage(){
                           {/* Repair Result */}
                           {repairResults[latestError.id]&&(
                             <div style={{marginBottom:16,background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:10,padding:16}}>
-                              <div style={{fontSize:10,fontWeight:700,color:GRN,fontFamily:FH,textTransform:'uppercase',marginBottom:6,display:'flex',alignItems:'center',gap:4}}>
+                              <div style={{fontSize:12,fontWeight:700,color:GRN,fontFamily:FH,textTransform:'uppercase',marginBottom:6,display:'flex',alignItems:'center',gap:4}}>
                                 <Sparkles size={11}/> Auto-Repair Suggestion
                               </div>
                               {repairResults[latestError.id].error?(
@@ -615,7 +613,7 @@ export default function DebugConsolePage(){
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                         <span style={{width:10,height:10,borderRadius:'50%',background:c,display:'inline-block'}}/>
                         <span style={{fontFamily:FH,fontSize:14,fontWeight:700,color:BLK,textTransform:'capitalize'}}>{s.service}</span>
-                        <span style={{marginLeft:'auto',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:c+'20',color:c,fontFamily:FH,textTransform:'uppercase'}}>{s.status}</span>
+                        <span style={{marginLeft:'auto',fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:c+'20',color:c,fontFamily:FH,textTransform:'uppercase'}}>{s.status}</span>
                       </div>
                       {s.response_ms!=null&&(
                         <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -649,7 +647,7 @@ export default function DebugConsolePage(){
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                             <Globe size={14} color={c}/>
                             <span style={{fontFamily:FH,fontSize:13,fontWeight:700,color:BLK,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{w.site_url?.replace(/^https?:\/\//,'')||'WordPress Site'}</span>
-                            <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:c+'20',color:c,fontFamily:FH}}>{w.status}</span>
+                            <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:c+'20',color:c,fontFamily:FH}}>{w.status}</span>
                           </div>
                           <div style={{display:'flex',gap:12,alignItems:'center'}}>
                             {w.response_ms!=null&&<span style={{fontSize:11,color:'#6b7280',fontFamily:FB}}>Response: {w.response_ms}ms</span>}
@@ -732,9 +730,9 @@ export default function DebugConsolePage(){
                   <div key={inc.id} style={{background:'#fff',borderRadius:14,border:`1.5px solid ${isActive?R+'30':'#e5e7eb'}`,padding:'18px 20px',marginBottom:10,transition:'border-color .15s'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,flexWrap:'wrap'}}>
                       <span style={{fontSize:11,fontWeight:700,padding:'3px 10px',borderRadius:20,background:(inc.status==='resolved'?GRN:R)+'20',color:inc.status==='resolved'?GRN:R,fontFamily:FH,textTransform:'capitalize'}}>{inc.status}</span>
-                      <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:sevColor+'20',color:sevColor,fontFamily:FH,textTransform:'uppercase'}}>{inc.severity}</span>
+                      <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:sevColor+'20',color:sevColor,fontFamily:FH,textTransform:'uppercase'}}>{inc.severity}</span>
                       {inc.services&&inc.services.map&&inc.services.map(s=>(
-                        <span key={s} style={{fontSize:10,padding:'2px 8px',borderRadius:20,background:'#f3f4f6',color:'#6b7280',fontFamily:FB}}>{s}</span>
+                        <span key={s} style={{fontSize:12,padding:'2px 8px',borderRadius:20,background:'#f3f4f6',color:'#6b7280',fontFamily:FB}}>{s}</span>
                       ))}
                       <span style={{fontSize:11,color:'#9ca3af',fontFamily:FB,marginLeft:'auto'}}>{new Date(inc.started_at||inc.created_at).toLocaleString()}</span>
                       {isActive&&<button onClick={()=>resolveIncident(inc.id)} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${GRN}`,background:GRN+'10',color:GRN,fontSize:11,fontWeight:600,cursor:'pointer',fontFamily:FH,display:'flex',alignItems:'center',gap:4}}><Check size={10}/> Resolve</button>}
@@ -787,9 +785,9 @@ export default function DebugConsolePage(){
                     </div>
                     <div style={{flex:1}}>
                       <div style={{fontFamily:FH,fontSize:13,fontWeight:700,color:BLK,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{rep.error_message||rep.message||'Error repair'}</div>
-                      <div style={{fontSize:10,color:'#9ca3af',fontFamily:FB}}>{rep.created_at?new Date(rep.created_at).toLocaleString():'--'}</div>
+                      <div style={{fontSize:12,color:'#9ca3af',fontFamily:FB}}>{rep.created_at?new Date(rep.created_at).toLocaleString():'--'}</div>
                     </div>
-                    <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:rep.status==='applied'?GRN+'20':rep.status==='dismissed'?'#f3f4f6':'#8b5cf620',color:rep.status==='applied'?GRN:rep.status==='dismissed'?'#9ca3af':'#8b5cf6',fontFamily:FH,textTransform:'uppercase'}}>{rep.status||'suggested'}</span>
+                    <span style={{fontSize:12,fontWeight:700,padding:'2px 8px',borderRadius:20,background:rep.status==='applied'?GRN+'20':rep.status==='dismissed'?'#f3f4f6':'#8b5cf620',color:rep.status==='applied'?GRN:rep.status==='dismissed'?'#9ca3af':'#8b5cf6',fontFamily:FH,textTransform:'uppercase'}}>{rep.status||'suggested'}</span>
                   </div>
                   {rep.explanation&&<div style={{fontSize:12,color:'#374151',fontFamily:FB,marginBottom:8}}>{rep.explanation}</div>}
                   {rep.suggestion&&<div style={{fontSize:12,color:'#374151',fontFamily:FB,marginBottom:8}}>{rep.suggestion}</div>}

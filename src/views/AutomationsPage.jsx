@@ -11,15 +11,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E'
-const T   = '#00C2CB'
-const BLK = '#111111'
-const GRY = '#F9F9F9'
-const W   = '#ffffff'
-const GRN = '#16a34a'
-const AMB = '#f59e0b'
-const FH  = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB  = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, W, GRN, AMB, FH, FB } from '../lib/theme'
 const RED = R, TEAL = T, GREEN = GRN, AMBER = AMB
 
 const TRIGGERS = [
@@ -127,7 +119,7 @@ export default function AutomationsPage() {
         {/* Header */}
         <div style={{ background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', padding:'20px 28px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:'#fff', letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
+            <div style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:BLK, letterSpacing:'-.03em', display:'flex', alignItems:'center', gap:9 }}>
               <Zap size={18} color={AMBER}/> Automations
             </div>
             <div style={{ fontSize:12, color:'#999999', margin:'3px 0 0', fontFamily:FB }}>
@@ -259,7 +251,7 @@ export default function AutomationsPage() {
                         style={{ padding:'10px 12px', borderRadius:10, border:`2px solid ${sel?t.color:'#e5e7eb'}`, background:sel?t.color+'12':'#fff', cursor:'pointer', textAlign:'left' }}>
                         <Icon size={14} color={t.color} style={{ marginBottom:4 }}/>
                         <div style={{ fontFamily:FH, fontSize:11, fontWeight:700, color:sel?t.color:BLK, marginBottom:2 }}>{t.label}</div>
-                        <div style={{ fontSize:10, color:'#9ca3af', fontFamily:FB }}>{t.desc}</div>
+                        <div style={{ fontSize:12, color:'#9ca3af', fontFamily:FB }}>{t.desc}</div>
                       </button>
                     )
                   })}

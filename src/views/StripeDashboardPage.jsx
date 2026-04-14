@@ -10,9 +10,7 @@ import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 
-const R   = '#E6007E', T = '#00C2CB', BLK = '#111111', GRY = '#F9F9F9', GRN = '#16a34a', AMB = '#f59e0b'
-const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
-const FB = "'Raleway','Helvetica Neue',sans-serif"
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 const fmt$ = (n) => `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const statusColor = (s) => s === 'active' ? GRN : s === 'past_due' || s === 'unpaid' ? AMB : s === 'canceled' || s === 'void' ? R : '#6b7280'
@@ -199,13 +197,13 @@ export default function StripeDashboardPage() {
               <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em' }}>Stripe Control Center</h1>
               <p style={{ fontSize: 13, color: '#999999', margin: '4px 0 0' }}>Products, subscriptions, coupons &amp; revenue</p>
             </div>
-            <button onClick={syncStripe} disabled={syncing} style={{ background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', color: '#fff', padding: '8px 16px', borderRadius: 8, cursor: syncing ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={syncStripe} disabled={syncing} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', color: BLK, padding: '8px 16px', borderRadius: 8, cursor: syncing ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, fontFamily: FH, display: 'flex', alignItems: 'center', gap: 6 }}>
               {syncing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={13} />} Sync
             </button>
           </div>
           <div style={{ display: 'flex', gap: 0 }}>
             {TABS.map((t, i) => (
-              <button key={t} onClick={() => setTab(i)} style={{ padding: '10px 18px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === i ? 700 : 500, fontFamily: FH, color: tab === i ? '#fff' : 'rgba(255,255,255,.4)', background: 'transparent', borderBottom: tab === i ? `2px solid ${R}` : '2px solid transparent' }}>{t}</button>
+              <button key={t} onClick={() => setTab(i)} style={{ padding: '10px 18px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === i ? 700 : 500, fontFamily: FH, color: tab === i ? BLK : '#9ca3af', background: 'transparent', borderBottom: tab === i ? `2px solid ${R}` : '2px solid transparent' }}>{t}</button>
             ))}
           </div>
         </div>
@@ -268,7 +266,7 @@ export default function StripeDashboardPage() {
                         <TD>
                           <div style={{ fontWeight: 700, color: BLK }}>{p.name}</div>
                           {p.description && <div style={{ fontSize: 11, color: '#9a9a96', marginTop: 2 }}>{p.description}</div>}
-                          <div style={{ fontSize: 10, color: '#c0c0c0', marginTop: 2, fontFamily: 'monospace' }}>{p.stripe_product_id}</div>
+                          <div style={{ fontSize: 12, color: '#c0c0c0', marginTop: 2, fontFamily: 'monospace' }}>{p.stripe_product_id}</div>
                         </TD>
                         <TD style={{ fontFamily: FH, fontWeight: 700 }}>{p.monthly_price ? `$${Number(p.monthly_price).toFixed(2)}` : '—'}</TD>
                         <TD style={{ fontFamily: FH, fontWeight: 700 }}>{p.annual_price ? `$${Number(p.annual_price).toFixed(2)}` : '—'}</TD>
