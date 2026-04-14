@@ -379,7 +379,7 @@ export async function POST(req: NextRequest) {
       if (!carrier) return Response.json({ error: `Carrier "${call.carrier_name}" not found in directory` }, { status: 400 })
 
       // Get agency config
-      const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
+      const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_llm_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
 
       if (!agency?.vob_agent_id) {
         return Response.json({ error: 'VOB agent not configured. Run create_agent first.' }, { status: 400 })
@@ -547,7 +547,7 @@ export async function POST(req: NextRequest) {
 
       try {
         // Step 1: Check if agent exists
-        const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
+        const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_llm_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
 
         // Step 2: Create agent if missing
         if (!agency?.vob_agent_id) {
@@ -624,10 +624,12 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Step 4: Save NPI
-        if (npi) {
-          await s.from('agencies').update({ vob_npi: npi }).eq('id', agency_id)
-          results.steps.push(`NPI saved: ${npi}`)
+        // Step 4: Save NPI + facility name
+        const agencyUpdates: any = {}
+        if (npi) { agencyUpdates.vob_npi = npi; results.steps.push(`NPI saved: ${npi}`) }
+        if (body.facility_name) { agencyUpdates.brand_name = body.facility_name; results.steps.push(`Facility name: ${body.facility_name}`) }
+        if (Object.keys(agencyUpdates).length > 0) {
+          await s.from('agencies').update(agencyUpdates).eq('id', agency_id)
         }
 
         results.success = true
@@ -668,7 +670,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Get agency config
-      const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
+      const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_llm_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
 
       if (!agency?.vob_agent_id || !agency?.vob_from_number) {
         return Response.json({ error: 'VOB not set up yet. Run setup_vob first.' }, { status: 400 })

@@ -160,10 +160,11 @@ export default function VOBAgentPage() {
   const [testLoc, setTestLoc] = useState('RTC')
   const [testCalling, setTestCalling] = useState(false)
   const [npiInput, setNpiInput] = useState('')
+  const [facilityName, setFacilityName] = useState('')
 
   async function runSetup() {
     setSettingUp(true)
-    const res = await apiPost({ action: 'setup_vob', agency_id: agencyId, area_code: '561', npi: npiInput || undefined })
+    const res = await apiPost({ action: 'setup_vob', agency_id: agencyId, area_code: '561', npi: npiInput || undefined, facility_name: facilityName || undefined })
     if (res.success) {
       toast.success('VOB system ready!')
       setSetupStatus(res)
@@ -963,6 +964,12 @@ export default function VOBAgentPage() {
                     Creates the Retell AI agent, provisions an outbound phone number, and configures everything needed to make VOB calls.
                   </p>
 
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Facility Name</label>
+                    <input value={facilityName} onChange={e => setFacilityName(e.target.value)}
+                      placeholder="e.g. Sunrise Recovery Center"
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box' }} />
+                  </div>
                   <div style={{ marginBottom: 14 }}>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Provider NPI (optional)</label>
                     <input value={npiInput} onChange={e => setNpiInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
