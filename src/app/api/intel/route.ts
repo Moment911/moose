@@ -173,22 +173,29 @@ Return ONLY valid JSON with this exact structure:
     }
   ],
   "industry_benchmarks": {
-    "avg_cpl": number,
-    "avg_close_rate": "X%",
-    "avg_response_time": "Xhrs",
-    "avg_monthly_leads": number,
-    "avg_review_count": number,
-    "avg_rating": number
+    "avg_cpl": { "value": number, "source": "Source name + year (e.g. WordStream 2024, HubSpot State of Marketing 2024)" },
+    "avg_close_rate": { "value": "X%", "source": "source" },
+    "avg_response_time": { "value": "Xhrs", "source": "source" },
+    "avg_monthly_leads": { "value": number, "source": "source" },
+    "avg_review_count": { "value": number, "source": "source" },
+    "avg_rating": { "value": number, "source": "source" }
   },
+  "data_sources": [
+    { "metric": "What this stat measures", "value": "The number", "source": "Organization/study name", "year": "2023 or 2024", "url": "URL to the source if known, or null", "context": "Why this matters for this business" }
+  ],
   "executive_summary": "3-4 sentence overview of findings and top recommendation"
 }
 
 Rules:
-- Use REAL industry benchmarks, not made up numbers
+- Use REAL industry benchmarks from known sources: WordStream, HubSpot, BrightLocal, Statista, Google Economic Impact, ServiceTitan, Housecall Pro, CallRail, etc.
+- EVERY benchmark must cite its source and year. If you cannot cite a specific source, say "Industry estimate based on [methodology]"
+- data_sources array should contain 10-15 key stats used in the report, each with source attribution
 - Lead sources should include: Google Business Profile, Google Ads/LSA, Organic SEO, Angi/HomeAdvisor/Thumbtack, Facebook/Instagram, Referral/word of mouth, Nextdoor/community, Past customer reactivation
 - Budget analysis should show realistic CPL per channel for this specific industry and market
 - Recommendations should be specific and actionable, not generic
-- All numbers should be realistic for a ${data.industry} business in ${data.location}`
+- All numbers should be realistic for a ${data.industry} business in ${data.location}
+- For each lead source, the cost_per_lead should cite which source (e.g. "Google Ads benchmark from WordStream 2024")
+- Include at least 3 stats about the local market or geographic area`
 
   const msg = await ai.messages.create({
     model: 'claude-sonnet-4-20250514',

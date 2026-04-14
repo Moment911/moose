@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar from '../components/Sidebar'
 import {
@@ -190,8 +190,10 @@ function BudgetSlider({ reportId, initialBudget, channels, industry, onRecalc })
 export default function IntelPage() {
   const navigate = useNavigate()
   const { reportId } = useParams()
+  const [searchParams] = useSearchParams()
   const { agencyId, agency } = useAuth()
   const aid = agencyId || '00000000-0000-0000-0000-000000000099'
+  const clientIdParam = searchParams.get('client_id')
 
   // ── State ──────────────────────────────────────────────────────────────
   const [view, setView] = useState(reportId ? 'report' : 'home')
@@ -219,6 +221,29 @@ export default function IntelPage() {
       loadReport(reportId)
     }
   }, [reportId])
+
+  // Pre-fill form from client record when navigated with ?client_id=
+  useEffect(() => {
+    if (!clientIdParam) return
+    fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_client_full', client_id: clientIdParam }),
+    })
+      .then(r => r.json())
+      .then(res => {
+        if (!res.client) return
+        const c = res.client
+        const answers = c.onboarding_answers || {}
+        setBusinessName(c.name || '')
+        setWebsite(c.website || '')
+        setIndustry(c.industry || '')
+        setLocation([c.city, c.state].filter(Boolean).join(', '))
+        setBudget(c.marketing_budget || answers.budget_for_agency || '')
+        if (c.primary_service) setLeadSources(c.primary_service)
+      })
+      .catch(() => {})
+  }, [clientIdParam])
 
   async function loadHistory() {
     setLoadingHistory(true)
@@ -631,24 +656,62 @@ export default function IntelPage() {
                 </div>
               )}
 
-              {/* Industry Benchmarks */}
+              {/* Industry Benchmarks with Sources */}
               {rd.industry_benchmarks && (
                 <div style={card}>
                   <div style={sectionTitle}><BarChart2 size={18} color={T} /> Industry Benchmarks — {report?.inputs?.industry || industry}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
                     {[
-                      ['Avg CPL', `$${rd.industry_benchmarks.avg_cpl}`, DollarSign],
-                      ['Avg Close Rate', rd.industry_benchmarks.avg_close_rate, Target],
-                      ['Avg Response Time', rd.industry_benchmarks.avg_response_time, Clock],
-                      ['Avg Monthly Leads', rd.industry_benchmarks.avg_monthly_leads, Users],
-                      ['Avg Reviews', rd.industry_benchmarks.avg_review_count, Star],
-                      ['Avg Rating', rd.industry_benchmarks.avg_rating, Star],
-                    ].map(([label, value, Icon]) => (
-                      <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <Icon size={16} color={T} />
-                        <div>
-                          <div style={{ fontSize: 18, fontWeight: 900, color: BLK, fontFamily: FH }}>{value}</div>
+                      ['Avg CPL', rd.industry_benchmarks.avg_cpl, DollarSign, '$'],
+                      ['Avg Close Rate', rd.industry_benchmarks.avg_close_rate, Target, ''],
+                      ['Avg Response Time', rd.industry_benchmarks.avg_response_time, Clock, ''],
+                      ['Avg Monthly Leads', rd.industry_benchmarks.avg_monthly_leads, Users, ''],
+                      ['Avg Reviews', rd.industry_benchmarks.avg_review_count, Star, ''],
+                      ['Avg Rating', rd.industry_benchmarks.avg_rating, Star, ''],
+                    ].map(([label, data, Icon, prefix]) => {
+                      const val = typeof data === 'object' ? data.value : data
+                      const src = typeof data === 'object' ? data.source : null
+                      return (
+                        <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <Icon size={16} color={T} />
+                            <div style={{ fontSize: 18, fontWeight: 900, color: BLK, fontFamily: FH }}>{prefix}{val}</div>
+                          </div>
                           <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH }}>{label}</div>
+                          {src && <div style={{ fontSize: 10, color: T, marginTop: 4, fontStyle: 'italic' }}>{src}</div>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Data Sources & Citations */}
+              {rd.data_sources && rd.data_sources.length > 0 && (
+                <div style={card}>
+                  <div style={sectionTitle}><Shield size={18} color={'#6b7280'} /> Data Sources & Citations</div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>
+                    Every metric in this report is sourced from industry research. Use these in client conversations to support your recommendations.
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {rd.data_sources.map((ds, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', background: '#f9fafb', borderRadius: 10, border: '1px solid #f3f4f6' }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 6, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                          <span style={{ fontSize: 11, fontWeight: 900, color: T }}>{i + 1}</span>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH }}>{ds.metric}</div>
+                          <div style={{ fontSize: 14, fontWeight: 900, color: T, fontFamily: FH, margin: '2px 0' }}>{ds.value}</div>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>
+                            <span style={{ fontWeight: 700 }}>{ds.source}</span>
+                            {ds.year && <span> ({ds.year})</span>}
+                          </div>
+                          {ds.context && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, fontStyle: 'italic' }}>{ds.context}</div>}
+                          {ds.url && (
+                            <a href={ds.url} target="_blank" rel="noopener" style={{ fontSize: 11, color: T, display: 'inline-flex', alignItems: 'center', gap: 3, marginTop: 4, textDecoration: 'none' }}>
+                              <ExternalLink size={10} /> View source
+                            </a>
+                          )}
                         </div>
                       </div>
                     ))}
