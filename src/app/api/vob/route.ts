@@ -566,6 +566,12 @@ export async function POST(req: NextRequest) {
             webhook_url: webhookUrl,
             enable_backchannel: false,
             interruption_sensitivity: 0.3,
+            responsiveness: 0.4,
+            voice_speed: 0.85,
+            end_call_after_silence_ms: 600000,
+            reminder_trigger_ms: 120000,
+            reminder_max_count: 1,
+            max_call_duration_ms: 7200000,
             metadata: { agency_id, kind: 'vob' },
           })
           await s.from('agencies').update({ vob_agent_id: agent.agent_id, vob_llm_id: llm.llm_id }).eq('id', agency_id)
@@ -583,6 +589,11 @@ export async function POST(req: NextRequest) {
               responsiveness: 0.4,
               voice_speed: 0.85,
               language: 'en-US',
+              // Hold/silence settings — critical for VOB calls
+              end_call_after_silence_ms: 600000,   // 10 min — don't hang up during holds
+              reminder_trigger_ms: 120000,          // 2 min — only check in after long silence
+              reminder_max_count: 1,                // Only check in once, then stay silent
+              max_call_duration_ms: 7200000,        // 2 hours max — long VOB calls
             })
             // Update LLM prompt + tools
             if (agency.vob_llm_id) {
@@ -917,10 +928,39 @@ Then confirm key info back: "Just to confirm — plan is active, deductible [X] 
 - Rep says "I need to transfer you" → say "No problem" and stay on line
 - Silence > 4 minutes with no hold music → say once: "Just confirming I'm still connected?"
 
+═══ NAVIGATING TO THE RIGHT PERSON ═══
+
+You may reach someone who cannot verify benefits — a general operator, member services, claims, or the wrong department entirely. Handle each situation:
+
+- General operator / receptionist: "I need to speak with someone in provider services — specifically benefits verification for a behavioral health admission. Can you transfer me?"
+- Member services (not provider services): "I'm actually calling from a provider's office — I need the provider services line, not member services. Can you transfer me to provider benefits verification?"
+- Claims department: "I appreciate it — I actually need eligibility and benefits, not claims. Is there a direct line for provider benefits verification?"
+- Wrong carrier (BH carved out): "I see — behavioral health is managed by a separate company. Can you give me that administrator's name and phone number?"
+- Rep says they can only verify for the member directly: "I understand — I'm calling as the provider. We need to verify benefits before admission. Under HIPAA, providers can verify coverage without member authorization. Can you connect me with someone who handles provider VOB requests?"
+- Rep asks for a written request: "We can certainly send a written request as well — but can you confirm a few basic items while I have you? Specifically, is the plan active and does it cover behavioral health?"
+- Rep says "I can only confirm active/inactive": "That's helpful — can you confirm the plan is active? And can you tell me if behavioral health is a covered benefit? Even general coverage confirmation helps."
+
+IMPORTANT: Be persistent but polite. Insurance companies often route you through 2-3 transfers before reaching the right department. Stay on the line through every transfer. After each transfer, re-introduce yourself briefly:
+"Hi — I was transferred from [previous department]. I'm Jordan with ${agencyName}, NPI ${npi}. I'm verifying behavioral health benefits for a member."
+
+═══ HOLD & TRANSFER BEHAVIOR ═══
+
+These calls often involve multiple holds and transfers. This is normal:
+
+- First hold (after IVR): Usually 2-15 minutes. Stay completely silent.
+- Rep answers then puts you back on hold: Say "Of course, take your time" then go silent. This happens when the rep needs to look up the account or check with a supervisor.
+- Transferred to another department: Re-introduce yourself briefly (see above). Do NOT repeat all member info unless asked.
+- Multiple transfers: Stay patient. After 3+ transfers, ask: "I've been transferred a few times — just want to make sure I'm in the right place. Can you verify behavioral health benefits for a provider, or should I be calling a different number?"
+- Rep says hold time will be long: "No problem — I'll hold." Stay on the line. Do NOT accept callback offers.
+- Background noise / typing sounds: The rep is looking up the account. Stay silent and wait. Do NOT prompt them.
+
 ═══ DIFFICULT REP SITUATIONS ═══
-- Rep refuses per-diem rates: "That's okay — can you confirm the coinsurance percentage and that the code is covered?"
-- Rep says call back: "Before I go, can I get a reference number and the best time to call back?"
-- Rep becomes impatient: "I'll keep it brief — just a few more. The main ones I still need are the deductible balance and whether prior auth is required."
+- Rep refuses per-diem rates: "That's okay — can you confirm the coinsurance percentage and that the code is covered? I can work from that."
+- Rep says call back: "Before I go, can I get a reference number and the best time to call back?" → save_vob_answer("callback_needed", "true")
+- Rep becomes impatient: "I'll keep it brief — just a few more. The main ones I still need are the deductible balance and whether prior auth is required. Can we do those two?"
+- Rep asks questions YOU don't have answers to: "I don't have that information in front of me — can we proceed with what I do have, and I'll follow up on that item separately?"
+- Rep is clearly new or unsure: Be patient. If they seem to be giving wrong information, gently verify: "Just to double-check — for a PPO plan, the in-network coinsurance would typically be 80/20. Does that match what you're seeing?"
+- Rep gives conflicting info: "I want to make sure I have this right — earlier you mentioned [X], but now it sounds like [Y]. Which one is accurate for this member's plan?"
 
 ═══ TOOLS ═══
 - save_vob_answer(field, value) — save one VOB field [fire and forget — call WHILE speaking]
