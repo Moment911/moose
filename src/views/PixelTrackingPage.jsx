@@ -3,7 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 import {
   Eye, Plus, Copy, RefreshCw, Loader2, Check, X, Phone, Target,
   Globe, Shield, AlertTriangle, Zap, BarChart2, Users, Clock,
-  ExternalLink, ChevronRight, ChevronDown, Trash2, Settings
+  ExternalLink, ChevronRight, ChevronDown, Trash2, Settings,
+  Monitor, Smartphone, Tablet, Cpu, MapPin, Tag, Sparkles, ArrowLeft,
+  Fingerprint, Activity, Brain, Hash, Wifi
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { useAuth } from '../hooks/useAuth'
@@ -37,15 +39,19 @@ function scoreEmoji(s) { return s >= 80 ? '🔥' : s >= 60 ? '⚡' : s >= 40 ? '
 
 export default function PixelTrackingPage() {
   const { agencyId } = useAuth()
-  const [tab, setTab] = useState('live') // live, pixels, integrations, audiences
+  const [tab, setTab] = useState('live')
   const [pixels, setPixels] = useState([])
   const [sessions, setSessions] = useState([])
   const [alerts, setAlerts] = useState([])
   const [stats, setStats] = useState({})
   const [integrations, setIntegrations] = useState([])
+  const [profiles, setProfiles] = useState([])
+  const [selectedProfile, setSelectedProfile] = useState(null)
+  const [profileDetail, setProfileDetail] = useState(null)
+  const [generatingPersona, setGeneratingPersona] = useState(false)
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [showIntegrate, setShowIntegrate] = useState(null) // platform id
+  const [showIntegrate, setShowIntegrate] = useState(null)
   const [newPixel, setNewPixel] = useState({ pixel_name:'', domain:'', auto_create_lead:true })
   const [createdPixel, setCreatedPixel] = useState(null)
   const [newIntegration, setNewIntegration] = useState({ platform_pixel_id:'', config:{} })
@@ -65,19 +71,45 @@ export default function PixelTrackingPage() {
 
   async function loadAll() {
     setLoading(true)
-    const [pixRes, sessRes, alertRes, statRes, intRes] = await Promise.all([
+    const [pixRes, sessRes, alertRes, statRes, intRes, profRes] = await Promise.all([
       apiGet('get_pixels', { agency_id: agencyId }),
       apiGet('get_live', { agency_id: agencyId }),
       apiGet('get_alerts', { agency_id: agencyId }),
       apiGet('get_stats', { agency_id: agencyId }),
       apiGet('get_integrations', { agency_id: agencyId }),
+      apiGet('get_profiles', { agency_id: agencyId }),
     ])
     setPixels(pixRes.data || [])
     setSessions(sessRes.data || [])
     setAlerts(alertRes.data || [])
     setStats(statRes)
     setIntegrations(intRes.data || [])
+    setProfiles(profRes.data || [])
     setLoading(false)
+  }
+
+  async function openProfile(profileId) {
+    setSelectedProfile(profileId)
+    setProfileDetail(null)
+    const res = await apiGet('get_profile', { agency_id: agencyId, profile_id: profileId })
+    setProfileDetail(res)
+  }
+
+  async function generatePersona(profileId) {
+    setGeneratingPersona(true)
+    const res = await apiPost({ action: 'generate_persona', profile_id: profileId })
+    if (res.success) {
+      toast.success('Persona generated')
+      // Refresh profile detail
+      const updated = await apiGet('get_profile', { agency_id: agencyId, profile_id: profileId })
+      setProfileDetail(updated)
+      // Refresh profiles list
+      const profRes = await apiGet('get_profiles', { agency_id: agencyId })
+      setProfiles(profRes.data || [])
+    } else {
+      toast.error(res.error || 'Failed to generate persona')
+    }
+    setGeneratingPersona(false)
   }
 
   async function createPixel() {
@@ -106,6 +138,7 @@ export default function PixelTrackingPage() {
 
   const TABS = [
     { key:'live', label:'Live Visitors', icon:Eye },
+    { key:'visitors', label:`Visitors${profiles.length ? ` (${profiles.length})` : ''}`, icon:Users },
     { key:'pixels', label:'Pixel Manager', icon:Globe },
     { key:'integrations', label:'Integrations', icon:Settings },
   ]
@@ -190,10 +223,11 @@ export default function PixelTrackingPage() {
               )}
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {sessions.map(s => (
-                  <div key={s.id} style={{
+                  <div key={s.id} onClick={() => { if (s.visitor_profile_id) { setTab('visitors'); openProfile(s.visitor_profile_id) } }} style={{
                     padding:'16px 20px', borderRadius:12, background:W, border:`1px solid ${s.intent_score >= 70 ? R+'40' : '#e5e7eb'}`,
                     borderLeft:`4px solid ${scoreColor(s.intent_score)}`,
                     boxShadow:'0 1px 4px rgba(0,0,0,.04)',
+                    cursor: s.visitor_profile_id ? 'pointer' : 'default',
                   }}>
                     <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:8 }}>
                       <div>
@@ -275,6 +309,77 @@ export default function PixelTrackingPage() {
             </div>
           )}
 
+          {/* VISITORS TAB — All Known Visitor Profiles */}
+          {tab === 'visitors' && !selectedProfile && (
+            <div>
+              {profiles.length === 0 && !loading && (
+                <div style={{ textAlign:'center', padding:'60px 20px' }}>
+                  <Users size={48} color="#d1d5db" style={{ marginBottom:16 }} />
+                  <h3 style={{ fontFamily:FH, fontSize:18, fontWeight:800, color:BLK, margin:'0 0 8px' }}>No Visitor Profiles Yet</h3>
+                  <p style={{ fontSize:13, color:'#6b7280', fontFamily:FB }}>Visitor profiles are created automatically when someone visits a site with your pixel installed. Each unique browser gets a persistent profile.</p>
+                </div>
+              )}
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {profiles.map(p => (
+                  <div key={p.id} onClick={() => openProfile(p.id)} style={{
+                    padding:'16px 20px', borderRadius:12, background:W, border:'1px solid #e5e7eb',
+                    borderLeft:`4px solid ${scoreColor(p.max_intent_score)}`,
+                    cursor:'pointer', transition:'box-shadow .15s',
+                  }} onMouseEnter={e => e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,.08)'} onMouseLeave={e => e.currentTarget.style.boxShadow='none'}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:36, height:36, borderRadius:'50%', background:'#f3f4f6', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          {p.device_type === 'mobile' ? <Smartphone size={16} color="#6b7280" /> : p.device_type === 'tablet' ? <Tablet size={16} color="#6b7280" /> : <Monitor size={16} color="#6b7280" />}
+                        </div>
+                        <div>
+                          <div style={{ fontSize:14, fontWeight:700, fontFamily:FH, color:BLK }}>
+                            {p.label || p.identified_company || `Visitor ${p.fingerprint?.slice(0,8)}`}
+                          </div>
+                          <div style={{ display:'flex', gap:8, fontSize:12, color:'#6b7280', fontFamily:FB }}>
+                            {p.city && <span><MapPin size={10} style={{ verticalAlign:'middle', marginRight:2 }} />{p.city}, {p.state}</span>}
+                            <span>{p.browser} {p.browser_version} / {p.os}</span>
+                            {p.identified_domain && <span style={{ color:T }}>{p.identified_domain}</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign:'right' }}>
+                        <div style={{ fontSize:20, fontWeight:800, fontFamily:FH, color:scoreColor(p.max_intent_score) }}>{p.max_intent_score || 0}</div>
+                        <div style={{ fontSize:9, color:'#6b7280', fontFamily:FB }}>max intent</div>
+                      </div>
+                    </div>
+                    <div style={{ display:'flex', gap:12, fontSize:12, color:'#6b7280', fontFamily:FB, flexWrap:'wrap' }}>
+                      <span>{p.total_sessions || 0} sessions</span>
+                      <span>{p.total_pageviews || 0} pages</span>
+                      <span>{Math.round((p.total_time_seconds || 0) / 60)}m total</span>
+                      {p.total_form_submits > 0 && <span style={{ color:GRN, fontWeight:700 }}>{p.total_form_submits} forms</span>}
+                      {p.total_cta_clicks > 0 && <span style={{ color:AMB }}>{p.total_cta_clicks} CTAs</span>}
+                      <span>First: {new Date(p.first_seen_at).toLocaleDateString()}</span>
+                      <span>Last: {timeAgo(p.last_seen_at)}</span>
+                    </div>
+                    {p.ai_persona?.segments && (
+                      <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6 }}>
+                        {p.ai_persona.segments.slice(0,4).map((seg,i) => (
+                          <span key={i} style={{ padding:'2px 8px', borderRadius:99, background:'#f0f9ff', fontSize:11, color:'#0369a1', fontFamily:FB }}>{seg}</span>
+                        ))}
+                        {p.ai_persona.buying_stage && <span style={{ padding:'2px 8px', borderRadius:99, background:p.ai_persona.buying_stage==='decision'?R+'15':AMB+'20', fontSize:11, color:p.ai_persona.buying_stage==='decision'?R:AMB, fontWeight:700, fontFamily:FB }}>{p.ai_persona.buying_stage}</span>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* VISITOR DETAIL PANEL */}
+          {tab === 'visitors' && selectedProfile && (
+            <VisitorDetailPanel
+              profileDetail={profileDetail}
+              onBack={() => { setSelectedProfile(null); setProfileDetail(null) }}
+              onGeneratePersona={() => generatePersona(selectedProfile)}
+              generatingPersona={generatingPersona}
+            />
+          )}
+
           {/* INTEGRATIONS TAB */}
           {tab === 'integrations' && (
             <div>
@@ -351,6 +456,252 @@ export default function PixelTrackingPage() {
         {showIntegrate && <IntegrationModal platform={showIntegrate} onClose={() => setShowIntegrate(null)} newIntegration={newIntegration} setNewIntegration={setNewIntegration} onConnect={() => addIntegration(showIntegrate)} />}
 
         <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+      </div>
+    </div>
+  )
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString()
+}
+
+function DeviceIcon({ type, size = 14 }) {
+  if (type === 'mobile') return <Smartphone size={size} />
+  if (type === 'tablet') return <Tablet size={size} />
+  return <Monitor size={size} />
+}
+
+// ── Visitor Detail Panel ────────────────────────────────────────────────────
+
+function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona }) {
+  if (!profileDetail?.profile) {
+    return (
+      <div style={{ textAlign:'center', padding:60 }}>
+        <Loader2 size={24} color={R} style={{ animation:'spin 1s linear infinite' }} />
+      </div>
+    )
+  }
+
+  const p = profileDetail.profile
+  const sessions = profileDetail.sessions || []
+  const events = profileDetail.events || []
+  const persona = p.ai_persona
+
+  const infoRow = (label, value, icon) => value ? (
+    <div style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 0', borderBottom:'1px solid #f3f4f6' }}>
+      <div style={{ width:100, fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB, display:'flex', alignItems:'center', gap:4 }}>
+        {icon}{label}
+      </div>
+      <div style={{ flex:1, fontSize:13, color:BLK, fontFamily:FB }}>{value}</div>
+    </div>
+  ) : null
+
+  return (
+    <div>
+      {/* Back button */}
+      <button onClick={onBack} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:'#6b7280', fontSize:13, fontFamily:FB, fontWeight:600, marginBottom:16, padding:0 }}>
+        <ArrowLeft size={14} /> All Visitors
+      </button>
+
+      {/* Header */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:24 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ width:52, height:52, borderRadius:'50%', background:`${scoreColor(p.max_intent_score)}15`, display:'flex', alignItems:'center', justifyContent:'center', border:`2px solid ${scoreColor(p.max_intent_score)}40` }}>
+            <DeviceIcon type={p.device_type} size={22} />
+          </div>
+          <div>
+            <h2 style={{ fontFamily:FH, fontSize:20, fontWeight:800, color:BLK, margin:0 }}>
+              {p.label || p.identified_company || `Visitor ${p.fingerprint?.slice(0,8)}`}
+            </h2>
+            <div style={{ display:'flex', gap:10, fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:2 }}>
+              {p.city && <span><MapPin size={10} style={{ verticalAlign:'middle', marginRight:2 }} />{p.city}, {p.state}</span>}
+              {p.identified_domain && <span style={{ color:T }}>{p.identified_domain}</span>}
+              <span>First seen {new Date(p.first_seen_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontSize:32, fontWeight:800, fontFamily:FH, color:scoreColor(p.max_intent_score) }}>{p.max_intent_score || 0}</div>
+          <div style={{ fontSize:10, color:'#6b7280', fontFamily:FB }}>max intent</div>
+        </div>
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+        {/* Left column — Device & Technology */}
+        <div>
+          <div style={{ background:W, borderRadius:12, border:'1px solid #e5e7eb', padding:16, marginBottom:16 }}>
+            <h3 style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, margin:'0 0 12px', display:'flex', alignItems:'center', gap:6 }}>
+              <Cpu size={14} color={R} /> Device & Technology
+            </h3>
+            {infoRow('Browser', `${p.browser || '?'} ${p.browser_version || ''}`, null)}
+            {infoRow('OS', `${p.os || '?'} ${p.os_version || ''}`, null)}
+            {infoRow('Device', p.device_type, null)}
+            {infoRow('Screen', p.screen_resolution, null)}
+            {infoRow('Colors', p.color_depth ? `${p.color_depth}-bit` : null, null)}
+            {infoRow('CPU', p.hardware_concurrency ? `${p.hardware_concurrency} cores` : null, null)}
+            {infoRow('GPU', p.gpu_renderer?.slice(0, 60), null)}
+            {infoRow('Touch', p.touch_support ? 'Yes' : 'No', null)}
+            {infoRow('Connection', p.connection_type, null)}
+            {infoRow('Platform', p.platform, null)}
+            {infoRow('Timezone', p.timezone, null)}
+            {infoRow('Language', p.language, null)}
+          </div>
+
+          {/* Behavioral Stats */}
+          <div style={{ background:W, borderRadius:12, border:'1px solid #e5e7eb', padding:16, marginBottom:16 }}>
+            <h3 style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, margin:'0 0 12px', display:'flex', alignItems:'center', gap:6 }}>
+              <Activity size={14} color={R} /> Behavioral Data
+            </h3>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              {[
+                { label:'Sessions', value:p.total_sessions, accent:T },
+                { label:'Pageviews', value:p.total_pageviews, accent:T },
+                { label:'Total Time', value:`${Math.round((p.total_time_seconds||0)/60)}m`, accent:AMB },
+                { label:'Forms', value:p.total_form_submits, accent:GRN },
+                { label:'CTAs', value:p.total_cta_clicks, accent:AMB },
+                { label:'Latest Intent', value:p.latest_intent_score, accent:scoreColor(p.latest_intent_score) },
+              ].map(s => (
+                <div key={s.label} style={{ padding:'8px 10px', background:'#f9fafb', borderRadius:8, borderLeft:`3px solid ${s.accent}` }}>
+                  <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{s.label}</div>
+                  <div style={{ fontSize:16, fontWeight:800, fontFamily:FH, color:BLK }}>{s.value || 0}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Identity */}
+          <div style={{ background:W, borderRadius:12, border:'1px solid #e5e7eb', padding:16 }}>
+            <h3 style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, margin:'0 0 12px', display:'flex', alignItems:'center', gap:6 }}>
+              <Hash size={14} color={R} /> Identity
+            </h3>
+            {infoRow('Fingerprint', p.fingerprint, null)}
+            {infoRow('Company', p.identified_company, null)}
+            {infoRow('Domain', p.identified_domain, null)}
+            {infoRow('Email', p.identified_email, null)}
+            {infoRow('Phone', p.identified_phone, null)}
+            {p.tags?.length > 0 && (
+              <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:8 }}>
+                {p.tags.map((t, i) => <span key={i} style={{ padding:'2px 8px', borderRadius:99, background:'#f3f4f6', fontSize:11, color:'#374151', fontFamily:FB }}>{t}</span>)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right column — AI Persona + Sessions */}
+        <div>
+          {/* AI Persona */}
+          <div style={{ background:W, borderRadius:12, border:`1px solid ${persona ? T+'40' : '#e5e7eb'}`, padding:16, marginBottom:16 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+              <h3 style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, margin:0, display:'flex', alignItems:'center', gap:6 }}>
+                <Brain size={14} color={T} /> AI Persona
+              </h3>
+              <button onClick={onGeneratePersona} disabled={generatingPersona} style={{
+                padding:'5px 12px', borderRadius:6, border:'1px solid #e5e7eb', background:W, fontSize:11, fontWeight:700, fontFamily:FB, cursor:'pointer', color:T, display:'flex', alignItems:'center', gap:4,
+                opacity: generatingPersona ? 0.5 : 1,
+              }}>
+                {generatingPersona ? <Loader2 size={12} style={{ animation:'spin 1s linear infinite' }} /> : <Sparkles size={12} />}
+                {persona ? 'Regenerate' : 'Generate Persona'}
+              </button>
+            </div>
+            {persona ? (
+              <div>
+                <p style={{ fontSize:13, color:BLK, fontFamily:FB, lineHeight:1.6, margin:'0 0 12px' }}>{persona.summary}</p>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
+                  {[
+                    { label:'Role', value:persona.likely_role },
+                    { label:'Buying Stage', value:persona.buying_stage },
+                    { label:'Engagement', value:persona.engagement_level },
+                    { label:'Device Type', value:persona.device_persona },
+                    { label:'Traffic', value:persona.traffic_quality },
+                    { label:'Value', value:persona.predicted_value },
+                  ].filter(x => x.value).map(x => (
+                    <div key={x.label} style={{ padding:'6px 10px', background:'#f0f9ff', borderRadius:6 }}>
+                      <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase' }}>{x.label}</div>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#0369a1', fontFamily:FB, textTransform:'capitalize' }}>{x.value}</div>
+                    </div>
+                  ))}
+                </div>
+                {persona.segments?.length > 0 && (
+                  <div style={{ marginBottom:8 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Segments</div>
+                    <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
+                      {persona.segments.map((s,i) => <span key={i} style={{ padding:'2px 8px', borderRadius:99, background:'#f0f9ff', fontSize:11, color:'#0369a1', fontFamily:FB }}>{s}</span>)}
+                    </div>
+                  </div>
+                )}
+                {persona.interests?.length > 0 && (
+                  <div style={{ marginBottom:8 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:'#6b7280', fontFamily:FB, textTransform:'uppercase', marginBottom:4 }}>Interests</div>
+                    <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
+                      {persona.interests.map((s,i) => <span key={i} style={{ padding:'2px 8px', borderRadius:99, background:'#fef3c7', fontSize:11, color:'#92400e', fontFamily:FB }}>{s}</span>)}
+                    </div>
+                  </div>
+                )}
+                {persona.recommended_action && (
+                  <div style={{ padding:'10px 12px', background:'#f0fdf4', borderRadius:8, borderLeft:`3px solid ${GRN}`, marginTop:8 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:GRN, fontFamily:FB, textTransform:'uppercase', marginBottom:2 }}>Recommended Action</div>
+                    <div style={{ fontSize:12, color:'#374151', fontFamily:FB }}>{persona.recommended_action}</div>
+                  </div>
+                )}
+                {persona.best_time_to_reach && (
+                  <div style={{ fontSize:12, color:'#6b7280', fontFamily:FB, marginTop:6 }}>Best time to reach: <strong>{persona.best_time_to_reach}</strong></div>
+                )}
+                {p.ai_persona_generated_at && (
+                  <div style={{ fontSize:11, color:'#9ca3af', fontFamily:FB, marginTop:8 }}>Generated {timeAgo(p.ai_persona_generated_at)}</div>
+                )}
+              </div>
+            ) : (
+              <div style={{ textAlign:'center', padding:'20px 0' }}>
+                <Brain size={32} color="#d1d5db" style={{ marginBottom:8 }} />
+                <p style={{ fontSize:12, color:'#6b7280', fontFamily:FB }}>Click "Generate Persona" to analyze this visitor's behavior and build an AI profile.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Top Pages */}
+          {p.top_pages?.length > 0 && (
+            <div style={{ background:W, borderRadius:12, border:'1px solid #e5e7eb', padding:16, marginBottom:16 }}>
+              <h3 style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, margin:'0 0 12px' }}>Top Pages</h3>
+              {p.top_pages.slice(0,8).map((pg,i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #f3f4f6' }}>
+                  <div style={{ fontSize:12, color:BLK, fontFamily:FB, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:280 }}>{pg.title || pg.url}</div>
+                  <span style={{ fontSize:12, fontWeight:700, color:'#6b7280', fontFamily:FB }}>{pg.views}x</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Session History */}
+          <div style={{ background:W, borderRadius:12, border:'1px solid #e5e7eb', padding:16 }}>
+            <h3 style={{ fontFamily:FH, fontSize:14, fontWeight:800, color:BLK, margin:'0 0 12px' }}>Session History ({sessions.length})</h3>
+            {sessions.slice(0, 15).map((sess, i) => (
+              <div key={i} style={{ padding:'8px 0', borderBottom:'1px solid #f3f4f6' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:FH, color:BLK }}>{new Date(sess.started_at).toLocaleString()}</span>
+                  <span style={{ fontSize:12, fontWeight:800, fontFamily:FH, color:scoreColor(sess.intent_score) }}>{sess.intent_score || 0}</span>
+                </div>
+                <div style={{ display:'flex', gap:8, fontSize:11, color:'#6b7280', fontFamily:FB, flexWrap:'wrap' }}>
+                  <span>{sess.landing_page?.replace(/https?:\/\/[^/]+/, '') || '/'}</span>
+                  {sess.referrer && <span>via {sess.referrer.replace(/https?:\/\/([^/]+).*/, '$1')}</span>}
+                  {sess.time_on_site_seconds > 0 && <span>{Math.floor(sess.time_on_site_seconds/60)}m {sess.time_on_site_seconds%60}s</span>}
+                  {sess.submitted_form && <span style={{ color:GRN, fontWeight:700 }}>Form</span>}
+                  {sess.clicked_cta && <span style={{ color:AMB }}>CTA</span>}
+                  {sess.viewed_pricing && <span style={{ color:R }}>Pricing</span>}
+                  {sess.utm_source && <span>{sess.utm_source}/{sess.utm_medium}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
