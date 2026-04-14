@@ -486,6 +486,181 @@ export async function POST(req: NextRequest) {
       return Response.json({ success: true, agent_id: agent.agent_id, llm_id: llm.llm_id })
     }
 
+    // ── Provision outbound number for VOB ─────────────────────
+    if (action === 'provision_number') {
+      const { area_code } = body
+      const ac = area_code || '561'
+
+      try {
+        const result = await retellFetch('/v2/create-phone-number', 'POST', {
+          area_code: Number(ac),
+        })
+
+        const phoneNumber = result.phone_number
+        if (!phoneNumber) return Response.json({ error: 'Failed to provision number' }, { status: 500 })
+
+        // Save to agency
+        await s.from('agencies').update({ vob_from_number: phoneNumber }).eq('id', agency_id)
+
+        return Response.json({
+          success: true,
+          phone_number: phoneNumber,
+          phone_number_id: result.phone_number_id,
+        })
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500 })
+      }
+    }
+
+    // ── One-click setup — create agent + provision number ─────
+    if (action === 'setup_vob') {
+      const { area_code, npi } = body
+      const results: any = { steps: [] }
+
+      try {
+        // Step 1: Check if agent exists
+        const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
+
+        // Step 2: Create agent if missing
+        if (!agency?.vob_agent_id) {
+          const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/vob/voice`
+          const llm = await retellFetch('/create-retell-llm', 'POST', {
+            general_prompt: '{{system_prompt}}',
+            begin_message: '{{begin_message}}',
+            general_tools: [
+              { type: 'function', function: { name: 'save_vob_answer', description: 'Save a verified insurance benefit answer. Call WHILE speaking.', parameters: { type: 'object', properties: { field: { type: 'string' }, value: { type: 'string' }, confidence: { type: 'number' } }, required: ['field', 'value'] } } },
+              { type: 'function', function: { name: 'navigate_ivr', description: 'Log IVR navigation step.', parameters: { type: 'object', properties: { action: { type: 'string' }, description: { type: 'string' } }, required: ['action'] } } },
+              { type: 'function', function: { name: 'escalate_call', description: 'Flag for human review.', parameters: { type: 'object', properties: { reason: { type: 'string' } }, required: ['reason'] } } },
+              { type: 'function', function: { name: 'end_call', description: 'End the call gracefully.', parameters: { type: 'object', properties: { reason: { type: 'string' }, summary: { type: 'string' } }, required: ['reason'] } } },
+            ],
+            model: 'claude-3-5-sonnet-20241022',
+          })
+          const agent = await retellFetch('/create-agent', 'POST', {
+            agent_name: 'Koto VOB Agent',
+            voice_id: '11labs-Marissa',
+            response_engine: { type: 'retell-llm', llm_id: llm.llm_id },
+            language: 'en-US',
+            webhook_url: webhookUrl,
+            enable_backchannel: false,
+            interruption_sensitivity: 0.3,
+            metadata: { agency_id, kind: 'vob' },
+          })
+          await s.from('agencies').update({ vob_agent_id: agent.agent_id, vob_llm_id: llm.llm_id }).eq('id', agency_id)
+          results.agent_id = agent.agent_id
+          results.steps.push('Agent created')
+        } else {
+          results.agent_id = agency.vob_agent_id
+          results.steps.push('Agent already exists')
+        }
+
+        // Step 3: Provision number if missing
+        if (!agency?.vob_from_number) {
+          const numResult = await retellFetch('/v2/create-phone-number', 'POST', { area_code: Number(area_code || '561') })
+          if (numResult.phone_number) {
+            await s.from('agencies').update({ vob_from_number: numResult.phone_number }).eq('id', agency_id)
+            results.phone_number = numResult.phone_number
+            results.steps.push(`Number provisioned: ${numResult.phone_number}`)
+          }
+        } else {
+          results.phone_number = agency.vob_from_number
+          results.steps.push(`Number exists: ${agency.vob_from_number}`)
+        }
+
+        // Step 4: Save NPI
+        if (npi) {
+          await s.from('agencies').update({ vob_npi: npi }).eq('id', agency_id)
+          results.steps.push(`NPI saved: ${npi}`)
+        }
+
+        results.success = true
+        results.ready = true
+        return Response.json(results)
+      } catch (e: any) {
+        return Response.json({ error: e.message, steps: results.steps }, { status: 500 })
+      }
+    }
+
+    // ── Test call — call any number with the VOB agent ────────
+    if (action === 'test_call') {
+      const { to_number, test_carrier, test_loc } = body
+
+      if (!to_number) return Response.json({ error: 'to_number required' }, { status: 400 })
+
+      // Get agency config
+      const { data: agency } = await s.from('agencies').select('vob_agent_id, vob_from_number, vob_npi, name, brand_name').eq('id', agency_id).single()
+
+      if (!agency?.vob_agent_id || !agency?.vob_from_number) {
+        return Response.json({ error: 'VOB not set up yet. Run setup_vob first.' }, { status: 400 })
+      }
+
+      // Create a test call record
+      const { data: call } = await s.from('vob_calls').insert({
+        agency_id,
+        patient_id: `TEST-${Date.now().toString(36).toUpperCase()}`,
+        carrier_name: test_carrier || 'Test Call',
+        level_of_care: test_loc || 'Test',
+        status: 'dialing',
+        trigger_mode: 'test',
+        priority: 1,
+        questions_total: VOB_QUESTIONS.filter(q => q.priority <= 2).length,
+        started_at: new Date().toISOString(),
+      }).select('id').single()
+
+      // Build a test-mode prompt
+      const testPrompt = buildVOBPrompt({
+        agencyName: agency.brand_name || agency.name,
+        npi: agency.vob_npi || 'N/A',
+        carrierName: test_carrier || 'the insurance company',
+        levelOfCare: test_loc || 'Residential Treatment',
+        ivrMap: [],
+        questions: VOB_QUESTIONS.filter(q => q.priority <= 2),
+      })
+
+      const beginMessage = `Hi, this is the billing department calling from ${agency.brand_name || agency.name}. I need to verify behavioral health benefits for a member. Can I speak with someone in provider benefits verification?`
+
+      try {
+        const retellCall = await retellFetch('/v2/create-phone-call', 'POST', {
+          from_number: agency.vob_from_number,
+          to_number: to_number.replace(/[^\d+]/g, ''),
+          agent_id: agency.vob_agent_id,
+          metadata: {
+            agency_id,
+            patient_id: call?.id ? `TEST-${call.id.slice(0,8)}` : 'TEST',
+            carrier_name: test_carrier || 'Test Call',
+            vob_call_id: call?.id,
+            test_mode: true,
+          },
+          retell_llm_dynamic_variables: {
+            system_prompt: testPrompt,
+            begin_message: beginMessage,
+            carrier_name: test_carrier || 'Test',
+            level_of_care: test_loc || 'RTC',
+          },
+        })
+
+        if (call?.id) {
+          await s.from('vob_calls').update({
+            retell_call_id: retellCall.call_id,
+            from_number: agency.vob_from_number,
+            to_number,
+          }).eq('id', call.id)
+        }
+
+        return Response.json({
+          success: true,
+          call_id: call?.id,
+          retell_call_id: retellCall.call_id,
+          from_number: agency.vob_from_number,
+          to_number,
+        })
+      } catch (e: any) {
+        if (call?.id) {
+          await s.from('vob_calls').update({ status: 'failed', error_message: e.message }).eq('id', call.id)
+        }
+        return Response.json({ error: e.message }, { status: 500 })
+      }
+    }
+
     return Response.json({ error: 'Unknown action' }, { status: 400 })
   } catch (e: any) {
     return Response.json({ error: e.message || 'Server error' }, { status: 500 })

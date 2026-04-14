@@ -201,6 +201,8 @@ export async function POST(req: NextRequest) {
     // ── call_ended — post-call analysis ─────────────────────────
     if (event === 'call_ended') {
       const transcript = call.transcript || body.transcript || ''
+      const recordingUrl = call.recording_url || body.recording_url || null
+      const callDuration = call.duration_ms ? Math.round(call.duration_ms / 1000) : null
       const now = new Date()
 
       if (vobCallId) {
@@ -213,15 +215,21 @@ export async function POST(req: NextRequest) {
           await s.from('vob_calls').update({
             status: 'completed',
             ended_at: now.toISOString(),
-            duration_seconds: duration,
+            duration_seconds: callDuration || duration,
             transcript,
+            ...(recordingUrl ? { recording_url: recordingUrl } : {}),
             updated_at: now.toISOString(),
           }).eq('id', vobCallId)
 
           await s.from('vob_queue').update({ status: 'completed' }).eq('vob_call_id', vobCallId)
         } else {
-          // Just save transcript
-          await s.from('vob_calls').update({ transcript, duration_seconds: duration, updated_at: now.toISOString() }).eq('id', vobCallId)
+          // Just save transcript + recording
+          await s.from('vob_calls').update({
+            transcript,
+            duration_seconds: callDuration || duration,
+            ...(recordingUrl ? { recording_url: recordingUrl } : {}),
+            updated_at: now.toISOString(),
+          }).eq('id', vobCallId)
         }
 
         // Update carrier stats

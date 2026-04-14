@@ -137,7 +137,42 @@ export default function VOBAgentPage() {
     { key: 'knowledge', label: 'Knowledge Base', icon: Brain },
     { key: 'analytics', label: 'Analytics', icon: BarChart2 },
     { key: 'revenue', label: 'Revenue', icon: DollarSign },
+    { key: 'setup', label: 'Test & Setup', icon: Settings },
   ]
+
+  const [setupStatus, setSetupStatus] = useState(null)
+  const [settingUp, setSettingUp] = useState(false)
+  const [testNumber, setTestNumber] = useState('')
+  const [testCarrier, setTestCarrier] = useState('')
+  const [testLoc, setTestLoc] = useState('RTC')
+  const [testCalling, setTestCalling] = useState(false)
+  const [npiInput, setNpiInput] = useState('')
+
+  async function runSetup() {
+    setSettingUp(true)
+    const res = await apiPost({ action: 'setup_vob', agency_id: agencyId, area_code: '561', npi: npiInput || undefined })
+    if (res.success) {
+      toast.success('VOB system ready!')
+      setSetupStatus(res)
+    } else {
+      toast.error(res.error || 'Setup failed')
+      setSetupStatus(res)
+    }
+    setSettingUp(false)
+  }
+
+  async function makeTestCall() {
+    if (!testNumber) { toast.error('Enter a phone number to call'); return }
+    setTestCalling(true)
+    const res = await apiPost({ action: 'test_call', agency_id: agencyId, to_number: testNumber, test_carrier: testCarrier || 'Test Call', test_loc: testLoc })
+    if (res.success) {
+      toast.success(`Calling ${testNumber}...`)
+      loadAll()
+    } else {
+      toast.error(res.error || 'Call failed')
+    }
+    setTestCalling(false)
+  }
 
   // Group questions by category
   const questionsByCategory = questions.reduce((acc, q) => {
@@ -968,6 +1003,176 @@ export default function VOBAgentPage() {
                     padding: '10px 22px', borderRadius: 10, border: 'none', background: '#0a5c44', color: W,
                     fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
                   }}>Load Analytics</button>
+                </div>
+              )}
+            </div>
+          )}
+          {/* ══ TEST & SETUP ═════════════════════════════════════ */}
+          {tab === 'setup' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                <Settings size={18} color={T} />
+                <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Test & Setup</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                {/* Setup Panel */}
+                <div style={{ ...cardInner }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                    <Zap size={16} color="#0a5c44" />
+                    <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>One-Click Setup</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginBottom: 16, lineHeight: 1.6 }}>
+                    Creates the Retell AI agent, provisions an outbound phone number, and configures everything needed to make VOB calls.
+                  </p>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Provider NPI (optional)</label>
+                    <input value={npiInput} onChange={e => setNpiInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="1234567890"
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box' }} />
+                  </div>
+
+                  <button onClick={runSetup} disabled={settingUp} style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '12px', borderRadius: 10, border: 'none', background: '#0a5c44', color: W,
+                    fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: settingUp ? 0.5 : 1,
+                  }}>
+                    {settingUp ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
+                    {settingUp ? 'Setting up...' : 'Setup VOB System'}
+                  </button>
+
+                  {setupStatus && (
+                    <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 10, background: setupStatus.success ? '#ecfdf5' : '#fef2f2', border: `1px solid ${setupStatus.success ? '#a7f3d0' : '#fecaca'}` }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: setupStatus.success ? '#0a5c44' : R, marginBottom: 8 }}>
+                        {setupStatus.success ? 'Setup Complete' : 'Setup Failed'}
+                      </div>
+                      {setupStatus.steps?.map((step, i) => (
+                        <div key={i} style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, padding: '3px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <Check size={12} color={GRN} /> {step}
+                        </div>
+                      ))}
+                      {setupStatus.phone_number && (
+                        <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: '#0a5c44', marginTop: 8 }}>
+                          Outbound number: {setupStatus.phone_number}
+                        </div>
+                      )}
+                      {setupStatus.agent_id && (
+                        <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, marginTop: 4 }}>
+                          Agent ID: <code style={{ fontFamily: 'monospace', fontSize: 10, background: '#f3f4f6', padding: '1px 4px', borderRadius: 3 }}>{setupStatus.agent_id}</code>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Test Call Panel */}
+                <div style={{ ...cardInner }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                    <Phone size={16} color={T} />
+                    <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Make Test Call</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginBottom: 16, lineHeight: 1.6 }}>
+                    Enter any phone number to test the VOB agent. The AI will call, introduce itself, and attempt to verify benefits. All calls are recorded and transcripts are processed into the knowledge base.
+                  </p>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Phone Number to Call</label>
+                    <input value={testNumber} onChange={e => setTestNumber(e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box' }} />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Carrier Name (test)</label>
+                      <input value={testCarrier} onChange={e => setTestCarrier(e.target.value)}
+                        placeholder="e.g. Aetna"
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Level of Care</label>
+                      <select value={testLoc} onChange={e => setTestLoc(e.target.value)}
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box', background: W }}>
+                        {['Detox', 'RTC', 'PHP', 'IOP', 'Outpatient', 'Test'].map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button onClick={makeTestCall} disabled={testCalling} style={{
+                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '12px', borderRadius: 10, border: 'none', background: T, color: W,
+                    fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer', opacity: testCalling ? 0.5 : 1,
+                  }}>
+                    {testCalling ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Phone size={16} />}
+                    {testCalling ? 'Calling...' : 'Call Now'}
+                  </button>
+
+                  <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>What happens:</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB, lineHeight: 1.7 }}>
+                      1. AI calls the number you enter<br />
+                      2. Introduces itself as your billing dept<br />
+                      3. Attempts IVR navigation + asks VOB questions<br />
+                      4. Call recorded + transcript saved<br />
+                      5. Claude analyzes transcript → knowledge base<br />
+                      6. Carrier insights auto-extracted
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent test calls */}
+              {calls.filter(c => c.trigger_mode === 'test').length > 0 && (
+                <div style={{ ...card, marginTop: 24 }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Activity size={16} color={T} />
+                    <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK }}>Test Call History</span>
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        {['ID', 'To', 'Carrier', 'Status', 'Duration', 'Questions', 'Recording', ''].map(h => (
+                          <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {calls.filter(c => c.trigger_mode === 'test').map(call => {
+                        const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+                        return (
+                          <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>{call.patient_id}</td>
+                            <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.to_number || '—'}</td>
+                            <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.carrier_name}</td>
+                            <td style={{ padding: '10px 14px' }}>
+                              <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+                            </td>
+                            <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
+                              {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '—'}
+                            </td>
+                            <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
+                              {call.questions_answered || 0}/{call.questions_total || 20}
+                            </td>
+                            <td style={{ padding: '10px 14px' }}>
+                              {call.recording_url ? (
+                                <a href={call.recording_url} target="_blank" rel="noopener noreferrer" style={{
+                                  padding: '3px 10px', borderRadius: 6, background: T + '12', color: T,
+                                  fontSize: 11, fontWeight: 700, fontFamily: FH, textDecoration: 'none',
+                                }}>Play</a>
+                              ) : '—'}
+                            </td>
+                            <td style={{ padding: '10px 14px' }}>
+                              <button onClick={() => { setSelectedCall(call); setTab('results') }} style={{
+                                padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W,
+                                fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: BLK,
+                              }}>View VOB</button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
