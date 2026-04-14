@@ -117,6 +117,16 @@ export default function VOBAgentPage() {
     if (res.success) { toast.success('Call cancelled'); loadAll() }
   }
 
+  const [analytics, setAnalytics] = useState(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+
+  async function loadAnalytics() {
+    setAnalyticsLoading(true)
+    const data = await apiGet('get_analytics', { agency_id: agencyId })
+    if (data && !data.error) setAnalytics(data)
+    setAnalyticsLoading(false)
+  }
+
   const TABS = [
     { key: 'dashboard', label: 'Dashboard', icon: Activity },
     { key: 'queue', label: `Queue${queue.length ? ` (${queue.length})` : ''}`, icon: Layers },
@@ -126,6 +136,7 @@ export default function VOBAgentPage() {
     { key: 'questions', label: 'Question Bank', icon: Hash },
     { key: 'knowledge', label: 'Knowledge Base', icon: Brain },
     { key: 'analytics', label: 'Analytics', icon: BarChart2 },
+    { key: 'revenue', label: 'Revenue', icon: DollarSign },
   ]
 
   // Group questions by category
@@ -716,19 +727,249 @@ export default function VOBAgentPage() {
           {/* ══ ANALYTICS ══════════════════════════════════════════ */}
           {tab === 'analytics' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                <BarChart2 size={18} color={T} />
-                <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Analytics</span>
-              </div>
-              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                  <BarChart2 size={28} color="#d1d5db" />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <BarChart2 size={18} color={T} />
+                  <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Analytics</span>
                 </div>
-                <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 8px' }}>Analytics Coming Soon</h3>
-                <p style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, maxWidth: 440, margin: '0 auto' }}>
-                  Call volume, hold times, success rates, carrier performance, and revenue forecasting will appear here after your first completed VOB calls.
-                </p>
+                <button onClick={loadAnalytics} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
+                  border: '1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: BLK,
+                }}>
+                  <RefreshCw size={13} /> {analytics ? 'Refresh' : 'Load Analytics'}
+                </button>
               </div>
+
+              {!analytics && !analyticsLoading && (
+                <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                  <button onClick={loadAnalytics} style={{
+                    padding: '12px 28px', borderRadius: 10, border: 'none', background: '#0a5c44', color: W,
+                    fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                  }}>Load Analytics</button>
+                </div>
+              )}
+
+              {analyticsLoading && (
+                <div style={{ textAlign: 'center', padding: 60 }}>
+                  <Loader2 size={28} color={BLK} style={{ animation: 'spin 1s linear infinite' }} />
+                </div>
+              )}
+
+              {analytics && (
+                <div>
+                  {/* KPI Row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+                    {[
+                      { label: 'Total Calls', value: analytics.totals?.total_calls || 0, accent: T },
+                      { label: 'Success Rate', value: `${analytics.totals?.overall_success_rate || 0}%`, accent: GRN },
+                      { label: 'Avg Duration', value: `${Math.round((analytics.totals?.avg_duration || 0) / 60)}m`, accent: AMB },
+                      { label: 'Avg Hold Time', value: `${Math.round((analytics.totals?.avg_hold || 0) / 60)}m`, accent: R },
+                    ].map(s => (
+                      <div key={s.label} style={{ ...cardInner, position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: s.accent, opacity: 0.6 }} />
+                        <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{s.label}</div>
+                        <div style={{ fontSize: 28, fontWeight: 800, fontFamily: FH, color: BLK, marginTop: 6 }}>{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+                    {/* Carrier Performance */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                        <Globe size={16} color="#0a5c44" />
+                        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Carrier Performance</span>
+                      </div>
+                      {(analytics.carrier_stats || []).map((c, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < (analytics.carrier_stats?.length || 0) - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                          <div style={{ flex: 1, minWidth: 100 }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{c.carrier}</div>
+                            <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>{c.total_calls} calls · avg {Math.round(c.avg_duration / 60)}m</div>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
+                              <div style={{ width: `${c.success_rate}%`, height: '100%', borderRadius: 3, background: c.success_rate >= 80 ? GRN : c.success_rate >= 60 ? AMB : R }} />
+                            </div>
+                          </div>
+                          <span style={{
+                            padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH,
+                            background: c.success_rate >= 80 ? GRN + '12' : c.success_rate >= 60 ? AMB + '12' : R + '12',
+                            color: c.success_rate >= 80 ? GRN : c.success_rate >= 60 ? AMB : R,
+                          }}>{c.success_rate}%</span>
+                        </div>
+                      ))}
+                      {(!analytics.carrier_stats || analytics.carrier_stats.length === 0) && (
+                        <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No carrier data yet</div>
+                      )}
+                    </div>
+
+                    {/* Hold Time by Carrier */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                        <Clock size={16} color={AMB} />
+                        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Avg Hold Time by Carrier</span>
+                      </div>
+                      {(analytics.carrier_stats || []).map((c, i) => {
+                        const holdMin = Math.round(c.avg_hold / 60)
+                        const maxHold = Math.max(...(analytics.carrier_stats || []).map(x => x.avg_hold), 1)
+                        return (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < (analytics.carrier_stats?.length || 0) - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                            <div style={{ width: 120, fontSize: 13, fontWeight: 600, fontFamily: FH, color: BLK }}>{c.carrier}</div>
+                            <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
+                              <div style={{ width: `${(c.avg_hold / maxHold) * 100}%`, height: '100%', borderRadius: 4, background: holdMin > 15 ? R : holdMin > 8 ? AMB : GRN }} />
+                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: holdMin > 15 ? R : holdMin > 8 ? AMB : GRN, minWidth: 40, textAlign: 'right' }}>{holdMin}m</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+                    {/* Denial Risk Distribution */}
+                    <div style={{ ...cardInner }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                        <AlertTriangle size={16} color={R} />
+                        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Denial Risk</span>
+                      </div>
+                      {[
+                        { label: 'Low Risk (<30%)', value: analytics.denial_distribution?.low || 0, color: GRN },
+                        { label: 'Medium (30-60%)', value: analytics.denial_distribution?.medium || 0, color: AMB },
+                        { label: 'High Risk (>60%)', value: analytics.denial_distribution?.high || 0, color: R },
+                      ].map(d => (
+                        <div key={d.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                          <span style={{ fontSize: 13, fontFamily: FB, color: BLK }}>{d.label}</span>
+                          <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: d.color }}>{d.value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Daily Volume */}
+                    <div style={{ ...cardInner, gridColumn: 'span 2' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                        <TrendingUp size={16} color={T} />
+                        <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Daily Call Volume</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 120 }}>
+                        {(analytics.daily_volume || []).slice(-30).map((d, i) => {
+                          const maxVol = Math.max(...(analytics.daily_volume || []).map(x => x.total), 1)
+                          return (
+                            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1, height: 100, justifyContent: 'flex-end' }}>
+                                <div style={{
+                                  height: `${(d.total / maxVol) * 100}%`, borderRadius: 3,
+                                  background: d.completed === d.total ? GRN : T, minHeight: d.total > 0 ? 4 : 0,
+                                }} title={`${d.date}: ${d.total} calls, ${d.completed} completed`} />
+                              </div>
+                              {i % 5 === 0 && <div style={{ fontSize: 8, color: '#9ca3af', fontFamily: FH }}>{d.date?.slice(5)}</div>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {(!analytics.daily_volume || analytics.daily_volume.length === 0) && (
+                        <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No daily data yet</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ REVENUE FORECAST ═══════════════════════════════════ */}
+          {tab === 'revenue' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <DollarSign size={18} color="#0a5c44" />
+                  <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Revenue Forecast</span>
+                  <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>Based on completed VOB data</span>
+                </div>
+                {!analytics && (
+                  <button onClick={loadAnalytics} style={{
+                    padding: '8px 18px', borderRadius: 8, border: 'none', background: '#0a5c44', color: W,
+                    fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                  }}>Load Data</button>
+                )}
+              </div>
+
+              {analytics?.revenue ? (
+                <div>
+                  {/* Revenue summary cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 24 }}>
+                    <div style={{ ...cardInner, background: '#0a5c44', border: 'none' }}>
+                      <div style={{ fontSize: 11, fontFamily: FH, fontWeight: 600, color: 'rgba(255,255,255,.7)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Est. Gross Revenue</div>
+                      <div style={{ fontSize: 32, fontWeight: 800, fontFamily: FH, color: W, marginTop: 8, lineHeight: 1 }}>
+                        ${(analytics.revenue.total_gross || 0).toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', marginTop: 6 }}>From {analytics.revenue.per_call?.length || 0} completed VOBs</div>
+                    </div>
+                    <div style={{ ...cardInner }}>
+                      <div style={{ fontSize: 11, fontFamily: FH, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>Est. Net Revenue</div>
+                      <div style={{ fontSize: 32, fontWeight: 800, fontFamily: FH, color: '#0a5c44', marginTop: 8, lineHeight: 1 }}>
+                        ${(analytics.revenue.total_net || 0).toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 6 }}>After coinsurance + deductible</div>
+                    </div>
+                    <div style={{ ...cardInner }}>
+                      <div style={{ fontSize: 11, fontFamily: FH, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>Avg Per VOB</div>
+                      <div style={{ fontSize: 32, fontWeight: 800, fontFamily: FH, color: T, marginTop: 8, lineHeight: 1 }}>
+                        ${analytics.revenue.per_call?.length > 0 ? Math.round(analytics.revenue.total_net / analytics.revenue.per_call.length).toLocaleString() : '0'}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 6 }}>Net per completed call</div>
+                    </div>
+                  </div>
+
+                  {/* Per-call revenue table */}
+                  {analytics.revenue.per_call?.length > 0 && (
+                    <div style={{ ...card }}>
+                      <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <DollarSign size={16} color="#0a5c44" />
+                        <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK }}>Per-Call Revenue Forecast</span>
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            {['Carrier', 'Gross', 'Net', 'Denial Risk'].map(h => (
+                              <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.revenue.per_call.map((r, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{r.carrier}</td>
+                              <td style={{ padding: '10px 14px', fontSize: 14, fontFamily: FB, color: '#6b7280' }}>${(r.gross || 0).toLocaleString()}</td>
+                              <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 700, fontFamily: FH, color: '#0a5c44' }}>${(r.net || 0).toLocaleString()}</td>
+                              <td style={{ padding: '10px 14px' }}>
+                                <span style={{
+                                  padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH,
+                                  background: r.denial_risk < 30 ? GRN + '12' : r.denial_risk < 60 ? AMB + '12' : R + '12',
+                                  color: r.denial_risk < 30 ? GRN : r.denial_risk < 60 ? AMB : R,
+                                }}>{r.denial_risk < 30 ? 'Low' : r.denial_risk < 60 ? 'Medium' : 'High'} {r.denial_risk}%</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                    <DollarSign size={28} color="#d1d5db" />
+                  </div>
+                  <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 8px' }}>No Revenue Data Yet</h3>
+                  <p style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, maxWidth: 440, margin: '0 auto', marginBottom: 20 }}>
+                    Revenue forecasts are calculated automatically after VOB calls complete with benefit data.
+                  </p>
+                  <button onClick={loadAnalytics} style={{
+                    padding: '10px 22px', borderRadius: 10, border: 'none', background: '#0a5c44', color: W,
+                    fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                  }}>Load Analytics</button>
+                </div>
+              )}
             </div>
           )}
         </div>

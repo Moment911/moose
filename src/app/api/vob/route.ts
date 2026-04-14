@@ -208,6 +208,82 @@ export async function GET(req: NextRequest) {
     return Response.json({ data: data || [] })
   }
 
+  // ── Analytics — aggregated data for charts ────────────────────
+  if (action === 'get_analytics') {
+    const { data: allCalls } = await s.from('vob_calls').select('carrier_name, status, duration_seconds, hold_time_seconds, questions_answered, questions_total, created_at, ended_at, post_call_analysis, revenue_forecast')
+      .eq('agency_id', agencyId).order('created_at', { ascending: false }).limit(500)
+
+    const calls = allCalls || []
+    const completed = calls.filter(c => c.status === 'completed')
+    const escalated = calls.filter(c => c.status === 'escalated')
+
+    // Per-carrier stats
+    const carrierMap: Record<string, { calls: number; completed: number; totalDuration: number; totalHold: number; totalQuestions: number }> = {}
+    for (const c of calls) {
+      if (!carrierMap[c.carrier_name]) carrierMap[c.carrier_name] = { calls: 0, completed: 0, totalDuration: 0, totalHold: 0, totalQuestions: 0 }
+      carrierMap[c.carrier_name].calls++
+      if (c.status === 'completed') carrierMap[c.carrier_name].completed++
+      carrierMap[c.carrier_name].totalDuration += c.duration_seconds || 0
+      carrierMap[c.carrier_name].totalHold += c.hold_time_seconds || 0
+      carrierMap[c.carrier_name].totalQuestions += c.questions_answered || 0
+    }
+
+    const carrierStats = Object.entries(carrierMap).map(([name, data]) => ({
+      carrier: name,
+      total_calls: data.calls,
+      completed: data.completed,
+      success_rate: data.calls > 0 ? Math.round((data.completed / data.calls) * 100) : 0,
+      avg_duration: data.calls > 0 ? Math.round(data.totalDuration / data.calls) : 0,
+      avg_hold: data.calls > 0 ? Math.round(data.totalHold / data.calls) : 0,
+      avg_questions: data.calls > 0 ? Math.round(data.totalQuestions / data.calls) : 0,
+    })).sort((a, b) => b.total_calls - a.total_calls)
+
+    // Daily call volume (last 30 days)
+    const dailyVolume: Record<string, { total: number; completed: number }> = {}
+    for (const c of calls) {
+      const day = c.created_at?.split('T')[0]
+      if (!day) continue
+      if (!dailyVolume[day]) dailyVolume[day] = { total: 0, completed: 0 }
+      dailyVolume[day].total++
+      if (c.status === 'completed') dailyVolume[day].completed++
+    }
+
+    // Denial risk distribution
+    const denialScores = completed.filter(c => c.post_call_analysis?.denial_risk_score != null).map(c => c.post_call_analysis.denial_risk_score)
+    const denialDistribution = {
+      low: denialScores.filter(s => s < 30).length,
+      medium: denialScores.filter(s => s >= 30 && s < 60).length,
+      high: denialScores.filter(s => s >= 60).length,
+    }
+
+    // Revenue totals
+    const revenueData = completed.filter(c => c.revenue_forecast?.gross).map(c => ({
+      patient_id: c.carrier_name, // no PII
+      carrier: c.carrier_name,
+      gross: c.revenue_forecast.gross || 0,
+      net: c.revenue_forecast.net || 0,
+      denial_risk: c.post_call_analysis?.denial_risk_score || 0,
+    }))
+    const totalGross = revenueData.reduce((sum, r) => sum + r.gross, 0)
+    const totalNet = revenueData.reduce((sum, r) => sum + r.net, 0)
+
+    return Response.json({
+      carrier_stats: carrierStats,
+      daily_volume: Object.entries(dailyVolume).map(([date, data]) => ({ date, ...data })).sort((a, b) => a.date.localeCompare(b.date)),
+      denial_distribution: denialDistribution,
+      revenue: { total_gross: totalGross, total_net: totalNet, per_call: revenueData },
+      totals: {
+        total_calls: calls.length,
+        completed: completed.length,
+        escalated: escalated.length,
+        avg_duration: completed.length > 0 ? Math.round(completed.reduce((s, c) => s + (c.duration_seconds || 0), 0) / completed.length) : 0,
+        avg_hold: completed.length > 0 ? Math.round(completed.reduce((s, c) => s + (c.hold_time_seconds || 0), 0) / completed.length) : 0,
+        avg_questions: completed.length > 0 ? Math.round(completed.reduce((s, c) => s + (c.questions_answered || 0), 0) / completed.length) : 0,
+        overall_success_rate: calls.length > 0 ? Math.round((completed.length / calls.length) * 100) : 0,
+      },
+    })
+  }
+
   return Response.json({ error: 'Unknown action' }, { status: 400 })
 }
 
