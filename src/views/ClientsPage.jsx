@@ -219,15 +219,8 @@ export default function ClientsPage() {
       // still created successfully and provisioning can be retried
       // later from /test-data → Bulk Voice Onboarding Setup.
       if (newClient?.id) {
-        fetch('/api/onboarding/telnyx-provision', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'init_client_onboarding',
-            client_id: newClient.id,
-            agency_id: agencyId,
-          }),
-        }).catch((e) => console.warn('[auto-provision] failed:', e?.message))
+        // Onboarding link + phone provisioning are now MANUAL.
+        // Agency generates the link and provisions the number from the client detail page.
 
         // Auto-scan website for brand info (logo, colors, description)
         if (form.website?.trim()) {

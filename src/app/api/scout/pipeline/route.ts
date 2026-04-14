@@ -162,29 +162,8 @@ Output ONLY the email body, no subject line, no "Dear", just start with "Hi [Nam
       }).select().single()
       if (clientErr) throw clientErr
 
-      // Create onboarding token
-      try {
-        await sb.from('onboarding_tokens').insert({
-          client_id: client.id,
-          agency_id: client.agency_id,
-          token: client.id,
-          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        })
-      } catch (e) {
-        console.warn('[scout/pipeline convert] token creation failed:', e)
-      }
-
-      // Fire and forget provision — never block
-      const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
-      fetch(`${origin}/api/onboarding/telnyx-provision`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'init_client_onboarding',
-          client_id: client.id,
-          agency_id: client.agency_id,
-        }),
-      }).catch((e) => console.warn('[scout/pipeline convert] auto-provision failed:', e))
+      // Onboarding link + phone provisioning are now MANUAL.
+      // Agency generates the link from the client detail page.
 
       // Mark lead as won
       await sb.from('scout_pipeline').update({ stage: 'won' }).eq('id', lead_id)
