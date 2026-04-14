@@ -61,6 +61,26 @@ export async function GET(req: NextRequest) {
       return Response.json({ success: true, job: 'automations', ...result })
     }
 
+    if (job === 'intel_scheduled_scans') {
+      // Find all reports with a schedule that's due
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+      const dueRes = await fetch(`${APP_URL}/api/intel`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_due_scans' }),
+      }).then(r => r.json())
+      let ran = 0
+      for (const report of dueRes.due || []) {
+        try {
+          await fetch(`${APP_URL}/api/intel`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'rescan', report_id: report.id }),
+          })
+          ran++
+        } catch { /* skip failed */ }
+      }
+      return Response.json({ success: true, job: 'intel_scheduled_scans', ran })
+    }
+
     if (job === 'monthly_recap') {
       const s = sb()
       const { data: agencies } = await s.from('agencies').select('id').is('deleted_at', null).limit(50)

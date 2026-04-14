@@ -479,6 +479,64 @@ Return JSON:
     }
   }
 
+  // ── Rescan — re-run with same inputs ──────────────────────────────────
+  if (action === 'rescan') {
+    const { report_id } = body
+    const { data: existing } = await s.from('koto_intel_reports').select('inputs, agency_id').eq('id', report_id).single()
+    if (!existing) return NextResponse.json({ error: 'Report not found' }, { status: 404 })
+    // Re-run as a new scan with the same inputs
+    const inputs = existing.inputs || {}
+    const newBody = {
+      action: 'run_scan', agency_id: existing.agency_id,
+      business_name: inputs.business_name, website: inputs.website,
+      industry: inputs.industry, location: inputs.location,
+      budget: inputs.budget, avg_job_value: inputs.avg_job_value,
+      current_lead_sources: inputs.current_lead_sources, monthly_lead_goal: inputs.monthly_lead_goal,
+    }
+    // Recursively call run_scan by reconstructing the request
+    const fakeReq = new Request('http://localhost/api/intel', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newBody),
+    })
+    return POST(fakeReq as any)
+  }
+
+  // ── Compare two reports ──────────────────────────────────────────────
+  if (action === 'compare_reports') {
+    const { report_id_a, report_id_b } = body
+    const [{ data: a }, { data: b }] = await Promise.all([
+      s.from('koto_intel_reports').select('*').eq('id', report_id_a).single(),
+      s.from('koto_intel_reports').select('*').eq('id', report_id_b).single(),
+    ])
+    if (!a || !b) return NextResponse.json({ error: 'One or both reports not found' }, { status: 404 })
+    return NextResponse.json({ report_a: a, report_b: b })
+  }
+
+  // ── Schedule recurring scans ─────────────────────────────────────────
+  if (action === 'set_schedule') {
+    const { report_id, frequency } = body // frequency: 'off' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly'
+    if (!report_id) return NextResponse.json({ error: 'report_id required' }, { status: 400 })
+    const { data: existing } = await s.from('koto_intel_reports').select('inputs').eq('id', report_id).single()
+    if (!existing) return NextResponse.json({ error: 'Report not found' }, { status: 404 })
+    const inputs = existing.inputs || {}
+    inputs.schedule = frequency || 'off'
+    inputs.next_scan_at = frequency !== 'off' ? getNextScanDate(frequency) : null
+    await s.from('koto_intel_reports').update({ inputs }).eq('id', report_id)
+    return NextResponse.json({ success: true, next_scan_at: inputs.next_scan_at })
+  }
+
+  // ── Get scheduled scans (for cron) ───────────────────────────────────
+  if (action === 'get_due_scans') {
+    const now = new Date().toISOString()
+    const { data } = await s.from('koto_intel_reports')
+      .select('id, inputs, agency_id')
+      .not('inputs->schedule', 'eq', '"off"')
+      .not('inputs->schedule', 'is', null)
+      .lte('inputs->next_scan_at', now)
+      .limit(20)
+    return NextResponse.json({ due: data || [] })
+  }
+
   // ── Delete report ────────────────────────────────────────────────────────
   if (action === 'delete_report') {
     const { report_id } = body
@@ -487,4 +545,15 @@ Return JSON:
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+}
+
+function getNextScanDate(frequency: string): string {
+  const now = new Date()
+  switch (frequency) {
+    case 'weekly': now.setDate(now.getDate() + 7); break
+    case 'biweekly': now.setDate(now.getDate() + 14); break
+    case 'monthly': now.setMonth(now.getMonth() + 1); break
+    case 'quarterly': now.setMonth(now.getMonth() + 3); break
+  }
+  return now.toISOString()
 }
