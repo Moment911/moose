@@ -690,19 +690,6 @@ export async function POST(req: NextRequest) {
       // Use only top 10 priority questions for test calls
       const testQuestions = VOB_QUESTIONS.filter(q => q.priority === 1).slice(0, 10)
 
-      // Create a test call record
-      const { data: call } = await s.from('vob_calls').insert({
-        agency_id,
-        patient_id: test_patient_id || `TEST-${Date.now().toString(36).toUpperCase()}`,
-        carrier_name: test_carrier || 'Test Call',
-        level_of_care: test_loc || 'Test',
-        status: 'dialing',
-        trigger_mode: 'test',
-        priority: 1,
-        questions_total: testQuestions.length,
-        started_at: new Date().toISOString(),
-      }).select('id').single()
-
       // Dummy test patient data so the agent has something to verify
       const testMember = {
         member_name: 'John Michael Roberts',
@@ -719,6 +706,30 @@ export async function POST(req: NextRequest) {
         requesting_loc: test_loc || 'Residential Treatment',
         date_of_service: new Date().toLocaleDateString('en-US'),
       }
+
+      // Create a test call record with member info pre-populated
+      const { data: call } = await s.from('vob_calls').insert({
+        agency_id,
+        patient_id: testMember.member_name,
+        carrier_name: test_carrier || 'Test Call',
+        level_of_care: test_loc || 'Test',
+        status: 'dialing',
+        trigger_mode: 'test',
+        priority: 1,
+        questions_total: testQuestions.length,
+        started_at: new Date().toISOString(),
+        vob_data: {
+          _member_name: testMember.member_name,
+          _member_dob: testMember.member_dob,
+          _member_id: testMember.member_id,
+          _group_number: testMember.group_number,
+          _group_name: testMember.group_name,
+          _relationship: testMember.relationship,
+          _facility_name: testMember.facility_name,
+          _facility_npi: testMember.facility_npi,
+          _level_of_care: testMember.requesting_loc,
+        },
+      }).select('id').single()
 
       // Build a test-mode prompt with only 10 questions + member data
       const testPrompt = buildVOBPrompt({
@@ -873,10 +884,14 @@ Then immediately ask Question E01.
 
 ═══ PHASE 4 — VOB INTERVIEW ═══
 
-Ask questions one at a time, in priority order. After each rep response:
-1. Acknowledge in one word: "Got it." / "Thank you." / "Noted." / "Understood."
-2. Call save_vob_answer(field, value) immediately
-3. Ask the next question
+CRITICAL: Ask questions EXACTLY in the order listed below. Do NOT skip ahead, do NOT reorder, do NOT ask questions from a later priority group until you finish the current group. This is a structured interview — follow the sequence precisely.
+
+After each rep response:
+1. Acknowledge briefly — rotate: "Got it." / "Thank you." / "Noted." / "Understood."
+2. Call save_vob_answer(field, value) immediately — do NOT wait for the response
+3. Pause for half a second, then ask the NEXT question in sequence
+
+Do NOT improvise questions. Do NOT ask follow-up questions unless the answer is genuinely unclear. Do NOT summarize or reflect on answers mid-interview. Just acknowledge, save, and move to the next question.
 
 PRIORITY 1 — ELIGIBILITY:
 E01: "Can you confirm the member's policy is currently active, and what is the effective date?" [plan_status]

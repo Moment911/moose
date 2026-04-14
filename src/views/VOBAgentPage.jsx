@@ -1244,6 +1244,26 @@ function VOBResultsTab({ calls, questions, selectedCall, setSelectedCall, agency
               <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
             </div>
           </div>
+          {/* Member Info */}
+          {(vob._member_name || vob._member_id) && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
+              {[
+                ['Member Name', vob._member_name],
+                ['DOB', vob._member_dob],
+                ['Member ID', vob._member_id],
+                ['Group', `${vob._group_name || ''} ${vob._group_number ? '/ ' + vob._group_number : ''}`],
+                ['Relationship', vob._relationship],
+                ['Facility', vob._facility_name],
+                ['NPI', vob._facility_npi],
+                ['LOC Requested', vob._level_of_care],
+              ].filter(([,v]) => v).map(([label, value]) => (
+                <div key={label} style={{ padding: '8px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em' }}>{label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: BLK, fontFamily: FB, marginTop: 2 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+          )}
           {/* Progress bar */}
           <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
             <div style={{ width: `${Math.round((answeredCount / Math.max(questions.length, 1)) * 100)}%`, height: '100%', borderRadius: 3, background: '#0a5c44', transition: 'width .3s' }} />
