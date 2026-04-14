@@ -442,6 +442,7 @@ export default function Sidebar() {
             <Section id="intelligence" label="Intelligence" icon={Brain} currentPath={path} forceOpen={!!sq}>
               <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R} hidden={!match('AI CMO') || !feat('cmo_agent')}/>
               <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" hidden={!match('Predictive Intel') || !feat('predictive_intel')}/>
+              <NavLink to="/intel" startsWith icon={Zap} label="KotoIntel" badge="NEW" badgeColor={T} hidden={!match('KotoIntel')}/>
               <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!match('Scout') || !feat('scout')}/>
               <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub hidden={!match('Pipeline CRM') || !feat('pipeline_crm')}/>
               <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub hidden={!match('Scout History') || !feat('scout')}/>

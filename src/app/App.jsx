@@ -166,6 +166,7 @@ import EmailTrackingPage from '../views/EmailTrackingPage'
 import EmailTrackingGmailHelperPage from '../views/EmailTrackingGmailHelperPage'
 import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
+import IntelPage from '../views/IntelPage'
 // HelpAssistant removed — floating button was disabled per user request
 
 // Global error handler — reports to /api/errors
@@ -386,6 +387,8 @@ function AppRoutes() {
           <Route path="/integrations/ghl" element={<GHLIntegrationPage />} />
           <Route path="/sequences" element={<EmailSequencePage />} />
           <Route path="/intelligence" element={<IntelligenceDashboardPage />} />
+          <Route path="/intel" element={<IntelPage />} />
+          <Route path="/intel/:reportId" element={<IntelPage />} />
           <Route path="/video-voicemails" element={<VideoVoicemailPage />} />
           <Route path="/avatars" element={<AvatarBrowserPage />} />
           <Route path="/trades" element={<TradesPortalPage />} />
