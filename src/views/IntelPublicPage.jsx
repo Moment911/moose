@@ -6,6 +6,7 @@ import {
   ArrowUpRight, Clock, Zap, Shield, RefreshCw, Loader2
 } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+import UnifiedCalculator from '../components/intel/UnifiedCalculator'
 
 function scoreColor(s) {
   if (s >= 75) return GRN
@@ -283,6 +284,225 @@ export default function IntelPublicPage() {
                   <div style={{ fontSize: 16, fontWeight: 900, color: BLK, fontFamily: FH }}>{v || 'N/A'}</div>
                   <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH }}>{k}</div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 04b — Tech Stack */}
+        {rd.tech_stack?.length > 0 && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: T }}>04b</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Marketing tech stack</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>Tools detected on your website — verified from source code scan</div>
+              </div>
+              {rd.tech_stack_assessment?.grade && (
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[rd.tech_stack_assessment.grade] || BLK }}>{rd.tech_stack_assessment.grade}</div>
+              )}
+            </div>
+            {rd.tech_stack_assessment?.summary && (
+              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 20, padding: '12px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>{rd.tech_stack_assessment.summary}</div>
+            )}
+            {(() => {
+              const catLabels = { analytics: 'Analytics', tag_manager: 'Tag Managers', chat_widget: 'Chat & Messaging', crm: 'CRM & Automation', ad_pixel: 'Ad Pixels & Tracking', seo: 'SEO', booking: 'Booking & Scheduling', email_marketing: 'Email Marketing', cdn_hosting: 'Platform & CDN', conversion: 'Conversion & Forms', social: 'Social', other: 'Other Tools' }
+              const grouped = {}
+              rd.tech_stack.forEach(t => { if (!grouped[t.category]) grouped[t.category] = []; grouped[t.category].push(t) })
+              return Object.entries(grouped).map(([cat, tools]) => (
+                <div key={cat} style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>{catLabels[cat] || cat}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {tools.map((tool, i) => (
+                      <div key={i} style={{ padding: '8px 14px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{tool.name}</div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{tool.evidence}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            })()}
+            {rd.tech_stack_assessment?.missing_critical?.length > 0 && (
+              <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 8, background: R + '08', border: `1.5px solid ${R}20` }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Missing critical tools</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {rd.tech_stack_assessment.missing_critical.map((tool, i) => (
+                    <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: R + '12', color: R, fontSize: 12, fontWeight: 600 }}>{tool}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 04c — Moz Domain Authority & Backlinks */}
+        {rd.moz_data && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: R }}>04c</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Domain authority & backlinks</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>Moz Link Explorer — how search engines see your site's authority vs competitors</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: rd.moz_data.domain_authority >= 40 ? GRN : rd.moz_data.domain_authority >= 20 ? AMB : R, lineHeight: 1 }}>{rd.moz_data.domain_authority}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>Domain Authority</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+              {[
+                ['Page Authority', rd.moz_data.page_authority, rd.moz_data.page_authority >= 30 ? GRN : rd.moz_data.page_authority >= 15 ? AMB : R],
+                ['Spam Score', rd.moz_data.spam_score + '%', rd.moz_data.spam_score <= 5 ? GRN : rd.moz_data.spam_score <= 30 ? AMB : R],
+                ['Linking Domains', rd.moz_data.linking_root_domains?.toLocaleString(), T],
+                ['Total Backlinks', rd.moz_data.external_backlinks?.toLocaleString(), T],
+              ].map(([label, val, color]) => (
+                <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                  <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            {rd.moz_competitors?.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, fontFamily: FH }}>Domain Authority Comparison</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {(() => {
+                    const maxDA = Math.max(rd.moz_data.domain_authority, ...rd.moz_competitors.map(c => c.domain_authority))
+                    const allBars = [
+                      { name: rd.moz_data.domain || 'You', da: rd.moz_data.domain_authority, links: rd.moz_data.linking_root_domains, isClient: true },
+                      ...rd.moz_competitors.map(c => ({ name: c.name, da: c.domain_authority, links: c.linking_root_domains, isClient: false }))
+                    ].sort((a, b) => b.da - a.da)
+                    return allBars.map((item, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 140, fontSize: 12, fontWeight: item.isClient ? 800 : 500, color: item.isClient ? BLK : '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.isClient ? '★ ' : ''}{item.name}</div>
+                        <div style={{ flex: 1, height: 28, background: '#f3f4f6', borderRadius: 6, overflow: 'hidden', position: 'relative' }}>
+                          <div style={{ width: `${maxDA > 0 ? (item.da / maxDA) * 100 : 0}%`, height: '100%', background: item.isClient ? `linear-gradient(90deg, ${R}, ${R}cc)` : `linear-gradient(90deg, ${T}60, ${T}30)`, borderRadius: 6, minWidth: item.da > 0 ? 24 : 0 }} />
+                          <div style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 800, color: item.isClient ? '#fff' : BLK, fontFamily: FH }}>{item.da}</div>
+                        </div>
+                        <div style={{ width: 80, fontSize: 11, color: '#9ca3af', textAlign: 'right' }}>{item.links?.toLocaleString()} links</div>
+                      </div>
+                    ))
+                  })()}
+                </div>
+                <div style={{ marginTop: 16, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bae6fd', fontSize: 12, color: '#0c4a6e', lineHeight: 1.6 }}>
+                  <strong>What this means:</strong> Domain Authority predicts how well a site will rank on Google. DA 1-20 = new/weak, 20-40 = developing, 40-60 = strong, 60+ = authoritative.
+                  <div style={{ fontSize: 10, color: '#64748b', marginTop: 6 }}>Source: Moz Link Explorer API v2</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 04d — GBP Audit */}
+        {rd.gbp_audit && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: AMB + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: AMB }}>04d</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Google Business Profile audit</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>Your GBP listing completeness — verified via Google Places API</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: rd.gbp_audit.audit.score >= 80 ? GRN : rd.gbp_audit.audit.score >= 60 ? AMB : R, lineHeight: 1 }}>{rd.gbp_audit.audit.score}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>GBP Score</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+              {[
+                ['Rating', rd.gbp_audit.rating ? `${rd.gbp_audit.rating}★` : 'N/A', rd.gbp_audit.rating >= 4.0 ? GRN : rd.gbp_audit.rating >= 3.0 ? AMB : R],
+                ['Reviews', rd.gbp_audit.review_count?.toLocaleString() || '0', rd.gbp_audit.review_count >= 50 ? GRN : rd.gbp_audit.review_count >= 10 ? AMB : R],
+                ['Photos', rd.gbp_audit.photo_count || '0', rd.gbp_audit.photo_count >= 10 ? GRN : rd.gbp_audit.photo_count >= 5 ? AMB : R],
+                ['Status', rd.gbp_audit.business_status === 'OPERATIONAL' ? 'Active' : rd.gbp_audit.business_status || 'Unknown', rd.gbp_audit.business_status === 'OPERATIONAL' ? GRN : R],
+              ].map(([label, val, color]) => (
+                <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                  <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            {rd.gbp_audit.audit.passes?.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                {rd.gbp_audit.audit.passes.map((p, i) => (
+                  <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: GRN + '12', color: GRN, fontSize: 11, fontWeight: 600 }}>✓ {p}</span>
+                ))}
+              </div>
+            )}
+            {rd.gbp_audit.audit.fails?.length > 0 && (
+              <div style={{ padding: '14px 18px', borderRadius: 8, background: R + '06', border: `1px solid ${R}15` }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, fontFamily: FH }}>Needs attention</div>
+                {rd.gbp_audit.audit.fails.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                    <span style={{ color: R, fontSize: 12, flexShrink: 0 }}>✕</span>
+                    <div><span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{f.label}</span><span style={{ fontSize: 12, color: '#6b7280' }}> — {f.fix}</span></div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {rd.gbp_audit.recent_reviews?.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10, fontFamily: FH }}>Recent Reviews</div>
+                {rd.gbp_audit.recent_reviews.slice(0, 3).map((r, i) => (
+                  <div key={i} style={{ padding: '10px 14px', background: '#f9fafb', borderRadius: 8, borderLeft: `3px solid ${r.rating >= 4 ? GRN : r.rating >= 3 ? AMB : R}`, marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: r.rating >= 4 ? GRN : r.rating >= 3 ? AMB : R }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                    {r.text && <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginTop: 4 }}>{r.text}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ marginTop: 12, fontSize: 10, color: '#9ca3af' }}>Source: Google Places API — verified GBP listing data</div>
+          </div>
+        )}
+
+        {/* 04e — Real User Speed (CrUX) */}
+        {rd.crux_data && (
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: GRN + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: GRN }}>04e</div>
+              <div>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Real user speed data</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>Chrome UX Report — actual speed from real visitors (75th percentile, mobile)</div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              {[
+                ['LCP', rd.crux_data.lcp_ms, 'ms', 2500, 4000, 'Largest Contentful Paint'],
+                ['FCP', rd.crux_data.fcp_ms, 'ms', 1800, 3000, 'First Contentful Paint'],
+                ['INP', rd.crux_data.inp_ms, 'ms', 200, 500, 'Interaction to Next Paint'],
+                ['CLS', rd.crux_data.cls, '', 0.1, 0.25, 'Cumulative Layout Shift'],
+                ['TTFB', rd.crux_data.ttfb_ms, 'ms', 800, 1800, 'Time to First Byte'],
+                ['FID', rd.crux_data.fid_ms, 'ms', 100, 300, 'First Input Delay'],
+              ].filter(([,v]) => v != null).map(([label, val, unit, good, poor, full]) => {
+                const color = val <= good ? GRN : val <= poor ? AMB : R
+                return (
+                  <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                    <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>
+                      {unit === 'ms' ? (val >= 1000 ? `${(val/1000).toFixed(1)}s` : `${Math.round(val)}ms`) : (typeof val === 'number' ? val.toFixed(2) : val)}
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginTop: 4, fontFamily: FH }}>{label}</div>
+                    <div style={{ fontSize: 9, color: '#d1d5db', marginTop: 2 }}>{full}</div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ marginTop: 12, fontSize: 10, color: '#9ca3af' }}>Source: {rd.crux_data.source}</div>
+          </div>
+        )}
+
+        {/* 05b — ROI Calculator Suite */}
+        {rd && (
+          <div style={{ marginBottom: 16 }}>
+            <UnifiedCalculator reportData={rd} reportInputs={report?.inputs} />
+          </div>
+        )}
+
+        {/* Data Sources Badge */}
+        {rd.data_enrichment_sources?.length > 0 && (
+          <div style={{ padding: '12px 20px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', marginBottom: 16 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>Verified Data Sources ({rd.data_enrichment_sources.length})</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {rd.data_enrichment_sources.map((src, i) => (
+                <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #e5e7eb', fontSize: 10, color: '#6b7280', fontWeight: 500 }}>{src}</span>
               ))}
             </div>
           </div>
