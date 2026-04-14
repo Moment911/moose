@@ -805,6 +805,7 @@ export default function OnboardingPage() {
   const { token } = useParams();
   const [status, setStatus] = useState('loading');
   const [tokenData, setTokenData] = useState(null);
+  const [agencyInfo, setAgencyInfo] = useState(null);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [aiSugs, setAiSugs] = useState({});
@@ -1146,6 +1147,14 @@ export default function OnboardingPage() {
         return;
       }
       setTokenData(data);
+
+      // Fetch agency info (logo, name) for branding
+      if (data.agency_id) {
+        supabase.from('agencies').select('logo_url, name, brand_name').eq('id', data.agency_id).maybeSingle()
+          .then(({ data: ag }) => { if (ag) setAgencyInfo(ag) })
+          .catch(() => {})
+      }
+
       // ─── Full DB → form hydration ───────────────────────────────
       // Pulls every dedicated client column back to its form key AND
       // any spillover that lives in clients.onboarding_answers jsonb.
@@ -2218,13 +2227,21 @@ export default function OnboardingPage() {
       <div style={{ maxWidth: 820, margin: '0 auto', padding: activeVoiceCall ? '72px 20px 80px' : '28px 20px 80px' }} ref={topRef}>
 
         {/* ── STATE A / B / D — Smart status banner ── */}
+        {/* Agency logo + Powered by Koto header */}
+        {agencyInfo?.logo_url && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <img src={agencyInfo.logo_url} alt={agencyInfo.brand_name || agencyInfo.name} style={{ height: 48, maxWidth: 200, objectFit: 'contain' }} />
+            <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: "'Proxima Nova', sans-serif" }}>Powered by <strong style={{ color: '#00C2CB' }}>Koto</strong></span>
+          </div>
+        )}
+
         {!isComplete && isFirstVisit && (
           <div style={{
             background: 'linear-gradient(135deg, #00C2CB, #0099A8)',
             color: '#fff', borderRadius: 16, padding: '28px 32px', marginBottom: 28,
           }}>
             <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
-              Welcome to your onboarding 👋
+              Welcome{tokenData?.clients?.name ? `, ${tokenData.clients.name}` : ''}
             </div>
             <div style={{ fontSize: 15, lineHeight: 1.8, opacity: 0.95, marginBottom: 20 }}>
               This is your personal onboarding document — it stays here as long as you need it.
