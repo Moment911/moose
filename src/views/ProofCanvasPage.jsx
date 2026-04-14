@@ -93,7 +93,9 @@ export default function ProofCanvasPage() {
       const rect = canvasRef.current.getBoundingClientRect()
       const x = (e.clientX - rect.left - pan.x) / zoom - dragging.offsetX
       const y = (e.clientY - rect.top - pan.y) / zoom - dragging.offsetY
-      setCards(prev => prev.map(c => c.id === dragging.id ? { ...c, x, y } : c))
+      const snapX = Math.round(x / 20) * 20
+      const snapY = Math.round(y / 20) * 20
+      setCards(prev => prev.map(c => c.id === dragging.id ? { ...c, x: snapX, y: snapY } : c))
       return
     }
 
@@ -219,6 +221,19 @@ export default function ProofCanvasPage() {
             <button onClick={() => setZoom(z => Math.max(0.1, z - 0.2))} style={{ padding: '6px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }}><ZoomOut size={16} color="#374151" /></button>
             <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }) }} style={{ padding: '6px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }}><Maximize2 size={16} color="#374151" /></button>
             <div style={{ width: 1, height: 24, background: '#e5e7eb', margin: '0 4px' }} />
+            <button onClick={() => {
+              const cols = Math.ceil(Math.sqrt(cards.length))
+              setCards(prev => prev.map((c, i) => ({
+                ...c,
+                x: (i % cols) * (CARD_W + 60) + 60,
+                y: Math.floor(i / cols) * (CARD_H + 80) + 60,
+              })))
+              setPan({ x: 0, y: 0 })
+              setZoom(1)
+              toast.success('Auto-arranged')
+            }} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              Auto Layout
+            </button>
             <button onClick={saveLayout} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Save</button>
           </div>
         </div>
@@ -291,6 +306,18 @@ export default function ProofCanvasPage() {
                       <path d={`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`}
                         fill="none" stroke="#E6007E" strokeWidth={2} strokeDasharray="6,4" />
                       <circle cx={x2} cy={y2} r={4} fill="#E6007E" />
+                      <text x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 8}
+                        textAnchor="middle" fill="#E6007E" fontSize={10} fontWeight="600"
+                        style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+                        onClick={e => {
+                          e.stopPropagation()
+                          const label = prompt('Connection label:', conn.label || '')
+                          if (label !== null) {
+                            setConnections(prev => prev.map(c => c.id === conn.id ? { ...c, label } : c))
+                          }
+                        }}>
+                        {conn.label || 'click to label'}
+                      </text>
                     </g>
                   )
                 })}
@@ -350,6 +377,64 @@ export default function ProofCanvasPage() {
                   </div>
                 )
               })}
+            </div>
+
+            {/* Minimap */}
+            <div style={{ position: 'absolute', bottom: 16, right: 16, width: 160, height: 100, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.1)', zIndex: 100 }}
+              onClick={e => {
+                const rect = e.currentTarget.getBoundingClientRect()
+                const clickX = (e.clientX - rect.left) / rect.width
+                const clickY = (e.clientY - rect.top) / rect.height
+                const allX = cards.map(c => c.x)
+                const allY = cards.map(c => c.y)
+                const minX = Math.min(...allX, 0)
+                const minY = Math.min(...allY, 0)
+                const maxX = Math.max(...allX.map((x, i) => x + cards[i].w), 800)
+                const maxY = Math.max(...allY.map((y, i) => y + cards[i].h), 600)
+                const targetX = minX + clickX * (maxX - minX)
+                const targetY = minY + clickY * (maxY - minY)
+                setPan({ x: -targetX * zoom + 400, y: -targetY * zoom + 300 })
+              }}>
+              {(() => {
+                if (cards.length === 0) return null
+                const allX = cards.map(c => c.x)
+                const allY = cards.map(c => c.y)
+                const minX = Math.min(...allX, 0) - 40
+                const minY = Math.min(...allY, 0) - 40
+                const maxX = Math.max(...allX.map((x, i) => x + cards[i].w), 800) + 40
+                const maxY = Math.max(...allY.map((y, i) => y + cards[i].h), 600) + 40
+                const rangeX = maxX - minX || 1
+                const rangeY = maxY - minY || 1
+                const scale = Math.min(160 / rangeX, 100 / rangeY)
+                return (
+                  <svg width={160} height={100}>
+                    {cards.map(c => (
+                      <rect key={c.id}
+                        x={(c.x - minX) * scale} y={(c.y - minY) * scale}
+                        width={c.w * scale} height={c.h * scale}
+                        fill={selectedCard === c.id ? '#E6007E' : '#e5e7eb'}
+                        stroke={selectedCard === c.id ? '#E6007E' : '#d1d5db'}
+                        strokeWidth={0.5} rx={1} />
+                    ))}
+                    {connections.map(conn => {
+                      const from = cards.find(c => c.id === conn.fromId)
+                      const to = cards.find(c => c.id === conn.toId)
+                      if (!from || !to) return null
+                      return <line key={conn.id}
+                        x1={(from.x + from.w/2 - minX) * scale} y1={(from.y + from.h - minY) * scale}
+                        x2={(to.x + to.w/2 - minX) * scale} y2={(to.y - minY) * scale}
+                        stroke="#E6007E" strokeWidth={0.5} />
+                    })}
+                    {/* Viewport rectangle */}
+                    <rect
+                      x={(-pan.x / zoom - minX) * scale}
+                      y={(-pan.y / zoom - minY) * scale}
+                      width={(canvasRef.current?.clientWidth || 800) / zoom * scale}
+                      height={(canvasRef.current?.clientHeight || 600) / zoom * scale}
+                      fill="none" stroke="#E6007E" strokeWidth={1} strokeDasharray="3,2" rx={1} />
+                  </svg>
+                )
+              })()}
             </div>
           </div>
         </div>
