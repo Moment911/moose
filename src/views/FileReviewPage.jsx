@@ -203,6 +203,19 @@ export default function FileReviewPage() {
     else setShowNamePrompt(true)
   }, [authFirstName, agencyName])
 
+  // ── Auto-fit zoom to container on load ──
+  useEffect(() => {
+    if (!canvasContainerRef.current || !contentWidth || !contentHeight || contentWidth < 100) return
+    const container = canvasContainerRef.current
+    const availW = container.clientWidth - 48  // subtract padding
+    const availH = container.clientHeight - 48
+    if (availW <= 0 || availH <= 0) return
+    const fitZoom = Math.min(availW / contentWidth, availH / contentHeight, 1) // never zoom above 100%
+    if (fitZoom < 1 && fitZoom > 0.1) {
+      setZoom(Math.round(fitZoom * 20) / 20) // round to nearest 5%
+    }
+  }, [contentWidth, contentHeight])
+
   // ── Fetch HTML content for srcdoc rendering ──
   // Supabase Storage serves .html files as text/plain, which means
   // iframes with src= show raw code instead of a rendered page.
