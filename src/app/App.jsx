@@ -168,6 +168,7 @@ import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import MarketingQuizPage from '../views/MarketingQuizPage'
+import IntelPublicPage from '../views/IntelPublicPage'
 // HelpAssistant removed — floating button was disabled per user request
 
 // Global error handler — reports to /api/errors
@@ -251,6 +252,7 @@ export default function App() {
           <Route path="/onboard/:token" element={<OnboardingPage />} />
           <Route path="/onboarding/:token" element={<OnboardingPage />} />
           <Route path="/review/:token" element={<PublicReviewPage />} />
+          <Route path="/intel/public/:reportId" element={<IntelPublicPage />} />
           <Route path="/proof-review/:token" element={<ProjectReviewPage />} />
           <Route path="/r/:token" element={<PublicReportPage />} />
           <Route path="/p/:token" element={<ProposalPublicPage />} />
