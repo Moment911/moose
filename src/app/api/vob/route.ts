@@ -883,7 +883,7 @@ E01: "Can you confirm the member's policy is currently active, and what is the e
 E02: "What type of plan is this — HMO, PPO, EPO, or something else?" [plan_type]
 E03: "Is behavioral health — including substance use disorder treatment — a covered benefit?" [bh_carveout]
 E04: "Is behavioral health managed by a separate administrator, or does ${carrierName} manage it directly?" [bh_administrator]
-E05: "What's the group name and group number on the policy?" [group_name]
+E05: "I have the group number as ${m.group_number || 'on file'} under ${m.group_name || 'the employer group'} — can you confirm that matches what you're seeing?" [group_name]
 
 PRIORITY 2 — FINANCIALS:
 D01: "What is the individual deductible — in-network? And out-of-network?" [ded_individual_in, ded_individual_out]
