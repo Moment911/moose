@@ -566,8 +566,8 @@ export async function POST(req: NextRequest) {
             webhook_url: webhookUrl,
             enable_backchannel: false,
             interruption_sensitivity: 0.3,
-            responsiveness: 0.4,
-            voice_speed: 0.85,
+            responsiveness: 0.7,
+            voice_speed: 0.95,
             end_call_after_silence_ms: 600000,
             reminder_trigger_ms: 120000,
             reminder_max_count: 1,
@@ -586,8 +586,8 @@ export async function POST(req: NextRequest) {
               enable_backchannel: false,
               interruption_sensitivity: 0.3,
               ambient_sound: null,
-              responsiveness: 0.4,
-              voice_speed: 0.85,
+              responsiveness: 0.7,
+              voice_speed: 0.95,
               language: 'en-US',
               // Hold/silence settings — critical for VOB calls
               end_call_after_silence_ms: 600000,   // 10 min — don't hang up during holds
