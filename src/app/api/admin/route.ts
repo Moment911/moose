@@ -428,5 +428,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ users: enriched })
   }
 
+  // ── Submit brand kit edit (client-facing) ──────────────────────────────
+  if (action === 'submit_brand_kit_edit') {
+    const { client_id, field, value } = body
+    if (!client_id || !field) return NextResponse.json({ error: 'client_id and field required' }, { status: 400 })
+    const { data: client } = await s.from('clients').select('brand_kit').eq('id', client_id).single()
+    const bk = client?.brand_kit || {}
+    bk.client_edits = bk.client_edits || {}
+    bk.client_edits[field] = { value, submitted_at: new Date().toISOString(), status: 'pending' }
+    const { error } = await s.from('clients').update({ brand_kit: bk }).eq('id', client_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }

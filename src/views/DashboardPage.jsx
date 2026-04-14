@@ -6,7 +6,7 @@ import {
   Inbox, Brain, ArrowUpRight, Zap, Users,
   Clock, AlertCircle, Loader2, BarChart2, FileSignature, X,
   Globe, Shield, Phone, Sparkles, Activity, HardDrive,
-  DollarSign, Check, CheckCircle, RefreshCw, FileText, CheckSquare
+  DollarSign, Check, CheckCircle, RefreshCw, FileText, CheckSquare, Palette, Edit3, Send
 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import ViewAsModal from '../components/ViewAsModal'
@@ -1420,6 +1420,196 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
                 ))}
               </div>
             )}
+
+            {/* ── Brand Kit ───────────────────────────────────────────────── */}
+            {!loading && (() => {
+              const bk = clientInfo?.brand_kit || {}
+              const vis = bk.portal_visibility || {}
+              const edits = bk.client_edits || {}
+              const hasAnyVisible = ['logo_url','colors','description','services','industry','tagline'].some(f => vis[f])
+              if (!hasAnyVisible) return null
+
+              // Editable field state management
+              const BrandField = ({ field, label, value, editable }) => {
+                const [editing, setEditing] = useState(false)
+                const [draft, setDraft] = useState(value || '')
+                const [submitted, setSubmitted] = useState(edits[field]?.status === 'pending')
+
+                const handleSubmit = async () => {
+                  try {
+                    const res = await fetch('/api/admin', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'submit_brand_kit_edit', client_id: clientId, field, value: draft }),
+                    })
+                    if (res.ok) {
+                      setSubmitted(true)
+                      setEditing(false)
+                    }
+                  } catch (e) { console.warn('[BrandKit] submit error:', e) }
+                }
+
+                return (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase',
+                      letterSpacing: '.06em', fontFamily: FH, marginBottom: 6,
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    }}>
+                      <span>{label}</span>
+                      {editable && !editing && !submitted && (
+                        <button onClick={() => setEditing(true)} style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px',
+                          color: T, fontSize: 11, fontWeight: 700, fontFamily: FH,
+                          display: 'flex', alignItems: 'center', gap: 4,
+                        }}>
+                          <Edit3 size={11} /> Edit
+                        </button>
+                      )}
+                      {submitted && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, color: AMB, fontFamily: FH,
+                          background: AMB + '15', padding: '2px 8px', borderRadius: 10,
+                        }}>
+                          Pending Review
+                        </span>
+                      )}
+                    </div>
+                    {editing ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <textarea
+                          value={draft}
+                          onChange={e => setDraft(e.target.value)}
+                          rows={field === 'description' ? 4 : 2}
+                          style={{
+                            width: '100%', padding: '10px 12px', borderRadius: 8,
+                            border: `1.5px solid ${T}`, fontFamily: FB, fontSize: 13,
+                            resize: 'vertical', outline: 'none', boxSizing: 'border-box',
+                            lineHeight: 1.5,
+                          }}
+                        />
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={handleSubmit} style={{
+                            padding: '6px 14px', borderRadius: 8, border: 'none',
+                            background: T, color: '#fff', fontSize: 12, fontWeight: 700,
+                            fontFamily: FH, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                          }}>
+                            <Send size={12} /> Submit for Review
+                          </button>
+                          <button onClick={() => { setEditing(false); setDraft(value || '') }} style={{
+                            padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
+                            background: '#fff', color: '#6b7280', fontSize: 12, fontWeight: 600,
+                            fontFamily: FB, cursor: 'pointer',
+                          }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 14, color: BLK, fontFamily: FB, lineHeight: 1.6 }}>
+                        {value || <span style={{ color: '#d1d5db', fontStyle: 'italic' }}>Not set</span>}
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+
+              return (
+                <div style={{
+                  background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
+                  padding: '20px 24px', marginBottom: 20,
+                }}>
+                  <div style={{
+                    fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 18,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <Palette size={16} color={R} />
+                    Your Brand
+                  </div>
+
+                  {/* Logo */}
+                  {vis.logo_url && bk.logo_url && (
+                    <div style={{ marginBottom: 18 }}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase',
+                        letterSpacing: '.06em', fontFamily: FH, marginBottom: 8,
+                      }}>
+                        Logo
+                      </div>
+                      <div style={{
+                        padding: 16, background: '#f9fafb', borderRadius: 10,
+                        display: 'inline-block', border: '1px solid #f3f4f6',
+                      }}>
+                        <img src={bk.logo_url} alt="Brand logo" style={{
+                          maxHeight: 64, maxWidth: 200, objectFit: 'contain', display: 'block',
+                        }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Colors */}
+                  {vis.colors && bk.colors && (
+                    <div style={{ marginBottom: 18 }}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase',
+                        letterSpacing: '.06em', fontFamily: FH, marginBottom: 8,
+                      }}>
+                        Brand Colors
+                      </div>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        {[
+                          { label: 'Primary', color: bk.colors?.primary },
+                          { label: 'Secondary', color: bk.colors?.secondary },
+                          { label: 'Accent', color: bk.colors?.accent },
+                        ].filter(c => c.color).map((c, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{
+                              width: 32, height: 32, borderRadius: 8, background: c.color,
+                              border: '1px solid #e5e7eb', flexShrink: 0,
+                            }} />
+                            <div>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH }}>{c.label}</div>
+                              <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB, textTransform: 'uppercase' }}>{c.color}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description — editable */}
+                  {vis.description && <BrandField field="description" label="Description" value={bk.description} editable />}
+
+                  {/* Services — tag list */}
+                  {vis.services && bk.services && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase',
+                        letterSpacing: '.06em', fontFamily: FH, marginBottom: 8,
+                      }}>
+                        Services
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {(Array.isArray(bk.services) ? bk.services : [bk.services]).map((svc, i) => (
+                          <span key={i} style={{
+                            padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                            fontFamily: FB, background: T + '12', color: T, border: `1px solid ${T}25`,
+                          }}>
+                            {svc}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Industry */}
+                  {vis.industry && <BrandField field="industry" label="Industry" value={bk.industry} editable={false} />}
+
+                  {/* Tagline — editable */}
+                  {vis.tagline && <BrandField field="tagline" label="Tagline" value={bk.tagline} editable />}
+                </div>
+              )
+            })()}
 
             {/* ── Project Status Cards ───────────────────────────────────────── */}
             {!loading && recentProjects.length > 0 && (

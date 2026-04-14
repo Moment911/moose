@@ -7,10 +7,75 @@ import {
   Search, Play, Loader2, ChevronRight, BarChart2, TrendingUp, Users, DollarSign,
   Target, Globe, Star, Phone, MapPin, ExternalLink, AlertCircle, CheckCircle,
   ArrowUpRight, ArrowDownRight, Minus, RefreshCw, Trash2, Clock, FileText,
-  Zap, Shield, Eye, Activity, ChevronDown, ChevronUp, Sliders
+  Zap, Shield, Eye, Activity, ChevronDown, ChevronUp, Sliders, Download, Share2, Brain, Check as CheckIcon2, X as X2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
+// ── Brain teasers for scanning view ────────────────────────────────────────
+const BRAIN_TEASERS = [
+  { question: 'If 96 out of 100 visitors leave your site without taking action, what\'s your bounce rate?', choices: ['72%', '84%', '96%', '88%'], answer: 2, explanation: 'A 96% bounce rate means only 4 out of 100 visitors engage. Industry average for services is ~65% — above 80% signals a serious problem.' },
+  { question: 'A business spends $500 on ads and gets $3,000 in revenue. What\'s the ROI?', choices: ['300%', '500%', '600%', '250%'], answer: 1, explanation: 'ROI = (Revenue - Cost) / Cost × 100. ($3,000 - $500) / $500 = 500%. For every dollar spent, $5 came back.' },
+  { question: '75% of users never scroll past page 1 of Google. If you\'re on page 2, what % of searchers miss you?', choices: ['50%', '65%', '75%', '90%'], answer: 2, explanation: '75% never click past page 1. If you\'re not ranking there, three-quarters of potential customers never see you.' },
+  { question: 'Responding to a lead in 5 min vs 30 min makes you _x more likely to qualify them.', choices: ['5x', '10x', '21x', '15x'], answer: 2, explanation: 'Harvard found 5-minute responders are 21x more likely to qualify a lead. Speed-to-lead is the most impactful sales metric.' },
+  { question: 'What % of consumers read online reviews before making a purchase?', choices: ['78%', '85%', '92%', '68%'], answer: 2, explanation: '92% read reviews before buying. Your Google reviews are a primary decision-making tool for nearly every customer.' },
+  { question: 'The average SMB wastes $__K per year on ads that don\'t convert.', choices: ['$8K', '$15K', '$22K', '$10K'], answer: 1, explanation: 'SMBs waste an average $15,000/year on poorly targeted ad spend. Proper tracking can reclaim most of it.' },
+  { question: 'For every $1 spent on email marketing, the average return is $__.', choices: ['$12', '$24', '$36', '$44'], answer: 2, explanation: 'Email delivers $36 for every $1 — the highest-ROI digital channel. Yet most SMBs underinvest in their list.' },
+  { question: 'What % of local mobile searches result in a store visit within a week?', choices: ['55%', '72%', '88%', '64%'], answer: 2, explanation: '88% of local mobile searches lead to a call or visit within 7 days. Local SEO is your most direct line to revenue.' },
+]
+
+function BrainTeaserGame({ progress }) {
+  const [idx, setIdx] = useState(0)
+  const [sel, setSel] = useState(null)
+  const [showExp, setShowExp] = useState(false)
+  const [score, setScore] = useState(0)
+  const [answered, setAnswered] = useState(0)
+  const timerRef = useRef(null)
+  const t = BRAIN_TEASERS[idx % BRAIN_TEASERS.length]
+
+  function pick(i) {
+    if (sel !== null) return
+    setSel(i); setShowExp(true); setAnswered(a => a + 1)
+    if (i === t.answer) setScore(s => s + 1)
+    timerRef.current = setTimeout(() => { setSel(null); setShowExp(false); setIdx(x => x + 1) }, 3500)
+  }
+  useEffect(() => () => clearTimeout(timerRef.current), [])
+
+  return (
+    <div style={{ maxWidth: 600, margin: '40px auto', textAlign: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 }}>
+        <Brain size={28} color={T} />
+        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>Marketing Brain Teasers</div>
+      </div>
+      {answered > 0 && <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, fontFamily: FH }}>{score}/{answered} correct</div>}
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '28px 32px', marginBottom: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 12, fontFamily: FH }}>Question {(idx % BRAIN_TEASERS.length) + 1} of {BRAIN_TEASERS.length}</div>
+        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, lineHeight: 1.5, marginBottom: 24 }}>{t.question}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {t.choices.map((c, i) => {
+            let bg = '#f9fafb', border = '1.5px solid #e5e7eb', tc = BLK
+            if (sel !== null) {
+              if (i === t.answer) { bg = GRN + '15'; border = `1.5px solid ${GRN}`; tc = GRN }
+              else if (i === sel) { bg = R + '15'; border = `1.5px solid ${R}`; tc = R }
+            }
+            return <button key={i} onClick={() => pick(i)} style={{ padding: '14px 18px', borderRadius: 10, background: bg, border, cursor: sel !== null ? 'default' : 'pointer', fontFamily: FH, fontSize: 16, fontWeight: 800, color: tc, transition: 'all .2s' }}>{c}</button>
+          })}
+        </div>
+        {showExp && (
+          <div style={{ marginTop: 20, padding: '14px 18px', borderRadius: 10, background: (sel === t.answer ? GRN : R) + '08', border: `1px solid ${sel === t.answer ? GRN : R}20`, textAlign: 'left' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: sel === t.answer ? GRN : R, marginBottom: 4, fontFamily: FH }}>{sel === t.answer ? 'Correct!' : 'Not quite!'}</div>
+            <div style={{ fontSize: 13, color: '#374141', lineHeight: 1.6 }}>{t.explanation}</div>
+          </div>
+        )}
+      </div>
+      <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: '#6b7280', marginBottom: 8 }}>Analyzing your market...</div>
+      <div style={{ height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden', marginBottom: 8 }}>
+        <div style={{ height: '100%', width: `${progress}%`, background: T, borderRadius: 4, transition: 'width .3s' }} />
+      </div>
+      <div style={{ fontSize: 13, color: T, fontWeight: 700, fontFamily: FH }}>{Math.round(progress)}%</div>
+    </div>
+  )
+}
 
 // ── Score color helper ─────────────────────────────────────────────────────
 function scoreColor(s) {
@@ -335,6 +400,18 @@ export default function IntelPage() {
             <h1 style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK, margin: 0, letterSpacing: '-.03em' }}>KotoIntel</h1>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
+            {view === 'report' && report?.id && (
+              <>
+                <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/intel/public/' + report.id); toast.success('Share link copied!') }}
+                  style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${T}40`, background: '#fff', color: T, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Share2 size={13} /> Share
+                </button>
+                <button onClick={() => window.print()}
+                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Download size={13} /> PDF
+                </button>
+              </>
+            )}
             <button onClick={() => { setView('home'); setReport(null) }}
               style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FH }}>
               + New Scan
@@ -432,17 +509,9 @@ export default function IntelPage() {
             </div>
           )}
 
-          {/* ══════ SCANNING ══════ */}
+          {/* ══════ SCANNING — Brain Teasers ══════ */}
           {view === 'scanning' && (
-            <div style={{ maxWidth: 500, margin: '80px auto', textAlign: 'center' }}>
-              <Loader2 size={48} color={T} style={{ animation: 'spin 1s linear infinite', marginBottom: 20 }} />
-              <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK, marginBottom: 8 }}>Running KotoIntel Scan</div>
-              <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Crawling website, finding competitors, analyzing keywords, building strategy...</div>
-              <div style={{ height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden', marginBottom: 8 }}>
-                <div style={{ height: '100%', width: `${scanProgress}%`, background: T, borderRadius: 4, transition: 'width .3s' }} />
-              </div>
-              <div style={{ fontSize: 13, color: T, fontWeight: 700, fontFamily: FH }}>{Math.round(scanProgress)}%</div>
-            </div>
+            <BrainTeaserGame progress={scanProgress} />
           )}
 
           {/* ══════ REPORT ══════ */}
