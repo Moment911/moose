@@ -2227,13 +2227,22 @@ export default function OnboardingPage() {
       <div style={{ maxWidth: 820, margin: '0 auto', padding: activeVoiceCall ? '72px 20px 80px' : '28px 20px 80px' }} ref={topRef}>
 
         {/* ── STATE A / B / D — Smart status banner ── */}
-        {/* Agency logo + Powered by Koto header */}
-        {agencyInfo?.logo_url && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <img src={agencyInfo.logo_url} alt={agencyInfo.brand_name || agencyInfo.name} style={{ height: 48, maxWidth: 200, objectFit: 'contain' }} />
-            <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: "'Proxima Nova', sans-serif" }}>Powered by <strong style={{ color: '#00C2CB' }}>Koto</strong></span>
+        {/* Header — Agency logo + Powered by Koto + Client logo */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: tokenData?.clients?.logo_url ? 16 : 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {agencyInfo?.logo_url && (
+                <img src={agencyInfo.logo_url} alt={agencyInfo.brand_name || agencyInfo.name} style={{ height: 40, maxWidth: 180, objectFit: 'contain' }} />
+              )}
+              <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: "'Proxima Nova', sans-serif" }}>Powered by <strong style={{ color: '#00C2CB' }}>Koto</strong></span>
+            </div>
           </div>
-        )}
+          {tokenData?.clients?.logo_url && (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <img src={tokenData.clients.logo_url} alt={tokenData.clients.name || 'Client'} style={{ height: 56, maxWidth: 220, objectFit: 'contain' }} />
+            </div>
+          )}
+        </div>
 
         {!isComplete && isFirstVisit && (
           <div style={{

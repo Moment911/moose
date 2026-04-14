@@ -200,6 +200,7 @@ export default function ClientsPage() {
         review_rating: form.review_rating || null,
         review_count:  form.review_count || null,
         google_photo_url: form.google_photo_url || null,
+        logo_url:      form.logo_url?.trim() || null,
         agency_id:     agencyId,
       }).select().single()
       if (error) {
@@ -245,12 +246,12 @@ export default function ClientsPage() {
       if (form.phone || form.website || form.industry || form.status !== 'active') {
         const { data: latest } = await getClients(agencyId)
         const newest = latest?.find(c => c.name === form.name.trim())
-        if (newest) await updateClient(newest.id, { phone:form.phone, website:form.website, industry:form.sic_label || form.industry, sic_code:form.sic_code, status:form.status })
+        if (newest) await updateClient(newest.id, { phone:form.phone, website:form.website, industry:form.sic_label || form.industry, sic_code:form.sic_code, status:form.status, logo_url:form.logo_url?.trim() || null })
       }
       toast.success('Client added')
     }
     setShowAdd(false); setEditingId(null); setPlacesPreview(null)
-    setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
+    setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'', logo_url:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false)
     await load()
     await refreshClients()
   }
@@ -268,7 +269,7 @@ export default function ClientsPage() {
     setEditingId(client.id)
     setForm({ name:client.name||'', email:client.email||'', phone:client.phone||'',
       website:client.website||'', industry:client.industry||'', sic_code:client.sic_code||'', sic_label:client.industry||'', status:client.status||'active',
-      naics_code:client.naics_code||'', naics_title:client.naics_title||'' })
+      naics_code:client.naics_code||'', naics_title:client.naics_title||'', logo_url:client.logo_url||'' })
     setShowAdd(true)
     setMenuOpen(null)
   }
@@ -424,7 +425,7 @@ export default function ClientsPage() {
                 {clients.length} total · {clients.filter(c=>c.status==='active').length} active
               </p>
             </div>
-            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
+            <button onClick={() => { setShowAdd(true); setEditingId(null); setForm({ name:'', email:'', phone:'', website:'', industry:'', sic_code:'', sic_label:'', status:'active', address:'', city:'', state:'', zip:'', notes:'', monthly_value:'', naics_code:'', naics_title:'', logo_url:'' }); setBizResults([]); setBizSearch(''); setBizSearched(false) }}
               style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:11, border:'none', background:ACCENT, color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer', boxShadow:`0 4px 14px ${ACCENT}40` }}>
               <Plus size={16}/> Add Client
             </button>
@@ -551,6 +552,7 @@ export default function ClientsPage() {
                   { label:'Email',         key:'email', placeholder:'info@client.com',   type:'email' },
                   { label:'Phone',         key:'phone', placeholder:'(305) 555-0100',    type:'tel' },
                   { label:'Website',       key:'website', placeholder:'https://client.com', type:'url' },
+                  { label:'Logo URL',      key:'logo_url', placeholder:'https://example.com/logo.png', type:'url' },
                   { label:'Monthly Value ($)', key:'monthly_value', placeholder:'2500',  type:'number' },
                 ].map(f=>(
                   <div key={f.key}>
