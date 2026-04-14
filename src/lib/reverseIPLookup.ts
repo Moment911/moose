@@ -42,8 +42,9 @@ export async function identifyVisitor(ip: string): Promise<{
 
     return {
       company: confidence > 30 ? company : null,
-      domain,
+      domain: confidence > 30 ? domain : null,
       industry: null,
+      // Always return location — even residential visitors have a city/state
       city: data.city || null,
       state: data.region_code || null,
       country: data.country_code || null,

@@ -316,36 +316,37 @@ export async function POST(req: NextRequest) {
       // Async: reverse IP lookup + auto-enrich domain
       if (ip) {
         identifyVisitor(ip).then(async (result) => {
+          // Always store location — even residential IPs have a city/state
+          const sessionUpdate: any = {
+            identified_city: result.city,
+            identified_state: result.state,
+            identified_country: result.country,
+            identification_confidence: result.confidence,
+          }
+          // Only store company/domain if confidence is meaningful
           if (result.confidence > 30) {
-            await s.from('koto_visitor_sessions').update({
-              identified_company: result.company,
-              identified_domain: result.domain,
-              identified_city: result.city,
-              identified_state: result.state,
-              identified_country: result.country,
-              identification_confidence: result.confidence,
-            }).eq('session_id', data.session_id)
+            sessionUpdate.identified_company = result.company
+            sessionUpdate.identified_domain = result.domain
+          }
+          await s.from('koto_visitor_sessions').update(sessionUpdate).eq('session_id', data.session_id)
 
-            // Auto-enrich domain (fire-and-forget)
-            if (result.domain) {
-              enrichDomain(result.domain).then(async (enrichment) => {
-                // Store enrichment on any visitor profile linked to this session
-                const { data: sess } = await s.from('koto_visitor_sessions').select('visitor_profile_id').eq('session_id', data.session_id).maybeSingle()
-                if (sess?.visitor_profile_id) {
-                  const { data: prof } = await s.from('koto_visitor_profiles').select('enrichment_data').eq('id', sess.visitor_profile_id).maybeSingle()
-                  // Only enrich if not already done (within last 7 days)
-                  const existingEnrichment = prof?.enrichment_data as any
-                  const enrichedRecently = existingEnrichment?.enriched_at && (Date.now() - new Date(existingEnrichment.enriched_at).getTime()) < 7 * 86400000
-                  if (!enrichedRecently) {
-                    await s.from('koto_visitor_profiles').update({
-                      enrichment_data: enrichment,
-                      identified_company: enrichment.company_name || undefined,
-                      updated_at: new Date().toISOString(),
-                    }).eq('id', sess.visitor_profile_id)
-                  }
+          // Auto-enrich domain (fire-and-forget)
+          if (result.domain && result.confidence > 30) {
+            enrichDomain(result.domain).then(async (enrichment) => {
+              const { data: sess } = await s.from('koto_visitor_sessions').select('visitor_profile_id').eq('session_id', data.session_id).maybeSingle()
+              if (sess?.visitor_profile_id) {
+                const { data: prof } = await s.from('koto_visitor_profiles').select('enrichment_data').eq('id', sess.visitor_profile_id).maybeSingle()
+                const existingEnrichment = prof?.enrichment_data as any
+                const enrichedRecently = existingEnrichment?.enriched_at && (Date.now() - new Date(existingEnrichment.enriched_at).getTime()) < 7 * 86400000
+                if (!enrichedRecently) {
+                  await s.from('koto_visitor_profiles').update({
+                    enrichment_data: enrichment,
+                    identified_company: enrichment.company_name || undefined,
+                    updated_at: new Date().toISOString(),
+                  }).eq('id', sess.visitor_profile_id)
                 }
-              }).catch(() => {})
-            }
+              }
+            }).catch(() => {})
           }
         }).catch(() => {})
       }
@@ -500,7 +501,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Track individual events
-    if (['pageview', 'scroll', 'cta_click', 'form_submit', 'time_milestone', 'pricing_view', 'exit_intent', 'tab_return'].includes(action)) {
+    if (['pageview', 'scroll', 'click', 'cta_click', 'form_submit', 'time_milestone', 'pricing_view', 'exit_intent', 'tab_return'].includes(action)) {
       const sessionId = body.session_id
       const pixelId = body.pixel_id
 
@@ -920,8 +921,8 @@ send('fingerprint',{fingerprint:fp,canvas_hash:h(ch),webgl_hash:h(wh),gpu_render
 }catch(e){}},500);
 /* Scroll tracking */
 var mx=0;window.addEventListener('scroll',function(){var p=Math.round((window.scrollY/(document.body.scrollHeight-window.innerHeight))*100);if(p>mx){mx=p;if(p%25===0)send('scroll',{depth:p});}});
-/* CTA clicks */
-document.addEventListener('click',function(e){var el=e.target.closest('a,button');if(!el)return;var t=(el.innerText||'').slice(0,50),h=el.href||'';if(/call|contact|get|schedule|book|quote|free|start|demo|pricing|signup|register/i.test(t+h))send('cta_click',{text:t,href:h.slice(0,100)});});
+/* Click tracking — all clicks with coordinates for heatmap */
+document.addEventListener('click',function(e){var x=Math.round(e.pageX/document.documentElement.scrollWidth*100),y=Math.round(e.pageY/Math.max(document.body.scrollHeight,1)*100);var el=e.target.closest('a,button,input,select,textarea,[onclick]')||e.target;var tag=el.tagName||'',t=(el.innerText||el.value||'').slice(0,50),h=el.href||'';send('click',{x:x,y:y,tag:tag,text:t,href:h.slice(0,100),selector:(el.id?'#'+el.id:el.className?'.'+el.className.split(' ')[0]:tag).slice(0,60),url:location.href});if(/call|contact|get|schedule|book|quote|free|start|demo|pricing|signup|register/i.test(t+h))send('cta_click',{text:t,href:h.slice(0,100)});});
 /* Form submissions */
 document.addEventListener('submit',function(e){send('form_submit',{form_id:e.target.id||'',form_action:e.target.action||''});});
 /* Pricing page detection */

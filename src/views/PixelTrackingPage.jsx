@@ -812,6 +812,30 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
     return Object.values(map).sort((a, b) => b.views - a.views)
   })()
 
+  // Click heatmap data — aggregate click positions into a grid
+  const clickData = (() => {
+    const clicks = events.filter(ev => ev.event_type === 'click' && ev.event_data?.x != null && ev.event_data?.y != null)
+    if (clicks.length === 0) return null
+    // Build 10x20 grid (x: 10 cols, y: 20 rows) from percentage coordinates
+    const gridCols = 10, gridRows = 20
+    const grid = Array.from({ length: gridRows }, () => Array(gridCols).fill(0))
+    for (const ev of clicks) {
+      const col = Math.min(Math.floor(ev.event_data.x / (100 / gridCols)), gridCols - 1)
+      const row = Math.min(Math.floor(ev.event_data.y / (100 / gridRows)), gridRows - 1)
+      grid[row][col]++
+    }
+    const maxClicks = Math.max(1, ...grid.flat())
+    // Top clicked elements
+    const elemCounts = {}
+    for (const ev of clicks) {
+      const key = ev.event_data.text || ev.event_data.selector || ev.event_data.tag || 'unknown'
+      if (!elemCounts[key]) elemCounts[key] = { label: key, count: 0, tag: ev.event_data.tag }
+      elemCounts[key].count++
+    }
+    const topElements = Object.values(elemCounts).sort((a, b) => b.count - a.count).slice(0, 8)
+    return { grid, maxClicks, totalClicks: clicks.length, topElements, gridCols, gridRows }
+  })()
+
   return (
     <div>
       {/* Back */}
@@ -1101,6 +1125,43 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ── Click Heatmap ───────────────────────────────────── */}
+          {clickData && (
+            <div style={{ background: W, borderRadius: 14, border:'1px solid #e5e7eb', padding:'20px 24px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 10, marginBottom: 18 }}>
+                <MousePointer size={16} color={R} />
+                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Click Heatmap</div>
+                <span style={{ fontSize: 12, color:'#9ca3af', fontFamily: FB, marginLeft:'auto' }}>{clickData.totalClicks} clicks tracked</span>
+              </div>
+
+              {/* Grid visualization */}
+              <div style={{ display:'grid', gridTemplateColumns: `repeat(${clickData.gridCols}, 1fr)`, gap: 2, marginBottom: 18, borderRadius: 8, overflow:'hidden', border:'1px solid #f3f4f6' }}>
+                {clickData.grid.flat().map((count, i) => {
+                  const intensity = count / clickData.maxClicks
+                  return (
+                    <div key={i} style={{
+                      aspectRatio: '2/1',
+                      background: count === 0 ? '#fafafa' : `rgba(230, 0, 126, ${0.1 + intensity * 0.75})`,
+                      transition: 'background .2s',
+                    }} title={`${count} click${count !== 1 ? 's' : ''}`} />
+                  )
+                })}
+              </div>
+
+              {/* Top clicked elements */}
+              <div style={{ fontSize: 11, fontWeight: 700, color:'#9ca3af', fontFamily: FH, textTransform:'uppercase', letterSpacing:'.06em', marginBottom: 10 }}>Most Clicked Elements</div>
+              {clickData.topElements.map((el, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0', borderBottom: i < clickData.topElements.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
+                    <span style={{ padding:'2px 8px', borderRadius: 4, background:'#f3f4f6', fontSize: 10, fontWeight: 700, fontFamily: FH, color:'#6b7280', textTransform:'uppercase' }}>{el.tag}</span>
+                    <span style={{ fontSize: 12, color: BLK, fontFamily: FB, maxWidth: 200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{el.label}</span>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 800, fontFamily: FH, color: R }}>{el.count}</span>
+                </div>
+              ))}
             </div>
           )}
 
