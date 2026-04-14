@@ -458,7 +458,25 @@ export default function IntelPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
                   <div>
                     <label style={labelStyle}>Current lead sources</label>
-                    <input value={leadSources} onChange={e => setLeadSources(e.target.value)} placeholder="e.g. Google, Angi, referrals" style={inputStyle} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      {['Google Ads', 'Google Maps / GBP', 'Organic SEO', 'Facebook / Instagram', 'Angi / HomeAdvisor', 'Thumbtack', 'Yelp', 'Referrals / Word of Mouth', 'Nextdoor', 'Direct Mail', 'Email Marketing', 'LSA (Local Service Ads)', 'LinkedIn', 'TikTok'].map(src => {
+                        const selected = leadSources.split(', ').filter(Boolean).includes(src)
+                        return (
+                          <button key={src} type="button" onClick={() => {
+                            const current = leadSources.split(', ').filter(Boolean)
+                            if (selected) setLeadSources(current.filter(s => s !== src).join(', '))
+                            else setLeadSources([...current, src].join(', '))
+                          }} style={{
+                            padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                            border: `1.5px solid ${selected ? T : '#e5e7eb'}`,
+                            background: selected ? T + '12' : '#fff',
+                            color: selected ? T : '#6b7280',
+                            transition: 'all .15s',
+                          }}>{selected ? '✓ ' : ''}{src}</button>
+                        )
+                      })}
+                    </div>
+                    <input value={leadSources} onChange={e => setLeadSources(e.target.value)} placeholder="or type custom sources" style={{ ...inputStyle, fontSize: 12, padding: '8px 12px' }} />
                   </div>
                   <div>
                     <label style={labelStyle}>Monthly lead goal</label>
