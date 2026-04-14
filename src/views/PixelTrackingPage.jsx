@@ -440,9 +440,22 @@ export default function PixelTrackingPage() {
                     <Users size={28} color="#d1d5db" />
                   </div>
                   <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin:'0 0 8px' }}>No Visitor Profiles Yet</h3>
-                  <p style={{ fontSize: 14, color:'#6b7280', fontFamily: FB, maxWidth: 440, margin:'0 auto' }}>
+                  <p style={{ fontSize: 14, color:'#6b7280', fontFamily: FB, maxWidth: 440, margin:'0 auto', marginBottom: 20 }}>
                     Visitor profiles are created automatically when someone visits a site with your pixel installed.
                   </p>
+                  {sessions.length > 0 && (
+                    <button onClick={async () => {
+                      toast('Backfilling profiles from sessions...')
+                      const res = await apiGet('backfill_profiles', { agency_id: agencyId })
+                      toast.success(`Created ${res.created || 0} profiles from ${res.total_sessions || 0} sessions`)
+                      loadAll()
+                    }} style={{
+                      padding:'12px 28px', borderRadius: 10, border:'none', background: BLK, color: W,
+                      fontSize: 14, fontWeight: 700, fontFamily: FH, cursor:'pointer',
+                    }}>
+                      Backfill from Existing Sessions
+                    </button>
+                  )}
                 </div>
               )}
 

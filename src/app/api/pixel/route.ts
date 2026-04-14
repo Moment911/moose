@@ -83,6 +83,90 @@ export async function GET(req: NextRequest) {
     return Response.json({ data: data || [] })
   }
 
+  // ── Backfill profiles from existing sessions ──────────────────
+  if (action === 'backfill_profiles') {
+    // Get all sessions for this agency that don't have a profile yet
+    const { data: sessions } = await s.from('koto_visitor_sessions')
+      .select('*')
+      .eq('agency_id', agencyId)
+      .is('visitor_profile_id', null)
+      .order('started_at', { ascending: false })
+      .limit(500)
+
+    if (!sessions?.length) return Response.json({ created: 0, message: 'No sessions to backfill' })
+
+    let created = 0
+    // Group sessions by a pseudo-fingerprint (browser + os + device_type + screen combo)
+    const groups: Record<string, any[]> = {}
+    for (const sess of sessions) {
+      const key = `${sess.browser || '?'}_${sess.os || '?'}_${sess.device_type || '?'}`
+      if (!groups[key]) groups[key] = []
+      groups[key].push(sess)
+    }
+
+    for (const [key, groupSessions] of Object.entries(groups)) {
+      const first = groupSessions[0]
+      const fingerprint = `backfill_${key}_${first.agency_id?.slice(0,8)}`
+
+      // Check if profile already exists
+      const { data: existing } = await s.from('koto_visitor_profiles')
+        .select('id')
+        .eq('fingerprint', fingerprint)
+        .eq('agency_id', agencyId)
+        .maybeSingle()
+
+      let profileId = existing?.id
+
+      if (!profileId) {
+        // Create profile from aggregated session data
+        const totalSessions = groupSessions.length
+        const totalPageviews = groupSessions.reduce((sum, s) => sum + (s.pages_viewed?.length || 0), 0)
+        const totalTime = groupSessions.reduce((sum, s) => sum + (s.time_on_site_seconds || 0), 0)
+        const totalForms = groupSessions.filter(s => s.submitted_form).length
+        const totalCtas = groupSessions.filter(s => s.clicked_cta).length
+        const maxIntent = Math.max(...groupSessions.map(s => s.intent_score || 0))
+        const latest = groupSessions[0]
+
+        const { data: newProf } = await s.from('koto_visitor_profiles').insert({
+          fingerprint,
+          agency_id: agencyId,
+          total_sessions: totalSessions,
+          total_pageviews: totalPageviews,
+          total_time_seconds: totalTime,
+          total_form_submits: totalForms,
+          total_cta_clicks: totalCtas,
+          max_intent_score: maxIntent,
+          latest_intent_score: latest.intent_score || 0,
+          browser: latest.browser,
+          browser_version: latest.browser_version,
+          os: latest.os,
+          os_version: latest.os_version,
+          device_type: latest.device_type,
+          city: latest.identified_city,
+          state: latest.identified_state,
+          country: latest.identified_country,
+          identified_company: latest.identified_company,
+          identified_domain: latest.identified_domain,
+          first_seen_at: groupSessions[groupSessions.length - 1].started_at,
+          last_seen_at: latest.last_seen_at || latest.started_at,
+        }).select('id').single()
+
+        profileId = newProf?.id
+        created++
+      }
+
+      // Link all sessions to this profile
+      if (profileId) {
+        const sessionIds = groupSessions.map(s => s.session_id)
+        await s.from('koto_visitor_sessions')
+          .update({ visitor_profile_id: profileId })
+          .in('session_id', sessionIds)
+      }
+    }
+
+    return Response.json({ created, total_sessions: sessions.length, groups: Object.keys(groups).length })
+  }
+
   // ── Visitor Profiles ──────────────────────────────────────────
   if (action === 'get_profiles') {
     const sort = searchParams.get('sort') || 'last_seen_at'
