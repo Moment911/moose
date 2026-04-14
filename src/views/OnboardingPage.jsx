@@ -417,9 +417,10 @@ const T = {
   stepTag: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: ACCENT, background: '#f0fbfc', border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: '4px 12px', marginBottom: 12 },
 };
 
-function F({ label, hint, children, required, span2 }) {
+function F({ label, hint, children, required, span2, fieldKey }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gridColumn: span2 ? '1/-1' : 'auto' }}>
+    <div data-field={fieldKey || undefined}
+      style={{ display: 'flex', flexDirection: 'column', gridColumn: span2 ? '1/-1' : 'auto' }}>
       {label && <label style={T.lbl}>{label}{required && <span style={{ color: ACCENT, marginLeft: 4 }}>*</span>}</label>}
       {hint && <span style={T.hint}>{hint}</span>}
       {children}
@@ -1414,12 +1415,24 @@ export default function OnboardingPage() {
             })
           }, 4000)
 
-          // Scroll to the last newly-filled field so the client
-          // sees their answer appear without hunting for it.
+          // Flash + scroll to newly-filled fields
+          for (const fieldKey of newlyFilled) {
+            // Find the input/textarea/select with this field name, or a data-field wrapper
+            const el = document.querySelector(`[name="${fieldKey}"], [data-field="${fieldKey}"]`)
+            if (el) {
+              // Apply flash class to the parent container
+              const container = el.closest('[data-field]') || el.parentElement
+              if (container) {
+                container.classList.add('voice-field-flash')
+                setTimeout(() => container.classList.remove('voice-field-flash'), 4000)
+              }
+            }
+          }
+          // Scroll to the last filled field
           const lastField = newlyFilled[newlyFilled.length - 1]
-          const el = document.querySelector(`[data-field="${lastField}"]`)
-          if (el && typeof el.scrollIntoView === 'function') {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          const scrollEl = document.querySelector(`[name="${lastField}"], [data-field="${lastField}"]`)
+          if (scrollEl && typeof scrollEl.scrollIntoView === 'function') {
+            scrollEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
           }
         }
 
@@ -1430,7 +1443,7 @@ export default function OnboardingPage() {
         }
         prevFormKeysRef.current = nextKeys
       } catch { /* ignore */ }
-    }, 4000)
+    }, 2000) // Poll every 2s for near-real-time voice sync
     return () => clearInterval(iv)
   }, [activeVoiceCall, tokenData?.client_id])
   const autoSaveTimerRef = useRef(null);
@@ -2174,8 +2187,8 @@ export default function OnboardingPage() {
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes voicePing{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.6)}}
-        @keyframes voiceFieldFlash{0%{background:#d1fae5;border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2)}60%{background:#ecfdf5}100%{background:transparent;box-shadow:none}}
-        .voice-field-flash *:not(label),.voice-field-flash{animation:voiceFieldFlash 4s ease-out forwards}
+        @keyframes voiceFieldFlash{0%{background:#d1fae5;border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.3);border-radius:10px}40%{background:#ecfdf5;box-shadow:0 0 0 2px rgba(16,185,129,.15)}100%{background:transparent;box-shadow:none}}
+        .voice-field-flash{animation:voiceFieldFlash 4s ease-out forwards;padding:6px;border-radius:10px}
       `}</style>
       <SaveStatusBadge status={saveStatus} />
 
