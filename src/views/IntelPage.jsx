@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+import UnifiedCalculator from '../components/intel/UnifiedCalculator'
 
 // ── Brain teasers for scanning view ────────────────────────────────────────
 const BRAIN_TEASERS = [
@@ -759,6 +760,298 @@ export default function IntelPage() {
                 </div>
               )}
 
+              {/* 04b — Tech Stack & Marketing Infrastructure */}
+              {rd.tech_stack?.length > 0 && (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: T + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: T }}>04b</div>
+                    <div>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Marketing tech stack</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>Tools detected on your website — verified from source code scan</div>
+                    </div>
+                    {rd.tech_stack_assessment?.grade && (
+                      <div style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 28, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[rd.tech_stack_assessment.grade] || BLK }}>
+                        {rd.tech_stack_assessment.grade}
+                      </div>
+                    )}
+                  </div>
+
+                  {rd.tech_stack_assessment?.summary && (
+                    <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 20, padding: '12px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
+                      {rd.tech_stack_assessment.summary}
+                    </div>
+                  )}
+
+                  {/* Category badges */}
+                  {(() => {
+                    const cats = { analytics: '📊', tag_manager: '🏷️', chat_widget: '💬', crm: '🔗', ad_pixel: '📡', seo: '🔍', booking: '📅', email_marketing: '📧', cdn_hosting: '🌐', conversion: '🎯', social: '📱', other: '⚙️' }
+                    const catLabels = { analytics: 'Analytics', tag_manager: 'Tag Managers', chat_widget: 'Chat & Messaging', crm: 'CRM & Automation', ad_pixel: 'Ad Pixels & Tracking', seo: 'SEO', booking: 'Booking & Scheduling', email_marketing: 'Email Marketing', cdn_hosting: 'Platform & CDN', conversion: 'Conversion & Forms', social: 'Social', other: 'Other Tools' }
+                    const grouped = {}
+                    rd.tech_stack.forEach(t => { if (!grouped[t.category]) grouped[t.category] = []; grouped[t.category].push(t) })
+                    return Object.entries(grouped).map(([cat, tools]) => (
+                      <div key={cat} style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
+                          {cats[cat] || '⚙️'} {catLabels[cat] || cat}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {tools.map((tool, i) => (
+                            <div key={i} style={{ padding: '8px 14px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{tool.name}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280' }}>{tool.evidence}</div>
+                              </div>
+                              {tool.verification_url && (
+                                <a href={tool.verification_url} target="_blank" rel="noopener noreferrer" style={{ color: T, fontSize: 11, textDecoration: 'none', flexShrink: 0 }}>↗</a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  })()}
+
+                  {/* Missing critical tools */}
+                  {rd.tech_stack_assessment?.missing_critical?.length > 0 && (
+                    <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 8, background: R + '08', border: `1.5px solid ${R}20` }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Missing critical tools</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {rd.tech_stack_assessment.missing_critical.map((tool, i) => (
+                          <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: R + '12', color: R, fontSize: 12, fontWeight: 600 }}>{tool}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Confidence notes */}
+                  {rd.tech_stack_assessment?.confidence_notes && (
+                    <div style={{ marginTop: 12, fontSize: 11, color: '#9ca3af', fontStyle: 'italic', lineHeight: 1.5 }}>
+                      {rd.tech_stack_assessment.confidence_notes}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 04c — Domain Authority & Backlink Profile (Moz) */}
+              {rd.moz_data && (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: R + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: R }}>04c</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Domain authority & backlinks</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>Moz Link Explorer — how search engines see your site's authority vs competitors</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: rd.moz_data.domain_authority >= 40 ? GRN : rd.moz_data.domain_authority >= 20 ? AMB : R, lineHeight: 1 }}>
+                        {rd.moz_data.domain_authority}
+                      </div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>Domain Authority</div>
+                    </div>
+                  </div>
+
+                  {/* Client metrics row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+                    {[
+                      ['Page Authority', rd.moz_data.page_authority, rd.moz_data.page_authority >= 30 ? GRN : rd.moz_data.page_authority >= 15 ? AMB : R],
+                      ['Spam Score', rd.moz_data.spam_score + '%', rd.moz_data.spam_score <= 5 ? GRN : rd.moz_data.spam_score <= 30 ? AMB : R],
+                      ['Linking Domains', rd.moz_data.linking_root_domains?.toLocaleString(), T],
+                      ['Total Backlinks', rd.moz_data.external_backlinks?.toLocaleString(), T],
+                    ].map(([label, val, color]) => (
+                      <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* DA comparison bars — client vs competitors */}
+                  {rd.moz_competitors?.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12, fontFamily: FH }}>
+                        Domain Authority Comparison
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {/* Client bar first */}
+                        {(() => {
+                          const maxDA = Math.max(rd.moz_data.domain_authority, ...rd.moz_competitors.map(c => c.domain_authority))
+                          const allBars = [
+                            { name: rd.moz_data.domain ? rd.moz_data.domain : 'You', da: rd.moz_data.domain_authority, links: rd.moz_data.linking_root_domains, isClient: true },
+                            ...rd.moz_competitors.map(c => ({ name: c.name, da: c.domain_authority, links: c.linking_root_domains, isClient: false }))
+                          ].sort((a, b) => b.da - a.da)
+
+                          return allBars.map((item, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ width: 140, fontSize: 12, fontWeight: item.isClient ? 800 : 500, color: item.isClient ? BLK : '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {item.isClient ? '★ ' : ''}{item.name}
+                              </div>
+                              <div style={{ flex: 1, height: 28, background: '#f3f4f6', borderRadius: 6, overflow: 'hidden', position: 'relative' }}>
+                                <div style={{
+                                  width: `${maxDA > 0 ? (item.da / maxDA) * 100 : 0}%`,
+                                  height: '100%',
+                                  background: item.isClient
+                                    ? `linear-gradient(90deg, ${R}, ${R}cc)`
+                                    : `linear-gradient(90deg, ${T}60, ${T}30)`,
+                                  borderRadius: 6,
+                                  transition: 'width .6s ease',
+                                  minWidth: item.da > 0 ? 24 : 0,
+                                }} />
+                                <div style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 800, color: item.isClient ? '#fff' : BLK, fontFamily: FH }}>
+                                  {item.da}
+                                </div>
+                              </div>
+                              <div style={{ width: 80, fontSize: 11, color: '#9ca3af', textAlign: 'right' }}>
+                                {item.links?.toLocaleString()} links
+                              </div>
+                            </div>
+                          ))
+                        })()}
+                      </div>
+
+                      {/* DA context */}
+                      <div style={{ marginTop: 16, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bae6fd' }}>
+                        <div style={{ fontSize: 12, color: '#0c4a6e', lineHeight: 1.6 }}>
+                          <strong>What this means:</strong> Domain Authority predicts how well a site will rank on Google. DA 1-20 = new/weak, 20-40 = developing, 40-60 = strong, 60+ = authoritative.
+                          {rd.moz_data.domain_authority < rd.moz_competitors?.[0]?.domain_authority && (
+                            <span> Your DA of <strong>{rd.moz_data.domain_authority}</strong> is below your top competitor at <strong>{rd.moz_competitors.sort((a, b) => b.domain_authority - a.domain_authority)[0].domain_authority}</strong> — link building and content strategy can close this gap.</span>
+                          )}
+                          {rd.moz_data.spam_score > 30 && (
+                            <span style={{ color: R }}> <strong>Warning:</strong> Your spam score of {rd.moz_data.spam_score}% is high — this could hurt rankings. A backlink audit is recommended.</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 10, color: '#64748b', marginTop: 6 }}>Source: Moz Link Explorer API v2</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 04d — GBP Audit */}
+              {rd.gbp_audit && (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: AMB + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: AMB }}>04d</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Google Business Profile audit</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>Your GBP listing completeness — verified via Google Places API</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontFamily: FH, fontSize: 42, fontWeight: 900, color: rd.gbp_audit.audit.score >= 80 ? GRN : rd.gbp_audit.audit.score >= 60 ? AMB : R, lineHeight: 1 }}>
+                        {rd.gbp_audit.audit.score}
+                      </div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em' }}>GBP Score</div>
+                    </div>
+                  </div>
+
+                  {/* GBP key metrics */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+                    {[
+                      ['Rating', rd.gbp_audit.rating ? `${rd.gbp_audit.rating}★` : 'N/A', rd.gbp_audit.rating >= 4.0 ? GRN : rd.gbp_audit.rating >= 3.0 ? AMB : R],
+                      ['Reviews', rd.gbp_audit.review_count?.toLocaleString() || '0', rd.gbp_audit.review_count >= 50 ? GRN : rd.gbp_audit.review_count >= 10 ? AMB : R],
+                      ['Photos', rd.gbp_audit.photo_count || '0', rd.gbp_audit.photo_count >= 10 ? GRN : rd.gbp_audit.photo_count >= 5 ? AMB : R],
+                      ['Status', rd.gbp_audit.business_status === 'OPERATIONAL' ? 'Active' : rd.gbp_audit.business_status || 'Unknown', rd.gbp_audit.business_status === 'OPERATIONAL' ? GRN : R],
+                    ].map(([label, val, color]) => (
+                      <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Passes */}
+                  {rd.gbp_audit.audit.passes?.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                      {rd.gbp_audit.audit.passes.map((p, i) => (
+                        <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: GRN + '12', color: GRN, fontSize: 11, fontWeight: 600 }}>✓ {p}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Fails with fix suggestions */}
+                  {rd.gbp_audit.audit.fails?.length > 0 && (
+                    <div style={{ padding: '14px 18px', borderRadius: 8, background: R + '06', border: `1px solid ${R}15` }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, fontFamily: FH }}>Needs attention</div>
+                      {rd.gbp_audit.audit.fails.map((f, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                          <span style={{ color: R, fontSize: 12, flexShrink: 0 }}>✕</span>
+                          <div>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{f.label}</span>
+                            <span style={{ fontSize: 12, color: '#6b7280' }}> — {f.fix}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Recent reviews preview */}
+                  {rd.gbp_audit.recent_reviews?.length > 0 && (
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10, fontFamily: FH }}>Recent Reviews</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {rd.gbp_audit.recent_reviews.slice(0, 3).map((r, i) => (
+                          <div key={i} style={{ padding: '10px 14px', background: '#f9fafb', borderRadius: 8, borderLeft: `3px solid ${r.rating >= 4 ? GRN : r.rating >= 3 ? AMB : R}` }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: r.rating >= 4 ? GRN : r.rating >= 3 ? AMB : R }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                            {r.text && <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginTop: 4 }}>{r.text}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: 12, fontSize: 10, color: '#9ca3af' }}>Source: Google Places API (New) — verified GBP listing data</div>
+                </div>
+              )}
+
+              {/* 04e — Real User Speed (CrUX) */}
+              {rd.crux_data && (
+                <div style={card}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: GRN + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: GRN }}>04e</div>
+                    <div>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Real user speed data</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>Chrome UX Report — actual speed measurements from real visitors (75th percentile, mobile)</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                    {[
+                      ['LCP', rd.crux_data.lcp_ms, 'ms', 2500, 4000, 'Largest Contentful Paint'],
+                      ['FCP', rd.crux_data.fcp_ms, 'ms', 1800, 3000, 'First Contentful Paint'],
+                      ['INP', rd.crux_data.inp_ms, 'ms', 200, 500, 'Interaction to Next Paint'],
+                      ['CLS', rd.crux_data.cls, '', 0.1, 0.25, 'Cumulative Layout Shift'],
+                      ['TTFB', rd.crux_data.ttfb_ms, 'ms', 800, 1800, 'Time to First Byte'],
+                      ['FID', rd.crux_data.fid_ms, 'ms', 100, 300, 'First Input Delay'],
+                    ].filter(([,v]) => v != null).map(([label, val, unit, good, poor, full]) => {
+                      const color = unit === '' ? (val <= good ? GRN : val <= poor ? AMB : R) : (val <= good ? GRN : val <= poor ? AMB : R)
+                      return (
+                        <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>
+                            {unit === 'ms' ? (val >= 1000 ? `${(val/1000).toFixed(1)}s` : `${Math.round(val)}ms`) : (typeof val === 'number' ? val.toFixed(2) : val)}
+                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginTop: 4, fontFamily: FH }}>{label}</div>
+                          <div style={{ fontSize: 9, color: '#d1d5db', marginTop: 2 }}>{full}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div style={{ marginTop: 12, padding: '10px 14px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0', fontSize: 11, color: '#166534', lineHeight: 1.5 }}>
+                    This data is from <strong>real Chrome users</strong> visiting your site — more accurate than lab tests. Green = good, amber = needs work, red = hurting conversions.
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 10, color: '#9ca3af' }}>Source: {rd.crux_data.source}</div>
+                </div>
+              )}
+
+              {/* 04f — Data Sources Badge */}
+              {rd.data_enrichment_sources?.length > 0 && (
+                <div style={{ padding: '12px 20px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', marginBottom: 16 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
+                    Verified Data Sources ({rd.data_enrichment_sources.length})
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {rd.data_enrichment_sources.map((src, i) => (
+                      <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #e5e7eb', fontSize: 10, color: '#6b7280', fontWeight: 500 }}>{src}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* 05 — Budget Optimizer */}
               {report?.id && (
                 <div style={{ marginBottom: 16 }}>
@@ -777,84 +1070,17 @@ export default function IntelPage() {
                 </div>
               )}
 
-              {/* 05b — Impact Calculators */}
+              {/* 05b — Unified ROI Calculator Suite */}
               {rd && (
-                <div style={card}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                     <div style={{ width: 28, height: 28, borderRadius: '50%', background: GRN + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 12, fontWeight: 900, color: GRN }}>05b</div>
                     <div>
-                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Impact calculators</div>
-                      <div style={{ fontSize: 12, color: '#9ca3af' }}>See the real dollar impact of fixing these gaps — powered by your actual data</div>
+                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>ROI Calculator Suite</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af' }}>Three interactive calculators — Maps ROI, Ads Budget, PPC Efficiency — powered by your data</div>
                     </div>
                   </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    {/* Lost Leads Calculator */}
-                    {(() => {
-                      const estLeads = rd.metrics?.est_monthly_leads?.value || 15
-                      const topCompetitorReviews = Math.max(...(rd.competitors || []).map(c => c.reviews || 0), 0)
-                      const clientReviews = rd.industry_benchmarks?.avg_review_count?.value || 20
-                      const lostPerMonth = Math.max(0, Math.round(estLeads * 0.4))
-                      const avgJobVal = parseInt(String(report?.inputs?.avg_job_value || '500').replace(/\D/g, '')) || 500
-                      return (
-                        <div style={{ padding: '20px', borderRadius: 12, background: R + '06', border: `1.5px solid ${R}20` }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Cost of Inaction</div>
-                          <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: R, letterSpacing: '-.02em' }}>
-                            ${(lostPerMonth * avgJobVal).toLocaleString()}<span style={{ fontSize: 14, color: '#9ca3af' }}>/mo</span>
-                          </div>
-                          <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, marginTop: 8 }}>
-                            An estimated <strong>{lostPerMonth} leads/month</strong> lost to competitors. At ${avgJobVal} avg job value, that's <strong>${(lostPerMonth * avgJobVal * 12).toLocaleString()}/year</strong> in missed revenue.
-                          </div>
-                        </div>
-                      )
-                    })()}
-
-                    {/* Response Time Impact */}
-                    <div style={{ padding: '20px', borderRadius: 12, background: T + '06', border: `1.5px solid ${T}20` }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Response Time Impact</div>
-                      <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: T, letterSpacing: '-.02em' }}>21x</div>
-                      <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, marginTop: 8 }}>
-                        Businesses that respond in <strong>5 minutes</strong> are 21x more likely to qualify a lead vs 30 minutes. <span style={{ fontSize: 11, color: '#9ca3af' }}>(Harvard Business Review)</span>
-                      </div>
-                    </div>
-
-                    {/* Review Gap */}
-                    {rd.competitors?.length > 0 && (() => {
-                      const topComp = rd.competitors.reduce((a, b) => (b.reviews > a.reviews) ? b : a, rd.competitors[0])
-                      return (
-                        <div style={{ padding: '20px', borderRadius: 12, background: AMB + '06', border: `1.5px solid ${AMB}20` }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: AMB, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Review Gap</div>
-                          <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: AMB, letterSpacing: '-.02em' }}>
-                            {topComp.reviews} <span style={{ fontSize: 16, color: '#9ca3af' }}>reviews</span>
-                          </div>
-                          <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, marginTop: 8 }}>
-                            <strong>{topComp.name}</strong> has {topComp.reviews} reviews at {topComp.rating}★. 91% of consumers read reviews before choosing. More reviews = more trust = more calls. <span style={{ fontSize: 11, color: '#9ca3af' }}>(BrightLocal 2024)</span>
-                          </div>
-                        </div>
-                      )
-                    })()}
-
-                    {/* Conversion Rate Impact */}
-                    {(() => {
-                      const avgJobVal = parseInt(String(report?.inputs?.avg_job_value || '500').replace(/\D/g, '')) || 500
-                      const monthlyVisitors = 500 // estimate
-                      const currentConv = 2 // 2% is typical
-                      const improvedConv = 5
-                      const currentRevenue = Math.round(monthlyVisitors * (currentConv / 100) * avgJobVal)
-                      const improvedRevenue = Math.round(monthlyVisitors * (improvedConv / 100) * avgJobVal)
-                      return (
-                        <div style={{ padding: '20px', borderRadius: 12, background: GRN + '06', border: `1.5px solid ${GRN}20` }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8, fontFamily: FH }}>Conversion Rate Lift</div>
-                          <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: GRN, letterSpacing: '-.02em' }}>
-                            +${(improvedRevenue - currentRevenue).toLocaleString()}<span style={{ fontSize: 14, color: '#9ca3af' }}>/mo</span>
-                          </div>
-                          <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, marginTop: 8 }}>
-                            Improving website conversion from <strong>{currentConv}%</strong> to <strong>{improvedConv}%</strong> on ~{monthlyVisitors} monthly visitors = <strong>${(improvedRevenue - currentRevenue).toLocaleString()} more/month</strong>. Same traffic, better website. <span style={{ fontSize: 11, color: '#9ca3af' }}>(Unbounce Conversion Benchmark Report)</span>
-                          </div>
-                        </div>
-                      )
-                    })()}
-                  </div>
+                  <UnifiedCalculator reportData={rd} reportInputs={report?.inputs} />
                 </div>
               )}
 
