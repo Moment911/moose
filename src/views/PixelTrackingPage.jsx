@@ -554,6 +554,21 @@ export default function PixelTrackingPage() {
                 const updated = await apiGet('get_profile', { agency_id: agencyId, profile_id: selectedProfile })
                 setProfileDetail(updated)
               }}
+              onClear={async (mode) => {
+                const res = await apiPost({ action: 'clear_profile', profile_id: selectedProfile, mode })
+                if (res.success) {
+                  toast.success(mode === 'delete' ? 'Visitor deleted' : 'Visitor reset — tracking starts fresh')
+                  if (mode === 'delete') {
+                    setSelectedProfile(null)
+                    setProfileDetail(null)
+                  } else {
+                    const updated = await apiGet('get_profile', { agency_id: agencyId, profile_id: selectedProfile })
+                    setProfileDetail(updated)
+                  }
+                  const profRes = await apiGet('get_profiles', { agency_id: agencyId })
+                  setProfiles(profRes.data || [])
+                }
+              }}
             />
           )}
 
@@ -756,7 +771,7 @@ export default function PixelTrackingPage() {
    VISITOR DETAIL PANEL
    ══════════════════════════════════════════════════════════════════════════ */
 
-function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona, onEnrich, enriching, onUpdateProfile }) {
+function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona, onEnrich, enriching, onUpdateProfile, onClear }) {
   const [editDomain, setEditDomain] = useState('')
   const [showDomainInput, setShowDomainInput] = useState(false)
 
@@ -956,6 +971,22 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
           {generatingPersona ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }} /> : <Brain size={13} />}
           {persona ? 'Regenerate Persona' : 'Generate AI Persona'}
         </button>
+        <div style={{ marginLeft:'auto', display:'flex', gap: 8 }}>
+          <button onClick={() => { if (confirm('Reset this visitor? All historical data will be cleared and tracking starts fresh.')) onClear('reset') }} style={{
+            display:'flex', alignItems:'center', gap: 6, padding:'8px 16px', borderRadius: 8,
+            border:'1px solid #e5e7eb', background: W, fontSize: 12, fontWeight: 600, fontFamily: FB,
+            cursor:'pointer', color:'#6b7280',
+          }}>
+            <RefreshCw size={12} /> Reset
+          </button>
+          <button onClick={() => { if (confirm('Delete this visitor permanently? This cannot be undone.')) onClear('delete') }} style={{
+            display:'flex', alignItems:'center', gap: 6, padding:'8px 16px', borderRadius: 8,
+            border:'1px solid #fecaca', background: W, fontSize: 12, fontWeight: 600, fontFamily: FB,
+            cursor:'pointer', color: R,
+          }}>
+            <Trash2 size={12} /> Delete
+          </button>
+        </div>
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 20 }}>

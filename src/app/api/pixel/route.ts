@@ -824,6 +824,46 @@ Return this exact JSON structure:
       return Response.json({ success: true })
     }
 
+    // ── Clear/reset a visitor profile ──────────────────────────────
+    if (action === 'clear_profile') {
+      const { profile_id, mode } = body // mode: 'reset' (clear data, keep profile) or 'delete' (remove entirely)
+      if (!profile_id) return Response.json({ error: 'profile_id required' }, { status: 400 })
+
+      if (mode === 'delete') {
+        // Unlink all sessions from this profile
+        await s.from('koto_visitor_sessions').update({ visitor_profile_id: null }).eq('visitor_profile_id', profile_id)
+        // Delete all events for those sessions
+        // Delete the profile
+        await s.from('koto_visitor_profiles').delete().eq('id', profile_id)
+        return Response.json({ success: true, deleted: true })
+      }
+
+      // Default: reset — zero out stats but keep the profile so new visits re-accumulate
+      await s.from('koto_visitor_sessions').update({ visitor_profile_id: null }).eq('visitor_profile_id', profile_id)
+      await s.from('koto_visitor_profiles').update({
+        total_sessions: 0,
+        total_pageviews: 0,
+        total_time_seconds: 0,
+        total_form_submits: 0,
+        total_cta_clicks: 0,
+        max_intent_score: 0,
+        latest_intent_score: 0,
+        intent_signals: [],
+        pages_visited: [],
+        referral_sources: [],
+        utm_history: [],
+        visit_times: [],
+        top_pages: [],
+        ai_persona: null,
+        ai_persona_generated_at: null,
+        enrichment_data: null,
+        first_seen_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq('id', profile_id)
+      return Response.json({ success: true, reset: true })
+    }
+
     // ── Enrich profile — scrape domain for company data ──────────
     if (action === 'enrich_profile') {
       const { profile_id } = body
