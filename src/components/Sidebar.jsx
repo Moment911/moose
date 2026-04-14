@@ -460,6 +460,7 @@ export default function Sidebar() {
               <NavLink to="/video-voicemails" icon={Eye} label="Video Voicemails" hidden={!match('Video Voicemails') || !feat('video_voicemails')}/>
               <NavLink to="/avatars" icon={Users} label="AI Avatars" sub hidden={!match('AI Avatars') || !feat('ai_avatars')}/>
               <NavLink to="/pixels" icon={Eye} label="Visitor Intelligence" hidden={!match('Visitor Intelligence') || !feat('pixel_tracking')}/>
+              <NavLink to="/vob" icon={Shield} label="VOB Agent" badge="RCM" badgeColor={T} hidden={!match('VOB Agent') || !feat('vob_agent')}/>
             </Section>
 
             {/* KOTOCLOSE */}

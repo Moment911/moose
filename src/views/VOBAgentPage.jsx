@@ -1,0 +1,785 @@
+"use client"
+import { useState, useEffect } from 'react'
+import {
+  Shield, Phone, Plus, RefreshCw, Loader2, Check, X, Clock, Users,
+  BarChart2, FileText, ChevronRight, ChevronDown, Settings, Search,
+  AlertTriangle, Zap, Target, Activity, DollarSign, ArrowUpRight,
+  Radio, Play, Pause, PhoneOff, Globe, Brain, Hash, Layers, Filter,
+  TrendingUp, AlertCircle, CheckCircle, Send, Copy, ArrowLeft
+} from 'lucide-react'
+import Sidebar from '../components/Sidebar'
+import { useAuth } from '../hooks/useAuth'
+import toast from 'react-hot-toast'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
+const W = '#ffffff'
+const API = '/api/vob'
+
+async function apiGet(action, params = {}) {
+  const url = new URL(API, window.location.origin)
+  url.searchParams.set('action', action)
+  for (const [k, v] of Object.entries(params)) if (v) url.searchParams.set(k, String(v))
+  return (await fetch(url)).json()
+}
+async function apiPost(body) {
+  return (await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json()
+}
+
+const card = { background: W, borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }
+const cardInner = { ...card, padding: '20px 24px' }
+
+const STATUS_COLORS = {
+  queued: { bg: '#f3f4f6', color: '#6b7280', label: 'Queued' },
+  dialing: { bg: T + '12', color: T, label: 'Dialing' },
+  ivr: { bg: AMB + '12', color: AMB, label: 'IVR' },
+  hold: { bg: '#fef3c7', color: '#92400e', label: 'On Hold' },
+  speaking: { bg: GRN + '12', color: GRN, label: 'Speaking' },
+  completed: { bg: GRN + '12', color: GRN, label: 'Complete' },
+  failed: { bg: R + '12', color: R, label: 'Failed' },
+  escalated: { bg: R + '12', color: R, label: 'Escalated' },
+  cancelled: { bg: '#f3f4f6', color: '#9ca3af', label: 'Cancelled' },
+}
+
+const PRIORITY_COLORS = {
+  1: { bg: R + '12', color: R, label: 'URGENT' },
+  2: { bg: AMB + '12', color: AMB, label: 'HIGH' },
+  3: { bg: T + '12', color: T, label: 'MEDIUM' },
+  5: { bg: '#f3f4f6', color: '#6b7280', label: 'NORMAL' },
+}
+
+export default function VOBAgentPage() {
+  const { agencyId } = useAuth()
+  const [tab, setTab] = useState('dashboard')
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({})
+  const [calls, setCalls] = useState([])
+  const [queue, setQueue] = useState([])
+  const [carriers, setCarriers] = useState([])
+  const [questions, setQuestions] = useState([])
+  const [activeCalls, setActiveCalls] = useState([])
+  const [knowledge, setKnowledge] = useState([])
+
+  // Modals
+  const [showQueueModal, setShowQueueModal] = useState(false)
+  const [newCall, setNewCall] = useState({ patient_id: '', carrier_name: '', level_of_care: 'RTC', priority: 5 })
+  const [qFilter, setQFilter] = useState('all')
+  const [qSearch, setQSearch] = useState('')
+  const [selectedCall, setSelectedCall] = useState(null)
+
+  useEffect(() => { loadAll() }, [])
+
+  // Auto-refresh active calls
+  useEffect(() => {
+    if (tab !== 'live' && tab !== 'dashboard') return
+    const interval = setInterval(() => {
+      apiGet('get_active_calls', { agency_id: agencyId }).then(r => setActiveCalls(r.data || []))
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [tab, agencyId])
+
+  async function loadAll() {
+    setLoading(true)
+    const [statsRes, callsRes, queueRes, carriersRes, questionsRes, activeRes, knowledgeRes] = await Promise.all([
+      apiGet('get_stats', { agency_id: agencyId }),
+      apiGet('get_calls', { agency_id: agencyId }),
+      apiGet('get_queue', { agency_id: agencyId }),
+      apiGet('get_carriers', { agency_id: agencyId }),
+      apiGet('get_questions'),
+      apiGet('get_active_calls', { agency_id: agencyId }),
+      apiGet('get_knowledge', { agency_id: agencyId }),
+    ])
+    setStats(statsRes)
+    setCalls(callsRes.data || [])
+    setQueue(queueRes.data || [])
+    setCarriers(carriersRes.data || [])
+    setQuestions(questionsRes.data || [])
+    setActiveCalls(activeRes.data || [])
+    setKnowledge(knowledgeRes.data || [])
+    setLoading(false)
+  }
+
+  async function queueCall() {
+    if (!newCall.patient_id || !newCall.carrier_name) { toast.error('Patient ID and carrier required'); return }
+    const res = await apiPost({ action: 'queue_call', agency_id: agencyId, ...newCall })
+    if (res.success) { toast.success('Call queued'); setShowQueueModal(false); setNewCall({ patient_id: '', carrier_name: '', level_of_care: 'RTC', priority: 5 }); loadAll() }
+    else toast.error(res.error || 'Failed')
+  }
+
+  async function startCall(callId) {
+    toast('Initiating call...')
+    const res = await apiPost({ action: 'start_call', agency_id: agencyId, call_id: callId })
+    if (res.success) { toast.success('Call initiated'); loadAll() }
+    else toast.error(res.error || 'Failed to start call')
+  }
+
+  async function cancelCall(callId) {
+    const res = await apiPost({ action: 'cancel_call', call_id: callId })
+    if (res.success) { toast.success('Call cancelled'); loadAll() }
+  }
+
+  const TABS = [
+    { key: 'dashboard', label: 'Dashboard', icon: Activity },
+    { key: 'queue', label: `Queue${queue.length ? ` (${queue.length})` : ''}`, icon: Layers },
+    { key: 'live', label: `Live${activeCalls.length ? ` (${activeCalls.length})` : ''}`, icon: Radio },
+    { key: 'results', label: 'VOB Results', icon: FileText },
+    { key: 'carriers', label: 'Carriers', icon: Globe },
+    { key: 'questions', label: 'Question Bank', icon: Hash },
+    { key: 'knowledge', label: 'Knowledge Base', icon: Brain },
+    { key: 'analytics', label: 'Analytics', icon: BarChart2 },
+  ]
+
+  // Group questions by category
+  const questionsByCategory = questions.reduce((acc, q) => {
+    if (!acc[q.category]) acc[q.category] = []
+    acc[q.category].push(q)
+    return acc
+  }, {})
+
+  const completedCalls = calls.filter(c => c.status === 'completed')
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: W, fontFamily: FB }}>
+      <Sidebar />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <div style={{ background: W, borderBottom: '1px solid #e5e7eb', padding: '28px 40px 0', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: '#0a5c44', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Shield size={22} color={W} />
+              </div>
+              <div>
+                <h1 style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
+                  VOB Agent
+                </h1>
+                <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 2 }}>
+                  Insurance Benefits Verification &middot; RCM Intelligence
+                  {activeCalls.length > 0 && (
+                    <span style={{ marginLeft: 12, color: GRN, fontWeight: 700, fontFamily: FH }}>
+                      <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: GRN, marginRight: 4, animation: 'pulse 1.5s infinite' }} />
+                      {activeCalls.length} live
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={loadAll} style={{ padding: 8, borderRadius: 8, border: '1px solid #e5e7eb', background: W, cursor: 'pointer' }}>
+                <RefreshCw size={16} color="#6b7280" />
+              </button>
+              <button onClick={() => setShowQueueModal(true)} style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 10,
+                border: 'none', background: '#0a5c44', color: W, fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+              }}>
+                <Phone size={15} /> Run VOB Call
+              </button>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 24 }}>
+            {[
+              { label: 'Total Calls', value: stats.total_calls || 0, accent: T, icon: Phone },
+              { label: 'Completed Today', value: stats.completed_today || 0, accent: GRN, icon: CheckCircle },
+              { label: 'Queue Depth', value: stats.queue_depth || 0, accent: AMB, icon: Layers },
+              { label: 'Success Rate', value: `${stats.success_rate || 0}%`, accent: '#0a5c44', icon: TrendingUp },
+              { label: 'Escalated', value: stats.escalated || 0, accent: R, icon: AlertTriangle },
+            ].map(s => (
+              <div key={s.label} style={{ padding: '14px 18px', background: W, borderRadius: 12, border: '1px solid #e5e7eb', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: s.accent, opacity: 0.6 }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 800, color: BLK, lineHeight: 1 }}>{s.value}</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{s.label}</div>
+                  </div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: s.accent + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <s.icon size={16} color={s.accent} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            {TABS.map(t => (
+              <button key={t.key} onClick={() => setTab(t.key)} style={{
+                display: 'flex', alignItems: 'center', gap: 7, padding: '12px 20px', fontSize: 14,
+                fontWeight: tab === t.key ? 700 : 500, fontFamily: FH,
+                border: 'none', borderBottom: tab === t.key ? '2px solid #0a5c44' : '2px solid transparent',
+                background: 'none', cursor: 'pointer', color: tab === t.key ? BLK : '#9ca3af',
+              }}>
+                <t.icon size={15} /> {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Content ────────────────────────────────────────────── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px 48px' }}>
+
+          {/* ══ DASHBOARD ══════════════════════════════════════════ */}
+          {tab === 'dashboard' && (
+            <div>
+              {/* Active calls */}
+              {activeCalls.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  {activeCalls.map(call => {
+                    const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+                    return (
+                      <div key={call.id} style={{
+                        padding: '16px 20px', borderRadius: 14, marginBottom: 10,
+                        background: 'linear-gradient(135deg, #ecfdf5 0%, #f0f9ff 100%)', border: '1px solid #a7f3d0',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: GRN, animation: 'pulse 1.5s infinite' }} />
+                            <span style={{ fontSize: 15, fontWeight: 700, fontFamily: FH, color: '#0a5c44' }}>
+                              Live — {call.carrier_name} · {call.patient_id}
+                            </span>
+                          </div>
+                          <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>
+                            {st.label}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#6b7280', fontFamily: FB }}>
+                          <span>LOC: {call.level_of_care || 'N/A'}</span>
+                          <span>Q: {call.questions_answered || 0}/{call.questions_total || 20}</span>
+                          {call.duration_seconds > 0 && <span>{Math.floor(call.duration_seconds / 60)}m {call.duration_seconds % 60}s</span>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Recent calls + Carrier performance */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20 }}>
+                {/* Recent calls table */}
+                <div style={{ ...card }}>
+                  <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Phone size={16} color={T} />
+                      <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK }}>Recent VOB Calls</span>
+                    </div>
+                    <button onClick={() => setTab('results')} style={{ fontSize: 12, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH }}>
+                      View all <ChevronRight size={12} />
+                    </button>
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          {['Patient', 'Carrier', 'LOC', 'Status', 'Duration', 'Q\'s', ''].map(h => (
+                            <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {calls.slice(0, 8).map(call => {
+                          const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+                          return (
+                            <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{call.patient_id}</td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, color: '#6b7280', fontFamily: FB }}>{call.carrier_name}</td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, color: '#6b7280', fontFamily: FB }}>{call.level_of_care || '—'}</td>
+                              <td style={{ padding: '10px 14px' }}>
+                                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+                              </td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, color: '#6b7280', fontFamily: FB }}>
+                                {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m` : '—'}
+                              </td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, color: '#6b7280', fontFamily: FB }}>
+                                {call.questions_answered || 0}/{call.questions_total || 20}
+                              </td>
+                              <td style={{ padding: '10px 14px' }}>
+                                <button onClick={() => { setSelectedCall(call); setTab('results') }} style={{
+                                  padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W,
+                                  fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: BLK,
+                                }}>View</button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                        {calls.length === 0 && (
+                          <tr><td colSpan={7} style={{ padding: '40px 14px', textAlign: 'center', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>No calls yet — queue your first VOB call</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Carrier performance */}
+                <div style={{ ...cardInner }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                    <Globe size={16} color="#0a5c44" />
+                    <span style={{ fontSize: 15, fontWeight: 800, fontFamily: FH, color: BLK }}>Carrier Directory</span>
+                  </div>
+                  {carriers.map(c => (
+                    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{c.carrier_name}</div>
+                        <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>{c.phone_number}</div>
+                      </div>
+                      {c.bh_carveout && (
+                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: FH, background: AMB + '12', color: AMB }}>BH Carveout</span>
+                      )}
+                      {c.best_time_to_call && (
+                        <span style={{ fontSize: 11, color: '#6b7280', fontFamily: FB }}>{c.best_time_to_call}</span>
+                      )}
+                    </div>
+                  ))}
+                  {carriers.length === 0 && (
+                    <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No carriers loaded</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ══ QUEUE ══════════════════════════════════════════════ */}
+          {tab === 'queue' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Layers size={18} color={T} />
+                  <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Call Queue</span>
+                </div>
+                <button onClick={() => setShowQueueModal(true)} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8,
+                  border: 'none', background: '#0a5c44', color: W, fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                }}>
+                  <Plus size={14} /> Add to Queue
+                </button>
+              </div>
+              <div style={{ ...card }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['Priority', 'Patient', 'Carrier', 'LOC', 'Mode', 'Status', 'Attempts', ''].map(h => (
+                        <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {queue.map(q => {
+                      const pr = PRIORITY_COLORS[q.priority] || PRIORITY_COLORS[5]
+                      const st = STATUS_COLORS[q.status] || STATUS_COLORS.queued
+                      return (
+                        <tr key={q.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: pr.bg, color: pr.color }}>{pr.label}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{q.patient_id}</td>
+                          <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{q.carrier_name}</td>
+                          <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{q.level_of_care || '—'}</td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: FH, background: '#f3f4f6', color: '#6b7280' }}>{q.trigger_mode}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{q.attempts}/{q.max_attempts}</td>
+                          <td style={{ padding: '10px 14px', display: 'flex', gap: 6 }}>
+                            {q.status === 'pending' && (
+                              <>
+                                <button onClick={() => startCall(q.vob_call_id)} style={{
+                                  padding: '4px 12px', borderRadius: 6, border: 'none', background: '#0a5c44', color: W,
+                                  fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                                }}>Start</button>
+                                <button onClick={() => cancelCall(q.vob_call_id)} style={{
+                                  padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W,
+                                  fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#6b7280',
+                                }}>Cancel</button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                    {queue.length === 0 && (
+                      <tr><td colSpan={8} style={{ padding: '48px 14px', textAlign: 'center', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>Queue is empty</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ══ LIVE CALLS ═════════════════════════════════════════ */}
+          {tab === 'live' && (
+            <div>
+              {activeCalls.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                    <Radio size={28} color="#d1d5db" />
+                  </div>
+                  <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 8px' }}>No Active Calls</h3>
+                  <p style={{ fontSize: 14, color: '#6b7280', fontFamily: FB }}>Start a call from the queue to see real-time monitoring here.</p>
+                </div>
+              ) : activeCalls.map(call => (
+                <div key={call.id} style={{ ...cardInner, marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: GRN, animation: 'pulse 1s infinite' }} />
+                      <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: '#0a5c44' }}>
+                        {call.carrier_name} — {call.patient_id}
+                      </span>
+                      <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: (STATUS_COLORS[call.status] || {}).bg, color: (STATUS_COLORS[call.status] || {}).color }}>
+                        {(STATUS_COLORS[call.status] || {}).label}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: '#6b7280' }}>
+                      {call.questions_answered || 0} / {call.questions_total || 20} questions
+                    </span>
+                  </div>
+                  {/* VOB data grid */}
+                  {call.vob_data && Object.keys(call.vob_data).length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                      {Object.entries(call.vob_data).map(([field, value]) => (
+                        <div key={field} style={{ padding: '8px 12px', background: '#ecfdf5', borderRadius: 8, border: '1px solid #a7f3d0' }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em' }}>{field.replace(/_/g, ' ')}</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: '#0a5c44', fontFamily: FB, marginTop: 2 }}>{String(value)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ══ VOB RESULTS ════════════════════════════════════════ */}
+          {tab === 'results' && (
+            <div>
+              {selectedCall ? (
+                <div>
+                  <button onClick={() => setSelectedCall(null)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: 13, fontFamily: FH, fontWeight: 700, marginBottom: 20, padding: 0 }}>
+                    <ArrowLeft size={15} /> All Results
+                  </button>
+                  <div style={{ ...cardInner, marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                      <div>
+                        <h2 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: 0 }}>
+                          VOB — {selectedCall.patient_id} · {selectedCall.carrier_name}
+                        </h2>
+                        <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 4 }}>
+                          {selectedCall.level_of_care} · {selectedCall.ref_number ? `Ref# ${selectedCall.ref_number}` : ''} {selectedCall.rep_name ? `· Rep: ${selectedCall.rep_name}` : ''}
+                        </div>
+                      </div>
+                      <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: (STATUS_COLORS[selectedCall.status] || {}).bg, color: (STATUS_COLORS[selectedCall.status] || {}).color }}>
+                        {(STATUS_COLORS[selectedCall.status] || {}).label}
+                      </span>
+                    </div>
+                    {/* VOB form grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                      {questions.map(q => {
+                        const val = selectedCall.vob_data?.[q.field]
+                        return (
+                          <div key={q.field} style={{
+                            padding: '10px 14px', borderRadius: 8,
+                            background: val ? '#ecfdf5' : '#fafafa',
+                            border: `1px solid ${val ? '#a7f3d0' : '#e5e7eb'}`,
+                          }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em' }}>{q.field.replace(/_/g, ' ')}</div>
+                            <div style={{ fontSize: 13, fontWeight: val ? 600 : 400, color: val ? '#0a5c44' : '#d1d5db', fontFamily: FB, marginTop: 3 }}>
+                              {val || '—'}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <FileText size={18} color={T} />
+                    <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>VOB Results</span>
+                    <span style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB, marginLeft: 'auto' }}>{completedCalls.length} completed</span>
+                  </div>
+                  <div style={{ ...card }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          {['Patient', 'Carrier', 'LOC', 'Status', 'Duration', 'Questions', 'Ref #', ''].map(h => (
+                            <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {calls.filter(c => ['completed', 'escalated'].includes(c.status)).map(call => {
+                          const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+                          return (
+                            <tr key={call.id} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }} onClick={() => setSelectedCall(call)}>
+                              <td style={{ padding: '10px 14px', fontSize: 14, fontWeight: 600, fontFamily: FH, color: BLK }}>{call.patient_id}</td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.carrier_name}</td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>{call.level_of_care || '—'}</td>
+                              <td style={{ padding: '10px 14px' }}>
+                                <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+                              </td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
+                                {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : '—'}
+                              </td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: '#6b7280' }}>
+                                {call.questions_answered || 0}/{call.questions_total || 20}
+                              </td>
+                              <td style={{ padding: '10px 14px', fontSize: 13, fontFamily: FB, color: T }}>{call.reference_number || '—'}</td>
+                              <td style={{ padding: '10px 14px' }}>
+                                <button style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: W, fontSize: 12, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: BLK }}>View VOB</button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                        {completedCalls.length === 0 && (
+                          <tr><td colSpan={8} style={{ padding: '48px 14px', textAlign: 'center', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>No completed VOBs yet</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ CARRIERS ═══════════════════════════════════════════ */}
+          {tab === 'carriers' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                <Globe size={18} color="#0a5c44" />
+                <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Carrier IVR Maps</span>
+                <span style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB, marginLeft: 'auto' }}>{carriers.length} carriers</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {carriers.map(c => (
+                  <div key={c.id} style={{ ...cardInner }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div>
+                        <div style={{ fontSize: 16, fontWeight: 700, fontFamily: FH, color: BLK }}>{c.carrier_name}</div>
+                        <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 4 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Phone size={12} /> {c.phone_number}</span>
+                          {c.best_time_to_call && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {c.best_time_to_call}</span>}
+                          {c.call_count > 0 && <span>{c.call_count} calls</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {c.bh_carveout && (
+                          <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: AMB + '12', color: AMB }}>
+                            BH → {c.bh_carveout}
+                          </span>
+                        )}
+                        {c.success_rate > 0 && (
+                          <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: c.success_rate >= 80 ? GRN + '12' : AMB + '12', color: c.success_rate >= 80 ? GRN : AMB }}>
+                            {c.success_rate}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* IVR Map */}
+                    {c.ivr_map && c.ivr_map.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>IVR Navigation Path</div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          {c.ivr_map.map((step, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ padding: '6px 12px', borderRadius: 8, background: '#f3f4f6', border: '1px solid #e5e7eb' }}>
+                                <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: FH }}>{step.prompt}</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: '#0a5c44', fontFamily: FH }}>{step.action}</div>
+                              </div>
+                              {i < c.ivr_map.length - 1 && <ChevronRight size={14} color="#d1d5db" />}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ══ QUESTION BANK ══════════════════════════════════════ */}
+          {tab === 'questions' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Hash size={18} color={T} />
+                  <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Question Bank</span>
+                  <span style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB }}>{questions.length} questions · {Object.keys(questionsByCategory).length} categories</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={14} color="#9ca3af" style={{ position: 'absolute', left: 10, top: 9 }} />
+                    <input value={qSearch} onChange={e => setQSearch(e.target.value)} placeholder="Search questions..."
+                      style={{ padding: '8px 12px 8px 30px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB, width: 220, outline: 'none' }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Category pills */}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
+                <button onClick={() => setQFilter('all')} style={{
+                  padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: FH,
+                  border: qFilter === 'all' ? '1.5px solid #0a5c44' : '1px solid #e5e7eb',
+                  background: qFilter === 'all' ? '#ecfdf5' : W, color: qFilter === 'all' ? '#0a5c44' : '#6b7280', cursor: 'pointer',
+                }}>All ({questions.length})</button>
+                {Object.entries(questionsByCategory).map(([cat, qs]) => (
+                  <button key={cat} onClick={() => setQFilter(cat)} style={{
+                    padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: FH,
+                    border: qFilter === cat ? '1.5px solid #0a5c44' : '1px solid #e5e7eb',
+                    background: qFilter === cat ? '#ecfdf5' : W, color: qFilter === cat ? '#0a5c44' : '#6b7280', cursor: 'pointer',
+                  }}>{cat} ({qs.length})</button>
+                ))}
+              </div>
+
+              {/* Questions table */}
+              <div style={{ ...card }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {['#', 'Category', 'Question', 'Field', 'Type', 'Priority'].map(h => (
+                        <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', textAlign: 'left', borderBottom: '1px solid #e5e7eb', background: '#fafafa' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {questions
+                      .filter(q => qFilter === 'all' || q.category === qFilter)
+                      .filter(q => !qSearch || q.question.toLowerCase().includes(qSearch.toLowerCase()) || q.field.toLowerCase().includes(qSearch.toLowerCase()))
+                      .map(q => (
+                        <tr key={q.field} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <td style={{ padding: '10px 14px', fontSize: 12, color: '#9ca3af', fontFamily: FH }}>{q.order}</td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: FH, background: '#f3f4f6', color: '#6b7280' }}>{q.category}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: 13, color: BLK, fontFamily: FB, maxWidth: 400 }}>{q.question}</td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <code style={{ fontSize: 11, fontFamily: 'monospace', background: '#f3f4f6', padding: '2px 6px', borderRadius: 4, color: '#6b7280' }}>{q.field}</code>
+                          </td>
+                          <td style={{ padding: '10px 14px', fontSize: 12, color: '#6b7280', fontFamily: FB }}>{q.type}</td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{
+                              padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH,
+                              background: q.priority === 1 ? R + '12' : q.priority === 2 ? AMB + '12' : '#f3f4f6',
+                              color: q.priority === 1 ? R : q.priority === 2 ? AMB : '#9ca3af',
+                            }}>{q.priority === 1 ? 'Must Get' : q.priority === 2 ? 'Important' : 'Nice to have'}</span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ══ KNOWLEDGE BASE ═════════════════════════════════════ */}
+          {tab === 'knowledge' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                <Brain size={18} color={T} />
+                <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Knowledge Base</span>
+                <span style={{ padding: '3px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: GRN + '12', color: GRN }}>Zero PII</span>
+              </div>
+              {knowledge.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                    <Brain size={28} color="#d1d5db" />
+                  </div>
+                  <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 8px' }}>Knowledge Base Empty</h3>
+                  <p style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, maxWidth: 440, margin: '0 auto' }}>
+                    The AI agent learns from every call. Carrier IVR paths, answer patterns, and rep behaviors will populate here as calls are made.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {knowledge.map(k => (
+                    <div key={k.id} style={{ ...cardInner, borderLeft: `4px solid ${k.knowledge_type === 'ivr_path' ? T : k.knowledge_type === 'answer_pattern' ? GRN : AMB}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ fontSize: 15, fontWeight: 700, fontFamily: FH, color: BLK }}>{k.title || k.carrier_name}</span>
+                        <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: FH, background: '#f3f4f6', color: '#6b7280' }}>{k.knowledge_type}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, lineHeight: 1.6 }}>
+                        {typeof k.content === 'string' ? k.content : JSON.stringify(k.content)}
+                      </div>
+                      <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
+                        <span>Confidence: {Math.round((k.confidence || 0) * 100)}%</span>
+                        <span>Confirmed: {k.times_confirmed}x</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ══ ANALYTICS ══════════════════════════════════════════ */}
+          {tab === 'analytics' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                <BarChart2 size={18} color={T} />
+                <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Analytics</span>
+              </div>
+              <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+                <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                  <BarChart2 size={28} color="#d1d5db" />
+                </div>
+                <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 8px' }}>Analytics Coming Soon</h3>
+                <p style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, maxWidth: 440, margin: '0 auto' }}>
+                  Call volume, hold times, success rates, carrier performance, and revenue forecasting will appear here after your first completed VOB calls.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Queue Modal ────────────────────────────────────────── */}
+        {showQueueModal && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+            <div style={{ background: W, borderRadius: 16, padding: 32, width: 520, maxWidth: '95vw' }}>
+              <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 20px' }}>Queue VOB Call</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Patient ID (hashed)</label>
+                  <input value={newCall.patient_id} onChange={e => setNewCall(p => ({ ...p, patient_id: e.target.value }))}
+                    placeholder="PT-00001" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Carrier</label>
+                  <select value={newCall.carrier_name} onChange={e => setNewCall(p => ({ ...p, carrier_name: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box', background: W }}>
+                    <option value="">Select carrier...</option>
+                    {carriers.map(c => <option key={c.id} value={c.carrier_name}>{c.carrier_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Level of Care</label>
+                  <select value={newCall.level_of_care} onChange={e => setNewCall(p => ({ ...p, level_of_care: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box', background: W }}>
+                    {['Detox', 'RTC', 'PHP', 'IOP', 'Outpatient', 'Detox/RTC', 'PHP/IOP'].map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Priority</label>
+                  <select value={newCall.priority} onChange={e => setNewCall(p => ({ ...p, priority: parseInt(e.target.value) }))}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontFamily: FB, boxSizing: 'border-box', background: W }}>
+                    <option value={1}>Urgent</option>
+                    <option value={2}>High</option>
+                    <option value={3}>Medium</option>
+                    <option value={5}>Normal</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 24 }}>
+                <button onClick={() => setShowQueueModal(false)} style={{ padding: '10px 22px', borderRadius: 10, border: '1px solid #e5e7eb', background: W, fontSize: 14, fontWeight: 600, fontFamily: FB, cursor: 'pointer', color: '#6b7280' }}>Cancel</button>
+                <button onClick={queueCall} style={{ padding: '10px 22px', borderRadius: 10, border: 'none', background: '#0a5c44', color: W, fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>Queue Call</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+      </div>
+    </div>
+  )
+}
