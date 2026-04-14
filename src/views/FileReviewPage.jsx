@@ -652,9 +652,9 @@ export default function FileReviewPage() {
               height: contentHeight,
               position: 'relative',
               background: '#fff',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               borderRadius: 6,
-              overflow: 'hidden',
+              overflow: 'visible',
             }}>
               {/* When a drawing tool is active, disable pointer events on the
                   underlying content so the SVG annotation overlay gets all
@@ -740,7 +740,7 @@ export default function FileReviewPage() {
                   cursor and ignores mouseDown when tool=select for
                   background clicks (but existing shapes still get events
                   via their own pointerEvents:auto on each <g>). */}
-              {!isVideo && (isImage || isPdf || isHtml) && contentWidth > 0 && contentHeight > 0 && (
+              {!isVideo && !isAdobe && !isDesignFile && contentWidth > 0 && contentHeight > 0 && (
                 <div
                   data-ann-svg
                   style={{
@@ -758,6 +758,7 @@ export default function FileReviewPage() {
                     annotations={annotations.filter((a) => !a.resolved)}
                     onAddAnnotation={handleAddAnnotation}
                     onPinPlace={handlePinPlace}
+                    onApprove={handlePinPlace}
                     onSelectAnnotation={(a) => setSelectedId(a.id)}
                     selectedId={selectedId}
                   />

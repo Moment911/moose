@@ -82,8 +82,8 @@ export default function AnnotationCanvas({
     const pos = getPos(e)
     const { start, end, type, color, points } = { ...drawing, end: pos }
 
-    // Measurement tool — don't save, just clear (measurement was visible while dragging)
-    if (type === 'measure') { setDrawing(null); return }
+    // Measurement tool — keep visible until user clicks elsewhere or changes tool
+    if (type === 'measure') return
 
     const dx = Math.abs(end.x - start.x)
     const dy = Math.abs(end.y - start.y)
