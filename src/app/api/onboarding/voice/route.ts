@@ -888,31 +888,39 @@ export async function POST(req: NextRequest) {
       // every agency and every client.
       const templatePrompt = `{{system_prompt}}`
 
+      // Step 1: Create the Retell LLM resource first — the agent needs an llm_id.
+      let llmId: string
+      try {
+        const llmRes = await retellFetch('/create-retell-llm', 'POST', {
+          general_prompt: templatePrompt,
+          begin_message: `{{begin_message}}`,
+          general_tools: [VERIFY_PIN_TOOL, SAVE_ANSWER_TOOL, SAVE_FLAG_TOOL, {
+            type: 'function',
+            function: {
+              name: 'end_call',
+              description: 'Gracefully end the onboarding call. Call this after wrapping up or when the caller needs to leave.',
+              parameters: { type: 'object', properties: { reason: { type: 'string', description: "'completed' | 'caller_request' | 'pin_failed'" } }, required: ['reason'] },
+            },
+          }],
+        })
+        llmId = llmRes.llm_id
+        if (!llmId) throw new Error('Retell did not return llm_id')
+      } catch (e: any) {
+        return NextResponse.json({ error: e?.message || 'Retell create-retell-llm failed' }, { status: 500 })
+      }
+
+      // Step 2: Create the agent with the LLM linked.
       const retellConfig: any = {
         agent_name: `Koto Onboarding Assistant`,
         voice_id: voice_id || '11labs-Marissa',
-        response_engine: { type: 'retell-llm', llm_id: null },
+        response_engine: { type: 'retell-llm', llm_id: llmId },
         language: 'en-US',
-        general_prompt: templatePrompt,
-        begin_message: `{{begin_message}}`,
-        // Post-call notification events (call_started/call_ended)
         webhook_url: webhookUrl,
-        // Pre-call synchronous hook — Retell POSTs here with
-        // { call_inbound: { from_number, to_number, agent_id } }
-        // and expects dynamic_variables back within ~3s.
         inbound_dynamic_variables_webhook_url: webhookUrl,
         enable_backchannel: true,
         backchannel_frequency: 0.4,
         interruption_sensitivity: 0.6,
         ambient_sound: 'keyboard_typing',
-        general_tools: [VERIFY_PIN_TOOL, SAVE_ANSWER_TOOL, SAVE_FLAG_TOOL, {
-          type: 'function',
-          function: {
-            name: 'end_call',
-            description: 'Gracefully end the onboarding call. Call this after wrapping up or when the caller needs to leave.',
-            parameters: { type: 'object', properties: { reason: { type: 'string', description: "'completed' | 'caller_request' | 'pin_failed'" } }, required: ['reason'] },
-          },
-        }],
         metadata: { agency_id, kind: 'onboarding' },
       }
 
@@ -928,12 +936,13 @@ export async function POST(req: NextRequest) {
 
       await sb
         .from('agencies')
-        .update({ onboarding_agent_id: retellAgent.agent_id })
+        .update({ onboarding_agent_id: retellAgent.agent_id, onboarding_llm_id: llmId })
         .eq('id', agency_id)
 
       return NextResponse.json({
         ok: true,
         agent_id: retellAgent.agent_id,
+        llm_id: llmId,
         agent_name: retellConfig.agent_name,
       })
     }
@@ -977,6 +986,7 @@ export async function POST(req: NextRequest) {
       // beginMessage interpolation inside buildOnboardingSystemPrompt.
       const NEW_BEGIN_MESSAGE = `Hi! Welcome to {{agency_name}}'s onboarding. My name is Alex and I'll be collecting some information about your business today — this usually takes about 10 to 15 minutes. Here's how it works: I'll ask you a series of questions, and as you answer, your responses will automatically appear in your onboarding document in real time. You can follow along at any time by visiting the link that was sent to you — you'll actually see the answers populate as we talk. If you don't know the answer to something, just say 'skip it' and we'll move on — someone else on your team can fill that in later by calling this same number or visiting the link. Ready to get started? Go ahead and tell me your 4-digit PIN and we'll begin.`
 
+      const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/api/onboarding/voice`
       try {
         const res = await fetch(`${RETELL_BASE}/update-agent/${targetAgentId}`, {
           method: 'PATCH',
@@ -988,6 +998,19 @@ export async function POST(req: NextRequest) {
             begin_message: NEW_BEGIN_MESSAGE,
             general_prompt: `{{system_prompt}}`,
             ambient_sound: 'keyboard_typing',
+            enable_backchannel: true,
+            backchannel_frequency: 0.4,
+            interruption_sensitivity: 0.6,
+            webhook_url: webhookUrl,
+            inbound_dynamic_variables_webhook_url: webhookUrl,
+            general_tools: [VERIFY_PIN_TOOL, SAVE_ANSWER_TOOL, SAVE_FLAG_TOOL, {
+              type: 'function',
+              function: {
+                name: 'end_call',
+                description: 'Gracefully end the onboarding call. Call this after wrapping up or when the caller needs to leave.',
+                parameters: { type: 'object', properties: { reason: { type: 'string', description: "'completed' | 'caller_request' | 'pin_failed'" } }, required: ['reason'] },
+              },
+            }],
           }),
         })
         const data = await res.json().catch(() => ({}))
@@ -1004,6 +1027,8 @@ export async function POST(req: NextRequest) {
           updated: {
             begin_message: true,
             general_prompt: true,
+            general_tools: true,
+            webhook_url: true,
           },
           retell_response: data,
         })
