@@ -2232,10 +2232,10 @@ export default function OnboardingPage() {
               &nbsp;every few seconds so you never lose anything.
             </div>
             <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: '14px 18px', fontSize: 14, lineHeight: 1.7 }}>
-              💡 <strong>Don't know an answer?</strong> Skip it — someone else on your team can fill it in later by visiting this same link.<br />
-              📞 <strong>Prefer to talk?</strong> {onboardingPhoneDisplay && onboardingPin
-                ? <>Call <strong>{onboardingPhoneDisplay}</strong> · PIN: <strong style={{ letterSpacing: '.1em' }}>{onboardingPin}</strong></>
-                : 'Ask your agency for the voice onboarding number.'}
+              💡 <strong>Don't know an answer?</strong> Skip it — someone else on your team can fill it in later by visiting this same link.
+              {onboardingPhoneDisplay && onboardingPin && (
+                <><br />📞 <strong>Prefer to talk?</strong> Call <strong>{onboardingPhoneDisplay}</strong> · PIN: <strong style={{ letterSpacing: '.1em' }}>{onboardingPin}</strong></>
+              )}
             </div>
           </div>
         )}
