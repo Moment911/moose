@@ -1714,7 +1714,7 @@ export default function ClientDetailPage() {
               {(bk.services || []).map((s, i) => (
                 <span key={i} style={{ padding: '4px 10px', borderRadius: 20, background: T + '12', color: T, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
                   {s}
-                  <X size={10} style={{ cursor: 'pointer' }} onClick={() => saveBrandKit({ services: bk.services.filter((_, j) => j !== i) })} />
+                  <X size={10} style={{ cursor: 'pointer' }} onClick={() => saveBrandKit({ services: (bk.services || []).filter((_, j) => j !== i) })} />
                 </span>
               ))}
             </div>
@@ -1734,7 +1734,7 @@ export default function ClientDetailPage() {
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', width: 80, textTransform: 'capitalize' }}>{link.platform}</span>
                 <span style={{ fontSize: 12, color: T, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.url}</span>
-                <X size={12} style={{ cursor: 'pointer', color: '#dc2626' }} onClick={() => saveBrandKit({ social_links: bk.social_links.filter((_, j) => j !== i) })} />
+                <X size={12} style={{ cursor: 'pointer', color: '#dc2626' }} onClick={() => saveBrandKit({ social_links: (bk.social_links || []).filter((_, j) => j !== i) })} />
               </div>
             ))}
           </div>
