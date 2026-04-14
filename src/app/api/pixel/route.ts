@@ -13,6 +13,78 @@ function sb() {
   )
 }
 
+// ── Auto-enrich domain + generate AI persona (fire-and-forget) ──
+async function autoEnrichAndPersona(s: any, profileId: string, domain: string | null) {
+  try {
+    // Step 1: Enrich domain if available
+    if (domain) {
+      const enrichment = await enrichDomain(domain)
+      const updates: any = {
+        enrichment_data: enrichment,
+        updated_at: new Date().toISOString(),
+      }
+      if (enrichment.company_name) updates.identified_company = enrichment.company_name
+      await s.from('koto_visitor_profiles').update(updates).eq('id', profileId)
+    }
+
+    // Step 2: Generate AI persona
+    const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || ''
+    if (!ANTHROPIC_KEY) return
+
+    const { data: profile } = await s.from('koto_visitor_profiles').select('*').eq('id', profileId).single()
+    if (!profile) return
+
+    const { data: sessions } = await s.from('koto_visitor_sessions')
+      .select('landing_page, referrer, utm_source, utm_medium, utm_campaign, device_type, browser, os, time_on_site_seconds, pages_viewed, submitted_form, clicked_cta, viewed_pricing, intent_score, identified_company, started_at')
+      .eq('visitor_profile_id', profileId)
+      .order('started_at', { ascending: false })
+      .limit(20)
+
+    const profileSummary = `Visitor Profile:
+- Device: ${profile.device_type || 'unknown'} | Browser: ${profile.browser || '?'} ${profile.browser_version || ''} | OS: ${profile.os || '?'}
+- Screen: ${profile.screen_resolution || '?'} | Hardware: ${profile.hardware_concurrency || '?'} cores
+- Location: ${[profile.city, profile.state, profile.country].filter(Boolean).join(', ') || 'unknown'}
+- Company: ${profile.identified_company || 'unknown'} | Domain: ${profile.identified_domain || 'unknown'}
+- Sessions: ${profile.total_sessions} | Pageviews: ${profile.total_pageviews} | Time: ${Math.round((profile.total_time_seconds || 0) / 60)} min
+- Forms: ${profile.total_form_submits} | CTAs: ${profile.total_cta_clicks} | Max intent: ${profile.max_intent_score}
+- Top pages: ${(profile.top_pages || []).slice(0, 5).map((p: any) => `${p.url} (${p.views}x)`).join(', ') || 'none'}
+${profile.enrichment_data ? `- Tech stack: ${(profile.enrichment_data as any).tech_stack?.join(', ') || 'unknown'}
+- Email provider: ${(profile.enrichment_data as any).email_provider || 'unknown'}
+- Emails found: ${(profile.enrichment_data as any).emails?.join(', ') || 'none'}
+- Social: ${Object.entries((profile.enrichment_data as any).social_links || {}).filter(([,v]) => v).map(([k]) => k).join(', ') || 'none'}` : ''}
+
+Recent Sessions (${(sessions || []).length}):
+${(sessions || []).slice(0, 5).map((s: any, i: number) => `  ${i + 1}. ${s.started_at} | ${s.landing_page} | score: ${s.intent_score} | ${s.submitted_form ? 'FORM' : ''} ${s.clicked_cta ? 'CTA' : ''} ${s.viewed_pricing ? 'PRICING' : ''}`).join('\n')}
+`
+
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: `Analyze this website visitor and build a behavioral persona. Return JSON only.\n\n${profileSummary}\n\nReturn this exact JSON structure:\n{"summary":"2-3 sentence persona summary","likely_role":"job title guess","buying_stage":"awareness|consideration|decision|loyalty","engagement_level":"cold|warming|engaged|hot","segments":["tag1","tag2"],"interests":["interest1"],"behavior_pattern":"description","best_time_to_reach":"time window","device_persona":"power user|casual browser|mobile-first","traffic_quality":"organic|paid|referral|direct","predicted_value":"high|medium|low","recommended_action":"specific next step"}` }],
+      }),
+    })
+
+    if (aiRes.ok) {
+      const aiData = await aiRes.json()
+      const text = aiData?.content?.[0]?.text || ''
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const persona = JSON.parse(jsonMatch[0])
+        await s.from('koto_visitor_profiles').update({
+          ai_persona: persona,
+          ai_persona_generated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }).eq('id', profileId)
+      }
+    }
+  } catch (e) {
+    console.warn('[pixel] autoEnrichAndPersona error:', e)
+  }
+}
+
 // GET — serve the tracking pixel script or manage pixels
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -153,6 +225,11 @@ export async function GET(req: NextRequest) {
 
         profileId = newProf?.id
         created++
+
+        // Auto-enrich + persona for backfilled profiles (fire-and-forget)
+        if (profileId && first.identified_domain) {
+          autoEnrichAndPersona(s, profileId, first.identified_domain).catch(() => {})
+        }
       }
 
       // Link all sessions to this profile
@@ -409,6 +486,9 @@ export async function POST(req: NextRequest) {
 
             if (profile) {
               await s.from('koto_visitor_sessions').update({ visitor_profile_id: profile.id }).eq('session_id', sessionId)
+
+              // Auto-enrich + auto-generate persona (fire-and-forget)
+              autoEnrichAndPersona(s, profile.id, session.identified_domain).catch(() => {})
             }
           }
         } catch (e) {
@@ -731,12 +811,14 @@ Return this exact JSON structure:
 
     // ── Update profile (label, tags) ─────────────────────────────
     if (action === 'update_profile') {
-      const { profile_id, label, tags, identified_email, identified_phone } = body
+      const { profile_id, label, tags, identified_email, identified_phone, identified_domain, identified_company } = body
       const updates: any = { updated_at: new Date().toISOString() }
       if (label !== undefined) updates.label = label
       if (tags !== undefined) updates.tags = tags
       if (identified_email !== undefined) updates.identified_email = identified_email
       if (identified_phone !== undefined) updates.identified_phone = identified_phone
+      if (identified_domain !== undefined) updates.identified_domain = identified_domain
+      if (identified_company !== undefined) updates.identified_company = identified_company
       await s.from('koto_visitor_profiles').update(updates).eq('id', profile_id)
       return Response.json({ success: true })
     }

@@ -549,6 +549,11 @@ export default function PixelTrackingPage() {
               generatingPersona={generatingPersona}
               onEnrich={() => enrichProfile(selectedProfile)}
               enriching={enriching}
+              onUpdateProfile={async (updates) => {
+                await apiPost({ action: 'update_profile', profile_id: selectedProfile, ...updates })
+                const updated = await apiGet('get_profile', { agency_id: agencyId, profile_id: selectedProfile })
+                setProfileDetail(updated)
+              }}
             />
           )}
 
@@ -751,7 +756,10 @@ export default function PixelTrackingPage() {
    VISITOR DETAIL PANEL
    ══════════════════════════════════════════════════════════════════════════ */
 
-function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona, onEnrich, enriching }) {
+function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generatingPersona, onEnrich, enriching, onUpdateProfile }) {
+  const [editDomain, setEditDomain] = useState('')
+  const [showDomainInput, setShowDomainInput] = useState(false)
+
   if (!profileDetail?.profile) {
     return (
       <div style={{ textAlign:'center', padding: 80 }}>
@@ -860,15 +868,62 @@ function VisitorDetailPanel({ profileDetail, onBack, onGeneratePersona, generati
       </div>
 
       {/* ── Action Bar ───────────────────────────────────────────── */}
-      <div style={{ display:'flex', gap: 10, marginBottom: 24 }}>
-        <button onClick={onEnrich} disabled={enriching} style={{
-          display:'flex', alignItems:'center', gap: 6, padding:'8px 18px', borderRadius: 8,
-          border:'1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
-          cursor:'pointer', color: T, opacity: enriching ? 0.5 : 1,
-        }}>
-          {enriching ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }} /> : <Globe size={13} />}
-          {enrichment ? 'Re-enrich Domain' : 'Enrich Domain'}
-        </button>
+      <div style={{ display:'flex', gap: 10, marginBottom: 24, flexWrap:'wrap', alignItems:'center' }}>
+        {p.identified_domain ? (
+          <button onClick={onEnrich} disabled={enriching} style={{
+            display:'flex', alignItems:'center', gap: 6, padding:'8px 18px', borderRadius: 8,
+            border:'1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
+            cursor:'pointer', color: T, opacity: enriching ? 0.5 : 1,
+          }}>
+            {enriching ? <Loader2 size={13} style={{ animation:'spin 1s linear infinite' }} /> : <Globe size={13} />}
+            {enrichment ? 'Re-enrich Domain' : 'Enrich Domain'}
+          </button>
+        ) : showDomainInput ? (
+          <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
+            <input
+              value={editDomain}
+              onChange={e => setEditDomain(e.target.value.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0])}
+              placeholder="Enter domain (e.g. acme.com)"
+              style={{
+                padding:'8px 14px', borderRadius: 8, border:'1px solid #e5e7eb', fontSize: 13,
+                fontFamily: FB, width: 220, outline:'none', boxSizing:'border-box',
+              }}
+              onFocus={e => e.target.style.borderColor = T}
+              onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && editDomain) {
+                  onUpdateProfile({ identified_domain: editDomain }).then(() => {
+                    setShowDomainInput(false)
+                    toast.success('Domain set — now click Enrich')
+                  })
+                }
+              }}
+              autoFocus
+            />
+            <button onClick={() => {
+              if (!editDomain) return
+              onUpdateProfile({ identified_domain: editDomain }).then(() => {
+                setShowDomainInput(false)
+                toast.success('Domain set — now click Enrich Domain')
+              })
+            }} style={{
+              padding:'8px 16px', borderRadius: 8, border:'none', background: T, color: W,
+              fontSize: 13, fontWeight: 700, fontFamily: FH, cursor:'pointer',
+            }}>Save</button>
+            <button onClick={() => setShowDomainInput(false)} style={{
+              padding:'8px 12px', borderRadius: 8, border:'1px solid #e5e7eb', background: W,
+              fontSize: 13, fontFamily: FB, cursor:'pointer', color:'#6b7280',
+            }}>Cancel</button>
+          </div>
+        ) : (
+          <button onClick={() => setShowDomainInput(true)} style={{
+            display:'flex', alignItems:'center', gap: 6, padding:'8px 18px', borderRadius: 8,
+            border:'1px dashed #d1d5db', background: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
+            cursor:'pointer', color: T,
+          }}>
+            <Globe size={13} /> Set Domain to Enrich
+          </button>
+        )}
         <button onClick={onGeneratePersona} disabled={generatingPersona} style={{
           display:'flex', alignItems:'center', gap: 6, padding:'8px 18px', borderRadius: 8,
           border:'1px solid #e5e7eb', background: W, fontSize: 13, fontWeight: 700, fontFamily: FH,
