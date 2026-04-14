@@ -169,6 +169,7 @@ import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import MarketingQuizPage from '../views/MarketingQuizPage'
 import IntelPublicPage from '../views/IntelPublicPage'
+import KotoOrderPage from '../views/KotoOrderPage'
 // HelpAssistant removed — floating button was disabled per user request
 
 // Global error handler — reports to /api/errors
@@ -440,6 +441,7 @@ function AppRoutes() {
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
+          <Route path="/order" element={<KotoOrderPage />} />
           <Route path="/qa" element={<QAConsolePage />} />
           <Route path="/billing-admin" element={<BillingAdminPage />} />
           <Route path="/stripe-admin" element={<StripeDashboardPage />} />
