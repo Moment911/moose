@@ -149,6 +149,7 @@ export default function VOBAgentPage() {
     { key: 'knowledge', label: 'Knowledge Base', icon: Brain },
     { key: 'analytics', label: 'Analytics', icon: BarChart2 },
     { key: 'revenue', label: 'Revenue', icon: DollarSign },
+    { key: 'library', label: 'Call Library', icon: Phone },
     { key: 'setup', label: 'Test & Setup', icon: Settings },
   ]
 
@@ -938,6 +939,11 @@ export default function VOBAgentPage() {
               )}
             </div>
           )}
+          {/* ══ CALL LIBRARY ═════════════════════════════════════ */}
+          {tab === 'library' && (
+            <CallLibrary calls={calls} questions={questions} />
+          )}
+
           {/* ══ TEST & SETUP ═════════════════════════════════════ */}
           {tab === 'setup' && (
             <div>
@@ -1404,6 +1410,297 @@ function VOBResultsTab({ calls, questions, selectedCall, setSelectedCall, agency
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CALL LIBRARY — Full recap of every call, organized by facility/client
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const DUMMY_FACILITIES = [
+  { id: 'fac-001', name: 'Sunrise Recovery Center', city: 'Fort Lauderdale', state: 'FL' },
+  { id: 'fac-002', name: 'Palm Beach Treatment', city: 'West Palm Beach', state: 'FL' },
+  { id: 'fac-003', name: 'Coastal Behavioral Health', city: 'Miami', state: 'FL' },
+  { id: 'fac-004', name: 'Serenity Springs', city: 'Boca Raton', state: 'FL' },
+  { id: 'fac-005', name: 'Harbor Recovery', city: 'Delray Beach', state: 'FL' },
+]
+
+function CallLibrary({ calls, questions }) {
+  const [selectedCall, setSelectedCall] = useState(null)
+  const [groupBy, setGroupBy] = useState('facility')
+
+  const enrichedCalls = calls.map((c, i) => ({
+    ...c,
+    facility: DUMMY_FACILITIES[i % DUMMY_FACILITIES.length],
+  }))
+
+  const completedCalls = enrichedCalls.filter(c => ['completed', 'escalated', 'failed'].includes(c.status))
+
+  const grouped = completedCalls.reduce((acc, c) => {
+    const key = groupBy === 'facility' ? c.facility.name : c.carrier_name
+    if (!acc[key]) acc[key] = []
+    acc[key].push(c)
+    return acc
+  }, {})
+
+  if (selectedCall) {
+    const call = selectedCall
+    const vob = call.vob_data || {}
+    const analysis = call.post_call_analysis || {}
+    const answeredCount = Object.keys(vob).filter(k => !k.startsWith('_')).length
+    const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+
+    return (
+      <div>
+        <button onClick={() => setSelectedCall(null)} style={{
+          display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer',
+          color: '#6b7280', fontSize: 13, fontFamily: FH, fontWeight: 700, marginBottom: 20, padding: 0,
+        }}>
+          <ArrowLeft size={15} /> Back to Library
+        </button>
+
+        {/* Call Header */}
+        <div style={{ ...cardInner, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div>
+              <h2 style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: BLK, margin: 0 }}>
+                Call Recap — {call.carrier_name}
+              </h2>
+              <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#6b7280', fontFamily: FB, marginTop: 6, flexWrap: 'wrap' }}>
+                <span>Patient: {call.patient_id}</span>
+                <span>Facility: {call.facility?.name}</span>
+                <span>LOC: {call.level_of_care || '—'}</span>
+                {call.duration_seconds > 0 && <span>Duration: {Math.floor(call.duration_seconds / 60)}m {call.duration_seconds % 60}s</span>}
+                {call.rep_name && <span>Rep: {call.rep_name}</span>}
+                {call.reference_number && <span>Ref#: {call.reference_number}</span>}
+                <span>{new Date(call.created_at).toLocaleString()}</span>
+              </div>
+            </div>
+            <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
+              <div style={{ width: `${Math.round((answeredCount / Math.max(questions.length, 1)) * 100)}%`, height: '100%', borderRadius: 4, background: '#0a5c44' }} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: '#0a5c44' }}>{answeredCount} / {questions.length} fields</span>
+          </div>
+
+          {/* Audio Player */}
+          {call.recording_url ? (
+            <div style={{ padding: '16px 20px', background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#0a5c44', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Phone size={18} color={W} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FH, color: BLK }}>Call Recording</div>
+                  <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
+                    {call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : 'Duration unknown'}
+                  </div>
+                </div>
+              </div>
+              <audio controls src={call.recording_url} style={{ width: '100%', height: 40 }} />
+            </div>
+          ) : (
+            <div style={{ padding: '14px 18px', background: '#f9fafb', borderRadius: 10, fontSize: 13, color: '#9ca3af', fontFamily: FB, textAlign: 'center' }}>
+              No recording available for this call
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          {/* Left — Analysis + VOB */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {analysis.call_summary && (
+              <div style={{ ...cardInner }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <Brain size={16} color={T} />
+                  <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>AI Analysis</span>
+                </div>
+                <p style={{ fontSize: 14, color: BLK, fontFamily: FB, lineHeight: 1.7, margin: '0 0 16px' }}>{analysis.call_summary}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                  {analysis.completeness_score != null && (
+                    <div style={{ padding: '12px', background: '#f0f9ff', borderRadius: 10, textAlign: 'center' }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: T }}>{analysis.completeness_score}%</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>Complete</div>
+                    </div>
+                  )}
+                  {analysis.denial_risk_score != null && (
+                    <div style={{ padding: '12px', background: analysis.denial_risk_score < 30 ? GRN + '08' : R + '08', borderRadius: 10, textAlign: 'center' }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: analysis.denial_risk_score < 30 ? GRN : R }}>{analysis.denial_risk_score}%</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>Denial Risk</div>
+                    </div>
+                  )}
+                  {call.hold_time_seconds > 0 && (
+                    <div style={{ padding: '12px', background: '#fef3c7', borderRadius: 10, textAlign: 'center' }}>
+                      <div style={{ fontSize: 22, fontWeight: 800, fontFamily: FH, color: AMB }}>{Math.round(call.hold_time_seconds / 60)}m</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase' }}>Hold Time</div>
+                    </div>
+                  )}
+                </div>
+                {analysis.denial_risk_factors?.length > 0 && (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', marginBottom: 6 }}>Risk Factors</div>
+                    {analysis.denial_risk_factors.map((f, i) => (
+                      <div key={i} style={{ fontSize: 13, color: R, fontFamily: FB, padding: '3px 0' }}>• {f}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {call.revenue_forecast && (
+              <div style={{ ...cardInner }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                  <DollarSign size={16} color="#0a5c44" />
+                  <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Revenue Estimate</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ padding: '14px', background: '#ecfdf5', borderRadius: 10, textAlign: 'center' }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: '#0a5c44' }}>${(call.revenue_forecast.gross || 0).toLocaleString()}</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FH, textTransform: 'uppercase' }}>Gross</div>
+                  </div>
+                  <div style={{ padding: '14px', background: '#f0f9ff', borderRadius: 10, textAlign: 'center' }}>
+                    <div style={{ fontSize: 24, fontWeight: 800, fontFamily: FH, color: T }}>${(call.revenue_forecast.net || 0).toLocaleString()}</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', fontFamily: FH, textTransform: 'uppercase' }}>Net</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ ...cardInner }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <FileText size={16} color={T} />
+                <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>VOB Answers ({answeredCount})</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {Object.entries(vob).filter(([k]) => !k.startsWith('_')).map(([field, value]) => (
+                  <div key={field} style={{ padding: '8px 12px', background: '#ecfdf5', borderRadius: 8, border: '1px solid #a7f3d0' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', fontFamily: FH, textTransform: 'uppercase', letterSpacing: '.06em' }}>{field.replace(/_/g, ' ')}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#0a5c44', fontFamily: FB, marginTop: 2 }}>{String(value)}</div>
+                  </div>
+                ))}
+              </div>
+              {answeredCount === 0 && <div style={{ padding: '20px', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No answers captured</div>}
+            </div>
+          </div>
+
+          {/* Right — Transcript */}
+          <div style={{ ...cardInner, height: 'fit-content' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <Activity size={16} color={AMB} />
+              <span style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>Full Transcript</span>
+            </div>
+            {call.transcript ? (
+              <div style={{ fontSize: 13, fontFamily: FB, color: '#374151', lineHeight: 1.9, maxHeight: 600, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                {call.transcript}
+              </div>
+            ) : (
+              <div style={{ padding: '40px 20px', textAlign: 'center', fontSize: 13, color: '#9ca3af' }}>No transcript available</div>
+            )}
+            {call.ivr_log?.length > 0 && (
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, fontFamily: FH, color: BLK, marginBottom: 10 }}>IVR Navigation Log</div>
+                {call.ivr_log.map((step, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+                    <span style={{ padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', fontSize: 11, fontWeight: 700, fontFamily: FH, color: '#6b7280' }}>Step {i + 1}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, fontFamily: FB, color: '#0a5c44' }}>{step.action}</span>
+                    {step.description && <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>— {step.description}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Phone size={18} color="#0a5c44" />
+          <span style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Call Library</span>
+          <span style={{ fontSize: 13, color: '#9ca3af', fontFamily: FB }}>{completedCalls.length} calls</span>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {['facility', 'carrier'].map(g => (
+            <button key={g} onClick={() => setGroupBy(g)} style={{
+              padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600, fontFamily: FH,
+              border: groupBy === g ? '1.5px solid #0a5c44' : '1px solid #e5e7eb',
+              background: groupBy === g ? '#ecfdf5' : W, color: groupBy === g ? '#0a5c44' : '#6b7280', cursor: 'pointer',
+              textTransform: 'capitalize',
+            }}>By {g}</button>
+          ))}
+        </div>
+      </div>
+
+      {completedCalls.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <div style={{ width: 64, height: 64, borderRadius: 16, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <Phone size={28} color="#d1d5db" />
+          </div>
+          <h3 style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, margin: '0 0 8px' }}>No Completed Calls Yet</h3>
+          <p style={{ fontSize: 14, color: '#6b7280', fontFamily: FB }}>Completed VOB calls will appear here with full recaps, recordings, and analysis.</p>
+        </div>
+      ) : (
+        Object.entries(grouped).map(([groupName, groupCalls]) => (
+          <div key={groupName} style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#0a5c44' + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {groupBy === 'facility' ? <Shield size={16} color="#0a5c44" /> : <Globe size={16} color="#0a5c44" />}
+              </div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, fontFamily: FH, color: BLK }}>{groupName}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', fontFamily: FB }}>
+                  {groupCalls.length} call{groupCalls.length !== 1 ? 's' : ''}
+                  {groupBy === 'facility' && groupCalls[0]?.facility && ` · ${groupCalls[0].facility.city}, ${groupCalls[0].facility.state}`}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {groupCalls.map(call => {
+                const st = STATUS_COLORS[call.status] || STATUS_COLORS.queued
+                const answered = Object.keys(call.vob_data || {}).filter(k => !k.startsWith('_')).length
+                return (
+                  <div key={call.id} onClick={() => setSelectedCall(call)} style={{
+                    ...cardInner, cursor: 'pointer', transition: 'box-shadow .15s, transform .15s',
+                    borderLeft: `4px solid ${call.status === 'completed' ? '#0a5c44' : call.status === 'escalated' ? R : AMB}`,
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,.06)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: call.recording_url ? '#0a5c44' + '12' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {call.recording_url ? <Phone size={18} color="#0a5c44" /> : <PhoneOff size={18} color="#9ca3af" />}
+                        </div>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 15, fontWeight: 700, fontFamily: FH, color: BLK }}>{call.patient_id}</span>
+                            <span style={{ fontSize: 13, color: '#6b7280', fontFamily: FB }}>→ {call.carrier_name}</span>
+                            <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, fontFamily: FH, background: st.bg, color: st.color }}>{st.label}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 14, fontSize: 12, color: '#9ca3af', fontFamily: FB, marginTop: 4 }}>
+                            <span>{call.level_of_care || '—'}</span>
+                            {call.duration_seconds > 0 && <span>{Math.floor(call.duration_seconds / 60)}m {call.duration_seconds % 60}s</span>}
+                            <span>{answered > 0 ? `${answered} fields` : 'No data'}</span>
+                            {call.recording_url && <span style={{ color: T, fontWeight: 600 }}>Recording</span>}
+                            <span>{new Date(call.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} color="#d1d5db" />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   )
 }
