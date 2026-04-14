@@ -125,10 +125,10 @@ export async function POST(req: NextRequest) {
 
       // Get pixel config
       const { data: pixel } = await s.from('koto_tracking_pixels')
-        .select('agency_id, client_id, is_active, auto_create_lead, auto_add_to_campaign_id')
+        .select('agency_id, client_id, is_active, auto_create_lead, auto_add_to_campaign_id, total_leads_created')
         .eq('pixel_id', data.pixel_id)
         .eq('is_active', true)
-        .maybeSingle()
+        .maybeSingle() as { data: { agency_id: string; client_id: string | null; is_active: boolean; auto_create_lead: boolean; auto_add_to_campaign_id: string | null; total_leads_created: number } | null }
 
       if (!pixel) return new Response('OK', { status: 200, headers: { 'Access-Control-Allow-Origin': '*' } })
 
@@ -321,7 +321,7 @@ export async function POST(req: NextRequest) {
       if (!sessionId || !pixelId) return new Response('OK', { status: 200, headers: { 'Access-Control-Allow-Origin': '*' } })
 
       // Insert event
-      const { data: pixel } = await s.from('koto_tracking_pixels').select('agency_id').eq('pixel_id', pixelId).maybeSingle()
+      const { data: pixel } = await s.from('koto_tracking_pixels').select('agency_id, auto_create_lead, total_leads_created').eq('pixel_id', pixelId).maybeSingle() as { data: { agency_id: string; auto_create_lead: boolean; total_leads_created: number } | null }
       if (pixel) {
         await s.from('koto_visitor_events').insert({
           session_id: sessionId,
@@ -393,6 +393,35 @@ export async function POST(req: NextRequest) {
                 '/pixels', '🔥',
                 { session_id: sessionId, score, company: session.identified_company },
               ).catch(() => {})
+
+              // Auto-create lead if pixel has auto_create_lead enabled
+              if (pixel.auto_create_lead && !session.lead_created) {
+                void (async () => {
+                  try {
+                    await s.from('koto_visitor_sessions').update({ lead_created: true }).eq('session_id', sessionId)
+                    // Create a client/lead record from visitor data
+                    const leadData: any = {
+                      agency_id: pixel.agency_id,
+                      name: session.identified_company || 'Website Visitor',
+                      status: 'prospect',
+                      source: 'pixel_tracking',
+                      website: session.identified_domain ? `https://${session.identified_domain}` : session.landing_page,
+                      industry: null,
+                      notes: `Auto-created from Visitor Intelligence — intent score ${score}. ` +
+                        `${session.pages_viewed?.length || 0} pages viewed, ${Math.round((session.time_on_site_seconds || 0) / 60)}m on site. ` +
+                        `${session.submitted_form ? 'Submitted form. ' : ''}${session.viewed_pricing ? 'Viewed pricing. ' : ''}` +
+                        `Signals: ${(session.intent_signals || []).join(', ')}`,
+                    }
+                    if (session.identified_city) leadData.city = session.identified_city
+                    if (session.identified_state) leadData.state = session.identified_state
+                    await s.from('clients').insert(leadData)
+                    // Increment pixel lead count
+                    await s.from('koto_tracking_pixels').update({
+                      total_leads_created: (pixel.total_leads_created || 0) + 1,
+                    }).eq('pixel_id', pixelId)
+                  } catch (e) { console.warn('[pixel] auto-lead error:', e) }
+                })()
+              }
             }
           }
 

@@ -664,30 +664,30 @@ export default function DashboardPage() {
     return (
       <div className="page-shell" style={{
         display: 'flex', height: '100vh', overflow: 'hidden',
-        background: GRY, fontFamily: FB,
+        background: '#ffffff', fontFamily: FB,
       }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* ── Dark Header ───────────────────────────────────────────────── */}
-          <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '20px 32px 18px', flexShrink: 0 }}>
+          {/* ── Header ────────────────────────────────────────────────────── */}
+          <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '28px 40px 24px', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{
-                  fontSize: 11, fontWeight: 700, color: '#9ca3af',
-                  textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
+                  fontSize: 12, fontWeight: 700, color: '#9ca3af',
+                  textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8, fontFamily: FH,
                 }}>
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </div>
                 <h1 style={{
-                  fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em', lineHeight: 1,
+                  fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em', lineHeight: 1,
                 }}>
                   Platform Overview
                 </h1>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                 <span style={{
-                  fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 20,
-                  background: GRN + '20', color: GRN, fontFamily: FH,
+                  fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
+                  background: GRN + '12', color: GRN, fontFamily: FH,
                 }}>
                   Uptime {superStats.uptime}
                 </span>
@@ -697,33 +697,48 @@ export default function DashboardPage() {
           </div>
 
           {/* ── Main content ──────────────────────────────────────────────── */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px 48px' }}>
 
             {/* ── Platform Health Bar ────────────────────────────────────── */}
             <div style={{
               background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
-              padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 20,
+              padding: '16px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 20,
             }}>
-              <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 800, color: BLK, whiteSpace: 'nowrap' }}>Platform Health</div>
-              <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Shield size={16} color={GRN} />
+                <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, whiteSpace: 'nowrap' }}>Platform Health</div>
+              </div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
                 <div style={{
                   width: `${qaHealth.health_score || 0}%`, height: '100%', borderRadius: 4,
                   background: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
                   transition: 'width .5s ease',
                 }} />
               </div>
-              <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R }}>
+              <span style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R }}>
                 {qaHealth.health_score || 0}%
               </span>
               <button onClick={() => navigate('/qa')} style={{
-                fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 6,
-                border: 'none', background: T + '15', color: T, cursor: 'pointer', fontFamily: FH,
-              }}>
+                fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 8,
+                border: '1px solid #e5e7eb', background: '#fff', color: BLK, cursor: 'pointer', fontFamily: FH,
+                transition: 'background .12s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                 QA Console
               </button>
             </div>
 
-            {/* Stats Row — 8 cards */}
+            {/* ── Stats Section ──────────────────────────────────────────── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: T + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BarChart2 size={18} color={T} />
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Platform Metrics</div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 1 }}>Real-time platform statistics</div>
+              </div>
+            </div>
             <div style={{
               display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 14,
             }}>
@@ -733,7 +748,7 @@ export default function DashboardPage() {
               <DashStatCard loading={loading} label="WP Sites"          value={superStats.activeWpSites}  icon={HardDrive}   accent={AMB} />
             </div>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24,
+              display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 36,
             }}>
               <DashStatCard loading={loading} label="Voice Agents"     value={superStats.voiceAgents}    icon={Phone}       accent={'#7c3aed'} />
               <DashStatCard loading={loading} label="Total Calls"      value={superStats.totalCalls}     icon={Phone}       accent={T} />
@@ -741,9 +756,18 @@ export default function DashboardPage() {
               <DashStatCard loading={loading} label="System Uptime"    value={superStats.uptime}         icon={Activity}    accent={GRN} />
             </div>
 
-            {/* Quick Actions */}
+            {/* ── Quick Actions ──────────────────────────────────────────── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap size={18} color={R} />
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Quick Actions</div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 1 }}>Platform management tools</div>
+              </div>
+            </div>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 24,
+              display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14, marginBottom: 36,
             }}>
               {SUPER_ACTIONS.map(a => (
                 <DashActionTile key={a.label} icon={a.icon} label={a.label} bg={a.bg} onClick={() => a.action ? a.action() : navigate(a.to || '/')} />
@@ -751,7 +775,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 3-column grid: Agency Management + System Monitoring + Comms/QA */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 340px', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 360px', gap: 24 }}>
 
               {/* Column 1: Agency Management */}
               <div style={{
@@ -759,14 +783,17 @@ export default function DashboardPage() {
                 overflow: 'hidden',
               }}>
                 <div style={{
-                  padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
+                  padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
-                    Agencies
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Globe size={16} color={T} />
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                      Agencies
+                    </div>
                   </div>
                   <button onClick={() => navigate('/platform-admin')} style={{
-                    fontSize: 11, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH,
+                    fontSize: 12, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH,
                   }}>
                     View All
                   </button>
@@ -777,7 +804,7 @@ export default function DashboardPage() {
                       {[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}
                     </div>
                   ) : agencyList.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '30px 0', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
+                    <div style={{ textAlign: 'center', padding: '30px 0', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>
                       No agencies
                     </div>
                   ) : agencyList.slice(0, 8).map(a => (
@@ -790,9 +817,9 @@ export default function DashboardPage() {
                       onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                       onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                       <div style={{
-                        width: 36, height: 36, borderRadius: 8, background: R + '12',
+                        width: 38, height: 38, borderRadius: 10, background: R + '12',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: FH, fontSize: 14, fontWeight: 800, color: R, flexShrink: 0,
+                        fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, flexShrink: 0,
                       }}>
                         {(a.brand_name || a.name || '?')[0].toUpperCase()}
                       </div>
@@ -803,7 +830,7 @@ export default function DashboardPage() {
                         }}>
                           {a.brand_name || a.name}
                         </div>
-                        <div style={{ fontSize: 12, color: '#6b7280' }}>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                           {a.client_count || 0} clients &middot; {a.plan || 'starter'}
                         </div>
                       </div>
@@ -814,24 +841,27 @@ export default function DashboardPage() {
               </div>
 
               {/* Column 2: System Monitoring — Errors + Activity */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* Recent Errors */}
                 <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
                   <div style={{
-                    padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
+                    padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   }}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Recent Errors</div>
-                    <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: R + '15', color: R }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <AlertCircle size={16} color={R} />
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Recent Errors</div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: R + '12', color: R }}>
                       {superStats.totalErrors24h} in 24h
                     </span>
                   </div>
-                  <div style={{ padding: '4px 18px 10px', maxHeight: 200, overflowY: 'auto' }}>
+                  <div style={{ padding: '6px 20px 14px', maxHeight: 200, overflowY: 'auto' }}>
                     {loading ? (
                       <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
                     ) : recentErrors.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>
-                        <Check size={20} color={GRN} style={{ marginBottom: 8 }} /><br />No recent errors
+                      <div style={{ textAlign: 'center', padding: '28px 0', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>
+                        <Check size={22} color={GRN} style={{ marginBottom: 8 }} /><br />No recent errors
                       </div>
                     ) : recentErrors.slice(0, 5).map(log => <DashLogRow key={log.id} log={log} showLevel />)}
                   </div>
@@ -839,27 +869,36 @@ export default function DashboardPage() {
 
                 {/* Activity Feed */}
                 <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', overflow: 'hidden', flex: 1 }}>
-                  <div style={{ padding: '14px 18px', borderBottom: '1px solid #f3f4f6' }}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>Activity Feed</div>
+                  <div style={{
+                    padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                  }}>
+                    <Activity size={16} color={T} />
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>Activity Feed</div>
                   </div>
-                  <div style={{ padding: '4px 18px 10px', maxHeight: 220, overflowY: 'auto' }}>
+                  <div style={{ padding: '6px 20px 14px', maxHeight: 220, overflowY: 'auto' }}>
                     {loading ? (
                       <div style={{ padding: '20px 0' }}>{[1,2,3].map(i => <SkeletonBar key={i} mb={12} />)}</div>
                     ) : activityFeed.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0', fontSize: 13, color: '#9ca3af', fontFamily: FB }}>No activity yet</div>
+                      <div style={{ textAlign: 'center', padding: '28px 0', fontSize: 14, color: '#9ca3af', fontFamily: FB }}>No activity yet</div>
                     ) : activityFeed.slice(0, 8).map(log => <DashLogRow key={log.id} log={log} showLevel />)}
                   </div>
                 </div>
               </div>
 
               {/* Column 3: Communications + QA Summary */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* Communications Status */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>
-                    Communications (24h)
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18,
+                  }}>
+                    <Send size={16} color={T} />
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                      Communications (24h)
+                    </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                     {[
                       { label: 'Emails', value: commsStats.emails24h, color: T },
                       { label: 'SMS', value: commsStats.sms24h, color: GRN },
@@ -867,10 +906,10 @@ export default function DashboardPage() {
                       { label: 'Total', value: commsStats.total24h, color: BLK },
                     ].map(s => (
                       <div key={s.label} style={{ textAlign: 'center' }}>
-                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 800, color: s.color, lineHeight: 1 }}>
+                        <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 800, color: s.color, lineHeight: 1 }}>
                           {loading ? '—' : s.value}
                         </div>
-                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>
                           {s.label}
                         </div>
                       </div>
@@ -879,17 +918,20 @@ export default function DashboardPage() {
                 </div>
 
                 {/* QA Summary */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18 }}>
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
                   <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18,
                   }}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>QA Health</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <CheckCircle size={16} color={GRN} />
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>QA Health</div>
+                    </div>
                     <button onClick={() => navigate('/qa')} style={{
-                      fontSize: 11, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH,
+                      fontSize: 12, fontWeight: 700, color: T, background: 'none', border: 'none', cursor: 'pointer', fontFamily: FH,
                     }}>Open Console</button>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                    <div style={{ flex: 1, height: 8, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
                       <div style={{
                         width: `${qaHealth.health_score || 0}%`, height: '100%', borderRadius: 4,
                         background: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
@@ -897,28 +939,28 @@ export default function DashboardPage() {
                       }} />
                     </div>
                     <span style={{
-                      fontFamily: FH, fontSize: 16, fontWeight: 800,
+                      fontFamily: FH, fontSize: 18, fontWeight: 800,
                       color: (qaHealth.health_score || 0) >= 80 ? GRN : (qaHealth.health_score || 0) >= 50 ? AMB : R,
                     }}>{qaHealth.health_score || 0}%</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>{qaHealth.pass_rate || 0}%</div>
-                      <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Pass Rate</div>
+                      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK }}>{qaHealth.pass_rate || 0}%</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', marginTop: 4 }}>Pass Rate</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: qaHealth.open_errors > 0 ? R : GRN }}>{qaHealth.open_errors || 0}</div>
-                      <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase' }}>Open Errors</div>
+                      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: qaHealth.open_errors > 0 ? R : GRN }}>{qaHealth.open_errors || 0}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: FH, fontWeight: 600, textTransform: 'uppercase', marginTop: 4 }}>Open Errors</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Management Actions */}
-                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 18 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 14 }}>
-                    Quick Actions
+                <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
+                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 16 }}>
+                    Shortcuts
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {[
                       { label: 'Run QA Tests', to: '/qa', color: '#7c3aed' },
                       { label: 'View Voice Calls', to: '/voice/live', color: T },
@@ -926,12 +968,14 @@ export default function DashboardPage() {
                     ].map(a => (
                       <button key={a.label} onClick={() => navigate(a.to)} style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                        background: a.color + '08', fontSize: 13, fontFamily: FH, fontWeight: 700,
-                        color: a.color, transition: 'background .12s',
-                      }}>
+                        padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', cursor: 'pointer',
+                        background: '#fff', fontSize: 13, fontFamily: FH, fontWeight: 700,
+                        color: BLK, transition: 'all .12s',
+                      }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = a.color }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#e5e7eb' }}>
                         {a.label}
-                        <ChevronRight size={14} />
+                        <ChevronRight size={14} color="#9ca3af" />
                       </button>
                     ))}
                   </div>
@@ -957,34 +1001,36 @@ export default function DashboardPage() {
   return (
     <div className="page-shell" style={{
       display: 'flex', height: '100vh', overflow: 'hidden',
-      background: GRY, fontFamily: FB,
+      background: '#ffffff', fontFamily: FB,
     }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* ── Dark Header ─────────────────────────────────────────────────── */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '20px 32px 18px', flexShrink: 0 }}>
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '28px 40px 24px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{
-                fontSize: 11, fontWeight: 700, color: '#9ca3af',
-                textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6, fontFamily: FH,
+                fontSize: 12, fontWeight: 700, color: '#9ca3af',
+                textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8, fontFamily: FH,
               }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
               <h1 style={{
-                fontFamily: FH, fontSize: 26, fontWeight: 800, color: '#111111', margin: 0, letterSpacing: '-.03em', lineHeight: 1,
+                fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em', lineHeight: 1,
               }}>
                 {greeting}
               </h1>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               {refreshBadge}
               <button onClick={() => navigate('/clients')} style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                padding: '10px 20px', borderRadius: 10, border: 'none',
-                background: R, color: '#fff', fontSize: 14, fontWeight: 700,
-                cursor: 'pointer', boxShadow: `0 4px 14px ${R}40`, fontFamily: FH,
-              }}>
+                padding: '10px 22px', borderRadius: 10, border: 'none',
+                background: BLK, color: '#fff', fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', fontFamily: FH, transition: 'opacity .15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                 <Plus size={15} /> New Client
               </button>
             </div>
@@ -992,9 +1038,9 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Scrollable body ─────────────────────────────────────────────── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px 48px' }}>
 
-          {/* ── Stats — only shows cards for enabled features ─────────────── */}
+          {/* ── Overview Section Header ───────────────────────────────────── */}
           {(() => {
             const stats = [
               { label: 'Active Clients',     value: agencyStats.activeClients,    icon: Users,          accent: R,         feat: 'clients' },
@@ -1009,20 +1055,34 @@ export default function DashboardPage() {
             ].filter(s => feat(s.feat))
             if (stats.length === 0) return null
             return (
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 5)}, 1fr)`, gap: 14, marginBottom: 24 }}>
-                {stats.map(s => <DashStatCard key={s.label} loading={loading} label={s.label} value={s.value} icon={s.icon} accent={s.accent} />)}
-              </div>
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: T + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <BarChart2 size={18} color={T} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Overview</div>
+                    <div style={{ fontSize: 13, color: '#6b7280', marginTop: 1 }}>Your agency at a glance this month</div>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 5)}, 1fr)`, gap: 14, marginBottom: 36 }}>
+                  {stats.map(s => <DashStatCard key={s.label} loading={loading} label={s.label} value={s.value} icon={s.icon} accent={s.accent} />)}
+                </div>
+              </>
             )
           })()}
 
-          {/* ── Quick Actions — only shows enabled features ────────────────── */}
+          {/* ── Quick Actions ─────────────────────────────────────────────── */}
           {AGENCY_ACTIONS.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{
-              fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK,
-              marginBottom: 14, letterSpacing: '-.02em',
-            }}>
-              Quick Actions
+          <div style={{ marginBottom: 36 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap size={18} color={R} />
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, fontFamily: FH, color: BLK }}>Quick Actions</div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 1 }}>Jump into your most-used tools</div>
+              </div>
             </div>
             <div style={{
               display: 'grid', gridTemplateColumns: `repeat(${Math.min(AGENCY_ACTIONS.length, 4)}, 1fr)`, gap: 14,
@@ -1035,24 +1095,27 @@ export default function DashboardPage() {
           )}
 
           {/* ── Two-column: Activity + Right sidebar ──────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 24 }}>
             {/* Recent Activity */}
             <div style={{
               background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
               overflow: 'hidden',
             }}>
               <div style={{
-                padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
+                padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
-                <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
-                  Recent Activity
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Activity size={16} color={T} />
+                  <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                    Recent Activity
+                  </div>
                 </div>
-                <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: FB }}>
+                <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
                   Last 10 events
                 </span>
               </div>
-              <div style={{ padding: '4px 18px 10px' }}>
+              <div style={{ padding: '6px 20px 14px' }}>
                 {loading ? (
                   <div style={{ padding: '20px 0' }}>
                     {[1,2,3,4,5].map(i => (
@@ -1064,10 +1127,10 @@ export default function DashboardPage() {
                   </div>
                 ) : recentActivity.length === 0 ? (
                   <div style={{
-                    textAlign: 'center', padding: '40px 0', fontSize: 13,
+                    textAlign: 'center', padding: '48px 0', fontSize: 14,
                     color: '#9ca3af', fontFamily: FB,
                   }}>
-                    <Activity size={24} color="#d1d5db" style={{ marginBottom: 8 }} />
+                    <Activity size={28} color="#d1d5db" style={{ marginBottom: 10 }} />
                     <br />No recent activity
                   </div>
                 ) : (
@@ -1079,30 +1142,33 @@ export default function DashboardPage() {
             </div>
 
             {/* Right sidebar: Spotlight + System Status */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {/* Client Spotlight */}
               <div style={{
                 background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
                 overflow: 'hidden',
               }}>
                 <div style={{
-                  padding: '14px 18px', borderBottom: '1px solid #f3f4f6',
+                  padding: '16px 20px', borderBottom: '1px solid #e5e7eb',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>
-                    Client Spotlight
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Users size={16} color={R} />
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                      Client Spotlight
+                    </div>
                   </div>
                   <button onClick={() => navigate('/clients')} style={{
                     fontSize: 12, fontWeight: 700, color: R, background: 'none',
                     border: 'none', cursor: 'pointer', display: 'flex',
-                    alignItems: 'center', gap: 3, fontFamily: FH,
+                    alignItems: 'center', gap: 4, fontFamily: FH,
                   }}>
                     View all <ChevronRight size={12} />
                   </button>
                 </div>
-                <div style={{ padding: '8px 10px' }}>
+                <div style={{ padding: '8px 12px' }}>
                   {loading ? (
-                    <div style={{ padding: '10px 8px' }}>
+                    <div style={{ padding: '12px 8px' }}>
                       {[1,2,3].map(i => (
                         <div key={i} style={{ marginBottom: 14 }}>
                           <SkeletonBar w="60%" mb={6} />
@@ -1112,7 +1178,7 @@ export default function DashboardPage() {
                     </div>
                   ) : spotlightClients.length === 0 ? (
                     <div style={{
-                      textAlign: 'center', padding: '24px 0', fontSize: 13,
+                      textAlign: 'center', padding: '28px 0', fontSize: 14,
                       color: '#9ca3af', fontFamily: FB,
                     }}>
                       No active clients
@@ -1125,7 +1191,7 @@ export default function DashboardPage() {
                           key={cl.id}
                           onClick={() => navigate(`/client/${cl.id}`)}
                           style={{
-                            padding: '11px 10px', borderRadius: 10, cursor: 'pointer',
+                            padding: '12px 10px', borderRadius: 10, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', gap: 12,
                             transition: 'background .12s',
                           }}
@@ -1133,10 +1199,10 @@ export default function DashboardPage() {
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                           <div style={{
-                            width: 38, height: 38, borderRadius: 10,
+                            width: 40, height: 40, borderRadius: 10,
                             background: statusColor + '12', display: 'flex',
                             alignItems: 'center', justifyContent: 'center',
-                            fontFamily: FH, fontSize: 14, fontWeight: 800, color: statusColor,
+                            fontFamily: FH, fontSize: 15, fontWeight: 800, color: statusColor,
                           }}>
                             {cl.name?.[0]?.toUpperCase() || '?'}
                           </div>
@@ -1147,13 +1213,13 @@ export default function DashboardPage() {
                             }}>
                               {cl.name}
                             </div>
-                            <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB }}>
+                            <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: FB, marginTop: 2 }}>
                               {cl.industry || 'General'}
                             </div>
                           </div>
                           <div style={{ textAlign: 'right', flexShrink: 0 }}>
                             <span style={{
-                              fontSize: 12, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+                              fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20,
                               background: statusColor + '15', color: statusColor,
                               textTransform: 'uppercase', letterSpacing: '.05em',
                             }}>
@@ -1170,25 +1236,28 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* System Status (agency admins only) */}
+              {/* System Status */}
               {!isClient && (
                 <div style={{
                   background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb',
-                  padding: '18px',
+                  padding: '20px 24px',
                 }}>
                   <div style={{
-                    fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK, marginBottom: 16,
+                    display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18,
                   }}>
-                    System Status
+                    <Shield size={16} color={GRN} />
+                    <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
+                      System Status
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <DashStatusDot label="Database"  status={systemHealth.database} />
                     <DashStatusDot label="App"       status={systemHealth.app} />
                     <DashStatusDot label="WordPress" status={systemHealth.wordpress} />
                   </div>
                   <div style={{
-                    fontSize: 11, color: '#9ca3af', marginTop: 14, fontFamily: FB,
-                    borderTop: '1px solid #f3f4f6', paddingTop: 12,
+                    fontSize: 12, color: '#9ca3af', marginTop: 18, fontFamily: FB,
+                    borderTop: '1px solid #f3f4f6', paddingTop: 14,
                   }}>
                     Last checked {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
@@ -1301,33 +1370,33 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
   ].filter(Boolean)
 
   return (
-    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: GRY, fontFamily: FB }}>
+    <div className="page-shell" style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Client logo centered at top */}
         {clientInfo?.logo_url && (
-          <div style={{ background: '#fff', padding: '20px 32px 0', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', padding: '24px 40px 0', display: 'flex', justifyContent: 'center' }}>
             <img src={clientInfo.logo_url} alt={clientInfo.name || 'Client'} style={{ height: 56, maxWidth: 200, objectFit: 'contain' }} />
           </div>
         )}
 
         {/* Welcome header */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '24px 32px', textAlign: 'center' }}>
-          <h1 style={{ fontFamily: FH, fontSize: 28, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '28px 40px', textAlign: 'center' }}>
+          <h1 style={{ fontFamily: FH, fontSize: 30, fontWeight: 800, color: BLK, margin: 0, letterSpacing: '-.03em' }}>
             {greeting}
           </h1>
-          <p style={{ fontSize: 14, color: '#6b7280', marginTop: 8, fontFamily: FB, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 15, color: '#6b7280', marginTop: 10, fontFamily: FB, lineHeight: 1.6 }}>
             Welcome to your client portal. Here you can review designs, track progress, and stay connected with your team.
           </p>
           {agencyName && (
-            <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 6, fontFamily: FB }}>
+            <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 8, fontFamily: FB }}>
               Powered by {agencyName}
             </p>
           )}
         </div>
 
         {/* Scrollable body */}
-        <div style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: '36px 40px 48px', overflowY: 'auto' }}>
           <div style={{ maxWidth: 700, margin: '0 auto' }}>
 
             {/* ── Welcome Checklist ──────────────────────────────────────────── */}
@@ -1391,11 +1460,11 @@ function ClientDashboard({ firstName, greeting, agency, agencyName, can, navigat
 
             {/* ── Tool cards ─────────────────────────────────────────────────── */}
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>Loading your workspace…</div>
+              <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 15 }}>Loading your workspace…</div>
             ) : tools.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>No tools enabled yet — your agency will set these up for you.</div>
+              <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 15 }}>No tools enabled yet — your agency will set these up for you.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
                 {tools.map((tool, i) => (
                   <div key={i} onClick={() => navigate(tool.to)}
                     style={{
