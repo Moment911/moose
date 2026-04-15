@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { parseStatement } from '@/lib/KotoFin/parsers'
-import { detectBank } from '@/lib/KotoFin/parsers'
+import { parseStatement, detectBank } from '@/lib/KotoFin/parsers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,15 +19,24 @@ export async function POST(request: NextRequest) {
     if (fileName.toLowerCase().endsWith('.csv')) {
       text = await file.text()
     } else if (fileName.toLowerCase().endsWith('.pdf')) {
-      // Dynamic import for pdf-parse (server-side only)
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
-      const buffer = Buffer.from(await file.arrayBuffer())
-      const pdfData = await pdfParse(buffer)
-      text = pdfData.text
+      const { PDFParse } = await import('pdf-parse')
+      const arrayBuffer = await file.arrayBuffer()
+      const uint8 = new Uint8Array(arrayBuffer)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const parser = new PDFParse(uint8) as any
+      await parser.load()
+      const result = await parser.getText()
+      text = result.text || ''
     } else {
-      // Try as plain text
       text = await file.text()
+    }
+
+    if (!text || text.trim().length === 0) {
+      return NextResponse.json({
+        error: 'Could not extract text from file. The PDF may be image-based (scanned) — only text-based PDFs are supported.',
+        transactions: [],
+        meta: { name: fileName, bank: 'Unknown', account: accountNumber, range: statementRange, color: '#888888', txnCount: 0 },
+      })
     }
 
     const { bank } = detectBank(text)
@@ -67,6 +75,12 @@ function getBankColor(bank: string): string {
     'Navy Federal': '#003366',
     'Bank of America': '#e31837',
     Citibank: '#003b70',
+    'Wells Fargo': '#d71e28',
+    Amex: '#006fcf',
+    'US Bank': '#0c2074',
+    PNC: '#f58025',
+    'TD Bank': '#34a853',
+    Discover: '#ff6000',
   }
   return colors[bank] || '#888888'
 }
