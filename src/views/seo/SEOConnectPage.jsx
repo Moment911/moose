@@ -73,8 +73,8 @@ export default function SEOConnectPage() {
   }, [searchParams])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('*')
-      .eq('agency_id', agencyId || '').order('name')
+    const { data } = await supabase.from('clients').select('id, name, website, industry, status')
+      .eq('agency_id', agencyId || '').is('deleted_at', null).order('name')
     setClients(data || [])
   }
 
