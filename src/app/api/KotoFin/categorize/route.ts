@@ -17,7 +17,6 @@ interface CatResult {
 }
 
 export async function POST(request: NextRequest) {
-  // Parse body once upfront so it's available in catch block
   const body = (await request.json()) as { transactions: InputTransaction[] }
   const { transactions } = body
 
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      // Fall back to local categorization
       const results: CatResult[] = transactions.map(t => {
         const cat = categorize(t.desc)
         return { id: t.id, ...cat }
@@ -39,48 +37,65 @@ export async function POST(request: NextRequest) {
     const client = new Anthropic({ apiKey })
 
     const txList = transactions
-      .map(t => `ID:${t.id} | ${t.desc} | ${t.amount >= 0 ? 'CREDIT' : 'DEBIT'} ${Math.abs(t.amount).toFixed(2)}`)
+      .map(t => `${t.id}|${t.desc}|${t.amount >= 0 ? 'CREDIT' : 'DEBIT'} $${Math.abs(t.amount).toFixed(2)}`)
       .join('\n')
-
-    const categoryList = [
-      '4000 Gross Receipts / Sales (income)',
-      '4010 Other Income (income)',
-      '5100 Advertising (business)',
-      '5110 Car & Truck Expenses (business)',
-      '5120 Commissions & Fees (business)',
-      '5130 Contract Labor (business)',
-      '5170 Insurance (business)',
-      '5200 Legal & Professional (business)',
-      '5210 Office Expense (business)',
-      '5250 Supplies (business)',
-      '5270 Travel (business)',
-      '5280 Meals 50% deductible (business)',
-      '5290 Utilities (business)',
-      '5300 Wages (business)',
-      '5310 Home Office (business)',
-      '5320 Software & Subscriptions (business)',
-      '5330 Bank & Processing Fees (business)',
-      '5340 Shipping & Postage (business)',
-      '5900 Personal Expense (personal)',
-    ].join('\n')
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [
         {
           role: 'user',
-          content: `Categorize these bank transactions for a self-employed business owner. Return ONLY a JSON array (no markdown, no explanation).
+          content: `You are a bookkeeper categorizing bank transactions for a self-employed business owner.
 
-Each element: {"id": number, "co": "company name", "cat": "category name", "type": "business"|"personal"|"income", "code": "COA code"}
+For each transaction, you must:
+1. EXTRACT the real merchant/vendor name from the raw bank description. Bank descriptions are messy — strip out authorization dates, card numbers, reference codes, location codes, and transaction IDs. Examples:
+   - "Purchase authorized on 12/30 Tst* Yumm Sushi Boca Raton FL S384365689160839 Card 0611" → "Yumm Sushi"
+   - "Recurring Payment authorized on 01/02 Highlevel Inc. Gohighlevel.C TX S585002517655399 Card 0611" → "GoHighLevel"
+   - "Business to Business ACH Debit - Capital One Crcardpmt 250102 42Khk32Nulc3Kfy Adam Segall" → "Capital One"
+   - "M Merchant CR CD Dep 250102 690550110223792 Unified Marketing, LLC" → "Merchant Deposit"
+   - "Venmo Payment 250101 1039352126995 Adam Segall" → "Venmo"
+   - "Geico Geico Pymt 250102 1798521921 Adam Segall" → "GEICO"
+   - "Stripe Transfer St-R6N5O3G5B2M4 Unified" → "Stripe"
+   - "Purchase authorized on 01/04 Ic* Aldi Exp Via I Aldi.US CA" → "Aldi"
 
-Available categories:
-${categoryList}
+2. CATEGORIZE into one of these accounts:
+4000 Gross Receipts / Sales (income) — client payments, deposits, settlement proceeds
+4010 Other Income (income) — refunds, returns, misc credits
+5100 Advertising (business) — Google Ads, Meta Ads, marketing spend
+5110 Car & Truck Expenses (business) — Uber rides, Lyft, gas, parking
+5130 Contract Labor (business) — Upwork, Fiverr, freelancer payments
+5170 Insurance (business) — GEICO, Progressive, business insurance
+5200 Legal & Professional (business) — attorneys, CPAs, bookkeepers
+5210 Office Expense (business) — Amazon supplies, Staples, office equipment
+5250 Supplies (business) — Walmart, Target, Costco (business supplies)
+5270 Travel (business) — airlines, hotels, Airbnb
+5280 Meals (business) — restaurants, coffee shops, food delivery (50% deductible)
+5290 Utilities (business) — phone, internet, electric
+5300 Wages (business) — payroll, ADP, Gusto
+5320 Software & Subscriptions (business) — SaaS tools, GoHighLevel, Shopify, OpenAI, Adobe
+5330 Bank & Processing Fees (business) — Stripe fees, bank fees, merchant fees
+5340 Shipping & Postage (business) — FedEx, UPS, USPS
+5900 Personal Expense (personal) — groceries, entertainment, gym, personal subscriptions
+5910 Owner Draw / Transfer (personal) — transfers to personal accounts, Venmo to self, cash withdrawals
+5920 Loan / Credit Card Payment (personal) — Capital One payment, Avant, loan payments
+
+3. DETERMINE the type: "business", "personal", or "income"
+
+Return ONLY a JSON array. Each element:
+{"id": number, "co": "clean merchant name", "cat": "category name", "type": "business"|"personal"|"income", "code": "COA code"}
+
+Key rules:
+- Owner payments to themselves (Venmo, Zelle, cash withdrawals, Apple Cash) = "Owner Draw / Transfer" / personal / 5910
+- Credit card payments (Capital One, Amex) = "Loan / Credit Card Payment" / personal / 5920
+- Merchant deposits, Stripe transfers, settlements = income / 4000
+- Restaurant/food purchases = Meals / business / 5280
+- When uncertain, default to business expense (5210 Office Expense)
 
 Transactions:
 ${txList}
 
-Return ONLY the JSON array.`,
+Return ONLY the JSON array, no markdown, no explanation.`,
         },
       ],
     })
@@ -90,7 +105,6 @@ Return ONLY the JSON array.`,
       throw new Error('No text response from AI')
     }
 
-    // Extract JSON from response (might be wrapped in code blocks)
     let jsonStr = textBlock.text.trim()
     const jsonMatch = jsonStr.match(/\[[\s\S]*\]/)
     if (jsonMatch) {
@@ -101,8 +115,6 @@ Return ONLY the JSON array.`,
     return NextResponse.json({ results, fallback: false })
   } catch (error) {
     console.error('AI categorization failed, falling back to local rules:', error)
-
-    // Fall back to local categorization
     try {
       const results: CatResult[] = (transactions as InputTransaction[]).map(t => {
         const cat = categorize(t.desc)

@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, Dispatch } from 'react'
 import { Transaction, StatementFile, KotoFinAction } from './KotoFin.types'
 import { BANK_COLORS } from './KotoFin.constants'
 import { categorize } from './KotoFin.utils'
-import { Upload, AlertCircle, CheckCircle2, Loader2, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Upload, AlertCircle, CheckCircle2, Loader2, Trash2, ChevronDown, ChevronUp, Brain } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
 interface UploadTabProps {
@@ -43,6 +43,7 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
   const [dragging, setDragging] = useState(false)
   const [statuses, setStatuses] = useState<UploadStatus[]>([])
   const [processing, setProcessing] = useState(false)
+  const [aiProgress, setAiProgress] = useState<{ current: number; total: number; status: string } | null>(null)
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const processedHashes = useRef<Set<string>>(new Set())
@@ -54,6 +55,55 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
 
   function updateStatus(id: string, update: Partial<UploadStatus>) {
     setStatuses(prev => prev.map(s => s.id === id ? { ...s, ...update } : s))
+  }
+
+  async function aiCategorize(txns: Transaction[]) {
+    const BATCH_SIZE = 50
+    const batches: Transaction[][] = []
+    for (let i = 0; i < txns.length; i += BATCH_SIZE) {
+      batches.push(txns.slice(i, i + BATCH_SIZE))
+    }
+
+    setAiProgress({ current: 0, total: txns.length, status: 'AI categorizing...' })
+
+    let processed = 0
+    for (const batch of batches) {
+      try {
+        const res = await fetch('/api/KotoFin/categorize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transactions: batch.map(t => ({ id: t.id, desc: t.desc, amount: t.amount })),
+          }),
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          const results: Array<{ id: number; co: string; cat: string; type: Transaction['type']; code: string }> = data.results
+          for (const r of results) {
+            dispatch({
+              type: 'UPDATE_TRANSACTION',
+              payload: {
+                ...batch.find(t => t.id === r.id)!,
+                co: r.co || '',
+                cat: r.cat || 'Uncategorized',
+                type: r.type || 'uncategorized',
+                code: r.code || '',
+                aiTagged: !data.fallback,
+              },
+            })
+          }
+        }
+      } catch (err) {
+        console.error('AI batch failed:', err)
+      }
+
+      processed += batch.length
+      setAiProgress({ current: processed, total: txns.length, status: `AI categorized ${processed} of ${txns.length}` })
+    }
+
+    setAiProgress({ current: txns.length, total: txns.length, status: `AI categorization complete — ${txns.length} transactions` })
+    setTimeout(() => setAiProgress(null), 3000)
   }
 
   const handleFiles = useCallback(async (fileList: FileList) => {
@@ -112,6 +162,18 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
           dispatch({ type: 'ADD_FILE', payload: fileMeta })
         }
       }
+    }
+
+    // Phase 4: Auto-run AI categorization on all imported transactions
+    const allNewTxns: Transaction[] = []
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value) {
+        allNewTxns.push(...result.value.txns)
+      }
+    }
+
+    if (allNewTxns.length > 0) {
+      await aiCategorize(allNewTxns)
     }
 
     setProcessing(false)
@@ -233,6 +295,25 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
           <div className={`${styles.metricValue} ${styles.metricPurple}`}>{transactions.length}</div>
         </div>
       </div>
+
+      {aiProgress && (
+        <div style={{
+          background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)',
+          borderRadius: 10, padding: 14, marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <Brain size={16} color="#3b82f6" />
+            <span style={{ fontSize: 13, fontWeight: 500 }}>{aiProgress.status}</span>
+          </div>
+          <div style={{ height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', borderRadius: 3, transition: 'width 0.3s',
+              background: aiProgress.current === aiProgress.total ? '#22c55e' : '#3b82f6',
+              width: `${aiProgress.total > 0 ? (aiProgress.current / aiProgress.total) * 100 : 0}%`,
+            }} />
+          </div>
+        </div>
+      )}
 
       <input
         ref={fileRef}
