@@ -28,6 +28,7 @@ import TaxProfileTab from './TaxProfileTab'
 import HelpTab from './HelpTab'
 import styles from './KotoFinPro.module.css'
 import { ClientInfo, TaxProfile, CompanyProfile } from './KotoFin.types'
+import Sidebar from '@/components/Sidebar'
 
 const TAB_ICONS: Record<string, typeof Upload> = {
   'Dashboard': LayoutDashboard,
@@ -173,7 +174,9 @@ export default function KotoFinPro() {
   }
 
   return (
-    <div className={styles.root}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Sidebar />
+      <div className={styles.root}>
       <div className={styles.header}>
         <div>
           <span className={styles.logo}>KotoFin</span>
@@ -236,6 +239,7 @@ export default function KotoFinPro() {
           </div>
         </>
       )}
+    </div>
     </div>
   )
 }
