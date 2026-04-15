@@ -1,18 +1,19 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Transaction, COAAccount } from './KotoFin.types'
+import { Transaction, COAAccount, TaxProfile } from './KotoFin.types'
 import { fmtCurrency } from './KotoFin.utils'
 import styles from './KotoFinPro.module.css'
 
 interface ReportsTabProps {
   transactions: Transaction[]
   accounts: COAAccount[]
+  taxProfile: TaxProfile
 }
 
 type ReportView = 'pnl' | 'schedule-c' | 'merchant' | 'monthly'
 
-export default function ReportsTab({ transactions, accounts }: ReportsTabProps) {
+export default function ReportsTab({ transactions, accounts, taxProfile }: ReportsTabProps) {
   const [view, setView] = useState<ReportView>('pnl')
 
   const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)

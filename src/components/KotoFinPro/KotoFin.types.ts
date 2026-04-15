@@ -48,6 +48,36 @@ export interface TaxScenario {
   takeHome: number
 }
 
+export interface TaxProfile {
+  entityType: 'sole_prop' | 'llc_single' | 'llc_multi' | 'llc_s_elect' | 's_corp' | 'c_corp' | 'partnership'
+  filingStatus: 'single' | 'mfj' | 'mfs' | 'hoh'
+  state: string
+  hasHomeOffice: boolean
+  homeOfficeSqft: number
+  homeTotalSqft: number
+  hasVehicle: boolean
+  vehicleOwnership: 'owned' | 'leased' | 'personal'
+  vehicleMilesTotal: number
+  vehicleMilesBusiness: number
+  leasePaymentMonthly: number
+  hasRetirementPlan: boolean
+  retirementType: 'sep_ira' | 'solo_401k' | 'simple_ira' | 'none'
+  hasHealthInsurance: boolean
+  healthInsuranceAnnual: number
+  numDependents: number
+  hasChildcare: boolean
+  childcareAnnual: number
+  priorYearTax: number
+  estimatedOtherIncome: number
+  hasStudentLoans: boolean
+  studentLoanInterest: number
+}
+
+export interface ClientInfo {
+  id: string
+  name: string
+}
+
 export interface KotoFinState {
   transactions: Transaction[]
   accounts: COAAccount[]
@@ -55,6 +85,10 @@ export interface KotoFinState {
   activeFile: string
   activeType: string
   activeTab: string
+  clientId: string
+  clientName: string
+  taxProfile: TaxProfile
+  saving: boolean
 }
 
 export type KotoFinAction =
@@ -68,4 +102,8 @@ export type KotoFinAction =
   | { type: 'SET_ACTIVE_FILE'; payload: string }
   | { type: 'SET_ACTIVE_TYPE'; payload: string }
   | { type: 'SET_ACTIVE_TAB'; payload: string }
+  | { type: 'SET_CLIENT'; payload: { id: string; name: string } }
+  | { type: 'SET_TAX_PROFILE'; payload: Partial<TaxProfile> }
+  | { type: 'SET_SAVING'; payload: boolean }
+  | { type: 'LOAD_CLIENT_DATA'; payload: { transactions: Transaction[]; files: StatementFile[]; taxProfile?: TaxProfile } }
   | { type: 'RESET'; payload?: undefined }

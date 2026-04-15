@@ -4,6 +4,7 @@ import { useCallback, useRef, useState, Dispatch } from 'react'
 import { Transaction, StatementFile, KotoFinAction } from './KotoFin.types'
 import { loadDemoData, BANK_COLORS } from './KotoFin.constants'
 import { categorize } from './KotoFin.utils'
+import { Upload, FileText } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
 interface UploadTabProps {
@@ -136,7 +137,7 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
         onDrop={handleDrop}
         onClick={() => fileRef.current?.click()}
       >
-        <div className={styles.dropzoneIcon}>&#8593;</div>
+        <div className={styles.dropzoneIcon}><Upload size={36} /></div>
         <div className={styles.dropzoneText}>
           {uploading ? 'Processing...' : 'Drop PDF or CSV bank statements here'}
         </div>
