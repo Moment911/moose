@@ -385,60 +385,88 @@ export default function KotoIQPage() {
 
           {/* Action cards — 3 across */}
           {clientId && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
               {/* Quick Scan */}
-              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Zap size={18} color={R} />
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: R + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Zap size={22} color={R} />
                   </div>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Quick Scan</div>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Quick Scan</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>No login required</div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, lineHeight: 1.6, marginBottom: 14 }}>
-                  No login required. Scans the website, sitemap, and competitors via Moz. AI extracts 30-60 target keywords with opportunity scores.
+                <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
+                  Scans the client's website, XML sitemap, and top competitors via Moz DA. Claude AI analyzes the content and extracts 30-60 target keywords with opportunity scores, intent classification, and ranking potential.
                 </div>
+                <ul style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
+                  <li>Website content + sitemap crawl</li>
+                  <li>Moz Domain Authority lookup</li>
+                  <li>AI keyword extraction + scoring</li>
+                  <li>Competitor identification</li>
+                </ul>
                 <button onClick={() => {
                   const c = clients.find(x => x.id === clientId)
                   if (!c?.website) { toast.error('Add a website URL first — click Edit Client'); return }
                   runQuickScan()
                 }} disabled={syncing || enriching}
-                  style={{ width: '100%', padding: '10px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: R, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing || enriching ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {syncing ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
                   Run Quick Scan
                 </button>
               </div>
 
               {/* Deep Audit */}
-              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: AMB + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Shield size={18} color={AMB} />
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: AMB + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Shield size={22} color={AMB} />
                   </div>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Deep Audit</div>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Audit</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Technical SEO analysis</div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, lineHeight: 1.6, marginBottom: 14 }}>
-                  11-point technical audit: PageSpeed, Core Web Vitals, SSL, security headers, schema markup, tech stack, domain age, and SEO health score.
+                <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
+                  Comprehensive 11-point technical audit covering everything that affects your search rankings. Identifies issues and provides specific fix recommendations.
                 </div>
+                <ul style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
+                  <li>PageSpeed + Core Web Vitals (CrUX)</li>
+                  <li>SSL certificate + security headers</li>
+                  <li>Schema markup + structured data</li>
+                  <li>Tech stack + CMS detection</li>
+                  <li>Domain age + authority signals</li>
+                </ul>
                 <button onClick={runDeepEnrich} disabled={enriching || syncing || !clientId}
-                  style={{ width: '100%', padding: '10px', borderRadius: 10, border: 'none', background: AMB, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: enriching ? 'wait' : 'pointer', opacity: enriching || syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  {enriching ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={14} />}
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: AMB, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: enriching ? 'wait' : 'pointer', opacity: enriching || syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {enriching ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={16} />}
                   Run Deep Audit
                 </button>
               </div>
 
               {/* Full Sync */}
-              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <RefreshCw size={18} color={T} />
+              <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: T + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <RefreshCw size={22} color={T} />
                   </div>
-                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Full Sync</div>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Full Sync</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Requires Google OAuth</div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: '#6b7280', fontFamily: FB, lineHeight: 1.6, marginBottom: 14 }}>
-                  Requires Google OAuth. Pulls real keyword data from Search Console, Google Ads, and GA4. Merges into unified keyword profiles.
+                <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
+                  Pulls real keyword data from your connected Google accounts and merges everything into unified keyword profiles with cross-source scoring.
                 </div>
+                <ul style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.8, marginBottom: 16, paddingLeft: 18 }}>
+                  <li>Search Console: rankings, clicks, impressions</li>
+                  <li>Google Ads: spend, CPC, conversions</li>
+                  <li>GA4: sessions, conversions, revenue</li>
+                  <li>Keyword Planner: volume, competition</li>
+                </ul>
                 <button onClick={runSync} disabled={syncing || !clientId}
-                  style={{ width: '100%', padding: '10px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: T, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: syncing ? 'wait' : 'pointer', opacity: syncing ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
                   Run Full Sync
                 </button>
@@ -484,10 +512,20 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* Tabs (only show when client selected) */}
         {clientId && (
           <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['aeo', 'AEO Research', Brain], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['audit', 'Deep Audit', Shield], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
+            {[
+              ['dashboard', 'Dashboard', BarChart2, 'Overview + AI recommendations'],
+              ['keywords', 'Keywords', Search, 'All tracked keywords + scores'],
+              ['aeo', 'AEO Research', Brain, 'AI Overview gap finder'],
+              ['briefs', 'Page Builder', Zap, 'AI content briefs'],
+              ['competitors', 'Competitors', Target, 'Competitor landscape'],
+              ['ranks', 'Rank Tracker', TrendingUp, 'Position monitoring'],
+              ['audit', 'Deep Audit', Shield, 'Technical SEO audit'],
+              ['gmb', 'GMB', Star, 'Google Business Profile'],
+            ].map(([key, label, Icon, desc]) => (
               <button key={key} onClick={() => setTab(key)}
-                style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icon size={14} /> {label}
+                style={{ padding: '10px 16px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? '2px solid #fff' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: tab === key ? 800 : 600, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'center', transition: 'all .12s' }}>
+                <Icon size={14} />
+                <span>{label}</span>
               </button>
             ))}
           </div>
