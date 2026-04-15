@@ -1,0 +1,413 @@
+"use client"
+import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
+import Sidebar from '../components/Sidebar'
+import {
+  Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
+  ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
+  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star
+} from 'lucide-react'
+import toast from 'react-hot-toast'
+import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
+// ── Category config ─────────────────────────────────────────────────────────
+const CAT_CONFIG = {
+  organic_cannibal: { label: 'Organic Cannibals', color: R, icon: '💸', desc: 'Ranking top 5 AND paying for ads — reduce waste' },
+  striking_distance: { label: 'Striking Distance', color: AMB, icon: '🎯', desc: 'Position 4-15 — push to top 3' },
+  quick_win: { label: 'Quick Wins', color: GRN, icon: '⚡', desc: 'Position 11-20 with high volume' },
+  dark_matter: { label: 'Dark Matter', color: '#8b5cf6', icon: '🌑', desc: 'Not ranking, not bidding — hidden opportunity' },
+  paid_only: { label: 'Paid Only', color: T, icon: '💳', desc: 'Ads traffic but no organic presence' },
+  defend: { label: 'Defend', color: GRN, icon: '🛡️', desc: 'Top 3 organically — protect position' },
+  underperformer: { label: 'Underperformers', color: AMB, icon: '📉', desc: 'Has impressions but low CTR' },
+  monitor: { label: 'Monitor', color: '#6b7280', icon: '👁️', desc: 'Tracking — no immediate action' },
+}
+
+const INTENT_COLORS = { transactional: R, commercial: AMB, informational: T, navigational: '#6b7280' }
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmt$(n) { return n >= 1000 ? `$${(n/1000).toFixed(1)}K` : `$${n}` }
+function fmtN(n) { return n >= 1000 ? `${(n/1000).toFixed(1)}K` : String(n || 0) }
+
+function StatCard({ label, value, sub, icon: Icon, color, trend }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: (color || T) + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon size={16} color={color || T} />
+          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
+        </div>
+        {trend && <div style={{ fontSize: 11, fontWeight: 700, color: trend > 0 ? GRN : R, display: 'flex', alignItems: 'center', gap: 2 }}>
+          {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(trend)}%
+        </div>}
+      </div>
+      <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: '#6b7280' }}>{sub}</div>}
+    </div>
+  )
+}
+
+function CategoryPill({ cat, count, active, onClick }) {
+  const cfg = CAT_CONFIG[cat] || { label: cat, color: '#6b7280', icon: '•' }
+  return (
+    <button onClick={onClick} style={{
+      padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+      border: `1.5px solid ${active ? cfg.color : '#e5e7eb'}`,
+      background: active ? cfg.color + '12' : '#fff',
+      color: active ? cfg.color : '#6b7280', transition: 'all .15s',
+      display: 'flex', alignItems: 'center', gap: 6,
+    }}>
+      <span>{cfg.icon}</span> {cfg.label} <span style={{ fontFamily: FH, fontSize: 11, opacity: .7 }}>({count})</span>
+    </button>
+  )
+}
+
+function ScoreBadge({ score, label }) {
+  const color = score >= 70 ? GRN : score >= 40 ? AMB : score > 0 ? R : '#d1d5db'
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color, lineHeight: 1 }}>{score || '—'}</div>
+      <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+export default function KotoIQPage() {
+  const { agencyId } = useAuth()
+  const navigate = useNavigate()
+  const [tab, setTab] = useState('dashboard') // dashboard | keywords
+  const [loading, setLoading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [dashboard, setDashboard] = useState(null)
+  const [keywords, setKeywords] = useState([])
+  const [kwTotal, setKwTotal] = useState(0)
+  const [clientId, setClientId] = useState('')
+  const [clients, setClients] = useState([])
+  const [catFilter, setCatFilter] = useState('')
+  const [searchQ, setSearchQ] = useState('')
+  const [sortBy, setSortBy] = useState('opportunity_score')
+  const [sortDir, setSortDir] = useState('desc')
+  const [kwPage, setKwPage] = useState(0)
+  const KW_LIMIT = 50
+
+  // Load clients
+  useEffect(() => {
+    if (!agencyId) return
+    fetch('/api/intel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'list_reports', agency_id: agencyId }) })
+      .then(r => r.json()).then(res => {
+        // Get unique clients from intel reports + clients table
+        fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients?select=id,name,website&agency_id=eq.${agencyId}&deleted_at=is.null&order=name`, {
+          headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
+        }).then(r => r.json()).then(c => { if (Array.isArray(c)) { setClients(c); if (c.length > 0 && !clientId) setClientId(c[0].id) } })
+      })
+  }, [agencyId])
+
+  // Load dashboard
+  const loadDashboard = useCallback(() => {
+    if (!clientId) return
+    setLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'dashboard', client_id: clientId }) })
+      .then(r => r.json()).then(res => { setDashboard(res); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [clientId])
+
+  // Load keywords
+  const loadKeywords = useCallback(() => {
+    if (!clientId) return
+    fetch('/api/kotoiq', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'keywords', client_id: clientId, category: catFilter || undefined, sort_by: sortBy, sort_dir: sortDir, limit: KW_LIMIT, offset: kwPage * KW_LIMIT, search: searchQ || undefined })
+    }).then(r => r.json()).then(res => { setKeywords(res.keywords || []); setKwTotal(res.total || 0) })
+  }, [clientId, catFilter, sortBy, sortDir, kwPage, searchQ])
+
+  useEffect(() => { loadDashboard() }, [loadDashboard])
+  useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
+
+  // Sync
+  const runSync = async () => {
+    if (!clientId) return
+    setSyncing(true)
+    toast.loading('Syncing all data sources...', { id: 'sync' })
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'sync', client_id: clientId, agency_id: agencyId }) })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error, { id: 'sync' }); setSyncing(false); return }
+      toast.success(`Synced ${data.total_keywords} keywords from ${Object.values(data.data_sources).reduce((a, b) => a + b, 0)} data points`, { id: 'sync' })
+      loadDashboard()
+      if (tab === 'keywords') loadKeywords()
+    } catch (e) { toast.error('Sync failed', { id: 'sync' }) }
+    setSyncing(false)
+  }
+
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const d = dashboard
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: FB }}>
+      <Sidebar />
+      <div style={{ flex: 1, padding: '24px 32px', maxWidth: 1200, margin: '0 auto' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
+            <div style={{ fontSize: 13, color: '#6b7280' }}>AI-Powered Search Intelligence</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
+              style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', minWidth: 180 }}>
+              <option value="">Select client...</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <button onClick={runSync} disabled={syncing || !clientId}
+              style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: syncing ? '#e5e7eb' : T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
+              {syncing ? 'Syncing...' : 'Sync Data'}
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
+          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search]].map(([key, label, Icon]) => (
+            <button key={key} onClick={() => setTab(key)}
+              style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon size={14} /> {label}
+            </button>
+          ))}
+        </div>
+
+        {!clientId && (
+          <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
+            <Zap size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
+            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Select a client to get started</div>
+            <div style={{ fontSize: 14, color: '#6b7280' }}>Choose a client above, then hit Sync Data to pull keywords from Google Ads, Search Console, and Analytics.</div>
+          </div>
+        )}
+
+        {clientId && loading && (
+          <div style={{ textAlign: 'center', padding: 60 }}>
+            <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} />
+          </div>
+        )}
+
+        {/* ══ DASHBOARD TAB ══ */}
+        {clientId && tab === 'dashboard' && d && !loading && (
+          <>
+            {d.empty ? (
+              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
+                <Brain size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No data yet</div>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Hit "Sync Data" to pull keywords from all connected sources.</div>
+                <button onClick={runSync} style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run First Sync
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Summary stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+                  <StatCard label="Total Keywords" value={fmtN(d.summary?.total_keywords)} icon={Search} color={T} />
+                  <StatCard label="Organic Clicks (30d)" value={fmtN(d.summary?.total_organic_clicks)} icon={TrendingUp} color={GRN} />
+                  <StatCard label="Ads Spend (30d)" value={fmt$(d.summary?.total_ads_spend || 0)} icon={DollarSign} color={AMB} />
+                  <StatCard label="Wasted Spend" value={fmt$(d.summary?.wasted_spend || 0)} sub="Organic cannibals" icon={AlertCircle} color={R} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+                  <StatCard label="Top 3 Rankings" value={d.summary?.top3_keywords || 0} icon={Star} color={GRN} />
+                  <StatCard label="Top 10 Rankings" value={d.summary?.top10_keywords || 0} icon={Eye} color={T} />
+                  <StatCard label="Avg Position" value={d.summary?.avg_position || '—'} icon={Target} color={AMB} />
+                  <StatCard label="Avg CPC" value={d.summary?.avg_cpc ? `$${d.summary.avg_cpc}` : '—'} icon={DollarSign} color={T} />
+                </div>
+
+                {/* Category breakdown */}
+                <div style={card}>
+                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Keyword Categories</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                    {Object.entries(d.categories || {}).sort((a, b) => b[1] - a[1]).map(([cat, count]) => {
+                      const cfg = CAT_CONFIG[cat] || { label: cat, color: '#6b7280', icon: '•', desc: '' }
+                      return (
+                        <div key={cat} onClick={() => { setTab('keywords'); setCatFilter(cat) }}
+                          style={{ padding: '16px 18px', borderRadius: 12, background: cfg.color + '08', border: `1.5px solid ${cfg.color}20`, cursor: 'pointer', transition: 'all .15s' }}>
+                          <div style={{ fontSize: 20, marginBottom: 4 }}>{cfg.icon}</div>
+                          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: cfg.color }}>{count}</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{cfg.label}</div>
+                          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{cfg.desc}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Top opportunities */}
+                {d.top_opportunities?.length > 0 && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Zap size={18} color={T} /> Top Opportunities
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                          {['Keyword', 'Opp', 'Rank', 'Position', 'Volume', 'Ads $', 'Conv', 'Category', 'Intent'].map(h => (
+                            <th key={h} style={{ padding: '8px 10px', fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {d.top_opportunities.map((kw, i) => {
+                          const cfg = CAT_CONFIG[kw.category] || { color: '#6b7280', label: kw.category }
+                          return (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <td style={{ padding: '10px', fontSize: 13, fontWeight: 700, color: BLK, fontFamily: FH, maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
+                              <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="Opp" /></td>
+                              <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="Rank" /></td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.sc_position <= 3 ? GRN : kw.sc_position <= 10 ? AMB : kw.sc_position ? R : '#d1d5db' }}>{kw.sc_position ? `#${Math.round(kw.sc_position)}` : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.volume ? fmtN(kw.volume) : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.ads_spend ? fmt$(kw.ads_spend) : '—'}</td>
+                              <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.ads_conversions || '—'}</td>
+                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20, background: cfg.color + '15', color: cfg.color }}>{cfg.label}</span></td>
+                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280' }}>{kw.intent}</span></td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* AI Recommendations */}
+                {d.recommendations?.length > 0 && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Brain size={18} color={T} /> AI Recommendations
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {d.recommendations.map((rec, i) => {
+                        const pColor = rec.priority === 'critical' ? R : rec.priority === 'high' ? AMB : rec.priority === 'medium' ? T : '#6b7280'
+                        return (
+                          <div key={i} style={{ padding: '16px 20px', borderRadius: 12, background: '#f9fafb', border: '1px solid #e5e7eb', borderLeft: `4px solid ${pColor}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: pColor + '15', color: pColor, textTransform: 'uppercase' }}>{rec.priority}</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', color: '#6b7280' }}>{rec.type?.replace(/_/g, ' ')}</span>
+                              {rec.effort && <span style={{ fontSize: 10, color: '#9ca3af' }}>{rec.effort.replace(/_/g, ' ')}</span>}
+                            </div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 4 }}>{rec.title}</div>
+                            <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{rec.detail}</div>
+                            {rec.estimated_impact && (
+                              <div style={{ fontSize: 12, color: GRN, fontWeight: 700, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <ArrowUpRight size={12} /> {rec.estimated_impact}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ══ KEYWORDS TAB ══ */}
+        {clientId && tab === 'keywords' && (
+          <>
+            {/* Filters */}
+            <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <Search size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+                  <input value={searchQ} onChange={e => { setSearchQ(e.target.value); setKwPage(0) }}
+                    placeholder="Search keywords..." style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none' }} />
+                </div>
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                  style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 12, fontWeight: 600, background: '#fff', cursor: 'pointer' }}>
+                  <option value="opportunity_score">Sort: Opportunity</option>
+                  <option value="rank_propensity">Sort: Rank Propensity</option>
+                  <option value="sc_avg_position">Sort: Position</option>
+                  <option value="ads_cost_cents">Sort: Ad Spend</option>
+                  <option value="sc_clicks">Sort: Organic Clicks</option>
+                  <option value="kp_monthly_volume">Sort: Volume</option>
+                  <option value="ads_conversions">Sort: Conversions</option>
+                </select>
+                <button onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
+                  style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }}>
+                  {sortDir === 'desc' ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <CategoryPill cat="" count={kwTotal} active={!catFilter} onClick={() => { setCatFilter(''); setKwPage(0) }} />
+                {Object.keys(CAT_CONFIG).map(cat => (
+                  <CategoryPill key={cat} cat={cat} count={dashboard?.categories?.[cat] || 0} active={catFilter === cat} onClick={() => { setCatFilter(catFilter === cat ? '' : cat); setKwPage(0) }} />
+                ))}
+              </div>
+            </div>
+
+            {/* Keywords table */}
+            <div style={card}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                    {['Keyword', 'Opp', 'Rank P.', 'Position', 'SC Clicks', 'Volume', 'Ads $', 'Conv', 'CPC', 'QS', 'Cat', 'Intent'].map(h => (
+                      <th key={h} style={{ padding: '8px 8px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {keywords.map((kw, i) => {
+                    const cfg = CAT_CONFIG[kw.category] || { color: '#6b7280', label: kw.category, icon: '•' }
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background .1s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <td style={{ padding: '10px 8px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
+                        <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
+                        <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.rank_propensity} label="" /></td>
+                        <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 13, fontWeight: 800, color: kw.sc_avg_position && kw.sc_avg_position <= 3 ? GRN : kw.sc_avg_position && kw.sc_avg_position <= 10 ? AMB : kw.sc_avg_position ? R : '#d1d5db' }}>
+                          {kw.sc_avg_position ? `#${Math.round(kw.sc_avg_position * 10) / 10}` : '—'}
+                        </td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.sc_clicks || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.kp_monthly_volume || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_cost_cents ? fmt$(Math.round(kw.ads_cost_cents / 100)) : '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_conversions || '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_cpc_cents ? `$${(kw.ads_cpc_cents / 100).toFixed(2)}` : '—'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH, color: kw.ads_quality_score >= 7 ? GRN : kw.ads_quality_score >= 5 ? AMB : kw.ads_quality_score ? R : '#d1d5db' }}>{kw.ads_quality_score || '—'}</td>
+                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
+                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280', textTransform: 'uppercase' }}>{kw.intent?.slice(0, 4)}</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+
+              {/* Pagination */}
+              {kwTotal > KW_LIMIT && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+                  <div style={{ fontSize: 12, color: '#6b7280' }}>
+                    Showing {kwPage * KW_LIMIT + 1}–{Math.min((kwPage + 1) * KW_LIMIT, kwTotal)} of {kwTotal}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => setKwPage(p => Math.max(0, p - 1))} disabled={kwPage === 0}
+                      style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: kwPage === 0 ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, opacity: kwPage === 0 ? .4 : 1 }}>Previous</button>
+                    <button onClick={() => setKwPage(p => p + 1)} disabled={(kwPage + 1) * KW_LIMIT >= kwTotal}
+                      style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: (kwPage + 1) * KW_LIMIT >= kwTotal ? 'default' : 'pointer', fontSize: 12, fontWeight: 600, opacity: (kwPage + 1) * KW_LIMIT >= kwTotal ? .4 : 1 }}>Next</button>
+                  </div>
+                </div>
+              )}
+
+              {keywords.length === 0 && !loading && (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#9ca3af', fontSize: 14 }}>
+                  {searchQ || catFilter ? 'No keywords match your filters' : 'No keyword data — run a sync first'}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+      </div>
+    </div>
+  )
+}
