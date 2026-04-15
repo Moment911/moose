@@ -148,29 +148,34 @@ export default function SEOConnectPage() {
       // Try v1beta/accounts first, then fallback to accountSummaries
       let ga4Fetched = false
 
-      // Method 1: accountSummaries (most reliable — returns accounts + properties in one call)
-      const summaryRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      })
-      if (summaryRes.ok) {
+      // Method 1: accountSummaries — paginate through ALL pages
+      let allSummaries = []
+      let nextPageToken = null
+      do {
+        const url = 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries' + (nextPageToken ? `?pageToken=${nextPageToken}` : '?pageSize=200')
+        const summaryRes = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+        if (!summaryRes.ok) break
         const summaryData = await summaryRes.json()
-        const summaries = summaryData.accountSummaries || []
-        if (summaries.length > 0) {
-          const withProps = summaries.map(acc => ({
-            account: { name: acc.name, displayName: acc.displayName },
-            properties: (acc.propertySummaries || []).map(p => ({
-              name: p.property,
-              displayName: p.displayName,
-              propertyType: p.propertyType || 'PROPERTY_TYPE_ORDINARY',
-            }))
-          })).filter(a => a.properties.length > 0)
-          setGa4Accounts(withProps)
-          const allProps = withProps.flatMap(a => a.properties)
-          if (allProps.length === 1) {
-            setSelectedGa4(allProps[0].name.replace('properties/', ''))
-          }
-          ga4Fetched = true
+        allSummaries = allSummaries.concat(summaryData.accountSummaries || [])
+        nextPageToken = summaryData.nextPageToken || null
+      } while (nextPageToken)
+
+      const summaries = allSummaries
+      if (summaries.length > 0) {
+        const withProps = summaries.map(acc => ({
+          account: { name: acc.name, displayName: acc.displayName },
+          properties: (acc.propertySummaries || []).map(p => ({
+            name: p.property,
+            displayName: p.displayName,
+            propertyType: p.propertyType || 'PROPERTY_TYPE_ORDINARY',
+          }))
+        })).filter(a => a.properties.length > 0)
+        setGa4Accounts(withProps)
+        const allProps = withProps.flatMap(a => a.properties)
+        if (allProps.length === 1) {
+          setSelectedGa4(allProps[0].name.replace('properties/', ''))
         }
+        ga4Fetched = true
       }
 
       // Method 2: fallback — fetch accounts then properties separately

@@ -376,14 +376,21 @@ export default function KotoIQPage() {
           }
         } catch {}
 
-        // Fetch GA4 properties
+        // Fetch GA4 properties — paginate through ALL pages
         try {
-          const summaryRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', {
-            headers: { Authorization: `Bearer ${tokens.access_token}` }
-          })
-          if (summaryRes.ok) {
+          let allSummaries = []
+          let pageToken = null
+          do {
+            const url = 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries' + (pageToken ? `?pageToken=${pageToken}` : '?pageSize=200')
+            const summaryRes = await fetch(url, { headers: { Authorization: `Bearer ${tokens.access_token}` } })
+            if (!summaryRes.ok) break
             const summaryData = await summaryRes.json()
-            const allProps = (summaryData.accountSummaries || []).flatMap(acc =>
+            allSummaries = allSummaries.concat(summaryData.accountSummaries || [])
+            pageToken = summaryData.nextPageToken || null
+          } while (pageToken)
+
+          if (allSummaries.length > 0) {
+            const allProps = allSummaries.flatMap(acc =>
               (acc.propertySummaries || []).map(p => ({
                 name: p.property, displayName: p.displayName, account: acc.displayName,
               }))
