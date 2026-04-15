@@ -339,9 +339,9 @@ export default function KotoIQPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#ffffff', fontFamily: FB }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
       <Sidebar />
-      <div style={{ flex: 1, padding: '28px 40px', maxWidth: 1200, margin: '0 auto', overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px' }}>
 
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
@@ -2031,42 +2031,117 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       See your Google Maps 3-Pack position from 25 geographic points around your business. Green = you're in the pack. Red = competitors dominate.
                     </div>
 
-                    {/* Simulated 5x5 grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 20px' }}>
-                      {Array.from({ length: 25 }).map((_, i) => {
-                        const row = Math.floor(i / 5)
-                        const col = i % 5
-                        const isCenter = row === 2 && col === 2
-                        const dist = Math.sqrt(Math.pow(row - 2, 2) + Math.pow(col - 2, 2))
-                        // Simulate: green near center, yellow mid, red far
-                        const color = isCenter ? BLK : dist <= 1.5 ? GRN : dist <= 2.5 ? AMB : R
-                        const rank = isCenter ? '📍' : dist <= 1.5 ? '#1' : dist <= 2.5 ? '#3' : '#7'
-                        return (
-                          <div key={i} style={{
-                            aspectRatio: '1', borderRadius: 8,
-                            background: isCenter ? BLK : color + '15',
-                            border: `2px solid ${color}`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: isCenter ? 16 : 13, fontWeight: 800,
-                            color: isCenter ? '#fff' : color, fontFamily: FH,
-                          }}>
-                            {rank}
+                    {/* Live Grid Scan Form */}
+                    {(() => {
+                      const [gridKw, setGridKw] = useState('')
+                      const [gridBiz, setGridBiz] = useState(g.name || '')
+                      const [gridLat, setGridLat] = useState('')
+                      const [gridLng, setGridLng] = useState('')
+                      const [gridRunning, setGridRunning] = useState(false)
+                      const [gridResult, setGridResult] = useState(null)
+
+                      const runGrid = async () => {
+                        if (!gridKw || !gridBiz || !gridLat || !gridLng) { toast.error('Fill in all fields'); return }
+                        setGridRunning(true)
+                        toast.loading('Running 5x5 grid scan via DataForSEO...', { id: 'grid' })
+                        try {
+                          const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'dfs_grid_scan', client_id: clientId, agency_id: agencyId, keyword: gridKw, business_name: gridBiz, lat: gridLat, lng: gridLng }) })
+                          const data = await res.json()
+                          if (data.success) { setGridResult(data.result); toast.success(`Grid scan complete — ${data.result.coverage_pct}% coverage`, { id: 'grid' }) }
+                          else { toast.error(data.error || 'Grid scan failed', { id: 'grid' }) }
+                        } catch { toast.error('Grid scan failed', { id: 'grid' }) }
+                        setGridRunning(false)
+                      }
+
+                      return (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Keyword</label>
+                              <input value={gridKw} onChange={e => setGridKw(e.target.value)} placeholder="e.g. water damage restoration"
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Business Name</label>
+                              <input value={gridBiz} onChange={e => setGridBiz(e.target.value)} placeholder={g.name}
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Center Latitude</label>
+                              <input value={gridLat} onChange={e => setGridLat(e.target.value)} placeholder="26.1224"
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Center Longitude</label>
+                              <input value={gridLng} onChange={e => setGridLng(e.target.value)} placeholder="-80.1373"
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                            </div>
                           </div>
-                        )
-                      })}
-                    </div>
+                          <button onClick={runGrid} disabled={gridRunning} style={{
+                            padding: '10px 24px', borderRadius: 10, border: 'none', background: gridRunning ? '#e5e7eb' : BLK, color: '#fff',
+                            fontSize: 13, fontWeight: 700, cursor: gridRunning ? 'wait' : 'pointer', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {gridRunning ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={14} />}
+                            {gridRunning ? 'Scanning 25 points...' : 'Run Live Grid Scan'}
+                          </button>
 
-                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
-                      {[['#1-3 (In Pack)', GRN], ['#4-10 (Visible)', AMB], ['#11+ (Invisible)', R], ['📍 Your Business', BLK]].map(([label, color]) => (
-                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />{label}
-                        </div>
-                      ))}
-                    </div>
+                          {/* Grid results */}
+                          {gridResult && (
+                            <>
+                              <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                                {[['Coverage', `${gridResult.coverage_pct}%`, gridResult.coverage_pct >= 60 ? GRN : gridResult.coverage_pct >= 30 ? AMB : R],
+                                  ['Avg Rank', gridResult.avg_rank || '—', gridResult.avg_rank <= 3 ? GRN : gridResult.avg_rank <= 10 ? AMB : R],
+                                  ['Best', `#${gridResult.best_rank || '—'}`, gridResult.best_rank <= 3 ? GRN : AMB],
+                                  ['Found', `${gridResult.ranked_cells}/${gridResult.total_cells}`, GRN],
+                                ].map(([label, val, color]) => (
+                                  <div key={label} style={{ textAlign: 'center' }}>
+                                    <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
+                                    <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>{label}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${gridResult.grid_size || 5}, 1fr)`, gap: 4, maxWidth: 400, margin: '0 auto 16px' }}>
+                                {(gridResult.cells || []).map((cell, i) => {
+                                  const rank = cell.rank
+                                  const color = rank === null ? '#e5e7eb' : rank <= 3 ? GRN : rank <= 10 ? AMB : R
+                                  const isCenter = cell.row === Math.floor((gridResult.grid_size || 5) / 2) && cell.col === Math.floor((gridResult.grid_size || 5) / 2)
+                                  return (
+                                    <div key={i} style={{
+                                      aspectRatio: '1', borderRadius: 8,
+                                      background: isCenter ? BLK : rank === null ? '#f3f4f6' : color + '15',
+                                      border: `2px solid ${isCenter ? BLK : color}`,
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      fontSize: isCenter ? 14 : 12, fontWeight: 800,
+                                      color: isCenter ? '#fff' : rank === null ? '#d1d5db' : color, fontFamily: FH,
+                                    }} title={cell.top_3?.map(t => `#${t.rank} ${t.title}`).join('\n') || 'Not found'}>
+                                      {isCenter ? '📍' : rank ? `#${rank}` : '·'}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </>
+                          )}
 
-                    <div style={{ padding: '14px 18px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
-                      <strong>This is a preview.</strong> Live grid tracking requires DataForSEO API (~$5/month for 10 keywords × 25 grid points). Once connected, this map shows real-time local pack positions from every direction around your business — updated weekly.
-                    </div>
+                          {!gridResult && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 16px' }}>
+                              {Array.from({ length: 25 }).map((_, i) => (
+                                <div key={i} style={{ aspectRatio: '1', borderRadius: 8, background: '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#d1d5db', fontFamily: FH, fontWeight: 800 }}>
+                                  {i === 12 ? '📍' : '·'}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
+                            {[['#1-3 (In Pack)', GRN], ['#4-10 (Visible)', AMB], ['#11+ (Invisible)', R], ['📍 Your Business', BLK]].map(([label, color]) => (
+                              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
+                                <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />{label}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 </>
               )
