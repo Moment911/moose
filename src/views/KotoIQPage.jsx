@@ -475,7 +475,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <Zap size={32} color={R} style={{ margin: '0 auto 12px' }} />
                     <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Quick Scan</div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>No login required. Scans website, sitemap, competitors, and Moz DA. AI extracts 30-60 target keywords.</div>
-                    <button onClick={runQuickScan} disabled={syncing}
+                    <button onClick={() => {
+                      const c = clients.find(x => x.id === clientId)
+                      if (!c?.website) { toast.error('This client needs a website URL first — click the ✏️ edit button to add one'); return }
+                      runQuickScan()
+                    }} disabled={syncing}
                       style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run Quick Scan
                     </button>
@@ -484,9 +488,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <RefreshCw size={32} color={T} style={{ margin: '0 auto 12px' }} />
                     <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Full Sync</div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Requires Google OAuth. Pulls real data from Search Console, Google Ads, GA4. Connect at /seo/connect first.</div>
-                    <button onClick={runSync} disabled={syncing}
+                    <button onClick={() => { navigate('/seo/connect') }} disabled={syncing}
                       style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run Full Sync
+                      <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google →
                     </button>
                   </div>
                 </div>
