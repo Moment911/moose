@@ -352,40 +352,69 @@ export default function KotoIQPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#ffffff', fontFamily: FB }}>
       <Sidebar />
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Brain size={22} color="#fff" />
+        {/* ── Fixed Header ─────────────────────────────────────── */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '20px 40px 0', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={20} color="#fff" />
+              </div>
+              <div>
+                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>AI-Powered Search Intelligence</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
-              <div style={{ fontSize: 14, color: '#6b7280' }}>AI-Powered Search Intelligence</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {clientId && (
+                <button onClick={() => {
+                  const c = clients.find(x => x.id === clientId)
+                  if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
+                }} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>Edit Client</button>
+              )}
+              <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
+                style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>+ Add Client</button>
             </div>
           </div>
 
-          {/* Client selector — large centered */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          {/* Client selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 0 }}>
             <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
-              style={{ flex: 1, padding: '14px 20px', borderRadius: 12, border: '1.5px solid #e5e7eb', fontSize: 16, fontWeight: 700, fontFamily: FH, background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#9ca3af' }}>
+              style={{ flex: 1, padding: '12px 18px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 700, fontFamily: FH, background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#9ca3af' }}>
               <option value="">Select a client to analyze...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.website ? ` — ${c.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}` : ' (no URL)'}</option>)}
             </select>
-            {clientId && (
-              <button onClick={() => {
-                const c = clients.find(x => x.id === clientId)
-                if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
-              }} style={{ padding: '14px 18px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: FH, color: '#6b7280', whiteSpace: 'nowrap' }}>Edit Client</button>
-            )}
-            <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
-              style={{ padding: '14px 18px', borderRadius: 12, border: 'none', background: BLK, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: FH, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>+ Add Client</button>
           </div>
 
-          {/* Action cards — 3 across */}
+          {/* Tabs — inside fixed header */}
           {clientId && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 0 }}>
+              {[
+                ['dashboard', 'Dashboard', BarChart2],
+                ['keywords', 'Keywords', Search],
+                ['aeo', 'AEO Research', Brain],
+                ['briefs', 'Page Builder', Zap],
+                ['competitors', 'Competitors', Target],
+                ['ranks', 'Rank Tracker', TrendingUp],
+                ['audit', 'Deep Audit', Shield],
+                ['gmb', 'GMB', Star],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '12px 16px', fontSize: 13, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 6, transition: 'color .12s' }}>
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Scrollable Content ────────────────────────────────── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
+
+          {/* Action cards — show on dashboard tab or when no data */}
+          {clientId && (tab === 'dashboard' || !dashboard) && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
               {/* Quick Scan */}
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -473,7 +502,7 @@ export default function KotoIQPage() {
               </div>
             </div>
           )}
-        </div>
+
         {/* Export */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             {clientId && dashboard && !dashboard.empty && (
@@ -509,25 +538,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             )}
           </div>
 
-        {/* Tabs (only show when client selected) */}
-        {clientId && (
-          <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-            {[
-              ['dashboard', 'Dashboard', BarChart2, 'Overview + AI recommendations'],
-              ['keywords', 'Keywords', Search, 'All tracked keywords + scores'],
-              ['aeo', 'AEO Research', Brain, 'AI Overview gap finder'],
-              ['briefs', 'Page Builder', Zap, 'AI content briefs'],
-              ['competitors', 'Competitors', Target, 'Competitor landscape'],
-              ['ranks', 'Rank Tracker', TrendingUp, 'Position monitoring'],
-              ['audit', 'Deep Audit', Shield, 'Technical SEO audit'],
-              ['gmb', 'GMB', Star, 'Google Business Profile'],
-            ].map(([key, label, Icon, desc]) => (
-              <button key={key} onClick={() => setTab(key)}
-                style={{ padding: '10px 16px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? '2px solid #fff' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: tab === key ? 800 : 600, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'center', transition: 'all .12s' }}>
-                <Icon size={14} />
-                <span>{label}</span>
-              </button>
-            ))}
+        {false && (
+          <div>
           </div>
         )}
 

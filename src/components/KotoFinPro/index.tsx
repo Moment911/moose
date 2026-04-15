@@ -55,6 +55,30 @@ export default function KotoFinPro() {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const justLoaded = useRef(false)
 
+  // Restore persisted tab and client on mount
+  useEffect(() => {
+    try {
+      const savedTab = localStorage.getItem('kotofin_activeTab')
+      const savedClient = localStorage.getItem('kotofin_clientId')
+      const savedClientName = localStorage.getItem('kotofin_clientName')
+      if (savedTab) dispatch({ type: 'SET_ACTIVE_TAB', payload: savedTab })
+      if (savedClient && savedClientName) {
+        dispatch({ type: 'SET_CLIENT', payload: { id: savedClient, name: savedClientName } })
+      }
+    } catch {}
+  }, [dispatch])
+
+  // Persist tab and client to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('kotofin_activeTab', state.activeTab)
+      if (state.clientId) {
+        localStorage.setItem('kotofin_clientId', state.clientId)
+        localStorage.setItem('kotofin_clientName', state.clientName)
+      }
+    } catch {}
+  }, [state.activeTab, state.clientId, state.clientName])
+
   // Load clients
   useEffect(() => {
     async function fetchClients() {
