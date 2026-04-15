@@ -1925,6 +1925,55 @@ Analyze and return JSON:
   }
 
   // ── DataForSEO — account balance ────────────────────────────
+  // ── Scan management — status, delete, history ────────────────
+  if (action === 'get_scan_history') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data } = await s.from('kotoiq_sync_log').select('*').eq('client_id', client_id).order('started_at', { ascending: false }).limit(30)
+    return NextResponse.json({ scans: data || [] })
+  }
+
+  if (action === 'get_scan_status') {
+    const { scan_id } = body
+    if (!scan_id) return NextResponse.json({ error: 'scan_id required' }, { status: 400 })
+    const { data } = await s.from('kotoiq_sync_log').select('*').eq('id', scan_id).single()
+    return NextResponse.json(data)
+  }
+
+  if (action === 'delete_scan') {
+    const { scan_id, client_id, scan_type } = body
+    if (scan_id) {
+      await s.from('kotoiq_sync_log').delete().eq('id', scan_id)
+      return NextResponse.json({ success: true })
+    }
+    // Delete all scans of a type for a client
+    if (client_id && scan_type) {
+      await s.from('kotoiq_sync_log').delete().eq('client_id', client_id).eq('source', scan_type)
+      if (scan_type === 'quick_scan' || scan_type === 'full_sync') {
+        await s.from('kotoiq_keywords').delete().eq('client_id', client_id)
+      }
+      if (scan_type === 'deep_enrich') {
+        // Keep the client, just remove enrichment data
+      }
+      return NextResponse.json({ success: true })
+    }
+    return NextResponse.json({ error: 'scan_id or client_id+scan_type required' }, { status: 400 })
+  }
+
+  if (action === 'delete_all_client_data') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    await Promise.all([
+      s.from('kotoiq_keywords').delete().eq('client_id', client_id),
+      s.from('kotoiq_snapshots').delete().eq('client_id', client_id),
+      s.from('kotoiq_sync_log').delete().eq('client_id', client_id),
+      s.from('kotoiq_recommendations').delete().eq('client_id', client_id),
+      s.from('kotoiq_content_briefs').delete().eq('client_id', client_id),
+      s.from('kotoiq_gmb_grid').delete().eq('client_id', client_id),
+    ])
+    return NextResponse.json({ success: true })
+  }
+
   // ── GBP API — pull real performance data ────────────────────
   if (action === 'gbp_pull') {
     const { client_id } = body
