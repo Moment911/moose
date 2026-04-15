@@ -256,6 +256,34 @@ export default function SEOConnectPage() {
         }, { onConflict: 'client_id,provider' })
       }
 
+      // Auto-save GBP connection if the token has business.manage scope
+      if (scope && scope.includes('business.manage')) {
+        await supabase.from('seo_connections').upsert({
+          client_id:       clientId,
+          provider:        'gmb',
+          access_token,
+          refresh_token:   refresh_token || null,
+          token_expires_at: expiresAt,
+          scope,
+          connected:       true,
+          updated_at:      new Date().toISOString(),
+        }, { onConflict: 'client_id,provider' })
+      }
+
+      // Auto-save Google Ads connection if the token has adwords scope
+      if (scope && scope.includes('adwords')) {
+        await supabase.from('seo_connections').upsert({
+          client_id:       clientId,
+          provider:        'ads',
+          access_token,
+          refresh_token:   refresh_token || null,
+          token_expires_at: expiresAt,
+          scope,
+          connected:       true,
+          updated_at:      new Date().toISOString(),
+        }, { onConflict: 'client_id,provider' })
+      }
+
       await loadConnections()
       setTempTokens(null)
       toast.success('Google accounts connected!')
@@ -298,10 +326,10 @@ export default function SEOConnectPage() {
         <div style={{ maxWidth:720, margin:'0 auto', padding:'32px 24px' }}>
 
           {/* Header */}
-          <button onClick={()=>navigate('/seo')}
+          <button onClick={()=>navigate(returnTo || '/kotoiq?tab=connect')}
             style={{ display:'flex', alignItems:'center', gap:6, border:'none', background:'none',
               cursor:'pointer', color:'#9ca3af', fontSize:14, fontFamily:FH, marginBottom:20, padding:0 }}>
-            <ChevronLeft size={16}/> Back to SEO Hub
+            <ChevronLeft size={16}/> {returnTo ? 'Back to SeoIQ' : 'Back to SeoIQ'}
           </button>
 
           <div style={{ marginBottom:28 }}>

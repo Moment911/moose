@@ -3025,6 +3025,19 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         token_expires_at: expiresAt, scope, property_id: selectedGa4, connected: true, updated_at: new Date().toISOString(),
                       }, { onConflict: 'client_id,provider' })
                     }
+                    // Auto-save GBP + Ads if scope includes them
+                    if (scope?.includes('business.manage')) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'gmb', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    if (scope?.includes('adwords')) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'ads', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
                     toast.success('Google services connected!')
                     setOauthStep('done')
                   } catch (e) { toast.error('Failed to save: ' + e.message); setOauthStep('pick_properties') }
