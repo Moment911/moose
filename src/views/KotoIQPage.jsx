@@ -239,6 +239,25 @@ export default function KotoIQPage() {
     setSyncing(false)
   }
 
+  // Quick Scan (no OAuth needed)
+  const runQuickScan = async () => {
+    if (!clientId) return
+    const client = clients.find(c => c.id === clientId)
+    if (!client?.website) { toast.error('Client needs a website URL for quick scan'); return }
+    setSyncing(true)
+    toast.loading('Running quick scan — analyzing website + competitors...', { id: 'sync' })
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'quick_scan', client_id: clientId, agency_id: agencyId, website: client.website, industry: client.primary_service || '', location: '' }) })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error, { id: 'sync' }); setSyncing(false); return }
+      toast.success(`Found ${data.total_keywords} keywords · DA: ${data.client_da} · ${data.competitors} competitors`, { id: 'sync' })
+      loadDashboard()
+      if (tab === 'keywords') loadKeywords()
+    } catch { toast.error('Quick scan failed', { id: 'sync' }) }
+    setSyncing(false)
+  }
+
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
   const d = dashboard
 
@@ -259,10 +278,15 @@ export default function KotoIQPage() {
               <option value="">Select client...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+            <button onClick={runQuickScan} disabled={syncing || !clientId}
+              style={{ padding: '8px 20px', borderRadius: 10, border: `1.5px solid ${R}`, background: syncing ? '#e5e7eb' : '#fff', color: R, fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
+              Quick Scan
+            </button>
             <button onClick={runSync} disabled={syncing || !clientId}
               style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: syncing ? '#e5e7eb' : T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={14} />}
-              {syncing ? 'Syncing...' : 'Sync Data'}
+              Full Sync
             </button>
             {clientId && dashboard && !dashboard.empty && (
               <button onClick={() => {
@@ -391,10 +415,27 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <Brain size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
                 <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No data yet</div>
-                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Hit "Sync Data" to pull keywords from all connected sources.</div>
-                <button onClick={runSync} style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-                  <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run First Sync
-                </button>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Choose how to get started:</div>
+                <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ padding: '24px', borderRadius: 14, border: `2px solid ${R}20`, background: R + '04', maxWidth: 280, textAlign: 'center' }}>
+                    <Zap size={32} color={R} style={{ margin: '0 auto 12px' }} />
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Quick Scan</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>No login required. Scans website, sitemap, competitors, and Moz DA. AI extracts 30-60 target keywords.</div>
+                    <button onClick={runQuickScan} disabled={syncing}
+                      style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run Quick Scan
+                    </button>
+                  </div>
+                  <div style={{ padding: '24px', borderRadius: 14, border: `2px solid ${T}20`, background: T + '04', maxWidth: 280, textAlign: 'center' }}>
+                    <RefreshCw size={32} color={T} style={{ margin: '0 auto 12px' }} />
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Full Sync</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Requires Google OAuth. Pulls real data from Search Console, Google Ads, GA4. Connect at /seo/connect first.</div>
+                    <button onClick={runSync} disabled={syncing}
+                      style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                      <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run Full Sync
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <>

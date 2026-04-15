@@ -426,6 +426,159 @@ Return ONLY valid JSON array:
     }
   }
 
+  // ── QUICK SCAN: Seed keywords from website without OAuth ────────────
+  if (action === 'quick_scan') {
+    const { client_id, agency_id, website, industry, location } = body
+    if (!client_id || !website) return NextResponse.json({ error: 'client_id and website required' }, { status: 400 })
+
+    const { data: syncLog } = await s.from('kotoiq_sync_log').insert({
+      client_id, source: 'quick_scan', status: 'running',
+    }).select().single()
+
+    try {
+      let normalizedUrl = website.trim()
+      if (!normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl
+      const hostname = new URL(normalizedUrl).hostname
+
+      // Fetch page, sitemap, competitors, Moz in parallel
+      const [pageRes, sitemapUrls, competitors, mozRes] = await Promise.all([
+        fetch(normalizedUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' }, signal: AbortSignal.timeout(10000) }).then(r => r.text()).catch(() => ''),
+        // Sitemap
+        (async () => {
+          const urls: string[] = []
+          for (const path of ['/sitemap.xml', '/sitemap_index.xml', '/wp-sitemap.xml']) {
+            try {
+              const r = await fetch(`${new URL(normalizedUrl).origin}${path}`, { signal: AbortSignal.timeout(5000) })
+              if (r.ok) { const t = await r.text(); const locs = [...t.matchAll(/<loc>(.*?)<\/loc>/gi)].map(m => m[1]); urls.push(...locs) }
+              if (urls.length > 0) break
+            } catch { continue }
+          }
+          return [...new Set(urls)].slice(0, 200)
+        })(),
+        // Competitors via Places
+        (async () => {
+          const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || ''
+          if (!apiKey || !industry) return []
+          try {
+            const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
+              method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': 'places.displayName,places.rating,places.userRatingCount,places.websiteUri' },
+              body: JSON.stringify({ textQuery: `${industry} near ${location || ''}`, maxResultCount: 5 }),
+              signal: AbortSignal.timeout(10000),
+            })
+            const d = await r.json()
+            return (d.places || []).filter((p: any) => p.websiteUri && !p.websiteUri.includes(hostname)).slice(0, 4).map((p: any) => ({
+              name: p.displayName?.text, website: p.websiteUri, rating: p.rating, reviews: p.userRatingCount,
+            }))
+          } catch { return [] }
+        })(),
+        // Moz DA
+        (async () => {
+          const mozKey = process.env.MOZ_API_KEY || ''
+          if (!mozKey) return null
+          try {
+            const r = await fetch('https://lsapi.seomoz.com/v2/url_metrics', {
+              method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${mozKey}` },
+              body: JSON.stringify({ targets: [hostname], url_metrics_columns: ['domain_authority', 'page_authority', 'spam_score', 'root_domains_to_root_domain'] }),
+              signal: AbortSignal.timeout(10000),
+            })
+            return r.ok ? (await r.json()).results?.[0] : null
+          } catch { return null }
+        })(),
+      ])
+
+      const clientDA = mozRes?.domain_authority || 0
+
+      // Extract keywords from page content + sitemap URLs using Claude
+      const pageText = pageRes.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 5000)
+      const sitemapPaths = sitemapUrls.map(u => { try { return new URL(u).pathname } catch { return u } }).filter(p => p !== '/' && !p.includes('?'))
+
+      const extractPrompt = `Analyze this business website and extract the most important SEO keywords they should be targeting.
+
+WEBSITE: ${normalizedUrl}
+INDUSTRY: ${industry || 'Unknown'}
+LOCATION: ${location || 'Unknown'}
+DOMAIN AUTHORITY: ${clientDA}
+
+PAGE CONTENT (first 5000 chars):
+${pageText.slice(0, 3000)}
+
+SITEMAP URLS (${sitemapPaths.length} pages):
+${sitemapPaths.slice(0, 50).join('\n')}
+
+COMPETITORS: ${JSON.stringify(competitors.map((c: any) => c.name))}
+
+Extract 30-60 keywords this business should target. Include:
+- Service keywords (what they do)
+- Location keywords (service + city combinations)
+- Long-tail keywords (specific queries people search)
+- Question keywords (how, what, why queries)
+- Competitor comparison keywords (vs, alternative, best)
+
+Return ONLY valid JSON array:
+[{"keyword": "exact keyword phrase", "intent": "transactional|commercial|informational", "estimated_volume": number, "estimated_difficulty": "low|medium|high", "priority": "high|medium|low"}]`
+
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        system: 'Extract SEO keywords. Return ONLY valid JSON array.',
+        messages: [{ role: 'user', content: extractPrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_quick_scan', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
+      const extracted = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+
+      // Build UKF records from extracted keywords
+      const ukfRecords = (Array.isArray(extracted) ? extracted : []).map((kw: any) => ({
+        client_id,
+        agency_id: agency_id || null,
+        keyword: kw.keyword,
+        fingerprint: fingerprint(kw.keyword),
+        intent: kw.intent || classifyIntent(kw.keyword),
+        kp_monthly_volume: kw.estimated_volume || null,
+        moz_da: clientDA || null,
+        category: kw.priority === 'high' ? 'quick_win' : kw.priority === 'medium' ? 'striking_distance' : 'monitor',
+        opportunity_score: kw.priority === 'high' ? 75 : kw.priority === 'medium' ? 55 : 35,
+        rank_propensity: kw.estimated_difficulty === 'low' ? 70 : kw.estimated_difficulty === 'medium' ? 45 : 25,
+        data_period: `Quick scan — ${new Date().toISOString().split('T')[0]}`,
+      }))
+
+      if (ukfRecords.length > 0) {
+        await s.from('kotoiq_keywords').delete().eq('client_id', client_id)
+        await s.from('kotoiq_keywords').insert(ukfRecords)
+      }
+
+      // Generate recommendations
+      let aiRecs: any[] = []
+      try {
+        const recMsg = await ai.messages.create({
+          model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+          system: 'Return ONLY valid JSON array.',
+          messages: [{ role: 'user', content: `Generate 5 SEO recommendations for ${normalizedUrl} (${industry}, ${location}). DA: ${clientDA}. ${ukfRecords.length} keywords identified. Competitors: ${competitors.map((c: any) => c.name).join(', ')}.\n\nReturn JSON array: [{"type":"new_content|link_build|quick_win|schema_fix|gbp_action","priority":"critical|high|medium","title":"short title","detail":"2 sentences","estimated_impact":"description","effort":"quick_win|moderate|major_project"}]` }],
+        })
+        void logTokenUsage({ feature: 'kotoiq_quick_scan_recs', model: 'claude-sonnet-4-20250514', inputTokens: recMsg.usage?.input_tokens || 0, outputTokens: recMsg.usage?.output_tokens || 0, agencyId: agency_id })
+        aiRecs = JSON.parse((recMsg.content[0].type === 'text' ? recMsg.content[0].text : '[]').replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+        if (aiRecs.length > 0) {
+          await s.from('kotoiq_recommendations').delete().eq('client_id', client_id).eq('status', 'pending')
+          await s.from('kotoiq_recommendations').insert(aiRecs.map((r: any) => ({ client_id, agency_id, type: r.type, priority: r.priority, title: r.title, detail: r.detail, estimated_impact: r.estimated_impact, effort: r.effort })))
+        }
+      } catch { /* skip recs */ }
+
+      await s.from('kotoiq_sync_log').update({
+        status: 'complete', records_synced: ukfRecords.length, completed_at: new Date().toISOString(),
+        metadata: { scan_type: 'quick_scan', client_da: clientDA, competitors: competitors.length, sitemap_pages: sitemapUrls.length },
+      }).eq('id', syncLog?.id)
+
+      return NextResponse.json({
+        success: true, total_keywords: ukfRecords.length, client_da: clientDA,
+        competitors: competitors.length, sitemap_pages: sitemapUrls.length,
+        recommendations: aiRecs,
+      })
+    } catch (e: any) {
+      await s.from('kotoiq_sync_log').update({ status: 'failed', error_message: e.message, completed_at: new Date().toISOString() }).eq('id', syncLog?.id)
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
   // ── GET KEYWORDS: Paginated, filterable ───────────────────────────────
   if (action === 'keywords') {
     const { client_id, category, sort_by, sort_dir, limit: lim, offset: off, search } = body
