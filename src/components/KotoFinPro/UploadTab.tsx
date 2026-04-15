@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, Dispatch } from 'react'
 import { Transaction, StatementFile, KotoFinAction } from './KotoFin.types'
 import { BANK_COLORS } from './KotoFin.constants'
 import { categorize } from './KotoFin.utils'
-import { Upload, AlertCircle, CheckCircle2, Loader2, Trash2 } from 'lucide-react'
+import { Upload, AlertCircle, CheckCircle2, Loader2, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
 interface UploadTabProps {
@@ -13,11 +13,22 @@ interface UploadTabProps {
   dispatch: Dispatch<KotoFinAction>
 }
 
+interface ParseInfo {
+  bank: string
+  textLength: number
+  totalLines: number
+  linesWithAmounts: number
+  transactionsMatched: number
+  unmatchedSample: string[]
+  rawTextPreview: string
+}
+
 interface UploadStatus {
   id: string
   file: string
   status: 'uploading' | 'success' | 'error' | 'duplicate'
   message: string
+  parseInfo?: ParseInfo
 }
 
 async function hashFile(file: File): Promise<string> {
@@ -32,6 +43,7 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
   const [dragging, setDragging] = useState(false)
   const [statuses, setStatuses] = useState<UploadStatus[]>([])
   const [processing, setProcessing] = useState(false)
+  const [expandedStatus, setExpandedStatus] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const processedHashes = useRef<Set<string>>(new Set())
 
@@ -171,7 +183,7 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
       const coverage = info ? `${info.transactionsMatched} of ${info.linesWithAmounts} lines matched (${info.totalLines} total lines, ${info.textLength} chars)` : ''
 
       if (!data.transactions?.length) {
-        updateStatus(id, { status: 'error', message: `0 transactions matched. Bank: ${info?.bank || 'Unknown'}. ${coverage}. ${info?.unmatchedSample?.length ? `Sample unmatched: "${info.unmatchedSample[0]?.substring(0, 80)}..."` : ''}` })
+        updateStatus(id, { status: 'error', message: `0 transactions matched. Bank: ${info?.bank || 'Unknown'}. ${coverage}.`, parseInfo: info })
         return null
       }
 
@@ -186,7 +198,7 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
       const successMsg = `${txns.length} transactions from ${data.meta?.bank || 'Unknown'} (${data.meta?.account || ''})`
       const coverageMsg = missedCount > 0 ? ` — ${missedCount} lines with amounts were not matched` : ''
 
-      updateStatus(id, { status: 'success', message: successMsg + coverageMsg })
+      updateStatus(id, { status: 'success', message: successMsg + coverageMsg, parseInfo: info })
 
       return { txns, fileMeta: data.meta, id, hash }
     } catch (err) {
@@ -257,23 +269,63 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
 
       {statuses.length > 0 && (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {statuses.map(s => (
-            <div key={s.id} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-              borderRadius: 8, fontSize: 13,
-              background: s.status === 'success' ? 'rgba(34,197,94,0.06)' : s.status === 'error' ? 'rgba(239,68,68,0.06)' : s.status === 'duplicate' ? 'rgba(245,158,11,0.06)' : 'var(--surface2)',
-              border: `1px solid ${s.status === 'success' ? 'rgba(34,197,94,0.2)' : s.status === 'error' ? 'rgba(239,68,68,0.2)' : s.status === 'duplicate' ? 'rgba(245,158,11,0.2)' : 'var(--border)'}`,
-            }}>
-              {s.status === 'uploading' && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />}
-              {s.status === 'success' && <CheckCircle2 size={14} color="#22c55e" style={{ flexShrink: 0 }} />}
-              {s.status === 'error' && <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />}
-              {s.status === 'duplicate' && <AlertCircle size={14} color="#f59e0b" style={{ flexShrink: 0 }} />}
-              <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 500 }}>{s.file}</span>
-                <span style={{ color: 'var(--text-dim)', marginLeft: 8 }}>{s.message}</span>
+          {statuses.map(s => {
+            const isExpanded = expandedStatus === s.id
+            const hasDetail = !!s.parseInfo
+            return (
+              <div key={s.id} style={{
+                borderRadius: 8, fontSize: 13, overflow: 'hidden',
+                background: s.status === 'success' ? 'rgba(34,197,94,0.06)' : s.status === 'error' ? 'rgba(239,68,68,0.06)' : s.status === 'duplicate' ? 'rgba(245,158,11,0.06)' : 'var(--surface2)',
+                border: `1px solid ${s.status === 'success' ? 'rgba(34,197,94,0.2)' : s.status === 'error' ? 'rgba(239,68,68,0.2)' : s.status === 'duplicate' ? 'rgba(245,158,11,0.2)' : 'var(--border)'}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: hasDetail ? 'pointer' : 'default' }}
+                  onClick={() => hasDetail && setExpandedStatus(isExpanded ? null : s.id)}>
+                  {s.status === 'uploading' && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />}
+                  {s.status === 'success' && <CheckCircle2 size={14} color="#22c55e" style={{ flexShrink: 0 }} />}
+                  {s.status === 'error' && <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />}
+                  {s.status === 'duplicate' && <AlertCircle size={14} color="#f59e0b" style={{ flexShrink: 0 }} />}
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontWeight: 500 }}>{s.file}</span>
+                    <span style={{ color: 'var(--text-dim)', marginLeft: 8 }}>{s.message}</span>
+                  </div>
+                  {hasDetail && (isExpanded ? <ChevronUp size={14} color="var(--text-dim)" /> : <ChevronDown size={14} color="var(--text-dim)" />)}
+                </div>
+
+                {isExpanded && s.parseInfo && (
+                  <div style={{ padding: '0 14px 14px', borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, margin: '12px 0', fontSize: 11 }}>
+                      <div><span style={{ color: 'var(--text-dim)' }}>Bank:</span> <strong>{s.parseInfo.bank}</strong></div>
+                      <div><span style={{ color: 'var(--text-dim)' }}>Text:</span> <strong>{s.parseInfo.textLength.toLocaleString()} chars</strong></div>
+                      <div><span style={{ color: 'var(--text-dim)' }}>Lines:</span> <strong>{s.parseInfo.totalLines}</strong></div>
+                      <div><span style={{ color: 'var(--text-dim)' }}>$ Lines:</span> <strong>{s.parseInfo.linesWithAmounts}</strong> ({s.parseInfo.transactionsMatched} matched)</div>
+                    </div>
+
+                    {s.parseInfo.unmatchedSample.length > 0 && (
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>
+                          UNMATCHED LINES ({s.parseInfo.linesWithAmounts - s.parseInfo.transactionsMatched} not parsed):
+                        </div>
+                        <div style={{ fontFamily: 'var(--mono)', fontSize: 10, background: 'var(--surface2)', padding: 10, borderRadius: 6, maxHeight: 200, overflowY: 'auto', lineHeight: 1.8 }}>
+                          {s.parseInfo.unmatchedSample.map((line, i) => (
+                            <div key={i} style={{ borderBottom: '1px solid var(--border)', padding: '2px 0' }}>{line}</div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <details style={{ fontSize: 11 }}>
+                      <summary style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 500, marginBottom: 8 }}>
+                        View Raw Extracted Text ({s.parseInfo.textLength.toLocaleString()} chars)
+                      </summary>
+                      <pre style={{ fontFamily: 'var(--mono)', fontSize: 10, background: 'var(--surface2)', padding: 10, borderRadius: 6, maxHeight: 400, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.6 }}>
+                        {s.parseInfo.rawTextPreview}
+                      </pre>
+                    </details>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

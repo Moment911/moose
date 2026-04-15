@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
         transactionsMatched: transactions.length,
         unmatchedSample: linesWithAmounts
           .filter((line: string) => !transactions.some(t => line.includes(t.desc?.substring(0, 20) || '')))
-          .slice(0, 10),
+          .slice(0, 20),
+        rawTextPreview: text.substring(0, 8000),
       },
     })
   } catch (error) {
