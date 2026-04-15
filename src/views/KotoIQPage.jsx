@@ -9,6 +9,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
 
 // ── Category config ─────────────────────────────────────────────────────────
@@ -122,9 +123,9 @@ export default function KotoIQPage() {
   // Load clients
   const loadClients = useCallback(() => {
     if (!agencyId) return
-    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients?select=id,name,website,primary_service&agency_id=eq.${agencyId}&deleted_at=is.null&order=name`, {
-      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
-    }).then(r => r.json()).then(c => { if (Array.isArray(c)) setClients(c) })
+    supabase.from('clients').select('id, name, website, primary_service, industry, status')
+      .eq('agency_id', agencyId).is('deleted_at', null).order('name')
+      .then(({ data }) => { if (Array.isArray(data)) setClients(data) })
   }, [agencyId])
 
   useEffect(() => {
