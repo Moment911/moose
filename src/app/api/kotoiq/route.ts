@@ -1092,6 +1092,118 @@ Return ONLY valid JSON:
     })
   }
 
+  // ── PORTFOLIO: Cross-client overview for agency ─────────────────────
+  if (action === 'portfolio') {
+    const { agency_id } = body
+    if (!agency_id) return NextResponse.json({ error: 'agency_id required' }, { status: 400 })
+
+    // Get all clients for agency
+    const { data: clients } = await s.from('clients').select('id, name, website, primary_service')
+      .eq('agency_id', agency_id).is('deleted_at', null).order('name')
+
+    if (!clients?.length) return NextResponse.json({ clients: [] })
+
+    // Get keyword stats per client
+    const clientIds = clients.map(c => c.id)
+    const { data: allKw } = await s.from('kotoiq_keywords').select('client_id, sc_avg_position, opportunity_score, category, ads_cost_cents')
+      .in('client_id', clientIds)
+
+    // Get last sync per client
+    const { data: syncs } = await s.from('kotoiq_sync_log').select('client_id, status, completed_at, records_synced')
+      .in('client_id', clientIds).eq('status', 'complete').order('completed_at', { ascending: false })
+
+    // Get pending recommendations per client
+    const { data: recs } = await s.from('kotoiq_recommendations').select('client_id, priority')
+      .in('client_id', clientIds).eq('status', 'pending')
+
+    // Build portfolio
+    const syncMap = new Map<string, any>()
+    for (const sync of syncs || []) {
+      if (!syncMap.has(sync.client_id)) syncMap.set(sync.client_id, sync)
+    }
+
+    const portfolio = clients.map(client => {
+      const kws = (allKw || []).filter(k => k.client_id === client.id)
+      const lastSync = syncMap.get(client.id)
+      const clientRecs = (recs || []).filter(r => r.client_id === client.id)
+
+      const top3 = kws.filter(k => k.sc_avg_position && k.sc_avg_position <= 3).length
+      const top10 = kws.filter(k => k.sc_avg_position && k.sc_avg_position <= 10).length
+      const avgOpp = kws.length > 0 ? Math.round(kws.reduce((s, k) => s + (k.opportunity_score || 0), 0) / kws.length) : 0
+      const totalSpend = kws.reduce((s, k) => s + (k.ads_cost_cents || 0), 0) / 100
+      const cannibals = kws.filter(k => k.category === 'organic_cannibal').length
+      const criticalRecs = clientRecs.filter(r => r.priority === 'critical' || r.priority === 'high').length
+
+      return {
+        id: client.id,
+        name: client.name,
+        website: client.website,
+        service: client.primary_service,
+        total_keywords: kws.length,
+        top3,
+        top10,
+        avg_opportunity: avgOpp,
+        ads_spend: Math.round(totalSpend),
+        cannibals,
+        critical_actions: criticalRecs,
+        total_actions: clientRecs.length,
+        last_sync: lastSync?.completed_at || null,
+        synced: !!lastSync,
+      }
+    })
+
+    return NextResponse.json({
+      clients: portfolio,
+      totals: {
+        total_clients: portfolio.length,
+        synced_clients: portfolio.filter(c => c.synced).length,
+        total_keywords: portfolio.reduce((s, c) => s + c.total_keywords, 0),
+        total_top3: portfolio.reduce((s, c) => s + c.top3, 0),
+        total_top10: portfolio.reduce((s, c) => s + c.top10, 0),
+        total_spend: portfolio.reduce((s, c) => s + c.ads_spend, 0),
+        total_actions: portfolio.reduce((s, c) => s + c.total_actions, 0),
+      },
+    })
+  }
+
+  // ── EXPORT: Full report data for PDF generation ───────────────────────
+  if (action === 'export_report') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name, website, primary_service').eq('id', client_id).single()
+    const { data: keywords } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).order('opportunity_score', { ascending: false })
+    const { data: recs } = await s.from('kotoiq_recommendations').select('*').eq('client_id', client_id).eq('status', 'pending').order('priority')
+    const { data: briefs } = await s.from('kotoiq_content_briefs').select('*').eq('client_id', client_id).order('created_at', { ascending: false })
+    const { data: lastSync } = await s.from('kotoiq_sync_log').select('*').eq('client_id', client_id).eq('status', 'complete').order('completed_at', { ascending: false }).limit(1)
+
+    const kws = keywords || []
+    return NextResponse.json({
+      client,
+      generated_at: new Date().toISOString(),
+      summary: {
+        total_keywords: kws.length,
+        top3: kws.filter(k => k.sc_avg_position && k.sc_avg_position <= 3).length,
+        top10: kws.filter(k => k.sc_avg_position && k.sc_avg_position <= 10).length,
+        total_ads_spend: Math.round(kws.reduce((s, k) => s + (k.ads_cost_cents || 0), 0) / 100),
+        wasted_spend: Math.round(kws.filter(k => k.category === 'organic_cannibal').reduce((s, k) => s + (k.ads_cost_cents || 0), 0) / 100),
+        avg_opportunity: kws.length > 0 ? Math.round(kws.reduce((s, k) => s + (k.opportunity_score || 0), 0) / kws.length) : 0,
+      },
+      categories: Object.fromEntries(
+        ['organic_cannibal', 'striking_distance', 'quick_win', 'dark_matter', 'paid_only', 'defend', 'underperformer', 'monitor']
+          .map(cat => [cat, kws.filter(k => k.category === cat).length])
+      ),
+      top_opportunities: kws.slice(0, 20).map(k => ({
+        keyword: k.keyword, opportunity: k.opportunity_score, rank_propensity: k.rank_propensity,
+        position: k.sc_avg_position, volume: k.kp_monthly_volume, ads_spend: k.ads_cost_cents ? Math.round(k.ads_cost_cents / 100) : 0,
+        category: k.category, intent: k.intent,
+      })),
+      recommendations: recs || [],
+      briefs: (briefs || []).map(b => ({ keyword: b.target_keyword, url: b.target_url, status: b.status, word_count: b.target_word_count })),
+      last_sync: lastSync?.[0]?.completed_at || null,
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 
