@@ -819,15 +819,33 @@ KEYWORD DATA:
 - Rank propensity: ${kwData?.rank_propensity || 'Unknown'}/100
 - Client Domain Authority: ${kwData?.moz_da || 'Unknown'}
 
-INSTRUCTIONS:
-1. Generate a complete page brief that will rank #1 for this keyword
-2. The brief should beat current top-ranking pages by being more comprehensive, better structured, and more useful
-3. Include FAQ questions sourced from what real people ask about this topic
-4. Include schema markup recommendations
-5. Specify exact entity coverage needed for NLP/AEO optimization
-6. The content should be written for HUMANS first, optimized for search second
-7. For local service businesses, include city/area mentions naturally
-8. Target featured snippet / AI Overview capture where applicable
+═══ THE 4-STEP FRAMEWORK (Apply to EVERY brief) ═══
+
+STEP 1 — INFORMATION GAIN ANALYSIS:
+Before structuring the brief, analyze what current AI Overviews and top-ranking pages already cover for this keyword. Identify SPECIFIC data points, user pain points, or technical shifts that existing content MISSES. The brief must include at least 3 "information gain" sections — content that adds NEW value no current page provides. If you can't identify the gap, the page isn't worth creating.
+
+STEP 2 — ENTITY-FIRST OPTIMIZATION:
+Identify the 15-20 core entities related to this keyword and business. The page must explicitly connect these entities through content AND internal linking. The goal is topical authority — not keyword stuffing. Map entity relationships so the site is seen as an authority graph.
+
+STEP 3 — AI SKELETON + HUMAN EXPERIENCE MARKERS:
+Mark each section in the outline as either:
+- [AI-READY] — AI can write this section (technical info, definitions, lists)
+- [HUMAN-REQUIRED] — Needs original experience: screenshots, proprietary data, case studies, unique methodology, before/after photos, customer stories
+Google's "Experience" signal (E in E-E-A-T) is the competitive moat. At least 30% of the page should be marked [HUMAN-REQUIRED].
+
+STEP 4 — PERFORMANCE SIGNALS:
+Include specific metrics to track after publishing — which GSC impression share movements indicate the page is gaining authority, what CTR to target at each position, when to update the content.
+
+═══ CONTENT INSTRUCTIONS ═══
+1. The brief must beat current top-ranking pages by providing INFORMATION GAIN — not just being longer
+2. FAQ questions from real People Also Ask data
+3. Schema markup for structured data
+4. Entity coverage map for NLP/AEO optimization
+5. Written for HUMANS first, optimized for search second
+6. City/area mentions for local businesses
+7. Target featured snippet AND AI Overview capture
+8. Opening paragraph: 40-60 words direct answer (featured snippet target)
+9. No generic advice — every recommendation must be specific to THIS keyword and THIS business
 
 Return ONLY valid JSON:
 {
@@ -860,12 +878,33 @@ Return ONLY valid JSON:
     "image_suggestions": ["type of image 1", "type of image 2"],
     "differentiator_angle": "what makes this page unique vs competitors"
   },
+  "information_gain": {
+    "gaps_in_current_content": ["specific gap 1 — what current pages miss", "gap 2", "gap 3"],
+    "unique_value_propositions": ["what THIS page will provide that no other page does"],
+    "ai_overview_gaps": "what the current AI Overview for this query misses"
+  },
+  "experience_markers": {
+    "human_required_sections": ["sections that NEED original human experience/data/screenshots"],
+    "ai_ready_sections": ["sections AI can generate well"],
+    "experience_percentage": "estimated % of page that needs human input"
+  },
+  "entity_map": {
+    "core_entities": ["entity1", "entity2"],
+    "entity_relationships": ["entity1 → entity2 (how they connect)"],
+    "topical_authority_gaps": ["entities competitors cover that you don't"]
+  },
+  "performance_tracking": {
+    "target_ctr_by_position": {"pos_1": 0.28, "pos_3": 0.12, "pos_10": 0.025},
+    "impression_share_goal_30d": "expected impression count after 30 days",
+    "content_refresh_trigger": "refresh if impressions drop 20% week-over-week"
+  },
   "estimated_monthly_traffic": number,
   "ranking_timeline": "estimated weeks/months to rank based on competition",
   "aeo_optimization": {
     "target_snippet_type": "paragraph|list|table|faq",
     "ai_overview_eligible": true/false,
-    "optimization_notes": "specific tips for AI citation"
+    "optimization_notes": "specific tips for AI citation",
+    "suggested_searches_to_target": ["related searches that should become new pages"]
   }
 }`
 
@@ -1797,6 +1836,91 @@ Return ONLY valid JSON:
       }
       return NextResponse.json({ success: true, results })
     } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── AEO Research — search Google, extract AI Overview + related searches ──
+  if (action === 'aeo_research') {
+    const { keyword, client_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    try {
+      const serp = await getSERPResults(keyword)
+
+      // Extract AI Overview analysis
+      const aiOverview = serp.ai_overview
+      const featuredSnippet = serp.featured_snippet
+      const paa = serp.people_also_ask || []
+      const related = serp.related_searches || []
+      const localPack = serp.local_pack || []
+      const knowledgeGraph = serp.knowledge_graph
+
+      // Extract mentioned companies/domains from AI Overview
+      const mentionedCompanies = aiOverview?.sources?.map((s: any) => ({
+        domain: s.domain, title: s.title, url: s.url,
+      })) || []
+
+      // Extract entities from organic results
+      const topDomains = serp.items.slice(0, 10).map(item => ({
+        domain: item.domain, title: item.title, url: item.url, position: item.rank_group,
+      }))
+
+      // Use Claude to analyze the AI Overview for gaps
+      let gapAnalysis = null
+      try {
+        const analysisPrompt = `Analyze this Google AI Overview for the search "${keyword}":
+
+AI OVERVIEW TEXT: ${aiOverview?.text || 'No AI Overview present for this query'}
+
+AI OVERVIEW SOURCES: ${mentionedCompanies.map((c: any) => c.domain).join(', ') || 'None'}
+
+PEOPLE ALSO ASK: ${paa.join(' | ') || 'None'}
+
+RELATED SEARCHES: ${related.join(' | ') || 'None'}
+
+TOP ORGANIC RESULTS:
+${topDomains.map((d: any) => `#${d.position} ${d.domain} — ${d.title}`).join('\n')}
+
+FEATURED SNIPPET: ${featuredSnippet ? `${featuredSnippet.domain}: ${featuredSnippet.description?.slice(0, 200)}` : 'None'}
+
+Analyze and return JSON:
+{
+  "ai_overview_summary": "brief summary of what the AI Overview covers",
+  "information_gaps": ["specific data points, pain points, or technical details the AI Overview MISSES"],
+  "key_phrases": ["important phrases/terms extracted from the AI Overview"],
+  "mentioned_companies": ["companies mentioned in the AI Overview or featured snippet"],
+  "content_opportunities": ["specific page ideas based on gaps in the AI Overview"],
+  "suggested_pages": ["page title ideas based on related searches and PAA — each could be a new page"],
+  "entity_map": ["core entities mentioned across all results"],
+  "aeo_strategy": "specific strategy to get cited in the AI Overview for this query",
+  "difficulty": "easy|medium|hard — based on competition and AI Overview presence"
+}`
+
+        const msg = await ai.messages.create({
+          model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+          system: 'Analyze Google SERP data for AEO opportunities. Return ONLY valid JSON.',
+          messages: [{ role: 'user', content: analysisPrompt }],
+        })
+        void logTokenUsage({ feature: 'kotoiq_aeo_research', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+        const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+        gapAnalysis = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+      } catch { /* skip AI analysis if it fails */ }
+
+      return NextResponse.json({
+        success: true, keyword,
+        ai_overview: aiOverview,
+        featured_snippet: featuredSnippet,
+        people_also_ask: paa,
+        related_searches: related,
+        local_pack: localPack,
+        knowledge_graph: knowledgeGraph,
+        top_results: topDomains,
+        mentioned_companies: mentionedCompanies,
+        gap_analysis: gapAnalysis,
+        total_results: serp.total_results,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
   }
 
   // ── DataForSEO — account balance ────────────────────────────

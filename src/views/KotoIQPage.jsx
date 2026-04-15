@@ -484,7 +484,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* Tabs (only show when client selected) */}
         {clientId && (
           <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['audit', 'Deep Audit', Shield], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
+            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['aeo', 'AEO Research', Brain], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['audit', 'Deep Audit', Shield], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
               <button key={key} onClick={() => setTab(key)}
                 style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={14} /> {label}
@@ -807,6 +807,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               )}
             </div>
           </>
+        )}
+
+        {/* ══ AEO RESEARCH TAB ══ */}
+        {clientId && tab === 'aeo' && (
+          <AEOResearchTab clientId={clientId} />
         )}
 
         {/* ══ PAGE BUILDER TAB ══ */}
@@ -2494,5 +2499,206 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         </div>
       )}
     </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AEO RESEARCH TAB — Search Google, extract AI Overview + gaps + opportunities
+   ══════════════════════════════════════════════════════════════════════════ */
+function AEOResearchTab({ clientId }) {
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const runResearch = async () => {
+    if (!query.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'aeo_research', keyword: query.trim(), client_id: clientId }) })
+      const data = await res.json()
+      if (data.success) setResult(data)
+      else toast.error(data.error || 'Research failed')
+    } catch { toast.error('Research failed') }
+    setLoading(false)
+  }
+
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+  const FB = "'Raleway','Helvetica Neue',sans-serif"
+
+  return (
+    <>
+      {/* Search input */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Brain size={18} color={T} /> AEO Research — AI Overview Gap Finder
+        </div>
+        <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14, lineHeight: 1.6 }}>
+          Search any keyword to see what Google's AI Overview says, which companies it mentions, what information it misses, and which new pages you should create to get cited.
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input value={query} onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') runResearch() }}
+            placeholder="Enter a keyword or phrase to research..."
+            style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, fontFamily: FH, fontWeight: 600, outline: 'none' }} />
+          <button onClick={runResearch} disabled={loading || !query.trim()}
+            style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: loading ? '#e5e7eb' : BLK, color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: FH, cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={16} />}
+            {loading ? 'Searching...' : 'Research'}
+          </button>
+        </div>
+      </div>
+
+      {loading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#6b7280' }}>Searching Google + analyzing AI Overview...</div></div>}
+
+      {result && !loading && (
+        <>
+          {/* AI Overview */}
+          <div style={{ ...card, borderLeft: result.ai_overview ? `4px solid ${T}` : '4px solid #e5e7eb' }}>
+            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Brain size={16} color={T} />
+              {result.ai_overview ? 'AI Overview Present' : 'No AI Overview for This Query'}
+            </div>
+            {result.ai_overview ? (
+              <>
+                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 12, padding: '12px 16px', background: T + '06', borderRadius: 10 }}>
+                  {result.ai_overview.text || 'AI Overview text not extracted'}
+                </div>
+                {result.mentioned_companies?.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Companies Cited in AI Overview</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {result.mentioned_companies.map((c, i) => (
+                        <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{ padding: '4px 12px', borderRadius: 20, background: '#f3f4f6', fontSize: 12, fontWeight: 600, color: BLK, textDecoration: 'none' }}>
+                          {c.domain}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: '#6b7280', padding: '12px 16px', background: '#f9fafb', borderRadius: 10 }}>
+                No AI Overview for this query — this is an opportunity. Content targeting this keyword has a clear path to ranking without competing against an AI summary.
+              </div>
+            )}
+          </div>
+
+          {/* Gap Analysis */}
+          {result.gap_analysis && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Information Gap Analysis</div>
+              {result.gap_analysis.information_gaps?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Gaps in Current Content (Your Opportunity)</div>
+                  {result.gap_analysis.information_gaps.map((gap, i) => (
+                    <div key={i} style={{ padding: '8px 14px', background: R + '04', borderRadius: 8, borderLeft: `3px solid ${R}`, marginBottom: 6, fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
+                      {gap}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {result.gap_analysis.content_opportunities?.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Content Opportunities</div>
+                  {result.gap_analysis.content_opportunities.map((opp, i) => (
+                    <div key={i} style={{ padding: '8px 14px', background: GRN + '04', borderRadius: 8, borderLeft: `3px solid ${GRN}`, marginBottom: 6, fontSize: 13, color: '#374151', lineHeight: 1.5 }}>
+                      {opp}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {result.gap_analysis.aeo_strategy && (
+                <div style={{ padding: '14px 18px', background: T + '06', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>AEO Strategy</div>
+                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{result.gap_analysis.aeo_strategy}</div>
+                </div>
+              )}
+              {result.gap_analysis.entity_map?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Core Entities</div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {result.gap_analysis.entity_map.map((e, i) => (
+                      <span key={i} style={{ padding: '3px 10px', borderRadius: 20, background: '#f0f9ff', fontSize: 12, fontWeight: 600, color: '#0369a1' }}>{e}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Suggested Pages */}
+          {(result.gap_analysis?.suggested_pages?.length > 0 || result.related_searches?.length > 0) && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Suggested New Pages to Create</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(result.gap_analysis?.suggested_pages || result.related_searches || []).map((page, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{page}</div>
+                    <button onClick={() => setQuery(page)} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', color: T }}>Research This</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* People Also Ask */}
+          {result.people_also_ask?.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>People Also Ask ({result.people_also_ask.length})</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {result.people_also_ask.map((q, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#f9fafb', borderRadius: 8 }}>
+                    <span style={{ fontSize: 13, color: '#374151' }}>{q}</span>
+                    <button onClick={() => setQuery(q)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: T }}>Research</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Organic Results */}
+          {result.top_results?.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Top 10 Organic Results</div>
+              {result.top_results.map((r, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < result.top_results.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                  <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 900, color: r.position <= 3 ? GRN : r.position <= 10 ? AMB : R, minWidth: 30, textAlign: 'center' }}>#{r.position}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{r.title}</div>
+                    <div style={{ fontSize: 11, color: T }}>{r.domain}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Featured Snippet */}
+          {result.featured_snippet && (
+            <div style={{ ...card, borderLeft: `4px solid ${AMB}` }}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 8 }}>Featured Snippet</div>
+              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>{result.featured_snippet.description}</div>
+              <div style={{ fontSize: 12, color: AMB, fontWeight: 700 }}>{result.featured_snippet.domain} — {result.featured_snippet.type}</div>
+            </div>
+          )}
+
+          {/* Related Searches */}
+          {result.related_searches?.length > 0 && (
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>Related Searches ({result.related_searches.length})</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {result.related_searches.map((s, i) => (
+                  <button key={i} onClick={() => setQuery(s)} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK }}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </>
   )
 }
