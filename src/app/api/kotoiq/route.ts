@@ -6,6 +6,7 @@ import { getAccessToken, fetchSearchConsoleData, fetchGA4Data } from '@/lib/seoS
 import { fetchGoogleAdsKeywords, fetchGoogleAdsCampaigns } from '@/lib/perfMarketing'
 import { enrichDomain } from '@/lib/domainEnrichment'
 import { getSERPResults, runGMBGridScan, getKeywordRankings, getBalance as getDFSBalance, getDomainCompetitors, getDomainRankedKeywords, getDomainIntersection } from '@/lib/dataforseo'
+import { pullFullGBPData, listQuestions, answerQuestion } from '@/lib/gbpApi'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -1924,6 +1925,79 @@ Analyze and return JSON:
   }
 
   // ── DataForSEO — account balance ────────────────────────────
+  // ── GBP API — pull real performance data ────────────────────
+  if (action === 'gbp_pull') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    // Get GBP OAuth connection
+    const { data: connections } = await s.from('seo_connections').select('*').eq('client_id', client_id)
+    const gmbConn = connections?.find((c: any) => (c.provider === 'gmb' || c.provider === 'google_business') && c.refresh_token)
+    // Fall back to any Google connection that has the business.manage scope
+    const anyGoogleConn = gmbConn || connections?.find((c: any) => c.scope?.includes('business.manage') && c.refresh_token)
+
+    if (!anyGoogleConn) {
+      return NextResponse.json({ error: 'No GBP connection found. Connect Google Business Profile at /seo/connect', needs_connect: true }, { status: 400 })
+    }
+
+    try {
+      const token = await getAccessToken(anyGoogleConn)
+      if (!token) return NextResponse.json({ error: 'Failed to refresh GBP token' }, { status: 401 })
+
+      const gbpData = await pullFullGBPData(token)
+
+      return NextResponse.json({
+        success: true,
+        accounts: gbpData.accounts,
+        locations: gbpData.locations,
+        performance: gbpData.performance,
+        reviews: gbpData.reviews,
+        questions: gbpData.questions,
+        source: 'google_business_profile_api',
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── GBP Q&A — AI-powered answer generation ─────────────────
+  if (action === 'gbp_answer_question') {
+    const { client_id, question_name, question_text } = body
+    if (!question_name || !question_text) return NextResponse.json({ error: 'question_name and question_text required' }, { status: 400 })
+
+    // Get client info for context
+    const { data: client } = await s.from('clients').select('name, website, primary_service, industry').eq('id', client_id).single()
+
+    // Generate AI answer
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        system: 'Generate a professional, helpful Google Business Profile Q&A answer. Keep it under 200 words. Be specific, mention the business name, and include a subtle CTA.',
+        messages: [{ role: 'user', content: `Business: ${client?.name || 'Our business'}\nIndustry: ${client?.industry || client?.primary_service || 'services'}\nWebsite: ${client?.website || ''}\n\nQuestion from a potential customer on Google:\n"${question_text}"\n\nWrite a helpful, professional answer that builds trust and encourages them to contact us.` }],
+      })
+      const answerText = msg.content[0].type === 'text' ? msg.content[0].text : ''
+
+      // Get GBP connection to post the answer
+      const { data: connections } = await s.from('seo_connections').select('*').eq('client_id', client_id)
+      const gmbConn = connections?.find((c: any) => c.scope?.includes('business.manage') && c.refresh_token)
+
+      let posted = false
+      if (gmbConn) {
+        try {
+          const token = await getAccessToken(gmbConn)
+          if (token) {
+            await answerQuestion(token, question_name, answerText)
+            posted = true
+          }
+        } catch { /* posting failed — still return the generated answer */ }
+      }
+
+      return NextResponse.json({ success: true, answer: answerText, posted })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
   if (action === 'dfs_balance') {
     try { return NextResponse.json(await getDFSBalance()) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }

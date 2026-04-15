@@ -2435,7 +2435,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     setGeocoding(true)
                                     try {
                                       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
-                                      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey || 'AIzaSyBJIkMmvCkXj3kMCJIKD-epb8kBcjSOjV4'}`)
+                                      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey}`)
                                       const data = await res.json()
                                       if (data.results?.[0]?.geometry?.location) {
                                         setGridLat(String(data.results[0].geometry.location.lat))
@@ -2451,7 +2451,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   setGeocoding(true)
                                   try {
                                     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
-                                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey || 'AIzaSyBJIkMmvCkXj3kMCJIKD-epb8kBcjSOjV4'}`)
+                                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey}`)
                                     const data = await res.json()
                                     if (data.results?.[0]?.geometry?.location) {
                                       setGridLat(String(data.results[0].geometry.location.lat))
