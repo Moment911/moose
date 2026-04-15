@@ -148,6 +148,7 @@ import ClientIntelligencePage from '../views/ClientIntelligencePage'
 import OpportunitiesPage from '../views/OpportunitiesPage'
 import PixelTrackingPage from '../views/PixelTrackingPage'
 import VOBAgentPage from '../views/VOBAgentPage'
+import KotoIQPage from '../views/KotoIQPage'
 import GHLIntegrationPage from '../views/GHLIntegrationPage'
 import EmailSequencePage from '../views/EmailSequencePage'
 import IntelligenceDashboardPage from '../views/IntelligenceDashboardPage'
@@ -393,6 +394,7 @@ function AppRoutes() {
           <Route path="/opportunities" element={<OpportunitiesPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
           <Route path="/vob" element={<VOBAgentPage />} />
+          <Route path="/kotoiq" element={<KotoIQPage />} />
           <Route path="/integrations/ghl" element={<GHLIntegrationPage />} />
           <Route path="/sequences" element={<EmailSequencePage />} />
           <Route path="/intelligence" element={<IntelligenceDashboardPage />} />

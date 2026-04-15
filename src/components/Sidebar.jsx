@@ -11,7 +11,7 @@ import NotificationCenter from './NotificationCenter'
 import DarkModeToggle from './DarkModeToggle'
 import toast from 'react-hot-toast'
 
-import { R, T, W } from '../lib/theme'
+import { R, T, W, GRN } from '../lib/theme'
 
 function NavLink({ to, icon: Icon, label, exact, startsWith, badge, badgeColor, sub, hidden }) {
   const loc    = useLocation()
@@ -444,7 +444,7 @@ export default function Sidebar() {
               <NavLink to="/agent" icon={Brain} label="AI CMO" badge="AI" badgeColor={R} hidden={!match('AI CMO') || !feat('cmo_agent')}/>
               <NavLink to="/intelligence" icon={Brain} label="Predictive Intel" hidden={!match('Predictive Intel') || !feat('predictive_intel')}/>
               <NavLink to="/intel" startsWith icon={Zap} label="KotoIntel" badge="NEW" badgeColor={T} hidden={!match('KotoIntel')}/>
-              <NavLink to="/kotoiq" icon={Search} label="KotoIQ" badge="NEW" badgeColor={R} hidden={!match('KotoIQ')}/>
+              <NavLink to="/kotoiq" icon={Search} label="KotoIQ" badge="SEO" badgeColor={GRN} hidden={!match('KotoIQ')}/>
               <NavLink to="/scout" startsWith icon={Target} label="Scout" hidden={!match('Scout') || !feat('scout')}/>
               <NavLink to="/scout/pipeline" startsWith icon={Target} label="Pipeline CRM" sub hidden={!match('Pipeline CRM') || !feat('pipeline_crm')}/>
               <NavLink to="/scout/history" startsWith icon={Clock} label="Scout History" sub hidden={!match('Scout History') || !feat('scout')}/>
