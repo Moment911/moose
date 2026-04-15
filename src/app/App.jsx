@@ -325,8 +325,8 @@ function AppRoutes() {
           <Route path="/client-profile" element={<ClientProfilePage />} />
           <Route path="/scout/pipeline" element={<ScoutPipelinePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/page-builder" element={<PageBuilderPage/>}/>
-          <Route path="/kotoiq/page-builder" element={<PageBuilderPage/>}/>
+          <Route path="/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
+          <Route path="/kotoiq/page-builder" element={<Navigate to="/kotoiq?tab=briefs" replace />}/>
                 <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
@@ -453,7 +453,7 @@ function AppRoutes() {
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
-          <Route path="/kotoiq/connect" element={<SEOConnectPage />} />
+          <Route path="/kotoiq/connect" element={<Navigate to="/kotoiq?tab=connect" replace />}/>
           <Route path="/order" element={<KotoOrderPage />} />
           <Route path="/qa" element={<QAConsolePage />} />
           <Route path="/billing-admin" element={<BillingAdminPage />} />

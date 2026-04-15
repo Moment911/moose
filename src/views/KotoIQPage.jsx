@@ -567,6 +567,7 @@ export default function KotoIQPage() {
               {[
                 ['ranks', 'Rankings', TrendingUp],
                 ['gmb', 'GMB', Star],
+                ['visitors', 'Visitors', Eye],
                 ['reports', 'Reports', BarChart2],
               ].map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)}
@@ -2864,6 +2865,27 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ UTM BUILDER TAB ══ */}
         {clientId && tab === 'utm' && (
           <UTMBuilderTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientWebsite={clients.find(c => c.id === clientId)?.website} />
+        )}
+
+        {/* ══ VISITORS TAB (Pixel Tracking embedded) ══ */}
+        {clientId && tab === 'visitors' && (
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>Visitor Intelligence</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
+              Real-time visitor tracking, browser fingerprinting, and behavioral analysis for your client's website.
+            </div>
+            <div style={{ padding: '20px 24px', background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7 }}>
+                <strong>To get started:</strong> Install the tracking pixel on the client's website. The pixel tracks visitors, identifies companies via IP lookup, and builds behavioral profiles automatically.
+              </div>
+              <button onClick={() => navigate('/kotoiq/pixels')} style={{
+                marginTop: 14, padding: '12px 24px', borderRadius: 10, border: 'none',
+                background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              }}>
+                Open Visitor Intelligence Dashboard
+              </button>
+            </div>
+          </div>
         )}
 
         {/* ══ CONNECT TAB ══ */}
