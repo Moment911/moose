@@ -254,10 +254,10 @@ export default function TransactionsTab({ transactions, accounts, files, activeF
   return (
     <div>
       <div className={styles.metricsRow}>
-        <div className={styles.metric}><div className={styles.metricLabel}>Income</div><div className={`${styles.metricValue} ${styles.metricGreen}`}>{fmtCurrency(totals.income)}</div></div>
-        <div className={styles.metric}><div className={styles.metricLabel}>Business Expenses</div><div className={`${styles.metricValue} ${styles.metricRed}`}>{fmtCurrency(totals.bizExp)}</div></div>
-        <div className={styles.metric}><div className={styles.metricLabel}>Personal</div><div className={`${styles.metricValue} ${styles.metricPurple}`}>{fmtCurrency(totals.personalExp)}</div></div>
-        <div className={styles.metric}><div className={styles.metricLabel}>Uncategorized</div><div className={`${styles.metricValue} ${styles.metricAmber}`}>{totals.uncategorized}</div></div>
+        <div className={styles.metric} style={{ cursor: 'pointer' }} onClick={() => dispatch({ type: 'SET_ACTIVE_TYPE', payload: 'income' })}><div className={styles.metricLabel}>Income</div><div className={`${styles.metricValue} ${styles.metricGreen}`}>{fmtCurrency(totals.income)}</div></div>
+        <div className={styles.metric} style={{ cursor: 'pointer' }} onClick={() => dispatch({ type: 'SET_ACTIVE_TYPE', payload: 'business' })}><div className={styles.metricLabel}>Business Expenses</div><div className={`${styles.metricValue} ${styles.metricRed}`}>{fmtCurrency(totals.bizExp)}</div></div>
+        <div className={styles.metric} style={{ cursor: 'pointer' }} onClick={() => dispatch({ type: 'SET_ACTIVE_TYPE', payload: 'personal' })}><div className={styles.metricLabel}>Personal</div><div className={`${styles.metricValue} ${styles.metricPurple}`}>{fmtCurrency(totals.personalExp)}</div></div>
+        <div className={styles.metric} style={{ cursor: 'pointer' }} onClick={() => dispatch({ type: 'SET_ACTIVE_TYPE', payload: 'uncategorized' })}><div className={styles.metricLabel}>Uncategorized</div><div className={`${styles.metricValue} ${styles.metricAmber}`}>{totals.uncategorized}</div></div>
       </div>
 
       <div className={styles.filterBar}>

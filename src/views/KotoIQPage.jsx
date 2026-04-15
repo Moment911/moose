@@ -2445,8 +2445,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                       {post.url && <span style={{ fontSize: 11, color: T }}>{post.url}</span>}
                                     </div>
                                     <div style={{ display: 'flex', gap: 6 }}>
-                                      <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Copied!') }}
-                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280' }}>Copy</button>
+                                      <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Post text copied to clipboard!') }}
+                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280' }}>Copy Text</button>
                                       <button onClick={() => {
                                         const updated = [...gmbPosts]
                                         updated[i] = { ...updated[i], _approved: !updated[i]._approved }
@@ -2455,6 +2455,15 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                       }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: post._approved ? '#e5e7eb' : GRN, color: post._approved ? '#6b7280' : '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
                                         {post._approved ? 'Unapprove' : 'Approve'}
                                       </button>
+                                      {post._approved && (
+                                        <button onClick={() => {
+                                          navigator.clipboard.writeText(post._editText || post.text)
+                                          window.open('https://business.google.com/posts', '_blank')
+                                          toast.success('Text copied — paste it in the GBP post editor')
+                                        }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#4285F4', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                                          Post to GBP →
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
