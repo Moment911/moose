@@ -50,6 +50,8 @@ export default function SEOConnectPage() {
   const [selectedGsc,    setSelectedGsc]    = useState('')
   const [selectedGa4,    setSelectedGa4]    = useState('')
   const [savingProps,    setSavingProps]    = useState(false)
+  const [gscSearch,      setGscSearch]      = useState('')
+  const [ga4Search,      setGa4Search]      = useState('')
 
   useEffect(() => { loadClients() }, [])
   useEffect(() => { if (selectedClient) loadConnections() }, [selectedClient])
@@ -500,19 +502,25 @@ export default function SEOConnectPage() {
                         </a>
                       </div>
                     ) : (
-                      <select value={selectedGsc} onChange={e=>setSelectedGsc(e.target.value)}
-                        style={{ width:'100%', padding:'11px 14px', borderRadius:10,
-                          border:`1.5px solid ${selectedGsc?'#4285F4':'#e5e7eb'}`,
-                          fontSize:14, color:'#0a0a0a', background:'#fff',
-                          fontFamily:FH, cursor:'pointer' }}>
-                        <option value="">— Skip Search Console —</option>
-                        {gscSites.map(s => (
-                          <option key={s.siteUrl} value={s.siteUrl}>
-                            {s.siteUrl.replace('sc-domain:','★ ').replace('https://','').replace(/\/$/,'')}
-                            {' '}({s.permissionLevel?.replace('site','').replace(/([A-Z])/g,' $1').trim()})
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <input value={gscSearch} onChange={e=>setGscSearch(e.target.value)}
+                          placeholder={`Search ${gscSites.length} sites...`}
+                          style={{ width:'100%', padding:'9px 14px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, marginBottom:8, outline:'none', boxSizing:'border-box' }} />
+                        <div style={{ maxHeight:200, overflowY:'auto', border:'1px solid #e5e7eb', borderRadius:10 }}>
+                          <div onClick={()=>setSelectedGsc('')} style={{ padding:'10px 14px', cursor:'pointer', fontSize:13, color:'#9ca3af', background:!selectedGsc?'#f3f4f6':'#fff', borderBottom:'1px solid #f3f4f6' }}>
+                            — Skip Search Console —
+                          </div>
+                          {gscSites.filter(s => !gscSearch || s.siteUrl.toLowerCase().includes(gscSearch.toLowerCase())).map(s => (
+                            <div key={s.siteUrl} onClick={()=>setSelectedGsc(s.siteUrl)}
+                              style={{ padding:'10px 14px', cursor:'pointer', fontSize:13, fontFamily:FH, fontWeight:600,
+                                background:selectedGsc===s.siteUrl?'#eff6ff':'#fff', color:selectedGsc===s.siteUrl?'#4285F4':'#0a0a0a',
+                                borderBottom:'1px solid #f3f4f6', borderLeft:selectedGsc===s.siteUrl?'3px solid #4285F4':'3px solid transparent' }}>
+                              {s.siteUrl.replace('sc-domain:','★ ').replace('https://','').replace(/\/$/,'')}
+                              <span style={{ fontSize:11, color:'#9ca3af', marginLeft:8 }}>{s.permissionLevel?.replace('site','').replace(/([A-Z])/g,' $1').trim()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {selectedGsc && (
                       <div style={{ fontSize:12, color:'#4285F4', fontFamily:FH, marginTop:5 }}>
@@ -547,22 +555,32 @@ export default function SEOConnectPage() {
                         </div>
                       </div>
                     ) : (
-                      <select value={selectedGa4} onChange={e=>setSelectedGa4(e.target.value)}
-                        style={{ width:'100%', padding:'11px 14px', borderRadius:10,
-                          border:`1.5px solid ${selectedGa4?'#F4B400':'#e5e7eb'}`,
-                          fontSize:14, color:'#0a0a0a', background:'#fff',
-                          fontFamily:FH, cursor:'pointer' }}>
-                        <option value="">— Skip Analytics —</option>
-                        {ga4Accounts.map(acc => (
-                          <optgroup key={acc.account.name} label={acc.account.displayName}>
-                            {acc.properties.map(p => (
-                              <option key={p.name} value={p.name.replace('properties/','')}>
-                                {p.displayName} ({p.name.replace('properties/','')})
-                              </option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </select>
+                      <div>
+                        <input value={ga4Search} onChange={e=>setGa4Search(e.target.value)}
+                          placeholder={`Search ${ga4Accounts.reduce((n,a)=>n+a.properties.length,0)} properties...`}
+                          style={{ width:'100%', padding:'9px 14px', borderRadius:8, border:'1px solid #e5e7eb', fontSize:13, marginBottom:8, outline:'none', boxSizing:'border-box' }} />
+                        <div style={{ maxHeight:200, overflowY:'auto', border:'1px solid #e5e7eb', borderRadius:10 }}>
+                          <div onClick={()=>setSelectedGa4('')} style={{ padding:'10px 14px', cursor:'pointer', fontSize:13, color:'#9ca3af', background:!selectedGa4?'#f3f4f6':'#fff', borderBottom:'1px solid #f3f4f6' }}>
+                            — Skip Analytics —
+                          </div>
+                          {ga4Accounts.map(acc => {
+                            const filtered = acc.properties.filter(p => !ga4Search || p.displayName.toLowerCase().includes(ga4Search.toLowerCase()) || p.name.includes(ga4Search))
+                            if (filtered.length === 0) return null
+                            return filtered.map(p => {
+                              const propId = p.name.replace('properties/','')
+                              return (
+                                <div key={p.name} onClick={()=>setSelectedGa4(propId)}
+                                  style={{ padding:'10px 14px', cursor:'pointer', fontSize:13, fontFamily:FH, fontWeight:600,
+                                    background:selectedGa4===propId?'#fef3c7':'#fff', color:selectedGa4===propId?'#d97706':'#0a0a0a',
+                                    borderBottom:'1px solid #f3f4f6', borderLeft:selectedGa4===propId?'3px solid #F4B400':'3px solid transparent' }}>
+                                  {p.displayName}
+                                  <span style={{ fontSize:11, color:'#9ca3af', marginLeft:8 }}>{propId} · {acc.account.displayName}</span>
+                                </div>
+                              )
+                            })
+                          })}
+                        </div>
+                      </div>
                     )}
                     {selectedGa4 && (
                       <div style={{ fontSize:12, color:'#d97706', fontFamily:FH, marginTop:5 }}>
