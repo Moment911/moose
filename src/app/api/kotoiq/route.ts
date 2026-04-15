@@ -5,7 +5,7 @@ import { logTokenUsage } from '@/lib/tokenTracker'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data } from '@/lib/seoService'
 import { fetchGoogleAdsKeywords, fetchGoogleAdsCampaigns } from '@/lib/perfMarketing'
 import { enrichDomain } from '@/lib/domainEnrichment'
-import { getSERPResults, runGMBGridScan, getKeywordRankings, getBalance as getDFSBalance } from '@/lib/dataforseo'
+import { getSERPResults, runGMBGridScan, getKeywordRankings, getBalance as getDFSBalance, getDomainCompetitors, getDomainRankedKeywords, getDomainIntersection } from '@/lib/dataforseo'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -1786,6 +1786,56 @@ Return ONLY valid JSON:
   if (action === 'dfs_balance') {
     try { return NextResponse.json(await getDFSBalance()) }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── DataForSEO — competitor landscape ────────────────────────
+  if (action === 'dfs_competitors') {
+    const { domain, client_id } = body
+    if (!domain) {
+      // Try to get domain from client
+      const { data: cl } = await s.from('clients').select('website').eq('id', client_id).single()
+      if (!cl?.website) return NextResponse.json({ error: 'domain or client with website required' }, { status: 400 })
+      const d = cl.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+      try {
+        const [competitors, clientKws] = await Promise.all([
+          getDomainCompetitors(d),
+          getDomainRankedKeywords(d, 'United States', 50),
+        ])
+        return NextResponse.json({ success: true, domain: d, competitors, client_keywords: clientKws })
+      } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+    }
+    try {
+      const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+      const [competitors, clientKws] = await Promise.all([
+        getDomainCompetitors(cleanDomain),
+        getDomainRankedKeywords(cleanDomain, 'United States', 50),
+      ])
+      return NextResponse.json({ success: true, domain: cleanDomain, competitors, client_keywords: clientKws })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── DataForSEO — competitor keyword comparison ──────────────
+  if (action === 'dfs_compare') {
+    const { domain1, domain2 } = body
+    if (!domain1 || !domain2) return NextResponse.json({ error: 'domain1 and domain2 required' }, { status: 400 })
+    try {
+      const [intersection, d1Keywords, d2Keywords] = await Promise.all([
+        getDomainIntersection(domain1, domain2, 'United States', 50),
+        getDomainRankedKeywords(domain1, 'United States', 30),
+        getDomainRankedKeywords(domain2, 'United States', 30),
+      ])
+      return NextResponse.json({ success: true, intersection, domain1_keywords: d1Keywords, domain2_keywords: d2Keywords })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+  }
+
+  // ── DataForSEO — competitor's ranked keywords ────────────────
+  if (action === 'dfs_ranked_keywords') {
+    const { domain } = body
+    if (!domain) return NextResponse.json({ error: 'domain required' }, { status: 400 })
+    try {
+      const result = await getDomainRankedKeywords(domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0], 'United States', 100)
+      return NextResponse.json({ success: true, ...result })
+    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

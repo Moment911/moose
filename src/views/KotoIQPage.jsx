@@ -117,6 +117,11 @@ export default function KotoIQPage() {
   const [gridLng, setGridLng] = useState('')
   const [gridRunning, setGridRunning] = useState(false)
   const [gridResult, setGridResult] = useState(null)
+  const [compLandscape, setCompLandscape] = useState(null)
+  const [compLandscapeLoading, setCompLandscapeLoading] = useState(false)
+  const [selectedCompDomain, setSelectedCompDomain] = useState(null)
+  const [compDomainKws, setCompDomainKws] = useState(null)
+  const [compDomainLoading, setCompDomainLoading] = useState(false)
   const [gmbPosts, setGmbPosts] = useState([])
   const [generatingPosts, setGeneratingPosts] = useState(false)
   const [briefs, setBriefs] = useState([])
@@ -1587,7 +1592,144 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ COMPETITORS TAB ══ */}
         {clientId && tab === 'competitors' && (
           <>
-            {/* Keyword input */}
+            {/* Competitor Landscape — auto-discovers competitors via DataForSEO */}
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Target size={18} color={T} /> Competitor Landscape
+                </div>
+                <button onClick={async () => {
+                  setCompLandscapeLoading(true)
+                  try {
+                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'dfs_competitors', client_id: clientId }) })
+                    const data = await res.json()
+                    if (data.success) setCompLandscape(data)
+                    else toast.error(data.error || 'Failed to load competitors')
+                  } catch { toast.error('Failed to load competitors') }
+                  setCompLandscapeLoading(false)
+                }} disabled={compLandscapeLoading} style={{
+                  padding: '8px 18px', borderRadius: 8, border: 'none', background: compLandscapeLoading ? '#e5e7eb' : BLK,
+                  color: '#fff', fontSize: 12, fontWeight: 700, cursor: compLandscapeLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {compLandscapeLoading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={12} />}
+                  {compLandscape ? 'Refresh' : 'Discover Competitors'}
+                </button>
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+                Find all domains competing for the same keywords as your client. Click any competitor to see which keywords they rank for.
+              </div>
+
+              {compLandscapeLoading && <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+
+              {compLandscape && !compLandscapeLoading && (
+                <>
+                  {/* Client's own keywords summary */}
+                  {compLandscape.client_keywords && (
+                    <div style={{ padding: '14px 18px', background: T + '08', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 16 }}>
+                      <div style={{ display: 'flex', gap: 20 }}>
+                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Total Keywords</div></div>
+                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Your Domain</div></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Competitor table */}
+                  {compLandscape.competitors?.length > 0 && (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                            {['Competitor', 'Shared KWs', 'Organic KWs', 'Est. Traffic', 'Est. Traffic Value', 'Relevance', ''].map(h => (
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {compLandscape.competitors.map((comp, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selectedCompDomain === comp.domain ? T + '06' : 'transparent' }}
+                              onClick={async () => {
+                                setSelectedCompDomain(comp.domain)
+                                setCompDomainLoading(true)
+                                try {
+                                  const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ action: 'dfs_compare', domain1: compLandscape.domain, domain2: comp.domain }) })
+                                  const data = await res.json()
+                                  if (data.success) setCompDomainKws(data)
+                                } catch {}
+                                setCompDomainLoading(false)
+                              }}>
+                              <td style={{ padding: '10px', fontSize: 14, fontWeight: 700, color: BLK, fontFamily: FH }}>{comp.domain}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: T }}>{comp.intersections || comp.keywords_count}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{(comp.organic_count || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{Math.round(comp.organic_traffic || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: GRN }}>${Math.round(comp.organic_cost || 0).toLocaleString()}</td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ height: 6, borderRadius: 3, background: '#f3f4f6', width: 60, margin: '0 auto', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', borderRadius: 3, background: comp.competitor_relevance > 0.5 ? R : comp.competitor_relevance > 0.2 ? AMB : GRN, width: `${Math.min(comp.competitor_relevance * 100, 100)}%` }} />
+                                </div>
+                              </td>
+                              <td style={{ textAlign: 'center' }}><ChevronDown size={14} color="#9ca3af" /></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Selected competitor detail — keyword comparison */}
+                  {selectedCompDomain && (
+                    <div style={{ marginTop: 16, padding: '16px 20px', background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                      <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 12 }}>
+                        {compLandscape.domain} vs {selectedCompDomain} — Shared Keywords
+                      </div>
+                      {compDomainLoading && <div style={{ textAlign: 'center', padding: 20 }}><Loader2 size={20} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+                      {compDomainKws && !compDomainLoading && (
+                        <div style={{ overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                                {['Keyword', 'Volume', 'CPC', 'Your Pos', 'Their Pos', 'Gap'].map(h => (
+                                  <th key={h} style={{ padding: '6px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(compDomainKws.intersection || []).slice(0, 30).map((kw, i) => {
+                                const gap = (kw.domain1_position || 99) - (kw.domain2_position || 99)
+                                return (
+                                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                    <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
+                                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>{(kw.search_volume || 0).toLocaleString()}</td>
+                                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${(kw.cpc || 0).toFixed(2)}</td>
+                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.domain1_position <= 3 ? GRN : kw.domain1_position <= 10 ? T : kw.domain1_position <= 20 ? AMB : R }}>
+                                      {kw.domain1_position || '—'}
+                                    </td>
+                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: kw.domain2_position <= 3 ? GRN : kw.domain2_position <= 10 ? T : kw.domain2_position <= 20 ? AMB : R }}>
+                                      {kw.domain2_position || '—'}
+                                    </td>
+                                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 13, fontWeight: 700, color: gap < 0 ? GRN : gap > 0 ? R : '#9ca3af' }}>
+                                      {gap < 0 ? `+${Math.abs(gap)}` : gap > 0 ? `-${gap}` : '='}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!compLandscape && !compLandscapeLoading && (
+                <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>
+                  Click "Discover Competitors" to find all domains competing for the same keywords.
+                </div>
+              )}
+            </div>
+
+            {/* Per-keyword page analysis */}
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={18} color={R} /> Competitor Page Analysis

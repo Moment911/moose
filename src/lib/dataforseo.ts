@@ -373,3 +373,117 @@ export async function getBalance(): Promise<{ balance: number; currency: string 
     currency: user?.money?.currency || 'USD',
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// Domain Competitors — find who competes for the same keywords
+// ─────────────────────────────────────────────────────────────
+
+export interface DomainCompetitor {
+  domain: string
+  avg_position: number
+  keywords_count: number
+  sum_position: number
+  intersections: number
+  competitor_relevance: number
+  organic_count: number
+  organic_traffic: number
+  organic_cost: number
+}
+
+export async function getDomainCompetitors(domain: string, location: string = 'United States', limit: number = 20): Promise<DomainCompetitor[]> {
+  const data = await dfsPost('/dataforseo_labs/google/competitors_domain/live', [{
+    target: domain.replace(/^www\./, ''),
+    location_name: location,
+    language_name: 'English',
+    item_types: ['organic'],
+    limit,
+    exclude_top_domains: true,
+    order_by: ['metrics.organic.count,desc'],
+  }])
+
+  const items = data?.tasks?.[0]?.result?.[0]?.items || []
+  return items.map((item: any) => ({
+    domain: item.domain,
+    avg_position: item.avg_position || 0,
+    keywords_count: item.metrics?.organic?.count || 0,
+    sum_position: item.metrics?.organic?.pos_1 + item.metrics?.organic?.pos_2_3 + item.metrics?.organic?.pos_4_10 || 0,
+    intersections: item.metrics?.organic?.intersections || 0,
+    competitor_relevance: item.competitor_relevance || 0,
+    organic_count: item.metrics?.organic?.count || 0,
+    organic_traffic: item.metrics?.organic?.etv || 0,
+    organic_cost: item.metrics?.organic?.estimated_paid_traffic_cost || 0,
+  }))
+}
+
+// ─────────────────────────────────────────────────────────────
+// Domain Ranked Keywords — all keywords a domain ranks for
+// ─────────────────────────────────────────────────────────────
+
+export interface RankedKeyword {
+  keyword: string
+  position: number
+  search_volume: number
+  cpc: number
+  competition: number
+  url: string
+  traffic: number
+  traffic_cost: number
+  serp_type: string
+}
+
+export async function getDomainRankedKeywords(domain: string, location: string = 'United States', limit: number = 100): Promise<{ keywords: RankedKeyword[]; total: number }> {
+  const data = await dfsPost('/dataforseo_labs/google/ranked_keywords/live', [{
+    target: domain.replace(/^www\./, ''),
+    location_name: location,
+    language_name: 'English',
+    item_types: ['organic'],
+    limit,
+    order_by: ['ranked_serp_element.serp_item.rank_group,asc'],
+  }])
+
+  const result = data?.tasks?.[0]?.result?.[0]
+  const items = result?.items || []
+  const total = result?.total_count || 0
+
+  return {
+    total,
+    keywords: items.map((item: any) => ({
+      keyword: item.keyword_data?.keyword || '',
+      position: item.ranked_serp_element?.serp_item?.rank_group || 0,
+      search_volume: item.keyword_data?.keyword_info?.search_volume || 0,
+      cpc: item.keyword_data?.keyword_info?.cpc || 0,
+      competition: item.keyword_data?.keyword_info?.competition || 0,
+      url: item.ranked_serp_element?.serp_item?.url || '',
+      traffic: item.ranked_serp_element?.serp_item?.etv || 0,
+      traffic_cost: item.ranked_serp_element?.serp_item?.estimated_paid_traffic_cost || 0,
+      serp_type: item.ranked_serp_element?.serp_item?.type || 'organic',
+    })),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Domain vs Domain — keyword intersection comparison
+// ─────────────────────────────────────────────────────────────
+
+export async function getDomainIntersection(domain1: string, domain2: string, location: string = 'United States', limit: number = 100): Promise<any[]> {
+  const data = await dfsPost('/dataforseo_labs/google/domain_intersection/live', [{
+    target1: domain1.replace(/^www\./, ''),
+    target2: domain2.replace(/^www\./, ''),
+    location_name: location,
+    language_name: 'English',
+    item_types: ['organic'],
+    limit,
+    order_by: ['first_domain_serp_element.serp_item.rank_group,asc'],
+  }])
+
+  const items = data?.tasks?.[0]?.result?.[0]?.items || []
+  return items.map((item: any) => ({
+    keyword: item.keyword_data?.keyword || '',
+    search_volume: item.keyword_data?.keyword_info?.search_volume || 0,
+    cpc: item.keyword_data?.keyword_info?.cpc || 0,
+    domain1_position: item.first_domain_serp_element?.serp_item?.rank_group || null,
+    domain2_position: item.second_domain_serp_element?.serp_item?.rank_group || null,
+    domain1_url: item.first_domain_serp_element?.serp_item?.url || '',
+    domain2_url: item.second_domain_serp_element?.serp_item?.url || '',
+  }))
+}
