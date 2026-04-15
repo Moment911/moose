@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseStatement, detectBank } from '@/lib/KotoFin/parsers'
+import { join } from 'path'
 
 // Polyfill DOMMatrix for pdfjs-dist in Node.js serverless
 if (typeof globalThis.DOMMatrix === 'undefined') {
@@ -41,7 +42,6 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
   ;(globalThis as any).DOMMatrix = DOMMatrixPolyfill
 }
 
-// Polyfill Path2D for pdfjs-dist
 if (typeof globalThis.Path2D === 'undefined') {
   class Path2DPolyfill {
     moveTo() {}
@@ -58,6 +58,10 @@ if (typeof globalThis.Path2D === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(globalThis as any).Path2D = Path2DPolyfill
 }
+
+// Force Vercel to include the worker file in the serverless bundle
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const workerPath = join(require.resolve('pdfjs-dist/package.json').replace('/package.json', ''), 'legacy/build/pdf.worker.mjs')
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,12 +82,11 @@ export async function POST(request: NextRequest) {
       text = await file.text()
     } else if (fileName.toLowerCase().endsWith('.pdf')) {
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-      // Disable worker — runs inline, avoids missing worker file on serverless
-      pdfjsLib.GlobalWorkerOptions.workerSrc = ''
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath
       const arrayBuffer = await file.arrayBuffer()
       const uint8 = new Uint8Array(arrayBuffer)
 
-      const doc = await pdfjsLib.getDocument({ data: uint8, useSystemFonts: true, isEvalSupported: false, useWorkerFetch: false, disableAutoFetch: true }).promise
+      const doc = await pdfjsLib.getDocument({ data: uint8, useSystemFonts: true }).promise
       const pages: string[] = []
 
       for (let i = 1; i <= doc.numPages; i++) {

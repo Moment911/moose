@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState, Dispatch } from 'react'
 import { Transaction, StatementFile, KotoFinAction } from './KotoFin.types'
-import { loadDemoData, BANK_COLORS } from './KotoFin.constants'
+import { BANK_COLORS } from './KotoFin.constants'
 import { categorize } from './KotoFin.utils'
 import { Upload, FileText, AlertCircle, CheckCircle2, Loader2, Trash2 } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
@@ -183,13 +183,6 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
     }
   }
 
-  function handleLoadDemo() {
-    const demo = loadDemoData()
-    dispatch({ type: 'SET_TRANSACTIONS', payload: demo.transactions })
-    dispatch({ type: 'SET_FILES', payload: demo.files })
-    dispatch({ type: 'SET_ACTIVE_TAB', payload: 'Transactions' })
-  }
-
   return (
     <div>
       <div className={styles.metricsRow}>
@@ -253,11 +246,6 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
         </div>
       )}
 
-      <div style={{ marginTop: 20, textAlign: 'center' }}>
-        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleLoadDemo}>
-          Load Demo Data (42 transactions)
-        </button>
-      </div>
 
       {files.length > 0 && (
         <div className={styles.fileList}>
