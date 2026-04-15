@@ -242,7 +242,7 @@ export default function App() {
       <ThemeProvider>
       <ClientProvider>
       <MobileMenuProvider>
-        <Toaster position="top-right" />
+        <Toaster position="bottom-right" />
         <CommandPalette />
         <OnboardingWizard />
         {/* RealTimeCostMeter removed — was a floating pricing pill, now available only in /cog-report */}
