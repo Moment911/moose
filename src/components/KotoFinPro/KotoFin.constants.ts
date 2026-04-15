@@ -139,8 +139,11 @@ export const TAB_LIST = [
   'Tax Profile',
   'Tax Scenarios',
   'Quarterly Tax',
+  'Receipts',
+  'Recurring',
   'Analytics',
   'Reports',
   'Export',
+  'AI Advisor',
   'Help',
 ] as const

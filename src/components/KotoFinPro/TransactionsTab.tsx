@@ -4,7 +4,7 @@ import { useState, useMemo, Dispatch } from 'react'
 import { Transaction, COAAccount, StatementFile, KotoFinAction } from './KotoFin.types'
 import { fmtCurrency, getTransactionTotals } from './KotoFin.utils'
 import { BANK_COLORS } from './KotoFin.constants'
-import { Check, X, Pencil, Trash2, Plus, Brain } from 'lucide-react'
+import { Check, X, Pencil, Trash2, Plus, Brain, Split } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
 interface TransactionsTabProps {
@@ -28,6 +28,34 @@ export default function TransactionsTab({
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editDraft, setEditDraft] = useState<Transaction | null>(null)
   const [categorizing, setCategorizing] = useState(false)
+  const [splittingId, setSplittingId] = useState<number | null>(null)
+  const [splitAmounts, setSplitAmounts] = useState<Array<{ amount: number; cat: string; code: string; type: Transaction['type'] }>>([])
+
+  function startSplit(t: Transaction) {
+    setSplittingId(t.id)
+    const half = Math.abs(t.amount) / 2
+    setSplitAmounts([
+      { amount: -half, cat: t.cat, code: t.code, type: t.type },
+      { amount: -(Math.abs(t.amount) - half), cat: '', code: '', type: 'uncategorized' },
+    ])
+  }
+
+  function executeSplit(original: Transaction) {
+    const newTxns: Transaction[] = splitAmounts.map((s, i) => ({
+      ...original,
+      id: Math.max(0, ...transactions.map(t => t.id)) + 1 + i,
+      amount: s.amount,
+      cat: s.cat || original.cat,
+      code: s.code || original.code,
+      type: s.type,
+      desc: `${original.desc} (split ${i + 1}/${splitAmounts.length})`,
+      notes: `Split from txn #${original.id}`,
+    }))
+    dispatch({ type: 'DELETE_TRANSACTION', payload: original.id })
+    dispatch({ type: 'ADD_TRANSACTIONS', payload: newTxns })
+    setSplittingId(null)
+    setSplitAmounts([])
+  }
 
   const filtered = useMemo(() => {
     let list = transactions
@@ -205,6 +233,8 @@ export default function TransactionsTab({
               const editing = isEditing(t.id)
               const d = editing ? editDraft! : t
 
+              const splitting = splittingId === t.id
+
               return (
                 <tr key={t.id} style={editing ? { background: 'rgba(59,130,246,0.04)' } : undefined}>
                   <td>
@@ -294,6 +324,9 @@ export default function TransactionsTab({
                         <button className={`${styles.btn} ${styles.btnSmall}`} onClick={() => startEdit(t)} title="Edit">
                           <Pencil size={12} />
                         </button>
+                        <button className={`${styles.btn} ${styles.btnSmall}`} onClick={() => startSplit(t)} title="Split">
+                          <Split size={12} />
+                        </button>
                         <button className={`${styles.btn} ${styles.btnSmall} ${styles.btnRed}`} onClick={() => handleDelete(t.id)} title="Delete">
                           <Trash2 size={12} />
                         </button>
@@ -303,6 +336,68 @@ export default function TransactionsTab({
                 </tr>
               )
             })}
+            {splittingId && filtered.find(t => t.id === splittingId) && (() => {
+              const orig = filtered.find(t => t.id === splittingId)!
+              const totalSplit = splitAmounts.reduce((s, a) => s + Math.abs(a.amount), 0)
+              const remaining = Math.abs(orig.amount) - totalSplit
+              return (
+                <tr key={`split-${splittingId}`} style={{ background: 'rgba(139,92,246,0.04)' }}>
+                  <td colSpan={8} style={{ padding: 16 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Split size={14} color="#8b5cf6" />
+                      Split: {orig.co || orig.desc.substring(0, 30)} ({fmtCurrency(orig.amount)})
+                    </div>
+                    {splitAmounts.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-dim)', width: 20 }}>#{i + 1}</span>
+                        <input type="number" step="0.01" className={`${styles.input} ${styles.inputMono}`}
+                          value={Math.abs(s.amount)} style={{ width: 100, padding: '4px 6px', fontSize: 12 }}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value) || 0
+                            setSplitAmounts(prev => prev.map((p, j) => j === i ? { ...p, amount: -val } : p))
+                          }} />
+                        <select className={styles.select} value={s.cat} style={{ flex: 1, padding: '4px 6px', fontSize: 11 }}
+                          onChange={e => {
+                            const acct = accounts.find(a => a.name === e.target.value)
+                            setSplitAmounts(prev => prev.map((p, j) => j === i ? {
+                              ...p, cat: e.target.value,
+                              code: acct?.code || '', type: acct?.type === 'personal' ? 'personal' : acct?.type === 'income' ? 'income' : 'business',
+                            } : p))
+                          }}>
+                          <option value="">— Category —</option>
+                          {accounts.map(a => <option key={a.code} value={a.name}>{a.code} {a.name}</option>)}
+                        </select>
+                        {splitAmounts.length > 2 && (
+                          <button className={`${styles.btn} ${styles.btnSmall} ${styles.btnRed}`}
+                            onClick={() => setSplitAmounts(prev => prev.filter((_, j) => j !== i))}>
+                            <X size={10} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
+                      <button className={`${styles.btn} ${styles.btnSmall}`}
+                        onClick={() => setSplitAmounts(prev => [...prev, { amount: 0, cat: '', code: '', type: 'uncategorized' }])}>
+                        <Plus size={10} /> Add Split
+                      </button>
+                      {Math.abs(remaining) > 0.01 && (
+                        <span style={{ fontSize: 11, color: 'var(--amber)' }}>
+                          {fmtCurrency(Math.abs(remaining))} unallocated
+                        </span>
+                      )}
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                        <button className={`${styles.btn} ${styles.btnSmall}`} onClick={() => { setSplittingId(null); setSplitAmounts([]) }}>Cancel</button>
+                        <button className={`${styles.btn} ${styles.btnSmall} ${styles.btnPrimary}`}
+                          onClick={() => executeSplit(orig)}
+                          disabled={Math.abs(remaining) > 0.01 || splitAmounts.some(s => !s.cat)}>
+                          <Check size={10} /> Apply Split
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })()}
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={8} className={styles.textCenter} style={{ padding: 40, color: 'var(--text-dim)' }}>

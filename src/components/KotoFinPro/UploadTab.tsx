@@ -153,13 +153,19 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
     )
 
     // Phase 3: dispatch all successful results
-    for (const result of results) {
+    for (let ri = 0; ri < results.length; ri++) {
+      const result = results[ri]
       if (result.status === 'fulfilled' && result.value) {
         const { txns, fileMeta, hash } = result.value
         if (txns.length > 0) {
           processedHashes.current.add(hash)
           dispatch({ type: 'ADD_TRANSACTIONS', payload: txns })
           dispatch({ type: 'ADD_FILE', payload: fileMeta })
+        }
+      } else if (result.status === 'rejected') {
+        const failedFile = filesToProcess[ri]
+        if (failedFile) {
+          updateStatus(failedFile.id, { status: 'error', message: `Processing failed: ${result.reason}` })
         }
       }
     }

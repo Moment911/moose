@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   Upload, List, BookOpen, Search, SlidersHorizontal, Calendar,
   BarChart3, FileText, Download, Building2, ClipboardList,
-  LayoutDashboard, HelpCircle,
+  LayoutDashboard, HelpCircle, Camera, RefreshCw, Brain,
 } from 'lucide-react'
 import DashboardTab from './DashboardTab'
 import CompanyInfoTab from './CompanyInfoTab'
@@ -25,6 +25,9 @@ import AnalyticsTab from './AnalyticsTab'
 import ReportsTab from './ReportsTab'
 import ExportTab from './ExportTab'
 import TaxProfileTab from './TaxProfileTab'
+import ReceiptsTab from './ReceiptsTab'
+import RecurringTab from './RecurringTab'
+import AdvisorTab from './AdvisorTab'
 import HelpTab from './HelpTab'
 import styles from './KotoFinPro.module.css'
 import { ClientInfo, TaxProfile, CompanyProfile } from './KotoFin.types'
@@ -42,7 +45,10 @@ const TAB_ICONS: Record<string, typeof Upload> = {
   'Quarterly Tax': Calendar,
   'Analytics': BarChart3,
   'Reports': FileText,
+  'Receipts': Camera,
+  'Recurring': RefreshCw,
   'Export': Download,
+  'AI Advisor': Brain,
   'Help': HelpCircle,
 }
 
@@ -184,12 +190,18 @@ export default function KotoFinPro() {
         return <ScenariosTab transactions={state.transactions} taxProfile={state.taxProfile} />
       case 'Quarterly Tax':
         return <QuarterlyTab transactions={state.transactions} taxProfile={state.taxProfile} />
+      case 'Receipts':
+        return <ReceiptsTab transactions={state.transactions} dispatch={dispatch} />
+      case 'Recurring':
+        return <RecurringTab transactions={state.transactions} />
       case 'Analytics':
         return <AnalyticsTab transactions={state.transactions} />
       case 'Reports':
         return <ReportsTab transactions={state.transactions} accounts={state.accounts} taxProfile={state.taxProfile} />
       case 'Export':
         return <ExportTab transactions={state.transactions} accounts={state.accounts} />
+      case 'AI Advisor':
+        return <AdvisorTab transactions={state.transactions} taxProfile={state.taxProfile} companyProfile={state.companyProfile} />
       case 'Help':
         return <HelpTab dispatch={dispatch} />
       default:
