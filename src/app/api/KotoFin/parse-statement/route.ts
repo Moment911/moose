@@ -47,7 +47,12 @@ export async function POST(request: NextRequest) {
     }
 
     const transactions = parseStatement(text, meta, startId)
-    console.log(`[KotoFin] Bank: ${bank}, Transactions found: ${transactions.length}`)
+
+    // Count total lines vs lines with dollar amounts to show coverage
+    const allLines = text.split('\n').filter((l: string) => l.trim().length > 0)
+    const linesWithAmounts = allLines.filter((l: string) => /\$?\d[\d,]*\.\d{2}/.test(l))
+
+    console.log(`[KotoFin] ${fileName}: bank=${bank}, ${allLines.length} lines, ${linesWithAmounts.length} with amounts, ${transactions.length} matched`)
 
     const statementFile = {
       name: fileName,
@@ -61,7 +66,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       transactions,
       meta: statementFile,
-      debug: { pages: fileName.endsWith('.pdf') ? 'see logs' : 'n/a', textLength: text.length, bank },
+      parseInfo: {
+        bank,
+        textLength: text.length,
+        totalLines: allLines.length,
+        linesWithAmounts: linesWithAmounts.length,
+        transactionsMatched: transactions.length,
+        unmatchedSample: linesWithAmounts
+          .filter((line: string) => !transactions.some(t => line.includes(t.desc?.substring(0, 20) || '')))
+          .slice(0, 10),
+      },
     })
   } catch (error) {
     console.error('Parse error:', error)

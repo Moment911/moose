@@ -93,12 +93,11 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
     // Phase 3: dispatch all successful results
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value) {
-        const { txns, fileMeta, id, hash } = result.value
+        const { txns, fileMeta, hash } = result.value
         if (txns.length > 0) {
           processedHashes.current.add(hash)
           dispatch({ type: 'ADD_TRANSACTIONS', payload: txns })
           dispatch({ type: 'ADD_FILE', payload: fileMeta })
-          updateStatus(id, { status: 'success', message: `${txns.length} transactions from ${fileMeta.bank} (${fileMeta.account})` })
         }
       }
     }
@@ -168,9 +167,11 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
         return null
       }
 
+      const info = data.parseInfo
+      const coverage = info ? `${info.transactionsMatched} of ${info.linesWithAmounts} lines matched (${info.totalLines} total lines, ${info.textLength} chars)` : ''
+
       if (!data.transactions?.length) {
-        const debugInfo = data.debug ? ` (${data.debug.textLength} chars extracted, detected as: ${data.debug.bank})` : ''
-        updateStatus(id, { status: 'error', message: `PDF parsed but 0 transactions matched. Bank: ${data.debug?.bank || 'Unknown'}. The statement format may need a custom parser.${debugInfo}` })
+        updateStatus(id, { status: 'error', message: `0 transactions matched. Bank: ${info?.bank || 'Unknown'}. ${coverage}. ${info?.unmatchedSample?.length ? `Sample unmatched: "${info.unmatchedSample[0]?.substring(0, 80)}..."` : ''}` })
         return null
       }
 
@@ -180,6 +181,12 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
         id: globalNextId + i,
       }))
       globalNextId += txns.length
+
+      const missedCount = info ? info.linesWithAmounts - info.transactionsMatched : 0
+      const successMsg = `${txns.length} transactions from ${data.meta?.bank || 'Unknown'} (${data.meta?.account || ''})`
+      const coverageMsg = missedCount > 0 ? ` — ${missedCount} lines with amounts were not matched` : ''
+
+      updateStatus(id, { status: 'success', message: successMsg + coverageMsg })
 
       return { txns, fileMeta: data.meta, id, hash }
     } catch (err) {
