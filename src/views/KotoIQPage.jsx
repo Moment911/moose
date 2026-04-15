@@ -7,7 +7,7 @@ import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
-  Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy
+  Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy, Edit2, Plus, Settings
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -483,57 +483,106 @@ export default function KotoIQPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* ── Fixed Header ─────────────────────────────────────── */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '20px 40px 0', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Brain size={20} color="#fff" />
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+          {/* Top bar: logo + client selector + actions */}
+          <div style={{ padding: '16px 40px', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={18} color="#fff" />
               </div>
-              <div>
-                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>AI-Powered Search Intelligence</div>
-              </div>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>SeoIQ</div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+            {/* Client selector — prominent */}
+            <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
+              style={{ flex: 1, padding: '10px 16px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 600, fontFamily: FH, background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#9ca3af', maxWidth: 400 }}>
+              <option value="">Select a client...</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+
+            {/* Quick actions — always visible */}
+            {clientId && (
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add website first'); return }; runQuickScan() }}
+                  disabled={syncing || enriching}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${R}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: R, display: 'flex', alignItems: 'center', gap: 4, opacity: syncing ? 0.5 : 1 }}>
+                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />} Scan
+                </button>
+                <button onClick={runDeepEnrich} disabled={enriching || syncing}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${AMB}30`, background: '#fff', fontSize: 12, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer', color: AMB, display: 'flex', alignItems: 'center', gap: 4, opacity: enriching ? 0.5 : 1 }}>
+                  {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />} Audit
+                </button>
+                <button onClick={runSync} disabled={syncing}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: syncing ? '#e5e7eb' : BLK, fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />} Sync
+                </button>
+              </div>
+            )}
+
+            {/* Settings */}
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
               {clientId && (
                 <button onClick={() => {
                   const c = clients.find(x => x.id === clientId)
                   if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
-                }} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>Edit Client</button>
+                }} style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Edit Client">
+                  <Edit2 size={14} color="#6b7280" />
+                </button>
               )}
               <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
-                style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>+ Add Client</button>
+                style={{ padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer' }} title="Add Client">
+                <Plus size={14} color="#6b7280" />
+              </button>
             </div>
           </div>
 
-          {/* Client selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 0 }}>
-            <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
-              style={{ flex: 1, padding: '12px 18px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, fontWeight: 700, fontFamily: FH, background: '#fff', cursor: 'pointer', color: clientId ? BLK : '#9ca3af' }}>
-              <option value="">Select a client to analyze...</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.website ? ` — ${c.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}` : ' (no URL)'}</option>)}
-            </select>
-          </div>
-
-          {/* Tabs — inside fixed header */}
+          {/* Tab bar — grouped with dividers */}
           {clientId && (
-            <div style={{ display: 'flex', gap: 0 }}>
+            <div style={{ padding: '0 40px', display: 'flex', gap: 0, overflowX: 'auto' }}>
+              {/* Analyze */}
               {[
                 ['dashboard', 'Dashboard', BarChart2],
                 ['keywords', 'Keywords', Search],
-                ['aeo', 'AEO Research', Brain],
-                ['briefs', 'Page Builder', Zap],
+                ['aeo', 'AEO', Brain],
                 ['competitors', 'Competitors', Target],
-                ['ranks', 'Rank Tracker', TrendingUp],
-                ['audit', 'Deep Audit', Shield],
-                ['gmb', 'GMB', Star],
-                ['reports', 'Reports', BarChart2],
-                ['utm', 'UTM Builder', Link2],
-                ['connect', 'Connect', Shield],
               ].map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)}
-                  style={{ padding: '12px 16px', fontSize: 13, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 6, transition: 'color .12s' }}>
-                  <Icon size={14} /> {label}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
+              {/* Build */}
+              {[
+                ['briefs', 'PageIQ', Zap],
+                ['utm', 'UTM', Link2],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
+              {/* Track */}
+              {[
+                ['ranks', 'Rankings', TrendingUp],
+                ['gmb', 'GMB', Star],
+                ['reports', 'Reports', BarChart2],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+              <div style={{ width: 1, background: '#e5e7eb', margin: '6px 4px', flexShrink: 0 }} />
+              {/* Settings */}
+              {[
+                ['audit', 'Audit', Shield],
+                ['connect', 'Connect', Settings],
+              ].map(([key, label, Icon]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  style={{ padding: '10px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  <Icon size={13} /> {label}
                 </button>
               ))}
             </div>
@@ -543,8 +592,8 @@ export default function KotoIQPage() {
         {/* ── Scrollable Content ────────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
 
-          {/* Action cards — show on dashboard tab or when no data */}
-          {clientId && (tab === 'dashboard' || !dashboard) && (
+          {/* Action cards — show only when client has no data yet */}
+          {clientId && !dashboard && tab === 'dashboard' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 24 }}>
               {/* Quick Scan */}
               <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '24px 28px' }}>
