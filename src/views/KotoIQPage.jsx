@@ -2145,7 +2145,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {gmbPosts.map((post, i) => {
                           const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB, update: T, event: AMB }
                           const color = typeColors[post.type] || '#6b7280'
-                          const schedDate = new Date(Date.now() + i * 7 * 86400000)
+                          const schedDate = post.scheduled_date ? new Date(post.scheduled_date) : new Date(Date.now() + i * 7 * 86400000)
 
                           return (
                             <div key={i} style={{ padding: '20px 24px', borderRadius: 14, background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${color}` }}>
@@ -2176,7 +2176,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   )}
                                   <button onClick={async () => {
                                     const pexelsKey = 'jaoJot7PGna546LXEjXxCNwv7nqivFKvKKK7dMKimp3DDANeffaLpUco'
-                                    const query = (post.type === 'offer' ? g.primary_category?.replace(/_/g, ' ') : post.text?.slice(0, 30)) || g.name || 'business'
+                                    const query = post.image_query || (post.type === 'offer' ? g.primary_category?.replace(/_/g, ' ') : post.text?.slice(0, 30)) || g.name || 'business'
                                     try {
                                       const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=5`, { headers: { Authorization: pexelsKey } })
                                       const data = await res.json()

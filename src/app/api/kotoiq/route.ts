@@ -1048,25 +1048,42 @@ Return ONLY the response text, no JSON wrapper, no quotes around it.`
   if (action === 'generate_gbp_posts') {
     const { client_id, business_name, industry, services, num_posts } = body
 
-    const prompt = `Generate ${num_posts || 4} Google Business Profile posts for ${business_name || 'a local business'} (${industry || 'local services'}).
+    const today = new Date()
+    const prompt = `Generate ${num_posts || 4} Google Business Profile posts for "${business_name || 'a local business'}" (${industry || 'local services'}).
 
 Services: ${services || 'general services'}
+Current date: ${today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+Season: ${['Winter','Winter','Spring','Spring','Spring','Summer','Summer','Summer','Fall','Fall','Fall','Winter'][today.getMonth()]}
 
-Each post should be different:
-1. An offer/promotion post (drives "Book" clicks)
-2. A tips/educational post (builds authority)
-3. A behind-the-scenes/team post (builds trust)
-4. A seasonal/timely post (relevance signal)
+Generate 4 different posts scheduled 5-7 days apart:
+1. An OFFER post (drives conversions — these get highest visibility in search)
+2. A TIPS/educational post (builds authority + AEO signals)
+3. An UPDATE ("What's New") post — company news, new service, or blog summary
+4. An EVENT or seasonal post (community engagement, time-sensitive)
 
-RULES:
-- 150-300 characters each (GBP limit is 1500 but short performs better)
-- Include a clear CTA
-- Mention the city/area when natural
-- Use emojis sparingly (1-2 per post max)
-- Each post should work as a standalone piece
+═══ CRITICAL GBP POST RULES (2026 Best Practices) ═══
+
+THE FIRST 80 RULE: Only the first 80-150 characters show on mobile before "Read More."
+Put the core value proposition or primary keyword in the FIRST sentence. No preamble.
+
+BAD: "We are excited to announce that our team at ABC Plumbing is now offering..."
+GOOD: "24/7 emergency drain cleaning in Fort Lauderdale — $50 off this week only."
+
+- Total length: 200-400 characters (short performs better than long)
+- NEVER put phone numbers or website URLs in the post text (causes soft-rejections)
+- Use 1-2 emojis maximum per post — at the start or end, not mid-sentence
+- Include the city/neighborhood name naturally for local ranking signal
+- Each post must include a CTA button type (Book, Learn More, Call, Order, Sign Up)
+- Include a suggested landing page URL with UTM tracking: ?utm_source=google&utm_medium=organic&utm_campaign=gbp_post
+- Include a suggested image search query so we can match a relevant photo
+- Make posts SPECIFIC to the business — never generic
+- Reference the season, weather, or current events when relevant
+- For offers: include specific discount amount, expiry creates urgency
+- For tips: lead with the actionable tip, not "Here are some tips..."
+- For updates: lead with what changed, not "We're excited to share..."
 
 Return ONLY valid JSON array:
-[{"type": "offer|tips|team|seasonal", "text": "post text", "cta": "Book Now|Learn More|Call Us|Visit Us"}]`
+[{"type": "offer|tips|update|event", "text": "post text — first 80 chars are critical", "cta": "Book Now|Learn More|Call Now|Order Online|Sign Up", "url": "/suggested-landing-page?utm_source=google&utm_medium=organic&utm_campaign=gbp_post", "image_query": "search query for finding a relevant stock photo", "scheduled_date": "YYYY-MM-DD"}]`
 
     try {
       const msg = await ai.messages.create({
