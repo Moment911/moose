@@ -1357,6 +1357,32 @@ Return ONLY valid JSON:
     })
   }
 
+  // ── CLIENT CRUD (server-side to bypass RLS) ────────────────────────
+  if (action === 'create_client') {
+    const { agency_id, name, website, primary_service } = body
+    if (!agency_id || !name) return NextResponse.json({ error: 'agency_id and name required' }, { status: 400 })
+    const { data, error } = await s.from('clients').insert({
+      name, website: website || null, primary_service: primary_service || null, agency_id,
+    }).select().single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ client: data })
+  }
+
+  if (action === 'update_client') {
+    const { client_id, agency_id, name, website, primary_service } = body
+    if (!client_id || !agency_id) return NextResponse.json({ error: 'client_id and agency_id required' }, { status: 400 })
+    // Verify client belongs to agency
+    const { data: existing } = await s.from('clients').select('id').eq('id', client_id).eq('agency_id', agency_id).single()
+    if (!existing) return NextResponse.json({ error: 'Client not found or not owned by this agency' }, { status: 404 })
+    const update: any = {}
+    if (name) update.name = name
+    if (website !== undefined) update.website = website || null
+    if (primary_service !== undefined) update.primary_service = primary_service || null
+    const { data, error } = await s.from('clients').update(update).eq('id', client_id).select().single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ client: data })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 

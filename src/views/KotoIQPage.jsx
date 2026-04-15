@@ -136,27 +136,23 @@ export default function KotoIQPage() {
     if (!clientForm.name) { toast.error('Client name is required'); return }
     setSavingClient(true)
     try {
-      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients`
-      const headers = { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' }
-      const payload = { name: clientForm.name, website: clientForm.website || null, primary_service: clientForm.primary_service || null, agency_id: agencyId }
-
-      let res
-      if (editingClient?.id) {
-        res = await fetch(`${url}?id=eq.${editingClient.id}`, { method: 'PATCH', headers, body: JSON.stringify(payload) })
-      } else {
-        res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) })
-      }
+      const action2 = editingClient?.id ? 'update_client' : 'create_client'
+      const res = await fetch('/api/kotoiq', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: action2, agency_id: agencyId,
+          ...(editingClient?.id ? { client_id: editingClient.id } : {}),
+          name: clientForm.name, website: clientForm.website || null, primary_service: clientForm.primary_service || null,
+        }),
+      })
       const data = await res.json()
-      if (res.ok) {
-        toast.success(editingClient ? 'Client updated' : 'Client added')
-        setShowClientModal(false)
-        setEditingClient(null)
-        setClientForm({ name: '', website: '', primary_service: '', location: '' })
-        loadClients()
-        if (!editingClient && Array.isArray(data) && data[0]?.id) setClientId(data[0].id)
-      } else {
-        toast.error(data.message || 'Failed to save')
-      }
+      if (data.error) { toast.error(data.error); setSavingClient(false); return }
+      toast.success(editingClient ? 'Client updated' : 'Client added')
+      setShowClientModal(false)
+      setEditingClient(null)
+      setClientForm({ name: '', website: '', primary_service: '', location: '' })
+      loadClients()
+      if (!editingClient && data.client?.id) setClientId(data.client.id)
     } catch { toast.error('Failed to save client') }
     setSavingClient(false)
   }
