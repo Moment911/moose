@@ -137,11 +137,11 @@ export default function PerfDashboard() {
   const [range,     setRange]     = useState('30d')
   const [mTab,     setMTab]     = useState('overview')
 
-  useEffect(() => { loadClients() }, [])
+  useEffect(() => { loadClients() }, [agencyId])
   useEffect(() => { if (selClient) loadClientData() }, [selClient])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name').order('name')
+    const { data } = await supabase.from('clients').select('id,name').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data||[])
     if (!selClient && data?.length) setSelClient(data[0].id)
     else setLoading(false)

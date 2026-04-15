@@ -174,7 +174,7 @@ export default function LocalRankTrackerPage() {
 
   async function loadClients() {
     const { data } = await supabase.from('clients').select('id,name,industry')
-      .eq('agency_id', agencyId || '').order('name')
+      .eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

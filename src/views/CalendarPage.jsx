@@ -44,7 +44,7 @@ export default function CalendarPage() {
   }
 
   async function loadProjects() {
-    const { data: cl } = await supabase.from('clients').select('*').eq('agency_id', agencyId || '').order('name')
+    const { data: cl } = await supabase.from('clients').select('*').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(cl || [])
     const projs = []
     for (const c of (cl || [])) { const { data } = await supabase.from('projects').select('*').eq('client_id', c.id); projs.push(...(data || []).map(p => ({ ...p, clientName: c.name }))) }

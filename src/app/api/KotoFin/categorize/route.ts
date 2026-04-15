@@ -17,9 +17,11 @@ interface CatResult {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const { transactions } = (await request.json()) as { transactions: InputTransaction[] }
+  // Parse body once upfront so it's available in catch block
+  const body = (await request.json()) as { transactions: InputTransaction[] }
+  const { transactions } = body
 
+  try {
     if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
       return NextResponse.json({ error: 'No transactions provided' }, { status: 400 })
     }

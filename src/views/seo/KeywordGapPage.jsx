@@ -114,7 +114,7 @@ export default function KeywordGapPage() {
   useEffect(()=>{ if(clientId) loadHistory() }, [clientId])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name,industry,city,state,website').order('name')
+    const { data } = await supabase.from('clients').select('id,name,industry,city,state,website').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

@@ -78,7 +78,7 @@ export default function ContentGapPage(){
   const [result,setResult]=useState(null)
   const [tab,setTab]=useState('clusters')
 
-  useEffect(()=>{supabase.from('clients').select('id,name,industry,city,state,website').order('name').then(({data})=>setClients(data||[]))},[])
+  useEffect(()=>{supabase.from('clients').select('id,name,industry,city,state,website').eq('agency_id',agencyId).is('deleted_at',null).order('name').then(({data})=>setClients(data||[]))},[agencyId])
   useEffect(()=>{if(selectedClient)setClientId(selectedClient.id)},[selectedClient])
 
   async function analyze(){

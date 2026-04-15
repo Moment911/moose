@@ -40,7 +40,7 @@ export default function SEOPluginPage() {
   }
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id, name').eq('agency_id', agencyId || '').order('name')
+    const { data } = await supabase.from('clients').select('id, name').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

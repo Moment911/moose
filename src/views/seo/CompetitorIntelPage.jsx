@@ -131,7 +131,7 @@ export default function CompetitorIntelPage() {
   useEffect(() => { if (clientId) loadHistory() }, [clientId])
 
   async function loadClients() {
-    const { data } = await supabase.from('clients').select('id,name,google_place_id,city,state').order('name')
+    const { data } = await supabase.from('clients').select('id,name,google_place_id,city,state').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(data || [])
   }
 

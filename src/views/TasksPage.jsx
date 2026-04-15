@@ -60,7 +60,7 @@ export default function TasksPage() {
   useEffect(() => { loadTasks() }, [selectedProject])
 
   async function loadProjects() {
-    const { data: cl } = await supabase.from('clients').select('*').eq('agency_id', agencyId || '').order('name')
+    const { data: cl } = await supabase.from('clients').select('*').eq('agency_id', agencyId).is('deleted_at', null).order('name')
     setClients(cl || [])
     const allProjs = []
     for (const c of (cl || [])) {
