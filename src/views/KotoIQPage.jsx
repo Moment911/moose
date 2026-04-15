@@ -2671,10 +2671,34 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </div>
             </div>
 
-            {/* Google Services */}
+            {/* Google Services — one-click OAuth */}
             <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Shield size={18} color={GRN} /> Google Services
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Shield size={18} color={GRN} /> Google Services
+                </div>
+                <button onClick={() => {
+                  const googleClientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
+                  if (!googleClientId) { toast.error('Google OAuth not configured'); return }
+                  const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+                  const redirectUri = window.location.origin + '/seo/connect'
+                  const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now() }))
+                  const params = new URLSearchParams({
+                    client_id: googleClientId, redirect_uri: redirectUri, response_type: 'code',
+                    scope: scopes, access_type: 'offline', prompt: 'consent select_account', state,
+                  })
+                  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
+                }} style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderRadius: 10,
+                  border: 'none', background: '#4285F4', color: '#fff', fontSize: 14, fontWeight: 700,
+                  fontFamily: FH, cursor: 'pointer',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                  Sign in with Google
+                </button>
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+                One sign-in connects Search Console, Analytics, Ads, and Business Profile for <strong>{clients.find(c => c.id === clientId)?.name}</strong>. Read-only access — Koto cannot modify your accounts.
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {[
@@ -2683,25 +2707,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   { key: 'ads', label: 'Google Ads', desc: 'Spend, CPC, conversions, quality score', color: '#34A853', icon: DollarSign },
                   { key: 'gmb', label: 'Business Profile', desc: 'Reviews, local visibility, performance', color: '#EA4335', icon: MapPin },
                 ].map(svc => (
-                  <div key={svc.key} style={{ padding: '18px 20px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svc.icon size={18} color={svc.color} />
-                      </div>
-                      <div>
-                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{svc.desc}</div>
-                      </div>
+                  <div key={svc.key} style={{ padding: '16px 18px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <svc.icon size={18} color={svc.color} />
                     </div>
-                    <button onClick={() => navigate('/seo/connect')}
-                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: svc.color }}>
-                      Connect →
-                    </button>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{svc.desc}</div>
+                    </div>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: '#f3f4f6', color: '#9ca3af' }}>Pending</span>
                   </div>
                 ))}
-              </div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 14, lineHeight: 1.6 }}>
-                One sign-in connects all services. Read-only access — Koto cannot modify your accounts.
               </div>
             </div>
 
