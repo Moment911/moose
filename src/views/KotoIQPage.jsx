@@ -1290,6 +1290,146 @@ export default function KotoIQPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Review Velocity Chart */}
+                  {g.review_count > 0 && (
+                    <div style={card}>
+                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <TrendingUp size={18} color={GRN} /> Review Velocity & Growth Projection
+                      </div>
+                      {(() => {
+                        const current = g.review_count
+                        const target = Math.max(200, current + 100)
+                        const monthlyVelocity = 8 // target pace
+                        const currentPace = Math.max(2, Math.round(current / 24)) // estimate from total / assumed months
+                        const monthsToTarget = Math.ceil((target - current) / monthlyVelocity)
+                        const monthsAtCurrent = currentPace > 0 ? Math.ceil((target - current) / currentPace) : 999
+
+                        // Visual bar showing progress to target
+                        const pct = Math.min((current / target) * 100, 100)
+                        return (
+                          <>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+                              {[
+                                ['Current Reviews', current, T],
+                                ['Target', target, GRN],
+                                ['Est. Monthly Pace', `~${currentPace}/mo`, currentPace >= 8 ? GRN : currentPace >= 4 ? AMB : R],
+                                ['Months to Target', monthsAtCurrent > 100 ? '∞' : monthsAtCurrent, monthsAtCurrent <= 12 ? GRN : AMB],
+                              ].map(([label, val, color]) => (
+                                <div key={label} style={{ padding: '14px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                                  <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Progress bar */}
+                            <div style={{ marginBottom: 12 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 4 }}>
+                                <span>{current} reviews</span>
+                                <span>Target: {target}</span>
+                              </div>
+                              <div style={{ height: 24, background: '#f3f4f6', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${T}, ${GRN})`, borderRadius: 8, transition: 'width .6s' }} />
+                                <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', fontSize: 11, fontWeight: 800, color: pct > 50 ? '#fff' : BLK }}>{Math.round(pct)}%</div>
+                              </div>
+                            </div>
+
+                            {/* Pace comparison */}
+                            <div style={{ padding: '14px 18px', borderRadius: 10, background: currentPace < 4 ? R + '06' : GRN + '06', border: `1px solid ${currentPace < 4 ? R + '20' : GRN + '20'}` }}>
+                              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+                                {currentPace < 4
+                                  ? `At ~${currentPace} reviews/month, reaching ${target} reviews will take ${monthsAtCurrent > 100 ? 'forever' : `${monthsAtCurrent} months`}. Industry leaders earn 8-12/month. Implement SMS follow-up within 2 hours of service — conversion rate: 35-45%.`
+                                  : currentPace < 8
+                                  ? `Good pace at ~${currentPace}/month, but top performers earn 8-12. At target pace of ${monthlyVelocity}/month, you'd reach ${target} in ${monthsToTarget} months.`
+                                  : `Excellent review velocity at ~${currentPace}/month! You'll reach ${target} reviews in ~${monthsToTarget} months. Keep this pace — each review compounds your ranking signal.`
+                                }
+                              </div>
+                              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6 }}>Source: BrightLocal 2026 — review signals now account for 20% of local pack ranking weight</div>
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Post Calendar (4-week view) */}
+                  {gmbPosts.length > 0 && (
+                    <div style={card}>
+                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Clock size={18} color={T} /> 4-Week Post Calendar
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                        {[0, 1, 2, 3].map(week => {
+                          const post = gmbPosts[week % gmbPosts.length]
+                          const weekDate = new Date(Date.now() + week * 7 * 86400000)
+                          const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB }
+                          const color = typeColors[post?.type] || '#6b7280'
+                          return (
+                            <div key={week} style={{ padding: '16px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `3px solid ${color}` }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span style={{ fontSize: 10, fontWeight: 800, color, textTransform: 'uppercase' }}>Week {week + 1}</span>
+                                <span style={{ fontSize: 10, color: '#9ca3af' }}>{weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                              </div>
+                              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: color + '15', color }}>{post?.type}</span>
+                              <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginTop: 8, maxHeight: 60, overflow: 'hidden' }}>{post?.text?.slice(0, 120)}...</div>
+                              <div style={{ marginTop: 8, fontSize: 10, fontWeight: 700, color }}>{post?.cta}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div style={{ marginTop: 12, fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>
+                        Source: News.opositive.io 2026 — "Post at least once a week. Build GBP posting into a recurring content task."
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grid Rank Map (placeholder — needs DataForSEO) */}
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <MapPin size={18} color={R} /> Local Pack Grid Tracker
+                    </div>
+                    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20, lineHeight: 1.6 }}>
+                      See your Google Maps 3-Pack position from 25 geographic points around your business. Green = you're in the pack. Red = competitors dominate.
+                    </div>
+
+                    {/* Simulated 5x5 grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, maxWidth: 400, margin: '0 auto 20px' }}>
+                      {Array.from({ length: 25 }).map((_, i) => {
+                        const row = Math.floor(i / 5)
+                        const col = i % 5
+                        const isCenter = row === 2 && col === 2
+                        const dist = Math.sqrt(Math.pow(row - 2, 2) + Math.pow(col - 2, 2))
+                        // Simulate: green near center, yellow mid, red far
+                        const color = isCenter ? BLK : dist <= 1.5 ? GRN : dist <= 2.5 ? AMB : R
+                        const rank = isCenter ? '📍' : dist <= 1.5 ? '#1' : dist <= 2.5 ? '#3' : '#7'
+                        return (
+                          <div key={i} style={{
+                            aspectRatio: '1', borderRadius: 8,
+                            background: isCenter ? BLK : color + '15',
+                            border: `2px solid ${color}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: isCenter ? 16 : 13, fontWeight: 800,
+                            color: isCenter ? '#fff' : color, fontFamily: FH,
+                          }}>
+                            {rank}
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 16 }}>
+                      {[['#1-3 (In Pack)', GRN], ['#4-10 (Visible)', AMB], ['#11+ (Invisible)', R], ['📍 Your Business', BLK]].map(([label, color]) => (
+                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />{label}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ padding: '14px 18px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
+                      <strong>This is a preview.</strong> Live grid tracking requires DataForSEO API (~$5/month for 10 keywords × 25 grid points). Once connected, this map shows real-time local pack positions from every direction around your business — updated weekly.
+                    </div>
+                  </div>
                 </>
               )
             })()}
