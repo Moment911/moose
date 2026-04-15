@@ -87,6 +87,10 @@ export default function KotoIQPage() {
   const [kwTotal, setKwTotal] = useState(0)
   const [clientId, setClientId] = useState('')
   const [clients, setClients] = useState([])
+  const [showClientModal, setShowClientModal] = useState(false)
+  const [editingClient, setEditingClient] = useState(null) // null = add, object = edit
+  const [clientForm, setClientForm] = useState({ name: '', website: '', primary_service: '', location: '' })
+  const [savingClient, setSavingClient] = useState(false)
   const [catFilter, setCatFilter] = useState('')
   const [searchQ, setSearchQ] = useState('')
   const [sortBy, setSortBy] = useState('opportunity_score')
@@ -113,19 +117,49 @@ export default function KotoIQPage() {
   const [generatingBrief, setGeneratingBrief] = useState(false)
 
   // Load clients
-  useEffect(() => {
+  const loadClients = useCallback(() => {
     if (!agencyId) return
-    fetch('/api/intel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'list_reports', agency_id: agencyId }) })
-      .then(r => r.json()).then(res => {
-        // Get unique clients from intel reports + clients table
-        fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients?select=id,name,website&agency_id=eq.${agencyId}&deleted_at=is.null&order=name`, {
-          headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
-        }).then(r => r.json()).then(c => { if (Array.isArray(c)) setClients(c) })
-      })
-    // Load portfolio overview
-    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'portfolio', agency_id: agencyId }) })
-      .then(r => r.json()).then(res => setPortfolio(res)).catch(() => {})
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients?select=id,name,website,primary_service&agency_id=eq.${agencyId}&deleted_at=is.null&order=name`, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` }
+    }).then(r => r.json()).then(c => { if (Array.isArray(c)) setClients(c) })
   }, [agencyId])
+
+  useEffect(() => {
+    loadClients()
+    // Load portfolio overview
+    if (agencyId) fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'portfolio', agency_id: agencyId }) })
+      .then(r => r.json()).then(res => setPortfolio(res)).catch(() => {})
+  }, [agencyId, loadClients])
+
+  // Save client (add or edit)
+  const saveClient = async () => {
+    if (!clientForm.name) { toast.error('Client name is required'); return }
+    setSavingClient(true)
+    try {
+      const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/clients`
+      const headers = { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' }
+      const payload = { name: clientForm.name, website: clientForm.website || null, primary_service: clientForm.primary_service || null, agency_id: agencyId }
+
+      let res
+      if (editingClient?.id) {
+        res = await fetch(`${url}?id=eq.${editingClient.id}`, { method: 'PATCH', headers, body: JSON.stringify(payload) })
+      } else {
+        res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) })
+      }
+      const data = await res.json()
+      if (res.ok) {
+        toast.success(editingClient ? 'Client updated' : 'Client added')
+        setShowClientModal(false)
+        setEditingClient(null)
+        setClientForm({ name: '', website: '', primary_service: '', location: '' })
+        loadClients()
+        if (!editingClient && Array.isArray(data) && data[0]?.id) setClientId(data[0].id)
+      } else {
+        toast.error(data.message || 'Failed to save')
+      }
+    } catch { toast.error('Failed to save client') }
+    setSavingClient(false)
+  }
 
   // Load dashboard
   const loadDashboard = useCallback(() => {
@@ -272,12 +306,20 @@ export default function KotoIQPage() {
             <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
             <div style={{ fontSize: 13, color: '#6b7280' }}>AI-Powered Search Intelligence</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
               style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', minWidth: 180 }}>
               <option value="">Select client...</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+            {clientId && (
+              <button onClick={() => {
+                const c = clients.find(x => x.id === clientId)
+                if (c) { setEditingClient(c); setClientForm({ name: c.name || '', website: c.website || '', primary_service: c.primary_service || '', location: '' }); setShowClientModal(true) }
+              }} title="Edit client" style={{ width: 34, height: 34, borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>✏️</button>
+            )}
+            <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
+              style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${GRN}`, background: '#fff', color: GRN, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>+ Add Client</button>
             <button onClick={runQuickScan} disabled={syncing || !clientId}
               style={{ padding: '8px 20px', borderRadius: 10, border: `1.5px solid ${R}`, background: syncing ? '#e5e7eb' : '#fff', color: R, fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
@@ -1575,6 +1617,48 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         )}
 
       </div>
+
+      {/* Client Add/Edit Modal */}
+      {showClientModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={() => setShowClientModal(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.4)' }} />
+          <div style={{ position: 'relative', background: '#fff', borderRadius: 16, padding: '32px', width: 480, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,.15)' }}>
+            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 4 }}>
+              {editingClient ? 'Edit Client' : 'Add New Client'}
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 24 }}>
+              {editingClient ? 'Update client details below.' : 'Add a client to start tracking their SEO performance.'}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 6, display: 'block' }}>Business Name *</label>
+                <input value={clientForm.name} onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="e.g. Sunrise Plumbing" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 6, display: 'block' }}>Website URL</label>
+                <input value={clientForm.website} onChange={e => setClientForm(f => ({ ...f, website: e.target.value }))}
+                  placeholder="e.g. https://sunriseplumbing.com" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: BLK, marginBottom: 6, display: 'block' }}>Industry / Primary Service</label>
+                <input value={clientForm.primary_service} onChange={e => setClientForm(f => ({ ...f, primary_service: e.target.value }))}
+                  placeholder="e.g. Plumbing, HVAC, Dental, Law" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
+              <button onClick={() => { setShowClientModal(false); setEditingClient(null) }}
+                style={{ padding: '10px 20px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={saveClient} disabled={savingClient || !clientForm.name}
+                style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: savingClient || !clientForm.name ? '#e5e7eb' : T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: savingClient ? 'wait' : 'pointer' }}>
+                {savingClient ? 'Saving...' : editingClient ? 'Save Changes' : 'Add Client'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
