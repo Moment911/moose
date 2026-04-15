@@ -775,5 +775,151 @@ Return ONLY valid JSON:
     return NextResponse.json({ success: true })
   }
 
+  // ── GMB HEALTH: Full GBP audit + review data ──────────────────────────
+  if (action === 'gmb_health') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
+    if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+    // Get client location from latest intel report
+    const { data: latestReport } = await s.from('koto_intel_reports').select('inputs, report_data')
+      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+    const location = latestReport?.inputs?.location || ''
+    const existingGBP = latestReport?.report_data?.gbp_audit
+
+    // Fetch fresh GBP data if no recent report
+    let gbpData = existingGBP
+    if (!gbpData && client.name && location) {
+      const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || ''
+      if (apiKey) {
+        try {
+          const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey,
+              'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount,places.businessStatus,places.regularOpeningHours,places.primaryType,places.types,places.photos,places.editorialSummary,places.googleMapsUri,places.reviews' },
+            body: JSON.stringify({ textQuery: `${client.name} ${location}`, maxResultCount: 1 }),
+            signal: AbortSignal.timeout(10000),
+          })
+          const searchData = await searchRes.json()
+          const place = searchData.places?.[0]
+          if (place) {
+            const checks = [
+              { label: 'Business name', pass: !!place.displayName?.text, weight: 10, fix: 'Add your business name to GBP' },
+              { label: 'Address verified', pass: !!place.formattedAddress, weight: 10, fix: 'Verify your business address' },
+              { label: 'Phone number', pass: !!place.nationalPhoneNumber, weight: 8, fix: 'Add a phone number' },
+              { label: 'Website linked', pass: !!place.websiteUri, weight: 8, fix: 'Link your website' },
+              { label: 'Business hours', pass: !!place.regularOpeningHours?.periods?.length, weight: 9, fix: 'Add complete hours' },
+              { label: 'Primary category', pass: !!place.primaryType, weight: 10, fix: 'Set primary category' },
+              { label: '5+ photos', pass: (place.photos?.length || 0) >= 5, weight: 10, fix: 'Upload 5+ photos' },
+              { label: '10+ reviews', pass: (place.userRatingCount || 0) >= 10, weight: 8, fix: 'Build review count' },
+              { label: 'Rating 4.0+', pass: (place.rating || 0) >= 4.0, weight: 7, fix: 'Improve rating' },
+              { label: 'Description', pass: !!place.editorialSummary?.text, weight: 8, fix: 'Add business description' },
+              { label: 'Active listing', pass: place.businessStatus === 'OPERATIONAL', weight: 10, fix: 'Ensure listing is active' },
+            ]
+            const totalWeight = checks.reduce((s, c) => s + c.weight, 0)
+            const earnedWeight = checks.filter(c => c.pass).reduce((s, c) => s + c.weight, 0)
+            gbpData = {
+              name: place.displayName?.text, address: place.formattedAddress, phone: place.nationalPhoneNumber,
+              website: place.websiteUri, rating: place.rating || 0, review_count: place.userRatingCount || 0,
+              photo_count: place.photos?.length || 0, business_status: place.businessStatus,
+              primary_category: place.primaryType, maps_url: place.googleMapsUri,
+              description: place.editorialSummary?.text || null,
+              recent_reviews: (place.reviews || []).slice(0, 10).map((r: any) => ({
+                rating: r.rating, text: r.text?.text?.slice(0, 500) || '', time: r.publishTime,
+                author: r.authorAttribution?.displayName || 'Anonymous',
+              })),
+              audit: { score: Math.round((earnedWeight / totalWeight) * 100),
+                passes: checks.filter(c => c.pass).map(c => c.label),
+                fails: checks.filter(c => !c.pass).map(c => ({ label: c.label, fix: c.fix, weight: c.weight })).sort((a, b) => b.weight - a.weight) },
+            }
+          }
+        } catch { /* skip */ }
+      }
+    }
+
+    // Get Moz data from latest report
+    const mozData = latestReport?.report_data?.moz_data || null
+
+    return NextResponse.json({ gbp: gbpData, moz: mozData, location })
+  }
+
+  // ── GMB REVIEW RESPONSE: AI-draft reply to a review ───────────────────
+  if (action === 'draft_review_response') {
+    const { client_id, review_text, review_rating, reviewer_name, business_name } = body
+    if (!review_text) return NextResponse.json({ error: 'review_text required' }, { status: 400 })
+
+    const prompt = `You are a professional review response writer for ${business_name || 'a local business'}. Write a response to this Google review.
+
+REVIEW:
+Rating: ${review_rating}/5 stars
+Reviewer: ${reviewer_name || 'Customer'}
+Text: "${review_text}"
+
+RULES:
+- ${review_rating >= 4 ? '100-160 words. Warm, specific, mentions the service.' : review_rating >= 3 ? '120-160 words. Grateful, ask what could be better.' : '140-180 words. Empathetic, address the issue, offer offline resolution.'}
+- Professional but human tone
+- Mention the reviewer by first name
+- Reference specific details from their review
+- Include a subtle CTA (come back, refer a friend, call us)
+- Never be defensive or argumentative
+- For negative reviews: acknowledge, empathize, take offline
+
+Return ONLY the response text, no JSON wrapper, no quotes around it.`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        system: 'Write a professional Google review response. Return ONLY the response text.',
+        messages: [{ role: 'user', content: prompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_review_response', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      const response = msg.content[0].type === 'text' ? msg.content[0].text.trim() : ''
+      return NextResponse.json({ response })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── GMB POST GENERATOR: AI-draft GBP posts ───────────────────────────
+  if (action === 'generate_gbp_posts') {
+    const { client_id, business_name, industry, services, num_posts } = body
+
+    const prompt = `Generate ${num_posts || 4} Google Business Profile posts for ${business_name || 'a local business'} (${industry || 'local services'}).
+
+Services: ${services || 'general services'}
+
+Each post should be different:
+1. An offer/promotion post (drives "Book" clicks)
+2. A tips/educational post (builds authority)
+3. A behind-the-scenes/team post (builds trust)
+4. A seasonal/timely post (relevance signal)
+
+RULES:
+- 150-300 characters each (GBP limit is 1500 but short performs better)
+- Include a clear CTA
+- Mention the city/area when natural
+- Use emojis sparingly (1-2 per post max)
+- Each post should work as a standalone piece
+
+Return ONLY valid JSON array:
+[{"type": "offer|tips|team|seasonal", "text": "post text", "cta": "Book Now|Learn More|Call Us|Visit Us"}]`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+        system: 'Generate GBP posts. Return ONLY valid JSON array.',
+        messages: [{ role: 'user', content: prompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_gbp_posts', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
+      const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+      return NextResponse.json({ posts: JSON.parse(cleaned) })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }

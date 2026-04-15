@@ -92,6 +92,12 @@ export default function KotoIQPage() {
   const [sortDir, setSortDir] = useState('desc')
   const [kwPage, setKwPage] = useState(0)
   const KW_LIMIT = 50
+  const [gmb, setGmb] = useState(null)
+  const [gmbLoading, setGmbLoading] = useState(false)
+  const [draftingReview, setDraftingReview] = useState(null)
+  const [reviewDraft, setReviewDraft] = useState('')
+  const [gmbPosts, setGmbPosts] = useState([])
+  const [generatingPosts, setGeneratingPosts] = useState(false)
   const [briefs, setBriefs] = useState([])
   const [briefLoading, setBriefLoading] = useState(false)
   const [briefKeyword, setBriefKeyword] = useState('')
@@ -157,9 +163,45 @@ export default function KotoIQPage() {
     setGeneratingBrief(false)
   }
 
+  // Load GMB health
+  const loadGMB = useCallback(() => {
+    if (!clientId) return
+    setGmbLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'gmb_health', client_id: clientId }) })
+      .then(r => r.json()).then(res => { setGmb(res); setGmbLoading(false) })
+      .catch(() => setGmbLoading(false))
+  }, [clientId])
+
+  // Draft review response
+  const draftReviewResponse = async (review) => {
+    setDraftingReview(review)
+    setReviewDraft('')
+    try {
+      const clientName = clients.find(c => c.id === clientId)?.name || ''
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'draft_review_response', client_id: clientId, review_text: review.text, review_rating: review.rating, reviewer_name: review.author, business_name: clientName }) })
+      const data = await res.json()
+      setReviewDraft(data.response || 'Failed to generate response')
+    } catch { setReviewDraft('Error generating response') }
+  }
+
+  // Generate GBP posts
+  const generatePosts = async () => {
+    setGeneratingPosts(true)
+    const clientObj = clients.find(c => c.id === clientId)
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate_gbp_posts', client_id: clientId, business_name: clientObj?.name, industry: dashboard?.summary?.industry, num_posts: 4 }) })
+      const data = await res.json()
+      setGmbPosts(data.posts || [])
+    } catch { toast.error('Failed to generate posts') }
+    setGeneratingPosts(false)
+  }
+
   useEffect(() => { loadDashboard() }, [loadDashboard])
   useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
   useEffect(() => { if (tab === 'briefs') loadBriefs() }, [tab, loadBriefs])
+  useEffect(() => { if (tab === 'gmb') loadGMB() }, [tab, loadGMB])
 
   // Sync
   const runSync = async () => {
@@ -207,7 +249,7 @@ export default function KotoIQPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap]].map(([key, label, Icon]) => (
+          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon size={14} /> {label}
@@ -629,6 +671,179 @@ export default function KotoIQPage() {
                 <div style={{ fontSize: 14, color: '#9ca3af' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
               </div>
             )}
+          </>
+        )}
+
+        {/* ══ GMB TAB ══ */}
+        {clientId && tab === 'gmb' && (
+          <>
+            {gmbLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+
+            {!gmbLoading && !gmb?.gbp && (
+              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
+                <Star size={48} color={AMB} style={{ margin: '0 auto 16px', opacity: .3 }} />
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No GBP data found</div>
+                <div style={{ fontSize: 14, color: '#6b7280' }}>Run a KotoIntel scan first, or check that the client has a Google Business Profile listing.</div>
+              </div>
+            )}
+
+            {!gmbLoading && gmb?.gbp && (() => {
+              const g = gmb.gbp
+              const audit = g.audit || {}
+              const scoreColor = audit.score >= 80 ? GRN : audit.score >= 60 ? AMB : R
+              return (
+                <>
+                  {/* GBP Health Score */}
+                  <div style={card}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: scoreColor + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 36, fontWeight: 900, color: scoreColor }}>{audit.score}</div>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{g.name}</div>
+                        <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{g.address}</div>
+                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>{g.phone} · {g.primary_category?.replace(/_/g, ' ')}</div>
+                      </div>
+                      {g.maps_url && <a href={g.maps_url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', borderRadius: 8, background: T, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>View on Maps</a>}
+                    </div>
+
+                    {/* Key metrics */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
+                      {[
+                        ['Rating', g.rating ? `${g.rating}★` : '—', g.rating >= 4.5 ? GRN : g.rating >= 4.0 ? AMB : R],
+                        ['Reviews', g.review_count || 0, g.review_count >= 50 ? GRN : g.review_count >= 10 ? AMB : R],
+                        ['Photos', g.photo_count || 0, g.photo_count >= 10 ? GRN : g.photo_count >= 5 ? AMB : R],
+                        ['Status', g.business_status === 'OPERATIONAL' ? 'Active' : 'Inactive', g.business_status === 'OPERATIONAL' ? GRN : R],
+                        ['GBP Score', `${audit.score}/100`, scoreColor],
+                      ].map(([label, val, color]) => (
+                        <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
+                          <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Audit passes + fails */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Passing ({audit.passes?.length || 0})</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                          {(audit.passes || []).map((p, i) => (
+                            <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: GRN + '10', color: GRN, fontSize: 11, fontWeight: 600 }}>✓ {p}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Failing ({audit.fails?.length || 0})</div>
+                        {(audit.fails || []).map((f, i) => (
+                          <div key={i} style={{ fontSize: 12, color: R, marginBottom: 4 }}>✕ <strong>{f.label}</strong> — {f.fix}</div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Moz DA */}
+                    {gmb.moz && (
+                      <div style={{ marginTop: 16, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: gmb.moz.domain_authority >= 40 ? GRN : gmb.moz.domain_authority >= 20 ? AMB : R }}>{gmb.moz.domain_authority}</div>
+                          <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase' }}>Domain Authority</div>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#0c4a6e' }}>Spam Score: {gmb.moz.spam_score}% · {gmb.moz.linking_root_domains?.toLocaleString()} linking domains · {gmb.moz.external_backlinks?.toLocaleString()} backlinks</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Reviews + AI Response Drafts */}
+                  {g.recent_reviews?.length > 0 && (
+                    <div style={card}>
+                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Star size={18} color={AMB} /> Recent Reviews ({g.recent_reviews.length})
+                      </div>
+                      {g.recent_reviews.map((rev, i) => {
+                        const isActive = draftingReview === rev
+                        return (
+                          <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${rev.rating >= 4 ? GRN : rev.rating >= 3 ? AMB : R}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                              <div>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{rev.author}</span>
+                                <span style={{ fontSize: 12, color: rev.rating >= 4 ? GRN : rev.rating >= 3 ? AMB : R, marginLeft: 8 }}>{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</span>
+                              </div>
+                              <button onClick={() => draftReviewResponse(rev)}
+                                style={{ padding: '4px 12px', borderRadius: 6, border: `1px solid ${T}30`, background: '#fff', color: T, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                                <Brain size={12} style={{ verticalAlign: -2, marginRight: 4 }} />Draft Response
+                              </button>
+                            </div>
+                            {rev.text && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{rev.text}</div>}
+                            {rev.time && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>{new Date(rev.time).toLocaleDateString()}</div>}
+
+                            {/* AI Draft Response */}
+                            {isActive && reviewDraft && (
+                              <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 8, background: T + '06', border: `1px solid ${T}20` }}>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
+                                <textarea value={reviewDraft} onChange={e => setReviewDraft(e.target.value)}
+                                  style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
+                                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                  <button onClick={() => { navigator.clipboard.writeText(reviewDraft); toast.success('Copied!') }}
+                                    style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy to Clipboard</button>
+                                  <button onClick={() => { setDraftingReview(null); setReviewDraft('') }}
+                                    style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Dismiss</button>
+                                </div>
+                              </div>
+                            )}
+                            {isActive && !reviewDraft && (
+                              <div style={{ marginTop: 8, fontSize: 12, color: T, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Drafting response...
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* GBP Post Generator */}
+                  <div style={card}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Zap size={18} color={R} /> GBP Post Generator
+                      </div>
+                      <button onClick={generatePosts} disabled={generatingPosts}
+                        style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: generatingPosts ? '#e5e7eb' : R, color: '#fff', fontSize: 12, fontWeight: 700, cursor: generatingPosts ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {generatingPosts ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
+                        {generatingPosts ? 'Generating...' : 'Generate 4 Posts'}
+                      </button>
+                    </div>
+                    {gmbPosts.length > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        {gmbPosts.map((post, i) => {
+                          const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB }
+                          const color = typeColors[post.type] || '#6b7280'
+                          return (
+                            <div key={i} style={{ padding: '16px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `3px solid ${color}` }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: color + '15', color, textTransform: 'uppercase' }}>{post.type}</span>
+                                <span style={{ fontSize: 10, color: '#9ca3af' }}>{post.text?.length || 0} chars</span>
+                              </div>
+                              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 10 }}>{post.text}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
+                                <button onClick={() => { navigator.clipboard.writeText(post.text); toast.success('Post copied!') }}
+                                  style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, cursor: 'pointer' }}>Copy</button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    {gmbPosts.length === 0 && !generatingPosts && (
+                      <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0' }}>
+                        Click "Generate 4 Posts" to create a week's worth of GBP content — offer, tips, team, and seasonal posts.
+                      </div>
+                    )}
+                  </div>
+                </>
+              )
+            })()}
           </>
         )}
 
