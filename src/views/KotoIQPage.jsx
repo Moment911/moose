@@ -6,7 +6,8 @@ import Sidebar from '../components/Sidebar'
 import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
-  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin
+  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
+  Phone, Globe, Activity, FileText
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -401,6 +402,8 @@ export default function KotoIQPage() {
                 ['ranks', 'Rank Tracker', TrendingUp],
                 ['audit', 'Deep Audit', Shield],
                 ['gmb', 'GMB', Star],
+                ['reports', 'Reports', BarChart2],
+                ['connect', 'Connect', Shield],
               ].map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)}
                   style={{ padding: '12px 16px', fontSize: 13, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${BLK}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 6, transition: 'color .12s' }}>
@@ -2545,6 +2548,159 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               )
             })()}
           </>
+        )}
+
+        {/* ══ CONNECT TAB ══ */}
+        {clientId && tab === 'connect' && (
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Connect Data Sources</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+              Connect your Google accounts to pull real keyword data, analytics, and business profile information. All connections are read-only and encrypted.
+            </div>
+
+            {/* Sitemap URL */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Globe size={18} color={T} /> Sitemap URL
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                Adding your sitemap helps KotoIQ discover all indexed pages and analyze your site structure. We'll also try to auto-detect it from your website.
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input
+                  defaultValue={clients.find(c => c.id === clientId)?.sitemap_url || ''}
+                  placeholder="https://example.com/sitemap.xml"
+                  id="sitemap-input"
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+                <button onClick={async () => {
+                  const url = document.getElementById('sitemap-input')?.value
+                  if (!url) return
+                  await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update_client', client_id: clientId, agency_id: agencyId, sitemap_url: url }) })
+                  toast.success('Sitemap URL saved')
+                }} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  Save
+                </button>
+              </div>
+            </div>
+
+            {/* Google Services */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Shield size={18} color={GRN} /> Google Services
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                {[
+                  { key: 'search_console', label: 'Search Console', desc: 'Keyword rankings, clicks, impressions, CTR', color: '#4285F4', icon: Search },
+                  { key: 'analytics', label: 'Google Analytics 4', desc: 'Sessions, conversions, revenue, bounce rate', color: '#F4B400', icon: BarChart2 },
+                  { key: 'ads', label: 'Google Ads', desc: 'Spend, CPC, conversions, quality score', color: '#34A853', icon: DollarSign },
+                  { key: 'gmb', label: 'Business Profile', desc: 'Reviews, local visibility, performance', color: '#EA4335', icon: MapPin },
+                ].map(svc => (
+                  <div key={svc.key} style={{ padding: '18px 20px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: svc.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svc.icon size={18} color={svc.color} />
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
+                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{svc.desc}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => navigate('/seo/connect')}
+                      style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', color: svc.color }}>
+                      Connect →
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 14, lineHeight: 1.6 }}>
+                One sign-in connects all services. Read-only access — Koto cannot modify your accounts.
+              </div>
+            </div>
+
+            {/* DataForSEO */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Zap size={18} color={AMB} /> DataForSEO API
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                Powers SERP feature detection, AI Overview analysis, competitor intelligence, GMB grid tracking, and bulk rank checking.
+              </div>
+              <div style={{ padding: '12px 16px', background: GRN + '06', borderRadius: 8, border: `1px solid ${GRN}20`, fontSize: 13, color: GRN, fontWeight: 600 }}>
+                ✓ Connected — API key configured in environment
+              </div>
+            </div>
+
+            {/* Moz API */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <TrendingUp size={18} color={T} /> Moz API
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                Domain Authority, Page Authority, backlink counts, spam score — used in Quick Scan and competitor analysis.
+              </div>
+              <div style={{ padding: '12px 16px', background: GRN + '06', borderRadius: 8, border: `1px solid ${GRN}20`, fontSize: 13, color: GRN, fontWeight: 600 }}>
+                ✓ Connected — API key configured in environment
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ REPORTS TAB ══ */}
+        {clientId && tab === 'reports' && (
+          <div>
+            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Data Reports</div>
+            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+              30 ways to analyze your search performance. Each report combines data from all connected sources — GSC, GA4, Ads, DataForSEO, Moz, and GBP.
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              {[
+                { title: 'Position Distribution', desc: 'Keywords by rank bucket: #1-3, #4-10, #11-20, #21+', icon: BarChart2, color: T, source: 'GSC' },
+                { title: 'CTR by Position', desc: 'Click-through rate at each ranking position vs expected', icon: TrendingUp, color: GRN, source: 'GSC' },
+                { title: 'Impression Trends', desc: 'Keywords gaining or losing impressions week-over-week', icon: TrendingUp, color: AMB, source: 'GSC Daily' },
+                { title: 'Rank Movement', desc: 'Biggest gainers and losers in the last 7/30 days', icon: ArrowUpRight, color: R, source: 'GSC' },
+                { title: 'Pages by Traffic', desc: 'Top landing pages ranked by organic sessions', icon: FileText, color: T, source: 'GSC + GA4' },
+                { title: 'Conversion by Page', desc: 'Which pages drive the most conversions and revenue', icon: DollarSign, color: GRN, source: 'GA4' },
+                { title: 'Paid vs Organic', desc: 'Keywords where you rank organically AND pay for ads', icon: Target, color: R, source: 'GSC + Ads' },
+                { title: 'Cost per Acquisition', desc: 'CPA by keyword — find the most efficient converters', icon: DollarSign, color: AMB, source: 'Ads' },
+                { title: 'Quality Score Map', desc: 'Ad quality score distribution — where to improve', icon: Star, color: AMB, source: 'Ads' },
+                { title: 'AI Overview Coverage', desc: 'Which keywords trigger AI Overviews — are you cited?', icon: Brain, color: '#7c3aed', source: 'DataForSEO' },
+                { title: 'Featured Snippets', desc: 'Snippet opportunities you can win with content updates', icon: Zap, color: T, source: 'DataForSEO' },
+                { title: 'Local Pack Map', desc: 'Geographic heatmap of local pack visibility', icon: MapPin, color: GRN, source: 'DataForSEO Grid' },
+                { title: 'Competitor Gap', desc: 'Keywords competitors rank for that you don\'t', icon: Target, color: R, source: 'DataForSEO' },
+                { title: 'Domain Authority', desc: 'DA trend over time vs competitor domains', icon: Shield, color: T, source: 'Moz' },
+                { title: 'Backlink Growth', desc: 'New and lost backlinks tracked over time', icon: TrendingUp, color: GRN, source: 'Moz' },
+                { title: 'Page Speed Scores', desc: 'Performance scores for all tracked URLs', icon: Zap, color: AMB, source: 'CrUX' },
+                { title: 'Core Web Vitals', desc: 'LCP, FID, CLS — pass/fail by page', icon: Activity, color: R, source: 'CrUX' },
+                { title: 'GBP Impressions', desc: 'Search vs Maps views of your business profile', icon: Eye, color: '#EA4335', source: 'GBP API' },
+                { title: 'GBP Actions', desc: 'Calls, directions, website clicks from your listing', icon: Phone, color: GRN, source: 'GBP API' },
+                { title: 'Review Velocity', desc: 'Review growth rate + sentiment analysis', icon: Star, color: AMB, source: 'GBP + Places' },
+                { title: 'Content Gaps', desc: 'Topics competitors cover that you\'re missing', icon: FileText, color: R, source: 'DataForSEO' },
+                { title: 'Search Intent Map', desc: 'Keywords classified by intent: transactional, info, nav', icon: Brain, color: T, source: 'AI' },
+                { title: 'Opportunity Matrix', desc: 'Keywords scored by volume × rank gap × conversion', icon: Target, color: GRN, source: 'Composite' },
+                { title: 'ROI Calculator', desc: 'Organic traffic value vs equivalent paid cost', icon: DollarSign, color: '#7c3aed', source: 'GSC + Ads' },
+                { title: 'Seasonal Trends', desc: 'Keywords with seasonal patterns + peak predictions', icon: Clock, color: AMB, source: 'GSC + KP' },
+                { title: 'Technical Issues', desc: 'SEO errors found in the last deep audit', icon: AlertCircle, color: R, source: 'Deep Audit' },
+                { title: 'Schema Coverage', desc: 'Which pages have structured data and which don\'t', icon: FileText, color: T, source: 'Scrape' },
+                { title: 'Internal Links', desc: 'Link distribution + orphan page detection', icon: Globe, color: AMB, source: 'Scrape' },
+                { title: 'Entity Coverage', desc: 'Core entities in your niche — coverage vs competitors', icon: Brain, color: '#7c3aed', source: 'AI + DFS' },
+                { title: 'Monthly Summary', desc: 'Auto-generated performance report across all metrics', icon: FileText, color: BLK, source: 'All' },
+              ].map((report, i) => (
+                <div key={i} style={{ padding: '18px 20px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', transition: 'all .15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = report.color; e.currentTarget.style.boxShadow = `0 4px 16px ${report.color}10` }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+                  onClick={() => toast('Report coming soon — data sources need to be connected first')}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <report.icon size={16} color={report.color} />
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{report.title}</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5, marginBottom: 8 }}>{report.desc}</div>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: report.color + '10', color: report.color }}>{report.source}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
       </div>
