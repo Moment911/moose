@@ -2506,6 +2506,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         )}
 
       </div>
+      </div>
 
       {/* Client Add/Edit Modal */}
       {showClientModal && (
