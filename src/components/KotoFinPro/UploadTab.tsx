@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, Dispatch } from 'react'
 import { Transaction, StatementFile, KotoFinAction } from './KotoFin.types'
 import { BANK_COLORS } from './KotoFin.constants'
-import { categorize } from './KotoFin.utils'
+import { categorize, fmtCurrency } from './KotoFin.utils'
 import { Upload, AlertCircle, CheckCircle2, Loader2, Trash2, ChevronDown, ChevronUp, Brain } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
@@ -19,6 +19,12 @@ interface ParseInfo {
   totalLines: number
   linesWithAmounts: number
   transactionsMatched: number
+  debitCount: number
+  creditCount: number
+  totalDebits: number
+  totalCredits: number
+  beginningBalance: number | null
+  endingBalance: number | null
   unmatchedSample: string[]
   rawTextPreview: string
 }
@@ -252,11 +258,9 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
       }))
       globalNextId += txns.length
 
-      const missedCount = info ? info.linesWithAmounts - info.transactionsMatched : 0
-      const successMsg = `${txns.length} transactions from ${data.meta?.bank || 'Unknown'} (${data.meta?.account || ''})`
-      const coverageMsg = missedCount > 0 ? ` — ${missedCount} lines with amounts were not matched` : ''
+      const successMsg = `${txns.length} transactions imported`
 
-      updateStatus(id, { status: 'success', message: successMsg + coverageMsg, parseInfo: info })
+      updateStatus(id, { status: 'success', message: successMsg, parseInfo: info })
 
       return { txns, fileMeta: data.meta, id, hash }
     } catch (err) {
@@ -370,31 +374,72 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
 
                 {isExpanded && s.parseInfo && (
                   <div style={{ padding: '0 14px 14px', borderTop: '1px solid var(--border)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, margin: '12px 0', fontSize: 11 }}>
-                      <div><span style={{ color: 'var(--text-dim)' }}>Bank:</span> <strong>{s.parseInfo.bank}</strong></div>
-                      <div><span style={{ color: 'var(--text-dim)' }}>Text:</span> <strong>{s.parseInfo.textLength.toLocaleString()} chars</strong></div>
-                      <div><span style={{ color: 'var(--text-dim)' }}>Lines:</span> <strong>{s.parseInfo.totalLines}</strong></div>
-                      <div><span style={{ color: 'var(--text-dim)' }}>$ Lines:</span> <strong>{s.parseInfo.linesWithAmounts}</strong> ({s.parseInfo.transactionsMatched} matched)</div>
+                    {/* Import summary grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, margin: '12px 0' }}>
+                      <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Bank</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{s.parseInfo.bank}</div>
+                      </div>
+                      <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Transactions</div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{s.parseInfo.transactionsMatched}</div>
+                      </div>
+                      <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Debits</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--red)' }}>
+                          {s.parseInfo.debitCount} ({fmtCurrency(s.parseInfo.totalDebits)})
+                        </div>
+                      </div>
+                      <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                        <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Credits</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>
+                          {s.parseInfo.creditCount} ({fmtCurrency(s.parseInfo.totalCredits)})
+                        </div>
+                      </div>
+                      {s.parseInfo.beginningBalance !== null && (
+                        <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                          <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Beginning Balance</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, fontFamily: 'var(--mono)' }}>{fmtCurrency(s.parseInfo.beginningBalance)}</div>
+                        </div>
+                      )}
+                      {s.parseInfo.endingBalance !== null && (
+                        <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                          <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Ending Balance</div>
+                          <div style={{ fontSize: 13, fontWeight: 600, fontFamily: 'var(--mono)' }}>{fmtCurrency(s.parseInfo.endingBalance)}</div>
+                        </div>
+                      )}
+                      {s.parseInfo.beginningBalance !== null && s.parseInfo.endingBalance !== null && (
+                        <div style={{ background: 'var(--surface2)', borderRadius: 6, padding: '8px 10px' }}>
+                          <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Reconciliation</div>
+                          {(() => {
+                            const expected = s.parseInfo.beginningBalance! + s.parseInfo.totalCredits - s.parseInfo.totalDebits
+                            const diff = Math.abs(expected - s.parseInfo.endingBalance!)
+                            return diff < 0.02
+                              ? <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--green)' }}>Balanced</div>
+                              : <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--amber)' }}>Off by {fmtCurrency(diff)}</div>
+                          })()}
+                        </div>
+                      )}
                     </div>
 
                     {s.parseInfo.unmatchedSample.length > 0 && (
-                      <div style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-dim)', marginBottom: 6 }}>
-                          UNMATCHED LINES ({s.parseInfo.linesWithAmounts - s.parseInfo.transactionsMatched} not parsed):
-                        </div>
+                      <details style={{ fontSize: 11, marginBottom: 8 }}>
+                        <summary style={{ cursor: 'pointer', color: 'var(--amber)', fontWeight: 500, marginBottom: 6 }}>
+                          {s.parseInfo.linesWithAmounts - s.parseInfo.transactionsMatched} lines with amounts not matched
+                        </summary>
                         <div style={{ fontFamily: 'var(--mono)', fontSize: 10, background: 'var(--surface2)', padding: 10, borderRadius: 6, maxHeight: 200, overflowY: 'auto', lineHeight: 1.8 }}>
-                          {s.parseInfo.unmatchedSample.map((line, i) => (
-                            <div key={i} style={{ borderBottom: '1px solid var(--border)', padding: '2px 0' }}>{line}</div>
+                          {s.parseInfo.unmatchedSample.map((line, idx) => (
+                            <div key={idx} style={{ borderBottom: '1px solid var(--border)', padding: '2px 0' }}>{line}</div>
                           ))}
                         </div>
-                      </div>
+                      </details>
                     )}
 
                     <details style={{ fontSize: 11 }}>
-                      <summary style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 500, marginBottom: 8 }}>
-                        View Raw Extracted Text ({s.parseInfo.textLength.toLocaleString()} chars)
+                      <summary style={{ cursor: 'pointer', color: 'var(--blue)', fontWeight: 500 }}>
+                        Raw text ({s.parseInfo.textLength.toLocaleString()} chars)
                       </summary>
-                      <pre style={{ fontFamily: 'var(--mono)', fontSize: 10, background: 'var(--surface2)', padding: 10, borderRadius: 6, maxHeight: 400, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.6 }}>
+                      <pre style={{ fontFamily: 'var(--mono)', fontSize: 10, background: 'var(--surface2)', padding: 10, borderRadius: 6, maxHeight: 300, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.6, marginTop: 6 }}>
                         {s.parseInfo.rawTextPreview}
                       </pre>
                     </details>

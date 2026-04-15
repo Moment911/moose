@@ -108,7 +108,9 @@
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: var(--surface2);
+  min-height: 0;
 }
 
 /* Header */

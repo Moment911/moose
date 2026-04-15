@@ -40,10 +40,21 @@ export async function POST(request: NextRequest) {
 
     const { bank } = detectBank(text)
 
+    // Extract statement balances and date range
+    const beginBalMatch = text.match(/[Bb]eginning\s+[Bb]alance.*?\$?([\d,]+\.\d{2})/i)
+    const endBalMatch = text.match(/[Ee]nding\s+[Bb]alance.*?\$?([\d,]+\.\d{2})/i)
+    const periodMatch = text.match(/[Ss]tatement\s+[Pp]eriod.*?(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?).*?(?:through|to|-).*?(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/i)
+    const accountMatch = text.match(/[Aa]ccount\s*(?:[Nn]umber)?[:\s]*(\d{4,})/i)
+
+    const beginningBalance = beginBalMatch ? parseFloat(beginBalMatch[1].replace(/,/g, '')) : null
+    const endingBalance = endBalMatch ? parseFloat(endBalMatch[1].replace(/,/g, '')) : null
+    const detectedAccount = accountMatch ? `••${accountMatch[1].slice(-4)}` : accountNumber
+    const detectedRange = periodMatch ? `${periodMatch[1]} – ${periodMatch[2]}` : statementRange
+
     const meta = {
       file: fileName,
-      account: accountNumber,
-      range: statementRange,
+      account: detectedAccount,
+      range: detectedRange,
     }
 
     const transactions = parseStatement(text, meta, startId)
@@ -52,13 +63,19 @@ export async function POST(request: NextRequest) {
     const allLines = text.split('\n').filter((l: string) => l.trim().length > 0)
     const linesWithAmounts = allLines.filter((l: string) => /\$?\d[\d,]*\.\d{2}/.test(l))
 
+    // Compute debits and credits from parsed transactions
+    const totalDebits = transactions.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0)
+    const totalCredits = transactions.filter(t => t.amount >= 0).reduce((s, t) => s + t.amount, 0)
+    const debitCount = transactions.filter(t => t.amount < 0).length
+    const creditCount = transactions.filter(t => t.amount >= 0).length
+
     console.log(`[KotoFin] ${fileName}: bank=${bank}, ${allLines.length} lines, ${linesWithAmounts.length} with amounts, ${transactions.length} matched`)
 
     const statementFile = {
       name: fileName,
       bank,
-      account: accountNumber,
-      range: statementRange,
+      account: detectedAccount,
+      range: detectedRange,
       color: getBankColor(bank),
       txnCount: transactions.length,
     }
@@ -72,6 +89,12 @@ export async function POST(request: NextRequest) {
         totalLines: allLines.length,
         linesWithAmounts: linesWithAmounts.length,
         transactionsMatched: transactions.length,
+        debitCount,
+        creditCount,
+        totalDebits,
+        totalCredits,
+        beginningBalance,
+        endingBalance,
         unmatchedSample: linesWithAmounts
           .filter((line: string) => !transactions.some(t => line.includes(t.desc?.substring(0, 20) || '')))
           .slice(0, 20),
