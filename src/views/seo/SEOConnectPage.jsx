@@ -14,6 +14,7 @@ import toast from 'react-hot-toast'
 const SCOPES_BASIC = [
   'https://www.googleapis.com/auth/webmasters.readonly',
   'https://www.googleapis.com/auth/analytics.readonly',
+  'https://www.googleapis.com/auth/analytics.manage.accounts.readonly',
   'https://www.googleapis.com/auth/adwords',
   'https://www.googleapis.com/auth/business.manage',
   'https://www.googleapis.com/auth/userinfo.email',
