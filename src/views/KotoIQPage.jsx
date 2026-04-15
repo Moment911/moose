@@ -92,6 +92,9 @@ export default function KotoIQPage() {
   const [sortDir, setSortDir] = useState('desc')
   const [kwPage, setKwPage] = useState(0)
   const KW_LIMIT = 50
+  const [compKeyword, setCompKeyword] = useState('')
+  const [compAnalysis, setCompAnalysis] = useState(null)
+  const [compLoading, setCompLoading] = useState(false)
   const [gmb, setGmb] = useState(null)
   const [gmbLoading, setGmbLoading] = useState(false)
   const [draftingReview, setDraftingReview] = useState(null)
@@ -249,7 +252,7 @@ export default function KotoIQPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
+          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon size={14} /> {label}
@@ -669,6 +672,198 @@ export default function KotoIQPage() {
             {briefs.length === 0 && !activeBrief && !briefLoading && (
               <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
                 <div style={{ fontSize: 14, color: '#9ca3af' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ══ COMPETITORS TAB ══ */}
+        {clientId && tab === 'competitors' && (
+          <>
+            {/* Keyword input */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Target size={18} color={R} /> Competitor Page Analysis
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Enter a keyword to reverse-engineer the top-ranking pages — word count, headings, schema, FAQ, keyword placement, and Moz authority.</div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <input value={compKeyword} onChange={e => setCompKeyword(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && compKeyword) { setCompLoading(true); fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'analyze_competitors', client_id: clientId, keyword: compKeyword }) }).then(r => r.json()).then(res => { setCompAnalysis(res); setCompLoading(false) }).catch(() => setCompLoading(false)) } }}
+                  placeholder="e.g. emergency plumber boca raton" style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                <button onClick={() => { if (!compKeyword) return; setCompLoading(true); fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'analyze_competitors', client_id: clientId, keyword: compKeyword }) }).then(r => r.json()).then(res => { setCompAnalysis(res); setCompLoading(false) }).catch(() => setCompLoading(false)) }}
+                  disabled={compLoading || !compKeyword}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: compLoading || !compKeyword ? '#e5e7eb' : R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: compLoading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {compLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />}
+                  {compLoading ? 'Analyzing...' : 'Analyze'}
+                </button>
+              </div>
+              {/* Quick picks from striking distance */}
+              {dashboard?.top_opportunities?.filter(k => k.category === 'striking_distance').length > 0 && !compKeyword && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6 }}>Striking distance keywords:</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {dashboard.top_opportunities.filter(k => k.category === 'striking_distance').slice(0, 6).map((kw, i) => (
+                      <button key={i} onClick={() => setCompKeyword(kw.keyword)} style={{ padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: `1px solid ${AMB}30`, background: '#fff', color: AMB, cursor: 'pointer' }}>#{Math.round(kw.sc_position)} {kw.keyword}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {compLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#6b7280' }}>Fetching and analyzing competitor pages...</div></div>}
+
+            {/* Results */}
+            {compAnalysis && !compLoading && (
+              <>
+                {/* Page comparison table */}
+                {compAnalysis.analyses?.length > 0 && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Page-by-Page Comparison: "{compAnalysis.keyword}"</div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
+                        <thead>
+                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                            {['Page', 'Words', 'H2s', 'H3s', 'Schema', 'FAQ', 'Images', 'Int. Links', 'DA', 'PA', 'KW in Title', 'KW in H1'].map(h => (
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {compAnalysis.analyses.map((a, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: a.is_client ? T + '06' : 'transparent' }}>
+                              <td style={{ padding: '10px', fontSize: 12, fontWeight: a.is_client ? 800 : 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {a.is_client && <span style={{ color: T, marginRight: 4 }}>★</span>}{a.name}
+                              </td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{a.word_count?.toLocaleString()}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.h2_count}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.h3_count}</td>
+                              <td style={{ textAlign: 'center' }}>
+                                <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+                                  {(a.schemas || []).slice(0, 3).map((s, j) => <span key={j} style={{ fontSize: 8, padding: '2px 5px', borderRadius: 3, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>)}
+                                  {(!a.schemas || a.schemas.length === 0) && <span style={{ fontSize: 10, color: R }}>None</span>}
+                                </div>
+                              </td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: a.has_faq ? GRN : R }}>{a.has_faq ? `✓ ${a.faq_count}` : '✕'}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.image_count} <span style={{ fontSize: 9, color: '#9ca3af' }}>({a.images_with_alt} alt)</span></td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.internal_links}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 16, fontWeight: 900, color: (a.da || 0) >= 40 ? GRN : (a.da || 0) >= 20 ? AMB : R }}>{a.da || '—'}</td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.pa || '—'}</td>
+                              <td style={{ textAlign: 'center', color: a.keyword_in_title ? GRN : R, fontSize: 14 }}>{a.keyword_in_title ? '✓' : '✕'}</td>
+                              <td style={{ textAlign: 'center', color: a.keyword_in_h1 ? GRN : R, fontSize: 14 }}>{a.keyword_in_h1 ? '✓' : '✕'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* H2 comparison */}
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>H2 Heading Comparison</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${compAnalysis.analyses.length}, 1fr)`, gap: 12 }}>
+                        {compAnalysis.analyses.map((a, i) => (
+                          <div key={i}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: a.is_client ? T : '#6b7280', marginBottom: 6 }}>{a.is_client ? '★ ' : ''}{a.name}</div>
+                            {(a.h2s || []).map((h, j) => <div key={j} style={{ fontSize: 11, color: '#374151', marginBottom: 3, paddingLeft: 8, borderLeft: `2px solid ${a.is_client ? T : '#e5e7eb'}` }}>{h}</div>)}
+                            {(!a.h2s || a.h2s.length === 0) && <div style={{ fontSize: 11, color: '#d1d5db' }}>No H2s found</div>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Gap Analysis */}
+                {compAnalysis.gap_analysis && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Brain size={18} color={T} /> AI Competitive Gap Analysis
+                    </div>
+                    <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, marginBottom: 20, padding: '14px 18px', background: T + '06', borderRadius: 10, border: `1px solid ${T}20` }}>
+                      {compAnalysis.gap_analysis.summary}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                      {compAnalysis.gap_analysis.client_strengths?.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Your Strengths</div>
+                          {compAnalysis.gap_analysis.client_strengths.map((s, i) => <div key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}>✓ {s}</div>)}
+                        </div>
+                      )}
+                      {compAnalysis.gap_analysis.client_weaknesses?.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Gaps to Close</div>
+                          {compAnalysis.gap_analysis.client_weaknesses.map((w, i) => <div key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 4 }}>✕ {w}</div>)}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Priority actions */}
+                    {compAnalysis.gap_analysis.priority_actions?.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Priority Actions</div>
+                        {compAnalysis.gap_analysis.priority_actions.map((a, i) => {
+                          const impColor = { high: R, medium: AMB, low: GRN }[a.impact] || '#6b7280'
+                          return (
+                            <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb', borderLeft: `3px solid ${impColor}`, marginBottom: 6 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: impColor + '15', color: impColor, textTransform: 'uppercase' }}>{a.impact}</span>
+                                <span style={{ fontSize: 9, color: '#9ca3af' }}>{a.effort}</span>
+                              </div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{a.action}</div>
+                              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{a.detail}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Content targets */}
+                    {compAnalysis.gap_analysis.content_targets && (
+                      <div style={{ padding: '16px 20px', borderRadius: 10, background: R + '06', border: `1px solid ${R}15` }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>Content Targets to Win</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                          {[
+                            ['Word Count', `${compAnalysis.gap_analysis.content_targets.target_word_count?.toLocaleString()}+`],
+                            ['H2 Sections', compAnalysis.gap_analysis.content_targets.required_h2_sections?.length || 0],
+                            ['FAQ Questions', compAnalysis.gap_analysis.content_targets.faq_count_target || 0],
+                            ['Images', compAnalysis.gap_analysis.content_targets.image_count_target || 0],
+                          ].map(([l, v]) => (
+                            <div key={l} style={{ textAlign: 'center' }}>
+                              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: R }}>{v}</div>
+                              <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{l}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {compAnalysis.gap_analysis.content_targets.required_schema?.length > 0 && (
+                          <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            {compAnalysis.gap_analysis.content_targets.required_schema.map((s, i) => (
+                              <span key={i} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Winning formula */}
+                    {compAnalysis.gap_analysis.winning_formula && (
+                      <div style={{ marginTop: 16, padding: '14px 18px', background: '#f0fdf4', borderRadius: 10, border: `1px solid #bbf7d0`, fontSize: 14, fontWeight: 600, color: '#166534', lineHeight: 1.6 }}>
+                        <strong>Winning Formula:</strong> {compAnalysis.gap_analysis.winning_formula}
+                      </div>
+                    )}
+
+                    {/* Generate brief button */}
+                    <button onClick={() => { setBriefKeyword(compAnalysis.keyword); setTab('briefs') }}
+                      style={{ marginTop: 16, padding: '12px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Zap size={14} /> Generate Content Brief for "{compAnalysis.keyword}"
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {!compAnalysis && !compLoading && (
+              <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
+                <div style={{ fontSize: 14, color: '#9ca3af' }}>Enter a keyword above to analyze how competitors' pages are built and find your gaps.</div>
               </div>
             )}
           </>

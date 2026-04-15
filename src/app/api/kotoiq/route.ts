@@ -921,5 +921,194 @@ Return ONLY valid JSON array:
     }
   }
 
+  // ── COMPETITOR PAGE ANALYSIS: Reverse-engineer top-ranking pages ────
+  if (action === 'analyze_competitors') {
+    const { client_id, keyword } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    // Get client info
+    const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
+    const clientDomain = client?.website ? new URL(client.website.startsWith('http') ? client.website : `https://${client.website}`).hostname : ''
+
+    // Get UKF data for this keyword
+    const fp = fingerprint(keyword)
+    const { data: kwData } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
+
+    // Google search to find top ranking URLs (use Places text search as proxy for organic)
+    // In production, DataForSEO SERP API would be used here
+    // For now, we fetch the keyword's SC top page and competitor sites from intel data
+    const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
+      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+    const competitors = latestReport?.report_data?.competitors || []
+
+    // Fetch and analyze competitor pages
+    const analyses: any[] = []
+
+    // Analyze client's own page first (if ranking)
+    if (kwData?.sc_top_page) {
+      const analysis = await analyzePageForKeyword(kwData.sc_top_page, keyword)
+      if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain })
+    }
+
+    // Analyze competitor websites (fetch homepage or likely service page)
+    for (const comp of competitors.slice(0, 3)) {
+      if (!comp.website) continue
+      try {
+        // Try to find a relevant page on competitor site
+        const compUrl = comp.website.startsWith('http') ? comp.website : `https://${comp.website}`
+        const analysis = await analyzePageForKeyword(compUrl, keyword)
+        if (analysis) analyses.push({ ...analysis, is_client: false, name: comp.name })
+      } catch { continue }
+    }
+
+    // Get Moz PA for all analyzed URLs
+    const mozKey = process.env.MOZ_API_KEY || ''
+    if (mozKey && analyses.length > 0) {
+      try {
+        const targets = analyses.map(a => { try { return new URL(a.url).hostname } catch { return null } }).filter(Boolean)
+        const mozRes = await fetch('https://lsapi.seomoz.com/v2/url_metrics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${mozKey}` },
+          body: JSON.stringify({ targets, url_metrics_columns: ['domain_authority', 'page_authority', 'spam_score', 'root_domains_to_root_domain'] }),
+          signal: AbortSignal.timeout(10000),
+        })
+        if (mozRes.ok) {
+          const mozData = await mozRes.json()
+          analyses.forEach((a, i) => {
+            const m = mozData.results?.[i]
+            if (m) { a.da = m.domain_authority || 0; a.pa = m.page_authority || 0; a.spam_score = m.spam_score || 0; a.linking_domains = m.root_domains_to_root_domain || 0 }
+          })
+        }
+      } catch { /* skip moz */ }
+    }
+
+    // AI gap analysis
+    let gapAnalysis = null
+    if (analyses.length > 1) {
+      try {
+        const gapPrompt = `Analyze the competitive gap for the keyword "${keyword}".
+
+CLIENT PAGE: ${analyses.find(a => a.is_client) ? JSON.stringify(analyses.find(a => a.is_client)) : 'No page exists yet'}
+
+COMPETITOR PAGES:
+${JSON.stringify(analyses.filter(a => !a.is_client))}
+
+Return ONLY valid JSON:
+{
+  "summary": "2-3 sentence competitive landscape summary",
+  "client_strengths": ["What client page does well"],
+  "client_weaknesses": ["What's missing vs competitors"],
+  "priority_actions": [
+    {"action": "specific action", "impact": "high|medium|low", "effort": "quick|moderate|major", "detail": "why this matters"}
+  ],
+  "content_targets": {
+    "target_word_count": number,
+    "required_h2_sections": ["section topics competitors cover"],
+    "required_schema": ["schema types competitors use"],
+    "faq_count_target": number,
+    "image_count_target": number
+  },
+  "winning_formula": "1-2 sentence description of what it takes to rank #1 for this keyword"
+}`
+
+        const msg = await ai.messages.create({
+          model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+          system: 'You are KotoIQ competitive analyst. Return ONLY valid JSON.',
+          messages: [{ role: 'user', content: gapPrompt }],
+        })
+        void logTokenUsage({ feature: 'kotoiq_competitor_analysis', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+        const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+        gapAnalysis = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+      } catch { /* skip AI analysis */ }
+    }
+
+    return NextResponse.json({ keyword, analyses, gap_analysis: gapAnalysis, keyword_data: kwData })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+}
+
+// ── Page analyzer helper ────────────────────────────────────────────────────
+async function analyzePageForKeyword(url: string, keyword: string) {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) return null
+    const html = await res.text()
+    const lc = html.toLowerCase()
+    const kwLc = keyword.toLowerCase()
+
+    // Word count (strip tags)
+    const textOnly = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    const wordCount = textOnly.split(/\s+/).length
+
+    // Headings
+    const h1s = [...html.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)].map(m => m[1].replace(/<[^>]+>/g, '').trim())
+    const h2s = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)].map(m => m[1].replace(/<[^>]+>/g, '').trim())
+    const h3s = [...html.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>/gi)].map(m => m[1].replace(/<[^>]+>/g, '').trim())
+
+    // Title + meta desc
+    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+    const title = titleMatch?.[1]?.trim() || ''
+    const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)/i)
+      || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i)
+    const metaDesc = metaDescMatch?.[1] || ''
+
+    // Schema detection
+    const schemas: string[] = []
+    const ldMatches = html.matchAll(/<script[^>]*type=['"]application\/ld\+json['"][^>]*>([\s\S]*?)<\/script>/gi)
+    for (const m of ldMatches) {
+      try { const p = JSON.parse(m[1]); if (p['@type']) schemas.push(String(p['@type'])) } catch {}
+    }
+
+    // FAQ detection
+    const hasFAQ = lc.includes('faq') || lc.includes('frequently asked') || schemas.includes('FAQPage')
+    const faqCount = [...html.matchAll(/<(dt|summary)[^>]*>/gi)].length || (hasFAQ ? h3s.filter(h => h.includes('?')).length : 0)
+
+    // Images
+    const images = [...html.matchAll(/<img[^>]+>/gi)]
+    const imagesWithAlt = images.filter(m => /alt=["'][^"']+["']/i.test(m[0]))
+
+    // Internal links
+    const domain = new URL(url).hostname
+    const internalLinks = [...html.matchAll(/href=["']([^"']+)["']/gi)]
+      .filter(m => { try { return new URL(m[1], url).hostname === domain } catch { return m[1].startsWith('/') } }).length
+
+    // Keyword in key places
+    const kwInTitle = title.toLowerCase().includes(kwLc)
+    const kwInH1 = h1s.some(h => h.toLowerCase().includes(kwLc))
+    const kwInFirst100 = textOnly.slice(0, 500).toLowerCase().includes(kwLc)
+    const kwInMeta = metaDesc.toLowerCase().includes(kwLc)
+
+    // Opening paragraph length (for featured snippet)
+    const firstPara = textOnly.slice(0, 300).split(/[.!?]/).slice(0, 2).join('. ').trim()
+    const firstParaWords = firstPara.split(/\s+/).length
+
+    return {
+      url,
+      word_count: wordCount,
+      title: title.slice(0, 80),
+      title_length: title.length,
+      meta_description: metaDesc.slice(0, 180),
+      meta_desc_length: metaDesc.length,
+      h1: h1s[0] || null,
+      h1_count: h1s.length,
+      h2_count: h2s.length,
+      h2s: h2s.slice(0, 10),
+      h3_count: h3s.length,
+      schemas,
+      has_faq: hasFAQ,
+      faq_count: faqCount,
+      image_count: images.length,
+      images_with_alt: imagesWithAlt.length,
+      internal_links: internalLinks,
+      keyword_in_title: kwInTitle,
+      keyword_in_h1: kwInH1,
+      keyword_in_first_100: kwInFirst100,
+      keyword_in_meta: kwInMeta,
+      first_para_words: firstParaWords,
+    }
+  } catch { return null }
 }
