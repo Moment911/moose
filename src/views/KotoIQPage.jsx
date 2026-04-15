@@ -338,21 +338,28 @@ export default function KotoIQPage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: FB }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#ffffff', fontFamily: FB }}>
       <Sidebar />
-      <div style={{ flex: 1, padding: '24px 32px', maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ flex: 1, padding: '28px 40px', maxWidth: 1200, margin: '0 auto', overflowY: 'auto' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
-            <div style={{ fontSize: 13, color: '#6b7280' }}>AI-Powered Search Intelligence</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={20} color="#fff" />
+              </div>
+              <div>
+                <div style={{ fontFamily: FH, fontSize: 26, fontWeight: 900, color: BLK, letterSpacing: '-.03em' }}>KotoIQ</div>
+                <div style={{ fontSize: 13, color: '#6b7280' }}>AI-Powered Search Intelligence</div>
+              </div>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <select value={clientId} onChange={e => { setClientId(e.target.value); setDashboard(null) }}
-              style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 600, background: '#fff', cursor: 'pointer', minWidth: 180 }}>
+              style={{ padding: '10px 18px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, fontWeight: 700, fontFamily: FH, background: '#fff', cursor: 'pointer', minWidth: 220, color: clientId ? BLK : '#9ca3af' }}>
               <option value="">Select client...</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.website ? '' : ' (no URL)'}</option>)}
             </select>
             {clientId && (
               <button onClick={() => {
