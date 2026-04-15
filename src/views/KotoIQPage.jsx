@@ -444,7 +444,7 @@ export default function KotoIQPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                    {['Keyword', 'Opp', 'Rank P.', 'Position', 'SC Clicks', 'Volume', 'Ads $', 'Conv', 'CPC', 'QS', 'Cat', 'Intent'].map(h => (
+                    {['Keyword', 'Opp', 'Rank P.', 'Position', 'SC Clicks', 'Volume', 'Ads $', 'Conv', 'CPC', 'QS', 'Cat', 'Intent', ''].map(h => (
                       <th key={h} style={{ padding: '8px 8px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
@@ -470,6 +470,14 @@ export default function KotoIQPage() {
                         <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH, color: kw.ads_quality_score >= 7 ? GRN : kw.ads_quality_score >= 5 ? AMB : kw.ads_quality_score ? R : '#d1d5db' }}>{kw.ads_quality_score || '—'}</td>
                         <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
                         <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280', textTransform: 'uppercase' }}>{kw.intent?.slice(0, 4)}</span></td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                            <button title="Generate Brief" onClick={() => { setBriefKeyword(kw.keyword); setTab('briefs') }}
+                              style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Zap size={10} color={T} /></button>
+                            <button title="Analyze Competitors" onClick={() => { setCompKeyword(kw.keyword); setTab('competitors') }}
+                              style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Target size={10} color={R} /></button>
+                          </div>
+                        </td>
                       </tr>
                     )
                   })}
@@ -548,13 +556,78 @@ export default function KotoIQPage() {
 
             {/* Active brief viewer */}
             {activeBrief && (
-              <div style={card}>
+              <div style={card} id="brief-printable">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{activeBrief.h1}</div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{activeBrief.target_url} · {activeBrief.target_word_count} words</div>
                   </div>
-                  <button onClick={() => setActiveBrief(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Close</button>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    {/* Status workflow */}
+                    {activeBrief.id && (
+                      <select value={activeBrief.status || 'draft'} onChange={async e => {
+                        const newStatus = e.target.value
+                        await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'update_brief', id: activeBrief.id, status: newStatus }) })
+                        setActiveBrief(prev => ({ ...prev, status: newStatus }))
+                        loadBriefs()
+                        toast.success(`Brief marked as ${newStatus}`)
+                      }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>
+                        <option value="draft">Draft</option>
+                        <option value="approved">Approved</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="published">Published</option>
+                        <option value="tracking">Tracking</option>
+                      </select>
+                    )}
+                    {/* Copy as text */}
+                    <button onClick={() => {
+                      const b = activeBrief
+                      const text = [
+                        `CONTENT BRIEF: ${b.h1}`,
+                        `URL: ${b.target_url}`,
+                        `Word Count Target: ${b.target_word_count}`,
+                        '',
+                        `TITLE TAG: ${b.title_tag}`,
+                        `META DESCRIPTION: ${b.meta_description}`,
+                        '',
+                        'OUTLINE:',
+                        ...(b.outline || []).flatMap(s => [
+                          `  H2: ${s.h2} (~${s.word_count_target} words)`,
+                          ...(s.h3s || []).map(h => `    H3: ${h}`),
+                          ...(s.key_points || []).map(p => `    • ${p}`),
+                          '',
+                        ]),
+                        'SCHEMA: ' + (b.schema_types || []).join(', '),
+                        '',
+                        'FAQ QUESTIONS:',
+                        ...(b.faq_questions || []).map(f => `  Q: ${f.question}\n  A: ${f.answer_guidance}`),
+                        '',
+                        'TARGET ENTITIES: ' + (b.target_entities || []).join(', '),
+                        '',
+                        b.aeo_optimization ? `AEO: Target ${b.aeo_optimization.target_snippet_type} snippet. AI Overview: ${b.aeo_optimization.ai_overview_eligible ? 'Yes' : 'No'}` : '',
+                        b.content_guidelines ? `TONE: ${b.content_guidelines.tone}` : '',
+                        b.ranking_timeline ? `TIMELINE: ${b.ranking_timeline}` : '',
+                      ].filter(Boolean).join('\n')
+                      navigator.clipboard.writeText(text)
+                      toast.success('Brief copied to clipboard!')
+                    }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Download size={12} /> Copy
+                    </button>
+                    {/* Print/PDF */}
+                    <button onClick={() => {
+                      const el = document.getElementById('brief-printable')
+                      if (!el) return
+                      const win = window.open('', '_blank')
+                      if (!win) return
+                      win.document.write(`<html><head><title>Content Brief: ${activeBrief.h1}</title><style>body{font-family:system-ui;padding:40px;max-width:800px;margin:0 auto;color:#111}h1{font-size:22px}h2{font-size:16px;color:#666;margin-top:24px}table{border-collapse:collapse;width:100%}td,th{padding:8px;border:1px solid #ddd;text-align:left;font-size:13px}.tag{display:inline-block;padding:2px 8px;border-radius:4px;background:#f3f4f6;font-size:11px;margin:2px}</style></head><body>${el.innerHTML}</body></html>`)
+                      win.document.close()
+                      win.print()
+                    }} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Download size={12} /> Print/PDF
+                    </button>
+                    <button onClick={() => setActiveBrief(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Close</button>
+                  </div>
                 </div>
 
                 {/* Title + Meta */}
