@@ -1059,12 +1059,50 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </div>
               )}
             </div>
+
+            {/* Content Variant Modules — KP System */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LayoutGrid size={18} color={AMB} /> Content Variant Modules
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.6 }}>
+                Each page section has multiple content variants. The WP plugin automatically rotates variants every N page views, signaling freshness to Google and triggering re-indexing.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { id: 'intro', label: 'Introduction', desc: 'Opening headline + value proposition', variants: 3, icon: '📝' },
+                  { id: 'what_is', label: 'What Is This Service', desc: 'Educational explainer content', variants: 2, icon: '❓' },
+                  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals + differentiators', variants: 2, icon: '✅' },
+                  { id: 'services', label: 'Services Offered', desc: 'Service breakdown with descriptions', variants: 2, icon: '📋' },
+                  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal city/area content', variants: 2, icon: '📍' },
+                  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works', variants: 2, icon: '⚙️' },
+                  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews + testimonials', variants: 2, icon: '⭐' },
+                  { id: 'comparison', label: 'Comparison / vs.', desc: 'Pro vs DIY, local vs national', variants: 2, icon: '⚖️' },
+                  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized with schema markup', variants: 2, icon: '💬' },
+                  { id: 'internal_links', label: 'Internal Links', desc: 'Service area + related page links', variants: 2, icon: '🔗' },
+                  { id: 'cta', label: 'Call to Action', desc: 'Conversion-focused closing section', variants: 2, icon: '📞' },
+                ].map(mod => (
+                  <div key={mod.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff' }}>
+                    <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
+                      <div style={{ fontSize: 12, color: '#6b7280' }}>{mod.desc}</div>
+                    </div>
+                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: T + '12', color: T }}>{mod.variants} variants</span>
+                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>Auto-rotate</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 12, color: '#92400e', lineHeight: 1.6 }}>
+                <strong>How rotation works:</strong> After publishing via the WP plugin, each section's variants rotate every 10 page views — updating <code>last_modified</code> and pinging Google/Bing for re-indexing.
+              </div>
+            </div>
           </>
         )}
 
         {/* ══ AEO RESEARCH TAB ══ */}
         {clientId && tab === 'aeo' && (
-          <AEOResearchTab clientId={clientId} />
+          <AEOResearchTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientIndustry={clients.find(c => c.id === clientId)?.primary_service} keywords={keywords} />
         )}
 
         {/* ══ PAGE BUILDER TAB ══ */}
@@ -1877,53 +1915,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </>
             )}
 
-            {/* Content Variant Modules — KP System */}
-            <div style={card}>
-              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <LayoutGrid size={18} color={AMB} /> Content Variant Modules
-              </div>
-              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.6 }}>
-                Each page section has multiple content variants. The WP plugin automatically rotates variants every N page views, signaling freshness to Google and triggering re-indexing. Select which variants to include for each section.
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  { id: 'intro', label: 'Introduction', desc: 'Opening section with service + location headline', variants: 3, icon: '📝' },
-                  { id: 'what_is', label: 'What Is This Service', desc: 'Educational content explaining the service', variants: 2, icon: '❓' },
-                  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals and differentiators', variants: 2, icon: '✅' },
-                  { id: 'services', label: 'Services Offered', desc: 'Breakdown of specific services', variants: 2, icon: '📋' },
-                  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal content referencing the city', variants: 2, icon: '📍' },
-                  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works', variants: 2, icon: '⚙️' },
-                  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews, testimonials, credibility', variants: 2, icon: '⭐' },
-                  { id: 'comparison', label: 'Comparison / vs.', desc: 'Position against competitors or DIY', variants: 2, icon: '⚖️' },
-                  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized FAQ with schema markup', variants: 2, icon: '💬' },
-                  { id: 'internal_links', label: 'Internal Links', desc: 'Related pages and service area links', variants: 2, icon: '🔗' },
-                  { id: 'cta', label: 'Call to Action', desc: 'Closing section driving conversions', variants: 2, icon: '📞' },
-                ].map(mod => (
-                  <div key={mod.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-                    borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff',
-                  }}>
-                    <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280' }}>{mod.desc}</div>
-                    </div>
-                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: T + '12', color: T }}>
-                      {mod.variants} variants
-                    </span>
-                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>
-                      Auto-rotate
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 13, color: '#92400e', lineHeight: 1.6 }}>
-                <strong>How rotation works:</strong> After publishing to WordPress via the KP plugin, each section's variants rotate every 10 page views. This updates the page's <code>last_modified</code> timestamp and pings Google/Bing for re-indexing — signaling freshness without manual content updates.
-              </div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 14, textAlign: 'center' }}>
-                All variant editing and publishing happens right here — no separate page needed.
-              </div>
-            </div>
+            {/* Content Variant Modules moved to PageIQ (briefs) tab */}
           </>
         )}
 
@@ -3234,10 +3226,33 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 /* ══════════════════════════════════════════════════════════════════════════
    AEO RESEARCH TAB — Search Google, extract AI Overview + gaps + opportunities
    ══════════════════════════════════════════════════════════════════════════ */
-function AEOResearchTab({ clientId }) {
+function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: trackedKeywords }) {
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
+
+  // Generate AI suggestions based on client's business
+  const suggestedSearches = (() => {
+    const suggestions = []
+    // From tracked keywords (top by volume)
+    if (trackedKeywords?.length > 0) {
+      trackedKeywords
+        .filter(k => k.kp_monthly_volume > 50)
+        .sort((a, b) => (b.kp_monthly_volume || 0) - (a.kp_monthly_volume || 0))
+        .slice(0, 6)
+        .forEach(k => suggestions.push(k.keyword))
+    }
+    // From client industry
+    if (clientIndustry && suggestions.length < 8) {
+      const industry = clientIndustry.toLowerCase()
+      suggestions.push(`${industry} near me`, `best ${industry} in my area`, `how much does ${industry} cost`, `${industry} reviews`)
+    }
+    // From client name
+    if (clientName && suggestions.length < 10) {
+      suggestions.push(`${clientName}`, `${clientName} reviews`)
+    }
+    return [...new Set(suggestions)].slice(0, 10)
+  })()
 
   const runResearch = async () => {
     if (!query.trim()) return
@@ -3278,6 +3293,24 @@ function AEOResearchTab({ clientId }) {
             {loading ? 'Searching...' : 'Research'}
           </button>
         </div>
+        {/* AI Suggested Searches */}
+        {suggestedSearches.length > 0 && !query && !result && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Suggested searches for {clientName || 'this business'}</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {suggestedSearches.map((s, i) => (
+                <button key={i} onClick={() => { setQuery(s); }} style={{
+                  padding: '6px 14px', borderRadius: 20, border: '1px solid #e5e7eb', background: '#fff',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', color: BLK, transition: 'all .12s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = T; e.currentTarget.style.color = T }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = BLK }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {loading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /><div style={{ marginTop: 12, fontSize: 13, color: '#6b7280' }}>Searching Google + analyzing AI Overview...</div></div>}
