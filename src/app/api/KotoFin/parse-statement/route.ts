@@ -1,67 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseStatement, detectBank } from '@/lib/KotoFin/parsers'
-import { join } from 'path'
-
-// Polyfill DOMMatrix for pdfjs-dist in Node.js serverless
-if (typeof globalThis.DOMMatrix === 'undefined') {
-  class DOMMatrixPolyfill {
-    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0
-    m11 = 1; m12 = 0; m13 = 0; m14 = 0
-    m21 = 0; m22 = 1; m23 = 0; m24 = 0
-    m31 = 0; m32 = 0; m33 = 1; m34 = 0
-    m41 = 0; m42 = 0; m43 = 0; m44 = 1
-    is2D = true; isIdentity = true
-
-    constructor(init?: string | number[]) {
-      if (Array.isArray(init) && init.length === 6) {
-        this.a = this.m11 = init[0]
-        this.b = this.m12 = init[1]
-        this.c = this.m21 = init[2]
-        this.d = this.m22 = init[3]
-        this.e = this.m41 = init[4]
-        this.f = this.m42 = init[5]
-        this.isIdentity = false
-      }
-    }
-
-    inverse() { return new DOMMatrixPolyfill() }
-    multiply() { return new DOMMatrixPolyfill() }
-    translate() { return new DOMMatrixPolyfill() }
-    scale() { return new DOMMatrixPolyfill() }
-    rotate() { return new DOMMatrixPolyfill() }
-    transformPoint(p: { x: number; y: number }) { return p }
-    toFloat32Array() { return new Float32Array(16) }
-    toFloat64Array() { return new Float64Array(16) }
-    toString() { return 'matrix(1, 0, 0, 1, 0, 0)' }
-
-    static fromMatrix() { return new DOMMatrixPolyfill() }
-    static fromFloat32Array() { return new DOMMatrixPolyfill() }
-    static fromFloat64Array() { return new DOMMatrixPolyfill() }
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(globalThis as any).DOMMatrix = DOMMatrixPolyfill
-}
-
-if (typeof globalThis.Path2D === 'undefined') {
-  class Path2DPolyfill {
-    moveTo() {}
-    lineTo() {}
-    bezierCurveTo() {}
-    quadraticCurveTo() {}
-    arc() {}
-    arcTo() {}
-    closePath() {}
-    rect() {}
-    ellipse() {}
-    addPath() {}
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(globalThis as any).Path2D = Path2DPolyfill
-}
-
-// Force Vercel to include the worker file in the serverless bundle
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const workerPath = join(require.resolve('pdfjs-dist/package.json').replace('/package.json', ''), 'legacy/build/pdf.worker.mjs')
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,23 +19,12 @@ export async function POST(request: NextRequest) {
     if (fileName.toLowerCase().endsWith('.csv')) {
       text = await file.text()
     } else if (fileName.toLowerCase().endsWith('.pdf')) {
-      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath
-      const arrayBuffer = await file.arrayBuffer()
-      const uint8 = new Uint8Array(arrayBuffer)
-
-      const doc = await pdfjsLib.getDocument({ data: uint8, useSystemFonts: true }).promise
-      const pages: string[] = []
-
-      for (let i = 1; i <= doc.numPages; i++) {
-        const page = await doc.getPage(i)
-        const content = await page.getTextContent()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pageText = content.items.map((item: any) => item.str || '').join(' ')
-        pages.push(pageText)
-      }
-
-      text = pages.join('\n')
+      // pdf-parse v1 — simple function, no workers, no DOM needed
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require('pdf-parse')
+      const buffer = Buffer.from(await file.arrayBuffer())
+      const result = await pdfParse(buffer)
+      text = result.text || ''
     } else {
       text = await file.text()
     }

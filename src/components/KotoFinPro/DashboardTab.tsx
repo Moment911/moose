@@ -5,7 +5,7 @@ import { Transaction, StatementFile, TaxProfile, CompanyProfile, KotoFinAction }
 import { fmtCurrency, getTransactionTotals } from './KotoFin.utils'
 import {
   Building2, FileText, CheckCircle2, Circle, ArrowRight,
-  DollarSign, TrendingUp, Receipt, AlertTriangle, Briefcase,
+  DollarSign, TrendingUp, Receipt, AlertTriangle, Briefcase, Trash2,
 } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
@@ -139,6 +139,28 @@ export default function DashboardTab({ transactions, files, taxProfile, companyP
           )
         })}
       </div>
+
+      {/* Clear all data */}
+      {transactions.length > 0 && (
+        <div className={styles.card} style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>
+              {transactions.length} transactions across {files.length} statements
+            </div>
+            <button
+              className={`${styles.btn} ${styles.btnSmall} ${styles.btnRed}`}
+              onClick={() => {
+                if (confirm('Delete ALL transactions and statements for this company? This cannot be undone.')) {
+                  dispatch({ type: 'SET_TRANSACTIONS', payload: [] })
+                  dispatch({ type: 'SET_FILES', payload: [] })
+                }
+              }}
+            >
+              <Trash2 size={12} /> Clear All Data
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Uncategorized warning */}
       {totals.uncategorized > 0 && (
