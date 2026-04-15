@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, Dispatch } from 'react'
 import { Transaction, StatementFile, KotoFinAction } from './KotoFin.types'
 import { loadDemoData, BANK_COLORS } from './KotoFin.constants'
 import { categorize } from './KotoFin.utils'
-import { Upload, FileText, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { Upload, FileText, AlertCircle, CheckCircle2, Loader2, Trash2 } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 
 interface UploadTabProps {
@@ -163,6 +163,18 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
     }
   }, [transactions, dispatch])
 
+  function handleDeleteStatement(fileName: string) {
+    // Remove all transactions tied to this statement
+    const remaining = transactions.filter(t => t.file !== fileName)
+    dispatch({ type: 'SET_TRANSACTIONS', payload: remaining })
+    // Remove the file from the file list
+    const remainingFiles = files.filter(f => f.name !== fileName)
+    dispatch({ type: 'SET_FILES', payload: remainingFiles })
+    // Remove from processed hashes so it can be re-uploaded if needed
+    processedHashes.current.delete(fileName)
+    setStatuses(prev => [...prev, { file: fileName, status: 'success', message: 'Statement and all associated transactions deleted' }])
+  }
+
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     setDragging(false)
@@ -250,17 +262,27 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
       {files.length > 0 && (
         <div className={styles.fileList}>
           <div className={styles.cardHeader}>Imported Statements</div>
-          {files.map(f => (
-            <div key={f.name} className={styles.fileItem}>
-              <div className={styles.fileDot} style={{ background: f.color || BANK_COLORS[f.bank] || '#888' }} />
-              <div className={styles.fileInfo}>
-                <div className={styles.fileName}>{f.name}</div>
-                <div className={styles.fileMeta}>
-                  {f.bank} {f.account} &middot; {f.range} &middot; {f.txnCount} transactions
+          {files.map(f => {
+            const linkedTxns = transactions.filter(t => t.file === f.name).length
+            return (
+              <div key={f.name} className={styles.fileItem}>
+                <div className={styles.fileDot} style={{ background: f.color || BANK_COLORS[f.bank] || '#888' }} />
+                <div className={styles.fileInfo}>
+                  <div className={styles.fileName}>{f.name}</div>
+                  <div className={styles.fileMeta}>
+                    {f.bank} {f.account} &middot; {f.range} &middot; {linkedTxns} transactions
+                  </div>
                 </div>
+                <button
+                  className={`${styles.btn} ${styles.btnSmall} ${styles.btnRed}`}
+                  onClick={() => handleDeleteStatement(f.name)}
+                  title={`Delete ${f.name} and ${linkedTxns} linked transactions`}
+                >
+                  <Trash2 size={12} /> Delete
+                </button>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
