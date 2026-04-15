@@ -111,6 +111,12 @@ export default function KotoIQPage() {
   const [gmbLoading, setGmbLoading] = useState(false)
   const [draftingReview, setDraftingReview] = useState(null)
   const [reviewDraft, setReviewDraft] = useState('')
+  const [gridKw, setGridKw] = useState('')
+  const [gridBiz, setGridBiz] = useState('')
+  const [gridLat, setGridLat] = useState('')
+  const [gridLng, setGridLng] = useState('')
+  const [gridRunning, setGridRunning] = useState(false)
+  const [gridResult, setGridResult] = useState(null)
   const [gmbPosts, setGmbPosts] = useState([])
   const [generatingPosts, setGeneratingPosts] = useState(false)
   const [briefs, setBriefs] = useState([])
@@ -2033,13 +2039,6 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
                     {/* Live Grid Scan Form */}
                     {(() => {
-                      const [gridKw, setGridKw] = useState('')
-                      const [gridBiz, setGridBiz] = useState(g.name || '')
-                      const [gridLat, setGridLat] = useState('')
-                      const [gridLng, setGridLng] = useState('')
-                      const [gridRunning, setGridRunning] = useState(false)
-                      const [gridResult, setGridResult] = useState(null)
-
                       const runGrid = async () => {
                         if (!gridKw || !gridBiz || !gridLat || !gridLng) { toast.error('Fill in all fields'); return }
                         setGridRunning(true)
