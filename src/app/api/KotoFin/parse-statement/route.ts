@@ -78,10 +78,12 @@ export async function POST(request: NextRequest) {
       text = await file.text()
     } else if (fileName.toLowerCase().endsWith('.pdf')) {
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+      // Disable worker — runs inline, avoids missing worker file on serverless
+      pdfjsLib.GlobalWorkerOptions.workerSrc = ''
       const arrayBuffer = await file.arrayBuffer()
       const uint8 = new Uint8Array(arrayBuffer)
 
-      const doc = await pdfjsLib.getDocument({ data: uint8, useSystemFonts: true }).promise
+      const doc = await pdfjsLib.getDocument({ data: uint8, useSystemFonts: true, isEvalSupported: false, useWorkerFetch: false, disableAutoFetch: true }).promise
       const pages: string[] = []
 
       for (let i = 1; i <= doc.numPages; i++) {
