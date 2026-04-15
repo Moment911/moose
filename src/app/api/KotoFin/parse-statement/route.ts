@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer())
       const result = await pdfParse(buffer)
       text = result.text || ''
+      console.log(`[KotoFin] PDF parsed: ${fileName}, ${result.numpages} pages, ${text.length} chars extracted`)
     } else {
       text = await file.text()
     }
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     const transactions = parseStatement(text, meta, startId)
+    console.log(`[KotoFin] Bank: ${bank}, Transactions found: ${transactions.length}`)
 
     const statementFile = {
       name: fileName,
@@ -56,7 +58,11 @@ export async function POST(request: NextRequest) {
       txnCount: transactions.length,
     }
 
-    return NextResponse.json({ transactions, meta: statementFile })
+    return NextResponse.json({
+      transactions,
+      meta: statementFile,
+      debug: { pages: fileName.endsWith('.pdf') ? 'see logs' : 'n/a', textLength: text.length, bank },
+    })
   } catch (error) {
     console.error('Parse error:', error)
     return NextResponse.json(

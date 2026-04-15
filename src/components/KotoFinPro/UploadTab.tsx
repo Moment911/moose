@@ -169,7 +169,8 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
       }
 
       if (!data.transactions?.length) {
-        updateStatus(id, { status: 'error', message: 'PDF parsed but 0 transactions found. Bank format may not be recognized, or PDF is scanned.' })
+        const debugInfo = data.debug ? ` (${data.debug.textLength} chars extracted, detected as: ${data.debug.bank})` : ''
+        updateStatus(id, { status: 'error', message: `PDF parsed but 0 transactions matched. Bank: ${data.debug?.bank || 'Unknown'}. The statement format may need a custom parser.${debugInfo}` })
         return null
       }
 
@@ -214,12 +215,26 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
         </div>
       </div>
 
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.csv"
+        multiple={true}
+        style={{ display: 'none' }}
+        onChange={e => {
+          if (e.target.files && e.target.files.length > 0) handleFiles(e.target.files)
+          e.target.value = ''
+        }}
+      />
       <div
         className={`${styles.dropzone} ${dragging ? styles.dropzoneActive : ''}`}
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
-        onClick={() => !processing && fileRef.current?.click()}
+        onClick={e => {
+          e.stopPropagation()
+          if (!processing) fileRef.current?.click()
+        }}
         style={processing ? { opacity: 0.5, pointerEvents: 'none' } : {}}
       >
         <div className={styles.dropzoneIcon}>
@@ -229,19 +244,8 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
           {processing ? 'Processing files...' : 'Drop PDF or CSV bank statements here'}
         </div>
         <div className={`${styles.textSmall} ${styles.textDim}`} style={{ marginTop: 8 }}>
-          Chase, Capital One, Navy Federal, BofA, Citibank, Wells Fargo, Amex, US Bank, PNC, TD Bank, Discover, and CSV
+          Select multiple files at once. Supports Chase, Capital One, Navy Federal, BofA, Citibank, Wells Fargo, Amex, US Bank, PNC, TD Bank, Discover, and CSV.
         </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.csv"
-          multiple
-          style={{ display: 'none' }}
-          onChange={e => {
-            if (e.target.files) handleFiles(e.target.files)
-            e.target.value = ''
-          }}
-        />
       </div>
 
       {statuses.length > 0 && (
