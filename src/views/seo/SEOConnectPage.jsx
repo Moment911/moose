@@ -14,6 +14,8 @@ import toast from 'react-hot-toast'
 const SCOPES_BASIC = [
   'https://www.googleapis.com/auth/webmasters.readonly',
   'https://www.googleapis.com/auth/analytics.readonly',
+  'https://www.googleapis.com/auth/adwords',
+  'https://www.googleapis.com/auth/business.manage',
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/userinfo.profile',
 ].join(' ')
@@ -23,8 +25,8 @@ import { R as RED, T as TEAL, FH, FB } from '../../lib/theme'
 const SERVICES = [
   { key:'search_console', label:'Google Search Console', icon:Search,    color:'#4285F4', desc:'Keyword rankings, clicks, impressions', available:true },
   { key:'analytics',      label:'Google Analytics 4',   icon:BarChart2,  color:'#F4B400', desc:'Traffic, user behavior, conversions',  available:true },
-  { key:'ads',            label:'Google Ads',            icon:DollarSign, color:'#34A853', desc:'PPC campaign performance',             available:false, comingSoon:'Requires Google verification' },
-  { key:'gmb',            label:'Google Business Profile',icon:MapPin,   color:'#EA4335', desc:'Reviews, local visibility',            available:false, comingSoon:'Requires Google verification' },
+  { key:'ads',            label:'Google Ads',            icon:DollarSign, color:'#34A853', desc:'PPC campaign performance, keywords, bids', available:true },
+  { key:'gmb',            label:'Google Business Profile',icon:MapPin,   color:'#EA4335', desc:'Reviews, local visibility, insights',       available:true },
 ]
 
 export default function SEOConnectPage() {
