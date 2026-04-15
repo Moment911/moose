@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       text = await file.text()
     } else if (fileName.toLowerCase().endsWith('.pdf')) {
       // Dynamic import for pdf-parse (server-side only)
-      const pdfParse = (await import('pdf-parse') as any).default || (await import('pdf-parse') as any)
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
       const buffer = Buffer.from(await file.arrayBuffer())
       const pdfData = await pdfParse(buffer)
       text = pdfData.text
