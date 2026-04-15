@@ -2127,11 +2127,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     </div>
                   )}
 
-                  {/* GBP Post Generator */}
+                  {/* GBP Post Generator + Content Calendar */}
                   <div style={card}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                       <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Zap size={18} color={R} /> GBP Post Generator
+                        <Zap size={18} color={R} /> GBP Content Calendar
                       </div>
                       <button onClick={generatePosts} disabled={generatingPosts}
                         style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: generatingPosts ? '#e5e7eb' : R, color: '#fff', fontSize: 12, fontWeight: 700, cursor: generatingPosts ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -2139,31 +2139,100 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {generatingPosts ? 'Generating...' : 'Generate 4 Posts'}
                       </button>
                     </div>
+
                     {gmbPosts.length > 0 && (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                         {gmbPosts.map((post, i) => {
-                          const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB }
+                          const typeColors = { offer: R, tips: T, team: GRN, seasonal: AMB, update: T, event: AMB }
                           const color = typeColors[post.type] || '#6b7280'
+                          const schedDate = new Date(Date.now() + i * 7 * 86400000)
+
                           return (
-                            <div key={i} style={{ padding: '16px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `3px solid ${color}` }}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: color + '15', color, textTransform: 'uppercase' }}>{post.type}</span>
-                                <span style={{ fontSize: 10, color: '#9ca3af' }}>{post.text?.length || 0} chars</span>
+                            <div key={i} style={{ padding: '20px 24px', borderRadius: 14, background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${color}` }}>
+                              {/* Header */}
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: color + '12', color, textTransform: 'uppercase' }}>{post.type}</span>
+                                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Week {i + 1} · {schedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: post._approved ? GRN + '12' : '#f3f4f6', color: post._approved ? GRN : '#9ca3af' }}>
+                                    {post._approved ? '✓ Approved' : 'Draft'}
+                                  </span>
+                                </div>
                               </div>
-                              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 10 }}>{post.text}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
-                                <button onClick={() => { navigator.clipboard.writeText(post.text); toast.success('Post copied!') }}
-                                  style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, cursor: 'pointer' }}>Copy</button>
+
+                              {/* Image + Text side by side */}
+                              <div style={{ display: 'flex', gap: 16 }}>
+                                {/* Image area */}
+                                <div style={{ width: 160, flexShrink: 0 }}>
+                                  {post._imageUrl ? (
+                                    <img src={post._imageUrl} alt="" style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 10, border: '1px solid #e5e7eb' }} />
+                                  ) : (
+                                    <div style={{ width: 160, height: 120, borderRadius: 10, background: '#f3f4f6', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
+                                      <Eye size={20} color="#d1d5db" />
+                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>No image</span>
+                                    </div>
+                                  )}
+                                  <button onClick={async () => {
+                                    const pexelsKey = 'jaoJot7PGna546LXEjXxCNwv7nqivFKvKKK7dMKimp3DDANeffaLpUco'
+                                    const query = (post.type === 'offer' ? g.primary_category?.replace(/_/g, ' ') : post.text?.slice(0, 30)) || g.name || 'business'
+                                    try {
+                                      const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=5`, { headers: { Authorization: pexelsKey } })
+                                      const data = await res.json()
+                                      const photos = data.photos || []
+                                      if (photos.length > 0) {
+                                        const img = photos[Math.floor(Math.random() * Math.min(photos.length, 3))]
+                                        const updated = [...gmbPosts]
+                                        updated[i] = { ...updated[i], _imageUrl: img.src?.medium || img.src?.small }
+                                        setGmbPosts(updated)
+                                        toast.success('Image found!')
+                                      } else { toast.error('No images found for this topic') }
+                                    } catch { toast.error('Image search failed') }
+                                  }} style={{ width: '100%', marginTop: 6, padding: '5px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>
+                                    Find Image
+                                  </button>
+                                </div>
+
+                                {/* Text area */}
+                                <div style={{ flex: 1 }}>
+                                  <textarea value={post._editText ?? post.text} onChange={e => {
+                                    const updated = [...gmbPosts]
+                                    updated[i] = { ...updated[i], _editText: e.target.value }
+                                    setGmbPosts(updated)
+                                  }} rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FB, lineHeight: 1.6, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                      <span style={{ fontSize: 11, fontWeight: 700, color }}>{post.cta}</span>
+                                      {post.url && <span style={{ fontSize: 11, color: T }}>{post.url}</span>}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                      <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Copied!') }}
+                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280' }}>Copy</button>
+                                      <button onClick={() => {
+                                        const updated = [...gmbPosts]
+                                        updated[i] = { ...updated[i], _approved: !updated[i]._approved }
+                                        setGmbPosts(updated)
+                                        toast.success(updated[i]._approved ? 'Post approved!' : 'Approval removed')
+                                      }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: post._approved ? '#e5e7eb' : GRN, color: post._approved ? '#6b7280' : '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                                        {post._approved ? 'Unapprove' : 'Approve'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )
                         })}
                       </div>
                     )}
+
                     {gmbPosts.length === 0 && !generatingPosts && (
-                      <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0' }}>
-                        Click "Generate 4 Posts" to create a week's worth of GBP content — offer, tips, team, and seasonal posts.
+                      <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                        <Zap size={32} color="#d1d5db" style={{ margin: '0 auto 12px' }} />
+                        <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
+                          Generate a 4-week content calendar with AI-written posts. Each post includes type (offer, tips, team, seasonal), editable text, image suggestions from Pexels, and approval workflow.
+                        </div>
                       </div>
                     )}
                   </div>
