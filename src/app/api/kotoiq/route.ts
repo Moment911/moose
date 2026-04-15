@@ -942,18 +942,18 @@ Return ONLY valid JSON:
     const { client_id } = body
     if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
 
-    const { data: client } = await s.from('clients').select('name, website').eq('id', client_id).single()
+    const { data: client } = await s.from('clients').select('name, website, city, state, industry').eq('id', client_id).single()
     if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
 
-    // Get client location from latest intel report
+    // Get client location from latest intel report OR client record
     const { data: latestReport } = await s.from('koto_intel_reports').select('inputs, report_data')
       .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
-    const location = latestReport?.inputs?.location || ''
+    const location = latestReport?.inputs?.location || [client.city, client.state].filter(Boolean).join(', ') || ''
     const existingGBP = latestReport?.report_data?.gbp_audit
 
-    // Fetch fresh GBP data if no recent report
+    // Fetch fresh GBP data if no recent report — use client name + city/state
     let gbpData = existingGBP
-    if (!gbpData && client.name && location) {
+    if (!gbpData && client.name) {
       const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || ''
       if (apiKey) {
         try {
