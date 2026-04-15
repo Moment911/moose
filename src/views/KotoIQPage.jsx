@@ -6,7 +6,7 @@ import Sidebar from '../components/Sidebar'
 import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
-  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star
+  CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
