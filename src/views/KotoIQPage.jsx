@@ -773,7 +773,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <RefreshCw size={32} color={T} style={{ margin: '0 auto 12px' }} />
                     <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 6 }}>Full Sync</div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Requires Google OAuth. Pulls real data from Search Console, Google Ads, GA4. Connect at /seo/connect first.</div>
-                    <button onClick={() => { navigate('/kotoiq/connect') }} disabled={syncing}
+                    <button onClick={() => { setTab('connect') }} disabled={syncing}
                       style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                       <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Connect Google →
                     </button>
@@ -1012,20 +1012,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ PAGE BUILDER TAB ══ */}
         {clientId && tab === 'briefs' && (
           <>
-            {/* Page Builder with Content Variants */}
+            {/* Page Builder Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Page Builder</div>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>PageIQ — Content Builder</div>
                 <div style={{ fontSize: 13, color: '#6b7280' }}>AI content briefs + multi-variant page generation with automatic rotation</div>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => navigate('/kotoiq/page-builder')} style={{
-                  padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
-                  fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4,
-                }}>
-                  <Zap size={12} /> Full Page Builder →
-                </button>
-              </div>
+              <SectionActions
+                onDelete={() => { setBriefs([]); setActiveBrief(null); toast.success('Briefs cleared') }}
+                deleteLabel="Clear Briefs"
+              />
             </div>
 
             {/* Generate new brief */}
@@ -1866,13 +1862,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 13, color: '#92400e', lineHeight: 1.6 }}>
                 <strong>How rotation works:</strong> After publishing to WordPress via the KP plugin, each section's variants rotate every 10 page views. This updates the page's <code>last_modified</code> timestamp and pings Google/Bing for re-indexing — signaling freshness without manual content updates.
               </div>
-              <button onClick={() => navigate('/kotoiq/page-builder')} style={{
-                width: '100%', marginTop: 14, padding: '14px', borderRadius: 10, border: 'none',
-                background: BLK, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}>
-                <Zap size={16} /> Open Full Page Builder with Variants
-              </button>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 14, textAlign: 'center' }}>
+                All variant editing and publishing happens right here — no separate page needed.
+              </div>
             </div>
           </>
         )}
