@@ -7,7 +7,7 @@ import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
-  Phone, Globe, Activity, FileText, Trash2
+  Phone, Globe, Activity, FileText, Trash2, LayoutGrid
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -1005,6 +1005,22 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ PAGE BUILDER TAB ══ */}
         {clientId && tab === 'briefs' && (
           <>
+            {/* Page Builder with Content Variants */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Page Builder</div>
+                <div style={{ fontSize: 13, color: '#6b7280' }}>AI content briefs + multi-variant page generation with automatic rotation</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => navigate('/page-builder')} style={{
+                  padding: '8px 16px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4,
+                }}>
+                  <Zap size={12} /> Full Page Builder →
+                </button>
+              </div>
+            </div>
+
             {/* Generate new brief */}
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1799,6 +1815,58 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 </div>
               </>
             )}
+
+            {/* Content Variant Modules — KP System */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LayoutGrid size={18} color={AMB} /> Content Variant Modules
+              </div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.6 }}>
+                Each page section has multiple content variants. The WP plugin automatically rotates variants every N page views, signaling freshness to Google and triggering re-indexing. Select which variants to include for each section.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { id: 'intro', label: 'Introduction', desc: 'Opening section with service + location headline', variants: 3, icon: '📝' },
+                  { id: 'what_is', label: 'What Is This Service', desc: 'Educational content explaining the service', variants: 2, icon: '❓' },
+                  { id: 'why_us', label: 'Why Choose Us', desc: 'Trust signals and differentiators', variants: 2, icon: '✅' },
+                  { id: 'services', label: 'Services Offered', desc: 'Breakdown of specific services', variants: 2, icon: '📋' },
+                  { id: 'local', label: 'Local Area Focus', desc: 'Hyperlocal content referencing the city', variants: 2, icon: '📍' },
+                  { id: 'process', label: 'Our Process', desc: 'Step-by-step how-it-works', variants: 2, icon: '⚙️' },
+                  { id: 'trust', label: 'Trust & Social Proof', desc: 'Reviews, testimonials, credibility', variants: 2, icon: '⭐' },
+                  { id: 'comparison', label: 'Comparison / vs.', desc: 'Position against competitors or DIY', variants: 2, icon: '⚖️' },
+                  { id: 'faq', label: 'FAQ Block', desc: 'AEO-optimized FAQ with schema markup', variants: 2, icon: '💬' },
+                  { id: 'internal_links', label: 'Internal Links', desc: 'Related pages and service area links', variants: 2, icon: '🔗' },
+                  { id: 'cta', label: 'Call to Action', desc: 'Closing section driving conversions', variants: 2, icon: '📞' },
+                ].map(mod => (
+                  <div key={mod.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
+                    borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff',
+                  }}>
+                    <span style={{ fontSize: 20, width: 36, textAlign: 'center' }}>{mod.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{mod.label}</div>
+                      <div style={{ fontSize: 12, color: '#6b7280' }}>{mod.desc}</div>
+                    </div>
+                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: T + '12', color: T }}>
+                      {mod.variants} variants
+                    </span>
+                    <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: GRN + '12', color: GRN }}>
+                      Auto-rotate
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 16, padding: '14px 18px', borderRadius: 10, background: AMB + '06', border: `1px solid ${AMB}20`, fontSize: 13, color: '#92400e', lineHeight: 1.6 }}>
+                <strong>How rotation works:</strong> After publishing to WordPress via the KP plugin, each section's variants rotate every 10 page views. This updates the page's <code>last_modified</code> timestamp and pings Google/Bing for re-indexing — signaling freshness without manual content updates.
+              </div>
+              <button onClick={() => navigate('/page-builder')} style={{
+                width: '100%', marginTop: 14, padding: '14px', borderRadius: 10, border: 'none',
+                background: BLK, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+                <Zap size={16} /> Open Full Page Builder with Variants
+              </button>
+            </div>
           </>
         )}
 
