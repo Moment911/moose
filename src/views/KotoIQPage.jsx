@@ -161,6 +161,16 @@ export default function KotoIQPage() {
   const [activeBrief, setActiveBrief] = useState(null)
   const [generatingBrief, setGeneratingBrief] = useState(false)
 
+  // OAuth callback state
+  const [oauthStep, setOauthStep] = useState(null) // null | 'exchanging' | 'pick_properties' | 'saving' | 'done'
+  const [oauthTokens, setOauthTokens] = useState(null)
+  const [gscSites, setGscSites] = useState([])
+  const [ga4Properties, setGa4Properties] = useState([])
+  const [selectedGsc, setSelectedGsc] = useState('')
+  const [selectedGa4, setSelectedGa4] = useState('')
+  const [gscSearch, setGscSearch] = useState('')
+  const [ga4Search, setGa4Search] = useState('')
+
   // Load clients
   const loadClients = useCallback(() => {
     if (!agencyId) return
@@ -319,6 +329,76 @@ export default function KotoIQPage() {
   }, [clientId])
 
   useEffect(() => { loadDashboard() }, [loadDashboard])
+
+  // Handle Google OAuth callback — exchange code for tokens, fetch properties
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    const stateRaw = params.get('state')
+    if (!code || !stateRaw) return
+
+    // Clean URL
+    const cleanUrl = window.location.pathname
+    window.history.replaceState({}, '', cleanUrl)
+
+    try {
+      const state = JSON.parse(decodeURIComponent(stateRaw))
+      const oauthClientId = state.clientId
+      if (oauthClientId) setClientId(oauthClientId)
+
+      setTab('connect')
+      setOauthStep('exchanging')
+      toast.loading('Exchanging tokens...', { id: 'oauth' })
+
+      const redirectUri = window.location.origin + '/kotoiq'
+      fetch('/api/seo/google-exchange', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redirect_uri: redirectUri }),
+      }).then(r => r.json()).then(async tokens => {
+        if (tokens.error || !tokens.access_token) {
+          toast.error(tokens.details || tokens.error || 'Token exchange failed', { id: 'oauth' })
+          setOauthStep(null)
+          return
+        }
+
+        toast.success('Authenticated! Loading your accounts...', { id: 'oauth' })
+        setOauthTokens({ ...tokens, clientId: oauthClientId })
+
+        // Fetch GSC sites
+        try {
+          const gscRes = await fetch('https://searchconsole.googleapis.com/webmasters/v3/sites', {
+            headers: { Authorization: `Bearer ${tokens.access_token}` }
+          })
+          if (gscRes.ok) {
+            const gscData = await gscRes.json()
+            const sites = (gscData.siteEntry || []).filter(s => s.permissionLevel !== 'siteUnverifiedUser')
+            setGscSites(sites)
+          }
+        } catch {}
+
+        // Fetch GA4 properties
+        try {
+          const summaryRes = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries', {
+            headers: { Authorization: `Bearer ${tokens.access_token}` }
+          })
+          if (summaryRes.ok) {
+            const summaryData = await summaryRes.json()
+            const allProps = (summaryData.accountSummaries || []).flatMap(acc =>
+              (acc.propertySummaries || []).map(p => ({
+                name: p.property, displayName: p.displayName, account: acc.displayName,
+              }))
+            )
+            setGa4Properties(allProps)
+          }
+        } catch {}
+
+        setOauthStep('pick_properties')
+      }).catch(e => {
+        toast.error('OAuth failed: ' + e.message, { id: 'oauth' })
+        setOauthStep(null)
+      })
+    } catch { setOauthStep(null) }
+  }, [])
   useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
   useEffect(() => { if (tab === 'briefs') loadBriefs() }, [tab, loadBriefs])
   useEffect(() => { if (tab === 'ranks') loadRanks() }, [tab, loadRanks])
@@ -2681,7 +2761,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   const googleClientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
                   if (!googleClientId) { toast.error('Google OAuth not configured'); return }
                   const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-                  const redirectUri = window.location.origin + '/seo/connect'
+                  const redirectUri = window.location.origin + '/kotoiq'
                   const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now() }))
                   const params = new URLSearchParams({
                     client_id: googleClientId, redirect_uri: redirectUri, response_type: 'code',
@@ -2721,6 +2801,112 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               </div>
             </div>
 
+            {/* Property picker — shown after OAuth */}
+            {oauthStep === 'pick_properties' && oauthTokens && (
+              <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 16 }}>
+                  Authenticated — Select Properties to Connect
+                </div>
+
+                {/* GSC picker */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Search size={14} color="#4285F4" /> Search Console Site
+                  </div>
+                  {gscSites.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No verified GSC sites found for this account</div>
+                  ) : (
+                    <>
+                      <input value={gscSearch} onChange={e => setGscSearch(e.target.value)} placeholder={`Search ${gscSites.length} sites...`}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        {gscSites.filter(s => !gscSearch || s.siteUrl.toLowerCase().includes(gscSearch.toLowerCase())).map(s => (
+                          <div key={s.siteUrl} onClick={() => setSelectedGsc(s.siteUrl)}
+                            style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGsc === s.siteUrl ? 700 : 400, background: selectedGsc === s.siteUrl ? '#eff6ff' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGsc === s.siteUrl ? '3px solid #4285F4' : '3px solid transparent', color: selectedGsc === s.siteUrl ? '#4285F4' : BLK }}>
+                            {s.siteUrl.replace('sc-domain:', '★ ').replace('https://', '').replace(/\/$/, '')}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* GA4 picker */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <BarChart2 size={14} color="#F4B400" /> Google Analytics 4 Property
+                  </div>
+                  {ga4Properties.length === 0 ? (
+                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No GA4 properties found for this account</div>
+                  ) : (
+                    <>
+                      <input value={ga4Search} onChange={e => setGa4Search(e.target.value)} placeholder={`Search ${ga4Properties.length} properties...`}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, marginBottom: 6, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ maxHeight: 150, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                        {ga4Properties.filter(p => !ga4Search || p.displayName.toLowerCase().includes(ga4Search.toLowerCase())).map(p => {
+                          const propId = p.name.replace('properties/', '')
+                          return (
+                            <div key={p.name} onClick={() => setSelectedGa4(propId)}
+                              style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGa4 === propId ? 700 : 400, background: selectedGa4 === propId ? '#fef3c7' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGa4 === propId ? '3px solid #F4B400' : '3px solid transparent', color: selectedGa4 === propId ? '#d97706' : BLK }}>
+                              {p.displayName} <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 6 }}>{propId} · {p.account}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Save button */}
+                <button onClick={async () => {
+                  if (!selectedGsc && !selectedGa4) { toast.error('Select at least one property'); return }
+                  setOauthStep('saving')
+                  const { access_token, refresh_token, expires_in, scope } = oauthTokens
+                  const expiresAt = new Date(Date.now() + (expires_in || 3600) * 1000).toISOString()
+                  try {
+                    if (selectedGsc) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'search_console', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, site_url: selectedGsc, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    if (selectedGa4) {
+                      await supabase.from('seo_connections').upsert({
+                        client_id: clientId, provider: 'analytics', access_token, refresh_token: refresh_token || null,
+                        token_expires_at: expiresAt, scope, property_id: selectedGa4, connected: true, updated_at: new Date().toISOString(),
+                      }, { onConflict: 'client_id,provider' })
+                    }
+                    toast.success('Google services connected!')
+                    setOauthStep('done')
+                  } catch (e) { toast.error('Failed to save: ' + e.message); setOauthStep('pick_properties') }
+                }} disabled={oauthStep === 'saving' || (!selectedGsc && !selectedGa4)}
+                  style={{ width: '100%', padding: '14px', borderRadius: 10, border: 'none', background: (!selectedGsc && !selectedGa4) ? '#e5e7eb' : GRN, color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: FH, cursor: 'pointer' }}>
+                  {oauthStep === 'saving' ? 'Saving...' : `Save Connections${selectedGsc && selectedGa4 ? ' (2)' : selectedGsc || selectedGa4 ? ' (1)' : ''}`}
+                </button>
+              </div>
+            )}
+
+            {oauthStep === 'done' && (
+              <div style={{ ...card, borderLeft: `4px solid ${GRN}`, background: GRN + '04' }}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: GRN, marginBottom: 8 }}>Connected Successfully</div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+                  {selectedGsc && <div>Search Console: {selectedGsc.replace('sc-domain:', '').replace('https://', '')}</div>}
+                  {selectedGa4 && <div>GA4 Property: {selectedGa4}</div>}
+                </div>
+                <button onClick={() => { setTab('dashboard'); setOauthStep(null) }}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: BLK, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  Go to Dashboard →
+                </button>
+              </div>
+            )}
+
+            {oauthStep === 'exchanging' && (
+              <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
+                <Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+                <div style={{ fontSize: 14, color: '#6b7280' }}>Exchanging tokens with Google...</div>
+              </div>
+            )}
+
             {/* DataForSEO */}
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2751,12 +2937,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ REPORTS TAB ══ */}
         {clientId && tab === 'reports' && (
-          <div>
-            <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Data Reports</div>
-            <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
-              30 ways to analyze your search performance. Each report combines data from all connected sources — GSC, GA4, Ads, DataForSEO, Moz, and GBP.
-            </div>
+          <ReportsTab clientId={clientId} keywords={keywords} dashboard={dashboard} />
+        )}
 
+        {/* ══ REPORTS TAB PLACEHOLDER — replaced by component ══ */}
+        {false && clientId && tab === 'reports_old' && (
+          <div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
               {[
                 { title: 'Position Distribution', desc: 'Keywords by rank bucket: #1-3, #4-10, #11-20, #21+', icon: BarChart2, color: T, source: 'GSC' },
@@ -3052,5 +3238,192 @@ function AEOResearchTab({ clientId }) {
         </>
       )}
     </>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REPORTS TAB — Real data views from keywords + connected sources
+   ══════════════════════════════════════════════════════════════════════════ */
+function ReportsTab({ clientId, keywords, dashboard }) {
+  const [activeReport, setActiveReport] = useState(null)
+  const kws = keywords || []
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+
+  // Pre-compute report data from keywords
+  const ranked = kws.filter(k => k.sc_position || k.position)
+  const posGroups = {
+    top3: ranked.filter(k => (k.sc_position || k.position) <= 3),
+    top10: ranked.filter(k => (k.sc_position || k.position) > 3 && (k.sc_position || k.position) <= 10),
+    top20: ranked.filter(k => (k.sc_position || k.position) > 10 && (k.sc_position || k.position) <= 20),
+    beyond: ranked.filter(k => (k.sc_position || k.position) > 20),
+    unranked: kws.filter(k => !k.sc_position && !k.position),
+  }
+  const aiOverviewKws = kws.filter(k => k.ai_overview)
+  const paidKws = kws.filter(k => k.ads_spend_cents > 0 || k.ads_clicks > 0)
+  const organicPaidOverlap = kws.filter(k => (k.sc_position || k.position) && (k.ads_spend_cents > 0))
+
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+
+  if (kws.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <BarChart2 size={48} color="#d1d5db" style={{ margin: '0 auto 16px' }} />
+        <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No Data Yet</div>
+        <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>Run a Quick Scan or Full Sync first to populate keyword data. Reports will generate automatically from your data.</div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>Data Reports</div>
+      <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>{kws.length} keywords tracked · {ranked.length} with ranking data</div>
+
+      {/* Position Distribution */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 16 }}>
+          {[
+            ['#1-3', posGroups.top3.length, GRN],
+            ['#4-10', posGroups.top10.length, T],
+            ['#11-20', posGroups.top20.length, AMB],
+            ['#21+', posGroups.beyond.length, R],
+            ['Not Ranked', posGroups.unranked.length, '#9ca3af'],
+          ].map(([label, count, color]) => (
+            <div key={label} style={{ textAlign: 'center', padding: '16px', background: color + '08', borderRadius: 10 }}>
+              <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color }}>{count}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, fontWeight: 600 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+        {/* Bar visualization */}
+        <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden' }}>
+          {[[posGroups.top3.length, GRN], [posGroups.top10.length, T], [posGroups.top20.length, AMB], [posGroups.beyond.length, R], [posGroups.unranked.length, '#d1d5db']].map(([count, color], i) => (
+            count > 0 ? <div key={i} style={{ flex: count, background: color, transition: 'flex .3s' }} title={`${count} keywords`} /> : null
+          ))}
+        </div>
+      </div>
+
+      {/* AI Overview Coverage */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>AI Overview Coverage</div>
+        <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#7c3aed' }}>{aiOverviewKws.length}</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Keywords with AI Overview</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#9ca3af' }}>{kws.length - aiOverviewKws.length}</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Without AI Overview</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: T }}>{kws.length > 0 ? Math.round((aiOverviewKws.length / kws.length) * 100) : 0}%</div>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>Coverage Rate</div>
+          </div>
+        </div>
+        {aiOverviewKws.length > 0 && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 8 }}>Keywords with AI Overview</div>
+            {aiOverviewKws.slice(0, 10).map((kw, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
+                <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: (kw.sc_position || kw.position) <= 10 ? GRN : AMB }}>#{kw.sc_position || kw.position || '—'}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Paid vs Organic Overlap */}
+      {organicPaidOverlap.length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Paid vs Organic Overlap — Cannibal Keywords</div>
+          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>Keywords where you rank organically AND pay for ads. Consider reducing bids on keywords where organic rank is strong.</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                {['Keyword', 'Organic Pos', 'Ad Spend', 'Ad CPC', 'Volume', 'Action'].map(h => (
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {organicPaidOverlap.slice(0, 15).map((kw, i) => {
+                const pos = kw.sc_position || kw.position || 99
+                return (
+                  <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '8px 10px', fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</td>
+                    <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: pos <= 3 ? GRN : pos <= 10 ? T : AMB }}>#{pos}</td>
+                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${((kw.ads_spend_cents || 0) / 100).toFixed(0)}</td>
+                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${((kw.ads_cpc_cents || 0) / 100).toFixed(2)}</td>
+                    <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: pos <= 3 ? R + '12' : AMB + '12', color: pos <= 3 ? R : AMB }}>
+                        {pos <= 3 ? 'Pause Ad' : pos <= 10 ? 'Reduce Bid' : 'Keep'}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Opportunity Matrix */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Opportunities by Score</div>
+        {kws.filter(k => k.opportunity_score > 0).sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0)).slice(0, 15).map((kw, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+            <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: T, minWidth: 36 }}>{Math.round(kw.opportunity_score)}</span>
+            <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#f3f4f6', overflow: 'hidden' }}>
+              <div style={{ width: `${kw.opportunity_score}%`, height: '100%', borderRadius: 3, background: kw.opportunity_score >= 70 ? GRN : kw.opportunity_score >= 40 ? AMB : '#d1d5db' }} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: BLK, minWidth: 200 }}>{kw.keyword}</span>
+            <span style={{ fontSize: 12, color: '#9ca3af', minWidth: 60 }}>#{kw.sc_position || kw.position || '—'}</span>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
+          </div>
+        ))}
+        {kws.filter(k => k.opportunity_score > 0).length === 0 && (
+          <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0' }}>Run a Quick Scan to generate opportunity scores</div>
+        )}
+      </div>
+
+      {/* Search Intent Distribution */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Intent Distribution</div>
+        {(() => {
+          const intents = {}
+          kws.forEach(k => { const i = k.intent || 'unknown'; intents[i] = (intents[i] || 0) + 1 })
+          const intentColors = { transactional: R, commercial: AMB, informational: T, navigational: '#7c3aed', unknown: '#9ca3af' }
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+              {Object.entries(intents).map(([intent, count]) => (
+                <div key={intent} style={{ textAlign: 'center', padding: '14px', background: (intentColors[intent] || '#9ca3af') + '08', borderRadius: 10 }}>
+                  <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: intentColors[intent] || '#9ca3af' }}>{count}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'capitalize', marginTop: 4 }}>{intent}</div>
+                </div>
+              ))}
+            </div>
+          )
+        })()}
+      </div>
+
+      {/* Category Breakdown */}
+      {dashboard?.categories && Object.keys(dashboard.categories).length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Keyword Categories</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+            {Object.entries(dashboard.categories).map(([cat, count]) => (
+              <div key={cat} style={{ padding: '14px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{count}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'capitalize', marginTop: 4 }}>{cat.replace(/_/g, ' ')}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
