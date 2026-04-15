@@ -52,6 +52,7 @@ export default function SEOConnectPage() {
   const [savingProps,    setSavingProps]    = useState(false)
   const [gscSearch,      setGscSearch]      = useState('')
   const [ga4Search,      setGa4Search]      = useState('')
+  const [returnTo,       setReturnTo]       = useState(null)
 
   useEffect(() => { loadClients() }, [])
   useEffect(() => { if (selectedClient) loadConnections() }, [selectedClient])
@@ -67,7 +68,7 @@ export default function SEOConnectPage() {
         const parsed = JSON.parse(decodeURIComponent(state))
         if (parsed.clientId) {
           setSelectedClient(parsed.clientId)
-          // loadConnections will fire via the useEffect watching selectedClient
+          if (parsed.returnTo) setReturnTo(parsed.returnTo)
           handleOAuthCallback(code, parsed.clientId)
         }
       } catch(e) { toast.error('Invalid OAuth state') }
@@ -250,10 +251,16 @@ export default function SEOConnectPage() {
         }, { onConflict: 'client_id,provider' })
       }
 
-      await loadConnections()  // reload first so cards update immediately
-      setStep('complete')
+      await loadConnections()
       setTempTokens(null)
       toast.success('Google accounts connected!')
+
+      // If launched from KotoIQ, redirect back
+      if (returnTo) {
+        navigate(returnTo)
+        return
+      }
+      setStep('complete')
     } catch(e) {
       toast.error('Failed to save: ' + e.message)
     }

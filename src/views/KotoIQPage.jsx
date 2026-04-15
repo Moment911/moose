@@ -2761,8 +2761,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   const googleClientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim()
                   if (!googleClientId) { toast.error('Google OAuth not configured'); return }
                   const scopes = 'https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/business.manage https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-                  const redirectUri = window.location.origin + '/kotoiq'
-                  const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now() }))
+                  const redirectUri = window.location.origin + '/seo/connect'
+                  const state = encodeURIComponent(JSON.stringify({ clientId, ts: Date.now(), returnTo: '/kotoiq?tab=connect' }))
                   const params = new URLSearchParams({
                     client_id: googleClientId, redirect_uri: redirectUri, response_type: 'code',
                     scope: scopes, access_type: 'offline', prompt: 'consent select_account', state,

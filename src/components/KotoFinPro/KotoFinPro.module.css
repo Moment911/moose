@@ -26,6 +26,7 @@
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+  /* Content scrolls via .content overflow-y: auto */
 }
 
 /* Company picker */
@@ -36,6 +37,7 @@
   padding: 16px 24px;
   background: var(--surface2);
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .companySelect {
@@ -72,6 +74,7 @@
   background: var(--surface);
   overflow-x: auto;
   scrollbar-width: none;
+  flex-shrink: 0;
 }
 
 .tabBar::-webkit-scrollbar { display: none; }
@@ -121,6 +124,7 @@
   padding: 14px 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .logo {
