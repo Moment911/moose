@@ -1096,30 +1096,45 @@ Return ONLY valid JSON array:
     const fp = fingerprint(keyword)
     const { data: kwData } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
 
-    // Google search to find top ranking URLs (use Places text search as proxy for organic)
-    // In production, DataForSEO SERP API would be used here
-    // For now, we fetch the keyword's SC top page and competitor sites from intel data
-    const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
-      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
-    const competitors = latestReport?.report_data?.competitors || []
-
-    // Fetch and analyze competitor pages
+    // Use DataForSEO to get real SERP results for the keyword
     const analyses: any[] = []
+    let serpUrls: { url: string; domain: string; title: string; rank: number }[] = []
+
+    try {
+      const serpResult = await getSERPResults(keyword)
+      serpUrls = serpResult.items.slice(0, 5).map(item => ({
+        url: item.url, domain: item.domain, title: item.title, rank: item.rank_group,
+      }))
+    } catch {
+      // Fallback to intel report competitors if DataForSEO fails
+      const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
+        .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+      const competitors = latestReport?.report_data?.competitors || []
+      serpUrls = competitors.slice(0, 5).map((c: any, i: number) => ({
+        url: c.website || `https://${c.domain}`, domain: c.domain || '', title: c.name || '', rank: i + 1,
+      }))
+    }
 
     // Analyze client's own page first (if ranking)
     if (kwData?.sc_top_page) {
       const analysis = await analyzePageForKeyword(kwData.sc_top_page, keyword)
-      if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain })
+      if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: 0 })
+    } else if (clientDomain) {
+      // Check if client shows up in SERP results
+      const clientSerp = serpUrls.find(u => u.domain.includes(clientDomain.replace('www.', '')))
+      if (clientSerp) {
+        const analysis = await analyzePageForKeyword(clientSerp.url, keyword)
+        if (analysis) analyses.push({ ...analysis, is_client: true, name: client?.name || clientDomain, rank: clientSerp.rank })
+        serpUrls = serpUrls.filter(u => u !== clientSerp) // don't analyze again below
+      }
     }
 
-    // Analyze competitor websites (fetch homepage or likely service page)
-    for (const comp of competitors.slice(0, 3)) {
-      if (!comp.website) continue
+    // Analyze top SERP results
+    for (const comp of serpUrls.slice(0, 4)) {
+      if (!comp.url) continue
       try {
-        // Try to find a relevant page on competitor site
-        const compUrl = comp.website.startsWith('http') ? comp.website : `https://${comp.website}`
-        const analysis = await analyzePageForKeyword(compUrl, keyword)
-        if (analysis) analyses.push({ ...analysis, is_client: false, name: comp.name })
+        const analysis = await analyzePageForKeyword(comp.url, keyword)
+        if (analysis) analyses.push({ ...analysis, is_client: false, name: comp.title || comp.domain, rank: comp.rank })
       } catch { continue }
     }
 

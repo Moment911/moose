@@ -1068,7 +1068,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
                 <TrendingUp size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
                 <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No ranking data yet</div>
-                <div style={{ fontSize: 14, color: '#6b7280' }}>Run a sync to pull Search Console rankings. Position history builds over time with each sync.</div>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Run a Quick Scan first to discover keywords, then check rankings here.</div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                  <button onClick={() => { const c = clients.find(x => x.id === clientId); if (!c?.website) { toast.error('Add a website URL first'); return }; runQuickScan() }}
+                    disabled={syncing} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <Zap size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Quick Scan Keywords
+                  </button>
+                  <button onClick={runSync} disabled={syncing} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Full Sync (GSC + Ads)
+                  </button>
+                </div>
               </div>
             )}
 
