@@ -405,6 +405,17 @@ export default function KotoIQPage() {
   useEffect(() => { if (tab === 'audit') loadEnrichment() }, [tab, loadEnrichment])
   useEffect(() => { if (tab === 'gmb') loadGMB() }, [tab, loadGMB])
 
+  // Auto-fill grid tracker from client + GMB data
+  useEffect(() => {
+    if (!clientId || !clients.length) return
+    const c = clients.find(x => x.id === clientId)
+    if (!gridBiz && (gmb?.gbp?.name || c?.name)) setGridBiz(gmb?.gbp?.name || c?.name || '')
+    if (!gridCity && c) {
+      const city = [c.city, c.state].filter(Boolean).join(', ')
+      if (city) setGridCity(city)
+    }
+  }, [clientId, clients, gmb])
+
   // Sync
   const runSync = async () => {
     if (!clientId) return
@@ -2589,6 +2600,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Keyword</label>
                               <input value={gridKw} onChange={e => setGridKw(e.target.value)} placeholder="e.g. water damage restoration"
                                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                              {keywords.length > 0 && !gridKw && (
+                                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                                  {keywords.filter(k => k.intent === 'transactional' || k.intent === 'commercial' || k.kp_monthly_volume > 100).slice(0, 6).map((k, i) => (
+                                    <button key={i} onClick={() => setGridKw(k.keyword)} style={{ padding: '3px 8px', borderRadius: 12, fontSize: 10, fontWeight: 600, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: T }}>{k.keyword}</button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Business Name</label>
