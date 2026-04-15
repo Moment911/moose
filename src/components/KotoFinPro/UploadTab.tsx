@@ -136,48 +136,38 @@ export default function UploadTab({ files, transactions, dispatch }: UploadTabPr
       filesToProcess.push({ file, id, hash: fileHash })
     }
 
-    // Phase 2: process all files (parallel for PDFs via Promise.all)
-    const results = await Promise.allSettled(
-      filesToProcess.map(async ({ file, id, hash }) => {
-        const ext = file.name.toLowerCase().split('.').pop()
+    // Phase 2: process files ONE AT A TIME to avoid overwhelming serverless
+    const allNewTxns: Transaction[] = []
+
+    for (let fi = 0; fi < filesToProcess.length; fi++) {
+      const { file, id, hash } = filesToProcess[fi]
+      const ext = file.name.toLowerCase().split('.').pop()
+
+      updateStatus(id, { status: 'uploading', message: `Processing file ${fi + 1} of ${filesToProcess.length}...` })
+
+      try {
+        let result: { txns: Transaction[]; fileMeta: StatementFile; id: string; hash: string } | null = null
 
         if (ext === 'csv') {
-          return processCSV(file, id, hash)
+          result = await processCSV(file, id, hash)
         } else if (ext === 'pdf') {
-          return processPDF(file, id, hash)
+          result = await processPDF(file, id, hash)
         } else {
           updateStatus(id, { status: 'error', message: `Unsupported file type: .${ext}` })
-          return null
         }
-      })
-    )
 
-    // Phase 3: dispatch all successful results
-    for (let ri = 0; ri < results.length; ri++) {
-      const result = results[ri]
-      if (result.status === 'fulfilled' && result.value) {
-        const { txns, fileMeta, hash } = result.value
-        if (txns.length > 0) {
+        if (result && result.txns.length > 0) {
           processedHashes.current.add(hash)
-          dispatch({ type: 'ADD_TRANSACTIONS', payload: txns })
-          dispatch({ type: 'ADD_FILE', payload: fileMeta })
+          dispatch({ type: 'ADD_TRANSACTIONS', payload: result.txns })
+          dispatch({ type: 'ADD_FILE', payload: result.fileMeta })
+          allNewTxns.push(...result.txns)
         }
-      } else if (result.status === 'rejected') {
-        const failedFile = filesToProcess[ri]
-        if (failedFile) {
-          updateStatus(failedFile.id, { status: 'error', message: `Processing failed: ${result.reason}` })
-        }
+      } catch (err) {
+        updateStatus(id, { status: 'error', message: `Failed: ${err instanceof Error ? err.message : 'Unknown error'}` })
       }
     }
 
-    // Phase 4: Auto-run AI categorization on all imported transactions
-    const allNewTxns: Transaction[] = []
-    for (const result of results) {
-      if (result.status === 'fulfilled' && result.value) {
-        allNewTxns.push(...result.value.txns)
-      }
-    }
-
+    // Phase 3: Auto-run AI categorization on all imported transactions
     if (allNewTxns.length > 0) {
       await aiCategorize(allNewTxns)
     }
