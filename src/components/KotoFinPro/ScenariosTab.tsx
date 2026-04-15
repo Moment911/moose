@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { Transaction, TaxProfile, TaxScenario } from './KotoFin.types'
 import { fmtCurrency, fmtPercent, calcAGI, getTransactionTotals } from './KotoFin.utils'
 import { IRS_MILEAGE_RATE } from './KotoFin.constants'
-import { SlidersHorizontal, TrendingDown, Info } from 'lucide-react'
+import { SlidersHorizontal, Info } from 'lucide-react'
 import styles from './KotoFinPro.module.css'
 import {
   Chart as ChartJS,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useKotoFinStore } from './KotoFin.store'
 import { TAB_LIST } from './KotoFin.constants'
 import { supabase as _sb } from '@/lib/supabase'
@@ -38,7 +38,7 @@ const TAB_ICONS: Record<string, typeof Upload> = {
   'Export': Download,
 }
 
-const TABS = [...TAB_LIST.slice(0, 4), 'Tax Profile' as const, ...TAB_LIST.slice(4)]
+const TABS = TAB_LIST
 
 export default function KotoFinPro() {
   const [state, dispatch] = useKotoFinStore()
@@ -47,6 +47,7 @@ export default function KotoFinPro() {
   const [clients, setClients] = useState<ClientInfo[]>([])
   const [loadingClients, setLoadingClients] = useState(true)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const justLoaded = useRef(false)
 
   // Load clients
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function KotoFinPro() {
         .select('profile')
         .eq('client_id', state.clientId)
         .single()
+      justLoaded.current = true
       dispatch({
         type: 'LOAD_CLIENT_DATA',
         payload: {
@@ -109,6 +111,10 @@ export default function KotoFinPro() {
   }, [state.clientId, state.transactions, state.files, state.taxProfile, agencyId, dispatch])
 
   useEffect(() => {
+    if (justLoaded.current) {
+      justLoaded.current = false
+      return
+    }
     if (state.clientId && state.transactions.length > 0) {
       autoSave()
     }

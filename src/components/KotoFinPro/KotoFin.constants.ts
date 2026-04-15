@@ -134,6 +134,7 @@ export const TAB_LIST = [
   'Transactions',
   'Chart of Accounts',
   'Deduction Finder',
+  'Tax Profile',
   'Tax Scenarios',
   'Quarterly Tax',
   'Analytics',

@@ -104,8 +104,7 @@ Return ONLY the JSON array.`,
 
     // Fall back to local categorization
     try {
-      const body = await request.clone().json()
-      const results: CatResult[] = (body.transactions as InputTransaction[]).map(t => {
+      const results: CatResult[] = (transactions as InputTransaction[]).map(t => {
         const cat = categorize(t.desc)
         return { id: t.id, ...cat }
       })

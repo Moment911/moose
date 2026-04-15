@@ -116,6 +116,7 @@ export function calcQuarterly(transactions: Transaction[]): {
   netProfit: number
   seInfo: ReturnType<typeof calcSETax>
   agi: number
+  taxableIncome: number
   federalTax: number
   quarterlyPayment: number
   safeHarbor100: number
@@ -125,13 +126,14 @@ export function calcQuarterly(transactions: Transaction[]): {
   const expenses = transactions.filter(t => t.type === 'business').reduce((s, t) => s + Math.abs(t.amount), 0)
   const netProfit = income - expenses
   const seInfo = calcSETax(Math.max(0, netProfit))
-  const agi = Math.max(0, netProfit - seInfo.seDeduction - STANDARD_DEDUCTION_SINGLE)
-  const federalTax = calcFedTax(agi)
+  const agi = Math.max(0, netProfit - seInfo.seDeduction)
+  const taxableIncome = Math.max(0, agi - STANDARD_DEDUCTION_SINGLE)
+  const federalTax = calcFedTax(taxableIncome)
   const totalTax = federalTax + seInfo.seTax
   const quarterlyPayment = totalTax / 4
   const safeHarbor100 = totalTax / 4
   const safeHarbor110 = (totalTax * 1.1) / 4
-  return { netProfit, seInfo, agi, federalTax, quarterlyPayment, safeHarbor100, safeHarbor110 }
+  return { netProfit, seInfo, agi, taxableIncome, federalTax, quarterlyPayment, safeHarbor100, safeHarbor110 }
 }
 
 export function getTransactionTotals(transactions: Transaction[]) {
