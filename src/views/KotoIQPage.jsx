@@ -3451,6 +3451,107 @@ function ReportsTab({ clientId, keywords, dashboard }) {
           </div>
         </div>
       )}
+
+      {/* Featured Snippet Opportunities */}
+      {kws.filter(k => k.featured_snippet).length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Featured Snippet Opportunities</div>
+          {kws.filter(k => k.featured_snippet).slice(0, 10).map((kw, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
+                <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: AMB + '12', color: AMB }}>Snippet</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ROI Calculator */}
+      {paidKws.length > 0 && (() => {
+        const totalPaidSpend = paidKws.reduce((s, k) => s + (k.ads_spend_cents || 0), 0) / 100
+        const organicValue = ranked.reduce((s, k) => {
+          const vol = k.kp_monthly_volume || 0
+          const pos = k.sc_position || k.position || 99
+          const ctr = pos <= 1 ? 0.285 : pos <= 3 ? 0.12 : pos <= 5 ? 0.065 : pos <= 10 ? 0.025 : 0.005
+          const cpc = (k.ads_cpc_cents || k.kp_bid_high_cents || 200) / 100
+          return s + (vol * ctr * cpc)
+        }, 0)
+        return (
+          <div style={card}>
+            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>ROI: Organic Value vs Paid Cost</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+              <div style={{ padding: '18px', background: GRN + '06', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: GRN }}>${Math.round(organicValue).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Organic Value/mo</div>
+              </div>
+              <div style={{ padding: '18px', background: R + '06', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: R }}>${Math.round(totalPaidSpend).toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Ad Spend/mo</div>
+              </div>
+              <div style={{ padding: '18px', background: T + '06', borderRadius: 10, textAlign: 'center' }}>
+                <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: T }}>{totalPaidSpend > 0 ? `${(organicValue / totalPaidSpend).toFixed(1)}x` : '∞'}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>ROI Multiple</div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Volume Distribution */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Search Volume Distribution</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {[
+            ['High (1K+)', kws.filter(k => (k.kp_monthly_volume || 0) >= 1000).length, GRN],
+            ['Medium (100-999)', kws.filter(k => (k.kp_monthly_volume || 0) >= 100 && (k.kp_monthly_volume || 0) < 1000).length, T],
+            ['Low (10-99)', kws.filter(k => (k.kp_monthly_volume || 0) >= 10 && (k.kp_monthly_volume || 0) < 100).length, AMB],
+            ['Very Low (<10)', kws.filter(k => (k.kp_monthly_volume || 0) < 10).length, '#9ca3af'],
+          ].map(([label, count, color]) => (
+            <div key={label} style={{ padding: '16px', background: color + '08', borderRadius: 10, textAlign: 'center' }}>
+              <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color }}>{count}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Local Pack Keywords */}
+      {kws.filter(k => k.local_pack).length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Local Pack Keywords ({kws.filter(k => k.local_pack).length})</div>
+          {kws.filter(k => k.local_pack).slice(0, 10).map((kw, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
+              <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '12', color: GRN }}>Local Pack</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Top Pages by Keyword Count */}
+      {(() => {
+        const pageMap = {}
+        kws.forEach(k => { if (k.url) { if (!pageMap[k.url]) pageMap[k.url] = { url: k.url, count: 0, avgPos: 0, totalVol: 0 }; pageMap[k.url].count++; pageMap[k.url].avgPos += (k.sc_position || k.position || 0); pageMap[k.url].totalVol += (k.kp_monthly_volume || 0) } })
+        const pages = Object.values(pageMap).map(p => ({ ...p, avgPos: p.count > 0 ? Math.round(p.avgPos / p.count) : 0 })).sort((a, b) => b.count - a.count).slice(0, 10)
+        if (pages.length === 0) return null
+        return (
+          <div style={card}>
+            <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Top Pages by Keyword Count</div>
+            {pages.map((p, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: T, minWidth: 30 }}>{p.count}</span>
+                <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {p.url?.replace(/https?:\/\/[^/]+/, '') || '/'}
+                </div>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>Avg #{p.avgPos}</span>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>{p.totalVol.toLocaleString()} vol</span>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }
