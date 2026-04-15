@@ -140,27 +140,33 @@ export default function DashboardTab({ transactions, files, taxProfile, companyP
         })}
       </div>
 
-      {/* Clear all data */}
-      {transactions.length > 0 && (
-        <div className={styles.card} style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>
-              {transactions.length} transactions across {files.length} statements
-            </div>
-            <button
-              className={`${styles.btn} ${styles.btnSmall} ${styles.btnRed}`}
-              onClick={() => {
-                if (confirm('Delete ALL transactions and statements for this company? This cannot be undone.')) {
-                  dispatch({ type: 'SET_TRANSACTIONS', payload: [] })
-                  dispatch({ type: 'SET_FILES', payload: [] })
-                }
-              }}
-            >
-              <Trash2 size={12} /> Clear All Data
-            </button>
-          </div>
+      {/* Delete everything */}
+      <div className={styles.card} style={{ marginBottom: 16, borderColor: 'rgba(239,68,68,0.2)' }}>
+        <div className={styles.cardHeader}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--red)' }}>
+            <Trash2 size={16} /> Danger Zone
+          </span>
         </div>
-      )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>
+            Delete all data for this company — {transactions.length} transactions, {files.length} statements, tax profile, and company info. This cannot be undone.
+          </div>
+          <button
+            className={`${styles.btn} ${styles.btnRed}`}
+            onClick={() => {
+              if (confirm(`Delete EVERYTHING for ${companyProfile.businessName || clientName}? All transactions, statements, tax profile, and company info will be permanently removed.`)) {
+                dispatch({ type: 'SET_TRANSACTIONS', payload: [] })
+                dispatch({ type: 'SET_FILES', payload: [] })
+                dispatch({ type: 'SET_TAX_PROFILE', payload: {} })
+                dispatch({ type: 'SET_COMPANY_PROFILE', payload: {} })
+              }
+            }}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            <Trash2 size={14} /> Delete Everything
+          </button>
+        </div>
+      </div>
 
       {/* Uncategorized warning */}
       {totals.uncategorized > 0 && (
