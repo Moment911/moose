@@ -97,6 +97,9 @@ export default function KotoIQPage() {
   const [sortDir, setSortDir] = useState('desc')
   const [kwPage, setKwPage] = useState(0)
   const KW_LIMIT = 50
+  const [enrichment, setEnrichment] = useState(null)
+  const [enrichLoading, setEnrichLoading] = useState(false)
+  const [enriching, setEnriching] = useState(false)
   const [compKeyword, setCompKeyword] = useState('')
   const [compAnalysis, setCompAnalysis] = useState(null)
   const [compLoading, setCompLoading] = useState(false)
@@ -238,6 +241,32 @@ export default function KotoIQPage() {
     setGeneratingPosts(false)
   }
 
+  // Load enrichment
+  const loadEnrichment = useCallback(() => {
+    if (!clientId) return
+    setEnrichLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get_enrichment', client_id: clientId }) })
+      .then(r => r.json()).then(res => { setEnrichment(res.enrichment); setEnrichLoading(false) })
+      .catch(() => setEnrichLoading(false))
+  }, [clientId])
+
+  // Run deep enrich
+  const runDeepEnrich = async () => {
+    if (!clientId) return
+    setEnriching(true)
+    toast.loading('Running deep enrichment — 11 SEO tools in parallel...', { id: 'enrich' })
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deep_enrich', client_id: clientId, agency_id: agencyId }) })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error, { id: 'enrich' }); setEnriching(false); return }
+      toast.success(`Deep enrichment complete — ${data.tools_run?.length || 0} tools ran`, { id: 'enrich' })
+      setEnrichment(data.enrichment)
+      loadDashboard()
+    } catch { toast.error('Deep enrichment failed', { id: 'enrich' }) }
+    setEnriching(false)
+  }
+
   // Load rank data
   const loadRanks = useCallback(() => {
     if (!clientId) return
@@ -251,6 +280,7 @@ export default function KotoIQPage() {
   useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
   useEffect(() => { if (tab === 'briefs') loadBriefs() }, [tab, loadBriefs])
   useEffect(() => { if (tab === 'ranks') loadRanks() }, [tab, loadRanks])
+  useEffect(() => { if (tab === 'audit') loadEnrichment() }, [tab, loadEnrichment])
   useEffect(() => { if (tab === 'gmb') loadGMB() }, [tab, loadGMB])
 
   // Sync
@@ -332,10 +362,15 @@ export default function KotoIQPage() {
             )}
             <button onClick={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
               style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${GRN}`, background: '#fff', color: GRN, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>+ Add Client</button>
-            <button onClick={runQuickScan} disabled={syncing || !clientId}
-              style={{ padding: '8px 20px', borderRadius: 10, border: `1.5px solid ${R}`, background: syncing ? '#e5e7eb' : '#fff', color: R, fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              {syncing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
+            <button onClick={runQuickScan} disabled={syncing || enriching || !clientId}
+              style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${R}`, background: syncing ? '#e5e7eb' : '#fff', color: R, fontSize: 12, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              {syncing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={12} />}
               Quick Scan
+            </button>
+            <button onClick={runDeepEnrich} disabled={enriching || syncing || !clientId}
+              style={{ padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${AMB}`, background: enriching ? '#e5e7eb' : '#fff', color: AMB, fontSize: 12, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              {enriching ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={12} />}
+              Deep Audit
             </button>
             <button onClick={runSync} disabled={syncing || !clientId}
               style={{ padding: '8px 20px', borderRadius: 10, border: 'none', background: syncing ? '#e5e7eb' : T, color: '#fff', fontSize: 13, fontWeight: 700, cursor: syncing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -379,7 +414,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* Tabs (only show when client selected) */}
         {clientId && (
           <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
+            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['audit', 'Deep Audit', Shield], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
               <button key={key} onClick={() => setTab(key)}
                 style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={14} /> {label}
@@ -1122,6 +1157,354 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     )}
                   </div>
                 )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ══ DEEP AUDIT TAB ══ */}
+        {clientId && tab === 'audit' && (
+          <>
+            {enrichLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+
+            {!enrichLoading && !enrichment && (
+              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
+                <Shield size={48} color={AMB} style={{ margin: '0 auto 16px', opacity: .3 }} />
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No deep audit data yet</div>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Run a Deep Audit to analyze this client with 11 SEO tools in parallel — technical audit, on-page analysis, citations, AI visibility, content gaps, market density, and more.</div>
+                <button onClick={runDeepEnrich} disabled={enriching}
+                  style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: AMB, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  <Shield size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Run Deep Audit
+                </button>
+              </div>
+            )}
+
+            {!enrichLoading && enrichment && (
+              <>
+                {/* Tools run badge */}
+                {enrichment.tools_run?.length > 0 && (
+                  <div style={{ padding: '12px 20px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', marginBottom: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
+                      {enrichment.tools_run.length} Tools Ran · {enrichment.enriched_at ? new Date(enrichment.enriched_at).toLocaleDateString() : ''}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {enrichment.tools_run.map((t, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #e5e7eb', fontSize: 10, color: '#6b7280' }}>{t}</span>)}
+                    </div>
+                  </div>
+                )}
+
+                {/* Score overview */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 16 }}>
+                  {[
+                    ['Technical', enrichment.technical_audit?.grade, enrichment.technical_audit?.score],
+                    ['On-Page', enrichment.onpage_audit?.score ? (enrichment.onpage_audit.score >= 80 ? 'A' : enrichment.onpage_audit.score >= 60 ? 'B' : enrichment.onpage_audit.score >= 40 ? 'C' : 'D') : null, enrichment.onpage_audit?.score],
+                    ['Citations', enrichment.citations?.score ? `${enrichment.citations.score}%` : null, enrichment.citations?.score],
+                    ['AI Visibility', enrichment.ai_visibility?.grade, enrichment.ai_visibility?.score],
+                    ['Market', enrichment.market_density?.opportunity_level?.toUpperCase(), enrichment.market_density?.saturation_score],
+                  ].map(([label, grade, score]) => {
+                    const numScore = typeof score === 'number' ? score : 0
+                    const color = numScore >= 70 ? GRN : numScore >= 40 ? AMB : numScore > 0 ? R : '#d1d5db'
+                    return (
+                      <div key={label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{grade || '—'}</div>
+                        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
+                        {typeof score === 'number' && <div style={{ fontSize: 10, color: '#d1d5db', marginTop: 2 }}>{score}/100</div>}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Technical Audit */}
+                {enrichment.technical_audit && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <AlertCircle size={18} color={R} /> Technical SEO Audit
+                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.technical_audit.grade] || '#6b7280' }}>{enrichment.technical_audit.grade}</span>
+                    </div>
+                    {enrichment.technical_audit.summary && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.technical_audit.summary}</div>}
+                    {enrichment.technical_audit.critical_issues?.length > 0 && (
+                      <div style={{ marginBottom: 12 }}>
+                        {enrichment.technical_audit.critical_issues.map((issue, i) => (
+                          <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: R + '06', borderLeft: `3px solid ${R}`, marginBottom: 6 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{issue.issue} ({issue.count})</div>
+                            <div style={{ fontSize: 12, color: '#6b7280' }}>{issue.fix}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {enrichment.technical_audit.priority_fixes?.length > 0 && (
+                      <div style={{ fontSize: 12, color: '#374151' }}>
+                        <strong>Priority fixes:</strong> {enrichment.technical_audit.priority_fixes.join(' · ')}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* On-Page Audit */}
+                {enrichment.onpage_audit && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Eye size={18} color={T} /> On-Page SEO Audit
+                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 24, fontWeight: 900, color: enrichment.onpage_audit.score >= 70 ? GRN : enrichment.onpage_audit.score >= 40 ? AMB : R }}>{enrichment.onpage_audit.score}/100</span>
+                    </div>
+                    {enrichment.onpage_audit.ai_summary && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.onpage_audit.ai_summary}</div>}
+                    {enrichment.onpage_audit.critical_fails?.length > 0 && enrichment.onpage_audit.critical_fails.map((f, i) => (
+                      <div key={i} style={{ padding: '8px 12px', borderRadius: 6, background: R + '06', borderLeft: `3px solid ${R}`, marginBottom: 4, fontSize: 12, color: '#374151' }}>
+                        <strong>{f.label}:</strong> {f.detail} — <span style={{ color: R }}>{f.fix}</span>
+                      </div>
+                    ))}
+                    {enrichment.onpage_audit.local_seo_tips?.length > 0 && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: GRN }}><strong>Local SEO tips:</strong> {enrichment.onpage_audit.local_seo_tips.join(' · ')}</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Citations */}
+                {enrichment.citations && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <MapPin size={18} color={AMB} /> Citation Check
+                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 20, fontWeight: 900, color: enrichment.citations.score >= 70 ? GRN : enrichment.citations.score >= 40 ? AMB : R }}>{enrichment.citations.found}/{enrichment.citations.total} found</span>
+                    </div>
+                    {enrichment.citations.ai_summary && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.citations.ai_summary}</div>}
+                    {enrichment.citations.directories && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                        {enrichment.citations.directories.map((d, i) => (
+                          <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: d.found ? GRN + '10' : R + '10', color: d.found ? GRN : R, fontSize: 11, fontWeight: 600 }}>
+                            {d.found ? '✓' : '✕'} {d.directory}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {enrichment.citations.nap_issues > 0 && <div style={{ fontSize: 12, color: R }}><strong>{enrichment.citations.nap_issues} NAP inconsistencies</strong> found across directories</div>}
+                  </div>
+                )}
+
+                {/* AI Visibility */}
+                {enrichment.ai_visibility && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Brain size={18} color={'#8b5cf6'} /> AI Visibility Test
+                      <span style={{ marginLeft: 'auto', fontFamily: FH, fontSize: 24, fontWeight: 900, color: { A: GRN, B: GRN, C: AMB, D: R, F: R }[enrichment.ai_visibility.grade] || '#6b7280' }}>{enrichment.ai_visibility.grade}</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                      <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.mention_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.mention_rate}%</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Mention Rate</div>
+                      </div>
+                      <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.positive_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.positive_rate}%</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Positive Rate</div>
+                      </div>
+                    </div>
+                    {enrichment.ai_visibility.summary && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.ai_visibility.summary}</div>}
+                    {enrichment.ai_visibility.optimization_tips?.length > 0 && (
+                      <div>
+                        {enrichment.ai_visibility.optimization_tips.map((tip, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, fontSize: 12 }}>
+                            <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: { high: R, medium: AMB, low: GRN }[tip.impact] + '15', color: { high: R, medium: AMB, low: GRN }[tip.impact] }}>{tip.impact}</span>
+                            {tip.tip}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Market Density */}
+                {enrichment.market_density && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <BarChart2 size={18} color={T} /> Market Density
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 12 }}>
+                      {[
+                        ['Competitors', enrichment.market_density.total_competitors, T],
+                        ['Within 5km', enrichment.market_density.nearby_5km, AMB],
+                        ['High Rated', enrichment.market_density.high_rated, GRN],
+                        ['Saturation', `${enrichment.market_density.saturation_score}/100`, enrichment.market_density.saturation_score >= 70 ? R : enrichment.market_density.saturation_score >= 40 ? AMB : GRN],
+                      ].map(([label, val, color]) => (
+                        <div key={label} style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                          <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
+                          <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: { high: GRN, medium: AMB, low: R }[enrichment.market_density.opportunity_level] || '#6b7280' }}>
+                      Opportunity: {enrichment.market_density.opportunity_level?.toUpperCase()} · Market: {enrichment.market_density.market_assessment?.replace(/_/g, ' ')}
+                    </div>
+                  </div>
+                )}
+
+                {/* Content Gap */}
+                {enrichment.content_gap && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Zap size={18} color={R} /> Content Gap Analysis
+                    </div>
+                    {enrichment.content_gap.quick_content_wins?.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: GRN, textTransform: 'uppercase', marginBottom: 8 }}>Quick Content Wins</div>
+                        {enrichment.content_gap.quick_content_wins.map((w, i) => (
+                          <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: GRN + '06', borderLeft: `3px solid ${GRN}`, marginBottom: 6 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{w.title}</div>
+                            <div style={{ fontSize: 12, color: '#6b7280' }}>{w.why} · Target: "{w.target_keyword}" · {w.estimated_time}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {enrichment.content_gap.missing_page_types?.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: R }}>Missing:</span>
+                        {enrichment.content_gap.missing_page_types.map((p, i) => (
+                          <span key={i} style={{ padding: '3px 10px', borderRadius: 6, background: R + '10', color: R, fontSize: 11, fontWeight: 600 }}>{p}</span>
+                        ))}
+                      </div>
+                    )}
+                    {enrichment.content_gap.content_calendar?.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase', marginBottom: 8 }}>Content Calendar</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                          {enrichment.content_gap.content_calendar.slice(0, 8).map((item, i) => (
+                            <div key={i} style={{ padding: '10px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `2px solid ${T}` }}>
+                              <div style={{ fontSize: 9, fontWeight: 800, color: T, textTransform: 'uppercase' }}>Week {item.week}</div>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginTop: 4 }}>{item.title}</div>
+                              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{item.type} · "{item.keyword}"</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Grid Scan */}
+                {enrichment.grid_scan && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <MapPin size={18} color={R} /> Live Local Pack Grid — "{enrichment.grid_scan.keyword}"
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
+                      {[
+                        ['Coverage', `${enrichment.grid_scan.coverage_pct}%`, enrichment.grid_scan.coverage_pct >= 60 ? GRN : enrichment.grid_scan.coverage_pct >= 30 ? AMB : R],
+                        ['Best Rank', enrichment.grid_scan.best_rank ? `#${enrichment.grid_scan.best_rank}` : '—', enrichment.grid_scan.best_rank <= 3 ? GRN : AMB],
+                        ['Avg Rank', enrichment.grid_scan.avg_rank ? `#${Math.round(enrichment.grid_scan.avg_rank)}` : '—', T],
+                      ].map(([l, v, c]) => (
+                        <div key={l} style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: c }}>{v}</div>
+                          <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {enrichment.grid_scan.results?.length > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${enrichment.grid_scan.grid_size || 3}, 1fr)`, gap: 4, maxWidth: 300, margin: '0 auto' }}>
+                        {enrichment.grid_scan.results.map((g, i) => {
+                          const color = !g.rank ? '#d1d5db' : g.rank <= 3 ? GRN : g.rank <= 10 ? AMB : R
+                          return (
+                            <div key={i} style={{ aspectRatio: '1', borderRadius: 6, background: color + '15', border: `2px solid ${color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>
+                              {g.rank ? `#${g.rank}` : '—'}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Competitor Intel */}
+                {enrichment.competitor_intel && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Target size={18} color={R} /> Competitor Intelligence
+                    </div>
+                    {enrichment.competitor_intel.market_position && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.competitor_intel.market_position}</div>}
+                    {enrichment.competitor_intel.competitors?.length > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8, marginBottom: 12 }}>
+                        {enrichment.competitor_intel.competitors.map((c, i) => (
+                          <div key={i} style={{ padding: 12, borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{c.name}</div>
+                            <div style={{ fontSize: 20, fontWeight: 900, color: T, fontFamily: FH }}>{c.score}/100</div>
+                            <div style={{ fontSize: 11, color: '#6b7280' }}>{c.rating}★ · {c.reviews} reviews</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {enrichment.competitor_intel.quick_wins?.length > 0 && (
+                      <div style={{ fontSize: 12, color: GRN }}><strong>Quick wins:</strong> {enrichment.competitor_intel.quick_wins.join(' · ')}</div>
+                    )}
+                  </div>
+                )}
+
+                {/* PPC Keywords */}
+                {enrichment.ppc_keywords && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <DollarSign size={18} color={GRN} /> PPC Keyword Strategy
+                    </div>
+                    {enrichment.ppc_keywords.campaign_strategy && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.ppc_keywords.campaign_strategy}</div>}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                      <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: T }}>{enrichment.ppc_keywords.target_cpc_range}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Target CPC</div>
+                      </div>
+                      <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: GRN }}>{enrichment.ppc_keywords.monthly_budget_suggestion}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Budget Suggestion</div>
+                      </div>
+                    </div>
+                    {['service_keywords', 'long_tail_keywords', 'negative_keywords'].map(type => {
+                      const kws = enrichment.ppc_keywords[type]
+                      if (!kws?.length) return null
+                      const colors = { service_keywords: T, long_tail_keywords: AMB, negative_keywords: R }
+                      return (
+                        <div key={type} style={{ marginBottom: 10 }}>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: colors[type], textTransform: 'uppercase', marginBottom: 6 }}>{type.replace(/_/g, ' ')}</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                            {kws.slice(0, 12).map((k, i) => <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: colors[type] + '10', color: colors[type], fontSize: 10, fontWeight: 600 }}>{k}</span>)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Domain Enrichment */}
+                {enrichment.domain && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Search size={18} color={T} /> Domain Intelligence
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
+                      {[
+                        ['CMS', enrichment.domain.cms || '—', T],
+                        ['Hosting', enrichment.domain.hosting || '—', T],
+                        ['Email', enrichment.domain.email_provider || '—', T],
+                      ].map(([l, v, c]) => (
+                        <div key={l} style={{ padding: 12, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: c }}>{v}</div>
+                          <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {enrichment.domain.tech_stack?.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                        {enrichment.domain.tech_stack.map((t, i) => <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: '#f3f4f6', fontSize: 10, color: '#6b7280' }}>{t}</span>)}
+                      </div>
+                    )}
+                    {Object.keys(enrichment.domain.social_links || {}).length > 0 && (
+                      <div style={{ fontSize: 12, color: '#6b7280' }}>Social: {Object.entries(enrichment.domain.social_links).map(([k, v]) => `${k}: ✓`).join(' · ')}</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Re-run button */}
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <button onClick={runDeepEnrich} disabled={enriching}
+                    style={{ padding: '10px 24px', borderRadius: 10, border: `1.5px solid ${AMB}`, background: '#fff', color: AMB, fontSize: 13, fontWeight: 700, cursor: enriching ? 'wait' : 'pointer' }}>
+                    {enriching ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', marginRight: 6, verticalAlign: -2 }} /> : <RefreshCw size={14} style={{ marginRight: 6, verticalAlign: -2 }} />}
+                    Re-run Deep Audit
+                  </button>
+                </div>
               </>
             )}
           </>

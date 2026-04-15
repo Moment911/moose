@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { logTokenUsage } from '@/lib/tokenTracker'
 import { getAccessToken, fetchSearchConsoleData, fetchGA4Data } from '@/lib/seoService'
 import { fetchGoogleAdsKeywords, fetchGoogleAdsCampaigns } from '@/lib/perfMarketing'
+import { enrichDomain } from '@/lib/domainEnrichment'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -1381,6 +1382,309 @@ Return ONLY valid JSON:
     const { data, error } = await s.from('clients').update(update).eq('id', client_id).select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ client: data })
+  }
+
+  // ── DEEP ENRICH: Run all SEO tools and store results ────────────────
+  if (action === 'deep_enrich') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name, website, primary_service').eq('id', client_id).single()
+    if (!client?.website) return NextResponse.json({ error: 'Client has no website URL' }, { status: 400 })
+
+    let normalizedUrl = client.website.trim()
+    if (!normalizedUrl.startsWith('http')) normalizedUrl = 'https://' + normalizedUrl
+    const hostname = new URL(normalizedUrl).hostname
+
+    // Get location from latest intel report or client data
+    const { data: latestReport } = await s.from('koto_intel_reports').select('inputs')
+      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+    const location = latestReport?.inputs?.location || ''
+    const industry = client.primary_service || latestReport?.inputs?.industry || ''
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'
+
+    // Helper to call internal API routes
+    async function callSEO(path: string, body: any) {
+      try {
+        const res = await fetch(`${appUrl}/api/seo/${path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(45000),
+        })
+        return res.ok ? await res.json() : null
+      } catch { return null }
+    }
+
+    // Run ALL tools in parallel
+    const [
+      domainData,
+      technicalAudit,
+      onpageAudit,
+      citationCheck,
+      aiVisibility,
+      contentGap,
+      marketDensity,
+      keywordGap,
+      gridScan,
+      competitorIntel,
+      ppcKeywords,
+    ] = await Promise.all([
+      // Domain enrichment (direct import, no HTTP call)
+      enrichDomain(hostname).catch(() => null),
+
+      // Technical audit
+      callSEO('technical-audit', { url: normalizedUrl, max_pages: 5 }),
+
+      // On-page audit
+      callSEO('onpage-audit', { url: normalizedUrl, client_id, agency_id, business_name: client.name, location, sic_code: '' }),
+
+      // Citation check
+      callSEO('citation-check', { client_id, agency_id }),
+
+      // AI visibility
+      callSEO('ai-visibility', { business_name: client.name, industry, location, website: normalizedUrl }),
+
+      // Content gap (needs GSC connection)
+      callSEO('content-gap', { client_id, agency_id }),
+
+      // Market density
+      location ? callSEO('market-density', { location, business_type: industry, radius_km: 16 }) : null,
+
+      // Keyword gap (needs GSC connection)
+      callSEO('keyword-gap', { client_id, agency_id, business_name: client.name, industry, location, website: normalizedUrl }),
+
+      // Grid scan (local pack positions)
+      location && industry ? callSEO('grid-scan', { keyword: industry, location, target_business: client.name, grid_size: 3, spacing_km: 1.5 }) : null,
+
+      // Competitor intel (needs a place_id — try to find from existing data)
+      (async () => {
+        // Find place_id from GBP data in latest intel report
+        const gbpPlaceId = latestReport?.inputs?.place_id
+        if (gbpPlaceId) return callSEO('competitor-intel', { client_id, agency_id, place_id: gbpPlaceId, location, business_name: client.name })
+        // Try to find via Places search
+        const apiKey = process.env.GOOGLE_PLACES_KEY || process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_API_KEY || ''
+        if (!apiKey || !client.name) return null
+        try {
+          const searchRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey, 'X-Goog-FieldMask': 'places.id' },
+            body: JSON.stringify({ textQuery: `${client.name} ${location}`, maxResultCount: 1 }),
+            signal: AbortSignal.timeout(8000),
+          })
+          const d = await searchRes.json()
+          const placeId = d.places?.[0]?.id
+          if (placeId) return callSEO('competitor-intel', { client_id, agency_id, place_id: placeId, location, business_name: client.name })
+        } catch { /* skip */ }
+        return null
+      })(),
+
+      // PPC keywords
+      callSEO('ppc-keywords', { keyword: industry, location, target_business: client.name }),
+    ])
+
+    // Store enrichment data
+    const enrichment = {
+      domain: domainData,
+      technical_audit: technicalAudit ? {
+        score: technicalAudit.ai_report?.overall_score,
+        grade: technicalAudit.ai_report?.grade,
+        summary: technicalAudit.ai_report?.summary,
+        critical_issues: technicalAudit.ai_report?.critical_issues,
+        priority_fixes: technicalAudit.ai_report?.priority_fixes,
+        speed: technicalAudit.speed,
+        pages_crawled: technicalAudit.pages_crawled,
+        broken_pages: technicalAudit.summary?.broken,
+        missing_meta: technicalAudit.summary?.no_meta,
+        missing_alt: technicalAudit.summary?.missing_alt,
+        no_schema: technicalAudit.summary?.no_schema,
+      } : null,
+      onpage_audit: onpageAudit ? {
+        score: onpageAudit.score,
+        passes: onpageAudit.passes?.length,
+        fails: onpageAudit.fails?.length,
+        critical_fails: onpageAudit.fails?.filter((f: any) => f.severity === 'critical'),
+        ai_summary: onpageAudit.ai?.executive_summary,
+        keyword_gaps: onpageAudit.ai?.keyword_gaps,
+        title_suggestion: onpageAudit.ai?.title_suggestion,
+        meta_suggestion: onpageAudit.ai?.meta_suggestion,
+        local_seo_tips: onpageAudit.ai?.local_seo_tips,
+        speed: onpageAudit.speed,
+      } : null,
+      citations: citationCheck ? {
+        score: citationCheck.score,
+        found: citationCheck.found_count,
+        missing: citationCheck.missing_count,
+        total: citationCheck.total_checked,
+        nap_issues: citationCheck.nap_issues_count,
+        directories: citationCheck.directories,
+        ai_summary: citationCheck.ai?.summary,
+        top_priorities: citationCheck.ai?.top_priorities,
+        quick_win: citationCheck.ai?.quick_win,
+      } : null,
+      ai_visibility: aiVisibility ? {
+        mention_rate: aiVisibility.mention_rate,
+        positive_rate: aiVisibility.positive_rate,
+        score: aiVisibility.report?.visibility_score,
+        grade: aiVisibility.report?.grade,
+        summary: aiVisibility.report?.summary,
+        optimization_tips: aiVisibility.report?.optimization_tips,
+        content_to_create: aiVisibility.report?.content_to_create,
+        schema_recommendations: aiVisibility.report?.schema_recommendations,
+        results: aiVisibility.results,
+      } : null,
+      content_gap: contentGap?.strategy ? {
+        topic_clusters: contentGap.strategy.topic_clusters,
+        quick_content_wins: contentGap.strategy.quick_content_wins,
+        content_calendar: contentGap.strategy.content_calendar,
+        missing_page_types: contentGap.strategy.missing_page_types,
+        content_to_update: contentGap.strategy.content_to_update,
+      } : null,
+      market_density: marketDensity?.summary ? {
+        total_competitors: marketDensity.summary.total_competitors,
+        saturation_score: marketDensity.summary.saturation_score,
+        market_assessment: marketDensity.summary.market_assessment,
+        opportunity_level: marketDensity.summary.opportunity_level,
+        nearby_5km: marketDensity.summary.nearby_5km,
+        high_rated: marketDensity.summary.high_rated_count,
+        density_per_sq_km: marketDensity.summary.density_per_sq_km,
+      } : null,
+      keyword_gap: keywordGap?.analysis ? {
+        gap_opportunities: keywordGap.analysis.gap_opportunities,
+        quick_wins: keywordGap.analysis.quick_wins,
+        location_keywords: keywordGap.analysis.location_keywords,
+        long_tail_opportunities: keywordGap.analysis.long_tail_opportunities,
+        competitor_keywords: keywordGap.analysis.competitor_keywords,
+        content_calendar: keywordGap.analysis.content_calendar,
+        current_strengths: keywordGap.analysis.current_strengths,
+      } : null,
+      grid_scan: gridScan ? {
+        keyword: gridScan.keyword,
+        grid_size: gridScan.grid_size,
+        results: gridScan.grid_results,
+        coverage_pct: gridScan.summary?.coverage_pct,
+        avg_rank: gridScan.summary?.avg_rank,
+        best_rank: gridScan.summary?.best_rank,
+        ranked_cells: gridScan.summary?.ranked_cells,
+        total_cells: gridScan.summary?.total_cells,
+      } : null,
+      competitor_intel: competitorIntel ? {
+        client_score: competitorIntel.client?.score,
+        competitors: competitorIntel.competitors?.map((c: any) => ({ name: c.name, score: c.score, rating: c.rating, reviews: c.review_count })),
+        market_position: competitorIntel.intel?.market_position,
+        biggest_threat: competitorIntel.intel?.biggest_threat,
+        strengths: competitorIntel.intel?.strengths,
+        weaknesses: competitorIntel.intel?.weaknesses,
+        recommended_actions: competitorIntel.intel?.recommended_actions,
+        quick_wins: competitorIntel.intel?.quick_wins,
+      } : null,
+      ppc_keywords: ppcKeywords ? {
+        branded_keywords: ppcKeywords.branded_keywords,
+        service_keywords: ppcKeywords.service_keywords,
+        long_tail_keywords: ppcKeywords.long_tail_keywords,
+        negative_keywords: ppcKeywords.negative_keywords,
+        target_cpc_range: ppcKeywords.target_cpc_range,
+        monthly_budget_suggestion: ppcKeywords.monthly_budget_suggestion,
+        campaign_strategy: ppcKeywords.campaign_strategy,
+        ad_headlines: ppcKeywords.ad_headline_ideas,
+        ad_descriptions: ppcKeywords.ad_description_ideas,
+      } : null,
+      enriched_at: new Date().toISOString(),
+      tools_run: [
+        domainData ? 'Domain Enrichment' : null,
+        technicalAudit ? 'Technical SEO Audit' : null,
+        onpageAudit ? 'On-Page Audit' : null,
+        citationCheck ? 'Citation Check (20 directories)' : null,
+        aiVisibility ? 'AI Visibility Test' : null,
+        contentGap ? 'Content Gap Analysis' : null,
+        marketDensity ? 'Market Density Analysis' : null,
+        keywordGap ? 'Keyword Gap Analysis' : null,
+        gridScan ? 'Local Pack Grid Scan' : null,
+        competitorIntel ? 'Competitor Intelligence' : null,
+        ppcKeywords ? 'PPC Keyword Strategy' : null,
+      ].filter(Boolean),
+    }
+
+    // Save to a jsonb column on the latest keyword sync or as metadata
+    // Store as a kotoiq_sync_log entry with enrichment data
+    await s.from('kotoiq_sync_log').insert({
+      client_id, source: 'deep_enrich', status: 'complete',
+      records_synced: enrichment.tools_run.length,
+      completed_at: new Date().toISOString(),
+      metadata: enrichment,
+    })
+
+    // Merge keyword gap opportunities into UKF
+    if (keywordGap?.analysis?.gap_opportunities?.length) {
+      const newKws = keywordGap.analysis.gap_opportunities
+        .filter((g: any) => g.keyword)
+        .map((g: any) => ({
+          client_id, agency_id: agency_id || null,
+          keyword: g.keyword, fingerprint: fingerprint(g.keyword),
+          intent: g.intent || classifyIntent(g.keyword),
+          kp_monthly_volume: g.monthly_volume_estimate ? parseInt(String(g.monthly_volume_estimate).replace(/\D/g, '')) || null : null,
+          category: g.priority === 'high' ? 'quick_win' : g.priority === 'medium' ? 'striking_distance' : 'dark_matter',
+          opportunity_score: g.priority === 'high' ? 80 : g.priority === 'medium' ? 60 : 40,
+          rank_propensity: g.difficulty === 'easy' ? 75 : g.difficulty === 'medium' ? 50 : 25,
+          recommendation: g.action || null,
+          data_period: `Deep enrich — ${new Date().toISOString().split('T')[0]}`,
+        }))
+      // Upsert — don't duplicate existing keywords
+      for (const kw of newKws) {
+        const { data: existing } = await s.from('kotoiq_keywords').select('id').eq('client_id', client_id).eq('fingerprint', kw.fingerprint).single()
+        if (!existing) await s.from('kotoiq_keywords').insert(kw)
+      }
+    }
+
+    // Merge content gap quick wins into recommendations
+    if (contentGap?.strategy?.quick_content_wins?.length) {
+      const recs = contentGap.strategy.quick_content_wins.slice(0, 5).map((w: any) => ({
+        client_id, agency_id: agency_id || null,
+        type: 'new_content', priority: 'high',
+        title: w.title, detail: `${w.why}. Target keyword: "${w.target_keyword}". Estimated effort: ${w.estimated_time}.`,
+        keywords: [w.target_keyword], estimated_impact: `New page targeting "${w.target_keyword}"`, effort: w.estimated_time === '1 hour' ? 'quick_win' : 'moderate',
+      }))
+      if (recs.length) await s.from('kotoiq_recommendations').insert(recs)
+    }
+
+    // Merge citation fixes into recommendations
+    if (citationCheck?.ai?.top_priorities?.length) {
+      const recs = citationCheck.ai.top_priorities.slice(0, 3).map((p: string) => ({
+        client_id, agency_id: agency_id || null,
+        type: 'quick_win', priority: 'medium',
+        title: 'Fix citation: ' + p.slice(0, 80), detail: p,
+        estimated_impact: `Improve NAP consistency (current score: ${citationCheck.score}/100)`, effort: 'quick_win',
+      }))
+      if (recs.length) await s.from('kotoiq_recommendations').insert(recs)
+    }
+
+    // Store grid scan results in kotoiq_gmb_grid
+    if (gridScan?.grid_results?.length) {
+      await s.from('kotoiq_gmb_grid').delete().eq('client_id', client_id).eq('keyword', gridScan.keyword)
+      await s.from('kotoiq_gmb_grid').insert(
+        gridScan.grid_results.map((g: any) => ({
+          client_id, keyword: gridScan.keyword,
+          lat: g.lat, lng: g.lng, grid_row: g.row, grid_col: g.col,
+          position: g.rank, in_pack: g.rank && g.rank <= 3, pack_rank: g.rank && g.rank <= 3 ? g.rank : null,
+          competitor_name: g.top3?.[0] || null,
+        }))
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      tools_run: enrichment.tools_run,
+      enrichment,
+    })
+  }
+
+  // ── GET ENRICHMENT DATA ───────────────────────────────────────────────
+  if (action === 'get_enrichment') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    const { data } = await s.from('kotoiq_sync_log').select('metadata, completed_at')
+      .eq('client_id', client_id).eq('source', 'deep_enrich').order('completed_at', { ascending: false }).limit(1).single()
+    return NextResponse.json({ enrichment: data?.metadata || null, enriched_at: data?.completed_at || null })
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
