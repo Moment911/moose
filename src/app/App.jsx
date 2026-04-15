@@ -326,6 +326,7 @@ function AppRoutes() {
           <Route path="/scout/pipeline" element={<ScoutPipelinePage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
           <Route path="/page-builder" element={<PageBuilderPage/>}/>
+          <Route path="/kotoiq/page-builder" element={<PageBuilderPage/>}/>
                 <Route path="/wordpress" element={<WordPressControlPage />} />
           <Route path="/proposals" element={<ProposalsPage />} />
           <Route path="/proposals/:id" element={<ProposalBuilderPage />} />
@@ -394,6 +395,7 @@ function AppRoutes() {
           <Route path="/industry-agents" element={<IndustryAgentPage />} />
           <Route path="/opportunities" element={<OpportunitiesPage />} />
           <Route path="/pixels" element={<PixelTrackingPage />} />
+          <Route path="/kotoiq/pixels" element={<PixelTrackingPage />} />
           <Route path="/vob" element={<VOBAgentPage />} />
           <Route path="/integrations/ghl" element={<GHLIntegrationPage />} />
           <Route path="/sequences" element={<EmailSequencePage />} />
@@ -451,6 +453,7 @@ function AppRoutes() {
           <Route path="/seo/citations" element={<CitationTrackerPage />} />
           <Route path="/seo/plugin" element={<WordPressControlPage />} />
           <Route path="/seo/connect" element={<SEOConnectPage />} />
+          <Route path="/kotoiq/connect" element={<SEOConnectPage />} />
           <Route path="/order" element={<KotoOrderPage />} />
           <Route path="/qa" element={<QAConsolePage />} />
           <Route path="/billing-admin" element={<BillingAdminPage />} />
