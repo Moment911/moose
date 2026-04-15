@@ -534,5 +534,246 @@ Return ONLY valid JSON array:
     return NextResponse.json({ syncs: data || [] })
   }
 
+  // ── KEYWORD PLANNER: Fetch search volume for existing keywords ──────
+  if (action === 'enrich_volume') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: connections } = await s.from('seo_connections').select('*').eq('client_id', client_id)
+    const adsConn = connections?.find((c: any) => (c.provider === 'ads' || c.provider === 'google') && c.refresh_token)
+    if (!adsConn) return NextResponse.json({ error: 'No Google Ads connection — cannot access Keyword Planner' }, { status: 400 })
+
+    const accessToken = await getAccessToken(adsConn)
+    const customerId = adsConn.account_id
+    if (!accessToken || !customerId) return NextResponse.json({ error: 'Cannot authenticate with Google Ads' }, { status: 400 })
+
+    // Get keywords that need volume data
+    const { data: keywords } = await s.from('kotoiq_keywords').select('id, keyword, fingerprint')
+      .eq('client_id', client_id).is('kp_monthly_volume', null).limit(200)
+
+    if (!keywords?.length) return NextResponse.json({ success: true, message: 'All keywords already have volume data', enriched: 0 })
+
+    // Batch keywords (Keyword Planner accepts up to 20 at a time)
+    let enriched = 0
+    for (let i = 0; i < keywords.length; i += 20) {
+      const batch = keywords.slice(i, i + 20)
+      try {
+        const kpRes = await fetch(
+          `https://googleads.googleapis.com/v17/customers/${customerId}:generateKeywordIdeas`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              keywordSeed: { keywords: batch.map(k => k.keyword) },
+              language: 'languageConstants/1000', // English
+              geoTargetConstants: ['geoTargetConstants/2840'], // US
+              keywordPlanNetwork: 'GOOGLE_SEARCH',
+            }),
+          }
+        )
+        if (!kpRes.ok) continue
+        const kpData = await kpRes.json()
+
+        // Match results back to our keywords
+        const volumeMap = new Map<string, any>()
+        for (const result of kpData.results || []) {
+          const kw = result.text || result.keywordIdeaMetrics?.text
+          if (!kw) continue
+          const fp = fingerprint(kw)
+          const metrics = result.keywordIdeaMetrics || {}
+          volumeMap.set(fp, {
+            kp_monthly_volume: parseInt(metrics.avgMonthlySearches || '0'),
+            kp_competition: metrics.competition || null,
+            kp_competition_index: metrics.competitionIndex || null,
+            kp_low_bid_cents: metrics.lowTopOfPageBidMicros ? Math.round(parseInt(metrics.lowTopOfPageBidMicros) / 10000) : null,
+            kp_high_bid_cents: metrics.highTopOfPageBidMicros ? Math.round(parseInt(metrics.highTopOfPageBidMicros) / 10000) : null,
+          })
+        }
+
+        // Update keywords with volume data
+        for (const kw of batch) {
+          const vol = volumeMap.get(kw.fingerprint)
+          if (vol) {
+            await s.from('kotoiq_keywords').update({
+              ...vol,
+              updated_at: new Date().toISOString(),
+            }).eq('id', kw.id)
+            enriched++
+          }
+        }
+      } catch { /* skip failed batch */ }
+    }
+
+    return NextResponse.json({ success: true, enriched, total: keywords.length })
+  }
+
+  // ── GENERATE CONTENT BRIEF ────────────────────────────────────────────
+  if (action === 'generate_brief') {
+    const { client_id, agency_id, keyword, target_url, page_type } = body
+    if (!client_id || !keyword) return NextResponse.json({ error: 'client_id and keyword required' }, { status: 400 })
+
+    // Get keyword data from UKF
+    const fp = fingerprint(keyword)
+    const { data: kwData } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).eq('fingerprint', fp).single()
+
+    // Get client info
+    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer').eq('id', client_id).single()
+
+    // Fetch top 3 competitor pages for this keyword if we have SC data
+    let competitorPages: any[] = []
+    if (kwData?.sc_top_page || client?.website) {
+      const targetUrl = kwData?.sc_top_page || client?.website
+      try {
+        const domain = new URL(targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`).hostname
+        // Fetch top organic competitors' pages (simplified — would use DataForSEO in full version)
+        // For now, use the data we already have from the keyword record
+      } catch { /* skip */ }
+    }
+
+    // Generate the brief with Claude
+    const briefPrompt = `You are KotoIQ, an elite SEO content strategist. Generate a comprehensive content brief for a new page.
+
+BUSINESS: ${client?.name || 'Unknown'}
+WEBSITE: ${client?.website || 'Unknown'}
+PRIMARY SERVICE: ${client?.primary_service || 'Unknown'}
+TARGET CUSTOMER: ${client?.target_customer || 'Unknown'}
+
+TARGET KEYWORD: "${keyword}"
+SEARCH INTENT: ${kwData?.intent || classifyIntent(keyword)}
+PAGE TYPE: ${page_type || 'service_page'}
+SUGGESTED URL: ${target_url || `/${keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`}
+
+KEYWORD DATA:
+- Monthly search volume: ${kwData?.kp_monthly_volume || 'Unknown'}
+- Current organic position: ${kwData?.sc_avg_position ? `#${Math.round(kwData.sc_avg_position)}` : 'Not ranking'}
+- Current organic clicks: ${kwData?.sc_clicks || 0}/month
+- Competition: ${kwData?.kp_competition || 'Unknown'}
+- CPC: ${kwData?.ads_cpc_cents ? `$${(kwData.ads_cpc_cents / 100).toFixed(2)}` : 'Unknown'}
+- Opportunity score: ${kwData?.opportunity_score || 'Unknown'}/100
+- Rank propensity: ${kwData?.rank_propensity || 'Unknown'}/100
+- Client Domain Authority: ${kwData?.moz_da || 'Unknown'}
+
+INSTRUCTIONS:
+1. Generate a complete page brief that will rank #1 for this keyword
+2. The brief should beat current top-ranking pages by being more comprehensive, better structured, and more useful
+3. Include FAQ questions sourced from what real people ask about this topic
+4. Include schema markup recommendations
+5. Specify exact entity coverage needed for NLP/AEO optimization
+6. The content should be written for HUMANS first, optimized for search second
+7. For local service businesses, include city/area mentions naturally
+8. Target featured snippet / AI Overview capture where applicable
+
+Return ONLY valid JSON:
+{
+  "title_tag": "max 60 chars, keyword first, city, brand last",
+  "meta_description": "max 155 chars, keyword, CTA, differentiator",
+  "h1": "primary heading, keyword + city naturally",
+  "target_url": "/suggested-url-path/",
+  "target_word_count": number,
+  "outline": [
+    {
+      "h2": "Section heading",
+      "h3s": ["Subsection 1", "Subsection 2"],
+      "key_points": ["What to cover in this section"],
+      "word_count_target": number
+    }
+  ],
+  "schema_types": ["LocalBusiness", "FAQPage", "Service", "BreadcrumbList"],
+  "faq_questions": [
+    { "question": "Exact question to answer", "answer_guidance": "What to include in the answer (40-60 words for featured snippet)" }
+  ],
+  "target_entities": ["entity1", "entity2"],
+  "internal_links": {
+    "link_to_this_page_from": ["homepage", "services hub", "related service page"],
+    "link_from_this_page_to": ["related services", "location pages", "contact page"]
+  },
+  "content_guidelines": {
+    "opening_paragraph": "40-60 word direct answer to the query intent (featured snippet target)",
+    "tone": "professional but approachable",
+    "cta_placement": "after intro, mid-page, end of page",
+    "image_suggestions": ["type of image 1", "type of image 2"],
+    "differentiator_angle": "what makes this page unique vs competitors"
+  },
+  "estimated_monthly_traffic": number,
+  "ranking_timeline": "estimated weeks/months to rank based on competition",
+  "aeo_optimization": {
+    "target_snippet_type": "paragraph|list|table|faq",
+    "ai_overview_eligible": true/false,
+    "optimization_notes": "specific tips for AI citation"
+  }
+}`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: 'You are KotoIQ content strategist. Return ONLY valid JSON. No markdown.',
+        messages: [{ role: 'user', content: briefPrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_content_brief', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+      const brief = JSON.parse(cleaned)
+
+      // Save to database
+      const { data: saved, error: saveErr } = await s.from('kotoiq_content_briefs').insert({
+        client_id,
+        agency_id: agency_id || null,
+        target_keyword: keyword,
+        target_url: brief.target_url || target_url,
+        page_type: page_type || 'service_page',
+        title_tag: brief.title_tag,
+        meta_description: brief.meta_description,
+        h1: brief.h1,
+        outline: brief.outline,
+        schema_types: brief.schema_types,
+        faq_questions: brief.faq_questions,
+        target_word_count: brief.target_word_count,
+        target_entities: brief.target_entities,
+        competitor_analysis: competitorPages.length > 0 ? competitorPages : null,
+        opportunity_score: kwData?.opportunity_score || null,
+        rank_propensity: kwData?.rank_propensity || null,
+        estimated_monthly_traffic: brief.estimated_monthly_traffic || null,
+      }).select().single()
+
+      return NextResponse.json({ brief: { id: saved?.id, ...brief }, keyword_data: kwData })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── LIST CONTENT BRIEFS ───────────────────────────────────────────────
+  if (action === 'list_briefs') {
+    const { client_id, status: briefStatus } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+    let q = s.from('kotoiq_content_briefs').select('*').eq('client_id', client_id).order('created_at', { ascending: false })
+    if (briefStatus) q = q.eq('status', briefStatus)
+    const { data } = await q
+    return NextResponse.json({ briefs: data || [] })
+  }
+
+  // ── GET SINGLE BRIEF ──────────────────────────────────────────────────
+  if (action === 'get_brief') {
+    const { id } = body
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const { data } = await s.from('kotoiq_content_briefs').select('*').eq('id', id).single()
+    return NextResponse.json({ brief: data })
+  }
+
+  // ── UPDATE BRIEF STATUS ───────────────────────────────────────────────
+  if (action === 'update_brief') {
+    const { id, status: newStatus, published_url } = body
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const update: any = { status: newStatus, updated_at: new Date().toISOString() }
+    if (published_url) update.published_url = published_url
+    await s.from('kotoiq_content_briefs').update(update).eq('id', id)
+    return NextResponse.json({ success: true })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }

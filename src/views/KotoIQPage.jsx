@@ -92,6 +92,12 @@ export default function KotoIQPage() {
   const [sortDir, setSortDir] = useState('desc')
   const [kwPage, setKwPage] = useState(0)
   const KW_LIMIT = 50
+  const [briefs, setBriefs] = useState([])
+  const [briefLoading, setBriefLoading] = useState(false)
+  const [briefKeyword, setBriefKeyword] = useState('')
+  const [briefPageType, setBriefPageType] = useState('service_page')
+  const [activeBrief, setActiveBrief] = useState(null)
+  const [generatingBrief, setGeneratingBrief] = useState(false)
 
   // Load clients
   useEffect(() => {
@@ -123,8 +129,37 @@ export default function KotoIQPage() {
     }).then(r => r.json()).then(res => { setKeywords(res.keywords || []); setKwTotal(res.total || 0) })
   }, [clientId, catFilter, sortBy, sortDir, kwPage, searchQ])
 
+  // Load briefs
+  const loadBriefs = useCallback(() => {
+    if (!clientId) return
+    setBriefLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'list_briefs', client_id: clientId }) })
+      .then(r => r.json()).then(res => { setBriefs(res.briefs || []); setBriefLoading(false) })
+      .catch(() => setBriefLoading(false))
+  }, [clientId])
+
+  // Generate brief
+  const generateBrief = async (kw) => {
+    const keyword = kw || briefKeyword
+    if (!keyword || !clientId) return
+    setGeneratingBrief(true)
+    toast.loading('Generating content brief...', { id: 'brief' })
+    try {
+      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate_brief', client_id: clientId, agency_id: agencyId, keyword, page_type: briefPageType }) })
+      const data = await res.json()
+      if (data.error) { toast.error(data.error, { id: 'brief' }); setGeneratingBrief(false); return }
+      toast.success('Brief generated!', { id: 'brief' })
+      setActiveBrief(data.brief)
+      setBriefKeyword('')
+      loadBriefs()
+    } catch { toast.error('Failed to generate brief', { id: 'brief' }) }
+    setGeneratingBrief(false)
+  }
+
   useEffect(() => { loadDashboard() }, [loadDashboard])
   useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
+  useEffect(() => { if (tab === 'briefs') loadBriefs() }, [tab, loadBriefs])
 
   // Sync
   const runSync = async () => {
@@ -172,7 +207,7 @@ export default function KotoIQPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search]].map(([key, label, Icon]) => (
+          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap]].map(([key, label, Icon]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon size={14} /> {label}
@@ -404,6 +439,196 @@ export default function KotoIQPage() {
                 </div>
               )}
             </div>
+          </>
+        )}
+
+        {/* ══ PAGE BUILDER TAB ══ */}
+        {clientId && tab === 'briefs' && (
+          <>
+            {/* Generate new brief */}
+            <div style={card}>
+              <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Zap size={18} color={T} /> Generate Content Brief
+              </div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'end' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 6 }}>Target Keyword</div>
+                  <input value={briefKeyword} onChange={e => setBriefKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && generateBrief()}
+                    placeholder="e.g. emergency plumber boca raton" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 6 }}>Page Type</div>
+                  <select value={briefPageType} onChange={e => setBriefPageType(e.target.value)}
+                    style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, background: '#fff', cursor: 'pointer' }}>
+                    <option value="service_page">Service Page</option>
+                    <option value="location_page">Location Page</option>
+                    <option value="blog_post">Blog Post</option>
+                    <option value="landing_page">Landing Page</option>
+                  </select>
+                </div>
+                <button onClick={() => generateBrief()} disabled={generatingBrief || !briefKeyword}
+                  style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: generatingBrief || !briefKeyword ? '#e5e7eb' : R, color: '#fff', fontSize: 13, fontWeight: 700, cursor: generatingBrief ? 'wait' : 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {generatingBrief ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
+                  {generatingBrief ? 'Generating...' : 'Generate Brief'}
+                </button>
+              </div>
+              {/* Quick generate from keyword explorer */}
+              {dashboard?.top_opportunities?.length > 0 && !briefKeyword && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8 }}>Quick generate from top opportunities:</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {dashboard.top_opportunities.filter(k => k.category === 'striking_distance' || k.category === 'quick_win' || k.category === 'dark_matter').slice(0, 8).map((kw, i) => (
+                      <button key={i} onClick={() => generateBrief(kw.keyword)}
+                        style={{ padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid ${T}30`, background: '#fff', color: T, transition: 'all .15s' }}>
+                        {kw.keyword}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Active brief viewer */}
+            {activeBrief && (
+              <div style={card}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                  <div>
+                    <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{activeBrief.h1}</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>{activeBrief.target_url} · {activeBrief.target_word_count} words</div>
+                  </div>
+                  <button onClick={() => setActiveBrief(null)} style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Close</button>
+                </div>
+
+                {/* Title + Meta */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                  <div style={{ padding: 16, borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Title Tag</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{activeBrief.title_tag}</div>
+                    <div style={{ fontSize: 10, color: activeBrief.title_tag?.length <= 60 ? GRN : R, marginTop: 4 }}>{activeBrief.title_tag?.length || 0}/60 chars</div>
+                  </div>
+                  <div style={{ padding: 16, borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Meta Description</div>
+                    <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{activeBrief.meta_description}</div>
+                    <div style={{ fontSize: 10, color: activeBrief.meta_description?.length <= 155 ? GRN : R, marginTop: 4 }}>{activeBrief.meta_description?.length || 0}/155 chars</div>
+                  </div>
+                </div>
+
+                {/* Schema types */}
+                {activeBrief.schema_types?.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Required Schema Markup</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {activeBrief.schema_types.map((s, i) => (
+                        <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: T + '12', color: T, fontSize: 12, fontWeight: 600 }}>{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Content Outline */}
+                {activeBrief.outline?.length > 0 && (
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>Content Outline</div>
+                    {activeBrief.outline.map((section, i) => (
+                      <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${T}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>H2: {section.h2}</div>
+                          <span style={{ fontSize: 11, color: '#9ca3af' }}>~{section.word_count_target} words</span>
+                        </div>
+                        {section.h3s?.length > 0 && (
+                          <div style={{ marginTop: 8, paddingLeft: 16 }}>
+                            {section.h3s.map((h3, j) => <div key={j} style={{ fontSize: 12, color: '#6b7280', marginBottom: 3 }}>↳ H3: {h3}</div>)}
+                          </div>
+                        )}
+                        {section.key_points?.length > 0 && (
+                          <div style={{ marginTop: 8 }}>
+                            {section.key_points.map((pt, j) => <div key={j} style={{ fontSize: 12, color: '#374151', marginBottom: 3 }}>• {pt}</div>)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* FAQ Section */}
+                {activeBrief.faq_questions?.length > 0 && (
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>FAQ Questions (FAQPage Schema)</div>
+                    {activeBrief.faq_questions.map((faq, i) => (
+                      <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#fef3c7', border: '1px solid #fcd34d', marginBottom: 6 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>Q: {faq.question}</div>
+                        <div style={{ fontSize: 12, color: '#92400e', marginTop: 4 }}>A: {faq.answer_guidance}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Target entities */}
+                {activeBrief.target_entities?.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Target Entities (NLP Coverage)</div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {activeBrief.target_entities.map((e, i) => (
+                        <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: '#f3f4f6', fontSize: 11, fontWeight: 600, color: '#374151' }}>{e}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AEO + Guidelines */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {activeBrief.aeo_optimization && (
+                    <div style={{ padding: 16, borderRadius: 10, background: R + '06', border: `1px solid ${R}20` }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>AEO / Featured Snippet</div>
+                      <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+                        <div><strong>Target:</strong> {activeBrief.aeo_optimization.target_snippet_type} snippet</div>
+                        <div><strong>AI Overview eligible:</strong> {activeBrief.aeo_optimization.ai_overview_eligible ? 'Yes' : 'No'}</div>
+                        {activeBrief.aeo_optimization.optimization_notes && <div style={{ marginTop: 6 }}>{activeBrief.aeo_optimization.optimization_notes}</div>}
+                      </div>
+                    </div>
+                  )}
+                  {activeBrief.content_guidelines && (
+                    <div style={{ padding: 16, borderRadius: 10, background: GRN + '06', border: `1px solid ${GRN}20` }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Content Guidelines</div>
+                      <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+                        <div><strong>Tone:</strong> {activeBrief.content_guidelines.tone}</div>
+                        <div><strong>CTA:</strong> {activeBrief.content_guidelines.cta_placement}</div>
+                        <div><strong>Angle:</strong> {activeBrief.content_guidelines.differentiator_angle}</div>
+                        {activeBrief.ranking_timeline && <div style={{ marginTop: 6 }}><strong>Ranking timeline:</strong> {activeBrief.ranking_timeline}</div>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Saved briefs list */}
+            {briefs.length > 0 && (
+              <div style={card}>
+                <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Saved Briefs</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {briefs.map((b, i) => (
+                    <div key={i} onClick={() => { setActiveBrief(b); }} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'background .15s', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'} onMouseLeave={e => e.currentTarget.style.background = '#f9fafb'}>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{b.target_keyword}</div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{b.target_url} · {b.page_type?.replace(/_/g, ' ')} · {b.target_word_count} words</div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: { draft: '#f3f4f6', approved: T + '15', in_progress: AMB + '15', published: GRN + '15', tracking: GRN + '15' }[b.status] || '#f3f4f6', color: { draft: '#6b7280', approved: T, in_progress: AMB, published: GRN, tracking: GRN }[b.status] || '#6b7280' }}>{b.status}</span>
+                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(b.created_at).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {briefs.length === 0 && !activeBrief && !briefLoading && (
+              <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
+                <div style={{ fontSize: 14, color: '#9ca3af' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
+              </div>
+            )}
           </>
         )}
 
