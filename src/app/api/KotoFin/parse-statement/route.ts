@@ -19,14 +19,25 @@ export async function POST(request: NextRequest) {
     if (fileName.toLowerCase().endsWith('.csv')) {
       text = await file.text()
     } else if (fileName.toLowerCase().endsWith('.pdf')) {
-      const { PDFParse } = await import('pdf-parse')
+      // Use pdfjs-dist legacy build directly — no DOM/canvas needed for text extraction
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
       const arrayBuffer = await file.arrayBuffer()
       const uint8 = new Uint8Array(arrayBuffer)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const parser = new PDFParse(uint8) as any
-      await parser.load()
-      const result = await parser.getText()
-      text = result.text || ''
+
+      const doc = await pdfjsLib.getDocument({ data: uint8, useSystemFonts: true }).promise
+      const pages: string[] = []
+
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i)
+        const content = await page.getTextContent()
+        const pageText = content.items
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((item: any) => item.str || '')
+          .join(' ')
+        pages.push(pageText)
+      }
+
+      text = pages.join('\n')
     } else {
       text = await file.text()
     }
