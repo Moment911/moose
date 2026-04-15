@@ -7,7 +7,7 @@ import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
-  Phone, Globe, Activity, FileText, Trash2, LayoutGrid
+  Phone, Globe, Activity, FileText, Trash2, LayoutGrid, Link2, Copy
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
@@ -528,6 +528,7 @@ export default function KotoIQPage() {
                 ['audit', 'Deep Audit', Shield],
                 ['gmb', 'GMB', Star],
                 ['reports', 'Reports', BarChart2],
+                ['utm', 'UTM Builder', Link2],
                 ['connect', 'Connect', Shield],
               ].map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)}
@@ -2811,6 +2812,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </>
         )}
 
+        {/* ══ UTM BUILDER TAB ══ */}
+        {clientId && tab === 'utm' && (
+          <UTMBuilderTab clientId={clientId} clientName={clients.find(c => c.id === clientId)?.name} clientWebsite={clients.find(c => c.id === clientId)?.website} />
+        )}
+
         {/* ══ CONNECT TAB ══ */}
         {clientId && tab === 'connect' && (
           <div>
@@ -3619,6 +3625,185 @@ function ReportsTab({ clientId, keywords, dashboard }) {
           </div>
         )
       })()}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UTM BUILDER TAB
+   ══════════════════════════════════════════════════════════════════════════ */
+function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
+  const [baseUrl, setBaseUrl] = useState(clientWebsite || '')
+  const [source, setSource] = useState('')
+  const [medium, setMedium] = useState('')
+  const [campaign, setCampaign] = useState('')
+  const [content, setContent] = useState('')
+  const [term, setTerm] = useState('')
+  const [history, setHistory] = useState([])
+
+  const GRN = '#16a34a', AMB = '#f59e0b', R = '#E6007E', T = '#00C2CB', BLK = '#111111'
+  const FH = "'Proxima Nova','Nunito Sans','Helvetica Neue',sans-serif"
+  const FB = "'Raleway','Helvetica Neue',sans-serif"
+  const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
+
+  const buildUrl = () => {
+    if (!baseUrl) return ''
+    const params = new URLSearchParams()
+    if (source) params.set('utm_source', source)
+    if (medium) params.set('utm_medium', medium)
+    if (campaign) params.set('utm_campaign', campaign)
+    if (content) params.set('utm_content', content)
+    if (term) params.set('utm_term', term)
+    const qs = params.toString()
+    if (!qs) return baseUrl
+    const sep = baseUrl.includes('?') ? '&' : '?'
+    return `${baseUrl}${sep}${qs}`
+  }
+
+  const generatedUrl = buildUrl()
+
+  const presets = [
+    { label: 'GBP Post', source: 'google', medium: 'organic', campaign: 'gbp_post' },
+    { label: 'Google Ads', source: 'google', medium: 'cpc', campaign: 'brand' },
+    { label: 'Facebook Ad', source: 'facebook', medium: 'paid_social', campaign: 'awareness' },
+    { label: 'Email Blast', source: 'email', medium: 'email', campaign: 'newsletter' },
+    { label: 'Instagram Bio', source: 'instagram', medium: 'social', campaign: 'bio_link' },
+    { label: 'LinkedIn Post', source: 'linkedin', medium: 'social', campaign: 'organic_post' },
+    { label: 'QR Code', source: 'qr_code', medium: 'offline', campaign: 'print_material' },
+    { label: 'SMS Campaign', source: 'sms', medium: 'sms', campaign: 'promo' },
+  ]
+
+  return (
+    <div>
+      <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK, marginBottom: 8 }}>UTM Builder</div>
+      <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+        Create UTM-tagged URLs to track which marketing channels drive traffic. Every link is trackable in Google Analytics.
+      </div>
+
+      {/* Quick Presets */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Quick Presets</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {presets.map(p => (
+            <button key={p.label} onClick={() => { setSource(p.source); setMedium(p.medium); setCampaign(p.campaign) }}
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e5e7eb', background: source === p.source && medium === p.medium ? T + '12' : '#fff', color: source === p.source && medium === p.medium ? T : '#6b7280', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .12s' }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Builder Form */}
+      <div style={card}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 16 }}>Build Your URL</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              Landing Page URL *
+            </label>
+            <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
+              placeholder="https://example.com/services/plumbing"
+              style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Source * <span style={{ fontWeight: 400, textTransform: 'none' }}>— where traffic comes from</span>
+              </label>
+              <input value={source} onChange={e => setSource(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="google, facebook, newsletter"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Medium * <span style={{ fontWeight: 400, textTransform: 'none' }}>— marketing channel type</span>
+              </label>
+              <input value={medium} onChange={e => setMedium(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="cpc, email, social, organic"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Campaign * <span style={{ fontWeight: 400, textTransform: 'none' }}>— campaign name</span>
+              </label>
+              <input value={campaign} onChange={e => setCampaign(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="spring_promo, brand_awareness"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+                Content <span style={{ fontWeight: 400, textTransform: 'none' }}>— ad/link variant (optional)</span>
+              </label>
+              <input value={content} onChange={e => setContent(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                placeholder="banner_top, sidebar, cta_button"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              Term <span style={{ fontWeight: 400, textTransform: 'none' }}>— paid keyword (optional)</span>
+            </label>
+            <input value={term} onChange={e => setTerm(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+              placeholder="emergency_plumber, water_damage"
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Generated URL */}
+      {generatedUrl && source && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Generated URL</div>
+          <div style={{ padding: '14px 18px', background: '#111', borderRadius: 10, marginBottom: 14, position: 'relative' }}>
+            <code style={{ fontSize: 13, color: '#a3e635', fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: 1.6 }}>
+              {generatedUrl}
+            </code>
+            <button onClick={() => { navigator.clipboard.writeText(generatedUrl); toast.success('URL copied!'); setHistory(prev => [{ url: generatedUrl, source, medium, campaign, date: new Date().toISOString() }, ...prev.slice(0, 19)]) }}
+              style={{ position: 'absolute', top: 10, right: 10, padding: '5px 12px', borderRadius: 6, border: 'none', background: 'rgba(255,255,255,.15)', color: '#fff', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Copy size={12} /> Copy
+            </button>
+          </div>
+
+          {/* Parameter breakdown */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {source && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: T + '12', color: T }}>source: {source}</span>}
+            {medium && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: GRN + '12', color: GRN }}>medium: {medium}</span>}
+            {campaign && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: AMB + '12', color: AMB }}>campaign: {campaign}</span>}
+            {content && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: '#7c3aed12', color: '#7c3aed' }}>content: {content}</span>}
+            {term && <span style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: R + '12', color: R }}>term: {term}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* History */}
+      {history.length > 0 && (
+        <div style={card}>
+          <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 12 }}>Recently Generated ({history.length})</div>
+          {history.map((h, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < history.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{h.source} / {h.medium} / {h.campaign}</div>
+              </div>
+              <button onClick={() => { navigator.clipboard.writeText(h.url); toast.success('Copied!') }}
+                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280', flexShrink: 0 }}>Copy</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Tips */}
+      <div style={{ ...card, background: '#f9fafb' }}>
+        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 10 }}>UTM Best Practices</div>
+        <ul style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.8, paddingLeft: 18, margin: 0 }}>
+          <li>Always use lowercase — GA4 treats "Google" and "google" as different sources</li>
+          <li>Use underscores instead of spaces (e.g. <code>spring_promo</code> not <code>spring promo</code>)</li>
+          <li>Be consistent — use the same source/medium naming across all campaigns</li>
+          <li>Never use UTM parameters on internal links (it breaks session attribution)</li>
+          <li>For GBP posts, always use <code>source=google&medium=organic&campaign=gbp_post</code></li>
+          <li>Tag every external link — untagged traffic shows as "direct" in GA4</li>
+        </ul>
+      </div>
     </div>
   )
 }
