@@ -115,6 +115,8 @@ export default function KotoIQPage() {
   const [gridBiz, setGridBiz] = useState('')
   const [gridLat, setGridLat] = useState('')
   const [gridLng, setGridLng] = useState('')
+  const [gridCity, setGridCity] = useState('')
+  const [geocoding, setGeocoding] = useState(false)
   const [gridRunning, setGridRunning] = useState(false)
   const [gridResult, setGridResult] = useState(null)
   const [compLandscape, setCompLandscape] = useState(null)
@@ -2423,15 +2425,55 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <input value={gridBiz} onChange={e => setGridBiz(e.target.value)} placeholder={g.name}
                                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
                             </div>
-                            <div>
-                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Center Latitude</label>
-                              <input value={gridLat} onChange={e => setGridLat(e.target.value)} placeholder="26.1224"
-                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Center Longitude</label>
-                              <input value={gridLng} onChange={e => setGridLng(e.target.value)} placeholder="-80.1373"
-                                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                            <div style={{ gridColumn: 'span 2' }}>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>City / Address (we'll find the coordinates)</label>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <input value={gridCity} onChange={e => setGridCity(e.target.value)}
+                                  placeholder="e.g. Fort Lauderdale, FL or 123 Main St, Miami"
+                                  onKeyDown={async e => {
+                                    if (e.key !== 'Enter' || !gridCity.trim()) return
+                                    setGeocoding(true)
+                                    try {
+                                      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
+                                      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey || 'AIzaSyBJIkMmvCkXj3kMCJIKD-epb8kBcjSOjV4'}`)
+                                      const data = await res.json()
+                                      if (data.results?.[0]?.geometry?.location) {
+                                        setGridLat(String(data.results[0].geometry.location.lat))
+                                        setGridLng(String(data.results[0].geometry.location.lng))
+                                        toast.success(`Found: ${data.results[0].formatted_address}`)
+                                      } else { toast.error('Location not found — try a more specific address') }
+                                    } catch { toast.error('Geocoding failed') }
+                                    setGeocoding(false)
+                                  }}
+                                  style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }} />
+                                <button onClick={async () => {
+                                  if (!gridCity.trim()) { toast.error('Enter a city or address'); return }
+                                  setGeocoding(true)
+                                  try {
+                                    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''
+                                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(gridCity)}&key=${apiKey || 'AIzaSyBJIkMmvCkXj3kMCJIKD-epb8kBcjSOjV4'}`)
+                                    const data = await res.json()
+                                    if (data.results?.[0]?.geometry?.location) {
+                                      setGridLat(String(data.results[0].geometry.location.lat))
+                                      setGridLng(String(data.results[0].geometry.location.lng))
+                                      toast.success(`Found: ${data.results[0].formatted_address}`)
+                                    } else { toast.error('Location not found') }
+                                  } catch { toast.error('Geocoding failed') }
+                                  setGeocoding(false)
+                                }} disabled={geocoding} style={{
+                                  padding: '10px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff',
+                                  fontSize: 13, fontWeight: 700, cursor: geocoding ? 'wait' : 'pointer', color: BLK, whiteSpace: 'nowrap',
+                                  display: 'flex', alignItems: 'center', gap: 6,
+                                }}>
+                                  {geocoding ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <MapPin size={12} />}
+                                  Find Location
+                                </button>
+                              </div>
+                              {gridLat && gridLng && (
+                                <div style={{ fontSize: 11, color: GRN, fontWeight: 600, marginTop: 6 }}>
+                                  Coordinates: {parseFloat(gridLat).toFixed(4)}, {parseFloat(gridLng).toFixed(4)}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <button onClick={runGrid} disabled={gridRunning} style={{
