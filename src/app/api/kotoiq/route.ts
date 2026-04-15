@@ -149,9 +149,12 @@ export async function POST(req: NextRequest) {
 
     // Get client's Google connection
     const { data: connections } = await s.from('seo_connections').select('*').eq('client_id', client_id)
-    const googleConn = connections?.find((c: any) => c.provider === 'google' && c.refresh_token)
+    // SEOConnectPage saves as: search_console, analytics, ads, gmb
+    const googleConn = connections?.find((c: any) => (c.provider === 'analytics' || c.provider === 'google') && c.refresh_token)
     const adsConn = connections?.find((c: any) => c.provider === 'ads' && c.refresh_token)
     const scConn = connections?.find((c: any) => c.provider === 'search_console' && c.refresh_token)
+    // Use the SC connection's token for GA4 too if no separate analytics connection
+    const ga4Conn = googleConn || scConn
 
     // Get client website for SC
     const { data: client } = await s.from('clients').select('website, name').eq('id', client_id).single()
@@ -168,24 +171,28 @@ export async function POST(req: NextRequest) {
       const dataPeriod = `${startDate} to ${endDate}`
 
       // ── Pull from all sources in parallel ──
-      const activeConn = googleConn || adsConn || scConn
-      const accessToken = activeConn ? await getAccessToken(activeConn) : null
+      // Get access tokens — each connection may have its own token
+      const scToken = scConn ? await getAccessToken(scConn) : null
+      const ga4Token = ga4Conn ? await getAccessToken(ga4Conn) : null
+      const adsToken = adsConn ? await getAccessToken(adsConn) : null
+      const anyToken = scToken || ga4Token || adsToken
 
       const customerId = adsConn?.account_id || googleConn?.account_id
-      const scSiteUrl = website.startsWith('http') ? website : `https://${website}`
+      const scSiteUrl = scConn?.site_url || (website.startsWith('http') ? website : `https://${website}`)
+      const ga4PropertyId = ga4Conn?.property_id || googleConn?.property_id
 
       const [adsKeywords, adsCampaigns, scData, ga4Data] = await Promise.all([
-        customerId && accessToken
-          ? fetchGoogleAdsKeywords({ access_token: accessToken }, customerId).catch(() => [])
+        customerId && adsToken
+          ? fetchGoogleAdsKeywords({ access_token: adsToken }, customerId).catch(() => [])
           : [],
-        customerId && accessToken
-          ? fetchGoogleAdsCampaigns({ access_token: accessToken }, customerId).catch(() => [])
+        customerId && adsToken
+          ? fetchGoogleAdsCampaigns({ access_token: adsToken }, customerId).catch(() => [])
           : [],
-        scConn && accessToken && website
-          ? fetchSearchConsoleData(accessToken, scSiteUrl, startDate, endDate).catch(() => null)
+        scToken && scSiteUrl
+          ? fetchSearchConsoleData(scToken, scSiteUrl, startDate, endDate).catch(() => null)
           : null,
-        googleConn?.property_id && accessToken
-          ? fetchGA4Data(accessToken, googleConn.property_id, startDate, endDate).catch(() => null)
+        ga4PropertyId && ga4Token
+          ? fetchGA4Data(ga4Token, ga4PropertyId, startDate, endDate).catch(() => null)
           : null,
       ])
 
