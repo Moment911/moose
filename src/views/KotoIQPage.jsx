@@ -1717,6 +1717,88 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           </table>
                         </div>
                       )}
+
+                      {/* Gap Analysis + Attack Opportunities */}
+                      {compDomainKws?.intersection?.length > 0 && !compDomainLoading && (() => {
+                        const intersection = compDomainKws.intersection || []
+                        // Keywords where competitor outranks you
+                        const losing = intersection.filter(kw => kw.domain1_position && kw.domain2_position && kw.domain1_position > kw.domain2_position)
+                          .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+                        // Keywords where you're close (within 5 positions)
+                        const strikingDistance = intersection.filter(kw => kw.domain1_position && kw.domain1_position > 3 && kw.domain1_position <= 10)
+                          .sort((a, b) => (a.domain1_position || 99) - (b.domain1_position || 99))
+                        // High-value keywords you don't rank for but they do
+                        const gaps = (compDomainKws.domain2_keywords?.keywords || [])
+                          .filter(kw => kw.position <= 10 && kw.search_volume >= 50 && !intersection.find(i => i.keyword === kw.keyword))
+                          .sort((a, b) => (b.search_volume || 0) - (a.search_volume || 0))
+                          .slice(0, 10)
+
+                        return (
+                          <div style={{ marginTop: 16 }}>
+                            <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14 }}>Attack Opportunities</div>
+
+                            {/* Opportunity cards */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+                              <div style={{ padding: '16px', background: R + '06', borderRadius: 10, border: `1px solid ${R}15` }}>
+                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: R }}>{losing.length}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>They Beat You</div>
+                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Keywords where competitor ranks higher</div>
+                              </div>
+                              <div style={{ padding: '16px', background: AMB + '06', borderRadius: 10, border: `1px solid ${AMB}15` }}>
+                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: AMB }}>{strikingDistance.length}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Striking Distance</div>
+                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>You're position 4-10 — push to top 3</div>
+                              </div>
+                              <div style={{ padding: '16px', background: T + '06', borderRadius: 10, border: `1px solid ${T}15` }}>
+                                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: T }}>{gaps.length}</div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Keyword Gaps</div>
+                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>They rank, you don't — new opportunities</div>
+                              </div>
+                            </div>
+
+                            {/* Top losing keywords — attack these first */}
+                            {losing.length > 0 && (
+                              <div style={{ marginBottom: 16 }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Priority Targets — They Outrank You ({losing.length})</div>
+                                {losing.slice(0, 8).map((kw, i) => (
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
+                                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: R }}>You: #{kw.domain1_position}</span>
+                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>vs</span>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.domain2_position}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Keyword gaps — they rank, you don't */}
+                            {gaps.length > 0 && (
+                              <div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Untapped Keywords — They Rank, You Don't ({gaps.length})</div>
+                                {gaps.map((kw, i) => (
+                                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
+                                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: '#d1d5db' }}>You: —</span>
+                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>vs</span>
+                                      <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.position}</span>
+                                      <span style={{ padding: '2px 8px', borderRadius: 12, background: T + '12', fontSize: 10, fontWeight: 700, color: T }}>NEW OPP</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </div>
                   )}
                 </>
