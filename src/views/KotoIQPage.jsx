@@ -107,7 +107,14 @@ function ScoreBadge({ score, label }) {
 export default function KotoIQPage() {
   const { agencyId } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('dashboard') // dashboard | keywords
+  // Tab persisted in URL so refresh keeps position
+  const [tab, setTab] = (() => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    const initial = params?.get('tab') || 'dashboard'
+    const [t, setter] = useState(initial)
+    const wrappedSet = (v) => { setter(v); const url = new URL(window.location.href); url.searchParams.set('tab', v); window.history.replaceState({}, '', url.toString()) }
+    return [t, wrappedSet]
+  })()
   const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [portfolio, setPortfolio] = useState(null)
@@ -490,7 +497,7 @@ export default function KotoIQPage() {
               <div style={{ width: 36, height: 36, borderRadius: 10, background: BLK, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Brain size={18} color="#fff" />
               </div>
-              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>SeoIQ</div>
+              <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, letterSpacing: '-.02em' }}>KotoIQ</div>
             </div>
 
             {/* Client selector — prominent */}
@@ -3124,10 +3131,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           <ReportsTab clientId={clientId} keywords={keywords} dashboard={dashboard} />
         )}
 
-        {/* ══ REPORTS TAB PLACEHOLDER — replaced by component ══ */}
-        {false && clientId && tab === 'reports_old' && (
+        {/* Dead reports_old block removed — real Reports tab above */}
+        {false && (
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+            <div>
               {[
                 { title: 'Position Distribution', desc: 'Keywords by rank bucket: #1-3, #4-10, #11-20, #21+', icon: BarChart2, color: T, source: 'GSC' },
                 { title: 'CTR by Position', desc: 'Click-through rate at each ranking position vs expected', icon: TrendingUp, color: GRN, source: 'GSC' },

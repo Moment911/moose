@@ -329,7 +329,7 @@ export default function SEOConnectPage() {
           <button onClick={()=>navigate(returnTo || '/kotoiq?tab=connect')}
             style={{ display:'flex', alignItems:'center', gap:6, border:'none', background:'none',
               cursor:'pointer', color:'#9ca3af', fontSize:14, fontFamily:FH, marginBottom:20, padding:0 }}>
-            <ChevronLeft size={16}/> {returnTo ? 'Back to SeoIQ' : 'Back to SeoIQ'}
+            <ChevronLeft size={16}/> {returnTo ? 'Back to KotoIQ' : 'Back to KotoIQ'}
           </button>
 
           <div style={{ marginBottom:28 }}>
