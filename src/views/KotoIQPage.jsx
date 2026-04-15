@@ -295,6 +295,22 @@ export default function KotoIQPage() {
   const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 24px', marginBottom: 16 }
   const d = dashboard
 
+  // Auth guard — must be logged into an agency
+  if (!agencyId) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: FB }}>
+        <Sidebar />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <Shield size={48} color={R} style={{ margin: '0 auto 16px', opacity: .4 }} />
+            <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK, marginBottom: 8 }}>Login Required</div>
+            <div style={{ fontSize: 14, color: '#6b7280' }}>You need to be logged into an agency to use KotoIQ.</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: GRY, fontFamily: FB }}>
       <Sidebar />
