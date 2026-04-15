@@ -1,0 +1,742 @@
+/* KotoFin Pro — Dark theme financial analyzer */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+.root {
+  --bg: #08080e;
+  --surface: #101018;
+  --surface2: #181824;
+  --border: #2e2e42;
+  --text: #e8e8f0;
+  --text-dim: #8888a0;
+  --green: #3ecf8e;
+  --red: #f16e6e;
+  --amber: #f5a623;
+  --blue: #5b8def;
+  --teal: #4ecdc4;
+  --purple: #9b8ff7;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tab navigation */
+.tabBar {
+  display: flex;
+  gap: 2px;
+  padding: 12px 24px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabBar::-webkit-scrollbar { display: none; }
+
+.tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover { color: var(--text); }
+.tabActive { color: var(--text); border-bottom-color: var(--blue); }
+
+/* Content area */
+.content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.logoPro {
+  color: var(--blue);
+  font-weight: 600;
+  margin-left: 4px;
+  font-size: 12px;
+  padding: 2px 6px;
+  background: rgba(91, 141, 239, 0.15);
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.cardHeader {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Metric cards */
+.metricsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.metricLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.metricValue {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.metricGreen { color: var(--green); }
+.metricRed { color: var(--red); }
+.metricBlue { color: var(--blue); }
+.metricAmber { color: var(--amber); }
+.metricPurple { color: var(--purple); }
+
+/* Tables */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:hover td { background: var(--surface2); }
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+/* Mono values */
+.mono {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.amountPos { color: var(--green); font-family: var(--mono); }
+.amountNeg { color: var(--red); font-family: var(--mono); }
+
+/* Source chip */
+.sourceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.sourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badgeBusiness { background: rgba(62, 207, 142, 0.12); color: var(--green); }
+.badgePersonal { background: rgba(155, 143, 247, 0.12); color: var(--purple); }
+.badgeIncome { background: rgba(91, 141, 239, 0.12); color: var(--blue); }
+.badgeUncategorized { background: rgba(245, 166, 35, 0.12); color: var(--amber); }
+.badgeAI { background: rgba(78, 205, 196, 0.12); color: var(--teal); font-size: 10px; margin-left: 6px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover { background: var(--border); }
+
+.btnPrimary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.btnPrimary:hover { background: #4a7de0; }
+
+.btnGreen {
+  background: rgba(62, 207, 142, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.btnGreen:hover { background: rgba(62, 207, 142, 0.25); }
+
+.btnRed {
+  background: rgba(241, 110, 110, 0.15);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.btnRed:hover { background: rgba(241, 110, 110, 0.25); }
+
+.btnSmall {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* Inputs */
+.input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: var(--sans);
+}
+
+.input:focus { border-color: var(--blue); }
+
+.inputMono {
+  font-family: var(--mono);
+}
+
+.select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+
+.select:focus { border-color: var(--blue); }
+
+.textarea {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  resize: vertical;
+  font-family: var(--sans);
+  min-height: 60px;
+}
+
+.textarea:focus { border-color: var(--blue); }
+
+/* Search/filter bar */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--surface);
+}
+
+.dropzone:hover,
+.dropzoneActive {
+  border-color: var(--blue);
+  background: rgba(91, 141, 239, 0.05);
+}
+
+.dropzoneText {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin-top: 12px;
+}
+
+.dropzoneIcon {
+  font-size: 36px;
+  color: var(--blue);
+}
+
+/* File list */
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.fileDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fileInfo { flex: 1; }
+.fileName { font-size: 13px; font-weight: 500; }
+.fileMeta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* Modal overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  margin-bottom: 14px;
+}
+
+.formLabel {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Slider */
+.slider {
+  width: 100%;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sliderLabel {
+  flex: 0 0 160px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.sliderValue {
+  flex: 0 0 100px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Scenario cards */
+.scenarioGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.scenarioCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.scenarioLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.scenarioRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.scenarioKey { color: var(--text-dim); }
+.scenarioVal { font-family: var(--mono); font-weight: 500; }
+
+/* Deduction cards */
+.deductionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.deductionCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.deductionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.deductionAmount {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+
+.deductionDesc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Chart container */
+.chartContainer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.chartTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Report sections */
+.reportSection {
+  margin-bottom: 24px;
+}
+
+.reportTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.reportLine {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(46, 46, 66, 0.3);
+}
+
+.reportLineLabel { color: var(--text-dim); }
+.reportLineValue { font-family: var(--mono); font-weight: 500; }
+.reportLineTotal {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+/* Quarterly grid */
+.quarterGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.quarterCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.quarterLabel {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.quarterDue {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  margin-bottom: 10px;
+}
+
+.quarterAmount {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+/* Export buttons grid */
+.exportGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.exportCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.exportCard:hover {
+  border-color: var(--blue);
+  background: var(--surface2);
+}
+
+.exportName {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.exportDesc {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Preview panel */
+.previewPanel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.previewCode {
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text-dim);
+  max-height: 400px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+/* COA groups */
+.coaGroup {
+  margin-bottom: 20px;
+}
+
+.coaGroupTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Utilities */
+.flex { display: flex; }
+.flexCol { display: flex; flex-direction: column; }
+.gap8 { gap: 8px; }
+.gap12 { gap: 12px; }
+.gap16 { gap: 16px; }
+.mt8 { margin-top: 8px; }
+.mt16 { margin-top: 16px; }
+.mt24 { margin-top: 24px; }
+.mb8 { margin-bottom: 8px; }
+.mb16 { margin-bottom: 16px; }
+.textCenter { text-align: center; }
+.textDim { color: var(--text-dim); }
+.textSmall { font-size: 12px; }
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-dim);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.emptyText {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.emptyHint {
+  font-size: 12px;
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .scenarioGrid { grid-template-columns: 1fr; }
+  .chartGrid { grid-template-columns: 1fr; }
+  .quarterGrid { grid-template-columns: repeat(2, 1fr); }
+  .formRow { grid-template-columns: 1fr; }
+  .exportGrid { grid-template-columns: 1fr; }
+  .content { padding: 16px; }
+  .tabBar { padding: 8px 16px 0; }
+}

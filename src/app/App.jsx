@@ -169,6 +169,7 @@ import GmailCallbackPage from '../views/GmailCallbackPage'
 import HelpPage from '../views/HelpPage'
 import IntelPage from '../views/IntelPage'
 import KotoIQPage from '../views/KotoIQPage'
+import KotoFinPro from '../components/KotoFinPro'
 import MarketingQuizPage from '../views/MarketingQuizPage'
 import IntelPublicPage from '../views/IntelPublicPage'
 import KotoOrderPage from '../views/KotoOrderPage'
@@ -399,6 +400,7 @@ function AppRoutes() {
           <Route path="/intel" element={<IntelPage />} />
           <Route path="/intel/:reportId" element={<IntelPage />} />
           <Route path="/kotoiq" element={<KotoIQPage />} />
+          <Route path="/kotofin" element={<KotoFinPro />} />
           <Route path="/marketing-quiz" element={<MarketingQuizPage />} />
           <Route path="/video-voicemails" element={<VideoVoicemailPage />} />
           <Route path="/avatars" element={<AvatarBrowserPage />} />
