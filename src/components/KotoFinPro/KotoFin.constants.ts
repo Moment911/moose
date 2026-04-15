@@ -130,6 +130,8 @@ export const BANK_COLORS: Record<string, string> = {
 }
 
 export const TAB_LIST = [
+  'Dashboard',
+  'Company Info',
   'Upload',
   'Transactions',
   'Chart of Accounts',
@@ -140,6 +142,7 @@ export const TAB_LIST = [
   'Analytics',
   'Reports',
   'Export',
+  'Help',
 ] as const
 
 export function loadDemoData(): { transactions: Transaction[]; files: { name: string; bank: string; account: string; range: string; color: string; txnCount: number }[] } {

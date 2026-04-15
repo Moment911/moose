@@ -73,6 +73,27 @@ export interface TaxProfile {
   studentLoanInterest: number
 }
 
+export interface CompanyProfile {
+  businessName: string
+  dba: string
+  ein: string
+  address: string
+  city: string
+  state: string
+  zip: string
+  phone: string
+  email: string
+  website: string
+  industry: string
+  naicsCode: string
+  yearEstablished: string
+  fiscalYearEnd: string
+  ownerName: string
+  ownerSSNLast4: string
+  accountingMethod: 'cash' | 'accrual'
+  taxYear: string
+}
+
 export interface ClientInfo {
   id: string
   name: string
@@ -88,6 +109,7 @@ export interface KotoFinState {
   clientId: string
   clientName: string
   taxProfile: TaxProfile
+  companyProfile: CompanyProfile
   saving: boolean
 }
 
@@ -105,5 +127,6 @@ export type KotoFinAction =
   | { type: 'SET_CLIENT'; payload: { id: string; name: string } }
   | { type: 'SET_TAX_PROFILE'; payload: Partial<TaxProfile> }
   | { type: 'SET_SAVING'; payload: boolean }
-  | { type: 'LOAD_CLIENT_DATA'; payload: { transactions: Transaction[]; files: StatementFile[]; taxProfile?: TaxProfile } }
+  | { type: 'SET_COMPANY_PROFILE'; payload: Partial<CompanyProfile> }
+  | { type: 'LOAD_CLIENT_DATA'; payload: { transactions: Transaction[]; files: StatementFile[]; taxProfile?: TaxProfile; companyProfile?: CompanyProfile } }
   | { type: 'RESET'; payload?: undefined }

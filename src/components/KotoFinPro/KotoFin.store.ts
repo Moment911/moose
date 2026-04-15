@@ -1,5 +1,5 @@
 import { useReducer, Dispatch } from 'react'
-import { KotoFinState, KotoFinAction, COAAccount, TaxProfile } from './KotoFin.types'
+import { KotoFinState, KotoFinAction, COAAccount, TaxProfile, CompanyProfile } from './KotoFin.types'
 import { DEFAULT_COA } from './KotoFin.constants'
 
 export const DEFAULT_TAX_PROFILE: TaxProfile = {
@@ -27,16 +27,38 @@ export const DEFAULT_TAX_PROFILE: TaxProfile = {
   studentLoanInterest: 0,
 }
 
+export const DEFAULT_COMPANY_PROFILE: CompanyProfile = {
+  businessName: '',
+  dba: '',
+  ein: '',
+  address: '',
+  city: '',
+  state: '',
+  zip: '',
+  phone: '',
+  email: '',
+  website: '',
+  industry: '',
+  naicsCode: '',
+  yearEstablished: '',
+  fiscalYearEnd: '12',
+  ownerName: '',
+  ownerSSNLast4: '',
+  accountingMethod: 'cash',
+  taxYear: '2024',
+}
+
 const initialState: KotoFinState = {
   transactions: [],
   accounts: DEFAULT_COA,
   files: [],
   activeFile: 'all',
   activeType: 'all',
-  activeTab: 'Upload',
+  activeTab: 'Dashboard',
   clientId: '',
   clientName: '',
   taxProfile: DEFAULT_TAX_PROFILE,
+  companyProfile: DEFAULT_COMPANY_PROFILE,
   saving: false,
 }
 
@@ -74,6 +96,8 @@ function reducer(state: KotoFinState, action: KotoFinAction): KotoFinState {
       return { ...state, clientId: action.payload.id, clientName: action.payload.name }
     case 'SET_TAX_PROFILE':
       return { ...state, taxProfile: { ...state.taxProfile, ...action.payload } }
+    case 'SET_COMPANY_PROFILE':
+      return { ...state, companyProfile: { ...state.companyProfile, ...action.payload } }
     case 'SET_SAVING':
       return { ...state, saving: action.payload as boolean }
     case 'LOAD_CLIENT_DATA':
@@ -82,6 +106,7 @@ function reducer(state: KotoFinState, action: KotoFinAction): KotoFinState {
         transactions: action.payload.transactions,
         files: action.payload.files,
         taxProfile: action.payload.taxProfile || DEFAULT_TAX_PROFILE,
+        companyProfile: action.payload.companyProfile || DEFAULT_COMPANY_PROFILE,
         activeFile: 'all',
         activeType: 'all',
       }

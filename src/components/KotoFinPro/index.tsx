@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useKotoFinStore } from './KotoFin.store'
 import { TAB_LIST } from './KotoFin.constants'
 import { supabase as _sb } from '@/lib/supabase'
@@ -11,7 +11,10 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   Upload, List, BookOpen, Search, SlidersHorizontal, Calendar,
   BarChart3, FileText, Download, Building2, ClipboardList,
+  LayoutDashboard, HelpCircle,
 } from 'lucide-react'
+import DashboardTab from './DashboardTab'
+import CompanyInfoTab from './CompanyInfoTab'
 import UploadTab from './UploadTab'
 import TransactionsTab from './TransactionsTab'
 import AccountsTab from './AccountsTab'
@@ -22,10 +25,13 @@ import AnalyticsTab from './AnalyticsTab'
 import ReportsTab from './ReportsTab'
 import ExportTab from './ExportTab'
 import TaxProfileTab from './TaxProfileTab'
+import HelpTab from './HelpTab'
 import styles from './KotoFinPro.module.css'
-import { ClientInfo, TaxProfile } from './KotoFin.types'
+import { ClientInfo, TaxProfile, CompanyProfile } from './KotoFin.types'
 
 const TAB_ICONS: Record<string, typeof Upload> = {
+  'Dashboard': LayoutDashboard,
+  'Company Info': Building2,
   'Upload': Upload,
   'Transactions': List,
   'Chart of Accounts': BookOpen,
@@ -36,9 +42,8 @@ const TAB_ICONS: Record<string, typeof Upload> = {
   'Analytics': BarChart3,
   'Reports': FileText,
   'Export': Download,
+  'Help': HelpCircle,
 }
-
-const TABS = TAB_LIST
 
 export default function KotoFinPro() {
   const [state, dispatch] = useKotoFinStore()
@@ -72,10 +77,14 @@ export default function KotoFinPro() {
         loadTransactions(state.clientId),
         loadFiles(state.clientId),
       ])
-      // Load tax profile from supabase
       const { data: profileData } = await supabase
         .from('kotofin_tax_profiles')
         .select('profile')
+        .eq('client_id', state.clientId)
+        .single()
+      const { data: companyData } = await supabase
+        .from('kotofin_tax_profiles')
+        .select('company_profile')
         .eq('client_id', state.clientId)
         .single()
       justLoaded.current = true
@@ -85,6 +94,7 @@ export default function KotoFinPro() {
           transactions: txns,
           files,
           taxProfile: profileData?.profile as TaxProfile | undefined,
+          companyProfile: companyData?.company_profile as CompanyProfile | undefined,
         },
       })
     }
@@ -104,21 +114,23 @@ export default function KotoFinPro() {
           client_id: state.clientId,
           agency_id: agencyId,
           profile: state.taxProfile,
+          company_profile: state.companyProfile,
+          updated_at: new Date().toISOString(),
         }, { onConflict: 'client_id' }),
       ])
       dispatch({ type: 'SET_SAVING', payload: false })
     }, 1500)
-  }, [state.clientId, state.transactions, state.files, state.taxProfile, agencyId, dispatch])
+  }, [state.clientId, state.transactions, state.files, state.taxProfile, state.companyProfile, agencyId, dispatch])
 
   useEffect(() => {
     if (justLoaded.current) {
       justLoaded.current = false
       return
     }
-    if (state.clientId && state.transactions.length > 0) {
+    if (state.clientId && (state.transactions.length > 0 || state.companyProfile.businessName)) {
       autoSave()
     }
-  }, [state.transactions, state.files, state.taxProfile, autoSave])
+  }, [state.transactions, state.files, state.taxProfile, state.companyProfile, autoSave])
 
   function handleClientChange(clientId: string) {
     const client = clients.find(c => c.id === clientId)
@@ -129,6 +141,10 @@ export default function KotoFinPro() {
 
   const renderTab = () => {
     switch (state.activeTab) {
+      case 'Dashboard':
+        return <DashboardTab transactions={state.transactions} files={state.files} taxProfile={state.taxProfile} companyProfile={state.companyProfile} dispatch={dispatch} clientName={state.clientName} />
+      case 'Company Info':
+        return <CompanyInfoTab companyProfile={state.companyProfile} dispatch={dispatch} clientName={state.clientName} />
       case 'Upload':
         return <UploadTab files={state.files} transactions={state.transactions} dispatch={dispatch} />
       case 'Transactions':
@@ -149,6 +165,8 @@ export default function KotoFinPro() {
         return <ReportsTab transactions={state.transactions} accounts={state.accounts} taxProfile={state.taxProfile} />
       case 'Export':
         return <ExportTab transactions={state.transactions} accounts={state.accounts} />
+      case 'Help':
+        return <HelpTab dispatch={dispatch} />
       default:
         return null
     }
@@ -198,7 +216,7 @@ export default function KotoFinPro() {
       ) : (
         <>
           <div className={styles.tabBar}>
-            {TABS.map(tab => {
+            {TAB_LIST.map(tab => {
               const Icon = TAB_ICONS[tab]
               return (
                 <button

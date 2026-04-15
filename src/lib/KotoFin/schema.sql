@@ -44,6 +44,7 @@ create table if not exists kotofin_tax_profiles (
   client_id uuid unique references clients(id) on delete cascade,
   agency_id uuid,
   profile jsonb not null default '{}',
+  company_profile jsonb not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
