@@ -1025,6 +1025,73 @@ Return ONLY valid JSON:
     return NextResponse.json({ keyword, analyses, gap_analysis: gapAnalysis, keyword_data: kwData })
   }
 
+  // ── RANK TRACKER: Position history over time ────────────────────────
+  if (action === 'rank_history') {
+    const { client_id, keyword_fingerprints, days } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const since = new Date(Date.now() - (days || 90) * 86400000).toISOString().split('T')[0]
+
+    if (keyword_fingerprints?.length) {
+      // Specific keywords
+      const { data } = await s.from('kotoiq_snapshots').select('*')
+        .eq('client_id', client_id).in('keyword_fingerprint', keyword_fingerprints)
+        .gte('snapshot_date', since).order('snapshot_date', { ascending: true })
+      return NextResponse.json({ snapshots: data || [] })
+    }
+
+    // All keywords — return latest + previous snapshot for movement calculation
+    const { data: latest } = await s.from('kotoiq_keywords').select('keyword, fingerprint, sc_avg_position, sc_clicks, sc_impressions, opportunity_score, category')
+      .eq('client_id', client_id).not('sc_avg_position', 'is', null).order('sc_avg_position', { ascending: true }).limit(100)
+
+    // Get previous snapshot for each to calculate movement
+    const movements: any[] = []
+    if (latest?.length) {
+      const fps = latest.map(k => k.fingerprint)
+      const prevDate = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]
+      const { data: prevSnaps } = await s.from('kotoiq_snapshots').select('keyword_fingerprint, sc_position')
+        .eq('client_id', client_id).in('keyword_fingerprint', fps)
+        .lte('snapshot_date', prevDate).order('snapshot_date', { ascending: false })
+
+      // Build map of previous positions (most recent before 7 days ago)
+      const prevMap = new Map<string, number>()
+      for (const snap of prevSnaps || []) {
+        if (!prevMap.has(snap.keyword_fingerprint)) prevMap.set(snap.keyword_fingerprint, snap.sc_position)
+      }
+
+      for (const kw of latest) {
+        const prev = prevMap.get(kw.fingerprint)
+        movements.push({
+          keyword: kw.keyword,
+          fingerprint: kw.fingerprint,
+          current_position: kw.sc_avg_position,
+          previous_position: prev || null,
+          change: prev ? Math.round((prev - kw.sc_avg_position) * 10) / 10 : null, // positive = improved
+          clicks: kw.sc_clicks,
+          impressions: kw.sc_impressions,
+          opportunity_score: kw.opportunity_score,
+          category: kw.category,
+        })
+      }
+    }
+
+    // Sort: biggest movers first
+    const improved = movements.filter(m => m.change && m.change > 0).sort((a, b) => b.change - a.change)
+    const declined = movements.filter(m => m.change && m.change < 0).sort((a, b) => a.change - b.change)
+    const stable = movements.filter(m => m.change === 0 || m.change === null)
+
+    return NextResponse.json({
+      total_tracked: movements.length,
+      top3: movements.filter(m => m.current_position <= 3).length,
+      top10: movements.filter(m => m.current_position <= 10).length,
+      top20: movements.filter(m => m.current_position <= 20).length,
+      improved: improved.slice(0, 20),
+      declined: declined.slice(0, 20),
+      stable_count: stable.length,
+      all: movements,
+    })
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 

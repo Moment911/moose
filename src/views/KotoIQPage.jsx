@@ -95,6 +95,9 @@ export default function KotoIQPage() {
   const [compKeyword, setCompKeyword] = useState('')
   const [compAnalysis, setCompAnalysis] = useState(null)
   const [compLoading, setCompLoading] = useState(false)
+  const [rankData, setRankData] = useState(null)
+  const [rankLoading, setRankLoading] = useState(false)
+  const [rankFilter, setRankFilter] = useState('all') // all, improved, declined, top3, top10
   const [gmb, setGmb] = useState(null)
   const [gmbLoading, setGmbLoading] = useState(false)
   const [draftingReview, setDraftingReview] = useState(null)
@@ -201,9 +204,19 @@ export default function KotoIQPage() {
     setGeneratingPosts(false)
   }
 
+  // Load rank data
+  const loadRanks = useCallback(() => {
+    if (!clientId) return
+    setRankLoading(true)
+    fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'rank_history', client_id: clientId, days: 90 }) })
+      .then(r => r.json()).then(res => { setRankData(res); setRankLoading(false) })
+      .catch(() => setRankLoading(false))
+  }, [clientId])
+
   useEffect(() => { loadDashboard() }, [loadDashboard])
   useEffect(() => { if (tab === 'keywords') loadKeywords() }, [tab, loadKeywords])
   useEffect(() => { if (tab === 'briefs') loadBriefs() }, [tab, loadBriefs])
+  useEffect(() => { if (tab === 'ranks') loadRanks() }, [tab, loadRanks])
   useEffect(() => { if (tab === 'gmb') loadGMB() }, [tab, loadGMB])
 
   // Sync
@@ -252,7 +265,7 @@ export default function KotoIQPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
+          {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Icon size={14} /> {label}
@@ -673,6 +686,174 @@ export default function KotoIQPage() {
               <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
                 <div style={{ fontSize: 14, color: '#9ca3af' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
               </div>
+            )}
+          </>
+        )}
+
+        {/* ══ RANK TRACKER TAB ══ */}
+        {clientId && tab === 'ranks' && (
+          <>
+            {rankLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+
+            {!rankLoading && !rankData?.total_tracked && (
+              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
+                <TrendingUp size={48} color={T} style={{ margin: '0 auto 16px', opacity: .3 }} />
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>No ranking data yet</div>
+                <div style={{ fontSize: 14, color: '#6b7280' }}>Run a sync to pull Search Console rankings. Position history builds over time with each sync.</div>
+              </div>
+            )}
+
+            {!rankLoading && rankData?.total_tracked > 0 && (
+              <>
+                {/* Summary stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 20 }}>
+                  <StatCard label="Tracked Keywords" value={rankData.total_tracked} icon={Search} color={T} />
+                  <StatCard label="Top 3" value={rankData.top3} icon={Star} color={GRN} />
+                  <StatCard label="Top 10" value={rankData.top10} icon={Eye} color={T} />
+                  <StatCard label="Improved" value={rankData.improved?.length || 0} icon={ArrowUpRight} color={GRN} />
+                  <StatCard label="Declined" value={rankData.declined?.length || 0} icon={ArrowDownRight} color={R} />
+                </div>
+
+                {/* Position distribution bar */}
+                <div style={card}>
+                  <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Position Distribution</div>
+                  {(() => {
+                    const all = rankData.all || []
+                    const buckets = [
+                      { label: '#1-3', count: all.filter(k => k.current_position <= 3).length, color: GRN },
+                      { label: '#4-10', count: all.filter(k => k.current_position > 3 && k.current_position <= 10).length, color: T },
+                      { label: '#11-20', count: all.filter(k => k.current_position > 10 && k.current_position <= 20).length, color: AMB },
+                      { label: '#21-50', count: all.filter(k => k.current_position > 20 && k.current_position <= 50).length, color: R },
+                      { label: '#50+', count: all.filter(k => k.current_position > 50).length, color: '#9ca3af' },
+                    ]
+                    const total = all.length || 1
+                    return (
+                      <>
+                        <div style={{ display: 'flex', height: 32, borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
+                          {buckets.filter(b => b.count > 0).map((b, i) => (
+                            <div key={i} style={{ width: `${(b.count / total) * 100}%`, background: b.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#fff', minWidth: b.count > 0 ? 30 : 0 }}>
+                              {b.count}
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: 16 }}>
+                          {buckets.map((b, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#6b7280' }}>
+                              <div style={{ width: 10, height: 10, borderRadius: 3, background: b.color }} />
+                              {b.label}: {b.count} ({Math.round((b.count / total) * 100)}%)
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+
+                {/* Filter pills */}
+                <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+                  {[['all', 'All', '#6b7280'], ['improved', 'Improved ↑', GRN], ['declined', 'Declined ↓', R], ['top3', 'Top 3', GRN], ['top10', 'Top 10', T]].map(([key, label, color]) => (
+                    <button key={key} onClick={() => setRankFilter(key)}
+                      style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1.5px solid ${rankFilter === key ? color : '#e5e7eb'}`, background: rankFilter === key ? color + '12' : '#fff', color: rankFilter === key ? color : '#6b7280' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Movers table */}
+                {(() => {
+                  let filtered = rankData.all || []
+                  if (rankFilter === 'improved') filtered = rankData.improved || []
+                  else if (rankFilter === 'declined') filtered = rankData.declined || []
+                  else if (rankFilter === 'top3') filtered = filtered.filter(k => k.current_position <= 3)
+                  else if (rankFilter === 'top10') filtered = filtered.filter(k => k.current_position <= 10)
+
+                  return (
+                    <div style={card}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                            {['Keyword', 'Position', 'Change', 'Previous', 'Clicks', 'Impressions', 'Opp Score', 'Category'].map(h => (
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.map((kw, i) => {
+                            const cfg = CAT_CONFIG[kw.category] || { color: '#6b7280', icon: '•' }
+                            const changeColor = kw.change > 0 ? GRN : kw.change < 0 ? R : '#9ca3af'
+                            return (
+                              <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</td>
+                                <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 16, fontWeight: 900, color: kw.current_position <= 3 ? GRN : kw.current_position <= 10 ? T : kw.current_position <= 20 ? AMB : R }}>
+                                  #{Math.round(kw.current_position * 10) / 10}
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                  {kw.change != null ? (
+                                    <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: changeColor, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                      {kw.change > 0 ? <ArrowUpRight size={14} /> : kw.change < 0 ? <ArrowDownRight size={14} /> : null}
+                                      {kw.change > 0 ? '+' : ''}{kw.change}
+                                    </span>
+                                  ) : <span style={{ fontSize: 12, color: '#d1d5db' }}>—</span>}
+                                </td>
+                                <td style={{ textAlign: 'center', fontSize: 12, color: '#6b7280', fontFamily: FH }}>
+                                  {kw.previous_position ? `#${Math.round(kw.previous_position * 10) / 10}` : '—'}
+                                </td>
+                                <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.clicks || 0}</td>
+                                <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.impressions?.toLocaleString() || 0}</td>
+                                <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
+                                <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                      {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>No keywords match this filter</div>}
+                    </div>
+                  )
+                })()}
+
+                {/* Biggest movers highlight */}
+                {(rankData.improved?.length > 0 || rankData.declined?.length > 0) && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    {rankData.improved?.length > 0 && (
+                      <div style={card}>
+                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <ArrowUpRight size={16} /> Biggest Improvers (7d)
+                        </div>
+                        {rankData.improved.slice(0, 5).map((kw, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f3f4f6' : 'none' }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: 11, color: '#9ca3af' }}>#{Math.round(kw.previous_position)}</span>
+                              <span style={{ color: GRN }}>→</span>
+                              <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>#{Math.round(kw.current_position)}</span>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: GRN, background: GRN + '12', padding: '2px 6px', borderRadius: 4 }}>+{kw.change}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {rankData.declined?.length > 0 && (
+                      <div style={card}>
+                        <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <ArrowDownRight size={16} /> Biggest Declines (7d)
+                        </div>
+                        {rankData.declined.slice(0, 5).map((kw, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f3f4f6' : 'none' }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: 11, color: '#9ca3af' }}>#{Math.round(kw.previous_position)}</span>
+                              <span style={{ color: R }}>→</span>
+                              <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R }}>#{Math.round(kw.current_position)}</span>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: R, background: R + '12', padding: '2px 6px', borderRadius: 4 }}>{kw.change}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
