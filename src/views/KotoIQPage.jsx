@@ -7,11 +7,38 @@ import {
   Search, TrendingUp, DollarSign, Target, Zap, BarChart2, RefreshCw, Loader2,
   ArrowUpRight, ArrowDownRight, ChevronDown, ChevronUp, Filter, Download,
   CheckCircle, XCircle, AlertCircle, Brain, Eye, Shield, Clock, Star, Users, MapPin,
-  Phone, Globe, Activity, FileText
+  Phone, Globe, Activity, FileText, Trash2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
+
+// ── Section Actions — delete + rerun buttons for every section ──────────────
+function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+      {onRerun && (
+        <button onClick={onRerun} disabled={running} style={{
+          display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 6,
+          border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 600,
+          cursor: running ? 'wait' : 'pointer', color: '#6b7280', opacity: running ? 0.5 : 1,
+        }}>
+          {running ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={11} />}
+          {rerunLabel}
+        </button>
+      )}
+      {onDelete && (
+        <button onClick={() => { if (confirm(`${deleteLabel}? This cannot be undone.`)) onDelete() }} style={{
+          display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 6,
+          border: '1px solid #fecaca', background: '#fff', fontSize: 11, fontWeight: 600,
+          cursor: 'pointer', color: '#dc2626',
+        }}>
+          <Trash2 size={11} /> {deleteLabel}
+        </button>
+      )}
+    </div>
+  )
+}
 
 // ── Category config ─────────────────────────────────────────────────────────
 const CAT_CONFIG = {
@@ -764,6 +791,21 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ KEYWORDS TAB ══ */}
         {clientId && tab === 'keywords' && (
           <>
+            {/* Header with actions */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Keyword Explorer ({kwTotal} keywords)</div>
+              <SectionActions
+                onRerun={() => { const c = clients.find(x => x.id === clientId); if (c?.website) runQuickScan(); else toast.error('Add a website URL first') }}
+                onDelete={async () => {
+                  await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete_scan', client_id: clientId, scan_type: 'quick_scan' }) })
+                  setKeywords([]); setKwTotal(0); setDashboard(null); toast.success('Keywords cleared')
+                }}
+                rerunLabel="Rescan"
+                deleteLabel="Clear Keywords"
+                running={syncing}
+              />
+            </div>
             {/* Filters */}
             <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1127,6 +1169,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ RANK TRACKER TAB ══ */}
         {clientId && tab === 'ranks' && (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Rank Tracker</div>
+              <SectionActions
+                onRerun={loadRanks}
+                onDelete={() => { setRankData(null); toast.success('Rank data cleared') }}
+                rerunLabel="Refresh"
+                deleteLabel="Clear"
+                running={rankLoading}
+              />
+            </div>
             {rankLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!rankLoading && !rankData?.total_tracked && (
@@ -1304,6 +1356,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ DEEP AUDIT TAB ══ */}
         {clientId && tab === 'audit' && (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Technical Audit</div>
+              <SectionActions
+                onRerun={runDeepEnrich}
+                onDelete={() => { setEnrichment(null); toast.success('Audit data cleared') }}
+                rerunLabel="Rerun Audit"
+                deleteLabel="Clear"
+                running={enriching}
+              />
+            </div>
             {enrichLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!enrichLoading && !enrichment && (
@@ -1657,6 +1719,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Target size={18} color={T} /> Competitor Landscape
+                  <SectionActions
+                    onDelete={() => { setCompLandscape(null); setSelectedCompDomain(null); setCompDomainKws(null); toast.success('Competitor data cleared') }}
+                    deleteLabel="Clear"
+                  />
                 </div>
                 <button onClick={async () => {
                   setCompLandscapeLoading(true)
@@ -1875,6 +1941,10 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
             <div style={card}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Target size={18} color={R} /> Competitor Page Analysis
+                <SectionActions
+                  onDelete={() => { setCompAnalysis(null); toast.success('Analysis cleared') }}
+                  deleteLabel="Clear"
+                />
               </div>
               <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Enter a keyword to reverse-engineer the top-ranking pages — word count, headings, schema, FAQ, keyword placement, and Moz authority.</div>
               <div style={{ display: 'flex', gap: 12 }}>
@@ -2063,6 +2133,16 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* ══ GMB TAB ══ */}
         {clientId && tab === 'gmb' && (
           <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Google Business Profile</div>
+              <SectionActions
+                onRerun={loadGMB}
+                onDelete={() => { setGmb(null); setGmbPosts([]); toast.success('GMB data cleared') }}
+                rerunLabel="Refresh"
+                deleteLabel="Clear"
+                running={gmbLoading}
+              />
+            </div>
             {gmbLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
 
             {!gmbLoading && !gmb?.gbp && (
@@ -2192,6 +2272,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                       <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Zap size={18} color={R} /> GBP Content Calendar
+                        <SectionActions
+                          onDelete={() => { setGmbPosts([]); toast.success('Posts cleared') }}
+                          onRerun={generatePosts}
+                          rerunLabel="Regenerate"
+                          running={generatingPosts}
+                          deleteLabel="Clear Posts"
+                        />
                       </div>
                       <button onClick={generatePosts} disabled={generatingPosts}
                         style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: generatingPosts ? '#e5e7eb' : R, color: '#fff', fontSize: 12, fontWeight: 700, cursor: generatingPosts ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
