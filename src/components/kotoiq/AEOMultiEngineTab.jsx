@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Sparkles, Loader2, CheckCircle, XCircle, Brain, Search, MessageSquare, Bot,
 } from 'lucide-react'
@@ -51,11 +51,17 @@ function EligibilityBadge({ level }) {
   )
 }
 
-export default function AEOMultiEngineTab({ clientId, agencyId }) {
+export default function AEOMultiEngineTab({ clientId, agencyId, prefilledForm }) {
   const [content, setContent] = useState('')
   const [keyword, setKeyword] = useState('')
   const [data, setData] = useState(null)
   const [running, setRunning] = useState(false)
+  // Conversational bot prefill
+  useEffect(() => {
+    if (!prefilledForm) return
+    if (prefilledForm.target_query) setKeyword(prefilledForm.target_query)
+    if (prefilledForm.url) setContent(prefilledForm.url)
+  }, [prefilledForm])
 
   const run = async () => {
     if (!content.trim() || !keyword.trim()) return toast.error('Content and keyword required')

@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Shield, Loader2, AlertTriangle, CheckCircle, Brain, ExternalLink,
 } from 'lucide-react'
@@ -29,10 +29,16 @@ function ScoreRing({ score, size = 110, colorFn }) {
   )
 }
 
-export default function PlagiarismTab({ clientId, agencyId }) {
+export default function PlagiarismTab({ clientId, agencyId, prefilledForm }) {
   const [content, setContent] = useState('')
   const [data, setData] = useState(null)
   const [running, setRunning] = useState(false)
+  // Conversational bot prefill
+  useEffect(() => {
+    if (!prefilledForm) return
+    if (prefilledForm.content) setContent(prefilledForm.content)
+    else if (prefilledForm.url) setContent(prefilledForm.url)
+  }, [prefilledForm])
 
   const run = async () => {
     if (!content.trim()) return toast.error('Paste content first')

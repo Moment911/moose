@@ -53,6 +53,7 @@ import KnowledgeGraphTab from '../components/kotoiq/KnowledgeGraphTab'
 import HyperlocalTab from '../components/kotoiq/HyperlocalTab'
 import SitemapCrawlerTab from '../components/kotoiq/SitemapCrawlerTab'
 import ProcessingJobsTab from '../components/kotoiq/ProcessingJobsTab'
+import ConversationalBot from '../components/kotoiq/ConversationalBot'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -397,6 +398,19 @@ export default function KotoIQPage() {
   const [syncing, setSyncing] = useState(false)
   const [portfolio, setPortfolio] = useState(null)
   const [dashboard, setDashboard] = useState(null)
+  // Conversational bot prefill — populated when bot says "open this tab with these fields"
+  const [prefilledForm, setPrefilledForm] = useState(null)
+  const handleBotSwitchTab = (tabKey, formFields) => {
+    if (formFields && Object.keys(formFields || {}).length) setPrefilledForm({ tab: tabKey, fields: formFields, ts: Date.now() })
+    if (tabKey) setTab(tabKey)
+  }
+  // Apply prefill to inline-rendered tabs (briefs, competitors) when present
+  useEffect(() => {
+    if (!prefilledForm) return
+    const f = prefilledForm.fields || {}
+    if (prefilledForm.tab === 'briefs' && f.keyword) setBriefKeyword(f.keyword)
+    if (prefilledForm.tab === 'competitors' && f.keyword) setCompKeyword(f.keyword)
+  }, [prefilledForm])
   const [keywords, setKeywords] = useState([])
   const [kwTotal, setKwTotal] = useState(0)
   const [clientId, setClientId] = useState('')
@@ -1580,7 +1594,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ TOPICAL MAP TAB ══ */}
         {clientId && tab === 'topical_map' && (
-          <TopicalMapTab clientId={clientId} agencyId={agencyId} />
+          <TopicalMapTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'topical_map' ? prefilledForm.fields : null} />
         )}
 
         {/* ══ PAGE BUILDER TAB ══ */}
@@ -2527,12 +2541,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ NEW: COMPETITOR MAP ══ */}
         {clientId && tab === 'competitor_map' && (
-          <CompetitorMapTab clientId={clientId} agencyId={agencyId} />
+          <CompetitorMapTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'competitor_map' ? prefilledForm.fields : null} />
         )}
 
         {/* ══ NEW: MULTI-ENGINE AEO ══ */}
         {clientId && tab === 'aeo_multi' && (
-          <AEOMultiEngineTab clientId={clientId} agencyId={agencyId} />
+          <AEOMultiEngineTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'aeo' ? prefilledForm.fields : null} />
         )}
 
         {/* ══ NEW: BACKLINK OPPORTUNITIES ══ */}
@@ -2557,7 +2571,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ NEW: PLAGIARISM ══ */}
         {clientId && tab === 'plagiarism' && (
-          <PlagiarismTab clientId={clientId} agencyId={agencyId} />
+          <PlagiarismTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'plagiarism' ? prefilledForm.fields : null} />
         )}
 
         {/* ══ NEW: WATERMARK REMOVER ══ */}
@@ -2567,7 +2581,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ NEW: ON-PAGE AUDIT ══ */}
         {clientId && tab === 'on_page' && (
-          <OnPageTab clientId={clientId} agencyId={agencyId} />
+          <OnPageTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'on_page' ? prefilledForm.fields : null} />
         )}
 
         {/* ══ NEW: GSC DEEP AUDIT ══ */}
@@ -2582,7 +2596,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
         {/* ══ NEW: GMB IMAGES ══ */}
         {clientId && tab === 'gmb_images' && (
-          <GMBImagesTab clientId={clientId} agencyId={agencyId} />
+          <GMBImagesTab clientId={clientId} agencyId={agencyId} prefilledForm={prefilledForm?.tab === 'gmb_images' ? prefilledForm.fields : null} />
         )}
 
         {/* ══ NEW: STRATEGY / SCORECARD / COMPETITOR WATCH / INTEGRATIONS ══ */}
@@ -4108,6 +4122,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         </div>
       )}
+      {/* Conversational Bot — global overlay across all KotoIQ tabs */}
+      <ConversationalBot
+        clientId={clientId}
+        agencyId={agencyId}
+        currentTab={tab}
+        onSwitchTab={handleBotSwitchTab}
+      />
     </div>
     </div>
   )

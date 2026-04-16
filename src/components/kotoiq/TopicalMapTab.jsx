@@ -249,7 +249,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
-export default function TopicalMapTab({ clientId, agencyId }) {
+export default function TopicalMapTab({ clientId, agencyId, prefilledForm }) {
   const [map, setMap] = useState(null)
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -259,6 +259,15 @@ export default function TopicalMapTab({ clientId, agencyId }) {
   const [searchQ, setSearchQ] = useState('')
   const [editingIdentity, setEditingIdentity] = useState(false)
   const [identityForm, setIdentityForm] = useState({ central_entity: '', source_context: '', central_search_intent: '' })
+  const [seedTopic, setSeedTopic] = useState('')
+  // Conversational bot prefill
+  useEffect(() => {
+    if (!prefilledForm) return
+    if (prefilledForm.seed_topic) {
+      setSeedTopic(prefilledForm.seed_topic)
+      setIdentityForm(f => ({ ...f, central_entity: f.central_entity || prefilledForm.seed_topic }))
+    }
+  }, [prefilledForm])
 
   // Load map on mount
   const loadMap = useCallback(() => {

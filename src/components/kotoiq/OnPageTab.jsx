@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   FileText, Loader2, CheckCircle, XCircle, AlertCircle, Zap, Target,
 } from 'lucide-react'
@@ -53,11 +53,17 @@ function CheckRow({ label, status, detail }) {
   )
 }
 
-export default function OnPageTab({ clientId, agencyId }) {
+export default function OnPageTab({ clientId, agencyId, prefilledForm }) {
   const [url, setUrl] = useState('')
   const [keyword, setKeyword] = useState('')
   const [data, setData] = useState(null)
   const [running, setRunning] = useState(false)
+  // Conversational bot prefill
+  useEffect(() => {
+    if (!prefilledForm) return
+    if (prefilledForm.url) setUrl(prefilledForm.url)
+    if (prefilledForm.target_keyword) setKeyword(prefilledForm.target_keyword)
+  }, [prefilledForm])
 
   const run = async () => {
     if (!url.trim() || !keyword.trim()) return toast.error('URL and keyword required')

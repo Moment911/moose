@@ -33,7 +33,7 @@ function fileToDataUrl(file) {
   })
 }
 
-export default function GMBImagesTab({ clientId, agencyId }) {
+export default function GMBImagesTab({ clientId, agencyId, prefilledForm }) {
   // Upload side
   const [uploadDataUrl, setUploadDataUrl] = useState(null)
   const [uploadKeywords, setUploadKeywords] = useState('')
@@ -41,6 +41,12 @@ export default function GMBImagesTab({ clientId, agencyId }) {
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
   const [dragOver, setDragOver] = useState(false)
+  // Conversational bot prefill
+  useEffect(() => {
+    if (!prefilledForm) return
+    if (prefilledForm.location) setUploadKeywords(k => k || prefilledForm.location)
+    if (prefilledForm.image_url) setUploadDataUrl(prefilledForm.image_url)
+  }, [prefilledForm])
 
   // Generate side
   const [prompt, setPrompt] = useState('')

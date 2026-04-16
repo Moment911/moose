@@ -24,6 +24,7 @@ import { runContextlessWordRemover, runTopicalityScorer, runSentenceFilterer, ru
 import { runLexicalRelationAnalyzer, runTopicClusterer, runTitleQueryAuditor, runKeyFactSummarizer, runBridgeTopicSuggester } from '@/lib/semanticAgentsTier2'
 import { runCommentGenerator, runSentimentOptimizer, runEntityInserter, runMetadiscourseAuditor, runNgramExtractor, runTripleGenerator, runSpamHitDetector, runQualityUpdateAuditor } from '@/lib/semanticAgentsTier3'
 import { runTopicalAuthorityAuditor, runContextVectorAligner, runMultiEngineAEO, runContentDecayPredictor, runCompetitorTopicalMapExtractor, runPassageRankingOptimizer } from '@/lib/kotoiqAdvancedAgents'
+import { runSerpIntentClassifier, runQueryDocumentAlignmentScorer, runTopicalBordersDetector, runCornerstoneContentIdentifier, runLinkPropositionValueScorer } from '@/lib/kotoiqAdvancedAgents2'
 import { geoTagImage } from '@/lib/imageGeoTagger'
 import { generateGMBImage, generateImageCaption, uploadImageToStorage, uploadImageToGBP } from '@/lib/gmbImageEngine'
 import { analyzeUpworkJob, generateProposalPackage } from '@/lib/upworkChecklistEngine'
@@ -50,6 +51,7 @@ import { calculateAIVisibility, getAIVisibilityHistory } from '@/lib/aiVisibilit
 import { generateQuickWinQueue, updateQuickWinStatus } from '@/lib/quickWinEngine'
 import { getPortalData, checkPortalRateLimit, logPortalView } from '@/lib/portalEngine'
 import { runBulkOperation, getBulkOperationStatus } from '@/lib/bulkOperationsEngine'
+import { runConversationalBot, getBotConversation, listBotConversations } from '@/lib/conversationalBotEngine'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -4324,6 +4326,191 @@ Provide a detailed analysis. Return ONLY valid JSON:
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 400 })
     }
+  }
+
+  // ── SERP INTENT CLASSIFIER ────────────────────────────────────
+  if (action === 'classify_serp_intents') {
+    const { keywords, serp_data, agency_id } = body
+    if (!Array.isArray(keywords) || keywords.length === 0) {
+      return NextResponse.json({ error: 'keywords (string[]) required' }, { status: 400 })
+    }
+
+    try {
+      let serpData: any[] | undefined = Array.isArray(serp_data) ? serp_data : undefined
+
+      // If no SERP data was provided, hydrate up to 20 keywords from DataForSEO
+      if (!serpData || serpData.length === 0) {
+        const hydrated: any[] = []
+        for (const kw of keywords.slice(0, 20)) {
+          try {
+            const r: any = await getSERPResults(kw)
+            if (r) hydrated.push({ keyword: kw, items: r?.items || r?.results || r })
+          } catch { /* skip individual SERP fetch failures */ }
+        }
+        if (hydrated.length) serpData = hydrated
+      }
+
+      const result = await runSerpIntentClassifier(ai, {
+        keywords,
+        serp_data: serpData,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── QUERY / DOCUMENT ALIGNMENT SCORER ─────────────────────────
+  if (action === 'score_query_doc_alignment') {
+    const { document_content, primary_keyword, query_network, agency_id } = body
+    if (!document_content || !primary_keyword) {
+      return NextResponse.json({ error: 'document_content and primary_keyword required' }, { status: 400 })
+    }
+
+    try {
+      const result = await runQueryDocumentAlignmentScorer(ai, {
+        document_content,
+        primary_keyword,
+        query_network,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TOPICAL BORDERS DETECTOR ──────────────────────────────────
+  if (action === 'detect_topical_borders') {
+    const { content, target_central_entity, related_entities, agency_id } = body
+    if (!content || !target_central_entity) {
+      return NextResponse.json({ error: 'content and target_central_entity required' }, { status: 400 })
+    }
+
+    try {
+      const result = await runTopicalBordersDetector(ai, {
+        content,
+        target_central_entity,
+        related_entities,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── CORNERSTONE CONTENT IDENTIFIER ────────────────────────────
+  if (action === 'identify_cornerstone_content') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    try {
+      const { data: invRows } = await s.from('kotoiq_content_inventory')
+        .select('url, title, word_count, sc_clicks, sc_impressions, internal_links_in, sc_position')
+        .eq('client_id', client_id)
+        .order('sc_clicks', { ascending: false, nullsFirst: false })
+        .limit(200)
+
+      const pages = (invRows || []).map((r: any) => ({
+        url: r.url,
+        title: r.title || r.url,
+        word_count: r.word_count ?? null,
+        sc_clicks: r.sc_clicks ?? null,
+        sc_impressions: r.sc_impressions ?? null,
+        internal_links_in: r.internal_links_in ?? null,
+        position: r.sc_position ?? null,
+      }))
+
+      if (!pages.length) {
+        return NextResponse.json({ error: 'No content inventory found for this client. Run Content Refresh first to build the inventory.' }, { status: 404 })
+      }
+
+      const { data: clusterRows } = await s.from('kotoiq_query_clusters')
+        .select('cluster_name')
+        .eq('client_id', client_id)
+        .limit(40)
+
+      const topical_clusters = (clusterRows || []).map((c: any) => c.cluster_name).filter(Boolean)
+
+      const result = await runCornerstoneContentIdentifier(ai, {
+        pages,
+        topical_clusters: topical_clusters.length ? topical_clusters : undefined,
+        agencyId: agency_id,
+      })
+      return NextResponse.json({ ...result, pages_analyzed: pages.length, clusters_used: topical_clusters.length })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── LINK PROPOSITION VALUE SCORER ─────────────────────────────
+  if (action === 'score_link_proposition_value') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    try {
+      const { data: linkRows } = await s.from('kotoiq_internal_links')
+        .select('source_url, target_url, anchor_text')
+        .eq('client_id', client_id)
+        .limit(120)
+
+      const links: { source_url: string; target_url: string; anchor_text: string; source_topic: string | null; target_topic: string | null }[] = (linkRows || []).map((r: any) => ({
+        source_url: r.source_url,
+        target_url: r.target_url,
+        anchor_text: r.anchor_text || '',
+        source_topic: null,
+        target_topic: null,
+      }))
+
+      if (!links.length) {
+        return NextResponse.json({ error: 'No internal links found for this client. Run the internal link scan first.' }, { status: 404 })
+      }
+
+      // Try to resolve source/target topics from content inventory titles (cheap, no extra calls)
+      const urlSet = new Set<string>()
+      for (const l of links) { urlSet.add(l.source_url); urlSet.add(l.target_url) }
+      const { data: invRows } = await s.from('kotoiq_content_inventory')
+        .select('url, title')
+        .eq('client_id', client_id)
+        .in('url', Array.from(urlSet))
+        .limit(500)
+
+      const titleByUrl = new Map<string, string>()
+      for (const r of (invRows as any[]) || []) {
+        if (r?.url && r?.title) titleByUrl.set(r.url, r.title)
+      }
+      for (const l of links) {
+        l.source_topic = titleByUrl.get(l.source_url) || null
+        l.target_topic = titleByUrl.get(l.target_url) || null
+      }
+
+      const result = await runLinkPropositionValueScorer(ai, {
+        links,
+        agencyId: agency_id,
+      })
+      return NextResponse.json({ ...result, links_analyzed: links.length })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  if (action === 'run_conversational_bot') {
+    const result = await runConversationalBot(sb(), ai, body)
+    if ((result as any).error) return NextResponse.json({ error: (result as any).error }, { status: (result as any).status || 500 })
+    return NextResponse.json(result)
+  }
+
+  if (action === 'get_bot_conversation') {
+    const result = await getBotConversation(sb(), body)
+    if ((result as any).error) return NextResponse.json({ error: (result as any).error }, { status: (result as any).status || 500 })
+    return NextResponse.json(result)
+  }
+
+  if (action === 'list_bot_conversations') {
+    const result = await listBotConversations(sb(), body)
+    return NextResponse.json(result)
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

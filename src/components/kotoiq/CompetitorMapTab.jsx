@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Map, Loader2, Globe, Target, TrendingUp, Lightbulb } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { R, T, BLK, GRN, AMB, FH } from '../../lib/theme'
@@ -7,10 +7,16 @@ import HowItWorks from './HowItWorks'
 
 const card = { background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px 22px', marginBottom: 14 }
 
-export default function CompetitorMapTab({ clientId, agencyId }) {
+export default function CompetitorMapTab({ clientId, agencyId, prefilledForm }) {
   const [url, setUrl] = useState('')
   const [data, setData] = useState(null)
   const [running, setRunning] = useState(false)
+  // Conversational bot prefill
+  useEffect(() => {
+    if (!prefilledForm) return
+    if (prefilledForm.competitor_url) setUrl(prefilledForm.competitor_url)
+    else if (prefilledForm.url) setUrl(prefilledForm.url)
+  }, [prefilledForm])
 
   const run = async () => {
     if (!url.trim()) return toast.error('Competitor URL required')
