@@ -321,25 +321,6 @@ const VOICE_BULLETS = [
   { title: 'Smart follow-up sequences', desc: 'Automated multi-touch follow-up triggered by call outcomes.' },
 ];
 
-/* Shape matches AgencySignupPage's DEFAULT_PLANS so /signup and / never drift */
-const DEFAULT_PRICING = [
-  {
-    id: 'starter', name: 'Starter', price: 297, popular: false,
-    desc: 'For solo operators and new agencies.',
-    features: ['3 team seats', 'Up to 25 clients', 'AI review responses', 'Scout lead intelligence', 'Client onboarding forms'],
-  },
-  {
-    id: 'growth', name: 'Growth', price: 497, popular: true,
-    desc: 'For growing agencies ready to scale fast.',
-    features: ['10 team seats', 'Up to 100 clients', 'Everything in Starter', 'Agency Autopilot (all 6 agents)', 'White-label platform', 'Social content AI'],
-  },
-  {
-    id: 'agency', name: 'Agency', price: 997, popular: false,
-    desc: 'Full power for established agencies.',
-    features: ['25 team seats', 'Up to 500 clients', 'Everything in Growth', 'Lead scoring AI', 'API access', 'Priority support'],
-  },
-];
-
 /* ─── Palette aliases available in module scope ─── */
 const INK_C     = BLK;
 const MUTED_C   = '#6b7280';
@@ -1023,31 +1004,6 @@ function ChatDemo() {
 export default function MarketingSitePage() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All');
-  const [plans, setPlans] = useState(DEFAULT_PRICING);
-
-  // Pull pricing from the same DB key the signup page reads — keeps both in sync
-  useEffect(() => {
-    let cancelled = false;
-    supabase
-      .from('platform_config')
-      .select('value')
-      .eq('key', 'signup_plans')
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        const fromDb = data?.value;
-        if (Array.isArray(fromDb) && fromDb.length) {
-          // Merge each DB plan with our default (keeps desc if DB lacks it)
-          const merged = fromDb.map(p => ({
-            ...DEFAULT_PRICING.find(d => d.id === p.id),
-            ...p,
-          }));
-          setPlans(merged);
-        }
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
   // Scroll-to-section after landing from another page with /#hash
   useEffect(() => {
@@ -1743,73 +1699,6 @@ export default function MarketingSitePage() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ PRICING ══ */}
-      <section id="pricing" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div className="eyebrow">Pricing</div>
-            <h2 className="sec-h2" style={{
-              fontSize: 56, fontWeight: 900, fontFamily: FH,
-              letterSpacing: '-.035em', color: INK, lineHeight: 1.02, marginBottom: 14,
-            }}>
-              Simple plans. No surprises.
-            </h2>
-            <p style={{ fontSize: 16, color: MUTED, fontFamily: FB }}>Straightforward pricing for our agency-OS product. For custom AI builds, talk to us — pricing is scoped per project.</p>
-          </div>
-
-          <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, alignItems: 'stretch' }}>
-            {plans.map(plan => (
-              <div key={plan.id || plan.name} style={{
-                position: 'relative',
-                background: W,
-                border: plan.popular ? `2px solid ${INK}` : `1px solid ${HAIR}`,
-                borderRadius: 16, padding: '36px 28px',
-                display: 'flex', flexDirection: 'column',
-              }}>
-                {plan.popular && (
-                  <div style={{
-                    position: 'absolute', top: -12, left: 28,
-                    background: INK, color: W, fontSize: 11, fontWeight: 800,
-                    letterSpacing: '.06em', textTransform: 'uppercase',
-                    padding: '5px 12px', borderRadius: 100,
-                  }}>
-                    Most popular
-                  </div>
-                )}
-
-                <div style={{ fontSize: 13, fontWeight: 700, color: MUTED, letterSpacing: '.04em', marginBottom: 10 }}>
-                  {plan.name}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 10 }}>
-                  <span style={{ fontSize: 52, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', color: INK, lineHeight: 1 }}>
-                    ${typeof plan.price === 'number' ? plan.price : String(plan.price).replace('$', '')}
-                  </span>
-                  <span style={{ fontSize: 15, color: MUTED, fontFamily: FB }}>/mo</span>
-                </div>
-                <p style={{ fontSize: 14, color: MUTED, marginBottom: 24, fontFamily: FB, lineHeight: 1.5 }}>{plan.desc || ''}</p>
-
-                <button
-                  onClick={() => navigate('/contact')}
-                  className={`btn btn-md ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ width: '100%', justifyContent: 'center', marginBottom: 28 }}
-                >
-                  Get in touch
-                </button>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {plan.features.map(f => (
-                    <div key={f} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                      <Check size={15} color={GRN} strokeWidth={3} style={{ flexShrink: 0, marginTop: 2 }} />
-                      <span style={{ fontSize: 13, color: INK, lineHeight: 1.45, fontFamily: FB }}>{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
