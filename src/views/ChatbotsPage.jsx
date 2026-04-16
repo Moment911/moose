@@ -56,6 +56,23 @@ const BOTS = [
       "My tooth is killing me",
       "How much is Invisalign?",
     ],
+    fallback: "I may have missed that. I can help with **booking appointments**, **checking insurance networks**, **procedure pricing** (cleanings, implants, Invisalign, whitening, root canals), **emergencies**, **hours + directions**, or **financing options**. What would you like to know?",
+    conversational: [
+      { triggers: ['none', 'no', 'no thanks', 'nope', 'nah', 'not really', 'none of those', 'neither'],
+        text: "No problem. Want me to check **later dates**? Tell me the week you prefer (even just \"next week\" or \"mid-November\") and I'll pull our openings. I can also hold any of those 3 slots for 24 hours while you decide." },
+      { triggers: ['yes', 'sure', 'ok', 'okay', 'yep', 'yeah', 'sounds good', 'that works', "let's do it", "let's book"],
+        text: "Great — to lock it in I just need: **(1)** your full name, **(2)** cell number, **(3)** date of birth, **(4)** a photo of your insurance card (or tell me the carrier + member ID). You'll get a confirmation text within 60 seconds." },
+      { triggers: ['maybe', 'not sure', 'thinking', 'let me think', 'i dont know', 'idk'],
+        text: "Totally fine — happy to **hold any of those 3 slots for 24 hours** while you decide. Want me to do that? Also happy to check a different week if the timing isn't right." },
+      { triggers: ['later', 'next week', 'another time', 'another day', 'different day', 'not this week'],
+        text: "Sure — what week works? I can see as far out as the end of November. Even \"next Tuesday\" or \"the week of the 20th\" works and I'll pull everything available." },
+      { triggers: ['something else', 'other', 'different question', 'different', 'what else'],
+        text: "Of course — happy to help with anything else. I can answer about **procedures + pricing**, **insurance coverage**, **emergencies**, **our providers**, **hours + location**, or **financing**. What are you wondering about?" },
+      { triggers: ['thanks', 'thank you', 'thx', 'ty', 'appreciate it'],
+        text: "You're welcome! Anything else I can help with — appointment, insurance check, procedure pricing, or directions?" },
+      { triggers: ['hi', 'hello', 'hey', 'yo', 'sup'],
+        text: "Hey! What can I help with today — appointment, insurance, a specific procedure, or something else?" },
+    ],
     scenarios: [
       { triggers: ['appointment', 'book', 'schedule', 'new patient', 'availability', 'open slot'],
         text: "Happy to help! Nearest new-patient openings: **Thursday Oct 16 · 9:30 AM** with Dr. Hartwell, **Friday Oct 17 · 2:15 PM** with Dr. Chen, or **Saturday Oct 18 · 10:00 AM** with Dr. Reyes. Visit includes cleaning, 4 bitewings, and a full exam (~60 min). Which works? I can also text you our next five openings." },
@@ -116,6 +133,23 @@ const BOTS = [
       "Mortgage payment on $1.5M?",
       "Schedule a showing",
     ],
+    fallback: "I can help with **finding listings** (by price, beds, waterfront, ocean, condo, single-family), **neighborhood briefs**, **mortgage math + down payment options**, **scheduling showings**, **schools**, **HOAs + post-Surfside due diligence**, **FL property tax + Homestead**, **out-of-state + snowbird buying**, **listing your current home**, or **writing an offer**. What are you looking for?",
+    conversational: [
+      { triggers: ['none', 'no', 'no thanks', 'nope', 'nah', 'not really', 'neither', 'none of those', "don't like those"],
+        text: "No worries — want me to expand the search? I can go **wider price range**, **more beds**, **different neighborhood** (Surfside / Miami Beach / Aventura), or **open to non-waterfront**. What would you change?" },
+      { triggers: ['yes', 'sure', 'ok', 'okay', 'yep', 'yeah', 'sounds good', "let's go", 'schedule it'],
+        text: "Perfect. To book the showing I need: **(1)** which properties, **(2)** 2–3 date/time options, **(3)** pre-qualified or cash, **(4)** are you working with another agent. I'll text the confirmation with addresses + driving order." },
+      { triggers: ['maybe', 'not sure', 'thinking', 'let me think', 'idk', 'possibly'],
+        text: "Take your time. I can email you a **Dropbox with photos + floor plans + the listing packets** so you can compare at home. Want me to send it? Also happy to set up new-listing alerts for your criteria." },
+      { triggers: ['later', 'next week', 'another time', 'another day', 'not this week', 'next month'],
+        text: "Sure — tell me a window (even \"next weekend\" or \"second week of Nov\") and I'll batch up to 6 properties in a 3-hour loop. Also happy to set up alerts so you see new listings the day they hit." },
+      { triggers: ['something else', 'other', 'different question', 'different', 'what else'],
+        text: "Happy to help with anything — specific listings, neighborhood briefs, mortgage math, schools, HOA + taxes, selling your current home, or writing an offer. What's on your mind?" },
+      { triggers: ['thanks', 'thank you', 'thx', 'ty', 'appreciate'],
+        text: "You're very welcome. Anything else — showing, comp analysis, mortgage numbers, or a neighborhood deep-dive?" },
+      { triggers: ['hi', 'hello', 'hey', 'yo', 'sup', 'hiya'],
+        text: "Hey! Are you buying or selling? If buying, what's your price range + beds + waterfront / non-waterfront preference? If selling, which neighborhood?" },
+    ],
     scenarios: [
       { triggers: ['3 bed', '3br', 'three bedroom', 'waterfront', 'under 2', 'under $2'],
         text: "Six active matches under $2M: **1) 9821 E Bay Harbor Dr** — 3/3 townhouse, dock, $1.875M. **2) 1020 Cleveland Rd** — 3/2.5 canal-front, $1.695M. **3) 1150 93rd St** — 3/3 updated, no water, $1.495M. **4) 780 95th St** — 3/2 w/ pool, $1.799M. **5) 9340 Biscayne Rd** — 3/3 w/ boat slip, $1.990M. **6) 1227 Broadview Dr** — 3/2 fixer, $1.395M. Want to see any of them?" },
@@ -170,6 +204,23 @@ const BOTS = [
       "We have a gluten allergy",
       "Book a private event",
     ],
+    fallback: "I can help with **reservations** (any night, any party size), **tonight's menu + specials**, **allergies + dietary needs**, **private events + buyouts**, **corkage + wine list**, **cocktails + happy hour**, **kids policy**, **gift cards**, **takeout + delivery**, **dress code**, **parking + directions**, or **our chef + sommelier**. What do you need?",
+    conversational: [
+      { triggers: ['none', 'no', 'no thanks', 'nope', 'nah', 'not really', 'neither'],
+        text: "No problem — I can offer a **different time tonight** (earlier / later), **a different seating area** (patio / main / chef's counter / bar), or **a different night**. What's flexible?" },
+      { triggers: ['yes', 'sure', 'ok', 'okay', 'yep', 'yeah', 'sounds good', 'that works', 'book it'],
+        text: "Booking — just need: **(1)** name, **(2)** cell, **(3)** party size (if it changed), **(4)** any allergies. You'll get a confirmation text within 60 seconds + a reminder 3 hours before." },
+      { triggers: ['maybe', 'not sure', 'thinking', 'hold it', 'hold on'],
+        text: "I'll hold the table for **15 minutes** while you decide. Take your time. Want me to suggest a different time or night instead?" },
+      { triggers: ['later', 'next week', 'another night', 'different night', 'not tonight', 'tomorrow', 'weekend'],
+        text: "What day works? I can book up to **30 days out**. Weekends fill fastest — Saturdays book 2 weeks ahead. Tell me a date or window + party size." },
+      { triggers: ['something else', 'other', 'different question', 'different', 'what else'],
+        text: "Happy to help — reservations, menu, allergies, private events, gift cards, corkage, takeout, kids, dress code, our chef, or the wine list. What are you wondering about?" },
+      { triggers: ['thanks', 'thank you', 'thx', 'ty', 'appreciate'],
+        text: "Anytime! Anything else — menu question, allergy, or event planning?" },
+      { triggers: ['hi', 'hello', 'hey', 'yo', 'hiya'],
+        text: "Hey! Booking a table, asking about the menu, handling an allergy, or thinking about a private event?" },
+    ],
     scenarios: [
       { triggers: ['reservation', 'reserve', 'book', 'table', 'tonight'],
         text: "Tonight (Thursday Oct 16) for 4: **5:45 PM on the patio**, **7:15 PM main room**, or **9:00 PM chef's counter** (counter max 4). Which works? I'll text a confirmation and hold the table for **15 minutes past start**." },
@@ -221,6 +272,25 @@ const BOTS = [
       "Financing rates?",
       "Estimate my trade-in",
       "Test drive a Tesla Model 3",
+    ],
+    fallback: "I can help with **inventory** (BMW, Tesla, Mercedes, Honda, Toyota, trucks, under-$25k), **financing** (all credit tiers), **trade-in estimates**, **test drives** (scheduled or walk-in), **warranties + CPO**, **lease-style financing**, **out-of-state shipping**, **CarFax + inspection reports**, **service + parts**, or **7-day money-back + 30-day exchange**. What are you shopping for?",
+    conversational: [
+      { triggers: ['none', 'no', 'no thanks', 'nope', 'nah', 'not really', "don't like those", 'not a fan'],
+        text: "No worries — want to see a **different make** (Tesla / Mercedes / Honda / Toyota / trucks), **different price range** (under $25k / $25-40k / $40-60k / luxury), or a **different body style** (sedan / SUV / truck / EV)? I'll pull what matches." },
+      { triggers: ['yes', 'sure', 'ok', 'okay', 'yep', 'yeah', "let's do it", 'book it', 'schedule it'],
+        text: "Great — what day works for the test drive? Bring **driver's license + proof of insurance**. Takes 30-45 min on I-95. We can also **deliver the car to you** within 50 miles if that's easier." },
+      { triggers: ['maybe', 'not sure', 'thinking', 'let me think'],
+        text: "Totally fine — I can **hold a unit for 24 hours** while you decide. Also happy to email you the CarFax, AutoCheck, and inspection reports to review at home. Which vehicle?" },
+      { triggers: ['later', 'next week', 'another time', 'not today', 'next weekend'],
+        text: "Sure — want me to **text you if new inventory drops** that matches? What make / model / budget + body style are you targeting? I can also set a price-drop alert on a specific vehicle." },
+      { triggers: ['something else', 'other', 'different', 'what else'],
+        text: "Happy to help — inventory, financing, trade-in, test drives, warranties, delivery, service + parts, or our 7-day money-back policy. What's up?" },
+      { triggers: ['thanks', 'thank you', 'thx', 'ty', 'appreciate'],
+        text: "You bet. Anything else — test drive, financing pre-qual, trade-in quote?" },
+      { triggers: ['hi', 'hello', 'hey', 'yo', 'hiya'],
+        text: "Hey! Shopping for something specific — make/model, price range, body style? Have a trade-in? Or just browsing?" },
+      { triggers: ['budget', 'cheap', 'affordable', 'low cost'],
+        text: "What's your target monthly payment? Ballpark Tier-1, 72-mo, $2k down: **$25k car = $397/mo · $35k car = $563/mo · $45k car = $729/mo**. I can filter inventory to match." },
     ],
     scenarios: [
       { triggers: ['bmw', 'x5', 'x3', 'm3', 'm5', '5 series', '3 series'],
@@ -278,6 +348,27 @@ const BOTS = [
       "What does a consult cost?",
       "What should I bring?",
     ],
+    fallback: "I can help with **case intake** (car accident / motorcycle / pedestrian / slip + fall / dog bite / wrongful death / product liability / workers comp referral), **our fee structure** (free consult, contingency), **timeline expectations**, **FL PIP + UM/UIM insurance**, **documents to bring**, or **what happens after you hire us**. Can you tell me what happened?",
+    conversational: [
+      { triggers: ['none', 'no', 'no thanks', 'nope', 'nah', 'not really', 'not yet'],
+        text: "That's completely fine — no pressure. We're here whenever you're ready. If you want to **talk through what happened with no commitment**, the consult is 100% free. You can also just reply when you have more information." },
+      { triggers: ['yes', 'sure', 'ok', 'okay', 'yep', 'yeah', "let's do it", 'book it', 'schedule it'],
+        text: "Thank you for trusting us. Next step: I'll schedule you with **Attorney Morales**. Nearest openings: **tomorrow 10:30 AM by Zoom** or **tomorrow 2:00 PM in-person** (1221 Brickell Ave, Suite 2400). Which works? I'll also text you a prep list." },
+      { triggers: ['maybe', 'not sure', 'thinking', 'let me think', 'considering'],
+        text: "Take your time. The consult is **free + no obligation** — you can always change your mind after we talk. I'll hold a spot for 48 hours and text you a reminder if you want." },
+      { triggers: ['later', 'next week', 'another time', 'busy'],
+        text: "Of course — just remember **FL statute of limitations is 2 years** for most personal injury cases, so sooner is usually better. Want me to schedule the free consult for next week? I can work around your schedule." },
+      { triggers: ['something else', 'other', 'different question', 'different', 'what else'],
+        text: "Happy to help — I can walk you through **case types we handle**, **fees** (33.3% pre-suit / 40% if filed), **timeline**, **what to bring**, **FL insurance basics**, or **what happens after you sign**. What's on your mind?" },
+      { triggers: ['thanks', 'thank you', 'thx', 'ty', 'appreciate'],
+        text: "You're very welcome. Whenever you're ready, we're here. Anything else I can answer?" },
+      { triggers: ['hi', 'hello', 'hey', 'yo', 'hiya'],
+        text: "Hi — are you reaching out about an injury? Car accident, slip + fall, motorcycle, dog bite, or something else? Whatever happened, I'm sorry you're going through it." },
+      { triggers: ['scared', 'nervous', 'worried', 'afraid', 'anxious'],
+        text: "Completely understandable. No commitment to talk — the consult is free, confidential, and Attorney Morales has handled 500+ PI cases in 20+ years. We can also do the first meeting by phone or Zoom if that feels easier." },
+      { triggers: ['how', 'how does this work', 'explain', 'process'],
+        text: "Here's the flow: **(1)** you tell me what happened, **(2)** we schedule a free consult with Attorney Morales, **(3)** if we take the case, we send a representation letter + insurance companies stop calling you, **(4)** we build the case while you focus on getting better, **(5)** we negotiate or file suit, **(6)** when settled, you get your net check." },
+    ],
     scenarios: [
       { triggers: ['car accident', 'crash', 'collision', 'auto accident', 'rear-end', 'rear ended', 't-boned', 'hit', 'wreck'],
         text: "I'm sorry you went through that. Five quick questions so we can get you with the right attorney: (1) date + location of the crash, (2) police report filed (case number if you have it), (3) ER or doctor visit, (4) current injuries + treatment, (5) do you have FL **PIP (Personal Injury Protection)**? Earliest Attorney Morales openings: **tomorrow 10:30 AM Zoom** or **2:00 PM in-person**." },
@@ -331,6 +422,25 @@ const BOTS = [
       "Integrations with Slack?",
       "Reset my password",
       "Cancel my subscription",
+    ],
+    fallback: "I can help with **plans + pricing** (Free / Starter / Pro / Business), **integrations** (Slack, Teams, GitHub, Jira, Zapier, 20+ native), **password reset + login issues**, **imports** from Asana/Trello/Monday/Jira, **cancellation + data export**, **API + rate limits**, **SSO/SAML + SCIM**, **security + compliance** (SOC 2, HIPAA), **audit logs**, **billing + invoices**, or **specific features** (Gantt, timesheets, Kanban, roadmap). What's up?",
+    conversational: [
+      { triggers: ['none', 'no', 'no thanks', 'nope', 'nah', 'not really', 'neither', "that's not it"],
+        text: "No problem — want help with something else? I can walk through **plan comparisons**, **integrations**, **password issues**, **billing**, a **specific feature**, or **importing from another tool**. What are you trying to do?" },
+      { triggers: ['yes', 'sure', 'ok', 'okay', 'yep', 'yeah', "let's do it"],
+        text: "Great. What would you like me to help with next — plan upgrade, integration setup, feature walkthrough, or something account-specific?" },
+      { triggers: ['maybe', 'not sure', 'thinking', 'let me think'],
+        text: "Take your time. Want me to email you a **side-by-side plan comparison** or a **feature overview PDF** so you can review? Just share your email." },
+      { triggers: ['later', 'next week', 'another time', 'busy', 'ill check back'],
+        text: "Sure — anytime. If you want I can also email you a summary of this conversation so you have it for later. Anything else in the meantime?" },
+      { triggers: ['something else', 'other', 'different', 'what else'],
+        text: "Of course — I can help with **plans**, **integrations**, **password reset**, **imports**, **cancellations**, **API docs**, **SSO/SAML**, **security**, **audit logs**, **billing**, or **specific features** (timesheets, Gantt, Kanban, roadmap). What's up?" },
+      { triggers: ['thanks', 'thank you', 'thx', 'ty', 'appreciate'],
+        text: "Anytime! Anything else — plan info, integration setup, or account help?" },
+      { triggers: ['hi', 'hello', 'hey', 'yo', 'hiya'],
+        text: "Hey! What can I help with — plans + pricing, integration, password reset, billing, a specific feature, or something else?" },
+      { triggers: ['help', 'support', 'issue', 'problem'],
+        text: "Happy to help — can you tell me more? Is it about **your account** (password / billing / access), a **feature** (how something works), an **integration** setup, or **an error** you're seeing? The more detail you share the faster I can fix it." },
     ],
     scenarios: [
       { triggers: ['pro plan', 'pricing', 'plan', 'tier', 'how much', 'cost'],
@@ -408,11 +518,19 @@ function BotDemo({ bot }) {
   }, [messages, thinking])
 
   function match(q) {
-    const lower = q.toLowerCase()
+    const lower = q.toLowerCase().trim()
+    // 1. Exact-match conversational replies first ("no", "yes", "maybe", "none", etc.)
+    //    Matched against the trimmed input so "no." and "no!" also hit.
+    const normalized = lower.replace(/[.!?]+$/, '')
+    for (const s of (bot.conversational || [])) {
+      if (s.triggers.some(t => normalized === t)) return s.text
+    }
+    // 2. Substring scenarios (the main industry Q&A bank)
     for (const s of bot.scenarios) {
       if (s.triggers.some(t => lower.includes(t))) return s.text
     }
-    return FALLBACK_TEXT
+    // 3. Bot-specific helpful fallback (if defined) instead of the generic demo line
+    return bot.fallback || FALLBACK_TEXT
   }
 
   function ask(q) {
