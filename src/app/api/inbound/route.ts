@@ -464,7 +464,8 @@ export async function GET(request: NextRequest) {
       }
 
       case 'get_intake_templates': {
-        return NextResponse.json({ templates: INTAKE_TEMPLATES })
+        // UI expects an array; INTAKE_TEMPLATES is keyed by slug internally.
+        return NextResponse.json({ templates: Object.values(INTAKE_TEMPLATES) })
       }
 
       default:
@@ -660,32 +661,41 @@ export async function POST(request: NextRequest) {
       }
 
       // -------------------------------------------------------------------
-      // Provision Phone
+      // Provision Phone  (action: provision_phone OR provision_number)
       // -------------------------------------------------------------------
-      case 'provision_phone': {
+      case 'provision_phone':
+      case 'provision_number': {
         const { agency_id: phoneAgencyId, agent_id: phoneAgentId, area_code: phoneAreaCode } = body
-        if (!phoneAgencyId || !phoneAgentId) {
-          return NextResponse.json({ error: 'agency_id and agent_id required' }, { status: 400 })
-        }
+        // UI wizard calls this BEFORE an agent exists -- only require area_code.
+        const areaCode = phoneAreaCode || '415'
 
         const phoneResult = await retellFetch('/create-phone-number', 'POST', {
-          area_code: phoneAreaCode || '415',
+          area_code: areaCode,
         })
 
-        const { data: phoneRecord, error: phoneErr } = await supabase
-          .from('koto_inbound_phone_numbers')
-          .insert({
-            agency_id: phoneAgencyId,
-            agent_id: phoneAgentId,
-            phone_number: phoneResult.phone_number,
-            retell_phone_number_id: phoneResult.phone_number_id,
-            area_code: phoneAreaCode || '415',
-          })
-          .select()
-          .single()
-        if (phoneErr) throw phoneErr
+        let phoneRecord: any = null
+        if (phoneAgencyId || phoneAgentId) {
+          const { data, error: phoneErr } = await supabase
+            .from('koto_inbound_phone_numbers')
+            .insert({
+              agency_id: phoneAgencyId || null,
+              agent_id: phoneAgentId || null,
+              phone_number: phoneResult.phone_number,
+              retell_phone_number_id: phoneResult.phone_number_id,
+              area_code: areaCode,
+            })
+            .select()
+            .single()
+          if (phoneErr) throw phoneErr
+          phoneRecord = data
+        }
 
-        return NextResponse.json({ phone: phoneRecord })
+        // Return phone_number flat for UI consumption + full record for callers that want it.
+        return NextResponse.json({
+          phone_number: phoneResult.phone_number,
+          phone_number_id: phoneResult.phone_number_id,
+          phone: phoneRecord,
+        })
       }
 
       // -------------------------------------------------------------------
