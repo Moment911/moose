@@ -145,7 +145,7 @@ const GLOBAL_CSS = `
     .hero-h1 { font-size: 52px !important; }
     .sec-h2 { font-size: 40px !important; }
     .section { padding: 72px 24px !important; }
-    .hero { padding: 120px 24px 72px !important; }
+    .hero { padding: 140px 24px 72px !important; }
     .nav-pad { padding: 0 24px !important; }
     .footer-pad { padding: 56px 24px 32px !important; }
     .split { flex-direction: column !important; }
@@ -710,18 +710,22 @@ export default function MarketingSitePage() {
       </nav>
 
       {/* ══ HERO ══ */}
-      <section className="hero" style={{ background: W, padding: '160px 40px 100px', position: 'relative', overflow: 'hidden' }}>
-        {/* Animated ambient gradient orbs */}
-        <div style={{
-          position: 'absolute', top: 80, left: '15%', width: 420, height: 420,
-          borderRadius: '50%', background: R + '18', filter: 'blur(100px)',
-          pointerEvents: 'none', animation: 'drift 9s ease-in-out infinite',
-        }} />
-        <div style={{
-          position: 'absolute', top: 140, right: '12%', width: 360, height: 360,
-          borderRadius: '50%', background: T + '16', filter: 'blur(100px)',
-          pointerEvents: 'none', animation: 'drift 11s ease-in-out infinite reverse',
-        }} />
+      <section className="hero" style={{ background: W, padding: '180px 40px 100px', position: 'relative' }}>
+        {/* Orb layer — isolated in its own overflow-hidden wrapper so it can't clip hero content */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none',
+        }}>
+          <div style={{
+            position: 'absolute', top: 80, left: '15%', width: 420, height: 420,
+            borderRadius: '50%', background: R + '18', filter: 'blur(100px)',
+            animation: 'drift 9s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', top: 140, right: '12%', width: 360, height: 360,
+            borderRadius: '50%', background: T + '16', filter: 'blur(100px)',
+            animation: 'drift 11s ease-in-out infinite reverse',
+          }} />
+        </div>
 
         <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div className="fade" style={{
@@ -736,8 +740,9 @@ export default function MarketingSitePage() {
 
           <h1 className="hero-h1 fade fade-1" style={{
             fontSize: 84, fontWeight: 900, fontFamily: FH,
-            letterSpacing: '-.045em', lineHeight: .98,
+            letterSpacing: '-.035em', lineHeight: 1.05,
             color: INK, maxWidth: 900, margin: '0 auto',
+            paddingTop: 4,
           }}>
             The operating system<br />for marketing agencies.
           </h1>
