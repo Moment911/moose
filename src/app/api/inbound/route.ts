@@ -493,59 +493,81 @@ export async function POST(request: NextRequest) {
       // -------------------------------------------------------------------
       case 'create_agent': {
         const {
-          agency_id, agent_name, voice_id, greeting_script, closed_script,
-          emergency_script, intake_questions, business_name, business_type,
-          timezone, notification_email, notification_phone, provision_phone,
-          area_code,
+          agency_id, client_id, business_name, department, sic_code,
+          voice_id, greeting_script, closed_script, emergency_script,
+          intake_questions, timezone, phone_number, forward_number,
         } = body
 
-        if (!agency_id || !agent_name) {
-          return NextResponse.json({ error: 'agency_id and agent_name required' }, { status: 400 })
+        const agentName = (body.agent_name || business_name || '').trim()
+        if (!agency_id || !agentName) {
+          return NextResponse.json({ error: 'agency_id and business_name required' }, { status: 400 })
         }
 
-        // Check if this client has a front desk config — if so, use the rich prompt
-        let generalPrompt = greeting_script || `Hello, thank you for calling ${business_name || 'our office'}. How may I help you today?`
-        const { client_id } = body
+        const displayName = business_name || agentName
+        const beginMessage = greeting_script
+          || `Hello, thank you for calling ${displayName}. How can I help you today?`
+        let generalPrompt = `You are the AI receptionist for ${displayName}${department ? ` (${department} department)` : ''}.
+
+Greet callers warmly, answer basic questions about the business, and collect their name, callback number, and reason for calling. Be concise, polite, and mirror the caller's energy. If the matter is urgent, mark it so and offer to escalate.
+
+End the call once you have collected the caller's information and confirmed next steps.`
+
         if (client_id) {
           try {
             const frontDeskPrompt = await buildFrontDeskPromptForClient(client_id)
-            if (frontDeskPrompt) {
-              generalPrompt = frontDeskPrompt
-            }
+            if (frontDeskPrompt) generalPrompt = frontDeskPrompt
           } catch (e: any) {
             console.error('[inbound create_agent] Front desk prompt lookup failed (non-fatal):', e?.message)
           }
         }
 
-        // Create Retell agent
-        const retellAgent = await retellFetch('/create-agent', 'POST', {
-          agent_name,
-          voice_id: voice_id || 'eleven_turbo_v2',
-          response_engine: { type: 'retell-llm' },
-          language: 'en-US',
-          ambient_sound: 'office',
-          enable_backchannel: true,
-          backchannel_frequency: 0.7,
-          interruption_sensitivity: 0.8,
-          general_prompt: generalPrompt,
-        })
+        // Step 1: Create Retell LLM (prompt lives here, not on the agent)
+        let llmId: string
+        try {
+          const llmRes = await retellFetch('/create-retell-llm', 'POST', {
+            general_prompt: generalPrompt,
+            begin_message: beginMessage,
+          })
+          llmId = llmRes.llm_id
+          if (!llmId) throw new Error('Retell did not return llm_id')
+        } catch (e: any) {
+          return NextResponse.json({ error: e?.message || 'Retell create-retell-llm failed' }, { status: 500 })
+        }
 
-        // Insert to DB
+        // Step 2: Create Retell agent referencing the LLM
+        const resolvedVoiceId = voice_id || '11labs-Marissa'
+        let retellAgent: any
+        try {
+          retellAgent = await retellFetch('/create-agent', 'POST', {
+            agent_name: agentName,
+            voice_id: resolvedVoiceId,
+            response_engine: { type: 'retell-llm', llm_id: llmId },
+            language: 'en-US',
+            enable_backchannel: true,
+            backchannel_frequency: 0.7,
+            interruption_sensitivity: 0.8,
+          })
+        } catch (e: any) {
+          return NextResponse.json({ error: e?.message || 'Retell create-agent failed' }, { status: 500 })
+        }
+
+        // Step 3: Insert agent record (schema uses `name`, `closed_hours_script`, `status`, `industry`)
         const agentRecord: any = {
           agency_id,
-          agent_name,
+          client_id: client_id || null,
+          name: agentName,
+          department: department || 'main',
           retell_agent_id: retellAgent.agent_id,
-          voice_id: voice_id || 'eleven_turbo_v2',
+          voice_id: resolvedVoiceId,
+          sic_code: sic_code || null,
           greeting_script: greeting_script || '',
-          closed_script: closed_script || '',
+          closed_hours_script: closed_script || '',
           emergency_script: emergency_script || '',
           intake_questions: intake_questions || [],
-          business_name: business_name || '',
-          business_type: business_type || 'general',
           timezone: timezone || 'America/New_York',
-          notification_email: notification_email || '',
-          notification_phone: notification_phone || '',
-          is_active: true,
+          status: 'active',
+          phone_number: phone_number || forward_number || null,
+          phone_source: phone_number ? 'koto' : (forward_number ? 'forward' : 'koto'),
         }
 
         const { data: agentData, error: agentError } = await supabase
@@ -553,30 +575,30 @@ export async function POST(request: NextRequest) {
           .insert(agentRecord)
           .select()
           .single()
-        if (agentError) throw agentError
-
-        // Optionally provision phone
-        let phoneData = null
-        if (provision_phone) {
-          const phoneResult = await retellFetch('/create-phone-number', 'POST', {
-            area_code: area_code || '415',
-          })
-          const { data: phoneRecord, error: phoneError } = await supabase
-            .from('koto_inbound_phone_numbers')
-            .insert({
-              agency_id,
-              agent_id: agentData.id,
-              phone_number: phoneResult.phone_number,
-              retell_phone_number_id: phoneResult.phone_number_id,
-              area_code: area_code || '415',
-            })
-            .select()
-            .single()
-          if (phoneError) throw phoneError
-          phoneData = phoneRecord
+        if (agentError) {
+          // Best effort: clean up orphaned Retell resources so the user can retry
+          try { await retellFetch(`/delete-agent/${retellAgent.agent_id}`, 'DELETE') } catch {}
+          try { await retellFetch(`/delete-retell-llm/${llmId}`, 'DELETE') } catch {}
+          return NextResponse.json({ error: agentError.message }, { status: 500 })
         }
 
-        return NextResponse.json({ agent: agentData, phone: phoneData })
+        // Step 4: If the wizard already provisioned a Koto number, link it to the new agent
+        if (phone_number) {
+          try {
+            await retellFetch(`/update-phone-number/${phone_number}`, 'PATCH', {
+              inbound_agent_id: retellAgent.agent_id,
+            })
+            await supabase
+              .from('koto_inbound_phone_numbers')
+              .update({ agent_id: agentData.id })
+              .eq('phone_number', phone_number)
+              .eq('agency_id', agency_id)
+          } catch (e: any) {
+            console.error('[inbound create_agent] Phone link failed (non-fatal):', e?.message)
+          }
+        }
+
+        return NextResponse.json({ agent: agentData })
       }
 
       // -------------------------------------------------------------------
@@ -661,18 +683,19 @@ export async function POST(request: NextRequest) {
       }
 
       // -------------------------------------------------------------------
-      // Provision Phone  (action: provision_phone OR provision_number)
+      // Provision Phone (used by the New Agent wizard before agent exists,
+      // and by the dashboard to attach a number to an existing agent)
       // -------------------------------------------------------------------
-      case 'provision_phone':
-      case 'provision_number': {
+      case 'provision_number':
+      case 'provision_phone': {
         const { agency_id: phoneAgencyId, agent_id: phoneAgentId, area_code: phoneAreaCode } = body
-        // UI wizard calls this BEFORE an agent exists -- only require area_code.
-        const areaCode = phoneAreaCode || '415'
 
+        const parsedAreaCode = parseInt(String(phoneAreaCode || '415'), 10)
         const phoneResult = await retellFetch('/create-phone-number', 'POST', {
-          area_code: areaCode,
+          area_code: isNaN(parsedAreaCode) ? 415 : parsedAreaCode,
         })
 
+        // Only persist when we have an owner to scope it to (agency or agent).
         let phoneRecord: any = null
         if (phoneAgencyId || phoneAgentId) {
           const { data, error: phoneErr } = await supabase
@@ -681,8 +704,8 @@ export async function POST(request: NextRequest) {
               agency_id: phoneAgencyId || null,
               agent_id: phoneAgentId || null,
               phone_number: phoneResult.phone_number,
-              retell_phone_number_id: phoneResult.phone_number_id,
-              area_code: areaCode,
+              retell_number_id: phoneResult.phone_number_id,
+              area_code: String(phoneAreaCode || '415'),
             })
             .select()
             .single()
@@ -690,7 +713,6 @@ export async function POST(request: NextRequest) {
           phoneRecord = data
         }
 
-        // Return phone_number flat for UI consumption + full record for callers that want it.
         return NextResponse.json({
           phone_number: phoneResult.phone_number,
           phone_number_id: phoneResult.phone_number_id,

@@ -1115,15 +1115,13 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
   const [step, setStep] = useState(1)
   const [creating, setCreating] = useState(false)
   const [clients, setClients] = useState([])
-  const [templates, setTemplates] = useState([])
   const [sicSearch, setSicSearch] = useState('')
   const [sicOpen, setSicOpen] = useState(false)
 
   const [form, setForm] = useState({
     client_id:'', business_name:'', department:'', sic_code:'',
     phone_number:'', forward_number:'', _area_code:'212', _phone_mode:'koto',
-    voice_id:'', intake_template_id:'', intake_questions:[],
-    notification_email:'', sms_number:'', email_notifications:true, sms_notifications:false,
+    voice_id:'',
   })
 
   const upd = (k,v) => setForm(p=>({...p,[k]:v}))
@@ -1136,17 +1134,6 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
       } catch {}
     })()
   }, [agencyId])
-
-  useEffect(() => {
-    if (step===4 && templates.length===0) {
-      (async () => {
-        try {
-          const res = await fetch('/api/inbound?action=get_intake_templates')
-          if (res.ok) { const d = await res.json(); setTemplates(d.templates||[]) }
-        } catch {}
-      })()
-    }
-  }, [step])
 
   async function provisionNumber() {
     toast.loading('Provisioning...',{id:'wprov'})
@@ -1161,10 +1148,11 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
   }
 
   async function activate() {
+    if (!form.business_name.trim()) { toast.error('Business name required'); return }
     setCreating(true)
     try {
       const res = await fetch('/api/inbound', { method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ action:'create_agent', agency_id:agencyId, ...form })
+        body:JSON.stringify({ action:'create_agent', agency_id:agencyId, agent_name:form.business_name.trim(), ...form })
       })
       const d = await res.json()
       if (d.agent) { toast.success('Agent activated!'); onCreated(d.agent) }
@@ -1192,14 +1180,14 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
 
         {/* Step indicators */}
         <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:24 }}>
-          {[1,2,3,4,5,6].map(n => (
+          {[1,2,3,4].map(n => (
             <div key={n} style={{ display:'flex', alignItems:'center', gap:6 }}>
               <div style={stepDot(n)}>{step>n?<Check size={14}/>:n}</div>
-              {n<6 && <div style={{ width:24, height:2, background:step>n?GRN:'#e5e7eb' }}/>}
+              {n<4 && <div style={{ width:24, height:2, background:step>n?GRN:'#e5e7eb' }}/>}
             </div>
           ))}
           <span style={{ marginLeft:8, fontSize:12, color:'#6b7280' }}>
-            {['','Business Info','Phone','Voice','Intake','Notifications','Review'][step]}
+            {['','Business Info','Phone','Voice','Review'][step]}
           </span>
         </div>
 
@@ -1279,54 +1267,8 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
           </div>
         )}
 
-        {/* STEP 4 — Intake Template */}
+        {/* STEP 4 — Review & Activate */}
         {step===4 && (
-          <div>
-            <p style={{ fontSize:13, color:'#6b7280', marginBottom:12 }}>Select an intake template for your agent to follow during calls.</p>
-            {templates.length===0 ? <div style={{ textAlign:'center', padding:20 }}><Loader2 size={20} className="spin" color={R}/></div> : (
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, maxHeight:400, overflowY:'auto' }}>
-                {templates.map(tpl => (
-                  <div key={tpl.id} onClick={()=>{upd('intake_template_id',tpl.id);upd('intake_questions',tpl.questions||[])}} style={{
-                    padding:12, borderRadius:10, border: form.intake_template_id===tpl.id ? `2px solid ${R}` : '1px solid #e5e7eb',
-                    cursor:'pointer', background: form.intake_template_id===tpl.id ? 'rgba(234,39,41,.04)' : '#fafafa', textAlign:'center', transition:'all .15s'
-                  }}>
-                    <div style={{ fontWeight:600, fontSize:12, marginBottom:4 }}>{tpl.name}</div>
-                    <div style={{ fontSize:10, color:'#6b7280' }}>{tpl.questions?.length||0} questions</div>
-                    {tpl.industry && <div style={{ marginTop:4 }}><span style={badge('#f3f4f6','#374151')}>{tpl.industry}</span></div>}
-                    {form.intake_template_id===tpl.id && <Check size={16} color={R} style={{ marginTop:4 }}/>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* STEP 5 — Notifications */}
-        {step===5 && (
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:14 }}><Mail size={16}/> Email Notifications</div>
-              <button onClick={()=>upd('email_notifications',!form.email_notifications)} style={{ width:40, height:24, borderRadius:12, border:'none', background:form.email_notifications?GRN:'#d1d5db', cursor:'pointer', position:'relative' }}>
-                <div style={{ width:20, height:20, borderRadius:10, background:'#fff', position:'absolute', top:2, left:form.email_notifications?18:2, transition:'left .2s' }}/>
-              </button>
-            </div>
-            {form.email_notifications && (
-              <input style={input} placeholder="notifications@yourcompany.com" value={form.notification_email} onChange={e=>upd('notification_email',e.target.value)} />
-            )}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #f3f4f6' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:14 }}><MessageSquare size={16}/> SMS Notifications</div>
-              <button onClick={()=>upd('sms_notifications',!form.sms_notifications)} style={{ width:40, height:24, borderRadius:12, border:'none', background:form.sms_notifications?GRN:'#d1d5db', cursor:'pointer', position:'relative' }}>
-                <div style={{ width:20, height:20, borderRadius:10, background:'#fff', position:'absolute', top:2, left:form.sms_notifications?18:2, transition:'left .2s' }}/>
-              </button>
-            </div>
-            {form.sms_notifications && (
-              <input style={input} placeholder="+1 (555) 123-4567" value={form.sms_number} onChange={e=>upd('sms_number',e.target.value)} />
-            )}
-          </div>
-        )}
-
-        {/* STEP 6 — Review & Activate */}
-        {step===6 && (
           <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             <div style={{ ...card, background:'#fafafa' }}>
               <h4 style={{ margin:'0 0 10px', fontFamily:FH }}>Review Your Agent</h4>
@@ -1335,11 +1277,9 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
                 <div><span style={{ color:'#6b7280' }}>Department:</span> <strong>{form.department||'—'}</strong></div>
                 <div><span style={{ color:'#6b7280' }}>SIC Code:</span> <strong>{form.sic_code||'—'}</strong></div>
                 <div><span style={{ color:'#6b7280' }}>Phone:</span> <strong>{form.phone_number||form.forward_number||'—'}</strong></div>
-                <div><span style={{ color:'#6b7280' }}>Voice:</span> <strong>{form.voice_id||'Not selected'}</strong></div>
-                <div><span style={{ color:'#6b7280' }}>Template:</span> <strong>{templates.find(t=>t.id===form.intake_template_id)?.name||'None'}</strong></div>
-                <div><span style={{ color:'#6b7280' }}>Email:</span> <strong>{form.email_notifications?'On':'Off'}</strong></div>
-                <div><span style={{ color:'#6b7280' }}>SMS:</span> <strong>{form.sms_notifications?'On':'Off'}</strong></div>
+                <div><span style={{ color:'#6b7280' }}>Voice:</span> <strong>{form.voice_id||'Default'}</strong></div>
               </div>
+              <p style={{ margin:'12px 0 0', fontSize:12, color:'#6b7280' }}>Notifications and intake questions can be configured on the agent detail page after activation.</p>
             </div>
             <button onClick={activate} disabled={creating||!form.business_name} style={{ ...btn(GRN), width:'100%', justifyContent:'center', padding:'14px 0', fontSize:16 }}>
               {creating ? <Loader2 size={18} className="spin"/> : <Zap size={18}/>} {creating ? 'Activating...' : 'Activate Agent'}
@@ -1352,7 +1292,7 @@ function NewAgentWizard({ agencyId, onClose, onCreated }) {
           <button onClick={()=>step>1?setStep(step-1):onClose()} style={btn('#e5e7eb',BLK)}>
             {step===1?'Cancel':'Back'}
           </button>
-          {step<6 && (
+          {step<4 && (
             <button onClick={()=>setStep(step+1)} disabled={step===1&&!form.business_name} style={{ ...btn(), opacity:(step===1&&!form.business_name)?.5:1 }}>
               Next <ChevronRight size={14}/>
             </button>
