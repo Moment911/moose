@@ -418,7 +418,7 @@ export default function TopicalMapTab({ clientId, agencyId }) {
         </div>
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK, marginBottom: 8 }}>No Topical Map Yet</div>
         <div style={{ fontSize: 14, color: '#6b7280', maxWidth: 420, margin: '0 auto 20px', lineHeight: 1.6 }}>
-          Generate a semantic topical map based on Koray Tugberk GUBUR's framework. Analyzes your website, identifies the central entity, and maps every topic you should cover for maximum topical authority.
+          Generate a semantic topical map using KotoIQ's knowledge base. Analyzes your website, identifies the central entity, and maps every topic you should cover for maximum topical authority.
         </div>
         <button onClick={generateMap} disabled={generating}
           style={{

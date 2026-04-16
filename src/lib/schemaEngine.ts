@@ -408,13 +408,11 @@ Return ONLY a valid JSON array:
     semantic_issues: allSemanticIssues.slice(0, 15),
     generated_schemas: generatedSchemas,
     overall_score: overallScore,
-    updated_at: new Date().toISOString(),
   }
 
-  await s.from('kotoiq_schema_audit').upsert(
-    { ...record },
-    { onConflict: 'client_id' }
-  )
+  // Delete old audit for this client, then insert fresh
+  await s.from('kotoiq_schema_audit').delete().eq('client_id', client_id)
+  await s.from('kotoiq_schema_audit').insert(record)
 
   return record
 }
@@ -430,7 +428,7 @@ export async function getSchemaAudit(
   const { data, error } = await s.from('kotoiq_schema_audit')
     .select('*')
     .eq('client_id', client_id)
-    .order('updated_at', { ascending: false })
+    .order('scanned_at', { ascending: false })
     .limit(1)
     .single()
 

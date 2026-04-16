@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Topical Map Engine — Koray Tugberk GUBUR Semantic SEO
+// Topical Map Engine — KotoIQ Semantic SEO Knowledge Base
 //
 // Standalone module for generating, retrieving, updating,
 // and analyzing topical maps for KotoIQ clients.
@@ -150,7 +150,7 @@ export async function generateTopicalMap(s: SB, ai: AI, body: any) {
     ? `\nEXISTING SITE PAGES (sample of ${sitemapPaths.length} total):\n${topPageContents.map(p => `URL: ${p.url}\nHeadings: ${p.headings.join(' | ')}\nContent: ${p.text.slice(0, 400)}`).join('\n---\n')}`
     : ''
 
-  const topicalMapPrompt = `You are implementing Koray Tugberk GUBUR's Semantic SEO topical map framework. Your task is to build a complete topical map for this business.
+  const topicalMapPrompt = `You are KotoIQ's Semantic SEO brain. Your task is to build a complete topical map for this business using advanced semantic SEO methodology.
 
 ═══════════════════════════════════════════════════
 BUSINESS CONTEXT
@@ -175,7 +175,7 @@ ${pagesContext}
 ${kwContext}
 
 ═══════════════════════════════════════════════════
-TOPICAL MAP FRAMEWORK — KORAY TUGBERK GUBUR METHOD
+TOPICAL MAP FRAMEWORK — KOTOIQ SEMANTIC SEO METHOD
 ═══════════════════════════════════════════════════
 
 Follow these steps precisely:
@@ -268,7 +268,7 @@ Return ONLY valid JSON with this exact structure:
   const msg = await ai.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 8000,
-    system: 'You are a Semantic SEO expert implementing Koray Tugberk GUBUR\'s topical map methodology. Return ONLY valid JSON. No markdown, no commentary.',
+    system: 'You are KotoIQ\'s Semantic SEO intelligence engine. Build topical maps using advanced semantic methodology. Return ONLY valid JSON. No markdown, no commentary.',
     messages: [{ role: 'user', content: topicalMapPrompt }],
   })
 
@@ -386,8 +386,6 @@ Return ONLY valid JSON with this exact structure:
     momentum_score: momentum,
     total_nodes: totalNodes,
     covered_nodes: coveredCount,
-    partial_nodes: partialCount,
-    gap_nodes: totalNodes - coveredCount - partialCount,
   }).select().single()
 
   if (mapErr || !mapRow) {
@@ -469,7 +467,7 @@ Return ONLY valid JSON with this exact structure:
       total_nodes: totalNodes,
       covered_nodes: coveredCount,
       partial_nodes: partialCount,
-      gap_nodes: totalNodes - coveredCount - partialCount,
+      gap_nodes_count: totalNodes - coveredCount - partialCount,
       core_nodes: nodeRecords.filter(n => n.section === 'core'),
       outer_nodes: nodeRecords.filter(n => n.section === 'outer'),
       edges: edgeRecords,
@@ -593,8 +591,6 @@ async function recalculateMapScores(s: SB, mapId: string) {
     momentum_score: momentum,
     total_nodes: total,
     covered_nodes: covered,
-    partial_nodes: partial,
-    gap_nodes: gap,
   }).eq('id', mapId)
 }
 

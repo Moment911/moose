@@ -276,7 +276,6 @@ Generate 3-5 items per array. Return ONLY valid JSON, no markdown.`
   // Save to DB
   const row = {
     client_id,
-    agency_id: agency_id || null,
     total_backlinks: total_backlinks_from_api || links.length,
     total_referring_domains: total_referring_domains,
     domain_authority,
@@ -293,16 +292,12 @@ Generate 3-5 items per array. Return ONLY valid JSON, no markdown.`
     broken_link_opportunities,
     competitor_comparison,
     overall_score,
-    updated_at: new Date().toISOString(),
+    scanned_at: new Date().toISOString(),
   }
 
-  // Upsert
-  const { data: existing } = await s.from('kotoiq_backlink_profile').select('id').eq('client_id', client_id).limit(1)
-  if (existing?.length) {
-    await s.from('kotoiq_backlink_profile').update(row).eq('id', existing[0].id)
-  } else {
-    await s.from('kotoiq_backlink_profile').insert(row)
-  }
+  // Delete old then insert
+  await s.from('kotoiq_backlink_profile').delete().eq('client_id', client_id)
+  await s.from('kotoiq_backlink_profile').insert(row)
 
   return row
 }
@@ -318,7 +313,7 @@ export async function getBacklinkProfile(
   const { data } = await s.from('kotoiq_backlink_profile')
     .select('*')
     .eq('client_id', client_id)
-    .order('updated_at', { ascending: false })
+    .order('scanned_at', { ascending: false })
     .limit(1)
     .single()
 

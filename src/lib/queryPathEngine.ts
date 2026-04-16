@@ -190,7 +190,6 @@ Return ONLY valid JSON array of cluster objects, no markdown fences.`
   if (enrichedClusters.length > 0) {
     const rows = enrichedClusters.map(c => ({
       client_id,
-      agency_id: body.agency_id || null,
       cluster_name: c.cluster_name,
       cluster_type: c.cluster_type,
       seed_query: c.seed_query,
@@ -202,7 +201,6 @@ Return ONLY valid JSON array of cluster objects, no markdown fences.`
       total_queries: c.total_queries,
       coverage_pct: c.coverage_pct,
       gap_queries: c.gap_queries,
-      updated_at: new Date().toISOString(),
     }))
 
     const { error: insertErr } = await s.from('kotoiq_query_clusters').insert(rows)

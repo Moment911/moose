@@ -358,7 +358,6 @@ export async function auditTechnicalDeep(
   // ── Save to DB ────────────────────────────────────────────────────────
   const record = {
     client_id,
-    agency_id: body.agency_id || null,
     total_urls: totalUrls,
     indexable_urls: estimatedIndexable,
     crawl_waste_pct: crawlWastePct,
@@ -379,7 +378,7 @@ export async function auditTechnicalDeep(
     cwv_cls: cwvCls,
     cwv_grade: cwvGradeValue,
     overall_score: overallScore,
-    updated_at: new Date().toISOString(),
+    scanned_at: new Date().toISOString(),
   }
 
   // Upsert: delete old then insert
@@ -412,7 +411,7 @@ export async function getTechnicalDeep(
   const { data } = await s.from('kotoiq_technical_deep')
     .select('*')
     .eq('client_id', client_id)
-    .order('updated_at', { ascending: false })
+    .order('scanned_at', { ascending: false })
     .limit(1)
     .single()
 

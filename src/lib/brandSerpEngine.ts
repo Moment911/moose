@@ -144,7 +144,6 @@ Return ONLY valid JSON, no markdown.`
   // Save to DB
   const row = {
     client_id,
-    agency_id: agency_id || null,
     brand_query: brandQuery,
     has_knowledge_panel,
     has_site_links,
@@ -165,16 +164,12 @@ Return ONLY valid JSON, no markdown.`
     owned_results,
     total_results,
     brand_serp_score,
-    updated_at: new Date().toISOString(),
+    scanned_at: new Date().toISOString(),
   }
 
-  // Upsert — one record per client
-  const { data: existing } = await s.from('kotoiq_brand_serp').select('id').eq('client_id', client_id).limit(1)
-  if (existing?.length) {
-    await s.from('kotoiq_brand_serp').update(row).eq('id', existing[0].id)
-  } else {
-    await s.from('kotoiq_brand_serp').insert(row)
-  }
+  // Delete old then insert — one record per client
+  await s.from('kotoiq_brand_serp').delete().eq('client_id', client_id)
+  await s.from('kotoiq_brand_serp').insert(row)
 
   return row
 }
@@ -190,7 +185,7 @@ export async function getBrandSERP(
   const { data } = await s.from('kotoiq_brand_serp')
     .select('*')
     .eq('client_id', client_id)
-    .order('updated_at', { ascending: false })
+    .order('scanned_at', { ascending: false })
     .limit(1)
     .single()
 
@@ -210,7 +205,7 @@ export async function getBrandDefenseStrategy(
   const { data: serpData } = await s.from('kotoiq_brand_serp')
     .select('*')
     .eq('client_id', client_id)
-    .order('updated_at', { ascending: false })
+    .order('scanned_at', { ascending: false })
     .limit(1)
     .single()
 

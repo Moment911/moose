@@ -247,8 +247,16 @@ Analyze for these E-E-A-T dimensions and return ONLY valid JSON:
     recommendations: analysis.recommendations || [],
   }
 
-  // Save to database
-  await s.from('kotoiq_eeat_audit').upsert({
+  // Save to database — delete old record then insert
+  const delQ = s.from('kotoiq_eeat_audit').delete().eq('client_id', client_id)
+  if (result.url) {
+    delQ.eq('url', result.url)
+  } else {
+    delQ.is('url', null)
+  }
+  await delQ
+
+  await s.from('kotoiq_eeat_audit').insert({
     client_id,
     url: result.url,
     experience_score: result.experience_score,
@@ -265,8 +273,8 @@ Analyze for these E-E-A-T dimensions and return ONLY valid JSON:
     author_has_knowledge_panel: result.author_has_knowledge_panel,
     author_entity_signals: result.author_entity_signals,
     recommendations: result.recommendations,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'client_id,url' })
+    scanned_at: new Date().toISOString(),
+  })
 
   return result
 }
@@ -286,7 +294,7 @@ export async function getEEATAudit(
     q.is('url', null)
   }
 
-  const { data, error } = await q.order('updated_at', { ascending: false }).limit(1).single()
+  const { data, error } = await q.order('scanned_at', { ascending: false }).limit(1).single()
   if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows
   return data || null
 }

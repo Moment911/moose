@@ -19,6 +19,8 @@ import { auditTechnicalDeep, getTechnicalDeep } from '@/lib/technicalSeoEngine'
 import { analyzeQueryPaths, getQueryClusters } from '@/lib/queryPathEngine'
 import { analyzeReviews, getReviewIntelligence, createReviewCampaign, getReviewCampaigns } from '@/lib/reviewIntelEngine'
 import { buildContentCalendar, getContentCalendar, updateCalendarItem, calculateMomentum, getMomentum } from '@/lib/contentCalendarEngine'
+import { runQueryGapAnalyzer, runFrameAnalyzer, runSemanticRoleLabeler, runNamedEntitySuggester } from '@/lib/semanticAgents'
+import { runContextlessWordRemover, runTopicalityScorer, runSentenceFilterer, runSafeAnswerGenerator } from '@/lib/semanticPostProcessors'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -2034,7 +2036,32 @@ Return ONLY valid JSON:
     const { data: brief } = await s.from('kotoiq_content_briefs').select('*').eq('id', brief_id).single()
     if (!brief) return NextResponse.json({ error: 'Brief not found' }, { status: 404 })
 
-    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer').eq('id', brief.client_id).single()
+    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer, industry, location').eq('id', brief.client_id).single()
+
+    // ── Pre-generation: Run semantic agents in parallel ──────────────
+    let queryGap: any = null
+    let frameAnalysis: any = null
+    let safeAnswer: any = null
+    try {
+      const [qgResult, faResult] = await Promise.all([
+        runQueryGapAnalyzer(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '' }),
+        runFrameAnalyzer(ai, { keyword: brief.target_keyword }),
+      ])
+      queryGap = qgResult
+      frameAnalysis = faResult
+
+      safeAnswer = await runSafeAnswerGenerator(ai, { keyword: brief.target_keyword, business_name: client?.name || '', industry: client?.primary_service || '', location: '' })
+    } catch (e) {
+      // Semantic agents are non-blocking — continue with standard generation if they fail
+      console.error('[semantic-agents] Pre-generation agents failed, continuing without:', e)
+    }
+
+    // Build semantic context sections for the prompt
+    const semanticContext = [
+      queryGap ? `\nQUERY GAP INTELLIGENCE:\nThe following content signifiers MUST be addressed — they represent gaps in current search results:\n${JSON.stringify(queryGap.gaps || queryGap, null, 2)}` : '',
+      frameAnalysis ? `\nFRAME SEMANTICS — REQUIRED COVERAGE:\nSearch engines expect these conceptual frame elements for this topic. Cover each one:\n${JSON.stringify(frameAnalysis.frames || frameAnalysis, null, 2)}` : '',
+      safeAnswer ? `\nREQUIRED OPENING PARAGRAPH (use this as the first paragraph — it is optimized for featured snippets and AI Overviews):\n${safeAnswer.answer || safeAnswer}` : '',
+    ].filter(Boolean).join('\n')
 
     const writePrompt = `You are an expert SEO content writer. Write the COMPLETE page content based on this brief.
 
@@ -2042,6 +2069,7 @@ BUSINESS: ${client?.name || 'Unknown'}
 WEBSITE: ${client?.website || ''}
 SERVICE: ${client?.primary_service || ''}
 TARGET CUSTOMER: ${client?.target_customer || ''}
+${semanticContext}
 
 BRIEF:
 Title Tag: ${brief.title_tag}
@@ -2061,7 +2089,7 @@ TARGET ENTITIES TO MENTION: ${JSON.stringify(brief.target_entities)}
 RULES:
 1. Write ${brief.target_word_count || 1200}+ words of high-quality content
 2. Follow the outline EXACTLY — use the H2s and H3s as given
-3. Opening paragraph must be 40-60 words and directly answer the search intent (featured snippet target)
+3. ${safeAnswer ? 'Use the REQUIRED OPENING PARAGRAPH provided above as the first paragraph' : 'Opening paragraph must be 40-60 words and directly answer the search intent (featured snippet target)'}
 4. Mention every target entity naturally throughout the content
 5. Include the FAQ section with full answers (40-60 words each)
 6. Write for HUMANS first — no keyword stuffing, natural language
@@ -2069,6 +2097,8 @@ RULES:
 8. End with a strong CTA paragraph
 9. Use short paragraphs (2-3 sentences max) for readability
 10. Include natural internal link anchor text suggestions in [brackets]
+${queryGap ? '11. Address every query gap signifier identified in the QUERY GAP INTELLIGENCE section' : ''}
+${frameAnalysis ? '12. Ensure all frame semantic elements from the REQUIRED COVERAGE section are represented' : ''}
 
 Return the content in this format:
 ---TITLE---
@@ -2099,15 +2129,40 @@ Return the content in this format:
         sections[parts[i].toLowerCase().trim()] = parts[i + 1]?.trim() || ''
       }
 
+      let contentHtml = sections.content || raw
+      let plainText = sections.plain_text || raw.replace(/<[^>]+>/g, '')
+      let topicalityScore: any = null
+
+      // ── Post-generation: Run semantic post-processors ──────────────
+      try {
+        const cleaned = await runContextlessWordRemover(ai, { content: plainText, keyword: brief.target_keyword, target_entities: brief.target_entities || [] })
+        if (cleaned?.cleaned_content) {
+          plainText = cleaned.cleaned_content
+        }
+
+        const scored = await runTopicalityScorer(ai, { content: plainText, keyword: brief.target_keyword })
+        if (scored) {
+          topicalityScore = scored
+        }
+      } catch (e) {
+        console.error('[semantic-agents] Post-generation agents failed, returning raw content:', e)
+      }
+
       return NextResponse.json({
         title: sections.title || brief.title_tag,
         meta: sections.meta || brief.meta_description,
         h1: sections.h1 || brief.h1,
-        content_html: sections.content || raw,
+        content_html: contentHtml,
         faq_html: sections.faq_html || '',
-        plain_text: sections.plain_text || raw.replace(/<[^>]+>/g, ''),
-        word_count: (sections.plain_text || raw).split(/\s+/).length,
+        plain_text: plainText,
+        word_count: plainText.split(/\s+/).length,
         brief_id,
+        topicality_score: topicalityScore,
+        semantic_agents_used: {
+          query_gap: !!queryGap,
+          frame_analysis: !!frameAnalysis,
+          safe_answer: !!safeAnswer,
+        },
       })
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })
@@ -2683,6 +2738,101 @@ Provide a detailed analysis. Return ONLY valid JSON:
   if (action === 'get_momentum') {
     const result = await getMomentum(s, body)
     return NextResponse.json(result, { status: result.error ? 400 : 200 })
+  }
+
+  // ── SEMANTIC AGENTS: Pre-generation intelligence ─────────────────────
+  if (action === 'run_semantic_agents') {
+    const { client_id, keyword, agency_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients')
+      .select('name, website, primary_service, industry, target_customer, location')
+      .eq('id', client_id).single()
+
+    const { data: existingKeywords } = await s.from('kotoiq_keywords')
+      .select('keyword, category, fingerprint')
+      .eq('client_id', client_id).limit(50)
+
+    try {
+      const [queryGap, frameAnalysis, entitySuggestions] = await Promise.all([
+        runQueryGapAnalyzer(ai, { keyword, industry: client?.primary_service || '', business_name: client?.name || '', existing_keywords: (existingKeywords || []).map((k: any) => k.keyword) }),
+        runFrameAnalyzer(ai, { keyword }),
+        runNamedEntitySuggester(ai, { keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.location }),
+      ])
+
+      void logTokenUsage({ feature: 'kotoiq_semantic_agents', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+
+      return NextResponse.json({ query_gap: queryGap, frame_analysis: frameAnalysis, entity_suggestions: entitySuggestions })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── CONTENT POLISH: Post-generation semantic processing ────────────
+  if (action === 'run_content_polish') {
+    const { content, keyword, client_id, agency_id } = body
+    if (!content || !keyword) return NextResponse.json({ error: 'content and keyword required' }, { status: 400 })
+
+    try {
+      // Run in sequence: remove contextless words → filter sentences → score topicality
+      const cleaned = await runContextlessWordRemover(ai, { content, keyword, target_entities: [] })
+      const cleanedContent = cleaned?.cleaned_content || content
+
+      const filtered = await runSentenceFilterer(ai, { content: cleanedContent, keyword })
+
+      const scored = await runTopicalityScorer(ai, { content: (filtered as any)?.cleaned_content || cleanedContent, keyword })
+
+      void logTokenUsage({ feature: 'kotoiq_content_polish', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+
+      return NextResponse.json({
+        cleaned_content: (filtered as any)?.cleaned_content || cleanedContent,
+        filter_report: filtered || null,
+        topicality_score: scored,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── SEMANTIC ROLE OPTIMIZATION: Optimize sentence structure ─────────
+  if (action === 'run_semantic_role_optimization') {
+    const { sentences, keyword, primary_entity, agency_id } = body
+    if (!sentences?.length || !keyword) return NextResponse.json({ error: 'sentences and keyword required' }, { status: 400 })
+
+    try {
+      const result = await runSemanticRoleLabeler(ai, { sentences, keyword, primary_entity })
+
+      void logTokenUsage({ feature: 'kotoiq_semantic_role', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── SAFE ANSWER GENERATOR: Featured snippet / AI Overview opening ──
+  if (action === 'generate_safe_answer') {
+    const { keyword, client_id, agency_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients')
+      .select('name, website, primary_service, target_customer, location')
+      .eq('id', client_id).single()
+
+    try {
+      const result = await runSafeAnswerGenerator(ai, {
+        keyword,
+        business_name: client?.name || '',
+        industry: client?.primary_service || '',
+        location: client?.location || '',
+      })
+
+      void logTokenUsage({ feature: 'kotoiq_safe_answer', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
+
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

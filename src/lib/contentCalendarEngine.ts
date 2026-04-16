@@ -341,7 +341,7 @@ Return JSON only:
   "recommended_pace": "One sentence recommendation like: Publish 4 pages/month to match competitors and close topical gaps within 6 months.",
   "priority_topics": ["topic1", "topic2", "topic3", "topic4", "topic5"]
 }
-Focus on actionable velocity advice following Koray Tugberk's VDM framework: if you can't go wide, go deeper and faster.`
+Focus on actionable velocity advice following the KotoIQ VDM framework: if you can't go wide, go deeper and faster.`
       }],
     })
 

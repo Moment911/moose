@@ -25,6 +25,7 @@ import TechnicalDeepTab from '../components/kotoiq/TechnicalDeepTab'
 import QueryPathTab from '../components/kotoiq/QueryPathTab'
 import ReviewsTab from '../components/kotoiq/ReviewsTab'
 import ContentCalendarTab from '../components/kotoiq/ContentCalendarTab'
+import SemanticAgentsInfo from '../components/kotoiq/SemanticAgentsInfo'
 
 // ── Section Actions — delete + rerun buttons for every section ──────────────
 function SectionActions({ onRerun, onDelete, rerunLabel = 'Rerun', deleteLabel = 'Clear Data', running = false }) {
@@ -1444,6 +1445,18 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       </div>
                     </div>
                     <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.8, maxHeight: 500, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: fullPageContent.content_html + (fullPageContent.faq_html ? '<hr style="margin:24px 0"/>' + fullPageContent.faq_html : '') }} />
+                    {fullPageContent.topicality_score && (
+                      <div style={{ marginTop: 16, padding: '12px 16px', borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>Topicality Score</div>
+                        <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: (fullPageContent.topicality_score.score || 0) >= 80 ? GRN : (fullPageContent.topicality_score.score || 0) >= 60 ? AMB : R }}>
+                          {fullPageContent.topicality_score.score || '—'}/100
+                        </div>
+                        {fullPageContent.topicality_score.summary && (
+                          <div style={{ fontSize: 12, color: '#6b7280', flex: 1 }}>{fullPageContent.topicality_score.summary}</div>
+                        )}
+                      </div>
+                    )}
+                    <SemanticAgentsInfo />
                   </div>
                 )}
 
@@ -1488,6 +1501,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <div style={{ fontSize: 14, color: '#9ca3af' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
               </div>
             )}
+
+            <SemanticAgentsInfo />
           </>
         )}
 
