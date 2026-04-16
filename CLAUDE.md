@@ -7,6 +7,7 @@
 @_knowledge/modules/kotoproof.md
 @_knowledge/modules/proposals.md
 @_knowledge/modules/clients.md
+@_knowledge/modules/answering-llm.md
 @_knowledge/database/tables.md
 @_knowledge/env-vars.md
 @_knowledge/session-log.md

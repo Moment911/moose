@@ -10,7 +10,7 @@ import {
   Phone, PhoneIncoming, PhoneOff, Plus, Play, Pause, Search, ChevronRight,
   ChevronDown, Clock, Users, Check, X, Loader2, BarChart2, Globe, AlertCircle,
   Volume2, FileText, Sparkles, RefreshCw, Send, Star, Shield, Calendar, Settings,
-  Zap, Copy, Download, Edit2, Trash2, Mail, MessageSquare, Target
+  Zap, Copy, Download, Edit2, Trash2, Mail, MessageSquare, Target, Brain
 } from 'lucide-react'
 
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../lib/theme'
@@ -24,7 +24,7 @@ const TIMEZONES = [
   'America/Anchorage','Pacific/Honolulu','America/Phoenix','America/Detroit',
   'America/Indiana/Indianapolis','America/Kentucky/Louisville'
 ]
-const TABS = ['Setup','Voice & Greeting','Intake Form','Call Log','Analytics']
+const TABS = ['Setup','Voice & Greeting','Intake Form','Prompt & Compliance','Routing','Call Log','Analytics']
 
 const defaultHours = () => DAYS.reduce((a,d)=>({...a,[d]:{enabled:d!=='Sat'&&d!=='Sun',open:'09:00',close:'17:00'}}),{})
 
@@ -133,8 +133,10 @@ export default function AnsweringServicePage() {
                   {activeTab===0 && <SetupTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} agencyId={agencyId} saving={saving} setSaving={setSaving} />}
                   {activeTab===1 && <VoiceGreetingTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} />}
                   {activeTab===2 && <IntakeFormTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} />}
-                  {activeTab===3 && <CallLogTab agent={selectedAgent} />}
-                  {activeTab===4 && <AnalyticsTab agent={selectedAgent} agencyId={agencyId} />}
+                  {activeTab===3 && <PromptComplianceTab agent={selectedAgent} setAgent={a=>{setSelectedAgent(a);setAgents(prev=>prev.map(x=>x.id===a.id?a:x))}} />}
+                  {activeTab===4 && <RoutingTab agent={selectedAgent} />}
+                  {activeTab===5 && <CallLogTab agent={selectedAgent} />}
+                  {activeTab===6 && <AnalyticsTab agent={selectedAgent} agencyId={agencyId} />}
                 </div>
               </>
             )}
@@ -739,6 +741,369 @@ function AnalyticsTab({ agent, agencyId }) {
           <p style={{ margin:0, fontSize:13, lineHeight:1.6, color:'#374151' }}>{data.ai_insights}</p>
         </div>
       )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAB — PROMPT & COMPLIANCE (industry + LLM config + preview)
+// ═══════════════════════════════════════════════════════════════════════════════
+function PromptComplianceTab({ agent, setAgent }) {
+  const [industries, setIndustries] = useState([])
+  const [industrySlug, setIndustrySlug] = useState(agent.industry_slug || agent.industry || 'generic')
+  const [config, setConfig] = useState(null)
+  const [models, setModels] = useState([])
+  const [topicBoundaries, setTopicBoundaries] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
+  const [testInput, setTestInput] = useState("Hi, my heating just died and it's freezing. Can someone come out today?")
+  const [estCost, setEstCost] = useState(null)
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true)
+      try {
+        const [ind, cfg] = await Promise.all([
+          fetch('/api/answering/industries').then(r => r.json()).catch(() => ({ industries: [] })),
+          fetch(`/api/answering/llm-config?agent_id=${agent.id}`).then(r => r.json()).catch(() => null),
+        ])
+        setIndustries(ind.industries || [])
+        if (cfg?.llmConfig) {
+          setConfig(cfg.llmConfig)
+          setModels(cfg.models || [])
+          setTopicBoundaries(cfg.industry?.topicBoundaries || null)
+          setEstCost(cfg.estimatedCostPerCall)
+        }
+      } catch (e) { console.error(e) }
+      setLoading(false)
+    })()
+  }, [agent.id])
+
+  const upd = (path, value) => {
+    setConfig(prev => {
+      const next = { ...prev }
+      const keys = path.split('.')
+      let cur = next
+      for (let i = 0; i < keys.length - 1; i++) { if (!cur[keys[i]]) cur[keys[i]] = {}; cur = cur[keys[i]] }
+      cur[keys[keys.length - 1]] = value
+      return next
+    })
+  }
+
+  async function applyIndustry(slug) {
+    setIndustrySlug(slug)
+    try {
+      toast.loading('Applying industry template...', { id: 'ind' })
+      const res = await fetch('/api/answering/llm-config', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'rebuild_from_industry', agent_id: agent.id, industry_slug: slug }),
+      })
+      const d = await res.json()
+      if (d.success) {
+        setConfig(d.llmConfig)
+        const ind = industries.find(i => i.slug === slug)
+        if (ind) setTopicBoundaries(ind.topic_boundaries || null)
+        setAgent({ ...agent, industry_slug: slug, llm_config: d.llmConfig })
+        toast.success(`Applied ${d.industry?.displayName || slug}`, { id: 'ind' })
+      } else {
+        toast.error(d.error || 'Failed', { id: 'ind' })
+      }
+    } catch { toast.error('Failed to apply industry', { id: 'ind' }) }
+  }
+
+  async function save() {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/answering/llm-config', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_id: agent.id, llm_config: config, industry_slug: industrySlug }),
+      })
+      const d = await res.json()
+      if (d.success) {
+        setAgent({ ...agent, llm_config: config, industry_slug: industrySlug })
+        toast.success('LLM config saved')
+      } else toast.error(d.error || 'Save failed')
+    } catch { toast.error('Save failed') }
+    setSaving(false)
+  }
+
+  async function runPreview() {
+    setPreviewing(true)
+    try {
+      const res = await fetch('/api/answering/llm-config', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'preview', agent_id: agent.id, llm_config: config }),
+      })
+      const d = await res.json()
+      if (d.systemPrompt) setPreview(d)
+      else toast.error(d.error || 'Preview failed')
+    } catch { toast.error('Preview failed') }
+    setPreviewing(false)
+  }
+
+  if (loading || !config) return <div style={{ textAlign: 'center', padding: 40 }}><Loader2 size={24} className="spin" color={R} /></div>
+
+  const selectedModel = models.find(m => m.id === config.model)
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      {/* LEFT — editors */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={card}>
+          <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Zap size={16} style={{ marginRight: 6 }} />Industry Template</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
+            {industries.map(ind => (
+              <div key={ind.slug} onClick={() => applyIndustry(ind.slug)} style={{
+                padding: 12, borderRadius: 10, cursor: 'pointer',
+                border: industrySlug === ind.slug ? `2px solid ${R}` : '1px solid #e5e7eb',
+                background: industrySlug === ind.slug ? 'rgba(234,39,41,.04)' : '#fafafa',
+              }}>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>{ind.display_name}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                  {(ind.topic_boundaries?.allowed?.length || 0)} allowed · {(ind.topic_boundaries?.forbidden?.length || 0)} forbidden
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 11, color: '#6b7280', marginTop: 10 }}>
+            Applying an industry rebuilds the system prompt, topic boundaries, and compliance rules. Your manual edits below will be overwritten.
+          </p>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Brain size={16} style={{ marginRight: 6 }} />Model</h3>
+          <select style={input} value={config.model} onChange={e => upd('model', e.target.value)}>
+            {models.map(m => <option key={m.id} value={m.id}>{m.name} ({m.provider})</option>)}
+          </select>
+          {selectedModel && <p style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>${selectedModel.costPer1kTokens}/1k tokens · {selectedModel.description}</p>}
+
+          <label style={{ fontSize: 12, color: '#6b7280', marginTop: 14, marginBottom: 4, display: 'block' }}>Temperature ({config.temperature})</label>
+          <input type="range" min="0" max="1" step="0.01" value={config.temperature} onChange={e => upd('temperature', parseFloat(e.target.value))} style={{ width: '100%' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af' }}><span>Consistent</span><span>Creative</span></div>
+
+          <label style={{ fontSize: 12, color: '#6b7280', marginTop: 14, marginBottom: 4, display: 'block' }}>Max Tokens</label>
+          <input type="number" min="100" max="4000" style={input} value={config.maxTokens} onChange={e => upd('maxTokens', parseInt(e.target.value || '1000', 10))} />
+
+          {estCost != null && (
+            <div style={{ marginTop: 14, padding: 10, background: '#fafafa', borderRadius: 8, fontSize: 12 }}>
+              <strong>Est. cost per call:</strong> ~${estCost.toFixed(4)} · <strong>Per 1000 calls:</strong> ~${(estCost * 1000).toFixed(2)}
+            </div>
+          )}
+        </div>
+
+        <div style={card}>
+          <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><FileText size={16} style={{ marginRight: 6 }} />System Prompt</h3>
+          <textarea
+            style={{ ...input, minHeight: 240, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12 }}
+            value={config.systemPromptTemplate}
+            onChange={e => upd('systemPromptTemplate', e.target.value)}
+          />
+          <p style={{ fontSize: 11, color: '#6b7280', marginTop: 6 }}>
+            Runtime variables: {`{{companyName}}`}, {`{{companyKnowledge}}`}, {`{{hoursDescription}}`}, {`{{routingDescription}}`}
+          </p>
+        </div>
+
+        {topicBoundaries && (
+          <div style={card}>
+            <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Shield size={16} style={{ marginRight: 6 }} />Topic Boundaries (from industry)</h3>
+            <div style={{ fontSize: 12, color: '#374151', marginBottom: 8 }}>
+              <strong style={{ color: GRN }}>Allowed:</strong> {(topicBoundaries.allowed || []).join(', ') || '(any topic related to the business)'}
+            </div>
+            <div style={{ fontSize: 12, color: '#374151' }}>
+              <strong style={{ color: R }}>Forbidden:</strong> {(topicBoundaries.forbidden || []).join(', ') || '(none)'}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={runPreview} disabled={previewing} style={{ ...btn('#374151'), flex: 1, justifyContent: 'center' }}>
+            {previewing ? <Loader2 size={14} className="spin" /> : <Play size={14} />} Preview
+          </button>
+          <button onClick={save} disabled={saving} style={{ ...btn(), flex: 1, justifyContent: 'center' }}>
+            {saving ? <Loader2 size={14} className="spin" /> : <Check size={14} />} {saving ? 'Saving...' : 'Save Config'}
+          </button>
+        </div>
+      </div>
+
+      {/* RIGHT — preview */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={card}>
+          <h3 style={{ margin: '0 0 10px', fontFamily: FH, fontSize: 15 }}>Test Input</h3>
+          <textarea style={{ ...input, minHeight: 80 }} value={testInput} onChange={e => setTestInput(e.target.value)}
+            placeholder="What a caller might say..." />
+          <button onClick={runPreview} disabled={previewing} style={{ ...btn(PURP), marginTop: 10, width: '100%', justifyContent: 'center' }}>
+            {previewing ? <><Loader2 size={14} className="spin" /> Generating...</> : <><Sparkles size={14} /> Generate Preview</>}
+          </button>
+        </div>
+
+        {preview ? (
+          <>
+            <div style={card}>
+              <h3 style={{ margin: '0 0 8px', fontFamily: FH, fontSize: 14 }}>Greeting</h3>
+              <div style={{ padding: 10, background: '#fafafa', borderRadius: 8, fontSize: 13 }}>{preview.greeting}</div>
+            </div>
+            <div style={card}>
+              <h3 style={{ margin: '0 0 8px', fontFamily: FH, fontSize: 14 }}>Rendered System Prompt</h3>
+              <pre style={{ padding: 12, background: '#fafafa', borderRadius: 8, fontSize: 11, lineHeight: 1.5, whiteSpace: 'pre-wrap', maxHeight: 400, overflowY: 'auto', margin: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+                {preview.systemPrompt}
+              </pre>
+            </div>
+          </>
+        ) : (
+          <div style={{ ...card, textAlign: 'center', padding: 40 }}>
+            <Brain size={32} color="#d1d5db" style={{ marginBottom: 8 }} />
+            <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>Click "Generate Preview" to see the final rendered prompt the agent will receive on the next call.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAB — ROUTING (transfer targets with intent + hours conditions)
+// ═══════════════════════════════════════════════════════════════════════════════
+function RoutingTab({ agent }) {
+  const [targets, setTargets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [newT, setNewT] = useState({ label: '', phone_number: '', priority: 10, intent: 'any', hours: '' })
+  const [previewIntent, setPreviewIntent] = useState('sales')
+  const [previewResult, setPreviewResult] = useState(null)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/answering/routing-targets?agent_id=${agent.id}`)
+      const d = await res.json()
+      setTargets(d.targets || [])
+    } catch { /* ignore */ }
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [agent.id])
+
+  async function addTarget() {
+    if (!newT.label.trim() || !newT.phone_number.trim()) { toast.error('Label and phone required'); return }
+    setSaving(true)
+    try {
+      const conditions = { intent: newT.intent || 'any' }
+      if (newT.hours) conditions.hours = newT.hours
+      const res = await fetch('/api/answering/routing-targets', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_id: agent.id, label: newT.label, phone_number: newT.phone_number, priority: Number(newT.priority) || 10, conditions }),
+      })
+      const d = await res.json()
+      if (d.target) {
+        setTargets(prev => [...prev, d.target].sort((a, b) => (a.priority || 99) - (b.priority || 99)))
+        setNewT({ label: '', phone_number: '', priority: 10, intent: 'any', hours: '' })
+        toast.success('Target added')
+      } else toast.error(d.error || 'Failed')
+    } catch { toast.error('Failed') }
+    setSaving(false)
+  }
+
+  async function updateTarget(id, patch) {
+    const res = await fetch('/api/answering/routing-targets', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...patch }),
+    })
+    const d = await res.json()
+    if (d.target) setTargets(prev => prev.map(t => t.id === id ? d.target : t).sort((a, b) => (a.priority || 99) - (b.priority || 99)))
+  }
+
+  async function deleteTarget(id) {
+    if (!confirm('Remove this routing target?')) return
+    const res = await fetch(`/api/answering/routing-targets?id=${id}`, { method: 'DELETE' })
+    if (res.ok) setTargets(prev => prev.filter(t => t.id !== id))
+  }
+
+  async function runPreviewResolve() {
+    const res = await fetch('/api/answering/routing-targets', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'resolve', agent_id: agent.id, intent: previewIntent }),
+    })
+    const d = await res.json()
+    setPreviewResult(d.route)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={card}>
+        <h3 style={{ margin: '0 0 14px', fontFamily: FH, fontSize: 15 }}><Target size={16} style={{ marginRight: 6 }} />Routing Targets</h3>
+        <p style={{ fontSize: 12, color: '#6b7280', marginTop: -8, marginBottom: 14 }}>
+          The agent will scan targets in priority order and transfer to the first one that matches detected intent + current hours.
+        </p>
+
+        {loading ? <div style={{ textAlign: 'center', padding: 20 }}><Loader2 size={20} className="spin" color={R} /></div>
+        : targets.length === 0 ? <p style={{ color: '#6b7280', fontSize: 13 }}>No targets yet. Add one below.</p>
+        : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 1.3fr 1fr 1fr 40px', gap: 8, padding: '6px 10px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>
+              <span>Prio</span><span>Label</span><span>Phone</span><span>Intent</span><span>Hours</span><span></span>
+            </div>
+            {targets.map(t => (
+              <div key={t.id} style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 1.3fr 1fr 1fr 40px', gap: 8, padding: '8px 10px', background: '#fafafa', borderRadius: 8, alignItems: 'center' }}>
+                <input type="number" style={{ ...input, padding: '4px 6px' }} value={t.priority ?? 10}
+                  onBlur={e => updateTarget(t.id, { priority: Number(e.target.value) || 10 })} defaultValue={t.priority ?? 10} />
+                <input style={{ ...input, padding: '4px 8px' }} defaultValue={t.label}
+                  onBlur={e => e.target.value !== t.label && updateTarget(t.id, { label: e.target.value })} />
+                <input style={{ ...input, padding: '4px 8px' }} defaultValue={t.phone_number}
+                  onBlur={e => e.target.value !== t.phone_number && updateTarget(t.id, { phone_number: e.target.value })} />
+                <select style={{ ...input, padding: '4px 6px' }} value={(t.conditions?.intent) || 'any'}
+                  onChange={e => updateTarget(t.id, { conditions: { ...(t.conditions || {}), intent: e.target.value } })}>
+                  {['any', 'emergency', 'sales', 'support', 'scheduling', 'billing', 'existing_client', 'new_consultation', 'urgent', 'clinical', 'general'].map(i => <option key={i} value={i}>{i}</option>)}
+                </select>
+                <select style={{ ...input, padding: '4px 6px' }} value={t.conditions?.hours || ''}
+                  onChange={e => updateTarget(t.id, { conditions: { ...(t.conditions || {}), hours: e.target.value || undefined } })}>
+                  <option value="">any time</option><option value="open">when open</option><option value="closed">when closed</option>
+                </select>
+                <Trash2 size={14} color="#9ca3af" style={{ cursor: 'pointer' }} onClick={() => deleteTarget(t.id)} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{ marginTop: 14, padding: 12, border: '1px dashed #d1d5db', borderRadius: 8 }}>
+          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8, fontWeight: 600 }}>Add target</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 1.3fr 1fr 1fr 80px', gap: 8 }}>
+            <input type="number" style={input} placeholder="Prio" value={newT.priority} onChange={e => setNewT({ ...newT, priority: e.target.value })} />
+            <input style={input} placeholder="Label (e.g. On-call dispatcher)" value={newT.label} onChange={e => setNewT({ ...newT, label: e.target.value })} />
+            <input style={input} placeholder="+15551234567" value={newT.phone_number} onChange={e => setNewT({ ...newT, phone_number: e.target.value })} />
+            <select style={input} value={newT.intent} onChange={e => setNewT({ ...newT, intent: e.target.value })}>
+              {['any', 'emergency', 'sales', 'support', 'scheduling', 'billing', 'existing_client', 'new_consultation', 'urgent', 'clinical', 'general'].map(i => <option key={i} value={i}>{i}</option>)}
+            </select>
+            <select style={input} value={newT.hours} onChange={e => setNewT({ ...newT, hours: e.target.value })}>
+              <option value="">any time</option><option value="open">when open</option><option value="closed">when closed</option>
+            </select>
+            <button onClick={addTarget} disabled={saving} style={{ ...btn(), justifyContent: 'center' }}>
+              {saving ? <Loader2 size={14} className="spin" /> : <Plus size={14} />} Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={card}>
+        <h3 style={{ margin: '0 0 10px', fontFamily: FH, fontSize: 15 }}>Preview: where would a call go right now?</h3>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label style={{ fontSize: 12, color: '#6b7280' }}>Simulated intent:</label>
+          <select style={{ ...input, width: 180 }} value={previewIntent} onChange={e => { setPreviewIntent(e.target.value); setPreviewResult(null) }}>
+            {['any', 'emergency', 'sales', 'support', 'scheduling', 'billing', 'existing_client', 'new_consultation', 'urgent', 'clinical', 'general'].map(i => <option key={i} value={i}>{i}</option>)}
+          </select>
+          <button onClick={runPreviewResolve} style={btn('#374151')}><Play size={14} /> Resolve</button>
+        </div>
+        {previewResult ? (
+          <div style={{ marginTop: 12, padding: 12, background: '#f0fdf4', border: `1px solid ${GRN}40`, borderRadius: 8, fontSize: 13 }}>
+            <strong>{previewResult.label}</strong> <span style={{ color: '#6b7280' }}>{'\u2192'}</span> <span style={{ fontFamily: 'ui-monospace, Menlo, monospace' }}>{previewResult.phoneNumber}</span>
+          </div>
+        ) : previewResult === null ? null : (
+          <div style={{ marginTop: 12, padding: 12, background: '#fef2f2', border: `1px solid ${R}40`, borderRadius: 8, fontSize: 13 }}>
+            No target matches. Agent will take a message instead of attempting transfer.
+          </div>
+        )}
+      </div>
     </div>
   )
 }
