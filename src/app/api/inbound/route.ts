@@ -50,6 +50,164 @@ async function anthropicChat(systemPrompt: string, userMessage: string, maxToken
   return data.content?.[0]?.text || ''
 }
 
+// ── Caller-details extraction ───────────────────────────────────────────────
+// Second Claude pass over the transcript to pull structured caller info. Kept
+// separate from the 2-3 sentence summary so the email + CRM get a clean schema.
+async function extractCallerDetails(transcript: string, fromNumber?: string) {
+  if (!transcript || !ANTHROPIC_KEY) return {}
+  const system = `You extract structured details from an answering-service phone transcript. Return ONLY a valid JSON object with these keys (use null when unknown): caller_name, callback_number, callback_email, company_name, address, reason_for_calling, urgency_reason, best_time_to_reach, follow_up_needed (true/false), follow_up_instructions, additional_notes. Never invent information — if the caller did not state something, return null.`
+  const user = `Caller ID number (from carrier): ${fromNumber || 'unknown'}\n\nTranscript:\n${transcript}`
+  try {
+    const raw = await anthropicChat(system, user, 900)
+    const match = raw.match(/\{[\s\S]*\}/)
+    const json = JSON.parse(match ? match[0] : raw)
+    return json || {}
+  } catch {
+    return {}
+  }
+}
+
+// ── ElevenLabs TTS ──────────────────────────────────────────────────────────
+// Renders the text summary as an audio file clients can play on their phone.
+async function synthesizeVoiceSummary(text: string): Promise<Buffer | null> {
+  const apiKey = process.env.ELEVENLABS_API_KEY
+  if (!apiKey || !text) return null
+  const voiceId = process.env.ELEVENLABS_SUMMARY_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL' // Sarah — warm, clear
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg',
+      },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      }),
+    })
+    if (!res.ok) return null
+    const ab = await res.arrayBuffer()
+    return Buffer.from(ab)
+  } catch {
+    return null
+  }
+}
+
+// ── Vercel Blob upload (for archived recordings + voice summaries) ──────────
+async function uploadToBlob(pathname: string, data: Buffer, contentType: string): Promise<string | null> {
+  try {
+    const { put } = await import('@vercel/blob')
+    const result = await put(pathname, data, {
+      access: 'public',
+      contentType,
+      addRandomSuffix: true,
+    } as any)
+    return result.url
+  } catch (e: any) {
+    console.error('[blob] upload failed:', e?.message)
+    return null
+  }
+}
+
+async function archiveRecording(retellUrl: string, callId: string): Promise<string | null> {
+  if (!retellUrl) return null
+  try {
+    const res = await fetch(retellUrl)
+    if (!res.ok) return null
+    const ab = await res.arrayBuffer()
+    const buf = Buffer.from(ab)
+    return await uploadToBlob(`answering/recordings/${callId}.wav`, buf, 'audio/wav')
+  } catch {
+    return null
+  }
+}
+
+// ── Twilio SMS (used when notification_phone is set on the agent) ───────────
+async function sendSms(to: string, body: string): Promise<boolean> {
+  const sid = process.env.TWILIO_ACCOUNT_SID
+  const token = process.env.TWILIO_AUTH_TOKEN
+  const from = process.env.TWILIO_FROM_NUMBER
+  if (!sid || !token || !from || !to) return false
+  try {
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ To: to, From: from, Body: body.slice(0, 1500) }).toString(),
+    })
+    return res.ok
+  } catch { return false }
+}
+
+// ── Client email template ───────────────────────────────────────────────────
+function buildClientEmail(params: {
+  businessName: string
+  urgency: string
+  outcome: string
+  sentiment: string
+  fromNumber: string
+  duration: number
+  summary: string
+  caller: Record<string, any>
+  transcript: string
+  recordingUrl?: string | null
+  summaryAudioUrl?: string | null
+  callDetailUrl?: string
+}) {
+  const { businessName, urgency, outcome, sentiment, fromNumber, duration, summary, caller, transcript, recordingUrl, summaryAudioUrl, callDetailUrl } = params
+  const urgencyColor = urgency === 'emergency' ? '#dc2626' : urgency === 'high' ? '#ea580c' : urgency === 'medium' ? '#ca8a04' : '#16a34a'
+  const row = (label: string, value: any) => value ? `<tr><td style="padding:6px 12px 6px 0;color:#6b7280;font-size:13px;vertical-align:top;white-space:nowrap">${label}</td><td style="padding:6px 0;font-size:13px;color:#111827">${value}</td></tr>` : ''
+  return `
+<div style="font-family:system-ui,-apple-system,sans-serif;max-width:640px;margin:0 auto;background:#fafafa;padding:24px;border-radius:12px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <h1 style="margin:0;font-size:18px;color:#111827">New Call — ${businessName}</h1>
+    <span style="background:${urgencyColor};color:#fff;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;text-transform:uppercase">${urgency}</span>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:14px">
+    <div style="font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:.6px;margin-bottom:8px">AI Summary</div>
+    <div style="font-size:14px;line-height:1.5;color:#111827">${(summary || '').replace(/\n/g, '<br/>')}</div>
+    ${summaryAudioUrl ? `<p style="margin:12px 0 0"><a href="${summaryAudioUrl}" style="display:inline-block;padding:8px 14px;background:#7c3aed;color:#fff;text-decoration:none;border-radius:8px;font-size:12px;font-weight:600">▶ Listen to voice summary</a></p>` : ''}
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:14px">
+    <div style="font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:.6px;margin-bottom:8px">Caller Details</div>
+    <table style="width:100%;border-collapse:collapse">
+      ${row('Name', caller.caller_name)}
+      ${row('Callback #', caller.callback_number || fromNumber)}
+      ${row('Email', caller.callback_email)}
+      ${row('Company', caller.company_name)}
+      ${row('Address', caller.address)}
+      ${row('Reason', caller.reason_for_calling)}
+      ${row('Best time', caller.best_time_to_reach)}
+      ${row('Follow-up', caller.follow_up_needed ? (caller.follow_up_instructions || 'Yes — see summary') : null)}
+      ${row('Notes', caller.additional_notes)}
+    </table>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:14px">
+    <div style="font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:700;letter-spacing:.6px;margin-bottom:8px">Call Metadata</div>
+    <table style="width:100%;border-collapse:collapse">
+      ${row('Caller ID', fromNumber || 'Unknown')}
+      ${row('Duration', `${duration}s`)}
+      ${row('Outcome', outcome)}
+      ${row('Sentiment', sentiment)}
+    </table>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    ${recordingUrl ? `<a href="${recordingUrl}" style="flex:1;padding:10px;background:#111827;color:#fff;text-decoration:none;border-radius:8px;font-size:12px;font-weight:600;text-align:center">▶ Full recording</a>` : ''}
+    ${callDetailUrl ? `<a href="${callDetailUrl}" style="flex:1;padding:10px;background:#ea2729;color:#fff;text-decoration:none;border-radius:8px;font-size:12px;font-weight:600;text-align:center">Open in Koto</a>` : ''}
+  </div>
+
+  ${transcript ? `<details style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><summary style="cursor:pointer;font-size:12px;font-weight:600;color:#374151">Full transcript</summary><pre style="margin:12px 0 0;white-space:pre-wrap;font-size:12px;line-height:1.5;color:#374151;font-family:ui-monospace,Menlo,monospace">${transcript.replace(/</g,'&lt;')}</pre></details>` : ''}
+</div>`.trim()
+}
+
 // ---------------------------------------------------------------------------
 // Intake Templates
 // ---------------------------------------------------------------------------
@@ -817,70 +975,83 @@ End the call once you have collected the caller's information and confirmed next
 
         if (event === 'call_ended' && call) {
           const transcript = call.transcript || ''
+          const fromNumber = call.from_number || ''
+          const callId = call.call_id
+          const duration = call.duration_ms ? Math.round(call.duration_ms / 1000) : 0
           const urgency = detectUrgency(transcript)
 
-          // Fetch the agent info
+          // Resolve the agent + agency
           const { data: agentInfo } = await supabase
             .from('koto_inbound_agents')
             .select('*')
             .eq('retell_agent_id', call.agent_id)
             .single()
-
           const agency_id = agentInfo?.agency_id || null
           const db_agent_id = agentInfo?.id || null
+          const businessName = agentInfo?.business_name || agentInfo?.name || 'your business'
 
-          // Generate AI summary
-          let summary = ''
-          try {
-            summary = await anthropicChat(
+          // Run all post-call AI passes in parallel: text summary, outcome/sentiment, caller details
+          const [summary, analysis, callerDetails] = await Promise.all([
+            anthropicChat(
               'You are a call summarizer for an answering service. Summarize the following call transcript in 2-3 sentences. Include the caller\'s name if mentioned, their reason for calling, and any action items.',
-              `Transcript:\n${transcript}`
-            )
-          } catch (err) {
-            console.error('[inbound webhook] Summary generation failed:', err)
-            summary = 'Summary unavailable.'
-          }
-
-          // Determine outcome and sentiment from transcript
-          let outcome = 'completed'
-          let sentiment = 'neutral'
-          try {
-            const analysis = await anthropicChat(
+              `Transcript:\n${transcript}`,
+              512,
+            ).catch(() => 'Summary unavailable.'),
+            anthropicChat(
               'Analyze this call transcript. Return ONLY a JSON object with two fields: "outcome" (one of: completed, voicemail, missed, transferred, abandoned) and "sentiment" (one of: positive, neutral, negative, frustrated). No other text.',
               `Transcript:\n${transcript}`,
-              256
-            )
-            const parsed = JSON.parse(analysis)
-            outcome = parsed.outcome || 'completed'
-            sentiment = parsed.sentiment || 'neutral'
-          } catch {
-            // Use defaults
+              256,
+            ).then(s => { try { return JSON.parse(s) } catch { return {} } }).catch(() => ({})),
+            extractCallerDetails(transcript, fromNumber),
+          ])
+          const outcome = analysis.outcome || 'completed'
+          const sentiment = analysis.sentiment || 'neutral'
+
+          // Archive the recording + render a voice version of the summary in parallel
+          const [archivedRecordingUrl, voiceBuffer] = await Promise.all([
+            archiveRecording(call.recording_url || '', callId),
+            synthesizeVoiceSummary(summary),
+          ])
+          const summaryAudioUrl = voiceBuffer
+            ? await uploadToBlob(`answering/summaries/${callId}.mp3`, voiceBuffer, 'audio/mpeg')
+            : null
+
+          // Insert call record (schema-tolerant — drop unknown columns and retry)
+          const callRecordCandidate: any = {
+            agency_id,
+            agent_id: db_agent_id,
+            retell_call_id: callId,
+            caller_number: fromNumber,
+            caller_phone: fromNumber, // legacy column name in some envs
+            caller_name: callerDetails?.caller_name || null,
+            transcript,
+            summary,
+            ai_summary: summary, // legacy column name in some envs
+            duration_seconds: duration,
+            recording_url: archivedRecordingUrl || call.recording_url || '',
+            recording_archive_url: archivedRecordingUrl,
+            summary_audio_url: summaryAudioUrl,
+            caller_details: callerDetails,
+            intake_data: callerDetails,
+            urgency,
+            outcome,
+            sentiment,
           }
+          let callRecord: any = null
+          let lastErr: any = null
+          for (let attempt = 0; attempt < 12; attempt++) {
+            const res = await supabase.from('koto_inbound_calls').insert(callRecordCandidate).select().single()
+            if (!res.error) { callRecord = res.data; lastErr = null; break }
+            lastErr = res.error
+            const m = /Could not find the '([^']+)' column/.exec(res.error.message || '')
+            if (m && m[1] in callRecordCandidate) { delete callRecordCandidate[m[1]]; continue }
+            break
+          }
+          if (lastErr || !callRecord) throw lastErr || new Error('insert failed')
 
-          // Insert call record
-          const { data: callRecord, error: callErr } = await supabase
-            .from('koto_inbound_calls')
-            .insert({
-              agency_id,
-              agent_id: db_agent_id,
-              retell_call_id: call.call_id,
-              caller_number: call.from_number || '',
-              transcript,
-              summary,
-              duration_seconds: call.duration_ms ? Math.round(call.duration_ms / 1000) : 0,
-              recording_url: call.recording_url || '',
-              urgency,
-              outcome,
-              sentiment,
-            })
-            .select()
-            .single()
-          if (callErr) throw callErr
-
-          // Bill for the call (inbound voice)
-          const callDuration = call.duration_ms ? Math.round(call.duration_ms / 1000) : 0
-          if (callDuration > 0 && agency_id) {
-            const minutes = Math.ceil(callDuration / 60)
+          // Bill the call
+          if (duration > 0 && agency_id) {
+            const minutes = Math.ceil(duration / 60)
             try {
               await fetch(new URL('/api/billing', request.url).toString(), {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -893,15 +1064,11 @@ End the call once you have collected the caller's information and confirmed next
             } catch {}
           }
 
-          // Extract and insert intake answers
+          // Per-question intake extraction (preserves the existing intake table)
           if (agentInfo?.intake_questions?.length) {
             try {
               const intakePrompt = `Based on this call transcript, extract answers to the following intake questions. Return a JSON array where each element has "question" (string) and "answer" (string or null if not answered).\n\nQuestions:\n${agentInfo.intake_questions.map((q: any, i: number) => `${i + 1}. ${q.text}`).join('\n')}\n\nTranscript:\n${transcript}`
-              const intakeRaw = await anthropicChat(
-                'Extract intake form answers from a call transcript. Return ONLY valid JSON.',
-                intakePrompt,
-                1024
-              )
+              const intakeRaw = await anthropicChat('Extract intake form answers from a call transcript. Return ONLY valid JSON.', intakePrompt, 1024)
               const intakeAnswers = JSON.parse(intakeRaw)
               if (Array.isArray(intakeAnswers)) {
                 const intakeRecords = intakeAnswers.map((item: any) => ({
@@ -918,38 +1085,57 @@ End the call once you have collected the caller's information and confirmed next
             }
           }
 
-          // Notifications
-          if (agentInfo?.notification_phone) {
-            // SMS notification handled via smsService when Twilio credentials are configured
-          }
+          // Build the polished client email
+          const callDetailUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hellokoto.com'}/answering?call=${callRecord.id}`
+          const emailHtml = buildClientEmail({
+            businessName,
+            urgency,
+            outcome,
+            sentiment,
+            fromNumber,
+            duration,
+            summary,
+            caller: callerDetails || {},
+            transcript,
+            recordingUrl: archivedRecordingUrl || call.recording_url,
+            summaryAudioUrl,
+            callDetailUrl,
+          })
 
-          if (agentInfo?.notification_email && process.env.RESEND_API_KEY) {
+          // Multi-recipient email — primary notification_email plus any extras configured
+          const recipients: string[] = []
+          if (agentInfo?.notification_email) recipients.push(agentInfo.notification_email)
+          if (Array.isArray(agentInfo?.notification_emails)) {
+            for (const e of agentInfo.notification_emails) if (typeof e === 'string' && e) recipients.push(e)
+          }
+          const uniqueRecipients = Array.from(new Set(recipients))
+
+          if (uniqueRecipients.length > 0 && process.env.RESEND_API_KEY) {
             try {
               await fetch('https://api.resend.com/emails', {
                 method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-                  'Content-Type': 'application/json',
-                },
+                headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  from: 'Answering Service <notifications@koto.ai>',
-                  to: [agentInfo.notification_email],
-                  subject: `New Call - ${urgency.toUpperCase()} urgency - ${call.from_number || 'Unknown Caller'}`,
-                  html: `
-                    <h2>New Inbound Call</h2>
-                    <p><strong>From:</strong> ${call.from_number || 'Unknown'}</p>
-                    <p><strong>Urgency:</strong> ${urgency}</p>
-                    <p><strong>Duration:</strong> ${call.duration_ms ? Math.round(call.duration_ms / 1000) : 0}s</p>
-                    <p><strong>Summary:</strong> ${summary}</p>
-                    <p><strong>Outcome:</strong> ${outcome}</p>
-                    <p><strong>Sentiment:</strong> ${sentiment}</p>
-                    ${call.recording_url ? `<p><a href="${call.recording_url}">Listen to Recording</a></p>` : ''}
-                  `.trim(),
+                  from: 'Koto Answering Service <notifications@hellokoto.com>',
+                  to: uniqueRecipients,
+                  subject: `${urgency === 'emergency' ? '🚨 EMERGENCY' : urgency === 'high' ? '⚠️ Urgent' : 'New call'} — ${callerDetails?.caller_name || fromNumber || 'Unknown'} for ${businessName}`,
+                  html: emailHtml,
                 }),
               })
             } catch (emailErr) {
               console.error('[inbound webhook] Email notification failed:', emailErr)
             }
+          }
+
+          // SMS — short summary with link to the full call
+          if (agentInfo?.notification_phone) {
+            const smsBody = [
+              `${urgency === 'emergency' ? '🚨 EMERGENCY' : urgency === 'high' ? '⚠️ Urgent' : 'New call'}: ${callerDetails?.caller_name || fromNumber}`,
+              callerDetails?.callback_number ? `Call back: ${callerDetails.callback_number}` : null,
+              callerDetails?.reason_for_calling ? `Re: ${callerDetails.reason_for_calling}` : null,
+              `Details: ${callDetailUrl}`,
+            ].filter(Boolean).join('\n')
+            await sendSms(agentInfo.notification_phone, smsBody)
           }
 
           return NextResponse.json({ success: true, call: callRecord })
