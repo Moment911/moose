@@ -92,6 +92,7 @@ AVAILABLE INTENTS (map user goals → these)
 - ask_kotoiq — open-ended question about the data. tab: "ask". fields: question (required)
 - competitor_watch — set up competitor monitoring. tab: "competitor_watch". fields: competitor_domain (required)
 - bulk_operation — bulk action across many keywords/pages. tab: "bulk". fields: operation (required)
+- pick_client — user has no active client; show a client-picker UI so they can choose or create one. tab: "picker". fields: suggestions (array of {id, name, reason} — up to 3, ranked by relevance from AVAILABLE CLIENTS), original_intent (string — the intent they were trying to do, e.g. "generate_brief"), original_fields (object — their partial form_fields so far, e.g. { keyword: "autism treatment", page_type: "blog_post" }), prompt (short string — what you're asking, e.g. "Which client is this for?"). should_execute MUST be false for this intent (the UI runs the picker, not the API).
 
 DECISION LOGIC
 
@@ -102,10 +103,12 @@ DECISION LOGIC
 5. Multi-step ("write a brief then audit it") → handle the FIRST step now, mention you'll do the next once this finishes.
 6. When there is NO active client AND an AVAILABLE CLIENTS list is shown:
    a. If the user names a client (fuzzy match their words against the client's name or website/domain) → set "client_id" to that client's id and fill form_fields using that client's info. should_execute may be true if you have everything.
-   b. If the user does NOT name a client (e.g. "audit my homepage", "what should I work on") → DO NOT guess a client. Set should_execute: false, omit client_id, and next_question: "Which client? (<list 3-5 names>)". Do NOT autofill a URL/domain/brand from any client.
+   b. If the user does NOT name a client but HAS given you enough else (a topic, keyword, URL, etc.) → emit a pick_client action. First scan the AVAILABLE CLIENTS list for names, websites, or primary_service fields that SEMANTICALLY match the user's topic (e.g. "autism treatment" → clients with ABA/therapy/autism in name or primary_service; "plumbing" → plumbing/HVAC clients). Rank up to 3 suggestions by relevance and include a short "reason" for each (e.g. "primary service: ABA therapy"). If nothing semantically matches, return an empty suggestions array — the picker will still let them search/create. Include original_intent (what they were trying to do, e.g. "generate_brief") and original_fields (their partial form_fields). Phrase the message as "Is this for <Name1>, <Name2>, or <Name3>? Or pick a different client / add a new one."
+   c. If the user has given you NOTHING usable yet ("help me", "audit my homepage") → ask one short clarifying question first (what topic/URL/keyword), then on the next turn follow rule 6b.
 7. "my", "our", "the", "this" + a page/site/brand reference:
    - With an active client → resolve to that client's website/name.
-   - Without an active client → ask which client; never guess.
+   - Without an active client → do NOT guess. Apply rule 6 (ask for clarification first if needed, then emit pick_client).
+8. HARD CORRECTNESS GUARD (never violate): If there is no active client selected AND you are not setting "client_id" in the ACTION block to a real id from AVAILABLE CLIENTS, then "should_execute" MUST be false. PERIOD. No exceptions. Every tool in the intent list requires a client context; running without one produces a "client_id required" API error and a broken UX. When in doubt, emit pick_client with should_execute: false rather than any other intent with should_execute: true.
 
 OUTPUT FORMAT (STRICT)
 ALWAYS reply with: a short conversational message, then on a new line the action block.
@@ -123,8 +126,34 @@ ALWAYS reply with: a short conversational message, then on a new line the action
 
 "client_id" is ONLY used when there is no active client selected AND the user named a client from the AVAILABLE CLIENTS list. In that case, set "client_id" to the matched client's id so the UI can switch. Otherwise omit it or set to null.
 
+pick_client EXAMPLE (use when you need a client and none is active):
+
+<ACTION>
+{
+  "intent": "pick_client",
+  "tab_to_open": "picker",
+  "form_fields": {
+    "suggestions": [
+      { "id": "abc-123", "name": "Innovative ABA Therapy", "reason": "primary service: ABA therapy" },
+      { "id": "def-456", "name": "Bright Futures Pediatrics", "reason": "healthcare / pediatrics" }
+    ],
+    "original_intent": "generate_brief",
+    "original_fields": { "keyword": "autism treatment", "page_type": "blog_post" },
+    "prompt": "Which client is this for?"
+  },
+  "should_execute": false,
+  "next_question": null,
+  "client_id": null
+}
+</ACTION>
+
 If you don't yet have an intent (pure chit-chat or clarification needed first), omit the <ACTION> block entirely.
-Use double quotes only, valid JSON, no comments inside the block. The UI parses this — malformed JSON breaks the experience.`
+Use double quotes only, valid JSON, no comments inside the block. The UI parses this — malformed JSON breaks the experience.
+
+FINAL REMINDER — BEFORE YOU EMIT YOUR ACTION BLOCK, CHECK:
+- Is there an active client in CONTEXT? If yes → proceed.
+- If no → is "client_id" set to a real id from AVAILABLE CLIENTS? If yes → proceed.
+- If still no → "should_execute" MUST be false. If the user has given a topic/keyword/URL, use intent "pick_client". Otherwise ask a clarifying question and omit the action block.`
 
 // ── Parse <ACTION> block from Claude response ──────────────────────────────
 function parseActionBlock(text: string): { message: string; action: BotAction | null } {
@@ -259,6 +288,17 @@ export async function runConversationalBot(s: SupabaseClient, ai: Anthropic, bod
   }
 
   const { message: humanMessage, action } = parseActionBlock(assistantText)
+
+  // Server-side safety net — belt-and-braces correctness guard mirroring rule #8
+  // in the system prompt. If the model ignored the rule and tried to execute a
+  // tool without a client, we demote should_execute to false so the UI never
+  // fires a broken API call.
+  if (action && action.should_execute && !client_id && !action.client_id) {
+    action.should_execute = false
+    if (!action.next_question && action.intent !== 'pick_client') {
+      action.next_question = 'Which client is this for?'
+    }
+  }
 
   // Persist assistant message
   if (conversationId) {

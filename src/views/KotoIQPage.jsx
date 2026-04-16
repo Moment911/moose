@@ -4156,6 +4156,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         onSwitchTab={handleBotSwitchTab}
         onSwitchClient={(id) => setClientId(id)}
         clients={clients}
+        onRequestNewClient={() => { setEditingClient(null); setClientForm({ name: '', website: '', primary_service: '', location: '' }); setShowClientModal(true) }}
       />
     </div>
     </div>

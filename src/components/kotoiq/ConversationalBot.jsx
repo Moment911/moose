@@ -3,8 +3,8 @@
 // Click launcher → slide-in panel → chat with assistant →
 // auto-fill / execute KotoIQ actions.
 // ─────────────────────────────────────────────────────────────
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { MessageCircle, X, Minimize2, Send, Mic, Brain, Sparkles, ChevronRight, Loader, History, Plus, CheckCircle2, AlertCircle, Paperclip } from 'lucide-react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { MessageCircle, X, Minimize2, Send, Mic, Brain, Sparkles, ChevronRight, Loader, History, Plus, CheckCircle2, AlertCircle, Paperclip, Search, UserPlus } from 'lucide-react'
 import { R, T, BLK, GRY, GRN, AMB, FH, FB } from '../../lib/theme'
 import { supabase } from '../../lib/supabase'
 
@@ -62,7 +62,7 @@ function resolvePath(obj, path) {
   return path.split('.').reduce((a, k) => (a == null ? a : a[k]), obj)
 }
 
-export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab, onSwitchClient, clients }) {
+export default function ConversationalBot({ clientId, clientName, agencyId, currentTab, onSwitchTab, onSwitchClient, clients, onRequestNewClient }) {
   const [open, setOpen] = useState(false)
   const [hasEverOpened, setHasEverOpened] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
@@ -75,6 +75,10 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
   const [hasNewSuggestion, setHasNewSuggestion] = useState(false)
   const [pendingFile, setPendingFile] = useState(null) // File object queued to send
   const [uploadingFile, setUploadingFile] = useState(false)
+  // When the user picks a client via pick_client, stash the original intent + fields here
+  // so that once the client switch flushes through React we can resume the original request
+  // without asking the LLM again. Shape: { intent, fields, clientId, fromMsgIdx }
+  const [pendingResumption, setPendingResumption] = useState(null)
   const scrollRef = useRef(null)
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -236,6 +240,90 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
     runAction(idx, true, action)
   }
 
+  // ── Client picker handlers ──────────────────────────────────────────────
+  // Called from the in-card picker when the user chooses an existing client.
+  // Sets the active client, marks the pick_client action as executed, and
+  // stashes the original intent/fields so the post-switch effect can resume.
+  const handlePickExistingClient = (msgIdx, client, originalIntent, originalFields) => {
+    if (!client?.id) return
+    setMessages(m => m.map((x, i) => i === msgIdx ? {
+      ...x,
+      action_executed: true,
+      action_result: { ok: true, summary: `Using ${client.name}.` },
+    } : x))
+    setMessages(m => [...m, { role: 'system_note', content: `Switched to ${client.name}` }])
+    if (onSwitchClient) onSwitchClient(client.id)
+    // Resume the original intent, if any. Wait for React to commit the client switch first.
+    if (originalIntent) {
+      setPendingResumption({
+        intent: originalIntent,
+        fields: originalFields || {},
+        clientId: client.id,
+        fromMsgIdx: msgIdx,
+      })
+    }
+  }
+
+  // Called when the user hits "+ New Client". We defer to the host page's
+  // modal (onRequestNewClient) and then wait for the clients list to include
+  // a fresh entry whose id was not in the list before the modal opened.
+  const handleCreateNewClient = (msgIdx, originalIntent, originalFields) => {
+    if (!onRequestNewClient) return
+    const existingIds = new Set((clients || []).map(c => c.id))
+    // Stash the resumption info; the watch effect below picks up the new client id.
+    setPendingResumption({
+      awaitingNewClient: true,
+      existingIds,
+      intent: originalIntent,
+      fields: originalFields || {},
+      fromMsgIdx: msgIdx,
+    })
+    onRequestNewClient()
+  }
+
+  // When awaitingNewClient is true and a new client appears in the clients list,
+  // activate it and resume the original intent.
+  useEffect(() => {
+    if (!pendingResumption?.awaitingNewClient) return
+    const fresh = (clients || []).find(c => !pendingResumption.existingIds.has(c.id))
+    if (!fresh) return
+    if (onSwitchClient) onSwitchClient(fresh.id)
+    setMessages(m => [...m, { role: 'system_note', content: `New client added: ${fresh.name}` }])
+    setPendingResumption({
+      intent: pendingResumption.intent,
+      fields: pendingResumption.fields,
+      clientId: fresh.id,
+      fromMsgIdx: pendingResumption.fromMsgIdx,
+    })
+  }, [clients, pendingResumption, onSwitchClient])
+
+  // When clientId matches a pending resumption, synthesize the real action and run it.
+  useEffect(() => {
+    if (!pendingResumption || pendingResumption.awaitingNewClient) return
+    if (!pendingResumption.intent) { setPendingResumption(null); return }
+    if (clientId !== pendingResumption.clientId) return
+    const intent = pendingResumption.intent
+    const fields = pendingResumption.fields || {}
+    const tabKey = INTENT_TO_TAB[intent] || intent
+    const hasApi = INTENT_TO_API[intent] !== undefined && INTENT_TO_API[intent] !== null
+    const action = {
+      intent,
+      tab_to_open: tabKey,
+      form_fields: fields,
+      should_execute: hasApi,
+      client_id: null,
+    }
+    const assistantMsg = { role: 'assistant', content: `OK, using ${(clients || []).find(c => c.id === clientId)?.name || 'this client'}.`, action }
+    setPendingResumption(null)
+    setMessages(m => {
+      const next = [...m, assistantMsg]
+      const newIdx = next.length - 1
+      if (hasApi) setTimeout(() => autoRunAction(newIdx, action), 0)
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, pendingResumption])
+
   // Progressively reveal form_fields into the active tab — one character at a time
   // across fields — so the user sees the bot "typing" into the form. Budget capped
   // so nothing ever takes longer than ~2s total.
@@ -272,6 +360,42 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
     const resolvedAction = explicitAction || messages[msgIdx]?.action
     if (!resolvedAction) return
     const { intent, tab_to_open, form_fields, should_execute, client_id: actionClientId } = resolvedAction
+
+    // pick_client is handled entirely in-UI (ActionCard renders the picker).
+    // Never auto-switch tabs, never hit the API. Just mark the action as waiting.
+    if (intent === 'pick_client') {
+      setMessages(m => m.map((x, i) => i === msgIdx ? { ...x, action_executed: false } : x))
+      return
+    }
+
+    // Client-side correctness safety net — mirrors the server-side guard in the engine.
+    // If the action has no client_id and there's no active client, DO NOT call the API.
+    // This catches cases where the LLM ignored rule #8 and tried to execute anyway.
+    const resolvedClientId = actionClientId || clientId
+    if (!resolvedClientId && intent !== 'pick_client') {
+      setMessages(m => m.map((x, i) => i === msgIdx ? {
+        ...x,
+        action_executed: true,
+        action_result: { ok: false, summary: 'No client selected — please pick or create one first.' },
+      } : x))
+      setMessages(m => [...m, {
+        role: 'assistant',
+        content: 'I need a client to run this on. Which client is this for?',
+        action: {
+          intent: 'pick_client',
+          tab_to_open: 'picker',
+          form_fields: {
+            suggestions: [],
+            original_intent: intent,
+            original_fields: form_fields || {},
+            prompt: 'Pick a client to continue',
+          },
+          should_execute: false,
+          client_id: null,
+        },
+      }])
+      return
+    }
 
     // If the action targets a different client, switch first and give React a moment to commit
     if (actionClientId && actionClientId !== clientId && onSwitchClient) {
@@ -497,7 +621,17 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
           {messages.map((m, i) => (
             m.role === 'system_note'
               ? <SystemNote key={i} text={m.content} />
-              : <MessageBubble key={i} msg={m} idx={i} onRun={runAction} executing={executing === i} onViewActivity={onSwitchTab ? () => onSwitchTab('activity', {}) : null} />
+              : <MessageBubble
+                  key={i}
+                  msg={m}
+                  idx={i}
+                  onRun={runAction}
+                  executing={executing === i}
+                  onViewActivity={onSwitchTab ? () => onSwitchTab('activity', {}) : null}
+                  clients={clients}
+                  onPickClient={handlePickExistingClient}
+                  onCreateNewClient={handleCreateNewClient}
+                />
           ))}
 
           {thinking && (
@@ -574,7 +708,7 @@ export default function ConversationalBot({ clientId, clientName, agencyId, curr
 }
 
 // ── Message bubble subcomponent ───────────────────────────────────────────
-function MessageBubble({ msg, idx, onRun, executing, onViewActivity }) {
+function MessageBubble({ msg, idx, onRun, executing, onViewActivity, clients, onPickClient, onCreateNewClient }) {
   const isUser = msg.role === 'user'
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexDirection: isUser ? 'row-reverse' : 'row', animation: 'kotoiqBotFadeIn .25s ease' }}>
@@ -599,7 +733,19 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity }) {
           {msg.content}
         </div>
         {msg.action && !isUser && (
-          <ActionCard action={msg.action} idx={idx} onRun={onRun} executing={executing} executed={msg.action_executed} result={msg.action_result} progressSteps={msg.progressSteps} progressIdx={msg.progressIdx} />
+          <ActionCard
+            action={msg.action}
+            idx={idx}
+            onRun={onRun}
+            executing={executing}
+            executed={msg.action_executed}
+            result={msg.action_result}
+            progressSteps={msg.progressSteps}
+            progressIdx={msg.progressIdx}
+            clients={clients}
+            onPickClient={onPickClient}
+            onCreateNewClient={onCreateNewClient}
+          />
         )}
         {msg.viewActivity && !isUser && onViewActivity && (
           <button onClick={onViewActivity}
@@ -613,11 +759,40 @@ function MessageBubble({ msg, idx, onRun, executing, onViewActivity }) {
 }
 
 // ── Action proposal card ──────────────────────────────────────────────────
-function ActionCard({ action, idx, onRun, executing, executed, result, progressSteps, progressIdx }) {
+function ActionCard({ action, idx, onRun, executing, executed, result, progressSteps, progressIdx, clients, onPickClient, onCreateNewClient }) {
   const fields = action.form_fields || {}
   const fieldKeys = Object.keys(fields)
   const showProgress = executing && Array.isArray(progressSteps) && progressSteps.length > 0
   const curStep = showProgress ? Math.min(progressIdx ?? 0, progressSteps.length - 1) : -1
+  const isPicker = action.intent === 'pick_client'
+
+  // pick_client renders a specialised inline picker — no form-fields table, no run button.
+  if (isPicker) {
+    return (
+      <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <UserPlus size={14} color={T} />
+          <div style={{ fontSize: 12, fontWeight: 700, color: BLK, fontFamily: FH, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            Pick A Client
+          </div>
+        </div>
+        {executed ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: result?.ok === false ? '#991b1b' : GRN, fontFamily: FB }}>
+            {result?.ok === false ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+            <span>{result?.summary || 'Selected'}</span>
+          </div>
+        ) : (
+          <ClientPicker
+            suggestions={Array.isArray(fields.suggestions) ? fields.suggestions : []}
+            clients={clients || []}
+            onPick={(client) => onPickClient?.(idx, client, fields.original_intent, fields.original_fields)}
+            onNew={() => onCreateNewClient?.(idx, fields.original_intent, fields.original_fields)}
+          />
+        )}
+      </div>
+    )
+  }
+
   return (
     <div style={{ marginTop: 8, border: `1px solid ${T}`, borderRadius: 12, background: '#f0fdfe', padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -693,6 +868,103 @@ function ActionCard({ action, idx, onRun, executing, executed, result, progressS
   )
 }
 
+// ── Client picker (inline inside pick_client ActionCard) ──────────────────
+function ClientPicker({ suggestions, clients, onPick, onNew }) {
+  const [query, setQuery] = useState('')
+  const safeClients = Array.isArray(clients) ? clients : []
+  const suggestionRows = useMemo(() => {
+    const byId = new Map(safeClients.map(c => [c.id, c]))
+    return (suggestions || [])
+      .map(s => {
+        const c = byId.get(s.id)
+        if (!c) return null
+        return { ...c, reason: s.reason || null }
+      })
+      .filter(Boolean)
+  }, [suggestions, safeClients])
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return safeClients.slice(0, 8)
+    return safeClients
+      .filter(c => {
+        const hay = [c.name, c.website, c.primary_service].filter(Boolean).join(' ').toLowerCase()
+        return hay.includes(q)
+      })
+      .slice(0, 20)
+  }, [query, safeClients])
+  const suggestedIds = new Set(suggestionRows.map(r => r.id))
+  return (
+    <div>
+      {suggestionRows.length > 0 && (
+        <div style={{ background: '#fff', borderRadius: 8, padding: 8, marginBottom: 8, border: `1px dashed ${T}` }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6, fontFamily: FH }}>
+            Suggested
+          </div>
+          {suggestionRows.map(c => (
+            <button key={c.id} onClick={() => onPick(c)} type="button"
+              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: FB }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f0fdfe'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {c.name}
+                </div>
+                {c.reason && (
+                  <div style={{ fontSize: 11, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {c.reason}
+                  </div>
+                )}
+              </div>
+              <ChevronRight size={14} color="#9ca3af" />
+            </button>
+          ))}
+        </div>
+      )}
+      <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid #f3f4f6' }}>
+          <Search size={13} color="#9ca3af" />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search clients…"
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, fontFamily: FB, color: BLK, background: 'transparent' }}
+          />
+        </div>
+        <div style={{ maxHeight: 180, overflowY: 'auto' }}>
+          {filtered.length === 0 && (
+            <div style={{ padding: 10, fontSize: 12, color: '#9ca3af', fontFamily: FB, textAlign: 'center' }}>
+              {safeClients.length === 0 ? 'No clients yet.' : 'No matches.'}
+            </div>
+          )}
+          {filtered.map(c => (
+            <button key={c.id} onClick={() => onPick(c)} type="button"
+              style={{ display: 'flex', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent', cursor: 'pointer', gap: 8, alignItems: 'center', fontFamily: FB, borderBottom: '1px solid #f9fafb' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+              onMouseLeave={e => e.currentTarget.style.background = suggestedIds.has(c.id) ? '#f0fdfe' : 'transparent'}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {c.name}
+                </div>
+                {c.website && (
+                  <div style={{ fontSize: 11, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {c.website}
+                  </div>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+        <button onClick={onNew} type="button"
+          style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', borderTop: '1px solid #e5e7eb', background: '#fafafa', cursor: 'pointer', fontFamily: FH, fontSize: 12, fontWeight: 700, color: T }}
+          onMouseEnter={e => e.currentTarget.style.background = '#f0fdfe'}
+          onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}>
+          <Plus size={14} /> New Client
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function SystemNote({ text }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0', animation: 'kotoiqBotFadeIn .25s ease' }}>
@@ -731,6 +1003,49 @@ function summarizeResult(j) {
   if (Array.isArray(j.urls)) return `${j.urls.length} URLs found.`
   if (j.message) return j.message
   return 'See the tab for full results.'
+}
+
+// Map intent → tab key (mirrors the mapping in the engine's SYSTEM_PROMPT). Used by
+// the resumption effect after a pick_client so we know which tab to open.
+const INTENT_TO_TAB = {
+  generate_brief: 'briefs',
+  run_on_page_audit: 'on_page',
+  score_aeo: 'aeo',
+  aeo_multi_engine: 'aeo',
+  build_topical_map: 'topical_map',
+  check_plagiarism: 'plagiarism',
+  analyze_competitor: 'competitor_map',
+  geo_tag_image: 'gmb_images',
+  crawl_sitemap: 'sitemap_crawler',
+  generate_strategic_plan: 'strategy',
+  audit_eeat: 'eeat',
+  find_backlinks: 'backlink_opps',
+  analyze_reviews: 'reviews',
+  run_pipeline: 'autopilot',
+  analyze_backlinks: 'backlinks',
+  audit_schema: 'schema',
+  scan_internal_links: 'internal_links',
+  analyze_query_paths: 'query_path',
+  analyze_semantic_network: 'semantic',
+  audit_technical_deep: 'technical_deep',
+  build_content_calendar: 'calendar',
+  content_refresh_plan: 'content_refresh',
+  run_rank_grid: 'rankgrid',
+  gsc_audit: 'gsc_audit',
+  bing_audit: 'bing_audit',
+  brand_serp_scan: 'brand_serp',
+  generate_schema: 'schema',
+  knowledge_graph_export: 'knowledge_graph',
+  hyperlocal_content: 'hyperlocal',
+  watermark_remove: 'watermark',
+  upwork_checklist: 'upwork',
+  passage_optimize: 'passage',
+  context_align: 'context_aligner',
+  topical_authority: 'topical_authority',
+  content_decay: 'content_decay',
+  ask_kotoiq: 'ask',
+  competitor_watch: 'competitor_watch',
+  bulk_operation: 'bulk',
 }
 
 // Map intent → existing API action name
