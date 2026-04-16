@@ -565,59 +565,81 @@ export default function KotoIQPage() {
             </div>
           </div>
 
-          {/* Tab bar — two-row grouped layout */}
-          {clientId && (
-            <div style={{ padding: '0 40px' }}>
-              {/* Row 1: Core tabs */}
-              <div style={{ display: 'flex', gap: 0, overflowX: 'auto', borderBottom: '1px solid #f3f4f6' }}>
-                {[
-                  ['dashboard', 'Dashboard', BarChart2],
-                  ['keywords', 'Keywords', Search],
-                  ['briefs', 'PageIQ', Zap],
-                  ['topical_map', 'Topical Map', Map],
-                  ['ranks', 'Rankings', TrendingUp],
-                  ['competitors', 'Competitors', Target],
-                  ['gmb', 'GMB', MapPin],
-                  ['aeo', 'AEO', Brain],
-                  ['connect', 'Connect', Settings],
-                ].map(([key, label, Icon]) => (
-                  <button key={key} onClick={() => setTab(key)}
-                    style={{ padding: '11px 18px', fontSize: 14, fontWeight: tab === key ? 800 : 600, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2.5px solid ${BLK}` : '2.5px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#374151', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-                    <Icon size={14} /> {label}
-                  </button>
-                ))}
-              </div>
-              {/* Row 2: Advanced intelligence tabs */}
-              <div style={{ display: 'flex', gap: 0, overflowX: 'auto' }}>
-                {[
-                  ['content_refresh', 'Content', RefreshCw],
-                  ['semantic', 'Semantic', Brain],
-                  ['query_paths', 'Query Paths', GitBranch],
-                  ['internal_links', 'Links', Link2],
-                  ['backlinks', 'Backlinks', Link2],
-                  ['brand_serp', 'Brand SERP', Shield],
-                  ['eeat', 'E-E-A-T', Award],
-                  ['schema', 'Schema', Code],
-                  ['technical_deep', 'Technical', Activity],
-                  ['reviews', 'Reviews', Star],
-                  ['calendar', 'Calendar', Clock],
-                  ['reports', 'Reports', BarChart2],
-                  ['visitors', 'Visitors', Eye],
-                  ['audit', 'Audit', Shield],
-                  ['utm', 'UTM', Link2],
-                ].map(([key, label, Icon]) => (
-                  <button key={key} onClick={() => setTab(key)}
-                    style={{ padding: '9px 16px', fontSize: 13, fontWeight: tab === key ? 700 : 600, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${T}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#374151', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
-                    <Icon size={12} /> {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* ── Scrollable Content ────────────────────────────────── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
+        {/* ── Main content area with sidebar nav ────────────────── */}
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+
+          {/* ── Left sidebar nav (categorized) ──────────────────── */}
+          {clientId && (
+            <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e5e7eb', background: '#fafafa', overflowY: 'auto', padding: '16px 0' }}>
+              {[
+                { group: 'Overview', items: [
+                  ['dashboard', 'Dashboard', BarChart2],
+                  ['keywords', 'Keywords', Search],
+                  ['ranks', 'Rankings', TrendingUp],
+                ]},
+                { group: 'Intelligence', items: [
+                  ['competitors', 'Competitors', Target],
+                  ['aeo', 'AEO Research', Brain],
+                  ['brand_serp', 'Brand SERP', Shield],
+                  ['backlinks', 'Backlinks', Link2],
+                  ['eeat', 'E-E-A-T', Award],
+                  ['query_paths', 'Query Paths', GitBranch],
+                ]},
+                { group: 'Content', items: [
+                  ['briefs', 'PageIQ Writer', Zap],
+                  ['topical_map', 'Topical Map', Map],
+                  ['content_refresh', 'Content Health', RefreshCw],
+                  ['semantic', 'Semantic Analysis', Brain],
+                  ['calendar', 'Content Calendar', Clock],
+                ]},
+                { group: 'Technical', items: [
+                  ['audit', 'SEO Audit', Shield],
+                  ['technical_deep', 'Technical Deep', Activity],
+                  ['schema', 'Schema Markup', Code],
+                  ['internal_links', 'Internal Links', Link2],
+                ]},
+                { group: 'Local & Reviews', items: [
+                  ['gmb', 'Google Business', MapPin],
+                  ['reviews', 'Reviews', Star],
+                ]},
+                { group: 'Reports & Tools', items: [
+                  ['reports', 'Reports', BarChart2],
+                  ['roi', 'ROI Projections', DollarSign],
+                  ['visitors', 'Visitors', Eye],
+                  ['utm', 'UTM Builder', Link2],
+                  ['connect', 'Connect APIs', Settings],
+                ]},
+              ].map(section => (
+                <div key={section.group} style={{ marginBottom: 8 }}>
+                  <div style={{ padding: '6px 20px', fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH }}>
+                    {section.group}
+                  </div>
+                  {section.items.map(([key, label, Icon]) => (
+                    <button key={key} onClick={() => setTab(key)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                        padding: '8px 20px', border: 'none', background: tab === key ? '#fff' : 'transparent',
+                        borderRight: tab === key ? `3px solid ${T}` : '3px solid transparent',
+                        cursor: 'pointer', fontSize: 13, fontWeight: tab === key ? 700 : 500,
+                        color: tab === key ? BLK : '#374151', fontFamily: FB,
+                        transition: 'all .1s',
+                      }}
+                      onMouseEnter={e => { if (tab !== key) e.currentTarget.style.background = '#f3f4f6' }}
+                      onMouseLeave={e => { if (tab !== key) e.currentTarget.style.background = 'transparent' }}
+                    >
+                      <Icon size={14} color={tab === key ? T : '#6b7280'} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Scrollable Content ────────────────────────────────── */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '28px 40px 48px' }}>
 
           {/* Action cards — show only when client has no data yet */}
           {clientId && !dashboard && tab === 'dashboard' && (
@@ -3513,7 +3535,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         )}
 
-      </div>
+        </div>
       </div>
 
       {/* Client Add/Edit Modal */}
@@ -3557,6 +3579,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }
