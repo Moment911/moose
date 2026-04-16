@@ -769,12 +769,12 @@ function PromptComplianceTab({ agent, setAgent }) {
           fetch('/api/answering/industries').then(r => r.json()).catch(() => ({ industries: [] })),
           fetch(`/api/answering/llm-config?agent_id=${agent.id}`).then(r => r.json()).catch(() => null),
         ])
-        setIndustries(ind.industries || [])
-        if (cfg?.llmConfig) {
+        setIndustries(Array.isArray(ind?.industries) ? ind.industries : [])
+        if (cfg?.llmConfig && typeof cfg.llmConfig === 'object') {
           setConfig(cfg.llmConfig)
-          setModels(cfg.models || [])
+          setModels(Array.isArray(cfg.models) ? cfg.models : [])
           setTopicBoundaries(cfg.industry?.topicBoundaries || null)
-          setEstCost(cfg.estimatedCostPerCall)
+          setEstCost(typeof cfg.estimatedCostPerCall === 'number' ? cfg.estimatedCostPerCall : null)
         }
       } catch (e) { console.error(e) }
       setLoading(false)
@@ -978,7 +978,7 @@ function RoutingTab({ agent }) {
     try {
       const res = await fetch(`/api/answering/routing-targets?agent_id=${agent.id}`)
       const d = await res.json()
-      setTargets(d.targets || [])
+      setTargets(Array.isArray(d?.targets) ? d.targets : [])
     } catch { /* ignore */ }
     setLoading(false)
   }
