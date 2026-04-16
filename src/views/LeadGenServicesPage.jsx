@@ -11,6 +11,8 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import TrustStrip from '../components/public/TrustStrip'
+import CplCalculator from '../components/public/CplCalculator'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -80,6 +82,10 @@ const PROMISES = [
 ]
 
 export default function LeadGenServicesPage() {
+  usePageMeta({
+    title: 'Lead generation for any industry — booked appointments | Koto',
+    description: 'We don\'t sell leads. We book appointments. Six channels in lockstep — outbound voice, cold email, paid media, SEO, scout lists, SMS — tuned per industry. Run the free CPL calculator.',
+  })
   const navigate = useNavigate()
 
   return (
@@ -220,6 +226,9 @@ export default function LeadGenServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* LEAD MAGNET — interactive cost-per-appointment calculator */}
+      <CplCalculator />
 
       {/* PROCESS */}
       <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}`, background: SURFACE }}>

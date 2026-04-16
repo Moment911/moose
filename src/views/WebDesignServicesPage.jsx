@@ -11,6 +11,8 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import TrustStrip from '../components/public/TrustStrip'
+import LeadMagnet from '../components/public/LeadMagnet'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -79,6 +81,10 @@ const PROMISES = [
 ]
 
 export default function WebDesignServicesPage() {
+  usePageMeta({
+    title: 'Custom website & platform design on Next.js + Vercel | Koto',
+    description: 'Sites that sell. Platforms that scale. Brand-led design + Next.js production code, wired into your CRM and voice agents on day one. Live in 30 days. You own the code.',
+  })
   const navigate = useNavigate()
 
   return (
@@ -219,6 +225,26 @@ export default function WebDesignServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* LEAD MAGNET — site audit checklist */}
+      <LeadMagnet
+        magnet="site-audit-checklist"
+        magnet_title="Website audit + 10 conversion fixes"
+        eyebrow="Free site audit"
+        headline="Get a written audit of your current site."
+        sub="We'll review your homepage, your top landing page, and your checkout flow — then send a written breakdown of what's costing you conversions and how to fix it."
+        bullets={[
+          'Hero clarity + value prop score (with rewrites)',
+          'Page speed + Core Web Vitals flagged against buyer-intent thresholds',
+          'Mobile layout + tap-target issues spotted',
+          '10 specific, implementable fixes ranked by conversion impact',
+        ]}
+        cta="Audit my site"
+        success_title="Audit request received."
+        success_sub="We'll email the audit back within 3 business days — or faster if you're ready to book a call in the meantime."
+        accent="teal"
+        icon="checklist"
+      />
 
       {/* PROCESS */}
       <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}`, background: SURFACE }}>

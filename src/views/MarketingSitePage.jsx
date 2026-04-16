@@ -13,6 +13,8 @@ import { supabase } from '../lib/supabase';
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact';
 import PublicNav from '../components/public/PublicNav'
 import TrustStrip from '../components/public/TrustStrip';
+import LeadMagnet from '../components/public/LeadMagnet';
+import { usePageMeta } from '../lib/usePageMeta';
 import PublicFooter from '../components/public/PublicFooter';
 import ScopeBand from '../components/public/ScopeBand';
 
@@ -1003,6 +1005,10 @@ function ChatDemo() {
 
 /* ─── Page ─── */
 export default function MarketingSitePage() {
+  usePageMeta({
+    title: 'Custom AI agents, chatbots & platforms built in weeks | Koto',
+    description: 'Koto builds custom AI agents, chatbots, CRMs, and full platforms for any business in any industry. Founder-led, 10 engineers shipping every week. Book a 20-min build session.',
+  });
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All');
 
@@ -1445,6 +1451,26 @@ export default function MarketingSitePage() {
           </div>
         </div>
       </section>
+
+      {/* ══ LEAD MAGNET — high-level "see the playbook" capture ══ */}
+      <LeadMagnet
+        magnet="koto-playbook"
+        magnet_title="The Koto build playbook"
+        eyebrow="Free playbook"
+        headline="See how we build in weeks, not quarters."
+        sub="The one-page playbook we follow on every engagement: scoping, tech stack, build cadence, integration, launch. Written plainly. Steal whatever's useful."
+        bullets={[
+          'The 5-day scoping framework we run on kickoff',
+          'Our opinionated tech stack — what we use and why',
+          'Build cadence — how we ship production code every week',
+          'How we hand off so you own the code, not a black box',
+        ]}
+        cta="Email me the playbook"
+        success_title="Playbook sent."
+        success_sub="Check your inbox. We also included a 20-min invite if you want to walk through your specific build live."
+        accent="pink"
+        icon="download"
+      />
 
       {/* ══ SCOPE BAND — "Gone are the days of picking a tool..." ══ */}
       <ScopeBand />

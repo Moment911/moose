@@ -15,6 +15,8 @@ import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import InlineSystemMock from '../components/public/InlineSystemMock'
 import TrustStrip from '../components/public/TrustStrip'
+import LeadMagnet from '../components/public/LeadMagnet'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -324,6 +326,10 @@ const PILLARS = [
 ]
 
 export default function CustomSystemsPage() {
+  usePageMeta({
+    title: 'Custom workflow automation & business systems | Koto',
+    description: 'Custom systems built around your real workflow — catering order flows, collision estimators, law firm intake, HVAC dispatch, and more. Shipped in weeks, not quarters.',
+  })
   const navigate = useNavigate()
 
   return (
@@ -842,6 +848,26 @@ export default function CustomSystemsPage() {
           </div>
         </div>
       </section>
+
+      {/* LEAD MAGNET — 20-min automation audit */}
+      <LeadMagnet
+        magnet="automation-audit"
+        magnet_title="20-minute automation audit"
+        eyebrow="Free scoping session"
+        headline="Book a 20-minute audit of your operation."
+        sub="Walk us through one workflow that's eating your team's time. We'll diagram it, spec the automation, and quote a build — live, on the call, no follow-ups required."
+        bullets={[
+          'Live workflow diagramming — we draw it with you on Miro',
+          'Build spec: data sources, integrations, AI routing, success metrics',
+          'Live quote with fixed scope + timeline — no follow-up "proposal" stall',
+          'Keep the diagram whether you build with us or not',
+        ]}
+        cta="Book the audit"
+        success_title="Booking link incoming."
+        success_sub="Check your inbox for a Calendly with three time slots in the next 48 hours."
+        accent="ink"
+        icon="calculator"
+      />
 
       {/* CONTACT CTA */}
       <section className="m-pad" style={{ padding: '96px 40px' }}>

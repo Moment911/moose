@@ -10,6 +10,7 @@ import {
 } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -42,6 +43,10 @@ const CSS = `
 `
 
 export default function ContactPage() {
+  usePageMeta({
+    title: 'Contact Koto — book a 20-min build session | Koto',
+    description: 'Tell us what you want to automate. Adam reads every message and replies within one business hour. Book 20 min to scope your build live.',
+  })
   const navigate = useNavigate()
 
   // Load LeadConnector embed script so the form auto-resizes and styles correctly

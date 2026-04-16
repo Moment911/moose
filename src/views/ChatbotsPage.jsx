@@ -12,6 +12,8 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import TrustStrip from '../components/public/TrustStrip'
+import LeadMagnet from '../components/public/LeadMagnet'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -734,6 +736,10 @@ function BotDemo({ bot }) {
 }
 
 export default function ChatbotsPage() {
+  usePageMeta({
+    title: 'Custom AI chatbots grounded in your business | Koto',
+    description: 'Chatbots that actually know your prices, policies, and calendar — not generic GPT wrappers. Dental, real estate, restaurant, HVAC, legal, e-commerce. Try live demos.',
+  })
   const navigate = useNavigate()
   const [activeId, setActiveId] = useState(BOTS[0].id)
   const active = BOTS.find(b => b.id === activeId) || BOTS[0]
@@ -810,6 +816,26 @@ export default function ChatbotsPage() {
           </div>
         </div>
       </section>
+
+      {/* LEAD MAGNET — industry chatbot blueprints */}
+      <LeadMagnet
+        magnet="chatbot-blueprints"
+        magnet_title="6 industry chatbot blueprints"
+        eyebrow="Free playbook"
+        headline="Get 6 industry chatbot blueprints."
+        sub="Working prompts, tool schemas, and escalation logic for dental, real estate, restaurant, HVAC, legal, and e-commerce — the exact patterns behind the demos on this page."
+        bullets={[
+          'Full conversation design — greeting, triage, booking, edge cases',
+          'Tool schema + escalation triggers ready to wire to your stack',
+          'Fabricated demo data swapped for your real prices, policies, calendar',
+          '20-min strategy call invite if you want to spin up your own demo',
+        ]}
+        cta="Email me the blueprints"
+        success_title="Blueprints sent."
+        success_sub="You'll also get a Calendly link in case you want to scope a working demo for your business."
+        accent="teal"
+        icon="download"
+      />
 
       {/* SCOPE BAND */}
       <ScopeBand />

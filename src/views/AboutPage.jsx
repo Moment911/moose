@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
+import { usePageMeta } from '../lib/usePageMeta'
 
 /* ─── Tokens (match MarketingSitePage) ─── */
 const R    = '#E6007E'
@@ -80,6 +81,10 @@ const TIMELINE = [
 ]
 
 export default function AboutPage() {
+  usePageMeta({
+    title: 'About Koto — founder-led AI builds for operators | Koto',
+    description: 'Koto is an agency owner\'s playbook rebuilt as software. Founder-led, 10 engineers shipping every week. Book 20 minutes with Adam — he\'ll tell you honestly whether Koto fits.',
+  })
   const navigate = useNavigate()
 
   return (

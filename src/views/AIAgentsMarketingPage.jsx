@@ -16,6 +16,8 @@ import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import AgentCallMock from '../components/public/AgentCallMock'
 import TrustStrip from '../components/public/TrustStrip'
+import LeadMagnet from '../components/public/LeadMagnet'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -116,6 +118,10 @@ const CHATBOTS = [
 ]
 
 export default function AIAgentsMarketingPage() {
+  usePageMeta({
+    title: 'AI voice & chat agents for any industry | Koto',
+    description: 'Human-sounding AI agents that qualify leads, book meetings, run benefits verification, and handle intake 24/7. Every task routed to the model that wins it. Book a 20-min build session.',
+  })
   const navigate = useNavigate()
 
   return (
@@ -470,6 +476,26 @@ export default function AIAgentsMarketingPage() {
           </div>
         </div>
       </section>
+
+      {/* LEAD MAGNET — 30 agent templates PDF */}
+      <LeadMagnet
+        magnet="agent-templates-playbook"
+        magnet_title="30 AI agent templates + build playbook"
+        eyebrow="Free playbook"
+        headline="Get 30 proven agent templates + the build playbook."
+        sub="The exact specs, prompts, tool schemas, and evaluation rubrics we use to ship an agent in under two weeks — across sales, support, ops, and clinical workflows."
+        bullets={[
+          '30 agent blueprints across voice, chat, and workflow',
+          'Prompt + tool schemas ready to adapt to your stack',
+          'Evaluation harness — how we measure accuracy before launch',
+          'Cost model: per-call economics by model routing strategy',
+        ]}
+        cta="Email me the playbook"
+        success_title="Playbook sent."
+        success_sub="Check your inbox in a minute or two. We also included a 20-min invite if you want to walk through a specific use case live."
+        accent="pink"
+        icon="download"
+      />
 
       {/* SCOPE BAND — "Gone are the days..." */}
       <ScopeBand />

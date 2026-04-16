@@ -11,6 +11,8 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import TrustStrip from '../components/public/TrustStrip'
+import LeadMagnet from '../components/public/LeadMagnet'
+import { usePageMeta } from '../lib/usePageMeta'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -81,6 +83,10 @@ const PROMISES = [
 ]
 
 export default function CrmServicesPage() {
+  usePageMeta({
+    title: 'Custom CRM development + 200 integrations | Koto',
+    description: 'A CRM architected around your real pipeline — not a generic template. Two-way sync with HubSpot, Salesforce, Zoho, and 200+ more. Live in 30 days. No per-seat fees.',
+  })
   const navigate = useNavigate()
 
   return (
@@ -243,6 +249,28 @@ export default function CrmServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* LEAD MAGNET — CRM migration checklist */}
+      <LeadMagnet
+        magnet="crm-migration-checklist"
+        magnet_title="CRM Migration Checklist"
+        eyebrow="Free resource"
+        headline="Before you migrate, run the checklist."
+        sub="The 47-item playbook we walk every client through before touching a single record. Use it to audit your current stack, design the replacement, and prove ROI in 90 days."
+        bullets={[
+          'Pre-migration audit — every tool, every integration, every field',
+          'Data model design — the step most teams skip, then regret',
+          'Integration topology — which system owns which data',
+          '30-60-90 day success metrics to agree on before cutover',
+        ]}
+        cta="Email me the checklist"
+        success_title="Opening the checklist now."
+        success_sub="A copy is on its way to your inbox too. Print it, mark it up, then let's scope your build."
+        success_href="/resources/crm-migration-checklist"
+        success_label="Open the checklist"
+        accent="pink"
+        icon="checklist"
+      />
 
       {/* PROMISES */}
       <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>
