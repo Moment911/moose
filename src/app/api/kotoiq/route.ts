@@ -1687,6 +1687,297 @@ Return ONLY valid JSON:
     return NextResponse.json({ enrichment: data?.metadata || null, enriched_at: data?.completed_at || null })
   }
 
+  // ── WRITE FULL PAGE: Generate complete content from brief ────────────
+  if (action === 'write_full_page') {
+    const { brief_id, client_id, agency_id } = body
+    if (!brief_id) return NextResponse.json({ error: 'brief_id required' }, { status: 400 })
+
+    const { data: brief } = await s.from('kotoiq_content_briefs').select('*').eq('id', brief_id).single()
+    if (!brief) return NextResponse.json({ error: 'Brief not found' }, { status: 404 })
+
+    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer').eq('id', brief.client_id).single()
+
+    const writePrompt = `You are an expert SEO content writer. Write the COMPLETE page content based on this brief.
+
+BUSINESS: ${client?.name || 'Unknown'}
+WEBSITE: ${client?.website || ''}
+SERVICE: ${client?.primary_service || ''}
+TARGET CUSTOMER: ${client?.target_customer || ''}
+
+BRIEF:
+Title Tag: ${brief.title_tag}
+Meta Description: ${brief.meta_description}
+H1: ${brief.h1}
+Target Word Count: ${brief.target_word_count}
+Target Keyword: ${brief.target_keyword}
+
+OUTLINE:
+${JSON.stringify(brief.outline, null, 2)}
+
+FAQ QUESTIONS:
+${JSON.stringify(brief.faq_questions, null, 2)}
+
+TARGET ENTITIES TO MENTION: ${JSON.stringify(brief.target_entities)}
+
+RULES:
+1. Write ${brief.target_word_count || 1200}+ words of high-quality content
+2. Follow the outline EXACTLY — use the H2s and H3s as given
+3. Opening paragraph must be 40-60 words and directly answer the search intent (featured snippet target)
+4. Mention every target entity naturally throughout the content
+5. Include the FAQ section with full answers (40-60 words each)
+6. Write for HUMANS first — no keyword stuffing, natural language
+7. Include specific details: mention the city/area, the business name, concrete numbers
+8. End with a strong CTA paragraph
+9. Use short paragraphs (2-3 sentences max) for readability
+10. Include natural internal link anchor text suggestions in [brackets]
+
+Return the content in this format:
+---TITLE---
+[title tag]
+---META---
+[meta description]
+---H1---
+[h1]
+---CONTENT---
+[full page content in clean HTML with h2, h3, p, ul, ol tags]
+---FAQ_HTML---
+[FAQ section in HTML with proper FAQ markup]
+---PLAIN_TEXT---
+[same content as plain text, no HTML]`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 8000,
+        system: 'You are an expert SEO content writer. Write complete, publishable page content.',
+        messages: [{ role: 'user', content: writePrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_full_page_write', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0, agencyId: agency_id })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : ''
+      const sections: Record<string, string> = {}
+      const parts = raw.split(/---(\w+)---/)
+      for (let i = 1; i < parts.length; i += 2) {
+        sections[parts[i].toLowerCase().trim()] = parts[i + 1]?.trim() || ''
+      }
+
+      return NextResponse.json({
+        title: sections.title || brief.title_tag,
+        meta: sections.meta || brief.meta_description,
+        h1: sections.h1 || brief.h1,
+        content_html: sections.content || raw,
+        faq_html: sections.faq_html || '',
+        plain_text: sections.plain_text || raw.replace(/<[^>]+>/g, ''),
+        word_count: (sections.plain_text || raw).split(/\s+/).length,
+        brief_id,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── GENERATE SCHEMA: JSON-LD from brief + client data ─────────────────
+  if (action === 'generate_schema') {
+    const { brief_id, client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer').eq('id', client_id).single()
+    const brief = brief_id ? (await s.from('kotoiq_content_briefs').select('*').eq('id', brief_id).single()).data : null
+
+    // Get GBP data from latest intel report
+    const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
+      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+    const gbp = latestReport?.report_data?.gbp_audit
+
+    const schemaPrompt = `Generate production-ready JSON-LD structured data for this business page.
+
+BUSINESS: ${client?.name || 'Unknown'}
+WEBSITE: ${client?.website || ''}
+SERVICE: ${client?.primary_service || ''}
+ADDRESS: ${gbp?.address || ''}
+PHONE: ${gbp?.phone || ''}
+RATING: ${gbp?.rating || ''}
+REVIEW COUNT: ${gbp?.review_count || ''}
+CATEGORIES: ${gbp?.categories?.join(', ') || ''}
+DESCRIPTION: ${gbp?.description || ''}
+
+${brief ? `PAGE BRIEF:
+Target Keyword: ${brief.target_keyword}
+Page URL: ${brief.target_url}
+Schema Types Needed: ${JSON.stringify(brief.schema_types)}
+FAQ Questions: ${JSON.stringify(brief.faq_questions)}
+` : 'Generate LocalBusiness + BreadcrumbList as minimum.'}
+
+Generate SEPARATE JSON-LD script blocks for each schema type. Include:
+1. LocalBusiness (or specific subtype like Plumber, Dentist, etc.) with ALL available data
+2. BreadcrumbList for the page navigation
+3. FAQPage if FAQ questions are provided
+4. Service schema if this is a service page
+
+Return ONLY valid JSON array of schema objects (each one goes in its own <script type="application/ld+json"> tag):
+[
+  { "@context": "https://schema.org", "@type": "...", ... },
+  { "@context": "https://schema.org", "@type": "FAQPage", ... }
+]`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        system: 'Generate production-ready JSON-LD schema. Return ONLY valid JSON array.',
+        messages: [{ role: 'user', content: schemaPrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_schema_gen', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
+      const cleaned = raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim()
+      const schemas = JSON.parse(cleaned)
+
+      // Format as ready-to-paste HTML
+      const htmlBlocks = (Array.isArray(schemas) ? schemas : [schemas]).map((s: any) =>
+        `<script type="application/ld+json">\n${JSON.stringify(s, null, 2)}\n</script>`
+      )
+
+      return NextResponse.json({ schemas, html: htmlBlocks.join('\n\n'), schema_count: htmlBlocks.length })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── BATCH REVIEW RESPONSES: AI-draft all reviews at once ──────────────
+  if (action === 'batch_review_responses') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name').eq('id', client_id).single()
+    const { data: latestReport } = await s.from('koto_intel_reports').select('report_data')
+      .eq('client_id', client_id).order('created_at', { ascending: false }).limit(1).single()
+    const reviews = latestReport?.report_data?.gbp_audit?.recent_reviews || []
+
+    if (!reviews.length) return NextResponse.json({ error: 'No reviews found — run a KotoIntel scan first' }, { status: 400 })
+
+    const batchPrompt = `Write professional Google review responses for ${client?.name || 'a local business'}.
+
+REVIEWS:
+${reviews.map((r: any, i: number) => `
+Review ${i + 1}:
+Rating: ${r.rating}/5
+Reviewer: ${r.author || 'Customer'}
+Text: "${r.text || 'No text'}"
+`).join('\n')}
+
+RULES:
+- 5-star: 100-160 words. Warm, specific, mentions service.
+- 4-star: 120-160 words. Grateful, ask what could be better.
+- 3-star or below: 140-180 words. Empathetic, address issue, offer offline resolution.
+- Use reviewer's first name. Reference specific details from their review.
+- Include subtle CTA. Never defensive.
+
+Return ONLY valid JSON array:
+[{"review_index": 0, "reviewer": "name", "rating": 5, "response": "full response text"}]`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 4000,
+        system: 'Write Google review responses. Return ONLY valid JSON array.',
+        messages: [{ role: 'user', content: batchPrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_batch_reviews', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '[]'
+      const responses = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+
+      return NextResponse.json({
+        responses: responses.map((r: any, i: number) => ({
+          ...r,
+          original_text: reviews[r.review_index || i]?.text || '',
+          original_rating: reviews[r.review_index || i]?.rating || 0,
+          original_author: reviews[r.review_index || i]?.author || 'Customer',
+        })),
+        total: responses.length,
+      })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── ROI PROJECTIONS: Estimated impact from fixing audit issues ────────
+  if (action === 'roi_projections') {
+    const { client_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: client } = await s.from('clients').select('name, website, primary_service, marketing_budget').eq('id', client_id).single()
+    const { data: keywords } = await s.from('kotoiq_keywords').select('*').eq('client_id', client_id).order('opportunity_score', { ascending: false }).limit(50)
+    const { data: recs } = await s.from('kotoiq_recommendations').select('*').eq('client_id', client_id).eq('status', 'pending')
+    const { data: enrichLog } = await s.from('kotoiq_sync_log').select('metadata')
+      .eq('client_id', client_id).eq('source', 'deep_enrich').order('completed_at', { ascending: false }).limit(1).single()
+    const enrichment = enrichLog?.metadata
+
+    const roiPrompt = `You are KotoIQ ROI analyst. Calculate realistic traffic and revenue projections from fixing the issues found in this client's audit.
+
+CLIENT: ${client?.name} | ${client?.primary_service} | Budget: ${client?.marketing_budget || 'Unknown'}
+
+KEYWORD DATA (top 50):
+${JSON.stringify((keywords || []).slice(0, 30).map(k => ({ kw: k.keyword, opp: k.opportunity_score, pos: k.sc_avg_position, clicks: k.sc_clicks, vol: k.kp_monthly_volume, cat: k.category })))}
+
+PENDING RECOMMENDATIONS: ${(recs || []).length}
+${JSON.stringify((recs || []).slice(0, 10).map(r => ({ title: r.title, type: r.type, priority: r.priority, impact: r.estimated_impact })))}
+
+AUDIT SCORES:
+- Technical: ${enrichment?.technical_audit?.grade || 'N/A'} (${enrichment?.technical_audit?.score || 'N/A'}/100)
+- On-Page: ${enrichment?.onpage_audit?.score || 'N/A'}/100
+- Citations: ${enrichment?.citations?.score || 'N/A'}%
+- AI Visibility: ${enrichment?.ai_visibility?.grade || 'N/A'}
+- Market Saturation: ${enrichment?.market_density?.saturation_score || 'N/A'}/100
+
+Return ONLY valid JSON:
+{
+  "current_state": {
+    "estimated_monthly_organic_traffic": number,
+    "estimated_monthly_leads": number,
+    "estimated_monthly_revenue": number
+  },
+  "projected_state": {
+    "estimated_monthly_organic_traffic": number,
+    "estimated_monthly_leads": number,
+    "estimated_monthly_revenue": number,
+    "timeline_months": number
+  },
+  "improvements": [
+    {
+      "action": "specific fix",
+      "category": "technical|content|local|paid|authority",
+      "traffic_gain_pct": number,
+      "estimated_additional_clicks": number,
+      "estimated_additional_revenue": number,
+      "effort": "1 week|2 weeks|1 month|3 months",
+      "confidence": "high|medium|low"
+    }
+  ],
+  "total_opportunity": {
+    "additional_monthly_traffic": number,
+    "additional_monthly_leads": number,
+    "additional_monthly_revenue": number,
+    "annual_revenue_impact": number,
+    "roi_on_seo_investment": "X:1"
+  },
+  "executive_summary": "2-3 sentence summary of the ROI case"
+}`
+
+    try {
+      const msg = await ai.messages.create({
+        model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+        system: 'Calculate realistic SEO ROI projections. Return ONLY valid JSON.',
+        messages: [{ role: 'user', content: roiPrompt }],
+      })
+      void logTokenUsage({ feature: 'kotoiq_roi_projections', model: 'claude-sonnet-4-20250514', inputTokens: msg.usage?.input_tokens || 0, outputTokens: msg.usage?.output_tokens || 0 })
+
+      const raw = msg.content[0].type === 'text' ? msg.content[0].text : '{}'
+      const projections = JSON.parse(raw.replace(/```json?\n?/g, '').replace(/```/g, '').trim())
+      return NextResponse.json({ projections })
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
 }
 

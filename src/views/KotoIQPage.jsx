@@ -112,6 +112,14 @@ export default function KotoIQPage() {
   const [reviewDraft, setReviewDraft] = useState('')
   const [gmbPosts, setGmbPosts] = useState([])
   const [generatingPosts, setGeneratingPosts] = useState(false)
+  const [fullPageContent, setFullPageContent] = useState(null)
+  const [writingPage, setWritingPage] = useState(false)
+  const [schemaCode, setSchemaCode] = useState(null)
+  const [generatingSchema, setGeneratingSchema] = useState(false)
+  const [batchReviews, setBatchReviews] = useState(null)
+  const [batchingReviews, setBatchingReviews] = useState(false)
+  const [roiData, setRoiData] = useState(null)
+  const [roiLoading, setRoiLoading] = useState(false)
   const [briefs, setBriefs] = useState([])
   const [briefLoading, setBriefLoading] = useState(false)
   const [briefKeyword, setBriefKeyword] = useState('')
@@ -414,7 +422,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
         {/* Tabs (only show when client selected) */}
         {clientId && (
           <div style={{ display: 'flex', gap: 2, marginBottom: 20 }}>
-            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['audit', 'Deep Audit', Shield], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
+            {[['dashboard', 'Dashboard', BarChart2], ['keywords', 'Keyword Explorer', Search], ['briefs', 'Page Builder', Zap], ['competitors', 'Competitors', Target], ['ranks', 'Rank Tracker', TrendingUp], ['audit', 'Deep Audit', Shield], ['roi', 'ROI', DollarSign], ['gmb', 'GMB', Star]].map(([key, label, Icon]) => (
               <button key={key} onClick={() => setTab(key)}
                 style={{ padding: '10px 24px', borderRadius: '10px 10px 0 0', border: '1px solid #e5e7eb', borderBottom: tab === key ? 'none' : '1px solid #e5e7eb', background: tab === key ? '#fff' : 'transparent', fontSize: 13, fontWeight: 700, color: tab === key ? BLK : '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon size={14} /> {label}
@@ -961,6 +969,70 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     </div>
                   )}
                 </div>
+
+                {/* Action buttons: Write Page + Generate Schema */}
+                <div style={{ display: 'flex', gap: 10, marginTop: 20, paddingTop: 20, borderTop: '1px solid #e5e7eb' }}>
+                  <button onClick={async () => {
+                    setWritingPage(true); setFullPageContent(null)
+                    toast.loading('Writing full page content...', { id: 'write' })
+                    try {
+                      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'write_full_page', brief_id: activeBrief.id, client_id: clientId, agency_id: agencyId }) })
+                      const data = await res.json()
+                      if (data.error) { toast.error(data.error, { id: 'write' }); setWritingPage(false); return }
+                      toast.success(`${data.word_count} words written!`, { id: 'write' })
+                      setFullPageContent(data)
+                    } catch { toast.error('Failed', { id: 'write' }) }
+                    setWritingPage(false)
+                  }} disabled={writingPage || !activeBrief.id}
+                    style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: R, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {writingPage ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={14} />}
+                    {writingPage ? 'Writing...' : 'Write Full Page'}
+                  </button>
+                  <button onClick={async () => {
+                    setGeneratingSchema(true); setSchemaCode(null)
+                    try {
+                      const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'generate_schema', brief_id: activeBrief.id, client_id: clientId }) })
+                      const data = await res.json()
+                      if (data.error) { toast.error(data.error); setGeneratingSchema(false); return }
+                      setSchemaCode(data)
+                    } catch { toast.error('Failed') }
+                    setGeneratingSchema(false)
+                  }} disabled={generatingSchema}
+                    style={{ padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${T}`, background: '#fff', color: T, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {generatingSchema ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Shield size={14} />}
+                    {generatingSchema ? 'Generating...' : 'Generate Schema'}
+                  </button>
+                </div>
+
+                {/* Full page content output */}
+                {fullPageContent && (
+                  <div style={{ marginTop: 16, padding: '20px 24px', borderRadius: 12, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>Full Page Content — {fullPageContent.word_count} words</div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button onClick={() => { navigator.clipboard.writeText(fullPageContent.plain_text); toast.success('Plain text copied!') }}
+                          style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy Text</button>
+                        <button onClick={() => { navigator.clipboard.writeText(fullPageContent.content_html + '\n\n' + fullPageContent.faq_html); toast.success('HTML copied!') }}
+                          style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy HTML</button>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.8, maxHeight: 500, overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: fullPageContent.content_html + (fullPageContent.faq_html ? '<hr style="margin:24px 0"/>' + fullPageContent.faq_html : '') }} />
+                  </div>
+                )}
+
+                {/* Schema code output */}
+                {schemaCode && (
+                  <div style={{ marginTop: 16, padding: '20px 24px', borderRadius: 12, background: '#0f172a', border: '1px solid #1e293b' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#fff' }}>JSON-LD Schema — {schemaCode.schema_count} blocks</div>
+                      <button onClick={() => { navigator.clipboard.writeText(schemaCode.html); toast.success('Schema code copied!') }}
+                        style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: GRN, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Copy All Schema</button>
+                    </div>
+                    <pre style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, overflow: 'auto', maxHeight: 400, margin: 0, whiteSpace: 'pre-wrap' }}>{schemaCode.html}</pre>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1702,6 +1774,142 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
           </>
         )}
 
+        {/* ══ ROI TAB ══ */}
+        {clientId && tab === 'roi' && (
+          <>
+            {!roiData && !roiLoading && (
+              <div style={{ ...card, textAlign: 'center', padding: '60px 24px' }}>
+                <DollarSign size={48} color={GRN} style={{ margin: '0 auto 16px', opacity: .3 }} />
+                <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 800, color: BLK, marginBottom: 8 }}>ROI Projections</div>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>Calculate the estimated traffic and revenue impact of fixing issues found in your audit.</div>
+                <button onClick={async () => {
+                  setRoiLoading(true)
+                  toast.loading('Calculating ROI projections...', { id: 'roi' })
+                  try {
+                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'roi_projections', client_id: clientId }) })
+                    const data = await res.json()
+                    if (data.error) { toast.error(data.error, { id: 'roi' }); setRoiLoading(false); return }
+                    toast.success('ROI projections ready', { id: 'roi' })
+                    setRoiData(data.projections)
+                  } catch { toast.error('Failed', { id: 'roi' }) }
+                  setRoiLoading(false)
+                }} disabled={roiLoading}
+                  style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: GRN, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                  <DollarSign size={14} style={{ marginRight: 6, verticalAlign: -2 }} /> Calculate ROI
+                </button>
+              </div>
+            )}
+
+            {roiLoading && <div style={{ textAlign: 'center', padding: 60 }}><Loader2 size={32} color={T} style={{ animation: 'spin 1s linear infinite' }} /></div>}
+
+            {roiData && !roiLoading && (
+              <>
+                {/* Executive summary */}
+                {roiData.executive_summary && (
+                  <div style={{ ...card, borderLeft: `4px solid ${GRN}`, background: GRN + '04' }}>
+                    <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.7 }}>{roiData.executive_summary}</div>
+                  </div>
+                )}
+
+                {/* Current vs Projected */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 12 }}>Current State</div>
+                    {[
+                      ['Monthly Traffic', roiData.current_state?.estimated_monthly_organic_traffic, T],
+                      ['Monthly Leads', roiData.current_state?.estimated_monthly_leads, AMB],
+                      ['Monthly Revenue', roiData.current_state?.estimated_monthly_revenue, '#6b7280'],
+                    ].map(([l, v, c]) => (
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                        <span style={{ fontSize: 13, color: '#6b7280' }}>{l}</span>
+                        <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ ...card, borderLeft: `4px solid ${GRN}` }}>
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN, textTransform: 'uppercase', marginBottom: 12 }}>Projected State ({roiData.projected_state?.timeline_months || '?'} months)</div>
+                    {[
+                      ['Monthly Traffic', roiData.projected_state?.estimated_monthly_organic_traffic, GRN],
+                      ['Monthly Leads', roiData.projected_state?.estimated_monthly_leads, GRN],
+                      ['Monthly Revenue', roiData.projected_state?.estimated_monthly_revenue, GRN],
+                    ].map(([l, v, c]) => (
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                        <span style={{ fontSize: 13, color: '#6b7280' }}>{l}</span>
+                        <span style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Total opportunity */}
+                {roiData.total_opportunity && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+                    {[
+                      ['Add\'l Monthly Traffic', roiData.total_opportunity.additional_monthly_traffic, T],
+                      ['Add\'l Monthly Leads', roiData.total_opportunity.additional_monthly_leads, AMB],
+                      ['Add\'l Monthly Revenue', roiData.total_opportunity.additional_monthly_revenue, GRN],
+                      ['Annual Impact', roiData.total_opportunity.annual_revenue_impact, R],
+                    ].map(([l, v, c]) => (
+                      <div key={l} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
+                        <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') || l.includes('Impact') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{l}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Improvement breakdown */}
+                {roiData.improvements?.length > 0 && (
+                  <div style={card}>
+                    <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16 }}>Improvement Breakdown</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
+                          {['Action', 'Category', 'Traffic Gain', 'Add\'l Clicks', 'Revenue', 'Effort', 'Confidence'].map(h => (
+                            <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Action' ? 'left' : 'center' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {roiData.improvements.map((imp, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250 }}>{imp.action}</td>
+                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: T + '12', color: T }}>{imp.category}</span></td>
+                            <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+{imp.traffic_gain_pct}%</td>
+                            <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14 }}>+{imp.estimated_additional_clicks}</td>
+                            <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+${imp.estimated_additional_revenue?.toLocaleString()}</td>
+                            <td style={{ textAlign: 'center', fontSize: 11, color: '#6b7280' }}>{imp.effort}</td>
+                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 700, color: { high: GRN, medium: AMB, low: R }[imp.confidence] || '#6b7280' }}>{imp.confidence}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {roiData.total_opportunity?.roi_on_seo_investment && (
+                  <div style={{ ...card, textAlign: 'center', background: GRN + '06', borderLeft: `4px solid ${GRN}` }}>
+                    <div style={{ fontFamily: FH, fontSize: 48, fontWeight: 900, color: GRN }}>{roiData.total_opportunity.roi_on_seo_investment}</div>
+                    <div style={{ fontSize: 14, color: '#374151', fontWeight: 600 }}>Projected Return on SEO Investment</div>
+                  </div>
+                )}
+
+                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                  <button onClick={async () => {
+                    setRoiLoading(true)
+                    const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'roi_projections', client_id: clientId }) })
+                    const data = await res.json()
+                    setRoiData(data.projections)
+                    setRoiLoading(false)
+                  }} style={{ padding: '8px 20px', borderRadius: 10, border: `1.5px solid ${GRN}`, background: '#fff', color: GRN, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                    <RefreshCw size={12} style={{ marginRight: 6, verticalAlign: -2 }} /> Recalculate
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+
         {/* ══ GMB TAB ══ */}
         {clientId && tab === 'gmb' && (
           <>
@@ -1784,9 +1992,47 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {/* Reviews + AI Response Drafts */}
                   {g.recent_reviews?.length > 0 && (
                     <div style={card}>
-                      <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Star size={18} color={AMB} /> Recent Reviews ({g.recent_reviews.length})
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Star size={18} color={AMB} /> Recent Reviews ({g.recent_reviews.length})
+                        </div>
+                        <button onClick={async () => {
+                          setBatchingReviews(true); setBatchReviews(null)
+                          toast.loading('Drafting all review responses...', { id: 'batch' })
+                          try {
+                            const res = await fetch('/api/kotoiq', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'batch_review_responses', client_id: clientId }) })
+                            const data = await res.json()
+                            if (data.error) { toast.error(data.error, { id: 'batch' }); setBatchingReviews(false); return }
+                            toast.success(`${data.total} responses drafted`, { id: 'batch' })
+                            setBatchReviews(data.responses)
+                          } catch { toast.error('Failed', { id: 'batch' }) }
+                          setBatchingReviews(false)
+                        }} disabled={batchingReviews}
+                          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: T, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {batchingReviews ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Brain size={12} />}
+                          {batchingReviews ? 'Drafting...' : 'Draft All Responses'}
+                        </button>
                       </div>
+
+                      {/* Batch responses view */}
+                      {batchReviews && (
+                        <div style={{ marginBottom: 16, padding: '16px', borderRadius: 10, background: T + '06', border: `1px solid ${T}20` }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <div style={{ fontSize: 14, fontWeight: 800, color: T }}>{batchReviews.length} Responses Ready</div>
+                            <button onClick={() => { navigator.clipboard.writeText(batchReviews.map(r => `Review by ${r.original_author} (${r.original_rating}★):\n${r.response}`).join('\n\n---\n\n')); toast.success('All responses copied!') }}
+                              style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: T, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Copy All</button>
+                          </div>
+                          {batchReviews.map((br, i) => (
+                            <div key={i} style={{ padding: '12px 14px', borderRadius: 8, background: '#fff', border: '1px solid #e5e7eb', marginBottom: 6, borderLeft: `3px solid ${br.original_rating >= 4 ? GRN : br.original_rating >= 3 ? AMB : R}` }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 4 }}>{br.reviewer || br.original_author} — {'★'.repeat(br.original_rating || br.rating)}</div>
+                              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{br.response}</div>
+                              <button onClick={() => { navigator.clipboard.writeText(br.response); toast.success('Copied!') }}
+                                style={{ marginTop: 6, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer' }}>Copy</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {g.recent_reviews.map((rev, i) => {
                         const isActive = draftingReview === rev
                         return (
