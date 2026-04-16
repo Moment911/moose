@@ -42,7 +42,7 @@ export default function ScopeBand() {
             letterSpacing: '-.03em', color: INK, lineHeight: 1.1, marginBottom: 20,
           }}>
             Gone are the days of picking a tool<br />
-            that <span style={{ color: R }}>almost</span> works for your business.
+            that <span style={{ color: R, fontSize: 'inherit', fontWeight: 'inherit', fontFamily: 'inherit', fontStyle: 'normal' }}>almost</span> works for your business.
           </h2>
 
           <p style={{
