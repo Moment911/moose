@@ -11,6 +11,7 @@ import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
+import TrustStrip from '../components/public/TrustStrip'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -770,6 +771,9 @@ export default function ChatbotsPage() {
           </p>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* TABS + ACTIVE BOT */}
       <section className="cb-pad" style={{ padding: '16px 40px 80px' }}>

@@ -11,7 +11,8 @@ import {
 import { R, T, BLK, GRY, GRN, AMB, W, FH, FB } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact';
-import PublicNav from '../components/public/PublicNav';
+import PublicNav from '../components/public/PublicNav'
+import TrustStrip from '../components/public/TrustStrip';
 import PublicFooter from '../components/public/PublicFooter';
 import ScopeBand from '../components/public/ScopeBand';
 
@@ -1086,7 +1087,7 @@ export default function MarketingSitePage() {
             marginBottom: 28,
           }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN }} />
-            Enterprise AI system builder
+            Custom AI built in weeks — not quarters
           </div>
 
           <h1 className="hero-h1 fade fade-1" style={{
@@ -1106,16 +1107,16 @@ export default function MarketingSitePage() {
 
           <p className="fade fade-2" style={{
             fontSize: 20, color: MUTED, fontFamily: FB,
-            lineHeight: 1.55, maxWidth: 680, margin: '24px auto 0',
+            lineHeight: 1.55, maxWidth: 700, margin: '24px auto 0',
           }}>
-            Custom AI agents, chatbots, and end-to-end systems for any business in any industry.
-            Inbound and outbound calling, conversational AI, workflow automation, deep integrations —
-            designed, built, and deployed in weeks, not quarters.
+            Custom AI agents, chatbots, CRMs, and full platforms — built by a team that ran a
+            marketing agency for 20 years. Replace 40-person phone teams. Ship in weeks.
+            Not another generic tool you'll outgrow in six months.
           </p>
 
           <div className="fade fade-3" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 36 }}>
             <button className="btn btn-primary btn-lg" onClick={() => navigate('/contact')}>
-              Book a build session <ArrowRight size={16} />
+              Book a 20-min build session <ArrowRight size={16} />
             </button>
             <button className="btn btn-secondary btn-lg" onClick={() => scrollTo('platform')}>
               See what we build
@@ -1123,7 +1124,7 @@ export default function MarketingSitePage() {
           </div>
 
           <div className="fade fade-3" style={{ fontSize: 13, color: FAINT, marginTop: 18 }}>
-            10 engineers · 20+ years of agency operations · Built for any industry
+            Founder-led · 10 engineers shipping every week · Built for any industry
           </div>
 
           {/* Hero stats */}
@@ -1141,6 +1142,9 @@ export default function MarketingSitePage() {
           </div>
         </div>
       </section>
+
+      {/* ══ TRUST ══ */}
+      <TrustStrip />
 
       {/* ══ PLATFORM ══ */}
       <section id="platform" className="section" style={{ background: W, padding: '96px 40px', borderTop: `1px solid ${HAIR}` }}>

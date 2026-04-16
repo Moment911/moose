@@ -15,6 +15,7 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import AgentCallMock from '../components/public/AgentCallMock'
+import TrustStrip from '../components/public/TrustStrip'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -132,23 +133,27 @@ export default function AIAgentsMarketingPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div className="fade" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 100, border: `1px solid ${HAIR}`, background: WASH, fontSize: 12, fontWeight: 600, color: MUTED, marginBottom: 28 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: GRN }} />
-            AI Agent Development
+            AI Voice & Chat Agents
           </div>
           <h1 className="m-hero-h1" style={{ fontSize: 76, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em', lineHeight: 1.05, color: INK, maxWidth: 940, margin: '0 auto' }}>
-            Purpose-built AI agents,<br />powered by every major model.
+            One agent replaces<br />a 40-person phone team.
           </h1>
-          <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 680, margin: '24px auto 0' }}>
-            We don't pick a model and hope for the best. We route every task to the AI best suited for it —
-            Claude, GPT-4, Gemini, Mistral, Llama, and more — so each agent performs at the edge of what's possible.
+          <p style={{ fontSize: 20, color: MUTED, fontFamily: FB, lineHeight: 1.6, maxWidth: 700, margin: '24px auto 0' }}>
+            Human-sounding voice and chat agents that qualify leads, book meetings, run benefits
+            verification, and handle intake 24/7. Every task routed to the model that wins it —
+            Claude, GPT-4, Gemini, or Mistral — so cost and accuracy work in your favor.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 32, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => navigate('/contact')}>Book a build session <ArrowRight size={14} /></button>
+            <button className="btn btn-primary" onClick={() => navigate('/contact')}>Book a 20-min build session <ArrowRight size={14} /></button>
             <a href={CONTACT_PHONE_HREF} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               <Phone size={14} /> {CONTACT_PHONE}
             </a>
           </div>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* WATCH THEM WORK — five live conversational agent demos */}
       <section className="m-pad" style={{ padding: '48px 40px 96px', borderTop: `1px solid ${HAIR}` }}>

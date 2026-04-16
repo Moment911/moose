@@ -10,6 +10,7 @@ import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
+import TrustStrip from '../components/public/TrustStrip'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -65,10 +66,10 @@ const PROCESS = [
 ]
 
 const STATS = [
-  { num: '318', label: 'Leads / day avg.' },
-  { num: '67%', label: 'Lower CPL' },
-  { num: '24/7', label: 'Always prospecting' },
-  { num: '100+', label: 'Industries served' },
+  { num: '6',    label: 'Channels you can run in parallel' },
+  { num: '100+', label: 'Industry playbooks on day one' },
+  { num: '24/7', label: 'AI dialing + emailing' },
+  { num: '7–10d', label: 'From kickoff to first booked calls' },
 ]
 
 const PROMISES = [
@@ -134,6 +135,9 @@ export default function LeadGenServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* CHANNELS */}
       <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}`, background: SURFACE }}>

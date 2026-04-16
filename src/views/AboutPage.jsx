@@ -372,22 +372,30 @@ export default function AboutPage() {
               fontSize: 48, fontWeight: 900, fontFamily: FH, letterSpacing: '-.035em',
               color: W, lineHeight: 1.05, marginBottom: 18,
             }}>
-              Want to build something with us?
+              Talk directly to Adam.
             </h2>
-            <p style={{ fontSize: 17, color: 'rgba(255,255,255,.7)', fontFamily: FB, lineHeight: 1.6, maxWidth: 540, margin: '0 auto 32px' }}>
-              Whether you want to run your agency on Koto or collaborate on a custom AI system for
-              your business, reach out. Adam reads every message.
+            <p style={{ fontSize: 17, color: 'rgba(255,255,255,.7)', fontFamily: FB, lineHeight: 1.6, maxWidth: 560, margin: '0 auto 32px' }}>
+              No sales team, no SDR queue, no form black hole. Book 20 minutes and I'll tell you
+              honestly whether Koto is a fit — and if it isn't, who you should use instead.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" style={{ background: R, borderColor: R, padding: '14px 26px', fontSize: 15 }} onClick={() => navigate('/signup')}>
-                Start a free trial <ArrowRight size={14} />
+              <button className="btn btn-primary" style={{ background: R, borderColor: R, padding: '14px 26px', fontSize: 15 }} onClick={() => navigate('/contact')}>
+                Book 20 min with Adam <ArrowRight size={14} />
               </button>
               <a href="mailto:adam@hellokoto.com" className="btn" style={{
                 background: 'transparent', color: W, border: '1px solid rgba(255,255,255,.3)',
                 padding: '14px 26px', fontSize: 15, textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 8,
               }}>
                 <Mail size={14} /> adam@hellokoto.com
               </a>
+            </div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', marginTop: 18, fontFamily: FB }}>
+              Or start a free trial →{' '}
+              <button onClick={() => navigate('/signup')} style={{
+                background: 'none', border: 'none', color: W, fontWeight: 700,
+                textDecoration: 'underline', cursor: 'pointer', fontSize: 13, fontFamily: FB,
+              }}>hellokoto.com/signup</button>
             </div>
           </div>
         </div>

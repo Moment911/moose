@@ -10,6 +10,7 @@ import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
+import TrustStrip from '../components/public/TrustStrip'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -64,10 +65,10 @@ const PROCESS = [
 ]
 
 const STATS = [
-  { num: '98+',  label: 'Avg. Lighthouse score' },
+  { num: '90+',  label: 'Target Lighthouse score' },
   { num: '30d',  label: 'Design → launch' },
-  { num: '100%', label: 'Integrated with Koto' },
-  { num: '2.1x', label: 'Conversion vs. template' },
+  { num: '100%', label: 'Next.js + Vercel, yours to keep' },
+  { num: '0',    label: 'Page builders, plugins, or lock-in' },
 ]
 
 const PROMISES = [
@@ -133,6 +134,9 @@ export default function WebDesignServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* OFFERINGS */}
       <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}`, background: SURFACE }}>

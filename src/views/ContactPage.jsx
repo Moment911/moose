@@ -248,6 +248,62 @@ export default function ContactPage() {
         </div>
       </section>
 
+      {/* WHAT HAPPENS NEXT — reassurance block before the footer */}
+      <section className="c-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}`, background: W }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 620, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: R, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+              What happens after you hit send
+            </div>
+            <h2 style={{ fontSize: 40, fontWeight: 900, fontFamily: FH, letterSpacing: '-.03em', color: INK, lineHeight: 1.1 }}>
+              No forms black hole. No SDR queue.
+            </h2>
+          </div>
+
+          <div className="c-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+            {[
+              { num: '1', title: 'We read it within one business hour', desc: 'Adam or an engineer on the team reads your note personally. No ticketing system, no auto-reply.' },
+              { num: '2', title: 'You get a 15-min call invite back', desc: 'We send 2–3 Calendly slots within a day. You pick one, or propose your own. No qualifying dance.' },
+              { num: '3', title: 'Written scope + quote in 72 hours', desc: 'After the call you get a one-pager: what we\'d build, timeline, fixed price. You decide. No pressure.' },
+            ].map(step => (
+              <div key={step.num} style={{
+                background: W, border: `1px solid ${HAIR}`, borderRadius: 14, padding: '28px 26px',
+                position: 'relative', transition: 'border-color .2s, transform .2s, box-shadow .2s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = INK; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(17,17,17,.06)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = HAIR; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <div style={{
+                  position: 'absolute', top: -14, left: 22,
+                  width: 32, height: 32, borderRadius: '50%', background: INK, color: W,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 900, fontFamily: FH,
+                }}>
+                  {step.num}
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 900, fontFamily: FH, color: INK, letterSpacing: '-.02em', marginBottom: 8, paddingTop: 8 }}>
+                  {step.title}
+                </div>
+                <div style={{ fontSize: 14, color: MUTED, fontFamily: FB, lineHeight: 1.6 }}>{step.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            textAlign: 'center', marginTop: 44, padding: '20px 28px',
+            background: SURFACE, border: `1px solid ${HAIR}`, borderRadius: 14,
+            maxWidth: 620, marginLeft: 'auto', marginRight: 'auto',
+            fontSize: 14, color: MUTED, fontFamily: FB, lineHeight: 1.6,
+          }}>
+            Rather talk now than type?{' '}
+            <a href={CONTACT_PHONE_HREF} style={{
+              color: INK, fontWeight: 800, textDecoration: 'none', borderBottom: `2px solid ${R}`,
+            }}>Call {CONTACT_PHONE}</a>
+            {' '}— we pick up 9–6 ET.
+          </div>
+        </div>
+      </section>
+
       <PublicFooter />
     </div>
   )

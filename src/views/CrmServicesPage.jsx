@@ -10,6 +10,7 @@ import { CONTACT_PHONE, CONTACT_PHONE_HREF } from '../lib/contact'
 import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
+import TrustStrip from '../components/public/TrustStrip'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -66,10 +67,10 @@ const PROCESS = [
 ]
 
 const STATS = [
-  { num: '200+', label: 'APIs integrated' },
-  { num: '4x',   label: 'Faster sales cycles' },
-  { num: '72h',  label: 'From kickoff to staging' },
-  { num: '100%', label: 'You own the data' },
+  { num: '200+', label: 'Platforms we integrate' },
+  { num: '30d',  label: 'Kickoff → live system' },
+  { num: '0',    label: 'Per-seat fees, forever' },
+  { num: '100%', label: 'You own code + data' },
 ]
 
 const PROMISES = [
@@ -135,6 +136,9 @@ export default function CrmServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* CAPABILITIES */}
       <section className="m-pad" style={{ padding: '96px 40px', borderTop: `1px solid ${HAIR}`, background: SURFACE }}>

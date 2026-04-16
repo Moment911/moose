@@ -14,6 +14,7 @@ import PublicNav from '../components/public/PublicNav'
 import PublicFooter from '../components/public/PublicFooter'
 import ScopeBand from '../components/public/ScopeBand'
 import InlineSystemMock from '../components/public/InlineSystemMock'
+import TrustStrip from '../components/public/TrustStrip'
 
 const INK    = BLK
 const MUTED  = '#6b7280'
@@ -357,6 +358,9 @@ export default function CustomSystemsPage() {
           </div>
         </div>
       </section>
+
+      {/* TRUST STRIP */}
+      <TrustStrip />
 
       {/* SCOPE BAND — "Gone are the days..." */}
       <ScopeBand />
