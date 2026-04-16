@@ -2040,29 +2040,45 @@ Return ONLY valid JSON:
 
     const { data: client } = await s.from('clients').select('name, website, primary_service, target_customer, industry, location').eq('id', brief.client_id).single()
 
-    // ── Pre-generation: Run semantic agents in parallel ──────────────
+    // ── Pre-generation: Run ALL applicable semantic agents in parallel ──
     let queryGap: any = null
     let frameAnalysis: any = null
     let safeAnswer: any = null
+    let entitySuggestions: any = null
+    let lexicalRelations: any = null
+    let titleAudit: any = null
     try {
-      const [qgResult, faResult] = await Promise.all([
-        runQueryGapAnalyzer(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '' }),
-        runFrameAnalyzer(ai, { keyword: brief.target_keyword }),
+      // Wave 1: Core analysis agents (parallel)
+      const [qgResult, faResult, entityResult, lexResult] = await Promise.all([
+        runQueryGapAnalyzer(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '' }).catch(() => null),
+        runFrameAnalyzer(ai, { keyword: brief.target_keyword }).catch(() => null),
+        runNamedEntitySuggester(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '', business_name: client?.name || '', location: client?.location || '' }).catch(() => null),
+        runLexicalRelationAnalyzer(ai, { keyword: brief.target_keyword, industry: client?.primary_service || '' }).catch(() => null),
       ])
       queryGap = qgResult
       frameAnalysis = faResult
+      entitySuggestions = entityResult
+      lexicalRelations = lexResult
 
-      safeAnswer = await runSafeAnswerGenerator(ai, { keyword: brief.target_keyword, business_name: client?.name || '', industry: client?.primary_service || '', location: '' })
+      // Wave 2: Depends on wave 1 results (parallel)
+      const [saResult, taResult] = await Promise.all([
+        runSafeAnswerGenerator(ai, { keyword: brief.target_keyword, business_name: client?.name || '', industry: client?.primary_service || '', location: client?.location || '' }).catch(() => null),
+        runTitleQueryAuditor(ai, { title: brief.title_tag || '', target_keyword: brief.target_keyword }).catch(() => null),
+      ])
+      safeAnswer = saResult
+      titleAudit = taResult
     } catch (e) {
-      // Semantic agents are non-blocking — continue with standard generation if they fail
       console.error('[semantic-agents] Pre-generation agents failed, continuing without:', e)
     }
 
     // Build semantic context sections for the prompt
     const semanticContext = [
-      queryGap ? `\nQUERY GAP INTELLIGENCE:\nThe following content signifiers MUST be addressed — they represent gaps in current search results:\n${JSON.stringify(queryGap.gaps || queryGap, null, 2)}` : '',
-      frameAnalysis ? `\nFRAME SEMANTICS — REQUIRED COVERAGE:\nSearch engines expect these conceptual frame elements for this topic. Cover each one:\n${JSON.stringify(frameAnalysis.frames || frameAnalysis, null, 2)}` : '',
-      safeAnswer ? `\nREQUIRED OPENING PARAGRAPH (use this as the first paragraph — it is optimized for featured snippets and AI Overviews):\n${safeAnswer.answer || safeAnswer}` : '',
+      queryGap ? `\nQUERY GAP INTELLIGENCE:\nThe following content signifiers MUST be addressed — they represent gaps in current search results:\n${JSON.stringify(queryGap.context_signifiers || queryGap.competitor_gaps || queryGap, null, 2)}` : '',
+      frameAnalysis ? `\nFRAME SEMANTICS — REQUIRED COVERAGE:\nSearch engines expect these conceptual frame elements for this topic. Cover each one:\n${JSON.stringify(frameAnalysis.frame_elements || frameAnalysis, null, 2)}` : '',
+      entitySuggestions ? `\nREQUIRED NAMED ENTITIES:\nInclude these entities naturally throughout the content to signal topical authority:\n${JSON.stringify((entitySuggestions.entities || []).filter((e: any) => e.priority === 'must_include').map((e: any) => `${e.name} (${e.type})`), null, 2)}` : '',
+      lexicalRelations ? `\nLEXICAL COVERAGE — REQUIRED TERMS:\nHypernyms (broader terms): ${(lexicalRelations.hypernyms || []).join(', ')}\nHyponyms (specific types): ${(lexicalRelations.hyponyms || []).join(', ')}\nMeronyms (parts/components): ${(lexicalRelations.meronyms || []).join(', ')}\nInclude these related terms for complete entity coverage.` : '',
+      safeAnswer ? `\nREQUIRED OPENING PARAGRAPH (optimized for featured snippets and AI Overviews):\n${safeAnswer.featured_snippet_answer || safeAnswer.answer || safeAnswer}` : '',
+      titleAudit && titleAudit.improved_titles?.length ? `\nTITLE TAG OPTIONS (choose the best or use the original):\n${titleAudit.improved_titles.map((t: any) => `- ${t.title} (${t.method})`).join('\n')}` : '',
     ].filter(Boolean).join('\n')
 
     const writePrompt = `You are an expert SEO content writer. Write the COMPLETE page content based on this brief.
@@ -2135,17 +2151,44 @@ Return the content in this format:
       let plainText = sections.plain_text || raw.replace(/<[^>]+>/g, '')
       let topicalityScore: any = null
 
-      // ── Post-generation: Run semantic post-processors ──────────────
+      // ── Post-generation: Run ALL semantic post-processors ──────────
+      let sentenceFilter: any = null
+      let metadiscourseAudit: any = null
+      let entityInsertResult: any = null
+      let triples: any = null
       try {
-        const cleaned = await runContextlessWordRemover(ai, { content: plainText, keyword: brief.target_keyword, target_entities: brief.target_entities || [] })
-        if (cleaned?.cleaned_content) {
-          plainText = cleaned.cleaned_content
+        // Step 1: Remove contextless filler words
+        const cleaned = await runContextlessWordRemover(ai, { content: plainText, keyword: brief.target_keyword, target_entities: brief.target_entities || [] }).catch(() => null)
+        if (cleaned?.cleaned_content) plainText = cleaned.cleaned_content
+
+        // Step 2: Audit metadiscourse markers ("In conclusion", "It's important to note", etc.)
+        metadiscourseAudit = await runMetadiscourseAuditor(ai, { content: plainText }).catch(() => null)
+        if (metadiscourseAudit?.cleaned_content) plainText = metadiscourseAudit.cleaned_content
+
+        // Step 3: Filter low-value sentences
+        sentenceFilter = await runSentenceFilterer(ai, { content: plainText, keyword: brief.target_keyword }).catch(() => null)
+
+        // Step 4: Insert missing named entities (if entity suggestions exist from pre-gen)
+        if (entitySuggestions?.entities?.length) {
+          const missingEntities = (entitySuggestions.entities || [])
+            .filter((e: any) => e.priority === 'must_include' && !plainText.toLowerCase().includes(e.name.toLowerCase()))
+            .map((e: any) => ({ name: e.name, type: e.type, context: e.context || '' }))
+          if (missingEntities.length > 0) {
+            entityInsertResult = await runEntityInserter(ai, { content: plainText, entities_to_insert: missingEntities, keyword: brief.target_keyword }).catch(() => null)
+            if (entityInsertResult?.enhanced_content) plainText = entityInsertResult.enhanced_content
+          }
         }
 
-        const scored = await runTopicalityScorer(ai, { content: plainText, keyword: brief.target_keyword })
-        if (scored) {
-          topicalityScore = scored
-        }
+        // Step 5: Score final topicality
+        topicalityScore = await runTopicalityScorer(ai, {
+          content: plainText,
+          keyword: brief.target_keyword,
+          required_entities: entitySuggestions?.entities?.map((e: any) => e.name),
+          frame_elements: frameAnalysis?.frame_elements?.map((f: any) => f.element),
+        }).catch(() => null)
+
+        // Step 6: Generate knowledge graph triples (for schema markup suggestions)
+        triples = await runTripleGenerator(ai, { content: plainText, keyword: brief.target_keyword, business_name: client?.name }).catch(() => null)
       } catch (e) {
         console.error('[semantic-agents] Post-generation agents failed, returning raw content:', e)
       }
@@ -2160,10 +2203,29 @@ Return the content in this format:
         word_count: plainText.split(/\s+/).length,
         brief_id,
         topicality_score: topicalityScore,
+        title_audit: titleAudit || null,
+        knowledge_graph_triples: triples?.triples?.slice(0, 20) || null,
+        schema_suggestions: triples?.schema_suggestions || null,
+        sentence_quality: sentenceFilter ? {
+          filler_pct: sentenceFilter.filler_pct,
+          informative_pct: sentenceFilter.informative_pct,
+          quality_score: sentenceFilter.quality_score,
+        } : null,
+        metadiscourse_removed: metadiscourseAudit?.total_found || 0,
+        entities_inserted: entityInsertResult?.entities_inserted || 0,
         semantic_agents_used: {
           query_gap: !!queryGap,
           frame_analysis: !!frameAnalysis,
           safe_answer: !!safeAnswer,
+          named_entities: !!entitySuggestions,
+          lexical_relations: !!lexicalRelations,
+          title_audit: !!titleAudit,
+          contextless_remover: true,
+          metadiscourse_audit: !!metadiscourseAudit,
+          sentence_filter: !!sentenceFilter,
+          entity_inserter: !!entityInsertResult,
+          topicality_scorer: !!topicalityScore,
+          triple_generator: !!triples,
         },
       })
     } catch (e: any) {
