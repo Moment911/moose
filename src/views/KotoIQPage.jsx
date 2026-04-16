@@ -1069,6 +1069,19 @@ export default function KotoIQPage() {
                     <div style={{ fontSize: 10, fontWeight: 500, color: '#374151', marginTop: 1 }}>Analyze any page</div>
                   </div>
                 </a>
+                <a href="/tour"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                    marginTop: 8, padding: '10px 12px', borderRadius: 8, border: `1.5px solid ${T}30`,
+                    background: `${T}08`, color: BLK, textDecoration: 'none',
+                    fontSize: 12, fontWeight: 700, fontFamily: FH, cursor: 'pointer',
+                  }}>
+                  <Sparkles size={14} color={T} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: BLK }}>Watch Product Tour</div>
+                    <div style={{ fontSize: 10, fontWeight: 500, color: '#374151', marginTop: 1 }}>See KotoIQ in action</div>
+                  </div>
+                </a>
               </div>
             </div>
           )}
