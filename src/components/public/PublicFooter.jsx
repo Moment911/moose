@@ -14,7 +14,7 @@ const COLUMNS = [
     { label: 'AI Agents', href: '/ai-agents' },
     { label: 'Chatbots', href: '/chatbots' },
     { label: 'Custom Systems', href: '/custom-systems' },
-    { label: 'KotoIQ', href: '/#kotoiq' },
+    // { label: 'KotoIQ', href: '/#kotoiq' },          // lives on /koto-ai (hidden)
     // { label: 'Koto AI (agency OS)', href: '/koto-ai' }, // hidden
   ] },
   { title: 'Company', links: [
