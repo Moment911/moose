@@ -18,10 +18,10 @@ const TYPE_CONFIG = {
 }
 
 function TypeBadge({ type }) {
-  const cfg = TYPE_CONFIG[type] || { color: '#9ca3af', label: type, icon: Layers }
+  const cfg = TYPE_CONFIG[type] || { color: '#4b5563', label: type, icon: Layers }
   const Icon = cfg.icon
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: cfg.color + '14', color: cfg.color }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: cfg.color + '14', color: cfg.color }}>
       <Icon size={10} /> {cfg.label}
     </span>
   )
@@ -32,7 +32,7 @@ function CoverageBar({ covered, total, height = 8 }) {
   const color = pct >= 70 ? GRN : pct >= 40 ? AMB : R
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af', fontWeight: 600, marginBottom: 3 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#4b5563', fontWeight: 600, marginBottom: 3 }}>
         <span>Coverage</span>
         <span style={{ color }}>{pct}% ({covered}/{total})</span>
       </div>
@@ -62,7 +62,7 @@ function StatBox({ label, value, color }) {
   return (
     <div style={{ textAlign: 'center', flex: 1, minWidth: 100 }}>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
-      <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+      <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
     </div>
   )
 }
@@ -165,10 +165,10 @@ export default function QueryPathTab({ clientId, agencyId }) {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <TypeBadge type={cluster.cluster_type} />
-                    <span style={{ fontSize: 11, color: '#9ca3af' }}>{queries.length} queries</span>
+                    <span style={{ fontSize: 11, color: '#4b5563' }}>{queries.length} queries</span>
                   </div>
                 </div>
-                <button onClick={() => toggleCluster(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}>
+                <button onClick={() => toggleCluster(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4b5563', padding: 4 }}>
                   {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
               </div>
@@ -189,7 +189,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                   <QueryPill key={j} keyword={q.keyword} status={coveredSet.has(q.keyword.toLowerCase().trim()) ? 'covered' : 'gap'} />
                 ))}
                 {!expanded && queries.length > 8 && (
-                  <span style={{ fontSize: 11, color: '#9ca3af', padding: '5px 8px', cursor: 'pointer' }} onClick={() => toggleCluster(i)}>
+                  <span style={{ fontSize: 11, color: '#4b5563', padding: '5px 8px', cursor: 'pointer' }} onClick={() => toggleCluster(i)}>
                     +{queries.length - 8} more
                   </span>
                 )}
@@ -199,14 +199,14 @@ export default function QueryPathTab({ clientId, agencyId }) {
               {expanded && (
                 <div style={{ marginTop: 14, borderTop: '1px solid #f3f4f6', paddingTop: 12 }}>
                   {/* Session depth */}
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 8 }}>
+                  <div style={{ fontSize: 11, color: '#4b5563', marginBottom: 8 }}>
                     Avg session depth: <span style={{ fontFamily: FH, fontWeight: 700, color: BLK }}>{cluster.avg_session_depth || '—'}</span> queries
                   </div>
 
                   {/* Next queries */}
                   {(cluster.common_next_queries || []).length > 0 && (
                     <div style={{ marginBottom: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <ArrowRight size={10} /> Users search next
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -222,7 +222,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
                   {/* Previous queries */}
                   {(cluster.common_prev_queries || []).length > 0 && (
                     <div style={{ marginBottom: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <ArrowLeft size={10} /> Users searched before
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -274,7 +274,7 @@ export default function QueryPathTab({ clientId, agencyId }) {
               </span>
             ))}
             {(data.all_gaps || []).length > 40 && (
-              <span style={{ fontSize: 11, color: '#9ca3af', padding: '5px 8px' }}>
+              <span style={{ fontSize: 11, color: '#4b5563', padding: '5px 8px' }}>
                 +{(data.all_gaps || []).length - 40} more
               </span>
             )}

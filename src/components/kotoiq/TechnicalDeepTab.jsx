@@ -40,7 +40,7 @@ function ScoreRing({ score, size = 80, strokeWidth = 6, color }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color: c, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 9, color: '#9ca3af', fontWeight: 600 }}>/100</span>
+        <span style={{ fontSize: 11, color: '#4b5563', fontWeight: 600 }}>/100</span>
       </div>
     </div>
   )
@@ -52,7 +52,7 @@ function SubScoreBadge({ label, score, icon: Icon, color }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: c + '0a', borderRadius: 10, border: `1px solid ${c}20` }}>
       <Icon size={14} color={c} />
       <div>
-        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+        <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: c }}>{score}</div>
       </div>
     </div>
@@ -77,7 +77,7 @@ function IssueBadge({ type }) {
   const colors = { missing: R, non_self: AMB, points_to_404: R, chain: AMB, no_viewport: R, fixed_width: AMB }
   const labels = { missing: 'Missing', non_self: 'Non-Self', points_to_404: '→ 404', chain: 'Chain', no_viewport: 'No Viewport', fixed_width: 'Fixed Width' }
   return (
-    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: (colors[type] || '#9ca3af') + '14', color: colors[type] || '#9ca3af' }}>
+    <span style={{ padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 700, background: (colors[type] || '#9ca3af') + '14', color: colors[type] || '#9ca3af' }}>
       {labels[type] || type}
     </span>
   )
@@ -190,11 +190,11 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' }}>Total URLs</div>
+              <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>Total URLs</div>
               <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{(d.total_urls || 0).toLocaleString()}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' }}>Indexable</div>
+              <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>Indexable</div>
               <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: GRN }}>{(d.indexable_urls || 0).toLocaleString()}</div>
             </div>
           </div>
@@ -214,7 +214,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
               </span>
             </div>
             {(d.canonical_issues || []).length > 0 && (
-              <button onClick={() => setExpandCanonical(!expandCanonical)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
+              <button onClick={() => setExpandCanonical(!expandCanonical)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
                 {(d.canonical_issues || []).length} issues {expandCanonical ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
             )}
@@ -248,7 +248,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
               </span>
             </div>
             {(d.mobile_mismatches || []).length > 0 && (
-              <button onClick={() => setExpandMobile(!expandMobile)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
+              <button onClick={() => setExpandMobile(!expandMobile)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
                 {(d.mobile_mismatches || []).length} issues {expandMobile ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
             )}
@@ -279,7 +279,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           </div>
           <ProgressBar value={d.indexed_pct || 0} label="Indexed" color={d.indexed_pct >= 80 ? GRN : d.indexed_pct >= 50 ? AMB : R} height={10} />
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Status Code Distribution</div>
+            <div style={{ fontSize: 11, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Status Code Distribution</div>
             {Object.entries(statusDist).sort((a, b) => b[1] - a[1]).map(([code, count]) => {
               const pct = (count / statusTotal * 100).toFixed(1)
               const color = code === '200' ? GRN : code.startsWith('3') ? AMB : code.startsWith('4') ? R : '#9ca3af'
@@ -295,7 +295,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             })}
             {Object.keys(d.not_indexed_reasons || {}).length > 0 && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>Not Indexed Reasons</div>
+                <div style={{ fontSize: 11, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>Not Indexed Reasons</div>
                 {Object.entries(d.not_indexed_reasons).map(([reason, count]) => (
                   <div key={reason} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6b7280', marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
@@ -328,11 +328,11 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             ['cls', d.cwv_cls, 'CLS', 'Cumulative Layout Shift'],
           ].map(([key, value, label, desc]) => (
             <div key={key} style={{ textAlign: 'center', padding: '16px 12px', background: '#fafafa', borderRadius: 10 }}>
-              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>{desc}</div>
+              <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>{desc}</div>
               <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: cwvColor(value, key) }}>
                 {value !== null && value !== undefined ? (key === 'cls' ? value.toFixed(2) : `${Math.round(value)}`) : '—'}
               </div>
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>
                 {key === 'cls' ? '' : 'ms'}
                 {value !== null && value !== undefined && (
                   <span style={{ marginLeft: 6, fontWeight: 700, color: cwvColor(value, key) }}>
@@ -352,18 +352,18 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
             <BarChart2 size={15} color={T} /> Sitemap Analysis
           </div>
           {(d.sitemap_issues || []).length > 0 && (
-            <button onClick={() => setExpandSitemap(!expandSitemap)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
+            <button onClick={() => setExpandSitemap(!expandSitemap)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
               {(d.sitemap_issues || []).length} issues {expandSitemap ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
           )}
         </div>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
-            <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' }}>URL Count</div>
+            <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>URL Count</div>
             <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{(d.sitemap_urls_count || 0).toLocaleString()}</div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' }}>Categorized</div>
+            <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>Categorized</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
               {d.sitemap_categorized ? <CheckCircle size={16} color={GRN} /> : <XCircle size={16} color={AMB} />}
               <span style={{ fontSize: 13, fontWeight: 600, color: d.sitemap_categorized ? GRN : AMB }}>
@@ -373,7 +373,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
           </div>
           {d.sitemap_url && (
             <div>
-              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase' }}>Location</div>
+              <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>Location</div>
               <a href={d.sitemap_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: T, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                 {truncUrl(d.sitemap_url, 40)} <ExternalLink size={10} />
               </a>
@@ -386,7 +386,7 @@ export default function TechnicalDeepTab({ clientId, agencyId }) {
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #f9fafb' }}>
                 <AlertTriangle size={12} color={AMB} />
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{truncUrl(issue.url, 50)}</span>
-                <span style={{ fontSize: 11, color: '#9ca3af' }}>{issue.issue}</span>
+                <span style={{ fontSize: 11, color: '#4b5563' }}>{issue.issue}</span>
                 {issue.status && <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 11, color: R }}>{issue.status}</span>}
               </div>
             ))}

@@ -26,7 +26,7 @@ function ScoreRing({ score, size = 100 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
-        <div style={{ fontSize: size * 0.1, color: '#9ca3af', fontWeight: 600, marginTop: 2 }}>/ 100</div>
+        <div style={{ fontSize: size * 0.1, color: '#4b5563', fontWeight: 600, marginTop: 2 }}>/ 100</div>
       </div>
     </div>
   )
@@ -156,7 +156,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Shield size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Brand SERP Data</div>
-          <div style={{ fontSize: 13, color: '#9ca3af' }}>Click "Scan Brand SERP" to analyze how your brand appears in Google</div>
+          <div style={{ fontSize: 13, color: '#4b5563' }}>Click "Scan Brand SERP" to analyze how your brand appears in Google</div>
         </div>
       )}
 
@@ -166,7 +166,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
           <div style={card}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Globe size={16} color={T} /> SERP Features
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginLeft: 'auto' }}>{featuresPresent} / {featuresTotal} active</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#4b5563', marginLeft: 'auto' }}>{featuresPresent} / {featuresTotal} active</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
               {FEATURES.map(f => {
@@ -183,7 +183,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: active ? BLK : '#9ca3af' }}>{f.label}</div>
-                      <div style={{ fontSize: 10, color: '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
+                      <div style={{ fontSize: 12, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.desc}</div>
                     </div>
                     {active ? <CheckCircle size={16} color={GRN} /> : <XCircle size={16} color="#d1d5db" />}
                   </div>
@@ -203,7 +203,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               </div>
               <div>
                 <div style={{ fontSize: 13, color: '#6b7280' }}>out of {data.total_results} top results are from your domain</div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>
                   {data.owned_results >= 7 ? 'Excellent brand SERP dominance' :
                     data.owned_results >= 5 ? 'Good presence — room to grow' :
                     data.owned_results >= 3 ? 'Moderate presence — competitors visible' :
@@ -222,8 +222,8 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               ))}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-              <span style={{ fontSize: 10, color: GRN, fontWeight: 700 }}>Owned ({data.owned_results})</span>
-              <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700 }}>Other ({(data.total_results || 10) - data.owned_results})</span>
+              <span style={{ fontSize: 12, color: GRN, fontWeight: 700 }}>Owned ({data.owned_results})</span>
+              <span style={{ fontSize: 12, color: '#4b5563', fontWeight: 700 }}>Other ({(data.total_results || 10) - data.owned_results})</span>
             </div>
           </div>
 
@@ -246,7 +246,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                     }}>
                       <div style={{ flex: 1, fontSize: 13, color: BLK }}>{q.question}</div>
                       <span style={{
-                        fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
+                        fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12,
                         background: sentimentColor(q.sentiment) + '20', color: sentimentColor(q.sentiment),
                         textTransform: 'uppercase', letterSpacing: '.04em',
                       }}>
@@ -295,7 +295,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                 <Globe size={16} color={T} /> Knowledge Panel
               </div>
               <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6 }}>{data.kp_description}</div>
-              {data.kp_source && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>Source: {data.kp_source}</div>}
+              {data.kp_source && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 6 }}>Source: {data.kp_source}</div>}
             </div>
           )}
 
@@ -308,7 +308,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
               {strategyLoading ? (
                 <div style={{ textAlign: 'center', padding: 32 }}>
                   <Loader2 size={24} color={R} style={{ animation: 'spin 1s linear infinite' }} />
-                  <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 8 }}>Analyzing brand SERP and generating strategy...</div>
+                  <div style={{ fontSize: 13, color: '#4b5563', marginTop: 8 }}>Analyzing brand SERP and generating strategy...</div>
                 </div>
               ) : strategy ? (
                 <div>
@@ -322,7 +322,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginBottom: 6 }}>
                         Knowledge Panel
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, marginLeft: 8,
+                        <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 10, marginLeft: 8,
                           background: strategy.knowledge_panel.status === 'active' ? GRN + '15' : AMB + '15',
                           color: strategy.knowledge_panel.status === 'active' ? GRN : AMB,
                         }}>{strategy.knowledge_panel.status}</span>
@@ -373,12 +373,12 @@ export default function BrandSerpTab({ clientId, agencyId }) {
                         {strategy.priority_actions.map((a, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
                             <div style={{ flex: 1, fontSize: 12, color: BLK }}>{a.action}</div>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                            <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                               background: a.impact === 'high' ? GRN + '15' : a.impact === 'medium' ? AMB + '15' : '#f3f4f6',
                               color: a.impact === 'high' ? GRN : a.impact === 'medium' ? AMB : '#9ca3af',
                               textTransform: 'uppercase', letterSpacing: '.04em',
                             }}>{a.impact}</span>
-                            <span style={{ fontSize: 10, color: '#9ca3af' }}>{a.timeline}</span>
+                            <span style={{ fontSize: 12, color: '#4b5563' }}>{a.timeline}</span>
                           </div>
                         ))}
                       </div>
@@ -391,7 +391,7 @@ export default function BrandSerpTab({ clientId, agencyId }) {
 
           {/* Last scanned */}
           {data.updated_at && (
-            <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'right', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: '#4b5563', textAlign: 'right', marginTop: 4 }}>
               Last scanned: {new Date(data.updated_at).toLocaleString()}
             </div>
           )}

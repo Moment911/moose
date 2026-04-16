@@ -25,7 +25,7 @@ function ScoreRing({ score, size = 100 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
-        <div style={{ fontSize: size * 0.1, color: '#9ca3af', fontWeight: 600, marginTop: 2 }}>/ 100</div>
+        <div style={{ fontSize: size * 0.1, color: '#4b5563', fontWeight: 600, marginTop: 2 }}>/ 100</div>
       </div>
     </div>
   )
@@ -34,9 +34,9 @@ function ScoreRing({ score, size = 100 }) {
 function StatBox({ label, value, sub, color }) {
   return (
     <div style={{ background: '#f9fafb', borderRadius: 10, padding: '14px 18px', flex: 1, minWidth: 120 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: color || BLK, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 4 }}>{sub}</div>}
     </div>
   )
 }
@@ -138,7 +138,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
         <div style={{ ...card, textAlign: 'center', padding: 48 }}>
           <Link2 size={40} color="#d1d5db" style={{ marginBottom: 12 }} />
           <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 700, color: BLK, marginBottom: 6 }}>No Backlink Data</div>
-          <div style={{ fontSize: 13, color: '#9ca3af' }}>Click "Analyze Backlinks" to pull your backlink profile from Moz</div>
+          <div style={{ fontSize: 13, color: '#4b5563' }}>Click "Analyze Backlinks" to pull your backlink profile from Moz</div>
         </div>
       )}
 
@@ -164,21 +164,21 @@ export default function BacklinksTab({ clientId, agencyId }) {
                 const color = binStart >= 60 ? GRN : binStart >= 30 ? AMB : '#e5e7eb'
                 return (
                   <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <div style={{ fontSize: 9, color: '#9ca3af', fontWeight: 600 }}>{count > 0 ? count : ''}</div>
+                    <div style={{ fontSize: 11, color: '#4b5563', fontWeight: 600 }}>{count > 0 ? count : ''}</div>
                     <div style={{
                       width: '100%', height: `${Math.max(h, 4)}%`, background: color,
                       borderRadius: '4px 4px 0 0', transition: 'height 0.4s ease',
                       minHeight: 4,
                     }} />
-                    <div style={{ fontSize: 9, color: '#9ca3af', whiteSpace: 'nowrap' }}>{label}</div>
+                    <div style={{ fontSize: 11, color: '#4b5563', whiteSpace: 'nowrap' }}>{label}</div>
                   </div>
                 )
               })}
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 10, justifyContent: 'center' }}>
-              <span style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e5e7eb' }} /> Low (0-30)</span>
-              <span style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: AMB }} /> Medium (30-60)</span>
-              <span style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: GRN }} /> High (60+)</span>
+              <span style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#e5e7eb' }} /> Low (0-30)</span>
+              <span style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: AMB }} /> Medium (30-60)</span>
+              <span style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: GRN }} /> High (60+)</span>
             </div>
           </div>
 
@@ -241,10 +241,10 @@ export default function BacklinksTab({ clientId, agencyId }) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid #fecaca' }}>
-                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Domain</th>
-                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Spam</th>
-                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>DA</th>
-                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Anchor</th>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Domain</th>
+                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Spam</th>
+                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>DA</th>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Anchor</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -278,9 +278,9 @@ export default function BacklinksTab({ clientId, agencyId }) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid #dcfce7' }}>
-                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Domain</th>
-                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>DA</th>
-                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Anchor</th>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Domain</th>
+                        <th style={{ textAlign: 'center', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>DA</th>
+                        <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Anchor</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -301,16 +301,16 @@ export default function BacklinksTab({ clientId, agencyId }) {
           {/* Edu/Gov + Trust */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
             <div style={{ ...card, flex: 1, marginBottom: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 6 }}>.edu / .gov Links</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 6 }}>.edu / .gov Links</div>
               <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: data.edu_gov_links > 0 ? GRN : '#d1d5db' }}>{data.edu_gov_links}</div>
-              <div style={{ fontSize: 11, color: '#9ca3af' }}>{data.edu_gov_links > 0 ? 'Strong trust signals' : 'No .edu/.gov backlinks'}</div>
+              <div style={{ fontSize: 11, color: '#4b5563' }}>{data.edu_gov_links > 0 ? 'Strong trust signals' : 'No .edu/.gov backlinks'}</div>
             </div>
             <div style={{ ...card, flex: 1, marginBottom: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 6 }}>Trust Rank Estimate</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH, marginBottom: 6 }}>Trust Rank Estimate</div>
               <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: data.trust_rank_estimate >= 40 ? GRN : data.trust_rank_estimate >= 20 ? AMB : R }}>
                 {Math.round(data.trust_rank_estimate)}
               </div>
-              <div style={{ fontSize: 11, color: '#9ca3af' }}>Based on link quality ratio</div>
+              <div style={{ fontSize: 11, color: '#4b5563' }}>Based on link quality ratio</div>
             </div>
           </div>
 
@@ -329,11 +329,11 @@ export default function BacklinksTab({ clientId, agencyId }) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                        <th style={{ textAlign: 'left', padding: '8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Domain</th>
-                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>DA</th>
-                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Ref. Domains</th>
-                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Backlinks</th>
-                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Spam</th>
+                        <th style={{ textAlign: 'left', padding: '8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Domain</th>
+                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>DA</th>
+                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Ref. Domains</th>
+                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Backlinks</th>
+                        <th style={{ textAlign: 'center', padding: '8px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Spam</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -380,9 +380,9 @@ export default function BacklinksTab({ clientId, agencyId }) {
                       {data.unlinked_mentions.map((m, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9fafb', marginBottom: 4 }}>
                           <div style={{ flex: 1, fontSize: 12, color: '#6b7280' }}>{m.opportunity}</div>
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#9ca3af' }}>{m.source_type}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#4b5563' }}>{m.source_type}</span>
                           <span style={{
-                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                            fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                             background: m.priority === 'high' ? GRN + '15' : m.priority === 'medium' ? AMB + '15' : '#f3f4f6',
                             color: m.priority === 'high' ? GRN : m.priority === 'medium' ? AMB : '#9ca3af',
                           }}>{m.priority}</span>
@@ -398,9 +398,9 @@ export default function BacklinksTab({ clientId, agencyId }) {
                       {data.broken_link_opportunities.map((b, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9fafb', marginBottom: 4 }}>
                           <div style={{ flex: 1, fontSize: 12, color: '#6b7280' }}>{b.strategy}</div>
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#9ca3af' }}>{b.target_type}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#4b5563' }}>{b.target_type}</span>
                           <span style={{
-                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                            fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                             background: b.priority === 'high' ? GRN + '15' : b.priority === 'medium' ? AMB + '15' : '#f3f4f6',
                             color: b.priority === 'high' ? GRN : b.priority === 'medium' ? AMB : '#9ca3af',
                           }}>{b.priority}</span>
@@ -416,9 +416,9 @@ export default function BacklinksTab({ clientId, agencyId }) {
                       {data.competitor_common_links.map((c, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, background: '#f9fafb', marginBottom: 4 }}>
                           <div style={{ flex: 1, fontSize: 12, color: '#6b7280' }}>{c.opportunity}</div>
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#9ca3af' }}>{c.source_type}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#f3f4f6', color: '#4b5563' }}>{c.source_type}</span>
                           <span style={{
-                            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                            fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
                             background: c.priority === 'high' ? GRN + '15' : c.priority === 'medium' ? AMB + '15' : '#f3f4f6',
                             color: c.priority === 'high' ? GRN : c.priority === 'medium' ? AMB : '#9ca3af',
                           }}>{c.priority}</span>
@@ -433,7 +433,7 @@ export default function BacklinksTab({ clientId, agencyId }) {
 
           {/* Last analyzed */}
           {data.updated_at && (
-            <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'right', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: '#4b5563', textAlign: 'right', marginTop: 4 }}>
               Last analyzed: {new Date(data.updated_at).toLocaleString()}
             </div>
           )}

@@ -22,7 +22,7 @@ function ScoreRing({ score, label, color, size = 64 }) {
           style={{ transition: 'stroke-dashoffset .6s ease' }} />
       </svg>
       <div style={{ marginTop: -size / 2 - 10, fontFamily: FH, fontSize: size > 50 ? 18 : 14, fontWeight: 900, color, lineHeight: `${size}px` }}>{score}</div>
-      {label && <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>}
+      {label && <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>}
     </div>
   )
 }
@@ -31,7 +31,7 @@ function StatBox({ label, value, color, sub }) {
   return (
     <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '16px 18px', textAlign: 'center' }}>
       <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: color || BLK }}>{value}</div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginTop: 4, fontFamily: FH }}>{label}</div>
       {sub && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{sub}</div>}
     </div>
   )
@@ -164,7 +164,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                 <div style={{ width: 140, fontSize: 13, fontWeight: 600, color: BLK, fontFamily: FB }}>{type}</div>
                 <div style={{ flex: 1, height: 20, borderRadius: 4, background: '#f3f4f6', overflow: 'hidden' }}>
                   <div style={{ width: `${(Number(count) / maxTypeCount) * 100}%`, height: '100%', borderRadius: 4, background: T, transition: 'width .4s ease', display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', fontFamily: FH }}>{String(count)}</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', fontFamily: FH }}>{String(count)}</span>
                   </div>
                 </div>
               </div>
@@ -178,13 +178,13 @@ export default function SchemaTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Zap size={16} color={AMB} /> Missing Schema Opportunities
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: AMB + '12', color: AMB }}>{eligible.length}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: AMB + '12', color: AMB }}>{eligible.length}</span>
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['URL', 'Recommended Schema', 'CTR Lift', ''].map(h => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'URL' ? 'left' : 'center' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -219,7 +219,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedErrors(!expandedErrors)}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: R, display: 'flex', alignItems: 'center', gap: 8 }}>
               <AlertTriangle size={16} color={R} /> Schema Errors
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: R + '12', color: R }}>{schemaErrors.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: R + '12', color: R }}>{schemaErrors.length}</span>
             </div>
             {expandedErrors ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
           </div>
@@ -230,7 +230,7 @@ export default function SchemaTab({ clientId, agencyId }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <XCircle size={12} color={R} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: BLK }}>{err.type}</span>
-                    <span style={{ fontSize: 10, color: '#9ca3af' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</span>
+                    <span style={{ fontSize: 12, color: '#4b5563' }}>{err.url.replace(/^https?:\/\/[^/]+/, '')}</span>
                   </div>
                   {err.errors.map((e, j) => (
                     <div key={j} style={{ fontSize: 12, color: R, marginLeft: 20 }}>{e}</div>
@@ -247,7 +247,7 @@ export default function SchemaTab({ clientId, agencyId }) {
         <div style={card}>
           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Code size={16} color={GRN} /> Generated Schemas
-            <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: GRN + '12', color: GRN }}>{generated.length}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: GRN + '12', color: GRN }}>{generated.length}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {generated.map((gen, i) => {
@@ -289,7 +289,7 @@ export default function SchemaTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => setExpandedSemantic(!expandedSemantic)}>
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Layout size={16} color={AMB} /> Semantic HTML Issues
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: AMB + '12', color: AMB }}>{semanticIssues.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: AMB + '12', color: AMB }}>{semanticIssues.length}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: audit.semantic_html_score >= 70 ? GRN : AMB }}>{audit.semantic_html_score}/100</div>

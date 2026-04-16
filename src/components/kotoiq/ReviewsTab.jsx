@@ -17,7 +17,7 @@ function ScoreBadge({ score, label, size = 'md' }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ fontFamily: FH, fontSize, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
-      <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
     </div>
   )
 }
@@ -125,7 +125,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#9ca3af' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#4b5563' }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} /> Loading review data...
       </div>
     )
@@ -142,7 +142,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Review & Reputation Intelligence</div>
-          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>
             Last scanned: {data?.scanned_at ? new Date(data.scanned_at).toLocaleDateString() : 'Never'}
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
           <div style={{ fontFamily: FH, fontSize: 48, fontWeight: 900, color: (data?.overall_score || 0) >= 70 ? GRN : (data?.overall_score || 0) >= 40 ? AMB : R, lineHeight: 1 }}>
             {data?.overall_score || 0}
           </div>
-          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '.05em' }}>Review Score</div>
+          <div style={{ fontSize: 11, color: '#4b5563', marginTop: 4, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '.05em' }}>Review Score</div>
           <div style={{ marginTop: 8 }}><RatingStars rating={data?.avg_rating || 0} /></div>
           <div style={{ fontSize: 13, fontWeight: 700, color: BLK, marginTop: 4 }}>{data?.avg_rating || '—'} avg</div>
         </div>
@@ -172,11 +172,11 @@ export default function ReviewsTab({ clientId, agencyId }) {
         {/* Stats grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           <div style={card}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Total Reviews</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4 }}>Total Reviews</div>
             <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.total_reviews || 0}</div>
           </div>
           <div style={card}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Velocity</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4 }}>Velocity</div>
             <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.review_velocity || 0}</div>
             <div style={{ fontSize: 11, color: VELOCITY_COLORS[data?.velocity_trend] || '#6b7280', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
               {(() => { const Icon = VELOCITY_ICONS[data?.velocity_trend] || ArrowRight; return <Icon size={12} /> })()}
@@ -184,11 +184,11 @@ export default function ReviewsTab({ clientId, agencyId }) {
             </div>
           </div>
           <div style={card}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Response Rate</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4 }}>Response Rate</div>
             <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: (data?.response_rate || 0) >= 80 ? GRN : (data?.response_rate || 0) >= 50 ? AMB : R }}>{data?.response_rate || 0}%</div>
           </div>
           <div style={card}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Avg Response</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4 }}>Avg Response</div>
             <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: BLK }}>{data?.avg_response_time_hours ? `${Math.round(data.avg_response_time_hours)}h` : '—'}</div>
           </div>
         </div>
@@ -234,9 +234,9 @@ export default function ReviewsTab({ clientId, agencyId }) {
                   <div style={{ width: `${topic.neutral_pct || 0}%`, background: '#d1d5db' }} />
                   <div style={{ width: `${topic.negative_pct || 0}%`, background: R }} />
                 </div>
-                <div style={{ display: 'flex', gap: 12, fontSize: 10, fontWeight: 600 }}>
+                <div style={{ display: 'flex', gap: 12, fontSize: 12, fontWeight: 600 }}>
                   <span style={{ color: GRN }}>{topic.positive_pct || 0}% positive</span>
-                  <span style={{ color: '#9ca3af' }}>{topic.neutral_pct || 0}% neutral</span>
+                  <span style={{ color: '#4b5563' }}>{topic.neutral_pct || 0}% neutral</span>
                   <span style={{ color: R }}>{topic.negative_pct || 0}% negative</span>
                 </div>
                 {/* Expanded quotes */}
@@ -270,7 +270,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
                     <RatingStars rating={review.rating} />
                     <span style={{ fontSize: 12, fontWeight: 600, color: BLK }}>{review.reviewer}</span>
                   </div>
-                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{review.date ? new Date(review.date).toLocaleDateString() : ''}</span>
+                  <span style={{ fontSize: 11, color: '#4b5563' }}>{review.date ? new Date(review.date).toLocaleDateString() : ''}</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5, marginBottom: 8 }}>{review.text || 'No text'}</div>
                 <button onClick={() => toast('Draft response feature coming soon!')} style={{
@@ -326,7 +326,7 @@ export default function ReviewsTab({ clientId, agencyId }) {
 
         {/* Campaign list */}
         {campaigns.length === 0 && !showCampaignForm && (
-          <div style={{ textAlign: 'center', padding: '24px 0', color: '#9ca3af', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: '24px 0', color: '#4b5563', fontSize: 13 }}>
             No campaigns yet. Create one to start collecting reviews from customers.
           </div>
         )}
@@ -338,11 +338,11 @@ export default function ReviewsTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ fontFamily: FH, fontSize: 13, fontWeight: 700, color: BLK }}>{camp.name}</div>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: statusColor + '18', color: statusColor, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: statusColor + '18', color: statusColor, textTransform: 'uppercase' }}>
                     {camp.status}
                   </span>
                 </div>
-                <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(camp.created_at).toLocaleDateString()}</div>
+                <div style={{ fontSize: 11, color: '#4b5563' }}>{new Date(camp.created_at).toLocaleDateString()}</div>
               </div>
               {/* Progress bar */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

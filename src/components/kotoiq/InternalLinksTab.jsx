@@ -32,7 +32,7 @@ function ScoreCircle({ score, size = 72 }) {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontFamily: FH, fontSize: size * 0.32, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 8, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Score</span>
+        <span style={{ fontSize: 8, color: '#4b5563', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.05em' }}>Score</span>
       </div>
     </div>
   )
@@ -45,7 +45,7 @@ function StatBox({ label, value, icon: Icon, color }) {
         <div style={{ width: 26, height: 26, borderRadius: 6, background: (color || T) + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={13} color={color || T} />
         </div>
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
       </div>
       <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{value}</div>
     </div>
@@ -69,7 +69,7 @@ function IssueCard({ title, icon, color, items, renderItem, emptyMsg }) {
         </span>
       </div>
       {items.length === 0 && (
-        <div style={{ padding: '16px 18px', fontSize: 12, color: '#9ca3af' }}>{emptyMsg || 'No issues found'}</div>
+        <div style={{ padding: '16px 18px', fontSize: 12, color: '#4b5563' }}>{emptyMsg || 'No issues found'}</div>
       )}
       {items.length > 0 && (
         <div style={{ padding: '8px 0' }}>
@@ -203,7 +203,7 @@ export default function InternalLinksTab({ clientId, agencyId }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#9ca3af' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#4b5563' }}>
         <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} /> Loading audit data...
       </div>
     )
@@ -300,9 +300,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <AlertTriangle size={11} color={AMB} />
                 <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>{shortUrl(item.url)}</span>
-                <span style={{ fontSize: 10, color: '#9ca3af', flexShrink: 0 }}>{item.inbound_links} inbound</span>
+                <span style={{ fontSize: 12, color: '#4b5563', flexShrink: 0 }}>{item.inbound_links} inbound</span>
               </div>
-              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2, paddingLeft: 17 }}>
+              <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2, paddingLeft: 17 }}>
                 {fmtN(item.impressions)} impressions, {fmtN(item.clicks)} clicks
                 {item.top_keywords?.length > 0 && <> — {item.top_keywords.join(', ')}</>}
               </div>
@@ -320,9 +320,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Copy size={11} color={AMB} />
                 <span style={{ fontWeight: 600, flex: 1 }}>"{item.anchor}"</span>
-                <span style={{ fontSize: 10, color: R, fontWeight: 700, flexShrink: 0 }}>{item.count} targets</span>
+                <span style={{ fontSize: 12, color: R, fontWeight: 700, flexShrink: 0 }}>{item.count} targets</span>
               </div>
-              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2, paddingLeft: 17 }}>
+              <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2, paddingLeft: 17 }}>
                 {item.targets?.slice(0, 3).map(t => shortUrl(t)).join(' | ')}
               </div>
             </div>
@@ -350,8 +350,8 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <BarChart2 size={15} color={T} />
             <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Link Equity Distribution</span>
-            <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>Top 10 pages by inbound links</span>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, fontSize: 10, color: '#9ca3af' }}>
+            <span style={{ fontSize: 11, color: '#4b5563', marginLeft: 4 }}>Top 10 pages by inbound links</span>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, fontSize: 12, color: '#4b5563' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: GRN, display: 'inline-block' }} /> Healthy</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: AMB, display: 'inline-block' }} /> Over-linked</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: R, display: 'inline-block' }} /> Starved</span>
@@ -387,17 +387,17 @@ export default function InternalLinksTab({ clientId, agencyId }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Zap size={15} color={GRN} />
             <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Quality Node Suggestions</span>
-            <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 4 }}>High-traffic pages that should be linked from homepage</span>
+            <span style={{ fontSize: 11, color: '#4b5563', marginLeft: 4 }}>High-traffic pages that should be linked from homepage</span>
           </div>
           <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #f3f4f6' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: '#f9fafb' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Page</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Clicks</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Inbound Links</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Keywords</th>
-                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Action</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Page</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Clicks</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Inbound Links</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Keywords</th>
+                  <th style={{ textAlign: 'center', padding: '8px 12px', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -408,12 +408,12 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, color: GRN }}>{fmtN(node.organic_clicks)}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, color: node.inbound_links < 3 ? R : BLK }}>{node.inbound_links}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: 10, color: '#6b7280' }}>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', fontSize: 12, color: '#6b7280' }}>
                       {node.top_keywords?.slice(0, 2).join(', ') || '—'}
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                       <button onClick={() => getSuggestions(node.url)} style={{
-                        border: 'none', background: T + '14', color: T, fontWeight: 700, fontSize: 10,
+                        border: 'none', background: T + '14', color: T, fontWeight: 700, fontSize: 12,
                         padding: '3px 10px', borderRadius: 6, cursor: 'pointer',
                       }}>
                         Suggestions
@@ -452,14 +452,14 @@ export default function InternalLinksTab({ clientId, agencyId }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {breadcrumbIssues.slice(0, 15).map((url, i) => (
                 <span key={i} style={{
-                  fontSize: 10, padding: '3px 8px', borderRadius: 6, background: '#fef2f2',
+                  fontSize: 12, padding: '3px 8px', borderRadius: 6, background: '#fef2f2',
                   color: R, fontWeight: 500, border: '1px solid #fecaca',
                 }}>
                   {shortUrl(url)}
                 </span>
               ))}
               {breadcrumbIssues.length > 15 && (
-                <span style={{ fontSize: 10, padding: '3px 8px', color: '#9ca3af' }}>+{breadcrumbIssues.length - 15} more</span>
+                <span style={{ fontSize: 12, padding: '3px 8px', color: '#4b5563' }}>+{breadcrumbIssues.length - 15} more</span>
               )}
             </div>
           </div>
@@ -499,13 +499,13 @@ export default function InternalLinksTab({ clientId, agencyId }) {
             <Zap size={15} color={T} />
             <span style={{ fontFamily: FH, fontWeight: 700, fontSize: 14, color: BLK }}>Link Suggestions for {shortUrl(suggestUrl)}</span>
             <button onClick={() => { setSuggestions(null); setSuggestUrl('') }} style={{
-              marginLeft: 'auto', border: 'none', background: 'none', fontSize: 11, color: '#9ca3af', cursor: 'pointer',
+              marginLeft: 'auto', border: 'none', background: 'none', fontSize: 11, color: '#4b5563', cursor: 'pointer',
             }}>
               Close
             </button>
           </div>
           {suggestLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9ca3af', fontSize: 12, padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#4b5563', fontSize: 12, padding: 20 }}>
               <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Analyzing linking opportunities...
             </div>
           ) : suggestions && (
@@ -525,9 +525,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={GRN} />
                         <span style={{ fontWeight: 600 }}>{shortUrl(s.url)}</span>
-                        {s.suggested_anchor && <span style={{ fontSize: 10, color: T, fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
+                        {s.suggested_anchor && <span style={{ fontSize: 12, color: T, fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
                       </div>
-                      {s.reason && <div style={{ fontSize: 10, color: '#9ca3af', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
+                      {s.reason && <div style={{ fontSize: 12, color: '#4b5563', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
                     </div>
                   ))}
                 </div>
@@ -542,9 +542,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <ArrowRight size={11} color={T} style={{ transform: 'rotate(180deg)' }} />
                         <span style={{ fontWeight: 600 }}>{shortUrl(s.url)}</span>
-                        {s.suggested_anchor && <span style={{ fontSize: 10, color: T, fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
+                        {s.suggested_anchor && <span style={{ fontSize: 12, color: T, fontWeight: 600 }}>anchor: "{s.suggested_anchor}"</span>}
                       </div>
-                      {s.reason && <div style={{ fontSize: 10, color: '#9ca3af', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
+                      {s.reason && <div style={{ fontSize: 12, color: '#4b5563', paddingLeft: 17, marginTop: 2 }}>{s.reason}</div>}
                     </div>
                   ))}
                 </div>
@@ -557,9 +557,9 @@ export default function InternalLinksTab({ clientId, agencyId }) {
                   {suggestions.anchor_improvements.map((s, i) => (
                     <div key={i} style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
                       <span style={{ color: R, textDecoration: 'line-through' }}>"{s.current_anchor}"</span>
-                      <span style={{ margin: '0 6px', color: '#9ca3af' }}>{'->'}</span>
+                      <span style={{ margin: '0 6px', color: '#4b5563' }}>{'->'}</span>
                       <span style={{ color: GRN, fontWeight: 600 }}>"{s.suggested_anchor}"</span>
-                      {s.reason && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{s.reason}</div>}
+                      {s.reason && <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>{s.reason}</div>}
                     </div>
                   ))}
                 </div>

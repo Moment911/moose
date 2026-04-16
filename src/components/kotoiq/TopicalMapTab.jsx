@@ -56,7 +56,7 @@ function ScoreBadge({ score, label, icon: Icon }) {
         {Icon && <Icon size={12} color={color} />}
         <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color, lineHeight: 1 }}>{score || '--'}</div>
       </div>
-      <div style={{ fontSize: 9, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>{label}</div>
     </div>
   )
 }
@@ -67,7 +67,7 @@ function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.gap
   const Icon = cfg.icon
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 12, background: cfg.bg, color: cfg.color, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.03em' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', borderRadius: 12, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.03em' }}>
       <Icon size={10} /> {cfg.label}
     </span>
   )
@@ -78,7 +78,7 @@ function StatusBadge({ status }) {
 function ContentTypePill({ type }) {
   const cfg = CONTENT_TYPE_COLORS[type] || { color: '#6b7280', bg: '#6b728014' }
   return (
-    <span style={{ padding: '2px 8px', borderRadius: 10, background: cfg.bg, color: cfg.color, fontSize: 10, fontWeight: 700, textTransform: 'capitalize' }}>
+    <span style={{ padding: '2px 8px', borderRadius: 10, background: cfg.bg, color: cfg.color, fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>
       {type}
     </span>
   )
@@ -89,7 +89,7 @@ function ContentTypePill({ type }) {
 function PriorityBadge({ priority }) {
   const color = priority <= 3 ? R : priority <= 6 ? AMB : '#9ca3af'
   return (
-    <span style={{ fontFamily: FH, fontSize: 10, fontWeight: 800, color, background: color + '12', padding: '1px 6px', borderRadius: 8 }}>
+    <span style={{ fontFamily: FH, fontSize: 12, fontWeight: 800, color, background: color + '12', padding: '1px 6px', borderRadius: 8 }}>
       P{priority}
     </span>
   )
@@ -123,7 +123,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
         {node.search_volume > 0 && (
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 900, color: BLK }}>{fmtN(node.search_volume)}</div>
-            <div style={{ fontSize: 9, color: '#9ca3af', textTransform: 'uppercase' }}>vol</div>
+            <div style={{ fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>vol</div>
           </div>
         )}
       </div>
@@ -140,21 +140,21 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
           {node.attributes.slice(0, expanded ? 20 : 4).map((attr, i) => (
             <span key={i} style={{
-              padding: '1px 6px', borderRadius: 6, background: '#f3f4f6', fontSize: 10, color: '#6b7280',
+              padding: '1px 6px', borderRadius: 6, background: '#f3f4f6', fontSize: 12, color: '#6b7280',
               fontWeight: 500, border: '1px solid #e5e7eb',
             }}>
               {Array.isArray(attr) ? attr.join(': ') : attr}
             </span>
           ))}
           {!expanded && node.attributes.length > 4 && (
-            <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600 }}>+{node.attributes.length - 4}</span>
+            <span style={{ fontSize: 12, color: '#4b5563', fontWeight: 600 }}>+{node.attributes.length - 4}</span>
           )}
         </div>
       )}
 
       {/* Macro context (truncated) */}
       {node.macro_context && (
-        <div style={{ fontSize: 11, color: '#9ca3af', lineHeight: 1.4, marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: '#4b5563', lineHeight: 1.4, marginBottom: 8 }}>
           {expanded ? node.macro_context : node.macro_context.slice(0, 80) + (node.macro_context.length > 80 ? '...' : '')}
         </div>
       )}
@@ -165,7 +165,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
           {/* Micro contexts */}
           {node.micro_contexts && node.micro_contexts.length > 0 && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Search Queries</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4 }}>Search Queries</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {node.micro_contexts.map((mc, i) => (
                   <div key={i} style={{ fontSize: 11, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -179,10 +179,10 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
           {/* Contextual bridges */}
           {node.contextual_bridges && node.contextual_bridges.length > 0 && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 4 }}>Connected Topics</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 4 }}>Connected Topics</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                 {node.contextual_bridges.map((cb, i) => (
-                  <span key={i} style={{ padding: '2px 8px', borderRadius: 8, background: T + '10', color: T, fontSize: 10, fontWeight: 600, border: `1px solid ${T}30` }}>
+                  <span key={i} style={{ padding: '2px 8px', borderRadius: 8, background: T + '10', color: T, fontSize: 12, fontWeight: 600, border: `1px solid ${T}30` }}>
                     {cb}
                   </span>
                 ))}
@@ -199,18 +199,18 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
 
           {/* Suggested URL */}
           {node.suggested_url && !node.existing_url && (
-            <div style={{ fontSize: 11, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: '#4b5563', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
               <ArrowRight size={10} /> Suggested: {node.suggested_url}
             </div>
           )}
 
           {/* Quick status change */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-            <span style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, alignSelf: 'center' }}>Status:</span>
+            <span style={{ fontSize: 12, color: '#4b5563', fontWeight: 600, alignSelf: 'center' }}>Status:</span>
             {['gap', 'partial', 'covered'].map(st => (
               <button key={st} onClick={() => onStatusChange(node.id, st)}
                 style={{
-                  padding: '2px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                  padding: '2px 8px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   border: `1px solid ${STATUS_CONFIG[st].color}${node.status === st ? '' : '40'}`,
                   background: node.status === st ? STATUS_CONFIG[st].bg : '#fff',
                   color: STATUS_CONFIG[st].color, opacity: node.status === st ? 1 : 0.6,
@@ -226,7 +226,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
         <button onClick={() => setExpanded(!expanded)} style={{
           display: 'flex', alignItems: 'center', gap: 3, background: 'none', border: 'none',
-          cursor: 'pointer', fontSize: 10, color: '#9ca3af', fontWeight: 600,
+          cursor: 'pointer', fontSize: 12, color: '#4b5563', fontWeight: 600,
         }}>
           {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
           {expanded ? 'Less' : 'More'}
@@ -234,7 +234,7 @@ function NodeCard({ node, onGenerateBrief, onStatusChange }) {
         {node.status === 'gap' && (
           <button onClick={() => onGenerateBrief(node)} style={{
             display: 'flex', alignItems: 'center', gap: 3, padding: '4px 10px', borderRadius: 6,
-            border: 'none', background: BLK, color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+            border: 'none', background: BLK, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
           }}>
             <Zap size={10} /> Generate Brief
           </button>
@@ -405,7 +405,7 @@ export default function TopicalMapTab({ clientId, agencyId }) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80 }}>
         <Loader2 size={24} color={T} style={{ animation: 'spin 1s linear infinite' }} />
-        <span style={{ marginLeft: 10, fontSize: 14, color: '#9ca3af' }}>Loading topical map...</span>
+        <span style={{ marginLeft: 10, fontSize: 14, color: '#4b5563' }}>Loading topical map...</span>
       </div>
     )
   }
@@ -531,7 +531,7 @@ export default function TopicalMapTab({ clientId, agencyId }) {
             }
           }} style={{
             display: 'flex', alignItems: 'center', gap: 3, background: 'none', border: '1px solid #e5e7eb',
-            borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 10, fontWeight: 600, color: '#6b7280',
+            borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#6b7280',
           }}>
             {editingIdentity ? <X size={10} /> : <Edit2 size={10} />}
             {editingIdentity ? 'Cancel' : 'Edit'}
@@ -541,32 +541,32 @@ export default function TopicalMapTab({ clientId, agencyId }) {
         {!editingIdentity ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
               <div style={{ fontFamily: FH, fontSize: 16, fontWeight: 800, color: BLK }}>{map.central_entity || '--'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
               <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>{map.source_context || '--'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Search Intent</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Search Intent</div>
               <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.4 }}>{map.central_search_intent || '--'}</div>
             </div>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Entity</div>
               <input value={identityForm.central_entity} onChange={e => setIdentityForm(p => ({ ...p, central_entity: e.target.value }))}
                 style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 13, fontFamily: FH, fontWeight: 700 }} />
             </div>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Source Context</div>
               <textarea value={identityForm.source_context} onChange={e => setIdentityForm(p => ({ ...p, source_context: e.target.value }))}
                 rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, resize: 'vertical' }} />
             </div>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Search Intent</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>Central Search Intent</div>
               <textarea value={identityForm.central_search_intent} onChange={e => setIdentityForm(p => ({ ...p, central_search_intent: e.target.value }))}
                 rows={2} style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 12, resize: 'vertical' }} />
             </div>
@@ -622,10 +622,10 @@ export default function TopicalMapTab({ clientId, agencyId }) {
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
               Core Section
             </div>
-            <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>
+            <span style={{ fontSize: 11, color: '#4b5563', fontWeight: 600 }}>
               ({coreFiltered.length} {coreFiltered.length === 1 ? 'node' : 'nodes'})
             </span>
-            <span style={{ fontSize: 10, color: '#9ca3af' }}>-- Directly tied to monetization</span>
+            <span style={{ fontSize: 12, color: '#4b5563' }}>-- Directly tied to monetization</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
             {coreFiltered.map(node => (
@@ -642,10 +642,10 @@ export default function TopicalMapTab({ clientId, agencyId }) {
             <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>
               Outer Section
             </div>
-            <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>
+            <span style={{ fontSize: 11, color: '#4b5563', fontWeight: 600 }}>
               ({outerFiltered.length} {outerFiltered.length === 1 ? 'node' : 'nodes'})
             </span>
-            <span style={{ fontSize: 10, color: '#9ca3af' }}>-- Topical authority builders</span>
+            <span style={{ fontSize: 12, color: '#4b5563' }}>-- Topical authority builders</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
             {outerFiltered.map(node => (
@@ -657,7 +657,7 @@ export default function TopicalMapTab({ clientId, agencyId }) {
 
       {/* Empty filtered state */}
       {filteredNodes.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: 40, color: '#4b5563' }}>
           <div style={{ fontSize: 14, fontWeight: 600 }}>No nodes match the current filter</div>
           <div style={{ fontSize: 12, marginTop: 4 }}>Try changing the filter or search term</div>
         </div>

@@ -162,7 +162,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: '#4b5563' }}>
           <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
           <div style={{ fontFamily: FH, fontWeight: 600 }}>Loading inventory...</div>
         </div>
@@ -192,7 +192,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                   <div style={{ width: 28, height: 28, borderRadius: 7, background: color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={14} color={color} />
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</span>
                 </div>
                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{value}</div>
               </div>
@@ -203,10 +203,10 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
           <div style={card}>
             <div style={titleStyle}><BarChart2 size={16} color={T} /> Freshness Distribution</div>
             <div style={{ display: 'flex', height: 28, borderRadius: 8, overflow: 'hidden', background: '#f3f4f6' }}>
-              {freshPct > 0 && <div style={{ width: `${freshPct}%`, background: GRN, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', minWidth: freshPct > 5 ? 'auto' : 0 }}>{freshPct > 8 ? `${Math.round(freshPct)}%` : ''}</div>}
-              {agingPct > 0 && <div style={{ width: `${agingPct}%`, background: AMB, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', minWidth: agingPct > 5 ? 'auto' : 0 }}>{agingPct > 8 ? `${Math.round(agingPct)}%` : ''}</div>}
-              {stalePct > 0 && <div style={{ width: `${stalePct}%`, background: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', minWidth: stalePct > 5 ? 'auto' : 0 }}>{stalePct > 8 ? `${Math.round(stalePct)}%` : ''}</div>}
-              {critPct > 0 && <div style={{ width: `${critPct}%`, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', minWidth: critPct > 5 ? 'auto' : 0 }}>{critPct > 8 ? `${Math.round(critPct)}%` : ''}</div>}
+              {freshPct > 0 && <div style={{ width: `${freshPct}%`, background: GRN, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: freshPct > 5 ? 'auto' : 0 }}>{freshPct > 8 ? `${Math.round(freshPct)}%` : ''}</div>}
+              {agingPct > 0 && <div style={{ width: `${agingPct}%`, background: AMB, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: agingPct > 5 ? 'auto' : 0 }}>{agingPct > 8 ? `${Math.round(agingPct)}%` : ''}</div>}
+              {stalePct > 0 && <div style={{ width: `${stalePct}%`, background: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: stalePct > 5 ? 'auto' : 0 }}>{stalePct > 8 ? `${Math.round(stalePct)}%` : ''}</div>}
+              {critPct > 0 && <div style={{ width: `${critPct}%`, background: R, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', minWidth: critPct > 5 ? 'auto' : 0 }}>{critPct > 8 ? `${Math.round(critPct)}%` : ''}</div>}
             </div>
             <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
               {[['Fresh', GRN], ['Aging', AMB], ['Stale', '#f97316'], ['Critical', R]].map(([l, c]) => (
@@ -228,7 +228,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>Sort:</span>
+              <span style={{ fontSize: 11, color: '#4b5563', fontWeight: 600 }}>Sort:</span>
               {SORT_OPTIONS.map(o => (
                 <button key={o.key} onClick={() => { if (sortBy === o.key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortBy(o.key); setSortDir('asc') } }}
                   style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: `1px solid ${sortBy === o.key ? T : '#e5e7eb'}`, background: sortBy === o.key ? T + '10' : '#fff', color: sortBy === o.key ? T : '#6b7280', display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -243,11 +243,11 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: FB }}>
               <thead>
                 <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', width: 30 }}>
                     <input type="checkbox" onChange={e => { if (e.target.checked) setSelectedUrls(new Set(filtered.map(r => r.url))); else setSelectedUrls(new Set()) }} checked={selectedUrls.size === filtered.length && filtered.length > 0} />
                   </th>
                   {['URL', 'Title', 'Words', 'Pos', 'Trajectory', 'Days Old', 'Freshness', 'Priority'].map(h => (
-                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 10, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 8px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 12, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -277,12 +277,12 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                       </td>
                       <td style={{ padding: '8px', fontFamily: FH, fontWeight: 700, color: '#6b7280' }}>{item.days_since_update != null ? `${item.days_since_update}d` : '--'}</td>
                       <td style={{ padding: '8px' }}>
-                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: fColor + '15', color: fColor, textTransform: 'uppercase' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: fColor + '15', color: fColor, textTransform: 'uppercase' }}>
                           {FRESHNESS_LABELS[item.freshness_status] || item.freshness_status}
                         </span>
                       </td>
                       <td style={{ padding: '8px' }}>
-                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: pColor + '15', color: pColor, textTransform: 'uppercase' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: pColor + '15', color: pColor, textTransform: 'uppercase' }}>
                           {PRIORITY_LABELS[item.refresh_priority] || item.refresh_priority}
                         </span>
                       </td>
@@ -292,7 +292,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No pages match the current filter.</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#4b5563', fontSize: 13 }}>No pages match the current filter.</div>
             )}
           </div>
 
@@ -308,7 +308,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
             </div>
 
             {plans.length === 0 && !planLoading && (
-              <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+              <div style={{ padding: 24, textAlign: 'center', color: '#4b5563', fontSize: 13 }}>
                 Select pages above and click "Generate Plan" to get AI-powered refresh recommendations.
               </div>
             )}
@@ -322,7 +322,7 @@ export default function ContentRefreshTab({ clientId, agencyId }) {
                     <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{truncateUrl(plan.url, 60)}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {plan.priority && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: (PRIORITY_COLORS[plan.priority] || '#6b7280') + '15', color: PRIORITY_COLORS[plan.priority] || '#6b7280', textTransform: 'uppercase' }}>{plan.priority}</span>}
+                    {plan.priority && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: (PRIORITY_COLORS[plan.priority] || '#6b7280') + '15', color: PRIORITY_COLORS[plan.priority] || '#6b7280', textTransform: 'uppercase' }}>{plan.priority}</span>}
                     {plan.estimated_hours && <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>{plan.estimated_hours}h est.</span>}
                     {expandedPlan === i ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
                   </div>

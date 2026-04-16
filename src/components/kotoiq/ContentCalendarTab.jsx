@@ -26,7 +26,7 @@ function VDMBadge({ score, label }) {
   return (
     <div style={{ textAlign: 'center', padding: '8px 16px' }}>
       <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color, lineHeight: 1 }}>{score ?? '—'}</div>
-      <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 3, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#4b5563', marginTop: 3, textTransform: 'uppercase', letterSpacing: '.05em', fontWeight: 700 }}>{label}</div>
     </div>
   )
 }
@@ -162,7 +162,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#9ca3af' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#4b5563' }}>
         <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} /> Loading calendar...
       </div>
     )
@@ -186,7 +186,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Content Calendar & Publishing Momentum</div>
-          <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>
             {stats ? `${stats.total} items | ${stats.published} published | ${stats.writing} in progress` : ''}
           </div>
         </div>
@@ -223,15 +223,15 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
           <div style={card}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>This Month</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>This Month</div>
                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_this_month}</div>
               </div>
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Last Month</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>Last Month</div>
                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_last_month}</div>
               </div>
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>3mo Avg</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase' }}>3mo Avg</div>
                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: BLK }}>{momentum.pages_3mo_avg}</div>
               </div>
             </div>
@@ -275,7 +275,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                 width: '100%', maxWidth: 48, height: maxPace > 0 ? Math.max((p.count / maxPace) * 70, 4) : 4,
                 background: p.count > 0 ? GRN : '#e5e7eb', borderRadius: '4px 4px 0 0', transition: 'height .3s',
               }} />
-              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600 }}>{p.label}</div>
+              <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 600 }}>{p.label}</div>
             </div>
           ))}
         </div>
@@ -307,18 +307,18 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #e5e7eb', background: GRY }}>
-              <th style={{ padding: '10px 16px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase' }}>Title</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase' }}>Keyword</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase' }}>Type</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase' }}>Status</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase' }}>Date</th>
-              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase' }}>Assigned</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', width: 60 }}>Edit</th>
+              <th style={{ padding: '10px 16px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>Title</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>Keyword</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>Type</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>Status</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>Date</th>
+              <th style={{ padding: '10px 12px', textAlign: 'left', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase' }}>Assigned</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontFamily: FH, fontWeight: 700, fontSize: 11, color: '#4b5563', textTransform: 'uppercase', width: 60 }}>Edit</th>
             </tr>
           </thead>
           <tbody>
             {filteredItems.length === 0 && (
-              <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#9ca3af' }}>No items match filters</td></tr>
+              <tr><td colSpan={7} style={{ padding: 32, textAlign: 'center', color: '#4b5563' }}>No items match filters</td></tr>
             )}
             {filteredItems.map(item => {
               const sc = STATUS_CONFIG[item.status] || STATUS_CONFIG.planned
@@ -343,7 +343,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                         {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
                     ) : (
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: T + '12', color: T }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: T + '12', color: T }}>
                         {TYPE_LABELS[item.content_type] || item.content_type}
                       </span>
                     )}
@@ -355,7 +355,7 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                         {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{STATUS_CONFIG[k].label}</option>)}
                       </select>
                     ) : (
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: sc.bg, color: sc.color }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: sc.bg, color: sc.color }}>
                         {sc.label}
                       </span>
                     )}
@@ -380,15 +380,15 @@ export default function ContentCalendarTab({ clientId, agencyId }) {
                     {isEditing ? (
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                         <button onClick={() => updateItem(item.id, editValues)} style={{
-                          padding: '3px 8px', borderRadius: 4, border: 'none', background: GRN, color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                          padding: '3px 8px', borderRadius: 4, border: 'none', background: GRN, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         }}>Save</button>
                         <button onClick={() => { setEditingId(null); setEditValues({}) }} style={{
-                          padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer', color: '#6b7280',
+                          padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#6b7280',
                         }}>X</button>
                       </div>
                     ) : (
                       <button onClick={() => { setEditingId(item.id); setEditValues({}) }} style={{
-                        padding: '4px', borderRadius: 4, border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af',
+                        padding: '4px', borderRadius: 4, border: 'none', background: 'none', cursor: 'pointer', color: '#4b5563',
                       }}>
                         <Edit2 size={13} />
                       </button>

@@ -21,6 +21,8 @@ import { analyzeReviews, getReviewIntelligence, createReviewCampaign, getReviewC
 import { buildContentCalendar, getContentCalendar, updateCalendarItem, calculateMomentum, getMomentum } from '@/lib/contentCalendarEngine'
 import { runQueryGapAnalyzer, runFrameAnalyzer, runSemanticRoleLabeler, runNamedEntitySuggester } from '@/lib/semanticAgents'
 import { runContextlessWordRemover, runTopicalityScorer, runSentenceFilterer, runSafeAnswerGenerator } from '@/lib/semanticPostProcessors'
+import { runLexicalRelationAnalyzer, runTopicClusterer, runTitleQueryAuditor, runKeyFactSummarizer, runBridgeTopicSuggester } from '@/lib/semanticAgentsTier2'
+import { runCommentGenerator, runSentimentOptimizer, runEntityInserter, runMetadiscourseAuditor, runNgramExtractor, runTripleGenerator, runSpamHitDetector, runQualityUpdateAuditor } from '@/lib/semanticAgentsTier3'
 
 const ai = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
 
@@ -2829,6 +2831,354 @@ Provide a detailed analysis. Return ONLY valid JSON:
 
       void logTokenUsage({ feature: 'kotoiq_safe_answer', model: 'claude-sonnet-4-20250514', inputTokens: 0, outputTokens: 0, agencyId: agency_id })
 
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── LEXICAL RELATION ANALYZER: Taxonomy tree mapping ────────
+  if (action === 'analyze_lexical_relations') {
+    const { keyword, client_id, agency_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    let industry: string | undefined
+    if (client_id) {
+      const { data: client } = await s.from('clients')
+        .select('primary_service').eq('id', client_id).single()
+      industry = client?.primary_service || undefined
+    }
+
+    try {
+      const result = await runLexicalRelationAnalyzer(ai, { keyword, industry, agencyId: agency_id })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TOPIC CLUSTERER: Pillar/cluster/support architecture ───
+  if (action === 'cluster_topics') {
+    const { client_id, agency_id, business_context } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    const { data: keywords } = await s.from('kotoiq_keywords')
+      .select('keyword, search_volume, sc_avg_position, intent')
+      .eq('client_id', client_id).limit(200)
+
+    if (!keywords?.length) return NextResponse.json({ error: 'No keywords found for this client' }, { status: 400 })
+
+    let ctx = business_context
+    if (!ctx && client_id) {
+      const { data: client } = await s.from('clients')
+        .select('name, primary_service, target_customer, location')
+        .eq('id', client_id).single()
+      if (client) ctx = `${client.name || ''} — ${client.primary_service || ''} targeting ${client.target_customer || ''} in ${client.location || ''}`
+    }
+
+    try {
+      const result = await runTopicClusterer(ai, {
+        keywords: keywords.map((k: any) => ({
+          keyword: k.keyword,
+          volume: k.search_volume,
+          position: k.sc_avg_position,
+          intent: k.intent,
+        })),
+        business_context: ctx,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TITLE-QUERY AUDITOR: Title tag optimization ────────────
+  if (action === 'audit_title') {
+    const { title, keyword, page_type, agency_id } = body
+    if (!title || !keyword) return NextResponse.json({ error: 'title and keyword required' }, { status: 400 })
+
+    try {
+      const result = await runTitleQueryAuditor(ai, { title, target_keyword: keyword, page_type, agencyId: agency_id })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── KEY-FACT SUMMARIZER: Extract semantic facts from content ─
+  if (action === 'summarize_key_facts') {
+    const { content, url, keyword, purpose, agency_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    let resolvedContent = content
+    if (!resolvedContent && url) {
+      try {
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+          signal: AbortSignal.timeout(10000),
+        })
+        if (res.ok) {
+          const html = await res.text()
+          resolvedContent = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .substring(0, 10000)
+        }
+      } catch { /* fetch failed — will error below */ }
+    }
+
+    if (!resolvedContent) return NextResponse.json({ error: 'content or valid url required' }, { status: 400 })
+
+    try {
+      const result = await runKeyFactSummarizer(ai, {
+        content: resolvedContent,
+        keyword,
+        purpose: purpose || 'self_audit',
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── BRIDGE TOPIC SUGGESTER: Connect topical map nodes ──────
+  if (action === 'suggest_bridge_topics') {
+    const { topic_a, topic_b, client_id, agency_id, existing_pages } = body
+    if (!topic_a || !topic_b) return NextResponse.json({ error: 'topic_a and topic_b required' }, { status: 400 })
+
+    let businessContext: string | undefined
+    if (client_id) {
+      const { data: client } = await s.from('clients')
+        .select('name, primary_service, target_customer, location')
+        .eq('id', client_id).single()
+      if (client) businessContext = `${client.name || ''} — ${client.primary_service || ''} targeting ${client.target_customer || ''} in ${client.location || ''}`
+    }
+
+    try {
+      const result = await runBridgeTopicSuggester(ai, {
+        topic_a,
+        topic_b,
+        business_context: businessContext,
+        existing_pages,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── COMMENT GENERATOR: Aspect-based review analysis ───────────
+  if (action === 'generate_comment_analysis') {
+    const { reviews, business_name, product_or_service, client_id, agency_id } = body
+    if (!reviews?.length) return NextResponse.json({ error: 'reviews array required' }, { status: 400 })
+
+    let bizName = business_name
+    if (!bizName && client_id) {
+      const { data: client } = await s.from('clients')
+        .select('name').eq('id', client_id).single()
+      bizName = client?.name || 'Unknown'
+    }
+
+    try {
+      const result = await runCommentGenerator(ai, {
+        reviews,
+        business_name: bizName || 'Unknown',
+        product_or_service,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── SENTIMENT OPTIMIZER: Authentic sentiment flow ────────────
+  if (action === 'optimize_sentiment') {
+    const { content, target_sentiment, business_context, agency_id } = body
+    if (!content) return NextResponse.json({ error: 'content required' }, { status: 400 })
+
+    try {
+      const result = await runSentimentOptimizer(ai, {
+        content,
+        target_sentiment: target_sentiment || 'authentic',
+        business_context,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── ENTITY INSERTER: Insert missing entities into content ───
+  if (action === 'insert_entities') {
+    const { content, entities, keyword, agency_id } = body
+    if (!content || !entities?.length || !keyword) return NextResponse.json({ error: 'content, entities array, and keyword required' }, { status: 400 })
+
+    try {
+      const result = await runEntityInserter(ai, {
+        content,
+        entities_to_insert: entities,
+        keyword,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── METADISCOURSE AUDITOR: Filler detection + cleanup ───────
+  if (action === 'audit_metadiscourse') {
+    const { content, agency_id } = body
+    if (!content) return NextResponse.json({ error: 'content required' }, { status: 400 })
+
+    try {
+      const result = await runMetadiscourseAuditor(ai, {
+        content,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── N-GRAM EXTRACTOR: Phrase pattern analysis ───────────────
+  if (action === 'extract_ngrams') {
+    const { content, url, keyword, competitor_contents, agency_id } = body
+    if (!keyword) return NextResponse.json({ error: 'keyword required' }, { status: 400 })
+
+    let analysisContent = content
+    if (!analysisContent && url) {
+      try {
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KotoBot/1.0)' },
+          signal: AbortSignal.timeout(10000),
+        })
+        if (res.ok) {
+          const html = await res.text()
+          analysisContent = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+        }
+      } catch { /* ignore fetch errors */ }
+    }
+    if (!analysisContent) return NextResponse.json({ error: 'content or url required' }, { status: 400 })
+
+    try {
+      const result = await runNgramExtractor(ai, {
+        content: analysisContent,
+        competitor_contents,
+        keyword,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── TRIPLE GENERATOR: Knowledge graph triples ───────────────
+  if (action === 'generate_triples') {
+    const { content, keyword, client_id, agency_id } = body
+    if (!content || !keyword) return NextResponse.json({ error: 'content and keyword required' }, { status: 400 })
+
+    let businessName: string | undefined
+    if (client_id) {
+      const { data: client } = await s.from('clients')
+        .select('name').eq('id', client_id).single()
+      businessName = client?.name || undefined
+    }
+
+    try {
+      const result = await runTripleGenerator(ai, {
+        content,
+        keyword,
+        business_name: businessName,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── SPAM HIT DETECTOR: Google update impact analysis ────────
+  if (action === 'detect_spam_hits') {
+    const { client_id, agency_id } = body
+    if (!client_id) return NextResponse.json({ error: 'client_id required' }, { status: 400 })
+
+    try {
+      // Pull last 180 days of daily SC data from kotoiq_snapshots
+      const since = new Date()
+      since.setDate(since.getDate() - 180)
+      const sinceStr = since.toISOString().split('T')[0]
+
+      const { data: snapshots } = await s.from('kotoiq_snapshots')
+        .select('created_at, sc_clicks, sc_impressions, sc_position')
+        .eq('client_id', client_id)
+        .gte('created_at', sinceStr)
+        .order('created_at', { ascending: true })
+
+      if (!snapshots?.length) return NextResponse.json({ error: 'No snapshot data found for this client' }, { status: 404 })
+
+      // Group by date and compute daily totals
+      const dailyMap = new Map<string, { clicks: number; impressions: number; positions: number[]; count: number }>()
+      for (const snap of snapshots) {
+        const date = (snap.created_at as string).split('T')[0]
+        const entry = dailyMap.get(date) || { clicks: 0, impressions: 0, positions: [], count: 0 }
+        entry.clicks += snap.sc_clicks || 0
+        entry.impressions += snap.sc_impressions || 0
+        if (snap.sc_position) { entry.positions.push(snap.sc_position); entry.count++ }
+        dailyMap.set(date, entry)
+      }
+
+      const trafficData = [...dailyMap.entries()]
+        .map(([date, d]) => ({
+          date,
+          clicks: d.clicks,
+          impressions: d.impressions,
+          position: d.positions.length ? d.positions.reduce((a, b) => a + b, 0) / d.positions.length : 0,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+
+      // Get domain from client
+      const { data: client } = await s.from('clients')
+        .select('website').eq('id', client_id).single()
+      const domain = client?.website || 'unknown'
+
+      const result = await runSpamHitDetector(ai, {
+        traffic_data: trafficData,
+        domain,
+        agencyId: agency_id,
+      })
+      return NextResponse.json(result)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message }, { status: 500 })
+    }
+  }
+
+  // ── QUALITY UPDATE AUDITOR: HCU compliance audit ────────────
+  if (action === 'audit_quality_update') {
+    const { url, content, keyword, agency_id } = body
+    if (!url) return NextResponse.json({ error: 'url required' }, { status: 400 })
+
+    try {
+      const result = await runQualityUpdateAuditor(ai, {
+        url,
+        content,
+        keyword,
+        agencyId: agency_id,
+      })
       return NextResponse.json(result)
     } catch (e: any) {
       return NextResponse.json({ error: e.message }, { status: 500 })

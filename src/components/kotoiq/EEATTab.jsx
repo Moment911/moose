@@ -54,7 +54,7 @@ function SignalList({ signals, dimension }) {
           }
           <div>
             <div style={{ fontSize: 13, fontWeight: 600, color: sig.found ? BLK : '#9ca3af' }}>{sig.name}</div>
-            {sig.detail && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{sig.detail}</div>}
+            {sig.detail && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>{sig.detail}</div>}
           </div>
         </div>
       ))}
@@ -166,7 +166,7 @@ export default function EEATTab({ clientId, agencyId }) {
               return (
                 <div key={d.key} style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH }}>{d.key}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', fontFamily: FH }}>{d.key}</span>
                     <span style={{ fontSize: 12, fontWeight: 800, color, fontFamily: FH }}>{d.score}</span>
                   </div>
                   <ScoreBar score={d.score} color={color} />
@@ -214,12 +214,12 @@ export default function EEATTab({ clientId, agencyId }) {
                   </div>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: BLK }}>{dim.key}</div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600 }}>Weight: {dim.weight}</div>
+                    <div style={{ fontSize: 12, color: '#4b5563', fontWeight: 600 }}>Weight: {dim.weight}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color }}>{dim.score}</div>
-                  <div style={{ fontSize: 10, color: '#9ca3af' }}>{foundCount}/{totalCount}</div>
+                  <div style={{ fontSize: 12, color: '#4b5563' }}>{foundCount}/{totalCount}</div>
                   {expanded ? <ChevronUp size={14} color="#9ca3af" /> : <ChevronDown size={14} color="#9ca3af" />}
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function EEATTab({ clientId, agencyId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 {audit.author_has_knowledge_panel
                   ? <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: GRN + '12', color: GRN }}>Knowledge Panel</span>
-                  : <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f3f4f6', color: '#9ca3af' }}>No Knowledge Panel</span>
+                  : <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: '#f3f4f6', color: '#4b5563' }}>No Knowledge Panel</span>
                 }
               </div>
             </div>
@@ -282,14 +282,14 @@ export default function EEATTab({ clientId, agencyId }) {
               const dimColor = DIMENSION_COLORS[rec.dimension?.charAt(0).toUpperCase() + rec.dimension?.slice(1)] || '#6b7280'
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 10, background: '#fafafa', border: '1px solid #f3f4f6' }}>
-                  <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: prioColor + '12', color: prioColor, textTransform: 'uppercase', whiteSpace: 'nowrap', marginTop: 2 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: prioColor + '12', color: prioColor, textTransform: 'uppercase', whiteSpace: 'nowrap', marginTop: 2 }}>
                     {rec.priority}
                   </span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{rec.action}</div>
-                    {rec.impact && <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{rec.impact}</div>}
+                    {rec.impact && <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>{rec.impact}</div>}
                   </div>
-                  <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: dimColor + '10', color: dimColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: dimColor + '10', color: dimColor, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                     {rec.dimension}
                   </span>
                 </div>

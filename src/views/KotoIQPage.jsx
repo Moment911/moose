@@ -80,7 +80,7 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }) {
           <div style={{ width: 32, height: 32, borderRadius: 8, background: (color || T) + '12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon size={16} color={color || T} />
           </div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.05em', fontFamily: FH }}>{label}</div>
         </div>
         {trend && <div style={{ fontSize: 11, fontWeight: 700, color: trend > 0 ? GRN : R, display: 'flex', alignItems: 'center', gap: 2 }}>
           {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(trend)}%
@@ -112,7 +112,7 @@ function ScoreBadge({ score, label }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color, lineHeight: 1 }}>{score || '—'}</div>
-      <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2, textTransform: 'uppercase', letterSpacing: '.05em' }}>{label}</div>
     </div>
   )
 }
@@ -582,7 +582,7 @@ export default function KotoIQPage() {
                   ['connect', 'Connect', Settings],
                 ].map(([key, label, Icon]) => (
                   <button key={key} onClick={() => setTab(key)}
-                    style={{ padding: '10px 16px', fontSize: 13, fontWeight: tab === key ? 800 : 600, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2.5px solid ${BLK}` : '2.5px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#6b7280', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                    style={{ padding: '11px 18px', fontSize: 14, fontWeight: tab === key ? 800 : 600, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2.5px solid ${BLK}` : '2.5px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#374151', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                     <Icon size={14} /> {label}
                   </button>
                 ))}
@@ -607,7 +607,7 @@ export default function KotoIQPage() {
                   ['utm', 'UTM', Link2],
                 ].map(([key, label, Icon]) => (
                   <button key={key} onClick={() => setTab(key)}
-                    style={{ padding: '8px 14px', fontSize: 12, fontWeight: tab === key ? 700 : 500, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${T}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#9ca3af', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                    style={{ padding: '9px 16px', fontSize: 13, fontWeight: tab === key ? 700 : 600, fontFamily: FH, border: 'none', borderBottom: tab === key ? `2px solid ${T}` : '2px solid transparent', background: 'none', cursor: 'pointer', color: tab === key ? BLK : '#374151', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
                     <Icon size={12} /> {label}
                   </button>
                 ))}
@@ -630,7 +630,7 @@ export default function KotoIQPage() {
                   </div>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Quick Scan</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af' }}>No login required</div>
+                    <div style={{ fontSize: 12, color: '#4b5563' }}>No login required</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
@@ -661,7 +661,7 @@ export default function KotoIQPage() {
                   </div>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Deep Audit</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Technical SEO analysis</div>
+                    <div style={{ fontSize: 12, color: '#4b5563' }}>Technical SEO analysis</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
@@ -689,7 +689,7 @@ export default function KotoIQPage() {
                   </div>
                   <div>
                     <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 800, color: BLK }}>Full Sync</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af' }}>Requires Google OAuth</div>
+                    <div style={{ fontSize: 12, color: '#4b5563' }}>Requires Google OAuth</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 14, color: '#6b7280', fontFamily: FB, lineHeight: 1.7, marginBottom: 16 }}>
@@ -775,7 +775,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   <thead>
                     <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                       {['Client', 'Keywords', 'Top 3', 'Top 10', 'Avg Opp', 'Ads Spend', 'Cannibals', 'Actions', 'Last Sync', ''].map(h => (
-                        <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Client' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Client' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -787,7 +787,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         <td style={{ padding: '12px 10px' }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: BLK }}>{c.name}</div>
-                          <div style={{ fontSize: 11, color: '#9ca3af' }}>{c.service || c.website}</div>
+                          <div style={{ fontSize: 11, color: '#4b5563' }}>{c.service || c.website}</div>
                         </td>
                         <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: c.total_keywords > 0 ? BLK : '#d1d5db' }}>{c.total_keywords || '—'}</td>
                         <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: c.top3 > 0 ? GRN : '#d1d5db' }}>{c.top3 || '—'}</td>
@@ -796,11 +796,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{c.ads_spend ? fmt$(c.ads_spend) : '—'}</td>
                         <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: c.cannibals > 0 ? R : '#d1d5db' }}>{c.cannibals || '—'}</td>
                         <td style={{ textAlign: 'center' }}>
-                          {c.critical_actions > 0 && <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: R + '15', color: R }}>{c.critical_actions}</span>}
-                          {c.critical_actions === 0 && c.total_actions > 0 && <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: T + '15', color: T }}>{c.total_actions}</span>}
-                          {c.total_actions === 0 && <span style={{ fontSize: 10, color: '#d1d5db' }}>—</span>}
+                          {c.critical_actions > 0 && <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: R + '15', color: R }}>{c.critical_actions}</span>}
+                          {c.critical_actions === 0 && c.total_actions > 0 && <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 12, background: T + '15', color: T }}>{c.total_actions}</span>}
+                          {c.total_actions === 0 && <span style={{ fontSize: 12, color: '#d1d5db' }}>—</span>}
                         </td>
-                        <td style={{ textAlign: 'center', fontSize: 10, color: '#9ca3af' }}>{c.last_sync ? new Date(c.last_sync).toLocaleDateString() : 'Never'}</td>
+                        <td style={{ textAlign: 'center', fontSize: 12, color: '#4b5563' }}>{c.last_sync ? new Date(c.last_sync).toLocaleDateString() : 'Never'}</td>
                         <td style={{ textAlign: 'center' }}>
                           <button onClick={e => { e.stopPropagation(); setClientId(c.id); setTab('dashboard') }}
                             style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', color: T }}>Open</button>
@@ -810,7 +810,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   </tbody>
                 </table>
               ) : (
-                <div style={{ textAlign: 'center', padding: '40px 24px', color: '#9ca3af', fontSize: 14 }}>
+                <div style={{ textAlign: 'center', padding: '40px 24px', color: '#4b5563', fontSize: 14 }}>
                   Select a client above to get started, or sync your first client's data.
                 </div>
               )}
@@ -910,7 +910,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <thead>
                         <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                           {['Keyword', 'Opp', 'Rank', 'Position', 'Volume', 'Ads $', 'Conv', 'Category', 'Intent'].map(h => (
-                            <th key={h} style={{ padding: '8px 10px', fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                            <th key={h} style={{ padding: '8px 10px', fontSize: 12, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -926,8 +926,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.volume ? fmtN(kw.volume) : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.ads_spend ? fmt$(kw.ads_spend) : '—'}</td>
                               <td style={{ textAlign: 'center', fontSize: 13, fontFamily: FH }}>{kw.ads_conversions || '—'}</td>
-                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20, background: cfg.color + '15', color: cfg.color }}>{cfg.label}</span></td>
-                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280' }}>{kw.intent}</span></td>
+                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 800, padding: '3px 8px', borderRadius: 20, background: cfg.color + '15', color: cfg.color }}>{cfg.label}</span></td>
+                              <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280' }}>{kw.intent}</span></td>
                             </tr>
                           )
                         })}
@@ -948,9 +948,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         return (
                           <div key={i} style={{ padding: '16px 20px', borderRadius: 12, background: '#f9fafb', border: '1px solid #e5e7eb', borderLeft: `4px solid ${pColor}` }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: pColor + '15', color: pColor, textTransform: 'uppercase' }}>{rec.priority}</span>
-                              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', color: '#6b7280' }}>{rec.type?.replace(/_/g, ' ')}</span>
-                              {rec.effort && <span style={{ fontSize: 10, color: '#9ca3af' }}>{rec.effort.replace(/_/g, ' ')}</span>}
+                              <span style={{ fontSize: 12, fontWeight: 800, padding: '2px 8px', borderRadius: 4, background: pColor + '15', color: pColor, textTransform: 'uppercase' }}>{rec.priority}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', color: '#6b7280' }}>{rec.type?.replace(/_/g, ' ')}</span>
+                              {rec.effort && <span style={{ fontSize: 12, color: '#4b5563' }}>{rec.effort.replace(/_/g, ' ')}</span>}
                             </div>
                             <div style={{ fontSize: 15, fontWeight: 800, color: BLK, fontFamily: FH, marginBottom: 4 }}>{rec.title}</div>
                             <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{rec.detail}</div>
@@ -1025,7 +1025,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                     {['Keyword', 'Opp', 'Rank P.', 'Position', 'SC Clicks', 'Volume', 'Ads $', 'Conv', 'CPC', 'QS', 'Cat', 'Intent', ''].map(h => (
-                      <th key={h} style={{ padding: '8px 8px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                      <th key={h} style={{ padding: '8px 8px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1048,8 +1048,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_conversions || '—'}</td>
                         <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.ads_cpc_cents ? `$${(kw.ads_cpc_cents / 100).toFixed(2)}` : '—'}</td>
                         <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH, color: kw.ads_quality_score >= 7 ? GRN : kw.ads_quality_score >= 5 ? AMB : kw.ads_quality_score ? R : '#d1d5db' }}>{kw.ads_quality_score || '—'}</td>
-                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
-                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280', textTransform: 'uppercase' }}>{kw.intent?.slice(0, 4)}</span></td>
+                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
+                        <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 700, color: INTENT_COLORS[kw.intent] || '#6b7280', textTransform: 'uppercase' }}>{kw.intent?.slice(0, 4)}</span></td>
                         <td style={{ textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
                             <button title="Generate Brief" onClick={() => { setBriefKeyword(kw.keyword); setTab('briefs') }}
@@ -1080,7 +1080,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               )}
 
               {keywords.length === 0 && !loading && (
-                <div style={{ textAlign: 'center', padding: '40px 0', color: '#9ca3af', fontSize: 14 }}>
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#4b5563', fontSize: 14 }}>
                   {searchQ || catFilter ? 'No keywords match your filters' : 'No keyword data — run a sync first'}
                 </div>
               )}
@@ -1191,7 +1191,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               {/* Quick generate from keyword explorer */}
               {dashboard?.top_opportunities?.length > 0 && !briefKeyword && (
                 <div style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 8 }}>Quick generate from top opportunities:</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', marginBottom: 8 }}>Quick generate from top opportunities:</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {dashboard.top_opportunities.filter(k => k.category === 'striking_distance' || k.category === 'quick_win' || k.category === 'dark_matter').slice(0, 8).map((kw, i) => (
                       <button key={i} onClick={() => generateBrief(kw.keyword)}
@@ -1283,21 +1283,21 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Title + Meta */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
                   <div style={{ padding: 16, borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Title Tag</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Title Tag</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: BLK }}>{activeBrief.title_tag}</div>
-                    <div style={{ fontSize: 10, color: activeBrief.title_tag?.length <= 60 ? GRN : R, marginTop: 4 }}>{activeBrief.title_tag?.length || 0}/60 chars</div>
+                    <div style={{ fontSize: 12, color: activeBrief.title_tag?.length <= 60 ? GRN : R, marginTop: 4 }}>{activeBrief.title_tag?.length || 0}/60 chars</div>
                   </div>
                   <div style={{ padding: 16, borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Meta Description</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Meta Description</div>
                     <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{activeBrief.meta_description}</div>
-                    <div style={{ fontSize: 10, color: activeBrief.meta_description?.length <= 155 ? GRN : R, marginTop: 4 }}>{activeBrief.meta_description?.length || 0}/155 chars</div>
+                    <div style={{ fontSize: 12, color: activeBrief.meta_description?.length <= 155 ? GRN : R, marginTop: 4 }}>{activeBrief.meta_description?.length || 0}/155 chars</div>
                   </div>
                 </div>
 
                 {/* Schema types */}
                 {activeBrief.schema_types?.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Required Schema Markup</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Required Schema Markup</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {activeBrief.schema_types.map((s, i) => (
                         <span key={i} style={{ padding: '4px 12px', borderRadius: 6, background: T + '12', color: T, fontSize: 12, fontWeight: 600 }}>{s}</span>
@@ -1309,12 +1309,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Content Outline */}
                 {activeBrief.outline?.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>Content Outline</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>Content Outline</div>
                     {activeBrief.outline.map((section, i) => (
                       <div key={i} style={{ padding: '14px 18px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', marginBottom: 8, borderLeft: `3px solid ${T}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ fontFamily: FH, fontSize: 15, fontWeight: 800, color: BLK }}>H2: {section.h2}</div>
-                          <span style={{ fontSize: 11, color: '#9ca3af' }}>~{section.word_count_target} words</span>
+                          <span style={{ fontSize: 11, color: '#4b5563' }}>~{section.word_count_target} words</span>
                         </div>
                         {section.h3s?.length > 0 && (
                           <div style={{ marginTop: 8, paddingLeft: 16 }}>
@@ -1334,7 +1334,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* FAQ Section */}
                 {activeBrief.faq_questions?.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>FAQ Questions (FAQPage Schema)</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 12 }}>FAQ Questions (FAQPage Schema)</div>
                     {activeBrief.faq_questions.map((faq, i) => (
                       <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#fef3c7', border: '1px solid #fcd34d', marginBottom: 6 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>Q: {faq.question}</div>
@@ -1347,7 +1347,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Target entities */}
                 {activeBrief.target_entities?.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Target Entities (NLP Coverage)</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Target Entities (NLP Coverage)</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {activeBrief.target_entities.map((e, i) => (
                         <span key={i} style={{ padding: '4px 10px', borderRadius: 6, background: '#f3f4f6', fontSize: 11, fontWeight: 600, color: '#374151' }}>{e}</span>
@@ -1360,7 +1360,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {activeBrief.aeo_optimization && (
                     <div style={{ padding: 16, borderRadius: 10, background: R + '06', border: `1px solid ${R}20` }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>AEO / Featured Snippet</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: R, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>AEO / Featured Snippet</div>
                       <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
                         <div><strong>Target:</strong> {activeBrief.aeo_optimization.target_snippet_type} snippet</div>
                         <div><strong>AI Overview eligible:</strong> {activeBrief.aeo_optimization.ai_overview_eligible ? 'Yes' : 'No'}</div>
@@ -1370,7 +1370,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   )}
                   {activeBrief.content_guidelines && (
                     <div style={{ padding: 16, borderRadius: 10, background: GRN + '06', border: `1px solid ${GRN}20` }}>
-                      <div style={{ fontSize: 10, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Content Guidelines</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: GRN, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Content Guidelines</div>
                       <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
                         <div><strong>Tone:</strong> {activeBrief.content_guidelines.tone}</div>
                         <div><strong>CTA:</strong> {activeBrief.content_guidelines.cta_placement}</div>
@@ -1472,8 +1472,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{b.target_url} · {b.page_type?.replace(/_/g, ' ')} · {b.target_word_count} words</div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: { draft: '#f3f4f6', approved: T + '15', in_progress: AMB + '15', published: GRN + '15', tracking: GRN + '15' }[b.status] || '#f3f4f6', color: { draft: '#6b7280', approved: T, in_progress: AMB, published: GRN, tracking: GRN }[b.status] || '#6b7280' }}>{b.status}</span>
-                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(b.created_at).toLocaleDateString()}</div>
+                        <span style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: { draft: '#f3f4f6', approved: T + '15', in_progress: AMB + '15', published: GRN + '15', tracking: GRN + '15' }[b.status] || '#f3f4f6', color: { draft: '#6b7280', approved: T, in_progress: AMB, published: GRN, tracking: GRN }[b.status] || '#6b7280' }}>{b.status}</span>
+                        <div style={{ fontSize: 11, color: '#4b5563' }}>{new Date(b.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
                   ))}
@@ -1483,7 +1483,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {briefs.length === 0 && !activeBrief && !briefLoading && (
               <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
-                <div style={{ fontSize: 14, color: '#9ca3af' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
+                <div style={{ fontSize: 14, color: '#4b5563' }}>No briefs yet — enter a keyword above to generate your first content brief.</div>
               </div>
             )}
 
@@ -1544,7 +1544,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       { label: '#4-10', count: all.filter(k => k.current_position > 3 && k.current_position <= 10).length, color: T },
                       { label: '#11-20', count: all.filter(k => k.current_position > 10 && k.current_position <= 20).length, color: AMB },
                       { label: '#21-50', count: all.filter(k => k.current_position > 20 && k.current_position <= 50).length, color: R },
-                      { label: '#50+', count: all.filter(k => k.current_position > 50).length, color: '#9ca3af' },
+                      { label: '#50+', count: all.filter(k => k.current_position > 50).length, color: '#4b5563' },
                     ]
                     const total = all.length || 1
                     return (
@@ -1593,7 +1593,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                             {['Keyword', 'Position', 'Change', 'Previous', 'Clicks', 'Impressions', 'Opp Score', 'Category'].map(h => (
-                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -1621,13 +1621,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.clicks || 0}</td>
                                 <td style={{ textAlign: 'center', fontSize: 12, fontFamily: FH }}>{kw.impressions?.toLocaleString() || 0}</td>
                                 <td style={{ textAlign: 'center' }}><ScoreBadge score={kw.opportunity_score} label="" /></td>
-                                <td style={{ textAlign: 'center' }}><span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
+                                <td style={{ textAlign: 'center' }}><span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 12, background: cfg.color + '12', color: cfg.color }}>{cfg.icon}</span></td>
                               </tr>
                             )
                           })}
                         </tbody>
                       </table>
-                      {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>No keywords match this filter</div>}
+                      {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '30px 0', color: '#4b5563', fontSize: 13 }}>No keywords match this filter</div>}
                     </div>
                   )
                 })()}
@@ -1644,7 +1644,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f3f4f6' : 'none' }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontSize: 11, color: '#9ca3af' }}>#{Math.round(kw.previous_position)}</span>
+                              <span style={{ fontSize: 11, color: '#4b5563' }}>#{Math.round(kw.previous_position)}</span>
                               <span style={{ color: GRN }}>→</span>
                               <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>#{Math.round(kw.current_position)}</span>
                               <span style={{ fontSize: 11, fontWeight: 800, color: GRN, background: GRN + '12', padding: '2px 6px', borderRadius: 4 }}>+{kw.change}</span>
@@ -1662,7 +1662,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #f3f4f6' : 'none' }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: BLK, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kw.keyword}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontSize: 11, color: '#9ca3af' }}>#{Math.round(kw.previous_position)}</span>
+                              <span style={{ fontSize: 11, color: '#4b5563' }}>#{Math.round(kw.previous_position)}</span>
                               <span style={{ color: R }}>→</span>
                               <span style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: R }}>#{Math.round(kw.current_position)}</span>
                               <span style={{ fontSize: 11, fontWeight: 800, color: R, background: R + '12', padding: '2px 6px', borderRadius: 4 }}>{kw.change}</span>
@@ -1710,11 +1710,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Tools run badge */}
                 {enrichment.tools_run?.length > 0 && (
                   <div style={{ padding: '12px 20px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', marginBottom: 16 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: T, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, fontFamily: FH }}>
                       {enrichment.tools_run.length} Tools Ran · {enrichment.enriched_at ? new Date(enrichment.enriched_at).toLocaleDateString() : ''}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {enrichment.tools_run.map((t, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #e5e7eb', fontSize: 10, color: '#6b7280' }}>{t}</span>)}
+                      {enrichment.tools_run.map((t, i) => <span key={i} style={{ padding: '3px 10px', borderRadius: 5, background: '#fff', border: '1px solid #e5e7eb', fontSize: 12, color: '#6b7280' }}>{t}</span>)}
                     </div>
                   </div>
                 )}
@@ -1733,8 +1733,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     return (
                       <div key={label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
                         <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color, lineHeight: 1 }}>{grade || '—'}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
-                        {typeof score === 'number' && <div style={{ fontSize: 10, color: '#d1d5db', marginTop: 2 }}>{score}/100</div>}
+                        <div style={{ fontSize: 11, color: '#4b5563', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
+                        {typeof score === 'number' && <div style={{ fontSize: 12, color: '#d1d5db', marginTop: 2 }}>{score}/100</div>}
                       </div>
                     )
                   })}
@@ -1816,11 +1816,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                         <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.mention_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.mention_rate}%</div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Mention Rate</div>
+                        <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Mention Rate</div>
                       </div>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                         <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: enrichment.ai_visibility.positive_rate >= 50 ? GRN : AMB }}>{enrichment.ai_visibility.positive_rate}%</div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Positive Rate</div>
+                        <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Positive Rate</div>
                       </div>
                     </div>
                     {enrichment.ai_visibility.summary && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 12 }}>{enrichment.ai_visibility.summary}</div>}
@@ -1828,7 +1828,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <div>
                         {enrichment.ai_visibility.optimization_tips.map((tip, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, fontSize: 12 }}>
-                            <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: { high: R, medium: AMB, low: GRN }[tip.impact] + '15', color: { high: R, medium: AMB, low: GRN }[tip.impact] }}>{tip.impact}</span>
+                            <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: { high: R, medium: AMB, low: GRN }[tip.impact] + '15', color: { high: R, medium: AMB, low: GRN }[tip.impact] }}>{tip.impact}</span>
                             {tip.tip}
                           </div>
                         ))}
@@ -1852,7 +1852,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ].map(([label, val, color]) => (
                         <div key={label} style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                           <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
-                          <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+                          <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
                         </div>
                       ))}
                     </div>
@@ -1893,9 +1893,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                           {enrichment.content_gap.content_calendar.slice(0, 8).map((item, i) => (
                             <div key={i} style={{ padding: '10px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `2px solid ${T}` }}>
-                              <div style={{ fontSize: 9, fontWeight: 800, color: T, textTransform: 'uppercase' }}>Week {item.week}</div>
+                              <div style={{ fontSize: 11, fontWeight: 800, color: T, textTransform: 'uppercase' }}>Week {item.week}</div>
                               <div style={{ fontSize: 12, fontWeight: 700, color: BLK, marginTop: 4 }}>{item.title}</div>
-                              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{item.type} · "{item.keyword}"</div>
+                              <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>{item.type} · "{item.keyword}"</div>
                             </div>
                           ))}
                         </div>
@@ -1918,7 +1918,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ].map(([l, v, c]) => (
                         <div key={l} style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                           <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: c }}>{v}</div>
-                          <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
+                          <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
                         </div>
                       ))}
                     </div>
@@ -1971,11 +1971,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: T }}>{enrichment.ppc_keywords.target_cpc_range}</div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Target CPC</div>
+                        <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Target CPC</div>
                       </div>
                       <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 900, color: GRN }}>{enrichment.ppc_keywords.monthly_budget_suggestion}</div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>Budget Suggestion</div>
+                        <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>Budget Suggestion</div>
                       </div>
                     </div>
                     {['service_keywords', 'long_tail_keywords', 'negative_keywords'].map(type => {
@@ -1984,9 +1984,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       const colors = { service_keywords: T, long_tail_keywords: AMB, negative_keywords: R }
                       return (
                         <div key={type} style={{ marginBottom: 10 }}>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: colors[type], textTransform: 'uppercase', marginBottom: 6 }}>{type.replace(/_/g, ' ')}</div>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: colors[type], textTransform: 'uppercase', marginBottom: 6 }}>{type.replace(/_/g, ' ')}</div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {kws.slice(0, 12).map((k, i) => <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: colors[type] + '10', color: colors[type], fontSize: 10, fontWeight: 600 }}>{k}</span>)}
+                            {kws.slice(0, 12).map((k, i) => <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: colors[type] + '10', color: colors[type], fontSize: 12, fontWeight: 600 }}>{k}</span>)}
                           </div>
                         </div>
                       )
@@ -2008,13 +2008,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ].map(([l, v, c]) => (
                         <div key={l} style={{ padding: 12, borderRadius: 10, background: '#f9fafb', textAlign: 'center' }}>
                           <div style={{ fontSize: 14, fontWeight: 700, color: c }}>{v}</div>
-                          <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
+                          <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase', marginTop: 4 }}>{l}</div>
                         </div>
                       ))}
                     </div>
                     {enrichment.domain.tech_stack?.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-                        {enrichment.domain.tech_stack.map((t, i) => <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: '#f3f4f6', fontSize: 10, color: '#6b7280' }}>{t}</span>)}
+                        {enrichment.domain.tech_stack.map((t, i) => <span key={i} style={{ padding: '3px 8px', borderRadius: 5, background: '#f3f4f6', fontSize: 12, color: '#6b7280' }}>{t}</span>)}
                       </div>
                     )}
                     {Object.keys(enrichment.domain.social_links || {}).length > 0 && (
@@ -2125,8 +2125,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                   {compLandscape.client_keywords && (
                     <div style={{ padding: '14px 18px', background: T + '08', borderRadius: 10, border: `1px solid ${T}20`, marginBottom: 16 }}>
                       <div style={{ display: 'flex', gap: 20 }}>
-                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Total Keywords</div></div>
-                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Your Domain</div></div>
+                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: T }}>{compLandscape.client_keywords.total || 0}</span><div style={{ fontSize: 12, color: '#6b7280', textTransform: 'uppercase' }}>Total Keywords</div></div>
+                        <div><span style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: BLK }}>{compLandscape.domain}</span><div style={{ fontSize: 12, color: '#6b7280', textTransform: 'uppercase' }}>Your Domain</div></div>
                       </div>
                     </div>
                   )}
@@ -2138,7 +2138,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                             {['Competitor', 'Shared KWs', 'Organic KWs', 'Est. Traffic', 'Est. Traffic Value', 'Relevance', ''].map(h => (
-                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Competitor' ? 'left' : 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -2187,7 +2187,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                             <thead>
                               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                                 {['Keyword', 'Volume', 'CPC', 'Your Pos', 'Their Pos', 'Gap'].map(h => (
-                                  <th key={h} style={{ padding: '6px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                                  <th key={h} style={{ padding: '6px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                                 ))}
                               </tr>
                             </thead>
@@ -2240,17 +2240,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <div style={{ padding: '16px', background: R + '06', borderRadius: 10, border: `1px solid ${R}15` }}>
                                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: R }}>{losing.length}</div>
                                 <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>They Beat You</div>
-                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Keywords where competitor ranks higher</div>
+                                <div style={{ fontSize: 11, color: '#4b5563', marginTop: 4 }}>Keywords where competitor ranks higher</div>
                               </div>
                               <div style={{ padding: '16px', background: AMB + '06', borderRadius: 10, border: `1px solid ${AMB}15` }}>
                                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: AMB }}>{strikingDistance.length}</div>
                                 <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Striking Distance</div>
-                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>You're position 4-10 — push to top 3</div>
+                                <div style={{ fontSize: 11, color: '#4b5563', marginTop: 4 }}>You're position 4-10 — push to top 3</div>
                               </div>
                               <div style={{ padding: '16px', background: T + '06', borderRadius: 10, border: `1px solid ${T}15` }}>
                                 <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: T }}>{gaps.length}</div>
                                 <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginTop: 2 }}>Keyword Gaps</div>
-                                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>They rank, you don't — new opportunities</div>
+                                <div style={{ fontSize: 11, color: '#4b5563', marginTop: 4 }}>They rank, you don't — new opportunities</div>
                               </div>
                             </div>
 
@@ -2262,11 +2262,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                                     <div style={{ flex: 1 }}>
                                       <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
-                                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
+                                      <div style={{ fontSize: 11, color: '#4b5563' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                       <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: R }}>You: #{kw.domain1_position}</span>
-                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>vs</span>
+                                      <span style={{ fontSize: 12, color: '#4b5563' }}>vs</span>
                                       <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.domain2_position}</span>
                                     </div>
                                   </div>
@@ -2282,13 +2282,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
                                     <div style={{ flex: 1 }}>
                                       <div style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</div>
-                                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
+                                      <div style={{ fontSize: 11, color: '#4b5563' }}>{(kw.search_volume || 0).toLocaleString()}/mo · ${(kw.cpc || 0).toFixed(2)} CPC</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                       <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: '#d1d5db' }}>You: —</span>
-                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>vs</span>
+                                      <span style={{ fontSize: 12, color: '#4b5563' }}>vs</span>
                                       <span style={{ fontSize: 12, fontFamily: FH, fontWeight: 800, color: GRN }}>Them: #{kw.position}</span>
-                                      <span style={{ padding: '2px 8px', borderRadius: 12, background: T + '12', fontSize: 10, fontWeight: 700, color: T }}>NEW OPP</span>
+                                      <span style={{ padding: '2px 8px', borderRadius: 12, background: T + '12', fontSize: 12, fontWeight: 700, color: T }}>NEW OPP</span>
                                     </div>
                                   </div>
                                 ))}
@@ -2303,7 +2303,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               )}
 
               {!compLandscape && !compLandscapeLoading && (
-                <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>
+                <div style={{ textAlign: 'center', padding: '30px 0', color: '#4b5563', fontSize: 13 }}>
                   Click "Discover Competitors" to find all domains competing for the same keywords.
                 </div>
               )}
@@ -2333,7 +2333,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
               {/* Quick picks from striking distance */}
               {dashboard?.top_opportunities?.filter(k => k.category === 'striking_distance').length > 0 && !compKeyword && (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6 }}>Striking distance keywords:</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', marginBottom: 6 }}>Striking distance keywords:</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {dashboard.top_opportunities.filter(k => k.category === 'striking_distance').slice(0, 6).map((kw, i) => (
                       <button key={i} onClick={() => setCompKeyword(kw.keyword)} style={{ padding: '4px 10px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: `1px solid ${AMB}30`, background: '#fff', color: AMB, cursor: 'pointer' }}>#{Math.round(kw.sc_position)} {kw.keyword}</button>
@@ -2357,7 +2357,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <thead>
                           <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                             {['Page', 'Words', 'H2s', 'H3s', 'Schema', 'FAQ', 'Images', 'Int. Links', 'DA', 'PA', 'KW in Title', 'KW in H1'].map(h => (
-                              <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
+                              <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', fontFamily: FH, textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -2373,11 +2373,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <td style={{ textAlign: 'center' }}>
                                 <div style={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
                                   {(a.schemas || []).slice(0, 3).map((s, j) => <span key={j} style={{ fontSize: 8, padding: '2px 5px', borderRadius: 3, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>)}
-                                  {(!a.schemas || a.schemas.length === 0) && <span style={{ fontSize: 10, color: R }}>None</span>}
+                                  {(!a.schemas || a.schemas.length === 0) && <span style={{ fontSize: 12, color: R }}>None</span>}
                                 </div>
                               </td>
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: a.has_faq ? GRN : R }}>{a.has_faq ? `✓ ${a.faq_count}` : '✕'}</td>
-                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.image_count} <span style={{ fontSize: 9, color: '#9ca3af' }}>({a.images_with_alt} alt)</span></td>
+                              <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.image_count} <span style={{ fontSize: 11, color: '#4b5563' }}>({a.images_with_alt} alt)</span></td>
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.internal_links}</td>
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 16, fontWeight: 900, color: (a.da || 0) >= 40 ? GRN : (a.da || 0) >= 20 ? AMB : R }}>{a.da || '—'}</td>
                               <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, color: BLK }}>{a.pa || '—'}</td>
@@ -2439,8 +2439,8 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           return (
                             <div key={i} style={{ padding: '12px 16px', borderRadius: 8, background: '#f9fafb', border: '1px solid #e5e7eb', borderLeft: `3px solid ${impColor}`, marginBottom: 6 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: impColor + '15', color: impColor, textTransform: 'uppercase' }}>{a.impact}</span>
-                                <span style={{ fontSize: 9, color: '#9ca3af' }}>{a.effort}</span>
+                                <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: impColor + '15', color: impColor, textTransform: 'uppercase' }}>{a.impact}</span>
+                                <span style={{ fontSize: 11, color: '#4b5563' }}>{a.effort}</span>
                               </div>
                               <div style={{ fontSize: 13, fontWeight: 700, color: BLK }}>{a.action}</div>
                               <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{a.detail}</div>
@@ -2463,14 +2463,14 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           ].map(([l, v]) => (
                             <div key={l} style={{ textAlign: 'center' }}>
                               <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 900, color: R }}>{v}</div>
-                              <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>{l}</div>
+                              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{l}</div>
                             </div>
                           ))}
                         </div>
                         {compAnalysis.gap_analysis.content_targets.required_schema?.length > 0 && (
                           <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                             {compAnalysis.gap_analysis.content_targets.required_schema.map((s, i) => (
-                              <span key={i} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>
+                              <span key={i} style={{ fontSize: 12, padding: '3px 8px', borderRadius: 4, background: T + '12', color: T, fontWeight: 700 }}>{s}</span>
                             ))}
                           </div>
                         )}
@@ -2496,7 +2496,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
 
             {!compAnalysis && !compLoading && (
               <div style={{ ...card, textAlign: 'center', padding: '40px 24px' }}>
-                <div style={{ fontSize: 14, color: '#9ca3af' }}>Enter a keyword above to analyze how competitors' pages are built and find your gaps.</div>
+                <div style={{ fontSize: 14, color: '#4b5563' }}>Enter a keyword above to analyze how competitors' pages are built and find your gaps.</div>
               </div>
             )}
           </>
@@ -2542,7 +2542,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                 {/* Current vs Projected */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                   <div style={card}>
-                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 12 }}>Current State</div>
+                    <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', marginBottom: 12 }}>Current State</div>
                     {[
                       ['Monthly Traffic', roiData.current_state?.estimated_monthly_organic_traffic, T],
                       ['Monthly Leads', roiData.current_state?.estimated_monthly_leads, AMB],
@@ -2580,7 +2580,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     ].map(([l, v, c]) => (
                       <div key={l} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '20px', textAlign: 'center' }}>
                         <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 900, color: c }}>{typeof v === 'number' ? (l.includes('Revenue') || l.includes('Impact') ? `$${v.toLocaleString()}` : v.toLocaleString()) : '—'}</div>
-                        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{l}</div>
+                        <div style={{ fontSize: 12, color: '#4b5563', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{l}</div>
                       </div>
                     ))}
                   </div>
@@ -2594,7 +2594,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <thead>
                         <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                           {['Action', 'Category', 'Traffic Gain', 'Add\'l Clicks', 'Revenue', 'Effort', 'Confidence'].map(h => (
-                            <th key={h} style={{ padding: '8px 10px', fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Action' ? 'left' : 'center' }}>{h}</th>
+                            <th key={h} style={{ padding: '8px 10px', fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Action' ? 'left' : 'center' }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -2602,12 +2602,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         {roiData.improvements.map((imp, i) => (
                           <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                             <td style={{ padding: '10px', fontSize: 13, fontWeight: 600, color: BLK, maxWidth: 250 }}>{imp.action}</td>
-                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: T + '12', color: T }}>{imp.category}</span></td>
+                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: T + '12', color: T }}>{imp.category}</span></td>
                             <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+{imp.traffic_gain_pct}%</td>
                             <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14 }}>+{imp.estimated_additional_clicks}</td>
                             <td style={{ textAlign: 'center', fontFamily: FH, fontSize: 14, fontWeight: 800, color: GRN }}>+${imp.estimated_additional_revenue?.toLocaleString()}</td>
                             <td style={{ textAlign: 'center', fontSize: 11, color: '#6b7280' }}>{imp.effort}</td>
-                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 10, fontWeight: 700, color: { high: GRN, medium: AMB, low: R }[imp.confidence] || '#6b7280' }}>{imp.confidence}</span></td>
+                            <td style={{ textAlign: 'center' }}><span style={{ fontSize: 12, fontWeight: 700, color: { high: GRN, medium: AMB, low: R }[imp.confidence] || '#6b7280' }}>{imp.confidence}</span></td>
                           </tr>
                         ))}
                       </tbody>
@@ -2676,7 +2676,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <div style={{ flex: 1 }}>
                         <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color: BLK }}>{g.name}</div>
                         <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{g.address}</div>
-                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>{g.phone} · {g.primary_category?.replace(/_/g, ' ')}</div>
+                        <div style={{ fontSize: 12, color: '#4b5563', marginTop: 2 }}>{g.phone} · {g.primary_category?.replace(/_/g, ' ')}</div>
                       </div>
                       {g.maps_url && <a href={g.maps_url} target="_blank" rel="noopener noreferrer" style={{ padding: '8px 16px', borderRadius: 8, background: T, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>View on Maps</a>}
                     </div>
@@ -2692,7 +2692,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       ].map(([label, val, color]) => (
                         <div key={label} style={{ padding: '14px 16px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
                           <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
-                          <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
+                          <div style={{ fontSize: 12, color: '#4b5563', marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
                         </div>
                       ))}
                     </div>
@@ -2720,7 +2720,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                       <div style={{ marginTop: 16, padding: '12px 16px', background: '#f0f9ff', borderRadius: 8, border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: 16 }}>
                         <div style={{ textAlign: 'center' }}>
                           <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 900, color: gmb.moz.domain_authority >= 40 ? GRN : gmb.moz.domain_authority >= 20 ? AMB : R }}>{gmb.moz.domain_authority}</div>
-                          <div style={{ fontSize: 9, color: '#6b7280', textTransform: 'uppercase' }}>Domain Authority</div>
+                          <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase' }}>Domain Authority</div>
                         </div>
                         <div style={{ fontSize: 12, color: '#0c4a6e' }}>Spam Score: {gmb.moz.spam_score}% · {gmb.moz.linking_root_domains?.toLocaleString()} linking domains · {gmb.moz.external_backlinks?.toLocaleString()} backlinks</div>
                       </div>
@@ -2765,7 +2765,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 4 }}>{br.reviewer || br.original_author} — {'★'.repeat(br.original_rating || br.rating)}</div>
                               <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{br.response}</div>
                               <button onClick={() => { navigator.clipboard.writeText(br.response); toast.success('Copied!') }}
-                                style={{ marginTop: 6, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer' }}>Copy</button>
+                                style={{ marginTop: 6, padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer' }}>Copy</button>
                             </div>
                           ))}
                         </div>
@@ -2786,12 +2786,12 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               </button>
                             </div>
                             {rev.text && <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{rev.text}</div>}
-                            {rev.time && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 4 }}>{new Date(rev.time).toLocaleDateString()}</div>}
+                            {rev.time && <div style={{ fontSize: 12, color: '#4b5563', marginTop: 4 }}>{new Date(rev.time).toLocaleDateString()}</div>}
 
                             {/* AI Draft Response */}
                             {isActive && reviewDraft && (
                               <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 8, background: T + '06', border: `1px solid ${T}20` }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: T, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>AI-Drafted Response</div>
                                 <textarea value={reviewDraft} onChange={e => setReviewDraft(e.target.value)}
                                   style={{ width: '100%', minHeight: 100, padding: 10, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, lineHeight: 1.6, resize: 'vertical', fontFamily: 'inherit', outline: 'none' }} />
                                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -2845,11 +2845,11 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               {/* Header */}
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                  <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: color + '12', color, textTransform: 'uppercase' }}>{post.type}</span>
-                                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Week {i + 1} · {schedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                  <span style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: color + '12', color, textTransform: 'uppercase' }}>{post.type}</span>
+                                  <span style={{ fontSize: 12, color: '#4b5563' }}>Week {i + 1} · {schedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                                 </div>
                                 <div style={{ display: 'flex', gap: 6 }}>
-                                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: post._approved ? GRN + '12' : '#f3f4f6', color: post._approved ? GRN : '#9ca3af' }}>
+                                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: post._approved ? GRN + '12' : '#f3f4f6', color: post._approved ? GRN : '#9ca3af' }}>
                                     {post._approved ? '✓ Approved' : 'Draft'}
                                   </span>
                                 </div>
@@ -2864,7 +2864,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   ) : (
                                     <div style={{ width: 160, height: 120, borderRadius: 10, background: '#f3f4f6', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
                                       <Eye size={20} color="#d1d5db" />
-                                      <span style={{ fontSize: 10, color: '#9ca3af' }}>No image</span>
+                                      <span style={{ fontSize: 12, color: '#4b5563' }}>No image</span>
                                     </div>
                                   )}
                                   <button onClick={async () => {
@@ -2882,7 +2882,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                         toast.success('Image found!')
                                       } else { toast.error('No images found for this topic') }
                                     } catch { toast.error('Image search failed') }
-                                  }} style={{ width: '100%', marginTop: 6, padding: '5px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>
+                                  }} style={{ width: '100%', marginTop: 6, padding: '5px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#6b7280' }}>
                                     Find Image
                                   </button>
                                 </div>
@@ -2901,13 +2901,13 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                     </div>
                                     <div style={{ display: 'flex', gap: 6 }}>
                                       <button onClick={() => { navigator.clipboard.writeText(post._editText || post.text); toast.success('Post text copied to clipboard!') }}
-                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280' }}>Copy Text</button>
+                                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#6b7280' }}>Copy Text</button>
                                       <button onClick={() => {
                                         const updated = [...gmbPosts]
                                         updated[i] = { ...updated[i], _approved: !updated[i]._approved }
                                         setGmbPosts(updated)
                                         toast.success(updated[i]._approved ? 'Post approved!' : 'Approval removed')
-                                      }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: post._approved ? '#e5e7eb' : GRN, color: post._approved ? '#6b7280' : '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                                      }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: post._approved ? '#e5e7eb' : GRN, color: post._approved ? '#6b7280' : '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                                         {post._approved ? 'Unapprove' : 'Approve'}
                                       </button>
                                       {post._approved && (
@@ -2915,7 +2915,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                           navigator.clipboard.writeText(post._editText || post.text)
                                           window.open('https://business.google.com/posts', '_blank')
                                           toast.success('Text copied — paste it in the GBP post editor')
-                                        }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#4285F4', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                                        }} style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#4285F4', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                                           Post to GBP →
                                         </button>
                                       )}
@@ -2966,7 +2966,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                               ].map(([label, val, color]) => (
                                 <div key={label} style={{ padding: '14px', background: '#f9fafb', borderRadius: 10, textAlign: 'center' }}>
                                   <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color, lineHeight: 1 }}>{val}</div>
-                                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
+                                  <div style={{ fontSize: 12, color: '#4b5563', marginTop: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
                                 </div>
                               ))}
                             </div>
@@ -2993,7 +2993,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                   : `Excellent review velocity at ~${currentPace}/month! You'll reach ${target} reviews in ~${monthsToTarget} months. Keep this pace — each review compounds your ranking signal.`
                                 }
                               </div>
-                              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 6 }}>Source: BrightLocal 2026 — review signals now account for 20% of local pack ranking weight</div>
+                              <div style={{ fontSize: 12, color: '#4b5563', marginTop: 6 }}>Source: BrightLocal 2026 — review signals now account for 20% of local pack ranking weight</div>
                             </div>
                           </>
                         )
@@ -3016,17 +3016,17 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           return (
                             <div key={week} style={{ padding: '16px', borderRadius: 10, background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: `3px solid ${color}` }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <span style={{ fontSize: 10, fontWeight: 800, color, textTransform: 'uppercase' }}>Week {week + 1}</span>
-                                <span style={{ fontSize: 10, color: '#9ca3af' }}>{weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                <span style={{ fontSize: 12, fontWeight: 800, color, textTransform: 'uppercase' }}>Week {week + 1}</span>
+                                <span style={{ fontSize: 12, color: '#4b5563' }}>{weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                               </div>
-                              <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: color + '15', color }}>{post?.type}</span>
+                              <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: color + '15', color }}>{post?.type}</span>
                               <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginTop: 8, maxHeight: 60, overflow: 'hidden' }}>{post?.text?.slice(0, 120)}...</div>
-                              <div style={{ marginTop: 8, fontSize: 10, fontWeight: 700, color }}>{post?.cta}</div>
+                              <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color }}>{post?.cta}</div>
                             </div>
                           )
                         })}
                       </div>
-                      <div style={{ marginTop: 12, fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>
+                      <div style={{ marginTop: 12, fontSize: 11, color: '#4b5563', fontStyle: 'italic' }}>
                         Source: News.opositive.io 2026 — "Post at least once a week. Build GBP posting into a recurring content task."
                       </div>
                     </div>
@@ -3061,24 +3061,24 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                         <>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                             <div>
-                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Keyword</label>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Keyword</label>
                               <input value={gridKw} onChange={e => setGridKw(e.target.value)} placeholder="e.g. water damage restoration"
                                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
                               {keywords.length > 0 && !gridKw && (
                                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
                                   {keywords.filter(k => k.intent === 'transactional' || k.intent === 'commercial' || k.kp_monthly_volume > 100).slice(0, 6).map((k, i) => (
-                                    <button key={i} onClick={() => setGridKw(k.keyword)} style={{ padding: '3px 8px', borderRadius: 12, fontSize: 10, fontWeight: 600, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: T }}>{k.keyword}</button>
+                                    <button key={i} onClick={() => setGridKw(k.keyword)} style={{ padding: '3px 8px', borderRadius: 12, fontSize: 12, fontWeight: 600, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', color: T }}>{k.keyword}</button>
                                   ))}
                                 </div>
                               )}
                             </div>
                             <div>
-                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Business Name</label>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>Business Name</label>
                               <input value={gridBiz} onChange={e => setGridBiz(e.target.value)} placeholder={g.name}
                                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
                             </div>
                             <div style={{ gridColumn: 'span 2' }}>
-                              <label style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>City / Address (we'll find the coordinates)</label>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em' }}>City / Address (we'll find the coordinates)</label>
                               <div style={{ display: 'flex', gap: 8 }}>
                                 <input value={gridCity} onChange={e => setGridCity(e.target.value)}
                                   placeholder="e.g. Fort Lauderdale, FL or 123 Main St, Miami"
@@ -3146,7 +3146,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                                 ].map(([label, val, color]) => (
                                   <div key={label} style={{ textAlign: 'center' }}>
                                     <div style={{ fontFamily: FH, fontSize: 22, fontWeight: 900, color }}>{val}</div>
-                                    <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase' }}>{label}</div>
+                                    <div style={{ fontSize: 12, color: '#4b5563', textTransform: 'uppercase' }}>{label}</div>
                                   </div>
                                 ))}
                               </div>
@@ -3301,9 +3301,9 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{svc.label}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{svc.desc}</div>
+                      <div style={{ fontSize: 11, color: '#4b5563' }}>{svc.desc}</div>
                     </div>
-                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: '#f3f4f6', color: '#9ca3af' }}>Pending</span>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: '#f3f4f6', color: '#4b5563' }}>Pending</span>
                   </div>
                 ))}
               </div>
@@ -3322,7 +3322,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <Search size={14} color="#4285F4" /> Search Console Site
                   </div>
                   {gscSites.length === 0 ? (
-                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No verified GSC sites found for this account</div>
+                    <div style={{ fontSize: 12, color: '#4b5563', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No verified GSC sites found for this account</div>
                   ) : (
                     <>
                       <input value={gscSearch} onChange={e => setGscSearch(e.target.value)} placeholder={`Search ${gscSites.length} sites...`}
@@ -3345,7 +3345,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <BarChart2 size={14} color="#F4B400" /> Google Analytics 4 Property
                   </div>
                   {ga4Properties.length === 0 ? (
-                    <div style={{ fontSize: 12, color: '#9ca3af', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No GA4 properties found for this account</div>
+                    <div style={{ fontSize: 12, color: '#4b5563', padding: '10px 14px', background: '#f9fafb', borderRadius: 8 }}>No GA4 properties found for this account</div>
                   ) : (
                     <>
                       <input value={ga4Search} onChange={e => setGa4Search(e.target.value)} placeholder={`Search ${ga4Properties.length} properties...`}
@@ -3356,7 +3356,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                           return (
                             <div key={p.name} onClick={() => setSelectedGa4(propId)}
                               style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: selectedGa4 === propId ? 700 : 400, background: selectedGa4 === propId ? '#fef3c7' : '#fff', borderBottom: '1px solid #f3f4f6', borderLeft: selectedGa4 === propId ? '3px solid #F4B400' : '3px solid transparent', color: selectedGa4 === propId ? '#d97706' : BLK }}>
-                              {p.displayName} <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 6 }}>{propId} · {p.account}</span>
+                              {p.displayName} <span style={{ fontSize: 12, color: '#4b5563', marginLeft: 6 }}>{propId} · {p.account}</span>
                             </div>
                           )
                         })}
@@ -3506,7 +3506,7 @@ ${(data.briefs||[]).length?`<table><tr><th>Keyword</th><th>URL</th><th>Words</th
                     <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK }}>{report.title}</div>
                   </div>
                   <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5, marginBottom: 8 }}>{report.desc}</div>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: report.color + '10', color: report.color }}>{report.source}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: report.color + '10', color: report.color }}>{report.source}</span>
                 </div>
               ))}
             </div>
@@ -3634,7 +3634,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
         {/* AI Suggested Searches */}
         {suggestedSearches.length > 0 && !query && !result && (
           <div style={{ marginTop: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Suggested searches for {clientName || 'this business'}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Suggested searches for {clientName || 'this business'}</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {suggestedSearches.map((s, i) => (
                 <button key={i} onClick={() => { setQuery(s); }} style={{
@@ -3668,7 +3668,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
                 </div>
                 {result.mentioned_companies?.length > 0 && (
                   <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Companies Cited in AI Overview</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Companies Cited in AI Overview</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {result.mentioned_companies.map((c, i) => (
                         <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{ padding: '4px 12px', borderRadius: 20, background: '#f3f4f6', fontSize: 12, fontWeight: 600, color: BLK, textDecoration: 'none' }}>
@@ -3718,7 +3718,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
               )}
               {result.gap_analysis.entity_map?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Core Entities</div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Core Entities</div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {result.gap_analysis.entity_map.map((e, i) => (
                       <span key={i} style={{ padding: '3px 10px', borderRadius: 20, background: '#f0f9ff', fontSize: 12, fontWeight: 600, color: '#0369a1' }}>{e}</span>
@@ -3752,7 +3752,7 @@ function AEOResearchTab({ clientId, clientName, clientIndustry, keywords: tracke
                 {result.people_also_ask.map((q, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#f9fafb', borderRadius: 8 }}>
                     <span style={{ fontSize: 13, color: '#374151' }}>{q}</span>
-                    <button onClick={() => setQuery(q)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: T }}>Research</button>
+                    <button onClick={() => setQuery(q)} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer', color: T }}>Research</button>
                   </div>
                 ))}
               </div>
@@ -3876,7 +3876,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             <div style={{ fontSize: 12, color: '#6b7280' }}>Keywords with AI Overview</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#9ca3af' }}>{kws.length - aiOverviewKws.length}</div>
+            <div style={{ fontFamily: FH, fontSize: 32, fontWeight: 900, color: '#4b5563' }}>{kws.length - aiOverviewKws.length}</div>
             <div style={{ fontSize: 12, color: '#6b7280' }}>Without AI Overview</div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -3886,7 +3886,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
         </div>
         {aiOverviewKws.length > 0 && (
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 8 }}>Keywords with AI Overview</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', marginBottom: 8 }}>Keywords with AI Overview</div>
             {aiOverviewKws.slice(0, 10).map((kw, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
@@ -3906,7 +3906,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
                 {['Keyword', 'Organic Pos', 'Ad Spend', 'Ad CPC', 'Volume', 'Action'].map(h => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 12, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', fontFamily: FH, textAlign: h === 'Keyword' ? 'left' : 'center' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -3921,7 +3921,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>${((kw.ads_cpc_cents || 0) / 100).toFixed(2)}</td>
                     <td style={{ textAlign: 'center', fontSize: 13, color: '#6b7280' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: pos <= 3 ? R + '12' : AMB + '12', color: pos <= 3 ? R : AMB }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: pos <= 3 ? R + '12' : AMB + '12', color: pos <= 3 ? R : AMB }}>
                         {pos <= 3 ? 'Pause Ad' : pos <= 10 ? 'Reduce Bid' : 'Keep'}
                       </span>
                     </td>
@@ -3943,12 +3943,12 @@ function ReportsTab({ clientId, keywords, dashboard }) {
               <div style={{ width: `${kw.opportunity_score}%`, height: '100%', borderRadius: 3, background: kw.opportunity_score >= 70 ? GRN : kw.opportunity_score >= 40 ? AMB : '#d1d5db' }} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: BLK, minWidth: 200 }}>{kw.keyword}</span>
-            <span style={{ fontSize: 12, color: '#9ca3af', minWidth: 60 }}>#{kw.sc_position || kw.position || '—'}</span>
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
+            <span style={{ fontSize: 12, color: '#4b5563', minWidth: 60 }}>#{kw.sc_position || kw.position || '—'}</span>
+            <span style={{ fontSize: 12, color: '#4b5563' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
           </div>
         ))}
         {kws.filter(k => k.opportunity_score > 0).length === 0 && (
-          <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '20px 0' }}>Run a Quick Scan to generate opportunity scores</div>
+          <div style={{ fontSize: 13, color: '#4b5563', textAlign: 'center', padding: '20px 0' }}>Run a Quick Scan to generate opportunity scores</div>
         )}
       </div>
 
@@ -3995,8 +3995,8 @@ function ReportsTab({ clientId, keywords, dashboard }) {
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
-                <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: AMB + '12', color: AMB }}>Snippet</span>
+                <span style={{ fontSize: 12, color: '#4b5563' }}>{(kw.kp_monthly_volume || 0).toLocaleString()}/mo</span>
+                <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: AMB + '12', color: AMB }}>Snippet</span>
               </div>
             </div>
           ))}
@@ -4059,7 +4059,7 @@ function ReportsTab({ clientId, keywords, dashboard }) {
           {kws.filter(k => k.local_pack).slice(0, 10).map((kw, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: BLK }}>{kw.keyword}</span>
-              <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: GRN + '12', color: GRN }}>Local Pack</span>
+              <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: GRN + '12', color: GRN }}>Local Pack</span>
             </div>
           ))}
         </div>
@@ -4080,8 +4080,8 @@ function ReportsTab({ clientId, keywords, dashboard }) {
                 <div style={{ flex: 1, fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {p.url?.replace(/https?:\/\/[^/]+/, '') || '/'}
                 </div>
-                <span style={{ fontSize: 11, color: '#9ca3af' }}>Avg #{p.avgPos}</span>
-                <span style={{ fontSize: 11, color: '#9ca3af' }}>{p.totalVol.toLocaleString()} vol</span>
+                <span style={{ fontSize: 11, color: '#4b5563' }}>Avg #{p.avgPos}</span>
+                <span style={{ fontSize: 11, color: '#4b5563' }}>{p.totalVol.toLocaleString()} vol</span>
               </div>
             ))}
           </div>
@@ -4160,7 +4160,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
         <div style={{ fontFamily: FH, fontSize: 14, fontWeight: 700, color: BLK, marginBottom: 16 }}>Build Your URL</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
               Landing Page URL *
             </label>
             <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
@@ -4169,7 +4169,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
                 Source * <span style={{ fontWeight: 400, textTransform: 'none' }}>— where traffic comes from</span>
               </label>
               <input value={source} onChange={e => setSource(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
@@ -4177,7 +4177,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
                 Medium * <span style={{ fontWeight: 400, textTransform: 'none' }}>— marketing channel type</span>
               </label>
               <input value={medium} onChange={e => setMedium(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
@@ -4185,7 +4185,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
                 Campaign * <span style={{ fontWeight: 400, textTransform: 'none' }}>— campaign name</span>
               </label>
               <input value={campaign} onChange={e => setCampaign(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
@@ -4193,7 +4193,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
                 Content <span style={{ fontWeight: 400, textTransform: 'none' }}>— ad/link variant (optional)</span>
               </label>
               <input value={content} onChange={e => setContent(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
@@ -4202,7 +4202,7 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
             </div>
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
               Term <span style={{ fontWeight: 400, textTransform: 'none' }}>— paid keyword (optional)</span>
             </label>
             <input value={term} onChange={e => setTerm(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
@@ -4245,10 +4245,10 @@ function UTMBuilderTab({ clientId, clientName, clientWebsite }) {
             <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < history.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, color: BLK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.url}</div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{h.source} / {h.medium} / {h.campaign}</div>
+                <div style={{ fontSize: 11, color: '#4b5563', marginTop: 2 }}>{h.source} / {h.medium} / {h.campaign}</div>
               </div>
               <button onClick={() => { navigator.clipboard.writeText(h.url); toast.success('Copied!') }}
-                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 10, cursor: 'pointer', color: '#6b7280', flexShrink: 0 }}>Copy</button>
+                style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', fontSize: 12, cursor: 'pointer', color: '#6b7280', flexShrink: 0 }}>Copy</button>
             </div>
           ))}
         </div>
